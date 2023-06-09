@@ -10,3 +10,5 @@ The information that are beeing requested are fetched from the API.
 - Help - useful information about the standard for submitting samples including a FAQ section. PLease note that the data are also fetched from the API. The reason 
 for that is that this allows everyone to specifiy the information provided to the user in a single place (e.g. API)
 
+
+Please view the info for each individual route.
