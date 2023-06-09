@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeOutlier = true) {
+export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeOutlier = true, valueName = "values") {
     // remove falsly numbers (includes 0!)
     let sortedFilteredArray = _.sortBy(_.filter(array,Boolean))
     let N = sortedFilteredArray.length
@@ -29,7 +29,7 @@ export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeO
     let idxs = qs.map(q => (filteredN-1) * q)
     const numberOutliers = N - filteredN 
     // return filtered quantiles 
-    const caluclatedQuantiles =  idxs.map(idx => {
+    var caluclatedQuantiles =  idxs.map(idx => {
         let b = Math.floor(idx)
         let r = idx - b 
         if (sortedFilteredArray[b+1]!==undefined) {
@@ -39,5 +39,8 @@ export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeO
             return sortedFilteredArray[b]
         }
     })    
-    return {qs:caluclatedQuantiles, n_removed:numberOutliers, N: sortedFilteredArray.length, qs}
+    if (qs.length === 1) {
+        caluclatedQuantiles = caluclatedQuantiles[0]
+    }
+    return {[valueName]:caluclatedQuantiles, n_removed:numberOutliers, N: sortedFilteredArray.length, quantiles : qs}
 }   

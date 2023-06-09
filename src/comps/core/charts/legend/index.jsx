@@ -45,6 +45,7 @@ export function ChartLegend({
                         //check if legend group opacity should be modified in order to highlight mouseover. 
                         let legendGroupOpacity = !highlightActivate? 1 :highlightActivate && !highlightGrouping ? 0.2 : highlightActivate && highlightGrouping && hightlightElement.elementName !==elementName?0.2 : 1
                         let legendElementSelected = selectedGrouping && selectedElements.elementNames.includes(elementName)
+                        if (legendElementWidth - horizontalMarginBetween * 2 - 25 < 0) return null
                         return (
                             <g
                                 key={`${elementName}-${elemntIndex}`}

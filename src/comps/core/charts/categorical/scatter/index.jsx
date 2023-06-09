@@ -158,8 +158,8 @@ function CategoricalScatter({
 
                 return (
                     <Point
+                        key={`${idx}-scatter-cat`}
                         r = {sizeScale(d[sizeName])}
-                      
                         p={[xScale(xValues[idx]), yScale(d[yaxisName])]}
                         fill={colorScale(d[colorName])}
                         mouseOverParams={{ dataID: "asd" }}

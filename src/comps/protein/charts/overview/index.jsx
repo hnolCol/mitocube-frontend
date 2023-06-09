@@ -3,10 +3,7 @@ import CollapsableAxes from "../../../core/charts/collapsableCharts"
 import _ from "lodash"
 import { getColorPalette } from "../../../core/colors/colorPalette"
 import { useMemo, useState } from "react"
-import { scaleLinear } from "@visx/scale"
 import { getDomainWithBoundaries } from "../../../../services/arrays/boundaries"
-import GroupingTable from "../../../core/base/groupings/table"
-import MetricTable from "../../../core/base/metrictable"
 import { SVG, SVGHeader } from "../../../core/charts/SVG"
 import { Text } from "@visx/text"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
@@ -15,9 +12,8 @@ import { InputGroup } from "@blueprintjs/core"
 import { ParentSize } from "@visx/responsive"
 import { LineChart } from "../../../core/charts/linechart"
 import { ChartLegend } from "../../../core/charts/legend"
-import { Legend, LegendItem, LegendLabel, LegendOrdinal, LegendSize } from "@visx/legend"
+import { LegendItem, LegendLabel, LegendOrdinal, LegendSize } from "@visx/legend"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import useDebounce from "../../../../hooks/useDebounce"
 import ResultChart from "../resultCard/chart"
 
 
@@ -35,13 +31,16 @@ function ProteinOverview({
     const orderedData = orderData ? _.orderBy(data, [colorName, yaxisName, sizeName], ["desc", "desc", "desc"]) : data.slice()
     const defaultColors = getColorPalette()
     const yAxisDomain = getDomainWithBoundaries({ data, keyName: yaxisName })
+    //extract keyNames in data and separate them in numeric and categorical (everything that is not numeric)
     const keyNames = Object.keys(data[0])
     const numericKeys = _.filter(keyNames,keyName => _.isNumber(data[0][keyName]))
-    const categoricalKeys = _.filter(keyNames, keyNames => !numericKeys.includes(keyNames))
+    const categoricalKeys = _.filter(keyNames, keyName => _.isInteger(data[0][keyName]) || !numericKeys.includes(keyName)) //add integers to categorical keys => times for example
+    //extract subplotNames to enable specific download.
     const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
-    // const debouncedSearchString = useDebounce(searchDetails.searchString, 200)
     
-
+    
+    
+    // const debouncedSearchString = useDebounce(searchDetails.searchString, 200
     return (
         <div>
             <div className="flex flex--wrap center-items">

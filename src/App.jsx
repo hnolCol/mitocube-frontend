@@ -28,7 +28,7 @@ import { Button } from "@blueprintjs/core";
 import AxisWithBackground from "./comps/core/charts/axis";
 import ProteinOverview from "./comps/protein/charts/overview";
 import { Link } from "react-router-dom";
-import { getAverageAndErrorByGroups, getQuantilesByGroups } from "./services/arrays/groupby";
+import { getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "./services/arrays/groupby";
 
 
 
@@ -61,8 +61,10 @@ function App() {
     removeTokenFromLocalStorage()
     setAuthenticationStatus(initAuthenticationStatus)
   }
-  console.log(getAverageAndErrorByGroups())
-  console.log(getQuantilesByGroups())
+  const cc = getAverageAndErrorByGroups()
+  const a = getQuantilesByGroups()
+  const d = normalizeDataToGroup()
+  
   return (
     <div className='dashboard__grid no-scroll'>
 

@@ -24,11 +24,20 @@ export function SVGHeader({svgID = undefined, svgFileName = "download.svg", txtF
                     onClick={() => downloadSVG(document.getElementById(svgID), svgFileName)}
                     minimal={true}
                 /> : _.isArray(svgID) ? 
-                <Popover2 content={<Menu >{_.map(svgID.map((sID,svgIdx) => <MenuItem text={sID} onClick={() => downloadSVG(document.getElementById(sID), svgFileName[svgIdx])}/>))}</Menu>}    >
+                <Popover2 content={
+                    <Menu >
+                        {_.map(svgID.map((sID,svgIdx) => 
+                            <MenuItem 
+                                key={sID} 
+                                text={sID} 
+                                onClick={() => downloadSVG(document.getElementById(sID), svgFileName[svgIdx])}/>))}
+                    </Menu>}>
+
                      <Button
                             icon="download"
                             minimal={true}
                             />
+                            
                 </Popover2> : null
                 }
             
