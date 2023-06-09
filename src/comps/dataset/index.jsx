@@ -1,0 +1,27 @@
+import { Outlet, useParams } from "react-router";
+import Tabs from "../core/navigation/tabs";
+
+
+
+function DatasetHeader() {
+    const params = useParams()
+    const dataID = params.dataID
+
+    const urlStart = `/dataset/${dataID}`
+    return (
+        <div>
+            <Tabs tabs={[
+                { text: "Overview", to: urlStart},
+                { text: "Volcano", to: `${urlStart}/volcano`},
+                { text: "Heatmap", to: `${urlStart}/heatmap` },
+                { text: "MitoMap", to: `${urlStart}/mitomap` },
+                { text: "Help", to : `${urlStart}/help`}]} />
+            <div className="intent-margin-top">
+            <Outlet />
+            </div>
+            
+        </div>
+    )
+}
+
+export default DatasetHeader

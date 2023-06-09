@@ -1,0 +1,138 @@
+import { useMemo } from "react"
+import { SVG } from "../SVG"
+import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale"
+import { getColorPalette } from "../../colors/colorPalette"
+import _ from "lodash"
+import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries"
+import PropTypes from "prop-types"
+
+
+SingleCategoricalChart.propTypes = {
+    width: PropTypes.number, 
+    height: PropTypes.number, 
+    data: PropTypes.arrayOf(PropTypes.object),
+    margins: PropTypes.object,
+    yaxisName: PropTypes.string, 
+    colorName: PropTypes.string, 
+    splitName: PropTypes.string, 
+    subplotName: PropTypes.string, 
+    svgID : PropTypes.string
+}
+
+function SingleCategoricalChart({
+    width = 600,
+    height = 300,
+    data = [
+    
+        { y: 5, T: "A", G: "WT", O : "0.5h" },
+        { y: 4, T: "B", G: "WT", O : "0.5h" },
+        { y: 10, T: "C", G: "WT", O: "0.5h" }
+    ],
+    
+    margins = {
+        left: 15,
+        right: 5,
+        bottom: 30,
+        top: 5
+    },
+    yaxisName = "y",
+    colorName = "T",
+    innerColorPadding = 0.1,
+    outerColorPadding = 0.2,
+    svgID = undefined,
+    colorPalette = [],
+    children
+}) {
+    const chartWidth = width - margins.left - margins.right
+    const chartHeight = height - margins.top - margins.bottom
+    const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
+    const splitColorScale = useMemo(() => {
+        // color scale taking care of the position of the color (e.g horizontal)
+        return (
+            scaleBand({
+                range: [0, chartWidth],
+                domain: uniqueColorValues,
+                paddingOuter: outerColorPadding,
+                paddingInner: innerColorPadding,
+                round: true,
+            })
+        )
+    }, [chartWidth])
+
+    const colorScale = useMemo(() => {
+        // scale taking care of the fill color.
+        
+        if (colorName === undefined) return () => undefined //return a function that color the by in the default color if no colorName given
+        
+        var colorRange = []
+        if (colorPalette.length === 0){
+            colorRange = getColorPalette(uniqueColorValues.length)
+        }
+        else if (_.isArray(colorPalette)) {
+            //check if colorPalette is same length? 
+            colorRange = colorPalette.slice()
+        }
+        else if (_.isObject(colorPalette)) {
+            // if an object is provided each colorValue must be in the color Palette
+            if (uniqueColorValues.filter(uniqueColorValue => !_.has(colorPalette, uniqueColorValue)).length !== 0) {
+                colorRange  = getColorPalette(uniqueColorValues.length)
+            }
+            else {
+                colorRange = uniqueColorValues.map(uniqueColorValue => colorPalette[uniqueColorValue])
+            }
+        }
+        else {
+            colorRange = getColorPalette(uniqueColorValues.length)
+        }
+
+        return (
+            scaleOrdinal({
+                domain: uniqueColorValues, 
+                range : colorRange
+            })
+        )
+    })
+
+    const yScale = useMemo(() => {
+        // y scale 
+        const yDomain = getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
+        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
+        return scaleLinear(
+            {
+                domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : 0],
+                range: [margins.top, margins.top + chartHeight],
+                nice: true
+            }
+        )
+    }, [yaxisName, height])
+    
+    //_.range(1) since we should return an array (e.g. subplots) to be consistent with the MultipleCategory chart, 
+    //for a single category only a single subplot is required
+    const categoricalSplit = _.range(1).map(subplotIdx => {
+        return {
+            idx: subplotIdx,
+            colorCategories : uniqueColorValues,
+            data,
+            yaxisName,
+            colorName,
+            margins,
+            splitColorScale,
+            colorScale,
+            yScale,
+            chartHeight,
+            chartWidth,
+            colorBandwidth : splitColorScale.bandwidth(),
+            xcenter: margins.left + chartWidth/2,
+        }
+    })
+
+    return (
+        <SVG {...{width,height,svgID}}>
+            <>{children(categoricalSplit)}</>
+            
+        </SVG>
+    )   
+}
+    
+
+export default SingleCategoricalChart

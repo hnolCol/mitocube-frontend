@@ -1,0 +1,178 @@
+
+/* General */
+.router-link {
+    color:#696969;
+    text-decoration: none;
+}
+
+.router-link:hover {
+    color: #2F5597;
+    text-decoration: none;
+}
+
+
+.font--small {
+    font-size: 0.7rem;
+}
+
+/* Background containers */
+
+.bg--grey {
+    background-color: #efefef;
+}
+
+.bg--lightgrey {
+    background-color: #fafafa;
+}
+
+.no-scroll {
+    overflow: hidden;
+}
+
+/* Spans */
+
+.h0-span {
+    font-weight: bolder;
+    color: #000000
+}
+
+.h1-span {
+    font-weight: bolder;
+    color: #b66476;
+}
+
+.h2-span {
+    font-weight: bolder;
+    color: #2F5597;
+  }
+
+.h3-span {
+    font-weight: bolder;
+    color: #9db58a;
+  }
+
+
+
+/* Margins */
+
+.margin--little {
+    margin : 0.2rem
+}
+
+.margin-top-bottom--little {
+    margin-top: 0.3rem;
+    margin-bottom: 0.3rem;
+}
+.intent-margin-left {
+    margin-left: 2rem;
+}
+.intent-margin-right {
+    margin-right: 2rem;
+}
+.intent-margin-right--little {
+    margin-right: 0.5rem;
+}
+.intent-margin-bottom{
+    margin-bottom: 2rem;
+}
+.intent-margin-top{
+    margin-top: 2rem;
+}
+.intent-margin-top--medium {
+    margin-top: 1.0rem;
+}
+.intent-marign-left-little{
+    margin-left : 0.7rem
+}
+.intent-margin-top--little {
+    margin-top: 0.7rem;
+}
+
+
+/* Containers */
+
+.dialog__container{
+   
+    height : 100%;
+    width : 100%;
+    margin-top : 1rem;
+    margin-bottom: 1.5rem;
+    padding-left: 3rem;
+    padding-right: 3rem;
+    align-items: center;
+}
+
+/* Dashboard grid */ 
+
+.dashboard__grid {
+    display:  grid;
+    height : 100vh;
+    width : 100vw;
+    grid-template-columns: min-content 1fr 3fr 1fr;
+    grid-template-rows: min-content 1fr 3fr 1fr;
+  }
+
+.dashboard__grid__left {
+    grid-column: 1;
+    grid-row-start : 2;
+    grid-row-end : 3;
+  }
+.dashboard__grid__fill-center {
+    grid-column-start: 2;
+    grid-column-end: 5;
+    grid-row-start: 2;
+    grid-row-end: 5;
+    background-color: #efefef;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-y: scroll;
+  }
+
+.dashboard__grid__top-row{
+    grid-row : 1;
+    grid-column-start: 1;
+    grid-column-end: 5;
+  }
+/* Flex containers */
+
+.flex {
+    display:  flex;
+}
+
+.flex--wrap {
+
+    flex-wrap: wrap;
+}
+
+.flex-column {
+    flex-direction: column;
+}
+.flex-start{
+    justify-content: flex-start;
+}
+
+.justify-center{
+    justify-content: center;
+}
+
+.justify-space-between {
+    justify-content: space-between;
+}
+
+.center-items {
+    align-items: center;
+}
+
+.expand-div{
+    height : 100%;
+    width : 100%;
+}
+
+
+
+
+/* shadows */
+.mild-shadow {
+    -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+    filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+}

@@ -1,0 +1,12 @@
+export function getNumberTicks({ space = 400 }) {
+    // returns the number of ticks dependning on the space available 
+    // usefull to have a repsonsive layout for changing width and height in a chart.
+    if (space > 600) return 6
+    
+    if (space > 400) return 5 
+
+    if (space > 300) return 4
+
+    return 3
+
+}

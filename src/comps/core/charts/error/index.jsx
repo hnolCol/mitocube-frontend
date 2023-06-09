@@ -1,0 +1,19 @@
+import { getAxisStrokeColor } from "../../colors/colorPalette"
+
+
+
+function ErrorBar({x = 20, y0 = 20, y1 = 5, width = 5, ...rest}) {
+    
+    const halfWidth = width / 2 
+
+    return (
+        
+        <g>
+            <line x1={x} x2={x} y1={y0} y2={y1} stroke={getAxisStrokeColor()} {...rest}/>
+            <line x1={x - halfWidth} x2={x + halfWidth} y1={y1} y2={y1} stroke={getAxisStrokeColor()} {...rest}/>
+        </g>
+    )
+}
+
+
+export default ErrorBar
