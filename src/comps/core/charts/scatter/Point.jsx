@@ -24,7 +24,7 @@ function Point({idx,p, r = 4, opacity = 0.95,  fill = "red", stroke="#262626", s
             key={`${idx}-pp`} 
             cx={xValue}  //move scale outsite? 
             cy={yValue}  //move scale outsite?  // p[2]?p[0]>0?"#ea563c":"#7894a2":defaultCircleFill
-            onMouseOver={e => mouseOver(e,idx,mouseOverParams)}
+            onMouseOver={_.isFunction(mouseOver)?e => mouseOver(e,idx,mouseOverParams):undefined}
             {...{opacity,fill, r, stroke, strokeWidth}}
             {...circleProps}/>
     )

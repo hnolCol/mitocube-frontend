@@ -14,7 +14,9 @@ import { LineChart } from "../../../core/charts/linechart"
 import { ChartLegend } from "../../../core/charts/legend"
 import { LegendItem, LegendLabel, LegendOrdinal, LegendSize } from "@visx/legend"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import ResultChart from "../resultCard/chart"
+
+import BoxplotWithValue from "../../../core/charts/boxplot/minimal"
+
 
 
 
@@ -26,25 +28,24 @@ function ProteinOverview({
     data = [{ "T": "HEK", "y" : 6, N : "GG"},{ "T": "Macrophages", "y" : 2 , N : "GG"} ,{ "T": "HeLa", "y" : 2 , N : "GG"},{ "T": "HeLa", "y" : 14 , N : "GG"},{ "T": "HeLa" , "y" : 3, N : "PP"}, { "T": "HeLa" , "y" : 4,  N : "PP"}, { "T": "HEK" , "y" : 4,  N : "PP"}],
     subplotBasicWidth = 90,
     orderData = true
-    }) {
+}) {
+    
     const [columnSelection, setColumnSelection] = useState({ colorName, sizeName, yaxisName, subplotName })
     const orderedData = orderData ? _.orderBy(data, [colorName, yaxisName, sizeName], ["desc", "desc", "desc"]) : data.slice()
     const defaultColors = getColorPalette()
     const yAxisDomain = getDomainWithBoundaries({ data, keyName: yaxisName })
-    //extract keyNames in data and separate them in numeric and categorical (everything that is not numeric)
     const keyNames = Object.keys(data[0])
     const numericKeys = _.filter(keyNames,keyName => _.isNumber(data[0][keyName]))
-    const categoricalKeys = _.filter(keyNames, keyName => _.isInteger(data[0][keyName]) || !numericKeys.includes(keyName)) //add integers to categorical keys => times for example
-    //extract subplotNames to enable specific download.
+    const categoricalKeys = _.filter(keyNames, keyNames => !numericKeys.includes(keyNames))
     const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
+    // const debouncedSearchString = useDebounce(searchDetails.searchString, 200)
     
-    
-    
-    // const debouncedSearchString = useDebounce(searchDetails.searchString, 200
+
     return (
         <div>
             <div className="flex flex--wrap center-items">
-            <ResultChart />
+            
+            <BoxplotWithValue/>
             <div> Color : </div>
                 <Combobox
                     items={keyNames}

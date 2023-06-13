@@ -1,0 +1,9 @@
+
+
+.message__container{
+    width : minmax(300px,50vw);
+    height : minmax(200px,50vh);
+    padding-right: 1rem;
+    overflow-y: scroll;
+    overflow-x: hidden;
+}

@@ -5,6 +5,7 @@ import { getColorPalette } from "../../colors/colorPalette"
 import _ from "lodash"
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries"
 import PropTypes from "prop-types"
+import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
 
 
 SingleCategoricalChart.propTypes = {
@@ -43,8 +44,7 @@ function SingleCategoricalChart({
     colorPalette = [],
     children
 }) {
-    const chartWidth = width - margins.left - margins.right
-    const chartHeight = height - margins.top - margins.bottom
+    const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
     const splitColorScale = useMemo(() => {
         // color scale taking care of the position of the color (e.g horizontal)

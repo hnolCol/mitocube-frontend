@@ -20,17 +20,17 @@ export function getAverageAndErrorByGroups(
 }
 
 
-
 export function getQuantilesByGroups(
     data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],
     keyNames = ["Genotype", "T"],
     qs = [0.25,0.5,0.75],
     valueName = "y",
     yaxisName = "y") {
-    
+    // groups data in an aray of object based on keyNames (keys present in the objects in the data array).
+    // then the quantile is calculated using the yaxisName (numeric key name). 
     const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '|'))
     const groups = Object.keys(groupedByKeyNames)
-
+    
     return (groups.map(group => {
         var groupData = groupedByKeyNames[group]
         var yaxisvalues = groupData.map(d => d[yaxisName])

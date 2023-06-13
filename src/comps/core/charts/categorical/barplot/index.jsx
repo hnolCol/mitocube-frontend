@@ -113,7 +113,7 @@ function CategoricalBarplot({
                                         <Group key={`bar-error-${colorCategory}`} left={margins.left}>
                                             <Bar x={xBar} y1={yBar} y0={yScale(0)} fill={color} width={colorBandwidth} />
                                             {/* add the error bar if any errorName (key for object in dat) is given */}
-                                            {errorName !== undefined &&  _.isNumber(data[errorName])?
+                                            {errorName !== undefined &&  _.isNumber(dataForColorCategory[errorName])?
                                                 <ErrorBar
                                                     x={xBar + colorBandwidth / 2}
                                                     y0={yBar} //bar start 

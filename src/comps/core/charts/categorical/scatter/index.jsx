@@ -10,7 +10,7 @@ import { useTooltip, useTooltipInPortal, TooltipWithBounds } from '@visx/tooltip
 import { localPoint } from '@visx/event';
 import GroupingTable from "../../../base/groupings/table";
 import MetricTable from "../../../base/metrictable";
-import SubplotName from "../../annotations/subplotName";
+import SubplotName from "../../annotations/SubplotName";
 
 function CategoricalScatter({
     width = 200,

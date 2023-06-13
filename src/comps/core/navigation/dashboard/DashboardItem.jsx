@@ -36,26 +36,18 @@ export const DashboardItem = ({
     
     return (
 
-        <motion.div 
-            className='flex bg--grey center-items dashboard__item'
-            // onMouseEnter={handleMouseEnter}
-            // onMouseLeave={handleMouseLeave}
-            >
-         
-            <motion.div
-                animate={undefined}
-                className="dashboard__item__tooltip bg--grey flex center-items">
-                    <div>{name}</div> 
-            </motion.div >  
-            <div>
-                <Link to={linkTo}>
+        <div className='flex bg--grey center-items dashboard__item'>
+            <Link to={linkTo}>
+                <div>
+                
                     <BaseDashboardIcon>
                         {getDashBoardIcon(iconName,{...iconProps, fillColor : !isSelected?"#929293":"#466688", isSelected})}
                     </BaseDashboardIcon>
-                </Link>
+                
                 {/* mouseOver?"#047433" : isSelected? "#b93418":"#466688" */}
+                </div>
+            </Link>
             </div>
-            </motion.div>
         
       );
 }

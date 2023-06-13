@@ -11,6 +11,7 @@ import SubmissionItem from "./SubmissionItem"
 import { Combobox } from "../../core/input/Combobox"
 import { Header } from "../../core/base/Header"
 import { useGetSubmissions } from "../../../hooks/queries/submission.hooks"
+import APIError from "../../core/error/APIerror"
 
 
 
@@ -29,22 +30,6 @@ const initExperimental = {
     dataID: "",
     paramsFile: {}
 }
-
-// {onSuccess : (data) => setSubmissions(
-//     prevValues => {
-//     return {
-//          ...prevValues,
-//          submissions:data.submissions, 
-//          states: data.states, 
-//          tagNames : data.tagNames,
-//          searchColumns : data.searchColumns,
-//          submissionSummaryParams : data.submissionSummaryParams,
-//          submissionSatesCounts : getStateCounts(data.states, data.submissions),
-//          submissionsToShow :data.submissions.map(v => v.dataID),
-//          submissionFilter : "None",
-//          searchString : ""
-//         }
-//     })
 
 function SubmissionView({token,logout}) {
 
@@ -152,15 +137,12 @@ function SubmissionView({token,logout}) {
         var filteredDataIDSubmissions  = filteredSubmissions.map(v => v.dataID)
         setSubmissions(prevValues => {
             return { ...prevValues, "submissionsToShow":filteredDataIDSubmissions,"searchString" : searchString}})
-
     }
 
     const openSampleListDialog = (dataID) => {
-
         setSampleListDialog({isOpen:true,dataID:dataID})
     }
 
-    
 
     const handleSubmissionUpdate = (dataID,updated_src) => {
         
@@ -333,7 +315,7 @@ function SubmissionView({token,logout}) {
                         return null
                     }
 
-                }): isLoading || isFetching ? <p>Loading...</p> :  isError ? <p>There has been an error getting submissions from the API.</p>:null}
+                }): isLoading || isFetching ? <p>Loading...</p> :  isError ? <APIError error={error}/> :null}
             </div>
         </div>
     )

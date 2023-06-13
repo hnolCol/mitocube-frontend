@@ -15,6 +15,7 @@ function DatasetHeader() {
                 { text: "Volcano", to: `${urlStart}/volcano`},
                 { text: "Heatmap", to: `${urlStart}/heatmap` },
                 { text: "MitoMap", to: `${urlStart}/mitomap` },
+                { text: "Timeline", to: `${urlStart}/timeline` },
                 { text: "Help", to : `${urlStart}/help`}]} />
             <div className="intent-margin-top">
             <Outlet />

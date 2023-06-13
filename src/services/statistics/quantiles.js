@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeOutlier = true, valueName = "values") {
+export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeOutlier = true, valueName = "values", labels = ["min","q25","median","q75","max"]) {
     // remove falsly numbers (includes 0!)
     let sortedFilteredArray = _.sortBy(_.filter(array,Boolean))
     let N = sortedFilteredArray.length
@@ -42,5 +42,5 @@ export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeO
     if (qs.length === 1) {
         caluclatedQuantiles = caluclatedQuantiles[0]
     }
-    return {[valueName]:caluclatedQuantiles, n_removed:numberOutliers, N: sortedFilteredArray.length, quantiles : qs}
+    return {[valueName]:caluclatedQuantiles, n_removed:numberOutliers, N: sortedFilteredArray.length, quantiles : qs, labels}
 }   

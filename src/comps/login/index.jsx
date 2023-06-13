@@ -4,13 +4,10 @@ import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
 import { useEffect, useState } from "react"
-import { Link } from "react-router-dom"
+import { Link, redirect } from "react-router-dom"
 import { useLoginUser } from "../../hooks/queries/login.hooks"
-import GroupingSelection from "../dataset/volcano/GroupSelection"
-import { LineChart } from "../core/charts/linechart"
-import { SVGHeader } from "../core/charts/SVG"
-import { ParentSize } from "@visx/responsive"
-import { ChartLegend } from "../core/charts/legend"
+import APIError from "../core/error/APIerror"
+
 
 
 Login.propTypes = {
@@ -24,6 +21,8 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
     
     const {
         data,
+        isError: loginIsError,
+        error : loginError,
         isSuccess: loginSuccess,
         isFetching: loginFetching,
         isLoading: loginLoading,
@@ -31,23 +30,21 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
 
     useEffect(() => {
         if (loginSuccess) {
-            console.log("yippie")
-            console.log(data)
+            redirect("/welcome")
         }
     },[data, loginSuccess])
-
 
     const handleInputChange = (e) => {
         //save user input to state
         const inputID = e.target.id
         setUserInput(prevValues => {return {...prevValues, [inputID] : e.target.value}})
     }
-
+    console.log(loginError)
     return (
         <div className="flex center-items justify-center expand-div">
-            <div className="flex flex-column center-items">               
-                
-            <Header text="Welcome. Please login." />
+            <div className="flex flex-column center-items">   
+            
+            <Header text="Welcome. Please login." fontWeight={"5rem"}/>
             <div className="flex justify-space-between" style={{width : "50vw"}}>
                 <InputGroup
                     id = "username"
@@ -68,7 +65,10 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                 <p>No account yet?</p>
                 <Link className="router-link" to="/register">Please create an account.</Link>
                 </div>
-                </div>
+            
+                {loginIsError ? <APIError error={loginError} />:null}
+            </div>
+            
         </div>
     )
 }

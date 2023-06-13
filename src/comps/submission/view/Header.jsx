@@ -82,7 +82,7 @@ function SubmissionHeader({ paramsFile,
                 <div className="margin-top-bottom--little intent-margin-left intent-margin-top--medium">
                 <Header text={paramsFile.Title} fontWeight={mouseOverDataID?550:500} hexColor={mouseOverDataID? "#b66476":"#2F5597"}/>
                 </div>
-                <div className="margin-top-bottom--little intent-margin-right font--small">
+                <div className="margin-top-bottom--little intent-margin-right font-size--small">
                     {getResearchAimFromParamsFile(paramsFile)}
                 </div>
                 <div className="flex flex--wrap margin-top-bottom--little">

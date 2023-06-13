@@ -29,6 +29,8 @@ import AxisWithBackground from "./comps/core/charts/axis";
 import ProteinOverview from "./comps/protein/charts/overview";
 import { Link } from "react-router-dom";
 import { getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "./services/arrays/groupby";
+import Welcome from "./comps/welcome";
+import Timeline from "./comps/dataset/timeline";
 
 
 
@@ -82,9 +84,18 @@ function App() {
           <Login />
         } />
 
+          
+
+
       <Route path="/register" element={
           <h3>Login</h3>  
         } />
+
+      {/* Redirected after successful login */}
+      <Route path="/start" element={
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+              <Welcome />
+          </ProtectedRoute>} />
 
       <Route path="/protein" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
@@ -105,6 +116,7 @@ function App() {
             <Route path="/dataset/:dataID/volcano" element={<h3>Volcano</h3>} />
             <Route path="/dataset/:dataID/heatmap" element={<h3>Heatmap</h3>} />
             <Route path="/dataset/:dataID/mitomap" element={<h3>MitoMap</h3>} />
+            <Route path="/dataset/:dataID/timeline" element={<Timeline />} />
             <Route path="/dataset/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
           </Route>
 

@@ -6,14 +6,19 @@
 }
 
 .router-link:hover {
-    color: #2F5597;
+    color:#696969;
     text-decoration: none;
 }
 
-
-.font--small {
-    font-size: 0.7rem;
+.cursor--default {
+    cursor: default
 }
+
+.div--round {
+    border-radius: 0.3rem;
+}
+
+
 
 /* Background containers */
 
@@ -29,34 +34,84 @@
     overflow: hidden;
 }
 
+/* Font Sizes */
+
+.font-size--smallest {
+    font-size: 0.6rem;
+}
+.font-size--small {
+    font-size: 0.7rem;
+}
+
+.font-size--larger {
+    font-size: 1.2rem;
+}
+
+.font-size--largest {
+    font-size: 2rem;
+}
+
+
+
+
+.font-color--red {
+    color: #b66476;
+}
+
+
+.font-weight--bolder{
+    font-weight: bold;
+}
+
 /* Spans */
 
 .h0-span {
     font-weight: bolder;
-    color: #000000
+    color: #696969
 }
 
 .h1-span {
     font-weight: bolder;
-    color: #b66476;
-}
+    color: #9db58a;
+  }
 
 .h2-span {
     font-weight: bolder;
-    color: #2F5597;
+    color: #466688;
   }
 
 .h3-span {
     font-weight: bolder;
-    color: #9db58a;
-  }
+    color: #b66476;
+}
 
 
+/* Headers */ 
+
+.main-header {
+    font-size: 4rem;
+    color : #466688;
+    letter-spacing: 0.2rem;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+}
+
+
+/* Paddings */
+.padding--medium {
+    padding : 0.5rem
+}
 
 /* Margins */
 
 .margin--little {
     margin : 0.2rem
+}
+
+.margin--medium {
+    margin : 1rem
 }
 
 .margin-top-bottom--little {
@@ -87,6 +142,10 @@
 .intent-margin-top--little {
     margin-top: 0.7rem;
 }
+.intent-margin-bottom--little {
+    margin-bottom: 0.7rem;
+}
+
 
 
 /* Containers */
@@ -133,6 +192,9 @@
     grid-column-start: 1;
     grid-column-end: 5;
   }
+
+
+
 /* Flex containers */
 
 .flex {

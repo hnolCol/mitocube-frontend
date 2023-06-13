@@ -1,15 +1,18 @@
 import _ from "lodash"
+import moment from "moment"
 
-export function addItemToArrayOrRemoveItIfPresent({ array, item}) {
+
+export function getValueFromArrayOfObjectsByKey({ data, keyName }) {
+    return data.map(d => d[keyName])
+}
+
+export function addItemToArrayOrRemoveItIfPresent({ array, item }) {
     // checks if an item in an array, if there it will remove the item from the array
     // otherswise it will add it to the array.
     const itemInArray = array.includes(item)
-    if (!itemInArray) return _.concat(array,[item])
+    if (!itemInArray) return _.concat(array, [item])
     return array.filter(i => i !== item)
 }
-
-
-
 
 export function arrayOfObjectsToString(data = [{}],keyNames = [], cellSplit = "\t", lineSplit = "\n"){
 
@@ -19,4 +22,16 @@ export function arrayOfObjectsToString(data = [{}],keyNames = [], cellSplit = "\
         )
     })
     return [keyNames.join(cellSplit),csvDataFromArray.join(lineSplit)].join(lineSplit)
+}
+
+
+// Date formatting 
+
+export function getAndTransformDatesFromArrayOfObjectsByKey({ data, keyName, dateFormat = "YYYYMMDD" }) {
+    // returns any array containing the transformed string dates "asDate" and "asMoment" (used package)
+    return data.map(d => {
+        var stringAsMoment = moment(d[keyName], dateFormat)
+        var formattedDate =  stringAsMoment._d
+        return { ...d, asDate: formattedDate, asMoment : stringAsMoment}
+    })
 }
