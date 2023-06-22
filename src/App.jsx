@@ -31,6 +31,9 @@ import { Link } from "react-router-dom";
 import { getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "./services/arrays/groupby";
 import Welcome from "./comps/welcome";
 import Timeline from "./comps/dataset/timeline";
+import Register from "./comps/register";
+import PerformanceOverview from "./comps/performance/overview";
+import SubmissionStatistics from "./comps/submission/statistics";
 
 
 
@@ -88,7 +91,7 @@ function App() {
 
 
       <Route path="/register" element={
-          <h3>Login</h3>  
+          <Register />
         } />
 
       {/* Redirected after successful login */}
@@ -136,12 +139,13 @@ function App() {
               <PerformanceHeader />
             </ProtectedRoute>}>
             
-            <Route index element={<h3>Performance</h3>}/>
+            <Route index element={<PerformanceOverview />} />
+            <Route path="/performance/overview" element={<PerformanceOverview />} />
             <Route path="/performance/runs" element={
               <div>
                
               </div>} />
-            <Route path="/performance/overview" element={<h3>Overview</h3>} />
+            
             <Route path="/performance/help" element={<h3>Help</h3>}/>
         </Route>
       
@@ -159,7 +163,7 @@ function App() {
             <Route path="/submission/help" element={
               <SubmissionHelp authStatus={authenticationStatus} />} />
             <Route path="/submission/statistics" element={
-              <h3>Stats</h3>} />
+              <SubmissionStatistics/>} />
       </Route>
     
       <Route path="/admin" element={

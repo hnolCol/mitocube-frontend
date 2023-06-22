@@ -1,10 +1,11 @@
 import { useMemo } from "react"
-import { SVG } from "../SVG"
+import { SVG } from "../SVGHeader"
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale"
 import { getColorPalette } from "../../colors/colorPalette"
 import _ from "lodash"
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries"
 import PropTypes from "prop-types"
+import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
 
 
 MultiCategoricalChart.propTypes = {
@@ -13,6 +14,7 @@ MultiCategoricalChart.propTypes = {
     data: PropTypes.arrayOf(PropTypes.object),
     margins: PropTypes.object,
     yaxisName: PropTypes.string, 
+    errorName : PropTypes.string,
     colorName: PropTypes.string, 
     splitName: PropTypes.string, 
     subplotName: PropTypes.string, 
@@ -55,7 +57,7 @@ function MultiCategoricalChart({
         top: 5
     },
     yaxisName = "y",
-    colorName = "T",
+    colorName,
     splitName, 
     subplotName,
     innerSubplotPadding = 0.05,
@@ -63,17 +65,18 @@ function MultiCategoricalChart({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
+    svgRef = undefined,
     colorPalette = [],
+    minMaxYDomain = undefined,
     children
 }) {
-
-    const chartWidth = width - margins.left - margins.right
-    const chartHeight = height - margins.top - margins.bottom
+    const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
+    const colorCategoryFound = _.has(data[0], colorName)
     const subplotCategoryFound = _.has(data[0], subplotName)
-    const splitCategoryFound = _.has(data[0],splitName)
+    const splitCategoryFound = _.has(data[0], splitName)
     const subplotCategories =subplotCategoryFound?_.uniqBy(data, subplotName).map(d => d[subplotName]):[""]
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
-    const splitCategories = splitCategoryFound?_.uniqBy(data, splitName).map(d => d[splitName]):uniqueColorValues.slice()
+    const splitCategories = splitCategoryFound?_.uniqBy(data, splitName).map(d => d[splitName]):[]
     
     const subplotScale = useMemo(() => {
         //scale for the subplot
@@ -86,11 +89,14 @@ function MultiCategoricalChart({
                 round: true,
             })
         )
-    }, [width])
+    }, [width, splitName, subplotName])
 
 
     const splitScale = useMemo(() => {
         // split scale (distance on x axis - affects the x-axis)
+        console.log(splitName)
+        // if (splitName == undefined && subplotName !== undefined) return subplotScale.bandwidth() / 2
+        console.log(splitCategories)
         return (
             scaleBand({
                 range: [0, subplotScale.bandwidth()],
@@ -100,26 +106,25 @@ function MultiCategoricalChart({
                 round: true,
             })
         )
-    }, [subplotScale])
+    }, [subplotScale, splitName])
     
 
     const splitColorScale = useMemo(() => {
         // color scale taking care of the position of the color (e.g horizontal)
         return (
             scaleBand({
-                range: [0, splitScale.bandwidth()],
+                range: [0, splitCategoryFound ? splitScale.bandwidth() : chartWidth],
                 domain: uniqueColorValues,
                 paddingOuter: 0,
                 paddingInner: innerColorPadding,
                 round: true,
             })
         )
-    }, [splitScale])
+    }, [splitScale, splitName, colorName, splitCategoryFound])
 
     const colorScale = useMemo(() => {
         // scale taking care of the fill color.
-        
-        if (colorName === undefined) return () => undefined //return a function that color the by in the default color if no colorName given
+        if (!colorCategoryFound) return () => getColorPalette(1)[0] //return a function that color the by in the default color if no colorName given
         
         var colorRange = []
         if (colorPalette === undefined){
@@ -148,12 +153,13 @@ function MultiCategoricalChart({
                 range : colorRange
             })
         )
-    })
+    }, [colorName, uniqueColorValues])
 
     const yScale = useMemo(() => {
         // y scale 
-        const yDomain = getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
-        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
+        const preDefinedYDomain = minMaxYDomain!==undefined && _.isObject(minMaxYDomain) && _.has(minMaxYDomain,"min") && _.has(minMaxYDomain,"max")
+        const yDomain = preDefinedYDomain ? {} : getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
+        const yDomainWithMargin = preDefinedYDomain ? minMaxYDomain : addMarginToBoundaries({ domain: yDomain})
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : 0],
@@ -161,9 +167,10 @@ function MultiCategoricalChart({
                 nice: true
             }
         )
-    }, [yaxisName, height])
+    }, [yaxisName, chartHeight, minMaxYDomain])
 
     const categoricalSplit = subplotCategories.map((cat, idx) => {
+        console.log("do we make it here?")
         return {
             chartHeight,
             chartWidth,
@@ -181,6 +188,7 @@ function MultiCategoricalChart({
             splitColorScale,
             colorScale,
             subplotData: subplotCategoryFound?_.filter(data, (d) => d[subplotName] === cat):data,
+            colorCategoryFound,
             subplotCategoryFound,
             splitCategoryFound, 
             bandwidth: subplotScale.bandwidth(),
@@ -191,7 +199,7 @@ function MultiCategoricalChart({
     })
 
     return (
-        <SVG {...{width,height,svgID}}>
+        <SVG {...{width,height,svgID,svgRef}}>
             <>{children(categoricalSplit)}</>
         </SVG>
     )   

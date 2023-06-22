@@ -9,6 +9,9 @@ export function getColorPalette(n) {
     return STD_CHART_COLOR_PALETTE.slice(0,n)
 }
 
+export function getRedBlueColorScale() {
+    return ["#466688","#ffffff","#a82331"]
+}
 
 export function getAxisStrokeColor(){
     return "#000000"

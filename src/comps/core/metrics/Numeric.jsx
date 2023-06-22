@@ -14,7 +14,7 @@ function Numeric({ metric = 400, label = "Identified Proteins", roundValue = tru
     return (
        
         <motion.div
-            className="flex flex-column center-items bg--lightgrey cursor--default padding--medium div--round font-size--larger margin--little" 
+            className="flex flex-column center-items bg--lightgrey cursor--default padding--medium div--round font-size--large margin--little" 
             whileHover={{scale : 1.05}}>
             <div>
                 <span className={spanClassName}>

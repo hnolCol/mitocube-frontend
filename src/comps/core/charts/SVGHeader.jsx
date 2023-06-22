@@ -41,11 +41,27 @@ export function SVGHeader({svgID = undefined, svgFileName = "download.svg", txtF
                 </Popover2> : null
                 }
             
-            <Button
+
+            {_.isArray(chartData) ? <Button
                 icon="database"
                 onClick={() => downloadTxtFile(arrayOfObjectsToTabDel(chartData), txtFileName)}
                 minimal={true}
-            />
+            /> : _.isObject(chartData) ?
+                    <Popover2 minimal={true} content={
+                        <Menu>{
+                            Object.keys(chartData).map(dataName =>
+                                <MenuItem
+                                    text={dataName}
+                                    key={dataName}
+                                    onClick={() => downloadTxtFile(arrayOfObjectsToTabDel(chartData[dataName]), `${dataName}-chartData.txt`)} />
+                            )}
+                    </Menu>}>
+                    <Button icon="database" minimal={true}/>
+                </Popover2>
+            : null}    
+
+
+            
             <div className="flex center-items">
                 <Checkbox label="Grid" style={{ margin: 0 }} checked={showGrid} onChange={_.isFunction(onShowGridChange)?onShowGridChange:undefined}/>
             </div>

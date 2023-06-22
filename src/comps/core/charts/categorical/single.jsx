@@ -1,5 +1,5 @@
 import { useMemo } from "react"
-import { SVG } from "../SVG"
+import { SVG } from "../SVGHeader"
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale"
 import { getColorPalette } from "../../colors/colorPalette"
 import _ from "lodash"
@@ -41,7 +41,9 @@ function SingleCategoricalChart({
     innerColorPadding = 0.1,
     outerColorPadding = 0.2,
     svgID = undefined,
+    svgRef =undefined,
     colorPalette = [],
+    minMaxYDomain = undefined,
     children
 }) {
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
@@ -57,7 +59,7 @@ function SingleCategoricalChart({
                 round: true,
             })
         )
-    }, [chartWidth])
+    }, [chartWidth, colorName])
 
     const colorScale = useMemo(() => {
         // scale taking care of the fill color.
@@ -91,12 +93,14 @@ function SingleCategoricalChart({
                 range : colorRange
             })
         )
-    })
+    }, [colorName, uniqueColorValues])
 
     const yScale = useMemo(() => {
         // y scale 
-        const yDomain = getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
-        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
+        const preDefinedYDomain = minMaxYDomain!==undefined && _.isObject(minMaxYDomain) && _.has(minMaxYDomain,"min") && _.has(minMaxYDomain,"max")
+        const yDomain = preDefinedYDomain ? {} : getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
+        const yDomainWithMargin = preDefinedYDomain ? minMaxYDomain : addMarginToBoundaries({ domain: yDomain })
+        
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : 0],
@@ -104,7 +108,7 @@ function SingleCategoricalChart({
                 nice: true
             }
         )
-    }, [yaxisName, height])
+    }, [yaxisName, chartHeight, minMaxYDomain])
     
     //_.range(1) since we should return an array (e.g. subplots) to be consistent with the MultipleCategory chart, 
     //for a single category only a single subplot is required
@@ -127,7 +131,7 @@ function SingleCategoricalChart({
     })
 
     return (
-        <SVG {...{width,height,svgID}}>
+        <SVG {...{width,height,svgID,svgRef}}>
             <>{children(categoricalSplit)}</>
             
         </SVG>

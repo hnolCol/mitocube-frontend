@@ -2,15 +2,16 @@ import _ from "lodash"
 
 
 
-export function getDomainWithBoundaries({ data, keyName, frac }) {
+export function getDomainWithBoundaries({ data, keyName, frac = 0.05}) {
     const domain = getBoundariesFromArrayOfObjects({ data , keyName })
     const domainWithMargin = addMarginToBoundaries({ domain: domain, frac })
     return domainWithMargin
             
 }
 
-export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], keyName = "x" }) {
+export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], keyName = "x"}) {
     
+
     if (_.isArray(keyName)) {
         return (
             {

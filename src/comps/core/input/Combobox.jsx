@@ -2,14 +2,17 @@ import { Button, MenuItem } from "@blueprintjs/core";
 import { Select2 } from "@blueprintjs/select";
 import { isFunction } from "lodash";
 import PropTypes from "prop-types"
+import { allKeysInObject } from "../../../services/objects/checks";
+import _ from "lodash"
 
 Combobox.propTypes = {
-    items: PropTypes.array,
+    items: PropTypes.array.isRequired,
     buttonText: PropTypes.string, 
     fill : PropTypes.bool,
-    callback: PropTypes.func,
+    callback: PropTypes.func.isRequired,
     disabled: PropTypes.bool,
-    buttonProps : PropTypes.object 
+    buttonProps: PropTypes.object,
+    callback : PropTypes.func.isRequired
     
 }
 
@@ -25,13 +28,19 @@ export function Combobox(
         },
         fill = false}) {
 
+    const itemsAsObject = _.isObject(items[0])
+    
+    const itemsValid = itemsAsObject?_.filter(items, item => allKeysInObject({object : item, keyNames : ["text", "label"]}) ): undefined
+    
     const renderItems = (item, { handleClick, modifiers, query }) => {
         //render items as a Menu item. 
-        const selected = placeholder === item 
+
+        const selected = itemsAsObject ? placeholder === item.text: placeholder === item
         return(
             <MenuItem 
-                key = {item} 
-                text={item} 
+                key = {itemsAsObject ?item.text : item} 
+                text={itemsAsObject ? item.text : item} 
+                label = {itemsAsObject ? item.label : ""}
                 onClick={handleClick} 
                 intent={selected? "primary" : "none"} 
                 icon={selected? "small-tick" : "none"}/>
@@ -50,7 +59,7 @@ export function Combobox(
         <Select2
             fill={fill}
             filterable={false}
-            items={items}
+            items={itemsAsObject ?  itemsValid : items}
             itemRenderer={renderItems}
             onItemSelect={onItemSelection}
             disabled={disabled}>

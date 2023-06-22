@@ -1,5 +1,11 @@
 import _ from "lodash"
 
+
+export function getMedian(array) {
+    // returns the median of the array.
+    return getQuantiles(array,[0.5],1.5,false).values
+}
+
 export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeOutlier = true, valueName = "values", labels = ["min","q25","median","q75","max"]) {
     // remove falsly numbers (includes 0!)
     let sortedFilteredArray = _.sortBy(_.filter(array,Boolean))

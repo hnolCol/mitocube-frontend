@@ -1,6 +1,7 @@
 import { useGetSubmissionsID } from "../../../hooks/queries/submission.hooks"
 import PropTypes from "prop-types"
 import { Header } from "../../core/base/Header"
+import APIError from "../../core/error/APIerror"
 
 
 function NewSubmission({
@@ -8,11 +9,10 @@ function NewSubmission({
         }
         ) {
 
-    const { data : submissionID, isLoading : submissionIDLoading, error} = useGetSubmissionsID()
-    console.log(submissionID)
-    console.log(error)
+    const { data : submissionID, isLoading : submissionIDLoading, error : submissionAPIError, isError : submissionIsError} = useGetSubmissionsID()
 
-    if (submissionID === undefined) return <div>Loading...</div>
+    if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
+    if (submissionIDLoading) return <div>Loading...</div>
 
     return (
             

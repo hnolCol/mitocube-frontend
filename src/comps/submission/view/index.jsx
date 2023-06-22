@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, MenuDivider, Alert, InputGroup } from "@blueprintjs/core"
 import { Tooltip2 } from "@blueprintjs/popover2"
 import PropTypes from "prop-types"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import CreateSampleList from "./dialogs/CreateSampleList"
 import SubmissionOverviewDialog from "./dialogs/SubmissionOverview"
 import GroupingNameDialog from "./dialogs/GroupingRename"
@@ -12,6 +12,7 @@ import { Combobox } from "../../core/input/Combobox"
 import { Header } from "../../core/base/Header"
 import { useGetSubmissions } from "../../../hooks/queries/submission.hooks"
 import APIError from "../../core/error/APIerror"
+import Numeric from "../../core/metrics/Numeric"
 
 
 
@@ -55,13 +56,10 @@ function SubmissionView({token,logout}) {
     const { isSuccess, isLoading, isFetching, isError, error, data } = useGetSubmissions()
 
     const openRenameGroupingDialog = (dataID,paramsFile) => {
-        
         setGroupingRenameDetails({isOpen:true,dataID:dataID,paramsFile:paramsFile,groupingNames:paramsFile.groupingNames})
-
     }
 
     const openMethodEditingDialog = (dataID,paramsFile) => {
-        
         setExperimentalDetails({isOpen:true,dataID:dataID,paramsFile:paramsFile})
         setUpdatedState(dataID,true)
     }
@@ -193,12 +191,13 @@ function SubmissionView({token,logout}) {
     }
 
     const openSubmissionOverviewDialog = (dataID, paramsFile) => {
+        // openns a dialog to view the submission
         setSubissionOverviewDialog(prevValues => {return {...prevValues,isOpen : true, dataID : dataID, paramsFile: paramsFile}})
     }
     
     
     return (
-        <div>
+        <div className="no-scroll">
             
             <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
             <SubmissionOverviewDialog
@@ -218,10 +217,20 @@ function SubmissionView({token,logout}) {
                 {...groupingRenameDetails}
                 closeDialog = {closeRenameGroupingDialog} 
                 changeGroupingNames = {handleRenameGrouping}/>
+            <div className="flex center-items justify-end">
             
-            <Header text={"Submissions"}/>
-            <div style={{ height: "60px" }}>
-            
+                {_.isObject(data) && _.isArray(data.states) ? data.states.map((state,stateIdx) => {
+                const stateCounts = getStateCounts(data.states,data.submissions)
+                return(
+                    <div key={`${state}`}>
+                        <Numeric metric={stateCounts[state]} label={state} spanClassName={`h${stateIdx}-span`} />
+                    </div>
+                )})
+                :null}
+        
+
+            </div>
+            <div>
             <InputGroup 
                         leftIcon={"filter"} 
                         onChange={handleSearchInput}
@@ -239,15 +248,8 @@ function SubmissionView({token,logout}) {
                         />
                 
                 <div className="flex">
-                <div className="flex">
-                    {submissionDetails.states.map(state => {
-                        return(
-                            <div key={`${state}`} style={{margin:"0.3rem"}}>
-                            <p>{state} : {submissionDetails.submissionSatesCounts[state]}</p>
-                            </div>
-                        )})
-                        }
-                </div>
+
+                
                     <ButtonGroup>
                         <Tooltip2 content={
                                 <div>

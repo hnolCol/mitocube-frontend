@@ -1,6 +1,6 @@
 import { scaleLinear, scaleOrdinal} from "@visx/scale";
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects, getDomainWithBoundaries } from "../../../../../services/arrays/boundaries";
-import { SVG } from "../../SVG";
+import { SVG } from "../../SVGHeader";
 import { useMemo } from "react";
 import _ from "lodash"
 import Point from "../../scatter/Point";

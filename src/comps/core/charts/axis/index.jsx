@@ -24,6 +24,11 @@ function AxisWithBackground({
     const topStart = topBottom===undefined?margins.top + chartHeight: topBottom
     return (
         <g>
+            <AxisBackground
+                x={leftStart}
+                y={margins.top}
+                height={chartHeight}
+                width={chartWidth} />   
             <AxisLeft
                 label={leftLabel} //label only first axis
                 labelOffset={20}
@@ -47,11 +52,7 @@ function AxisWithBackground({
                 stroke={getAxisStrokeColor()}
                 tickLength={3} />
 
-            <AxisBackground
-                x={leftStart}
-                y={margins.top}
-                height={chartHeight}
-                width={chartWidth} />   
+            
         </g>
     )
 }

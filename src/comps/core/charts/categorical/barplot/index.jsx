@@ -12,12 +12,22 @@ import SingleCategoricalChart from "../single"
 import AxisBackground from "../../background"
 import AxisWithBackground from "../../axis"
 import SubplotName from "../../annotations/subplotName"
+import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
+import { localPoint } from "@visx/event"
+import PropTypes from "prop-types"
 
 
 function getNamesFromCategories({ categoricalNames, data, labels = ["colorName","splitName","subplotName"] }) {
 
     const checkedNames = categoricalNames.filter(catName => _.has(data[0], catName))
     return Object.fromEntries(checkedNames.map((checkedName,idx) => [labels[idx],checkedName]))
+}
+
+
+CategoricalBarplot.propTypes = {
+    colorName: PropTypes.string,
+    errorName : PropTypes.string
+    
 }
 
 function CategoricalBarplot({
@@ -49,25 +59,62 @@ function CategoricalBarplot({
         top: 5
     },
     yaxisName = "y",
-    categoricalNames = ["O","T","G"],
+    colorName,
+    splitName,
+    subplotName,
+  //  categoricalNames = ["O","T","G"],
     errorName = "e",
+    tooltipNames = ["T","G"],
     colorPalette = [],
+    minMaxYDomain = undefined,
     innerSubplotPadding = 0.05,
     outerSubplotPadding = 0.1,
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
-    svgID = undefined}) {
+    svgID = undefined,
+    }) {
     
-    const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
-    
+   // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
-
+    console.log(colorName, splitName, subplotName,_.isString(colorName))
+    console.log(colorName && splitName === undefined && subplotName === undefined)
+    const {
+        tooltipData,
+        tooltipLeft,
+        tooltipTop,
+        tooltipOpen,
+        showTooltip,
+        hideTooltip,
+    } = useTooltip();
+    
+    const { containerRef, TooltipInPortal } = useTooltipInPortal({
+        // use TooltipWithBounds
+        detectBounds: true,
+        // when tooltip containers are scrolled, this will correctly update the Tooltip position
+        scroll: true,
+      })
+    
+    const getTooltipData = (value, errorValue, barData) => {
+        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => [tooltipName, barData[tooltipName]]).filter(v => v[1] !== undefined))
+        return {[yaxisName] : _.round(value,2), error : _.round(errorValue,2), ...tooltipInfo}
+    }
+    
+    const handleMouseOver = (event, bartooltipData) => {
+        
+        const coords = localPoint(event.target.ownerSVGElement, event);
+        showTooltip({
+          tooltipLeft: coords.x,
+          tooltipTop: coords.y,
+          tooltipData: bartooltipData
+        });
+    };
+    
     return (
         <div className="flex flex-column">
-            <ChartLegend groupings={{ [colorName]: legendColors }} title={colorName} />
-            {colorName && splitName === undefined ?
+            {colorName !== undefined ? <ChartLegend groupings={{ [colorName]: legendColors }} title={colorName} /> : null}
+            {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
                     width,
@@ -76,7 +123,9 @@ function CategoricalBarplot({
                     margins,
                     yaxisName,
                     colorName,
-                    colorPalette : legendColors
+                    minMaxYDomain,
+                    colorPalette: legendColors,
+                    svgRef : containerRef
                     }}>
                     {(categoricalData) => categoricalData.map(({
                         idx,
@@ -92,7 +141,7 @@ function CategoricalBarplot({
                         chartWidth,
                         colorBandwidth,
                     }, didx) => {
-
+                        
                         return (
                             <g key={`singleCat-bar-${idx}`}>
                                 <AxisWithBackground
@@ -109,15 +158,20 @@ function CategoricalBarplot({
                                     const dataForColorCategory = data.filter(d => d[colorName] === colorCategory)[0]
                                     const yValue = dataForColorCategory[yaxisName]
                                     const yBar = yScale(yValue)
+                                    const errorValue = dataForColorCategory[errorName]
+                                   
                                     return (
-                                        <Group key={`bar-error-${colorCategory}`} left={margins.left}>
+                                        <Group key={`bar-error-${colorCategory}`} left={margins.left}
+                                            onMouseEnter={e => handleMouseOver(e, getTooltipData(yValue, errorValue, dataForColorCategory))}
+                                            onMouseLeave={hideTooltip}>
                                             <Bar x={xBar} y1={yBar} y0={yScale(0)} fill={color} width={colorBandwidth} />
                                             {/* add the error bar if any errorName (key for object in dat) is given */}
-                                            {errorName !== undefined &&  _.isNumber(dataForColorCategory[errorName])?
+                                            
+                                            {errorName !== undefined && !_.isNaN(errorValue) && _.isNumber(errorValue)?
                                                 <ErrorBar
                                                     x={xBar + colorBandwidth / 2}
                                                     y0={yBar} //bar start 
-                                                    y1={yValue > 0 ? yScale(yValue + dataForColorCategory[errorName]) : yScale(yValue - dataForColorCategory[errorName])}
+                                                    y1={yValue > 0 ? yScale(yValue + errorValue) : yScale(yValue - errorValue)}
                                                     width={colorBandwidth*0.5} /> : null}
                                     </Group>
                                     )
@@ -126,10 +180,8 @@ function CategoricalBarplot({
                         )
                 })}
 
-                </SingleCategoricalChart>:null}
-            
-            
-        {colorName && splitName ?
+                </SingleCategoricalChart>:
+        
             <MultiCategoricalChart
                 {...{
                     data,
@@ -145,7 +197,9 @@ function CategoricalBarplot({
                     innerSplitPadding,
                     innerSubplotPadding,
                     outerSubplotPadding,
-                    colorPalette : legendColors
+                    colorPalette: legendColors,
+                    minMaxYDomain,
+                    svgRef : containerRef
                 }}>
             {(categoricalData) => categoricalData.map((
                 {
@@ -165,10 +219,15 @@ function CategoricalBarplot({
                     margins,
                     xcenter,
                     subplotCategoryFound,
+                    colorCategoryFound,
                     splitCategoryFound}, didx) => {
-                    
-                  const subplotStart = subplotScale(subplotCategory)
-          
+                        console.log(didx,"asd")
+                const subplotStart = subplotScale(subplotCategory)
+                const subplotWidth = subplotScale.bandwidth()
+                console.log(subplotStart)
+                console.log(splitCategories)
+                console.log(subplotData)
+                console.log(subplotScale.bandwidth())
                   return(
                         <g key={`${subplotCategory}-subplot`}>
                         
@@ -182,7 +241,7 @@ function CategoricalBarplot({
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
                                 bottomLabel={categoricalData.length === 1?splitName:""}
                                 leftLabel={didx === 0 ? yaxisName : ""}
-                                {...{ chartHeight, chartWidth :  subplotScale.bandwidth()}} />
+                                {...{ chartHeight, chartWidth :  subplotWidth}} />
                         
                           {subplotCategoryFound ?
                               <Text x={xcenter}
@@ -194,11 +253,20 @@ function CategoricalBarplot({
                             y={margins.top + chartHeight + 20}
                             verticalAnchor="start"
                             textAnchor="middle">{splitName}</Text>
-                           
-                        {splitCategories.map((splitCategory, splitIdx) => {
                         
+                         {/* If there is just a split Category, the split scale cannot be used -- very odd case*/}
+                          {!splitCategoryFound && !colorCategoryFound ?
+                              <Group left={subplotStart}>
+                                  <Bar x={(subplotWidth-subplotWidth*0.75)/2} y1={yScale(subplotData[0][yaxisName])} y0={yScale(0)} fill={colorScale()} width={subplotWidth*0.75}/>
+                              </Group>  
+                        : null}
+
+                        {/* if splitName is undefined, splitCategories will be en empty array, no plotting required */}
+                        {splitCategories.map((splitCategory, splitIdx) => {
+                            
                         const splitCatData = subplotData.filter(m => m[splitName] === splitCategory)
                         const splitStart = splitScale(splitCategory)
+    
                         return (
                             <Group left={subplotStart + splitStart} key={`${splitCategory}-${splitIdx}`}>
                             {splitCatData.map((colorCatData, colorIdx) => {
@@ -207,15 +275,20 @@ function CategoricalBarplot({
                                 const yValue = colorCatData[yaxisName]
                                 const xBar = splitColorScale(colorCategory)
                                 const yBar = yScale(yValue)
+                                const errorValue = colorCatData[errorName]
+
                                 return (
-                                <Group key={`${colorIdx}-${subplotCategory}-${colorCategory}`}>
+                                    <Group key={`${colorIdx}-${subplotCategory}-${colorCategory}`}
+                                        onMouseEnter={e => handleMouseOver(e, getTooltipData(yValue,errorValue,colorCatData))}
+                                        onMouseLeave={hideTooltip}>
+                                        
                                         <Bar x={xBar} y1={yBar} y0={yScale(0)} fill={color} width={colorBandwidth} />
                                         {/* add the error bar if any errorName (key for object in dat) is given */}
-                                        {errorName !== undefined &&  _.isNumber(colorCatData[errorName])?
+                                        {errorName !== undefined &&  !_.isNaN(errorValue) && _.isNumber(errorValue)?
                                             <ErrorBar
                                                 x={xBar + colorBandwidth / 2}
                                                 y0={yBar} //bar start 
-                                                y1={yValue > 0 ? yScale(yValue + colorCatData[errorName]) : yScale(yValue - colorCatData[errorName])}
+                                                y1={yValue > 0 ? yScale(yValue + errorValue) : yScale(yValue - errorValue)}
                                                 width={colorBandwidth*0.5} /> : null}
                                     </Group>
                                 )
@@ -224,7 +297,21 @@ function CategoricalBarplot({
                         )
                         })}
                     </g>)})}
-                </MultiCategoricalChart>:null}
+                </MultiCategoricalChart> }
+            
+            {tooltipOpen && (
+                <TooltipInPortal
+                // set this to random so it correctly updates with parent bounds
+                key={Math.random()}
+                top={tooltipTop}
+                left={tooltipLeft}
+                >   
+                    <div className="flex flex-column">
+                        {Object.keys(tooltipData).map(qLabel => <div key={qLabel}>{qLabel} : <span className="h0-span">{tooltipData[qLabel]}</span></div>)}
+                        
+                    </div>
+                </TooltipInPortal>
+            )}
             </div>
     )
 }

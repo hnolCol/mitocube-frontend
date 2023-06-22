@@ -1,5 +1,5 @@
 
-import { scaleLinear, scaleOrdinal } from '@visx/scale';
+import { scaleLinear, scaleOrdinal, scaleUtc } from '@visx/scale';
 import { LinePath} from '@visx/shape'
 import { useMemo } from 'react';
 import * as allCurves from '@visx/curve';
@@ -7,10 +7,28 @@ import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from '../../..
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import _ from "lodash"
 import { getColorPalette } from '../../colors/colorPalette';
-import { SVG } from '../SVG';
+import { SVG } from '../SVGHeader';
 import { GridColumns, GridRows } from '@visx/grid';
+import { getChartWidthAndHeightWithMargins } from '../../../../services/plotting/size';
+import PropTypes from "prop-types"
+import { getMedian } from '../../../../services/statistics/quantiles';
+import { getValueFromArrayOfObjectsByKey } from '../../../../services/arrays/transforms';
+import { Text } from '@visx/text';
+import { abbreviateNumber } from "../../../../services/format/number"
+import { useTooltip, useTooltipInPortal } from '@visx/tooltip';
+import { localPoint } from '@visx/event';
+import AxisWithBackground from '../axis';
+import MetricTable from '../../base/metrictable';
 
-export function LineChart({
+LineChart.propTypes = {
+    xaxisName: PropTypes.string,
+    yaxisNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+    xAxisIsTime: PropTypes.bool,
+    data: PropTypes.arrayOf(PropTypes.object).isRequired
+}
+
+
+function LineChart({
     width = 400,
     height = 300,
     margins = {
@@ -21,6 +39,7 @@ export function LineChart({
     },
     data = [{ x: 1, y: 2, z: 2, m: 15 }, { x: 2, y: 4, z: 15, m: 5 }, { x: 4, y: 1, z: 30, m: 9 }, { x: 7, y: 1, z: 30, m: 9 }],
     xaxisName = "x",
+    xAxisIsTime = false,
     yaxisNames = ["y", "z", "m"],
     curveType = "curveNatural",
     showPoints = true,
@@ -29,15 +48,53 @@ export function LineChart({
     circleStrokeWidth = 0.3,
     highlightedYAxisName = undefined,
     showGrid = false,
+    showMean = true,
+    tooltipCircleNames = ["x", "z","y"],
     svgID = undefined }) {
-   
-    const chartWidth = width - margins.left - margins.right
-    const chartHeight = height - margins.top - margins.bottom
+    const {
+            tooltipData,
+            tooltipLeft,
+            tooltipTop,
+            tooltipOpen,
+            showTooltip,
+            hideTooltip,
+                } = useTooltip();
+                
+    const { containerRef, TooltipInPortal } = useTooltipInPortal({
+        // use TooltipWithBounds
+        detectBounds: true,
+        // when tooltip containers are scrolled, this will correctly update the Tooltip position
+        scroll: true,
+    })
+    
+    const {chartHeight, chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
     const lineHighlighted = highlightedYAxisName !== undefined && yaxisNames.includes(highlightedYAxisName)
     const sortedyaxisNames = lineHighlighted ? _.concat(yaxisNames.filter(yaxisName => yaxisName !== highlightedYAxisName), [highlightedYAxisName]) : yaxisNames //resort names to have highlighted line on top (e.g. last)
+    const sortedData = useMemo(() => _.isArray(data) ? _.orderBy(data, xaxisName) : [], [xAxisIsTime, xaxisName])
     
+
+    const handleMouseOver = (event, datum) => {
+        const coords = localPoint(event.target.ownerSVGElement, event);
+        console.log(coords,datum)
+        showTooltip({
+          tooltipLeft: coords.x,
+          tooltipTop: coords.y,
+          tooltipData: datum
+        });
+      };
+
     const xScale = useMemo(() => {
-        const xDomain = getBoundariesFromArrayOfObjects({ data, keyName: xaxisName })
+
+        if (xAxisIsTime) {
+
+            return scaleUtc({
+                range : [margins.left,chartWidth+margins.left],
+                domain: [sortedData[0][xaxisName], sortedData[sortedData.length - 1][xaxisName]],
+                nice : true
+            })
+        }
+
+        const xDomain = getBoundariesFromArrayOfObjects({ data : sortedData, keyName: xaxisName })
         const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
        
         return scaleLinear(
@@ -47,9 +104,10 @@ export function LineChart({
                 nice: true
             }
         )
-    }, [xaxisName, width])
+    }, [xaxisName, width, xAxisIsTime])
 
     const yScale = useMemo(() => {
+        
         const yDomain = getBoundariesFromArrayOfObjects({ data, keyName: yaxisNames })
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
         return scaleLinear(
@@ -74,33 +132,44 @@ export function LineChart({
 
     if (width < 10) return null
     return (
-
-            <SVG height={height} width={width} svgID={svgID}>
-                <rect x="0" y="0" width={width} height={height} fill="#efefef" />
-                <AxisLeft scale={yScale} left={margins.left} label={_.join(yaxisNames, " ")} labelOffset={30} numTicks={8} />
-                <AxisBottom scale={xScale} top={margins.top + chartHeight} label={xaxisName} numTicks={8} />
+        <div>
+            <SVG height={height} width={width} svgID={svgID} svgRef={containerRef}>
+                <AxisWithBackground
+                    {...{
+                        margins,
+                        chartWidth,
+                        chartHeight,
+                        leftScale: yScale,
+                        bottomScale: xScale,
+                        moveBottomToLeft: false
+                    }} />
+                
             {showGrid ? <g>
                 <GridRows scale={yScale} stroke="black" width={chartWidth} numTicks={16} left={margins.left} strokeWidth={0.1} />
                 <GridColumns scale={xScale} stroke="black" height={chartHeight} numTicks={16} top={margins.top} strokeWidth={0.1} />
             </g> : null}
                 {
                     sortedyaxisNames.map((yaxisName, lineIdx) => {
-                    
+                        var lineData = sortedData.filter(d => d[xaxisName] !== undefined && d[yaxisName] !== undefined)
                         const yaxisColor = lineHighlighted && yaxisName === highlightedYAxisName ? colorScale(yaxisName) : !lineHighlighted ? colorScale(yaxisName) : "darkgrey"
+                        var median = getMedian(getValueFromArrayOfObjectsByKey({ data: lineData, keyName: yaxisName }))
+                        var scaledMedian = yScale(median)
                         return (
                             <g key={`${yaxisName}-${lineIdx}`}>
                             
                                 <LinePath
-                                    data={data}
+                                    data={lineData}
                                     x={(d) => xScale(d[xaxisName])}
                                     y={(d) => yScale(d[yaxisName])}
                                     stroke={yaxisColor}
+                                    onMouseOver={(e) => handleMouseOver(e, yaxisName)}
+                                    onMouseLeave={hideTooltip}
                                     fill="none"
                                     curve={allCurves[curveType]}
                                     shapeRendering="geometricPrecision"
                                     {...{ strokeWidth }} />
                             
-                                {showPoints ? data.map((point,pointIdx) =>
+                                {showPoints ? lineData.map((point,pointIdx) =>
                                     <circle
                                         key={`${yaxisName}-p-${pointIdx}`}
                                         cx={xScale(point[xaxisName])}
@@ -108,7 +177,21 @@ export function LineChart({
                                         r={circleRadius}
                                         fill={yaxisColor}
                                         strokeWidth={circleStrokeWidth}
+                                        onMouseLeave={hideTooltip}
+                                        onMouseOver={(e) => handleMouseOver(e, _.map(tooltipCircleNames, keyName => { return { name : keyName, value : point[keyName]} }))}
                                         stroke="black" />) : null}
+                                {showMean ? <g>
+                                    <line
+                                        x1={margins.left}
+                                        x2={chartWidth + margins.left}
+                                        y1={scaledMedian}
+                                        y2={scaledMedian}
+                                        stroke={yaxisColor}
+                                        {...{ strokeWidth }} />
+                                    <Text x={margins.left + chartWidth} y={scaledMedian} textAnchor='start' verticalAnchor='middle'>
+                                        {abbreviateNumber(median)}
+                                    </Text>
+                                </g> : null}
                             </g>
                         )
                     })
@@ -117,6 +200,19 @@ export function LineChart({
             
 
             </SVG>
+            {tooltipOpen && (
+                <TooltipInPortal
+                // set this to random so it correctly updates with parent bounds
+                key={Math.random()}
+                top={tooltipTop}
+                left={tooltipLeft}
+                >
+                   
+                    {_.isObject(tooltipData) ? <MetricTable data={tooltipData} showClipboard={false} />:null}
+                </TooltipInPortal>
+            )}
+            </div>
     )
 }
 
+export default LineChart

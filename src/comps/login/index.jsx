@@ -43,8 +43,6 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
     return (
         <div className="flex center-items justify-center expand-div">
             <div className="flex flex-column center-items">   
-            
-            <Header text="Welcome. Please login." fontWeight={"5rem"}/>
             <div className="flex justify-space-between" style={{width : "50vw"}}>
                 <InputGroup
                     id = "username"

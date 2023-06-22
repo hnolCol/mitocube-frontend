@@ -4,18 +4,19 @@ import _ from "lodash"
 import { getColorPalette } from "../../../core/colors/colorPalette"
 import { useMemo, useState } from "react"
 import { getDomainWithBoundaries } from "../../../../services/arrays/boundaries"
-import { SVG, SVGHeader } from "../../../core/charts/SVG"
+import { SVG, SVGHeader } from "../../../core/charts/SVGHeader"
 import { Text } from "@visx/text"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import { Combobox } from "../../../core/input/Combobox"
 import { InputGroup } from "@blueprintjs/core"
 import { ParentSize } from "@visx/responsive"
-import { LineChart } from "../../../core/charts/linechart"
+import LineChart from "../../../core/charts/linechart"
 import { ChartLegend } from "../../../core/charts/legend"
 import { LegendItem, LegendLabel, LegendOrdinal, LegendSize } from "@visx/legend"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 
 import BoxplotWithValue from "../../../core/charts/boxplot/minimal"
+import ResultChart from "../resultCard/chart"
 
 
 
@@ -44,7 +45,7 @@ function ProteinOverview({
     return (
         <div>
             <div className="flex flex--wrap center-items">
-            
+            <ResultChart />
             <BoxplotWithValue/>
             <div> Color : </div>
                 <Combobox

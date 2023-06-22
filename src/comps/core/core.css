@@ -3,6 +3,9 @@
 .router-link {
     color:#696969;
     text-decoration: none;
+    margin : 0px;
+    padding: 0px;
+    outline: none 
 }
 
 .router-link:hover {
@@ -43,7 +46,7 @@
     font-size: 0.7rem;
 }
 
-.font-size--larger {
+.font-size--large {
     font-size: 1.2rem;
 }
 
@@ -194,6 +197,23 @@
   }
 
 
+.dashboard__grid__help--topright {
+    position: absolute;
+    right : 1rem;
+    top : 1rem;
+    max-width : 20vw;
+}
+
+
+.accordions__header{
+    display: flex;
+    font-size: 1.7rem;
+    color : #466688;
+    background-color: #fafafa;
+}
+.accordions__header:hover{
+    background-color: #f6f6f6;
+}
 
 /* Flex containers */
 
@@ -221,6 +241,14 @@
     justify-content: space-between;
 }
 
+.justify-space-around {
+    justify-content: space-around;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
 .center-items {
     align-items: center;
 }
@@ -230,11 +258,20 @@
     width : 100%;
 }
 
-
-
+.position--relative{
+    position: relative;
+}
 
 /* shadows */
 .mild-shadow {
     -webkit-filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
     filter: drop-shadow( 3px 3px 2px rgba(0, 0, 0, .7));
+}
+
+
+/* scrolls */
+
+.container--scroll-y-hide-x{
+    overflow-y: scroll;
+    overflow-x: hidden;
 }

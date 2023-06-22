@@ -1,5 +1,5 @@
 import { Text } from "@visx/text";
-import { SVG } from "../SVG";
+import { SVG } from "../SVGHeader";
 import _ from "lodash"
 
 

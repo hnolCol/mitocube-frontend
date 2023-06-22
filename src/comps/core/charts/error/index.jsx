@@ -1,11 +1,9 @@
 import { getAxisStrokeColor } from "../../colors/colorPalette"
-
+import _ from "lodash"
 
 
 function ErrorBar({x = 20, y0 = 20, y1 = 5, width = 5, ...rest}) {
-    
     const halfWidth = width / 2 
-
     return (
         
         <g>

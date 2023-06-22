@@ -12,7 +12,7 @@ GroupingSelection.propTypes = {
 
 function GroupingSelection({keyNames, groupings = {}, handleSelection, selectedItems}) {
     // keynames => selection keyNames
-    const groupingNames = Object.keys(groupings)
+    const groupingNames = _.concat(Object.keys(groupings), ["none"])
 
     
     return (

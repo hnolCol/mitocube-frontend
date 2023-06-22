@@ -11,7 +11,7 @@ function SubmissionHeader({ }) {
                 { text: "Submissions", to: "/submission/view" },
                 { text: "Statistics", to: "/submission/statistics" },
                 { text : "Help", to : "/submission/help"}]} />
-            <div className="intent-margin-top">
+            <div className="no-scroll">
             <Outlet />
             </div>
             

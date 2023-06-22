@@ -29,7 +29,7 @@ function Messages({ messages = [{title : "New Dataset online.",date : "02.02.202
 
     return (
         <div className="message__container flex flex-column">
-            <div className="h0-span font-size--larger intent-margin-bottom--little">
+            <div className="h0-span font-size--large intent-margin-bottom--little">
                 News
             </div>
             <AnimatePresence>

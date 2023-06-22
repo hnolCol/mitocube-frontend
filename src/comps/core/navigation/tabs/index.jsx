@@ -5,9 +5,7 @@ import { Link, useLocation } from "react-router-dom"
 import "../navigation.css"
 
 Tabs.propTypes = {
-
     tabs : PropTypes.arrayOf(PropTypes.object).isRequired
-
 }
 
 TabItem.propTypes = {
@@ -18,11 +16,13 @@ TabItem.propTypes = {
 function TabItem({text,to, active}) {
     
     return (
-        <div className={"bg--lightgrey tabs__item"+`${active?"":" tabs__item-inactive"}`}>
-            <Link className="router-link" {...{to}}>
-                <Header {...{ text }} hexColor={active?undefined:"darkgrey"}/>
+       
+        <div className={"bg--lightgrey tabs__item" + `${active ? "" : " tabs__item-inactive"}`}>
+             <Link className="router-link" {...{to}}>
+            <Header {...{ text }} hexColor={active ? "#466688" : "#696969"} />
             </Link>
         </div>
+        
     )
 }
 
@@ -40,8 +40,6 @@ function Tabs({tabs, selectFirstTabIfPathNameDoesNotMatch = true}) {
         </div>
     )
 }
-
-
 
 export default Tabs 
 

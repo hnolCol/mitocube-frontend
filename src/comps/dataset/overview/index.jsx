@@ -9,7 +9,7 @@ function DatasetOverview({ }) {
             <MultipleMetrices metrices={[{ label: "Proteins", metric: 7249 }, { label: "Groupings", metric: 3 }, { label: "Replicates", metric: 5 }, { label: "Material", metric: "HeLa" }]}/>
         
             <p>Experimental Procedure</p>
-        
+            <div className="accordions__header">Research Aim</div>
         </div>
     )
 }
