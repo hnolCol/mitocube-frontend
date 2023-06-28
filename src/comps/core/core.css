@@ -21,7 +21,10 @@
     border-radius: 0.3rem;
 }
 
-
+.div--expand{
+    height : 100%;
+    width : 100%;
+}
 
 /* Background containers */
 
@@ -47,7 +50,7 @@
 }
 
 .font-size--large {
-    font-size: 1.2rem;
+    font-size: 1.0rem;
 }
 
 .font-size--largest {
@@ -253,10 +256,7 @@
     align-items: center;
 }
 
-.expand-div{
-    height : 100%;
-    width : 100%;
-}
+
 
 .position--relative{
     position: relative;

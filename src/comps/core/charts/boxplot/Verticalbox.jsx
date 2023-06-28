@@ -5,7 +5,6 @@ function VerticalBox({center = 10, width = 15, median = 160, min = 220, max = 20
     // provide box coordinates in pixel 
     const whishkerWidth = width * scaleWhishkers
     const halfWidth = width / 2
-    console.log(q75,q25)
     return (
         <g {...{opacity, ref}}>
             <rect

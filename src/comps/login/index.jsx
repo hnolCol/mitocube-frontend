@@ -41,7 +41,7 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
     }
     console.log(loginError)
     return (
-        <div className="flex center-items justify-center expand-div">
+        <div className="flex center-items justify-center div--expand">
             <div className="flex flex-column center-items">   
             <div className="flex justify-space-between" style={{width : "50vw"}}>
                 <InputGroup

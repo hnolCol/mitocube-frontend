@@ -56,8 +56,7 @@ function Heatmap({
     const numberRows = data.length
     const heatmapSVGHeight = numberRows * binHeight
     const heatmapSVGWidth = valueNames.length * binHeight + colorNames * binHeight + binHeight
-    console.log(labels)
-    console.log(colorValuesExist)
+
 
     //value scale 
     const valueScale = useMemo(() => {

@@ -1,0 +1,11 @@
+.omnibar__item__container{
+  
+    background-color: #efefef;
+    border-radius: 0.2rem;
+    cursor: pointer;
+    padding: 3px;
+  }
+  .omnibar__item__container:hover{
+      background-color: #e0e0e0;
+  }
+  

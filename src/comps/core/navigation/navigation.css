@@ -42,7 +42,6 @@
 
 .tabs__item {
     text-decoration: none;
-    padding : 0rem 0.5rem 0.0rem 0.5rem;
 }
 
 .tabs__item:hover {
@@ -54,4 +53,9 @@
     -webkit-filter: drop-shadow( 0.3px 0.3px 1px #d1d1d1 inset);
     box-shadow: 0.3px 0.3px 1px  #d1d1d1 inset;
     
+}
+
+
+.tabs__item__inner {
+    padding : 0rem 0.5rem 0.0rem 0.5rem;
 }

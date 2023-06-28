@@ -61,13 +61,14 @@ function MultiCategoricalChart({
     splitName, 
     subplotName,
     innerSubplotPadding = 0.05,
-    outerSubplotPadding = 0.1,
-    innerSplitPadding = 0.2,
+    outerSubplotPadding = 0.05,
+    innerSplitPadding = 0.1,
     innerColorPadding = 0.0,
     svgID = undefined,
     svgRef = undefined,
     colorPalette = [],
     minMaxYDomain = undefined,
+    yScaleStartsAtZero = true,
     children
 }) {
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
@@ -84,19 +85,16 @@ function MultiCategoricalChart({
             scaleBand({
                 range: [margins.left, margins.left + chartWidth],
                 domain : subplotCategories,
-                paddingOuter: 0.0,
+                paddingOuter: 0,
                 paddingInner: innerSubplotPadding,
                 round: true,
             })
         )
-    }, [width, splitName, subplotName])
+    }, [chartWidth, splitName, subplotName, margins.left])
 
 
     const splitScale = useMemo(() => {
         // split scale (distance on x axis - affects the x-axis)
-        console.log(splitName)
-        // if (splitName == undefined && subplotName !== undefined) return subplotScale.bandwidth() / 2
-        console.log(splitCategories)
         return (
             scaleBand({
                 range: [0, subplotScale.bandwidth()],
@@ -113,9 +111,9 @@ function MultiCategoricalChart({
         // color scale taking care of the position of the color (e.g horizontal)
         return (
             scaleBand({
-                range: [0, splitCategoryFound ? splitScale.bandwidth() : chartWidth],
+                range: [0, splitCategoryFound ? splitScale.bandwidth() : subplotCategoryFound ? subplotScale.bandwidth() : chartWidth],
                 domain: uniqueColorValues,
-                paddingOuter: 0,
+                paddingOuter: 0.15,
                 paddingInner: innerColorPadding,
                 round: true,
             })
@@ -159,18 +157,18 @@ function MultiCategoricalChart({
         // y scale 
         const preDefinedYDomain = minMaxYDomain!==undefined && _.isObject(minMaxYDomain) && _.has(minMaxYDomain,"min") && _.has(minMaxYDomain,"max")
         const yDomain = preDefinedYDomain ? {} : getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
-        const yDomainWithMargin = preDefinedYDomain ? minMaxYDomain : addMarginToBoundaries({ domain: yDomain})
+        const yDomainWithMargin = preDefinedYDomain ? minMaxYDomain : addMarginToBoundaries({ domain: yDomain })
+        
         return scaleLinear(
             {
-                domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : 0],
+                domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : yScaleStartsAtZero  ? 0 : yDomainWithMargin.min],
                 range: [margins.top, margins.top + chartHeight],
                 nice: true
             }
         )
-    }, [yaxisName, chartHeight, minMaxYDomain])
+    }, [yaxisName, chartHeight, minMaxYDomain,yScaleStartsAtZero])
 
     const categoricalSplit = subplotCategories.map((cat, idx) => {
-        console.log("do we make it here?")
         return {
             chartHeight,
             chartWidth,
@@ -189,6 +187,7 @@ function MultiCategoricalChart({
             colorScale,
             subplotData: subplotCategoryFound?_.filter(data, (d) => d[subplotName] === cat):data,
             colorCategoryFound,
+            colorCategories : colorCategoryFound ? colorScale.domain() : [],
             subplotCategoryFound,
             splitCategoryFound, 
             bandwidth: subplotScale.bandwidth(),

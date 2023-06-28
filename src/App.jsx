@@ -34,6 +34,8 @@ import Timeline from "./comps/dataset/timeline";
 import Register from "./comps/register";
 import PerformanceOverview from "./comps/performance/overview";
 import SubmissionStatistics from "./comps/submission/statistics";
+import ProteinHeader from "./comps/protein";
+import ProteinSelection from "./comps/protein/selection";
 
 
 
@@ -101,10 +103,12 @@ function App() {
           </ProtectedRoute>} />
 
       <Route path="/protein" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
-              <h3>Protein</h3>
-              <ProteinOverview />
-          </ProtectedRoute>} />
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+                <ProteinHeader/>
+            </ProtectedRoute>}>
+            <Route path="/protein/selection" element={<ProteinSelection />} />
+            <Route path="/protein/:ID" element={<h3>Protein view</h3>} />
+        </Route>
 
           <Route path="/ptm" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>

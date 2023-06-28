@@ -43,10 +43,9 @@ function ProteinOverview({
     
 
     return (
-        <div>
             <div className="flex flex--wrap center-items">
             <ResultChart />
-            <BoxplotWithValue/>
+            {/* <BoxplotWithValue/>
             <div> Color : </div>
                 <Combobox
                     items={keyNames}
@@ -146,7 +145,7 @@ function ProteinOverview({
                   }
                 
                 </CollapsableAxes>
-            <CategoricalBarplot />
+            
             <div style={{ maxWidth: "400px", height: "500px"}}>
                     <ParentSize>{(parent) => 
                         <div>
@@ -156,7 +155,7 @@ function ProteinOverview({
                         </div>}
                     </ParentSize>
                 
-                </div>
+                </div> */}
         </div>
 
     )

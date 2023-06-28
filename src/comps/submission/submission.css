@@ -4,6 +4,10 @@
     max-height :  calc(100vh - 5rem - 145px);
     overflow-y: scroll;
     padding-bottom: 3rem;
+    display: flex;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    
   }
 
 .submission__item__container {
@@ -13,12 +17,18 @@
     border-radius: 0.25rem;
     margin-top : 0.8rem;
     padding-left : 0.5rem;
+    box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
+    transition: 0.3s;
+    width : 100%;
+    margin : 1rem;
 }
 .submission__item__container:hover {
     background-color :#fff;
     transition-property: background-color;
     transition-duration: 400ms;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
 }
+
 
 .submission__header__container {
     display: flex;

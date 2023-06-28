@@ -14,6 +14,7 @@ import SubmissionTimeLine from "./Timeline"
 import { Combobox } from "../../core/input/Combobox"
 import { downloadJSONFile } from "../../../services/downloads/json"
 import { arrayOfObjectsToString } from "../../../services/arrays/transforms"
+import { getColorPalette } from "../../core/colors/colorPalette"
 
 function extractMainParamsFromJSON(paramsFile) {
     //
@@ -80,11 +81,11 @@ function SubmissionHeader({ paramsFile,
         
             <div className="submission__header__upper-container">
                 <div className="margin-top-bottom--little intent-margin-left intent-margin-top--medium">
-                <Header text={paramsFile.Title} fontWeight={mouseOverDataID?550:500} hexColor={mouseOverDataID? "#b66476":"#2F5597"}/>
+                <Header text={paramsFile.Title} fontWeight={500} hexColor={getColorPalette(1)[0]}/>
                 </div>
-                <div className="margin-top-bottom--little intent-margin-right font-size--small">
+                {/* <div className="margin-top-bottom--little intent-margin-right font-size--small">
                     {getResearchAimFromParamsFile(paramsFile)}
-                </div>
+                </div> */}
                 <div className="flex flex--wrap margin-top-bottom--little">
                     {tagNames.map(k => {
                         return (

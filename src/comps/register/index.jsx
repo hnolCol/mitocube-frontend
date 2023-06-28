@@ -12,7 +12,7 @@ function Register({ }) {
     
 
     return (
-        <div className="flex center-items justify-center expand-div position--relative">
+        <div className="flex center-items justify-center div--expand position--relative">
             <HelpOverlay />
             <div className="flex flex-column">
             <Header text="Register" />

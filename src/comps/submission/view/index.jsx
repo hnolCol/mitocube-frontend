@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, MenuDivider, Alert, InputGroup } from "@blueprintjs/core"
 import { Tooltip2 } from "@blueprintjs/popover2"
 import PropTypes from "prop-types"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import CreateSampleList from "./dialogs/CreateSampleList"
 import SubmissionOverviewDialog from "./dialogs/SubmissionOverview"
 import GroupingNameDialog from "./dialogs/GroupingRename"
@@ -55,6 +55,25 @@ function SubmissionView({token,logout}) {
     //fetch data from API
     const { isSuccess, isLoading, isFetching, isError, error, data } = useGetSubmissions()
 
+
+    const getStateCounts = (states, submissions) => {
+        //count the states 
+        const stateCounts = Object.fromEntries(_.concat(["Total"],states).map(state => [state,0]))
+        _.forEach(submissions, v => {
+            stateCounts[v.paramsFile.State] += 1
+            stateCounts["Total"] += 1 
+        })
+        return stateCounts
+    }
+
+    const stateCounts = useMemo(() => {
+        if (_.isObject(data) && _.isArray(data.states) && _.isArray(data.submissions)) {
+            return getStateCounts(data.states, data.submissions)
+        }
+        return {}
+    },[data])
+    console.log(stateCounts)
+
     const openRenameGroupingDialog = (dataID,paramsFile) => {
         setGroupingRenameDetails({isOpen:true,dataID:dataID,paramsFile:paramsFile,groupingNames:paramsFile.groupingNames})
     }
@@ -98,12 +117,7 @@ function SubmissionView({token,logout}) {
         setGroupingRenameDetails(initRenameGrouping)
     }
 
-    const getStateCounts = (states, submissions) => {
-        //count the states 
-        const stateCounts = Object.fromEntries(states.map(state => [state,0]))
-        _.forEach(submissions, v => stateCounts[v.paramsFile.State] += 1)
-        return stateCounts
-    }
+    
 
     const handleFilterSelection = (filterName) => {
         var filteredSubmissions = getStringMatchSubmissions(submissionDetails.searchString)
@@ -216,17 +230,21 @@ function SubmissionView({token,logout}) {
             <GroupingNameDialog 
                 {...groupingRenameDetails}
                 closeDialog = {closeRenameGroupingDialog} 
-                changeGroupingNames = {handleRenameGrouping}/>
-            <div className="flex center-items justify-end">
+                changeGroupingNames={handleRenameGrouping} />
             
-                {_.isObject(data) && _.isArray(data.states) ? data.states.map((state,stateIdx) => {
-                const stateCounts = getStateCounts(data.states,data.submissions)
-                return(
-                    <div key={`${state}`}>
-                        <Numeric metric={stateCounts[state]} label={state} spanClassName={`h${stateIdx}-span`} />
-                    </div>
-                )})
-                :null}
+            <div className="flex center-items justify-end intent-margin-bottom--little">
+            
+                {_.isObject(stateCounts) ? Object.keys(stateCounts).map((state, stateIdx) => {
+                    return (
+                        <div key={`${state}`}>
+                            <Numeric
+                                metric={stateCounts[state]}
+                                label={state}
+                                spanClassName={`h${stateIdx}-span`}
+                                callbackOnClick={() => handleFilterSelection(state==="Total"?"None":state)} />
+                        </div>
+                    )}) : null
+                }
         
 
             </div>

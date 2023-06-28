@@ -31,7 +31,7 @@ function AxisWithBackground({
                 width={chartWidth} />   
             <AxisLeft
                 label={leftLabel} //label only first axis
-                labelOffset={20}
+                labelOffset={25}
                 tickLabelProps={leftTickLabelProps}
                 left={leftStart}
                 scale={leftScale}

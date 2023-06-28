@@ -141,7 +141,7 @@ export default function  Dendrogram({
     // const sortedyaxisNames = lineHighlighted ? _.concat(yaxisNames.filter(yaxisName => yaxisName !== highlightedYAxisName), [highlightedYAxisName]) : yaxisNames //resort names to have highlighted line on top (e.g. last)
     
     const xScale = useMemo(() => {
-        console.log(_.flatten(data))
+  
         const xDomain = getBoundariesFromArrayOfObjects({ data : flattenData, keyName: xaxisName })
         const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
        

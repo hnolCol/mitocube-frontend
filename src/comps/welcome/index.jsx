@@ -16,7 +16,7 @@ function Welcome({ token }) {
     const { isLoading : isLoadingKeyFigures, data : keyFigures, isFetching : isFetchingKeyFigures} = useGetKeyFigures({},{token})
     
     return (
-        <div className="flex flex-column center-items expand-div">
+        <div className="flex flex-column center-items div--expand">
             <div className="main-header">
                 Welcome to MitoCube
             </div>

@@ -1,6 +1,28 @@
 import PropTpyes from "prop-types"
 import { Combobox } from "../../input/Combobox"
 import _ from "lodash"
+import ColorIconWithName from "../../svg/icons/chartSelection/Color"
+import SplitIconWithName from "../../svg/icons/chartSelection/Split"
+import SubplotIconWithName from "../../svg/icons/chartSelection/Subplot"
+
+
+const IconBasedComboboxes = {
+    "colorName": ColorIconWithName,
+    "splitName": SplitIconWithName,
+    "subplotName" : SubplotIconWithName
+}
+
+export function getIcon(iconName, props) {
+
+    if (_.has(IconBasedComboboxes, iconName)) {
+        
+        return  IconBasedComboboxes[iconName]
+        
+    }
+
+}
+
+
 
 GroupingSelection.propTypes = {
     keyNames: PropTpyes.arrayOf(PropTpyes.string).isRequired,
@@ -13,21 +35,30 @@ GroupingSelection.propTypes = {
 function GroupingSelection({keyNames, groupings = {}, handleSelection, selectedItems}) {
     // keynames => selection keyNames
     const groupingNames = _.concat(Object.keys(groupings), ["none"])
-
+   
     
     return (
         
-        <div className="flex">
+        <div className="flex center-items">
             {keyNames.map(keyName => {
+                const Icon = getIcon(keyName)
                 return (
-                    <div className="flex center-items">
-                        <div>{keyName}:</div>
-                        <Combobox
+                    <div>
+                        {Icon !== undefined ? <Icon
                             items={groupingNames}
                             callback={handleSelection}
                             callbackKey={keyName}
-                            placeholder={_.has(selectedItems,keyName)?selectedItems[keyName]:"Please select .."}
-                            />
+                            placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "Please select .."} /> :
+                            <div className="flex center-items">
+                            <div>{keyName}:</div>
+                            <div><Combobox
+                                        items={groupingNames}
+                                        callback={handleSelection}
+                                        callbackKey={keyName}
+                                        placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "Please select .."}
+                                    />
+                                </div>
+                            </div>}
                     </div>
             )})}
         </div>

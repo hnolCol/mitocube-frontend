@@ -1,9 +1,9 @@
 import React from "react"
 
 
-function Box({x = 10, width = 15, median = 160, min = 220, max = 20, q25 = 185, q75 = 22, fill = "#efefef", stroke="black", strokeWidth = 0.5, showWhiskers = true, opacity = 1}) {
+function Box({x = 10, width = 15, median = 160, min = 220, max = 20, q25 = 185, q75 = 22, fill = "#efefef", stroke="black", strokeWidth = 0.5, showWhiskers = true, opacity = 1, whiskerScale = 0.5}) {
     // provide box coordinates in pixel 
-    const whishkerWidth = width * 0.85 
+    const whishkerWidth = width * whiskerScale
     const halfWidth = width / 2
 
     return (

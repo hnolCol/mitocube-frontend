@@ -44,6 +44,7 @@ function SingleCategoricalChart({
     svgRef =undefined,
     colorPalette = [],
     minMaxYDomain = undefined,
+    yScaleStartsAtZero = true,
     children
 }) {
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
@@ -103,12 +104,12 @@ function SingleCategoricalChart({
         
         return scaleLinear(
             {
-                domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : 0],
+                domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : yScaleStartsAtZero  ? 0 : yDomainWithMargin.min],
                 range: [margins.top, margins.top + chartHeight],
                 nice: true
             }
         )
-    }, [yaxisName, chartHeight, minMaxYDomain])
+    }, [yaxisName, chartHeight, minMaxYDomain,yScaleStartsAtZero])
     
     //_.range(1) since we should return an array (e.g. subplots) to be consistent with the MultipleCategory chart, 
     //for a single category only a single subplot is required
