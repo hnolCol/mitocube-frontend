@@ -12,7 +12,7 @@ TextFieldInput.propTypes = {
     
 }
 
-function TextFieldInput({callbackKey, value, hint, onChange, placeholder, minLength = 0, optional = false}) {
+function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = "Click to edit", minLength = 0, optional = false}) {
 
     return (
             <div className="intent-margin-top--little">

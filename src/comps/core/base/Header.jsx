@@ -1,4 +1,7 @@
 import PropTypes from "prop-types"
+import { getColorPalette } from "../colors/colorPalette"
+
+const primaryColor = getColorPalette(1)
 
 Header.propTypes = {
     text : PropTypes.string,
@@ -10,19 +13,25 @@ Header.propTypes = {
 
 export function Header({
     text = "Welcome",
-    hexColor = "#2F5597",
-    fontSize = "1.0rem",
+    hexColor = primaryColor,
+    fontSize = "1.2rem",
     fontWeight = 400,
+    textTransform = "none",
+    letterSpacing = "0.1rem",
+    backgroundColor = "transparent"
     }) {
     
     return(
         <div style={{
+            backgroundColor,
             color:hexColor,
-            fontSize:fontSize,
-            fontWeight: fontWeight,
+            fontSize,
+            fontWeight,
+            textTransform,
+            letterSpacing,
             fontFamily: "Helvetica",
             marginTop:"0.1rem",
-            marginBottom: "0.2rem",
+            marginBottom: "0.25rem",
             transitionDuration: "1.0s",
             transitionProperty: "color fontWeight",
             cursor:"default"}}>

@@ -18,7 +18,8 @@ Combobox.propTypes = {
 
 export function Combobox(
         {items = ["I1","I2","ABC"],
-        callback,
+        onChange,
+        value,
         placeholder = "Please select",
         callbackKey,
         disabled = false,
@@ -26,7 +27,7 @@ export function Combobox(
             minimal : false,
             small : false
         },
-        fill = false}) {
+        fill = true}) {
 
     const itemsAsObject = _.isObject(items[0])
     
@@ -49,9 +50,9 @@ export function Combobox(
 
     const onItemSelection = (item) => {
         //handles item selection
-        if (isFunction(callback) && callbackKey ===undefined) callback(item)
+        if (isFunction(onChange) && callbackKey ===undefined) onChange(item)
 
-        else if (isFunction(callback) && callbackKey !==undefined) callback(callbackKey,item)
+        else if (isFunction(onChange) && callbackKey !==undefined) onChange(callbackKey,item)
 
     }
 
@@ -63,7 +64,7 @@ export function Combobox(
             itemRenderer={renderItems}
             onItemSelect={onItemSelection}
             disabled={disabled}>
-            <Button text={placeholder} disabled={disabled} {...buttonProps} fill={fill}/>
+            <Button text={value!==undefined?value:placeholder} disabled={disabled} {...buttonProps} fill={fill}/>
         </Select2>
     )
 }

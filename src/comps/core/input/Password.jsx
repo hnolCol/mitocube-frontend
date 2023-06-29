@@ -30,7 +30,7 @@ function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange,
         let secondPWExists = _.isString(pws["2"]) && pws["2"].length > 0
         
         const lengthWarning = (
-                    <Tooltip2 content={"The password length must be at least 8."}>
+                    <Tooltip2 content={`The password must be at least ${minLength} characters long.`}>
                         <Button icon="warning-sign" intent="danger" minimal={true} /> 
                     </Tooltip2>)
 
@@ -62,7 +62,7 @@ function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange,
         }
         setRightElements(rightElements)
         //reset pw string in parent 
-        onChange(callbackKey, pwString, "text")
+        onChange(callbackKey, pwString === ""?undefined:pwString, "text")
         
     },[pws["1"], pws["2"], minLength])
 

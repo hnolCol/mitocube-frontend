@@ -30,7 +30,7 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
 
     useEffect(() => {
         if (loginSuccess) {
-            redirect("/welcome")
+            redirect("/index")
         }
     },[data, loginSuccess])
 

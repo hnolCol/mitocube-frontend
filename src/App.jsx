@@ -89,7 +89,6 @@ function App() {
           <Login />
         } />
 
-          
 
 
       <Route path="/register" element={
@@ -97,7 +96,7 @@ function App() {
         } />
 
       {/* Redirected after successful login */}
-      <Route path="/start" element={
+      <Route path="/index" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
               <Welcome />
           </ProtectedRoute>} />

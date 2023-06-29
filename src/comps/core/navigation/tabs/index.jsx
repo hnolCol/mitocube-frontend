@@ -5,18 +5,19 @@ import { Link, useLocation } from "react-router-dom"
 import "../navigation.css"
 
 Tabs.propTypes = {
-    tabs : PropTypes.arrayOf(PropTypes.object).isRequired
+    tabs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    selectFirstTabIfPathNameDoesNotMatch : PropTypes.bool
 }
 
 TabItem.propTypes = {
     text: PropTypes.string.isRequired,
-    to : PropTypes.string.isRequired
+    to: PropTypes.string.isRequired,
+    active : PropTypes.bool
 }
 
-function TabItem({text,to, active}) {
-    
+function TabItem({text,to, active = false}) {
+    // React Tab Item Component to visualize a Tab in the Topbar
     return (
-       
         <div className={"bg--lightgrey tabs__item" + `${active ? "" : " tabs__item-inactive"}`}>
             <Link className="router-link" {...{ to }}>
                 <div className="div--expand tabs__item__inner" >
@@ -28,7 +29,8 @@ function TabItem({text,to, active}) {
     )
 }
 
-function Tabs({tabs, selectFirstTabIfPathNameDoesNotMatch = true}) {
+function Tabs({ tabs, selectFirstTabIfPathNameDoesNotMatch = true }) {
+    // Container for Tabs in the Topbar.
     const location = useLocation()
     const locationMatches = tabs.filter(tab => tab.to === location.pathname).length > 0 
     return (
