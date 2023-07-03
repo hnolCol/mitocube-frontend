@@ -115,12 +115,19 @@
     padding-right: 0.75rem;
 }
 
+.intent-padding-top--little {
+
+    padding-top: 0.75rem;
+}
+
 /* Margins */
 
 .margin--little {
     margin : 0.2rem
 }
-
+.margin--very-little{
+    margin : 0.1rem
+}
 .margin--medium {
     margin : 1rem
 }
@@ -238,6 +245,10 @@
     flex-direction: column;
 }
 .flex-start{
+    justify-content: flex-start;
+}
+
+.justify-flex-start{
     justify-content: flex-start;
 }
 

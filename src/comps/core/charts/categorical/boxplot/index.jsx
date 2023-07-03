@@ -44,7 +44,7 @@ function CategoricalBoxplot({
         left: 35,
         right: 0,
         bottom: 35,
-        top: 2
+        top: 5
     },
     yaxisName = "y",
     colorName,

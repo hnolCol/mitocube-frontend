@@ -20,7 +20,7 @@ export function Combobox(
         {items = ["I1","I2","ABC"],
         onChange,
         value,
-        placeholder = "Please select",
+        placeholder = "Plase select",
         callbackKey,
         disabled = false,
         buttonProps = {

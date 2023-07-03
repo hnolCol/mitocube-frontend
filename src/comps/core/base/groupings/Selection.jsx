@@ -48,14 +48,14 @@ function GroupingSelection({keyNames, groupings = {}, handleSelection, selectedI
                             items={groupingNames}
                             callback={handleSelection}
                             callbackKey={keyName}
-                            placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "Please select .."} /> :
+                            placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "..."} /> :
                             <div className="flex center-items">
                             <div>{keyName}:</div>
                             <div><Combobox
                                         items={groupingNames}
                                         callback={handleSelection}
                                         callbackKey={keyName}
-                                        placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "Please select .."}
+                                        placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "..."}
                                     />
                                 </div>
                             </div>}

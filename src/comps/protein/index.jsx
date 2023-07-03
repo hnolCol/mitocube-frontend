@@ -11,7 +11,7 @@ function ProteinHeader({ }) {
                 _.concat(featureList.items,[
                 { text: "+", to: "/protein/selection" }])} />
             <div className="no-scroll">
-                <Outlet context={...{setFeatureList}} />
+                <Outlet context={{setFeatureList}} />
             </div>
             
         </div>

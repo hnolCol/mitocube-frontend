@@ -132,10 +132,12 @@ function SingleCategoricalChart({
     })
 
     return (
+        
         <SVG {...{width,height,svgID,svgRef}}>
             <>{children(categoricalSplit)}</>
             
         </SVG>
+
     )   
 }
     

@@ -7,6 +7,7 @@ function ProteinSelection(props) {
     const [omnibarIsOpen, setOmnibarIsOpen] = useState(true)
     const redirect = useNavigate()
 
+
     const handleClose = (e, featureURL) => {
         console.log(featureURL)
         //dont actually close it just redirect

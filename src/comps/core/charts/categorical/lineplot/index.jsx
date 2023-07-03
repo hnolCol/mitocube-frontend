@@ -61,9 +61,9 @@ function CategoricalLineplot({
     
     margins = {
         left: 35,
-        right: 0,
+        right: 5,
         bottom: 35,
-        top: 2
+        top: 5
     },
     yaxisName = "y",
     colorName,
@@ -388,7 +388,7 @@ function CategoricalLineplot({
                                 <Group left={subplotStart} key={`${colorCategory}-${splitIdx}`}>
                                     {polyline.length > 1 ? 
                                         
-                                            <polyline points={polyline} stroke={color} strokeWidth={2} />
+                                            <polyline points={polyline} stroke={color} strokeWidth={2} fill="none"/>
                                         
                                     : null}
                                     {colorDataScaled.map((circleProps,circleIdx) => {

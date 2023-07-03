@@ -36,7 +36,8 @@
     "react-json-view": "^1.21.3",
     "react-query": "^3.39.3",
     "react-router": "^6.10.0",
-    "react-router-dom": "^6.10.0"
+    "react-router-dom": "^6.10.0",
+    "vite-plugin-require": "^1.1.10"
   },
   "devDependencies": {
     "@types/react": "^18.0.28",

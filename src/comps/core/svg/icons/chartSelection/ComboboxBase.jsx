@@ -8,7 +8,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { Group } from "@visx/group"
 
-function ComboboxIconBase({ height = 25, placeholder = "Please select", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined, callbackValueOnly = false, children }) {
+function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined, callbackValueOnly = false, children }) {
     const [mouseOver, setMouseOver] = useState(false)
     const width = 33 + placeholder.length * 9
     const checkedItems = _.isString(items[0])?items.map(v => {return {text : v}}):items
@@ -37,7 +37,7 @@ function ComboboxIconBase({ height = 25, placeholder = "Please select", items = 
                     onClick={() => handleSelection(itemProps)} />)
             })}
         </Menu>}>
-                <div className="flex flex-columns">
+                <div className="flex flex-columns margin--very-little">
                 <SVG {...{ width, height }}>
                 
                 <Group cursor={"pointer"} onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>

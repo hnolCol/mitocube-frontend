@@ -7,7 +7,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { Group } from "@visx/group"
 
-function IconBase({ height = 25, placeholder = "Please select", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,children }) {
+function IconBase({ height = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,children }) {
     const [mouseOver, setMouseOver] = useState(false)
     const width = 33
     
@@ -18,7 +18,7 @@ function IconBase({ height = 25, placeholder = "Please select", items = [{ text:
         }
     
     return (
-            <div className="flex flex-columns">
+            <div className="flex flex-columns margin--very-little">
                 <SVG {...{ width, height }}>
                 
                 <Group cursor={"pointer"} onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)} onMouseUp={handleSelection}>

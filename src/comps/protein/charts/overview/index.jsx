@@ -17,34 +17,43 @@ import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/uni
 
 import BoxplotWithValue from "../../../core/charts/boxplot/minimal"
 import ResultChart from "../resultCard/chart"
+import { useGetDataByFeatureID } from "../../../../hooks/queries/feature.hooks"
 
 
 
 
 function ProteinOverview({
-    yaxisName = "y",
-    sizeName = "y",
-    colorName = "T",
-    subplotName = "T",
-    data = [{ "T": "HEK", "y" : 6, N : "GG"},{ "T": "Macrophages", "y" : 2 , N : "GG"} ,{ "T": "HeLa", "y" : 2 , N : "GG"},{ "T": "HeLa", "y" : 14 , N : "GG"},{ "T": "HeLa" , "y" : 3, N : "PP"}, { "T": "HeLa" , "y" : 4,  N : "PP"}, { "T": "HEK" , "y" : 4,  N : "PP"}],
+    // yaxisName = "y",
+    // sizeName = "y",
+    // colorName = "T",
+    // subplotName = "T",
+    // data = [{ "T": "HEK", "y" : 6, N : "GG"},{ "T": "Macrophages", "y" : 2 , N : "GG"} ,{ "T": "HeLa", "y" : 2 , N : "GG"},{ "T": "HeLa", "y" : 14 , N : "GG"},{ "T": "HeLa" , "y" : 3, N : "PP"}, { "T": "HeLa" , "y" : 4,  N : "PP"}, { "T": "HEK" , "y" : 4,  N : "PP"}],
     subplotBasicWidth = 90,
     orderData = true
 }) {
     
-    const [columnSelection, setColumnSelection] = useState({ colorName, sizeName, yaxisName, subplotName })
-    const orderedData = orderData ? _.orderBy(data, [colorName, yaxisName, sizeName], ["desc", "desc", "desc"]) : data.slice()
-    const defaultColors = getColorPalette()
-    const yAxisDomain = getDomainWithBoundaries({ data, keyName: yaxisName })
-    const keyNames = Object.keys(data[0])
-    const numericKeys = _.filter(keyNames,keyName => _.isNumber(data[0][keyName]))
-    const categoricalKeys = _.filter(keyNames, keyNames => !numericKeys.includes(keyNames))
-    const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
+    // const [columnSelection, setColumnSelection] = useState({ colorName, sizeName, yaxisName, subplotName })
+    // const orderedData = orderData ? _.orderBy(data, [colorName, yaxisName, sizeName], ["desc", "desc", "desc"]) : data.slice()
+    // const defaultColors = getColorPalette()
+    // const yAxisDomain = getDomainWithBoundaries({ data, keyName: yaxisName })
+    // const keyNames = Object.keys(data[0])
+    // const numericKeys = _.filter(keyNames,keyName => _.isNumber(data[0][keyName]))
+    // const categoricalKeys = _.filter(keyNames, keyNames => !numericKeys.includes(keyNames))
+    // const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
     // const debouncedSearchString = useDebounce(searchDetails.searchString, 200)
     
-
+    const { data: data2 } = useGetDataByFeatureID({}, { token: "asda", featureID: "O00299" })
+    
     return (
-            <div className="flex flex--wrap center-items">
-            <ResultChart />
+        <div className="flex flex--wrap center-items">
+            
+            {_.isObject(data2) ? Object.keys(data2).map(dataID => {
+                const chartData = data2[dataID]
+                return (
+                    <ResultChart {...chartData} yaxisName="value"/>
+                )
+            }): null}
+            
             {/* <BoxplotWithValue/>
             <div> Color : </div>
                 <Combobox

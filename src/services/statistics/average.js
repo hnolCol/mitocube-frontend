@@ -9,13 +9,13 @@ function getAverage(data, key = undefined) {
 }
     
 
-export function getStandardDeviationAndAverage(arr, usePopulation = false) {
+export function getStandardDeviationAndAverage(arr, meanName = "y", errorName = "e" ,usePopulation = false) {
     const mean = getAverage(arr)
     return ({
-        "e": Math.sqrt(
+        [errorName]: Math.sqrt(
             arr.reduce((acc, val) => acc.concat((val - mean) ** 2), []).reduce((acc, val) => acc + val, 0) /
             (arr.length - (usePopulation ? 0 : 1))
-        ), "y": mean
+        ), [ meanName]: mean
     })
   };
 

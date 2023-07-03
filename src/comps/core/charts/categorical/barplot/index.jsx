@@ -2,16 +2,13 @@ import { Group } from "@visx/group"
 import MultiCategoricalChart from "../multiple"
 import { Text } from "@visx/text"
 import Bar from "../../barplot/Bar"
-import { AxisBottom, AxisLeft } from "@visx/axis"
 import { ChartLegend } from "../../legend"
 import _ from "lodash"
 import { getAxisStrokeColor, getColorPalette } from "../../../colors/colorPalette"
 import { getNumberTicks } from "../../../../../services/plotting/ticks"
 import ErrorBar from "../../error"
 import SingleCategoricalChart from "../single"
-import AxisBackground from "../../background"
 import AxisWithBackground from "../../axis"
-import SubplotName from "../../annotations/subplotName"
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
@@ -48,9 +45,9 @@ function CategoricalBarplot({
     
     margins = {
         left: 35,
-        right: 0,
+        right: 5,
         bottom: 35,
-        top: 2
+        top: 5
     },
     yaxisName = "y",
     colorName,
@@ -107,7 +104,7 @@ function CategoricalBarplot({
     return (
         <div className="flex flex-column">
             {/* {colorName !== undefined ? <ChartLegend groupings={{ [colorName]: legendColors }} title={colorName} /> : null} */}
-            {colorName !== undefined ? <ChartLegend  {...{width}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/> : null}
+            {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend  {...{width}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null}
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,

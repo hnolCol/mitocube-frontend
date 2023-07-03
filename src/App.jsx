@@ -106,7 +106,7 @@ function App() {
                 <ProteinHeader/>
             </ProtectedRoute>}>
             <Route path="/protein/selection" element={<ProteinSelection />} />
-            <Route path="/protein/:ID" element={<h3>Protein view</h3>} />
+            <Route path="/protein/:ID" element={<ProteinOverview />} />
         </Route>
 
           <Route path="/ptm" element={

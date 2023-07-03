@@ -17,7 +17,7 @@ export function Header({
     fontSize = "1.2rem",
     fontWeight = 400,
     textTransform = "none",
-    letterSpacing = "0.1rem",
+    letterSpacing = "0.0rem",
     backgroundColor = "transparent"
     }) {
     

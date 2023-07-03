@@ -18,6 +18,9 @@ import { arrayOfObjectsToString } from "../../../../services/arrays/transforms"
 import SelectionDialog from "../../../core/dialogs/Selection"
 import { Header } from "../../../core/base/Header"
 import CategoricalLineplot from "../../../core/charts/categorical/lineplot"
+import { useGetDataByFeatureID } from "../../../../hooks/queries/feature.hooks"
+
+
 
 const plottypes = ["barplot","boxplot"]
 
@@ -33,12 +36,13 @@ function ResultChart({
     const numberGroupings = groupingNames.length 
     const [selectedGroupings, setSelectedGroupings] = useState({colorName : groupingNames[0], splitName : groupingNames[1], subplotName : groupingNames[2]})
     const keyNamesForSplitting = _.uniq(Object.values(selectedGroupings).filter(v => v !== undefined && _.has(data[0],v)))
-
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
-    
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const proteinID = "UQ78DA"
+    const dataID = "asda231"
+    const svgID = `${proteinID}-svg-id${dataID}`
 
+    
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
         const chartData = showNormalizedData ? normalizedData : data
         if (plotType === "boxplot") {
@@ -49,18 +53,18 @@ function ResultChart({
                 yaxisName,
                 yaxisName)
         }
-        else if (["barplot","lineplot"].includes(plotType)) {
-
+        else if (["barplot", "lineplot"].includes(plotType)) {
+            //calculate average and standard deviation for lineplots and barplots.
             return getAverageAndErrorByGroups(chartData, keyNamesForSplitting, yaxisName)
         }
     }, [plotType, yaxisName, keyNamesForSplitting, data, normalization])
 
     const handleDataDownload = (dataType) => {
-        console.log(dataType)
-        console.log((dataType === "raw"))
+
         if (dataType === "Raw") downloadTxtFile(arrayOfObjectsToString(data, Object.keys(data[0])), `rawData-${proteinID}.txt`)
         else if (dataType === "Aggregated") downloadTxtFile(arrayOfObjectsToString(groupedAggratedData, Object.keys(groupedAggratedData[0])), `aggregatedData-${proteinID}.txt`)
         else if (dataType === "Normalized") downloadTxtFile(arrayOfObjectsToString(normalizedData, Object.keys(normalizedData[0])), `normlizedData-${proteinID}.txt`)
+        else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataID}).png`, imageOptions)
     }
 
     const handleNormalizationGroupSelection = (groupingName, groupName) => {
@@ -94,6 +98,7 @@ function ResultChart({
                 yaxisName,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
+                svgID,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 
             }} />
@@ -105,6 +110,7 @@ function ResultChart({
                 yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
                 errorName: "e",
                 yaxisName,
+                svgID,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting)
@@ -117,6 +123,7 @@ function ResultChart({
                 yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
                 errorName: "e",
                 yaxisName,
+                svgID,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting)
@@ -126,7 +133,7 @@ function ResultChart({
 
     return (
 
-        <div>
+        <div className="margin--medium" style={{maxWidth: "450px"}}>
             <SelectionDialog
                 title="Normalization Group Selection"
                 applyButtonDisabled={!checkNormalizeToSelection()}
@@ -155,13 +162,13 @@ function ResultChart({
                     </div>
                     </div>
             </SelectionDialog>
-            <div className="flex justify-space-around">
-                <div>
-            <GroupingSelection
-                groupings={groupings}
-                keyNames={["colorName", "splitName", "subplotName"].slice(0, numberGroupings)}
-                handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(data[0],value)?value:undefined}})}
-                selectedItems={selectedGroupings} />
+            <div className="flex justify-flex-start flex--wrap">
+            <div>
+                <GroupingSelection
+                    groupings={groupings}
+                    keyNames={["colorName", "splitName", "subplotName"].slice(0, numberGroupings)}
+                    handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(data[0],value)?value:undefined}})}
+                    selectedItems={selectedGroupings} />
             </div>
                 <div>
                     <NormalizeIcon
@@ -174,10 +181,11 @@ function ResultChart({
                 </div>
                 <PlottypeIcon callback={cyclePlotTypes} {...{ plotType }} />
             
-                <DownloadIcon items={["Raw", "Aggregated", "Normalized"].map(dataType => {
+                <DownloadIcon items={["Raw", "Aggregated", "Normalized","PNG"].map(dataType => {
                     return ({ text: dataType, disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0 ): false})
                 })} placeholder="" callback={handleDataDownload} callbackValueOnly={true} />
             </div>
+            
                 {getPlot(plotType, groupedAggratedData)}
 
 

@@ -6,7 +6,7 @@ import { Popover2, MenuItem2 } from "@blueprintjs/popover2"
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
-function SplitIconWithName({ height, placeholder = "Please select", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
+function SplitIconWithName({ height, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
     const colorPalette = getColorPalette(3)
     //console.log(items)
     return (

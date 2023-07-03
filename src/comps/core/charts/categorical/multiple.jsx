@@ -198,9 +198,11 @@ function MultiCategoricalChart({
     })
 
     return (
+        
         <SVG {...{width,height,svgID,svgRef}}>
             <>{children(categoricalSplit)}</>
-        </SVG>
+            </SVG>
+       
     )   
 }
     
