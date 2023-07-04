@@ -3,13 +3,12 @@ import { OmnibarSearch } from "./Omnibar"
 import { useNavigate, useOutletContext } from "react-router"
 
 function ProteinSelection(props) {
-    const { setFeatureList } = useOutletContext()
+    const { handleFeatureList } = useOutletContext()
     const [omnibarIsOpen, setOmnibarIsOpen] = useState(true)
     const redirect = useNavigate()
-
+    
 
     const handleClose = (e, featureURL) => {
-        console.log(featureURL)
         //dont actually close it just redirect
         if (featureURL !== undefined) redirect(featureURL)
         else redirect('/protein')
@@ -18,7 +17,7 @@ function ProteinSelection(props) {
     }
     return (<div>
         
-        <OmnibarSearch isOpen={omnibarIsOpen} onSelect={setFeatureList} onClose={ handleClose}/>
+        <OmnibarSearch isOpen={omnibarIsOpen} onSelect={handleFeatureList} onClose={ handleClose}/>
     </div>)
 }
 

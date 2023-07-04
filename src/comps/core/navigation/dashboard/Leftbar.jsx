@@ -47,7 +47,6 @@ export default Leftbar
 
 
 // export function MCLeftbar({ firstLevelItems = [], secondLevelItems = {} }) {
-//     console.log(firstLevelItems)
 //     const [isOpened, toggleContainer] = useCycle(false,true)
 //     const containerControls = useAnimation()
     

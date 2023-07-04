@@ -8,7 +8,6 @@ import ComboboxIconBase from "./ComboboxBase"
 
 function SplitIconWithName({ height, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
     const colorPalette = getColorPalette(3)
-    //console.log(items)
     return (
         <ComboboxIconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly}}>
             {[

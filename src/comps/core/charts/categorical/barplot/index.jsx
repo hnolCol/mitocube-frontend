@@ -45,7 +45,7 @@ function CategoricalBarplot({
     
     margins = {
         left: 35,
-        right: 5,
+        right: 0,
         bottom: 35,
         top: 5
     },
@@ -135,13 +135,21 @@ function CategoricalBarplot({
                         
                         return (
                             <g key={`singleCat-bar-${idx}`}>
+                                {/* add axis with background */}
                                 <AxisWithBackground
                                     margins={margins}
                                     leftScale={yScale}
                                     bottomScale={splitColorScale}
-                                    bottomLabel={colorName}
-                                    leftLabel={yaxisLabel!==undefined?yaxisLabel:yaxisName}
+                                    bottomLabel={""}
+                                    leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
+                                {/* x axis label */}
+                                <Text
+                                    x={margins.left + chartWidth / 2}
+                                    y={margins.top + chartHeight + 20}
+                                    verticalAnchor="start"
+                                    textAnchor="middle">{colorName}
+                                </Text>
                                 
                                 {colorCategories.map(colorCategory => {
                                     const xBar = splitColorScale(colorCategory)

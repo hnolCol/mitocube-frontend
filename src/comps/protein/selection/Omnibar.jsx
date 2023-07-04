@@ -18,30 +18,7 @@ export function OmnibarSearch(props) {
     const debounceSearchString = useDebounce(featureDeatails.searchString, 400)
 
     const {data, isLoading, isSuccess, isError, isFetching} = useGetFeatures()
-    console.log(data)
 
-    // const getFeatureDetails = async () => {
-    //     //fetch data from api
-    //     const res = await axios.post("/api/features/details",
-    //                     { filter: filter, token: token }, 
-    //                     { headers: { 'Content-Type': 'application/json' } })
-    //     return res.data
-    // }
-    // const { isLoading, isFetching } = useQuery(["getFeatureDetails", filter],
-    //     getFeatureDetails, {
-    //         onSuccess: (data) => {
-    //             console.log(data)
-    //                 setFeatureDetails(prevValues => {
-    //                     return {
-    //                         ...prevValues,
-    //                         "items": _.isArray(data.features)?data.features:[],
-    //                         "featureLabels": data.featureLabels,
-    //                         "sortBy" : data.sortBy,
-    //                     }
-    //                 })
-    //             },
-    //         refetchOnWindowFocus: false
-    // })
 
     useEffect(() => { 
         if (isLoading) return 

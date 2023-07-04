@@ -1,17 +1,36 @@
-import { Outlet } from "react-router";
+import { Outlet, useParams } from "react-router";
 import Tabs from "../core/navigation/tabs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import _ from "lodash"
 
 function ProteinHeader({ }) {
-    const [featureList, setFeatureList] = useState({items : []})
+    const [featureList, setFeatureList] = useState({ items: [{ text: "+", to: "/protein/selection" }] })
+    const params = useParams()
+    const featureID = params.ID
+
+    useEffect(() => {
+        //handle the case if someone sends a link around to another person
+        const itemFromUrl = { text: featureID, to: `/protein/${featureID}` }
+        if (_.isString(featureID) && _.every(featureList.items, item => item.to != itemFromUrl.to)) {
+            handleFeatureList(itemFromUrl)
+        }
+    },[featureID])
+
+    const handleFeatureList = (item) => {
+        if (!_.isObject(item)) return 
+        if (!featureList.items.includes(item)) {
+            //item not in list
+            setFeatureList(prevValues => {return {...prevValues,items : _.concat([item],prevValues.items)}})
+        }
+            
+    }
+    console.log(featureList)
     return (
         <div>
-            <Tabs tabs={
-                _.concat(featureList.items,[
-                { text: "+", to: "/protein/selection" }])} />
+            <Tabs tabs={featureList.items} />
+                
             <div className="no-scroll">
-                <Outlet context={{setFeatureList}} />
+                <Outlet context={{handleFeatureList,featureID}} />
             </div>
             
         </div>

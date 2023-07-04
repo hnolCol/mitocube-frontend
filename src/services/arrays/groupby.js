@@ -17,7 +17,7 @@ export function getAverageAndErrorByGroups(
         return {
             ...getStandardDeviationAndAverage(yaxisvalues,yaxisName),
             ...Object.fromEntries(keyNames.map(keyName => [keyName, groupData[0][keyName]])),
-            N : groupData.length}
+            N : groupData.filter(d => _.isNumber(d[yaxisName])).length}
     })
     return ({ groupedAggratedData, minMaxYDomain})
 }

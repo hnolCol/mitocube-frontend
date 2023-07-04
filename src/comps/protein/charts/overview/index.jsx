@@ -18,6 +18,7 @@ import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/uni
 import BoxplotWithValue from "../../../core/charts/boxplot/minimal"
 import ResultChart from "../resultCard/chart"
 import { useGetDataByFeatureID } from "../../../../hooks/queries/feature.hooks"
+import { useLocation, useMatch, useOutletContext } from "react-router"
 
 
 
@@ -41,16 +42,17 @@ function ProteinOverview({
     // const categoricalKeys = _.filter(keyNames, keyNames => !numericKeys.includes(keyNames))
     // const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
     // const debouncedSearchString = useDebounce(searchDetails.searchString, 200)
-    
-    const { data: data2 } = useGetDataByFeatureID({}, { token: "asda", featureID: "O00299" })
-    
+    const { featureID } = useOutletContext()
+    const { data: data2 } = useGetDataByFeatureID({}, { token: "asda", featureID })
+
     return (
         <div className="flex flex--wrap center-items">
             
             {_.isObject(data2) ? Object.keys(data2).map(dataID => {
                 const chartData = data2[dataID]
+                
                 return (
-                    <ResultChart {...chartData} yaxisName="value"/>
+                    <ResultChart key={`${featureID}-${dataID}`} {...chartData} {...{dataID, featureID}} yaxisName="value"/>
                 )
             }): null}
             

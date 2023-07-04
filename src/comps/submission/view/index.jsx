@@ -72,7 +72,7 @@ function SubmissionView({token,logout}) {
         }
         return {}
     },[data])
-    console.log(stateCounts)
+
 
     const openRenameGroupingDialog = (dataID,paramsFile) => {
         setGroupingRenameDetails({isOpen:true,dataID:dataID,paramsFile:paramsFile,groupingNames:paramsFile.groupingNames})

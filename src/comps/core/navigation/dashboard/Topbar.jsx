@@ -11,7 +11,7 @@ import { getGithubLink } from "../../links/github"
 function Topbar({
     isAuthenticated = false,
     userRole = "guest",
-    basePathName, }) {
+    basePathName}) {
     return (
 
         <div className="flex justify-space-between">

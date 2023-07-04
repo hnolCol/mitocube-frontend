@@ -50,7 +50,6 @@ const initAuthenticationStatus = {
 function App() {
 
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
-  const { success, error, data } = useGetDatasets({},{onSuccess : (data)  => console.log(data)})
   const location = useLocation()
   const basePathName = location.pathname.split("/")[1]
   
@@ -132,7 +131,7 @@ function App() {
                 <h3>Datasets Selection</h3>
                 <p>Pleaase select a dataset to explore. Tag based search supported.</p>
                 <p>Previous selected datasets ...</p>
-                <Link to="/dataset/dasdasda">Dataset1</Link>
+                <Link to="/dataset/8dlTWpi5MMhF">Dataset1</Link>
               </div>
               
           </ProtectedRoute>} />

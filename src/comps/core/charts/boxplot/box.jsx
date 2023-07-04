@@ -1,11 +1,13 @@
 import React from "react"
+import _ from "lodash"
+import { areAllValuesNumbers } from "../../../../services/arrays/checks"
 
-
-function Box({x = 10, width = 15, median = 160, min = 220, max = 20, q25 = 185, q75 = 22, fill = "#efefef", stroke="black", strokeWidth = 0.5, showWhiskers = true, opacity = 1, whiskerScale = 0.5}) {
+function Box({x, width, median, min, max, q25, q75, fill = "#efefef", stroke="black", strokeWidth = 0.5, showWhiskers = true, opacity = 1, whiskerScale = 0.5}) {
     // provide box coordinates in pixel 
     const whishkerWidth = width * whiskerScale
     const halfWidth = width / 2
 
+    if (!areAllValuesNumbers([x,width,median,min,max,q25,q75])) return null
     return (
         <g {...{opacity}}>
             <rect x={x - halfWidth} y={q75} height={q25 - q75} {...{ width, fill, stroke, strokeWidth }} />

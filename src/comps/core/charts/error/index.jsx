@@ -1,10 +1,13 @@
+import { areAllValuesNumbers } from "../../../../services/arrays/checks"
 import { getAxisStrokeColor } from "../../colors/colorPalette"
 import _ from "lodash"
 
 
-function ErrorBar({x = 20, y0 = 20, y1 = 5, width = 5, cap=true, stroke,  ...rest}) {
+function ErrorBar({x, y0, y1, width = 0, cap=true, stroke,  ...rest}) {
     const halfWidth = width / 2 
-    const strokeColor = stroke===undefined?getAxisStrokeColor():stroke
+    const strokeColor = stroke === undefined ? getAxisStrokeColor() : stroke
+    
+    if (!areAllValuesNumbers([x,y0,y1,width])) return null 
     return (
         
         <g>

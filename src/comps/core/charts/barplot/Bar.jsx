@@ -1,11 +1,12 @@
 import React from "react"
-
+import _ from "lodash"
+import { areAllValuesNumbers } from "../../../../services/arrays/checks"
 
 function Bar({
-    x = 10,
-    width = 10,
-    y1 = 20, // the actual height of the bar
-    y0 = 100, // the baseline of the bar
+    x,
+    width,
+    y1, // the actual height of the bar
+    y0, // the baseline of the bar
     fill = "#efefef",
     stroke = "black",
     strokeWidth = 0.5,
@@ -13,10 +14,11 @@ function Bar({
     // provide box coordinates in pixel 
     const barHeight = y0 > y1 ? y0-y1 : y1-y0
     const barBaseLine = y0 > y1 ? y1 : y0
-
+    if (!areAllValuesNumbers([x,width,y1,y0])) return null 
     return (
         <g {...{opacity}}>
-            {barHeight === 0 ? <line x1={x} x2={x + width} y1={barBaseLine} y2={barBaseLine} {...{ stroke, strokeWidth }}/> : <rect x={x} y={barBaseLine} height={barHeight} {...{ width, fill, stroke, strokeWidth }} />}
+            {barHeight === 0 ? <line x1={x} x2={x + width} y1={barBaseLine} y2={barBaseLine} {...{ stroke, strokeWidth }} /> :
+                <rect x={x} y={barBaseLine} height={barHeight} {...{ width, fill, stroke, strokeWidth }} />}
         </g>
     )
 }

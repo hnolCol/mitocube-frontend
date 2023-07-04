@@ -108,7 +108,7 @@ function CategoricalBoxplot({
     
     return (
         <div className="flex flex-column">
-            {colorName !== undefined ? <ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/> : null}
+            {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null}
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
@@ -140,20 +140,28 @@ function CategoricalBoxplot({
                         
                         return (
                             <g key={`singleCat-bar-${idx}`}>
+                                {/* add axis with background */}
                                 <AxisWithBackground
                                     margins={margins}
                                     leftScale={yScale}
                                     bottomScale={splitColorScale}
-                                    bottomLabel={colorName}
+                                    bottomLabel={""}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
+                                {/* x axis label */}
+                                <Text
+                                    x={margins.left + chartWidth / 2}
+                                    y={margins.top + chartHeight + 20}
+                                    verticalAnchor="start"
+                                    textAnchor="middle">{colorName}
+                                </Text>
                                 
                                 {colorCategories.map(colorCategory => {
                                     const xBar = splitColorScale(colorCategory)
                                     const color = colorScale(colorCategory)
                                     const dataForColorCategory = data.filter(d => d[colorName] === colorCategory)[0]
                                     const boxQuantiles = extractQuantileData(dataForColorCategory,yScale)
-       
+                                    
                                     return (
                                         <Group key={`bar-error-${colorCategory}`} left={margins.left}
                                             onMouseEnter={e => handleMouseOver(e, getTooltipData(dataForColorCategory))}
@@ -303,7 +311,7 @@ function CategoricalBoxplot({
                                     var xBar = splitColorScale(colorCategory)
                                     
                                     const boxQuantiles = extractQuantileData(colorCatData,yScale)
-                                
+                                    
                                 return (
                                     <Group key={`${colorIdx}-${subplotCategory}-${colorCategory}`}
                                         onMouseEnter={e => handleMouseOver(e, getTooltipData(colorCatData))}

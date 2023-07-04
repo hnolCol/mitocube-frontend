@@ -75,7 +75,6 @@ function LineChart({
 
     const handleMouseOver = (event, datum) => {
         const coords = localPoint(event.target.ownerSVGElement, event);
-        console.log(coords,datum)
         showTooltip({
           tooltipLeft: coords.x,
           tooltipTop: coords.y,

@@ -1,4 +1,4 @@
-
+import _ from "lodash"
 
 function GroupingHeader({ groupingName }) {
     //header of a grouping
@@ -35,7 +35,7 @@ function GroupingTable({
                         <GroupingHeader key={groupingName} groupingName={groupingName} />
                         {Object.keys(grouping[groupingName]).map(groupItem =>
                             <GroupingItem key={`${groupingName}-${groupItem}`}
-                                itemName={groupItem} color={groupingColors[groupingName][groupItem]} />)}
+                                itemName={groupItem} color={_.has(groupingColors,groupingName)?groupingColors[groupingName][groupItem]:"black"} />)}
                     </div>
                 )
             })}

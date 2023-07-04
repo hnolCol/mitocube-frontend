@@ -1,6 +1,7 @@
 import _ from "lodash"
 
 function getAverage(data, key = undefined) {
+
     if (key !== undefined) {
         return (data.map(d => d[key]).reduce((acc, val) => acc + val, 0) / data.length)
     }
@@ -9,12 +10,15 @@ function getAverage(data, key = undefined) {
 }
     
 
-export function getStandardDeviationAndAverage(arr, meanName = "y", errorName = "e" ,usePopulation = false) {
-    const mean = getAverage(arr)
-    return ({
+export function getStandardDeviationAndAverage(arr, meanName = "y", errorName = "e", usePopulation = false) {
+  const filteredArr = arr.filter(x => _.isNumber(x))
+  if (filteredArr.length === 0) return ({[errorName] : NaN, [meanName] : NaN})
+  const mean = getAverage(filteredArr)
+  
+  return ({
         [errorName]: Math.sqrt(
-            arr.reduce((acc, val) => acc.concat((val - mean) ** 2), []).reduce((acc, val) => acc + val, 0) /
-            (arr.length - (usePopulation ? 0 : 1))
+          filteredArr .reduce((acc, val) => acc.concat((val - mean) ** 2), []).reduce((acc, val) => acc + val, 0) /
+            (filteredArr.length - (usePopulation ? 0 : 1))
         ), [ meanName]: mean
     })
   };

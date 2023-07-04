@@ -8,10 +8,7 @@ export function OmnibarItem(props) {
 
     const handleSelectAndClose = (e) => {
         let featureURL = `/protein/${item[featureLabels["id"]]}`
-        onSelect(prevValues => ({
-            ...prevValues, 
-            items: _.uniq([...prevValues.items, { text: item[featureLabels["main"]], to : featureURL }])
-        }))
+        onSelect({ text: item[featureLabels["main"]], to : featureURL })
         handleClose(e,featureURL)
         }
 

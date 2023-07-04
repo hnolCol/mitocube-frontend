@@ -8,7 +8,7 @@ export function getMedian(array) {
 
 export function getQuantiles (array,qs=[0,0.25,0.5,0.75,1.0],NIQR = 1.8, removeOutlier = true, valueName = "values", labels = ["min","q25","median","q75","max"]) {
     // remove falsly numbers (includes 0!)
-    let sortedFilteredArray = _.sortBy(_.filter(array,Boolean))
+    let sortedFilteredArray = _.sortBy(_.filter(array.filter(x => _.isNumber(x)),Boolean))
     let N = sortedFilteredArray.length
     if (removeOutlier){
             //remove outlier before calculating quantiles

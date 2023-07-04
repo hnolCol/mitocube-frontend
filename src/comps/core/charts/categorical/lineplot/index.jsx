@@ -11,6 +11,7 @@ import PropTypes from "prop-types"
 import Box from "../../boxplot/Box"
 import { STROKE_COLOR, getColorPalette } from "../../../colors/colorPalette"
 import ErrorBar from "../../error"
+import { areAllValuesNumbers } from "../../../../../services/arrays/checks"
 
 
 CategoricalLineplot.propTypes = {
@@ -19,19 +20,21 @@ CategoricalLineplot.propTypes = {
     
 }
 
-function CircleWithError({cx,cy, yValue, errorValue, yScale,fill, left, handleMouseOver, getTooltipData, hideTooltip, pointRadius, dataArray}) {
+function CircleWithError({ cx, cy, yValue, errorValue, yScale, fill, left, handleMouseOver, getTooltipData, hideTooltip, pointRadius, dataArray }) {
+    if (!areAllValuesNumbers([cx,cy,yValue])) return 
     return (
         <Group left={left}
-                onMouseEnter={e => handleMouseOver(e, getTooltipData(dataArray))}
+                onMouseEnter={e => handleMouseOver(e, getTooltipData(yValue, errorValue, dataArray))}
                 onMouseLeave={hideTooltip}>
-                                            
-            {_.isNumber(errorValue) && !_.isNaN(errorValue) ?
+
+            {_.isNumber(errorValue) && !_.isNaN(errorValue) && errorValue !== 0?
             <g>
-                <ErrorBar x={cx} y0={cy} y1={yScale(yValue + errorValue)} stroke={fill}  cap={false} /> 
+                <ErrorBar x={cx} y0={cy} y1={yScale(yValue + errorValue)} stroke={fill} cap={false} /> 
                 <ErrorBar x={cx} y0={cy} y1={yScale(yValue - errorValue)} stroke={fill}  cap={false} /> 
-        </g> : null}
-                                            
-        <circle cx={cx} cy={cy} r={pointRadius} fill={fill} />
+                </g> :
+            null}
+            
+            <circle cx={cx} cy={cy} r={pointRadius} fill={fill} />
         {/* <Box {...boxQuantiles} fill={colorScale(colorCategory)} x={xBar+boxWidth/2} width={boxWidth}/> */}
 
     </Group>
@@ -61,7 +64,7 @@ function CategoricalLineplot({
     
     margins = {
         left: 35,
-        right: 5,
+        right: 0,
         bottom: 35,
         top: 5
     },
@@ -103,18 +106,9 @@ function CategoricalLineplot({
         scroll: true,
       })
     
-    const getTooltipData = (dataArray) => {
-        console.log(dataArray)
-        return dataArray
-        const quantileData = extractQuantileData(boxData,undefined,false)
-        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => [tooltipName, boxData[tooltipName]]).filter(v => v[1] !== undefined))
-        return {...quantileData, ...tooltipInfo}
-    }
-
-    const extractQuantileData = (array, yScale, scale = true) => {
-        
-        return Object.assign(...array[yaxisName].map((q, idx) => { return ({ [array.labels[idx]]: scale ? yScale(q) : _.round(q,2)}) }))
-
+    const getTooltipData = (value, errorValue, pointData) => {
+        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => [tooltipName, pointData[tooltipName]]).filter(v => v[1] !== undefined))
+        return {[yaxisName] : _.round(value,2), error : _.isNaN(errorValue)?"NaN":_.round(errorValue,2), ...tooltipInfo}
     }
     
     const handleMouseOver = (event, bartooltipData) => {
@@ -129,7 +123,7 @@ function CategoricalLineplot({
     
     return (
         <div className="flex flex-column">
-            {colorName !== undefined ? <ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/> : null}
+            {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null}
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
@@ -161,13 +155,21 @@ function CategoricalLineplot({
                         
                         return (
                             <g key={`singleCat-bar-${idx}`}>
+                                {/* add axis with background */}
                                 <AxisWithBackground
                                     margins={margins}
                                     leftScale={yScale}
                                     bottomScale={splitColorScale}
-                                    bottomLabel={colorName}
+                                    bottomLabel={""}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
+                                {/* x axis label */}
+                                <Text
+                                    x={margins.left + chartWidth / 2}
+                                    y={margins.top + chartHeight + 20}
+                                    verticalAnchor="start"
+                                    textAnchor="middle">{colorName}
+                                </Text>
                                 
                                 {colorCategories.map(colorCategory => {
                                     const dataForColorCategory = data.filter(d => d[colorName] === colorCategory)[0]
@@ -192,13 +194,6 @@ function CategoricalLineplot({
                                                         }}
                                                     />     
                                         
-                                    //     <Group key={`bar-error-${colorCategory}`} left={margins.left}
-                                    //         onMouseEnter={e => handleMouseOver(e, getTooltipData(dataForColorCategory))}
-                                    //         onMouseLeave={hideTooltip}>
-                                    //         <Box {...boxQuantiles} fill={color} x={xBar+colorBandwidth/2} width={colorBandwidth} whi/>
-                                          
-                                    //         {/* x = 10, width = 15, median = 160, min = 220, max = 20, q25 = 185, q75 = 22, fill = "#efefef", stroke="black", strokeWidth = 0.5, showWhiskers =  */}
-                                    // </Group>
                                     )
                                 })}
                             </g>
@@ -382,16 +377,16 @@ function CategoricalLineplot({
                                     errorValue : colorDataArray[errorName]
                                 })
                             })
-                            const polyline = _.join(colorDataScaled.map(d => _.join([d.cx, d.cy], ",")), " ")
+                            const polyline = areAllValuesNumbers(colorDataScaled.map(d => d.cy)) ?  _.join(colorDataScaled.map(d => _.join([d.cx, d.cy], ",")), " ") : ""
 
                             return (
                                 <Group left={subplotStart} key={`${colorCategory}-${splitIdx}`}>
-                                    {polyline.length > 1 ? 
+                                    {polyline.length > 2 ? 
                                         
                                             <polyline points={polyline} stroke={color} strokeWidth={2} fill="none"/>
                                         
                                     : null}
-                                    {colorDataScaled.map((circleProps,circleIdx) => {
+                                    {colorDataScaled.map((circleProps, circleIdx) => {
                                         return (
                                                 <CircleWithError
                                                     key={`${circleIdx}-${circleProps.cx}`}

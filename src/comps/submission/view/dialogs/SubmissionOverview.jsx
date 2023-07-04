@@ -12,7 +12,6 @@ function SubmissionOverviewDialog(props) {
     if (!_.isObject(paramsFile)) return null 
     if (_.isEmpty(paramsFile)) return null 
     
-    console.log(paramNames)
     let groupingsMappedToRunNames = extractGroupsByRunNameFromGrouping(paramsFile)
 
     return (

@@ -7,12 +7,13 @@ Categorical.propTypes = {
     label : PropTypes.string.isRequired
 }
 
-function Categorical({ metric, label, spanClassName="h1-span" }) {
+function Categorical({ metric, label, spanClassName="h1-span", callbackOnClick = undefined}) {
 
     return (
         <motion.div
             className="flex flex-column center-items bg--lightgrey cursor--default padding--medium div--round font-size--large margin--little" 
-            whileHover={{scale : 1.05}}>
+            whileHover={{ scale: 1.05 }}
+            onClick={_.isFunction(callbackOnClick)?callbackOnClick:undefined}>
             <div>
                 <span className={spanClassName}>
                     {metric}
