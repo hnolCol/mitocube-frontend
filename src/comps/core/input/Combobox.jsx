@@ -1,5 +1,5 @@
 import { Button, MenuItem } from "@blueprintjs/core";
-import { Select2 } from "@blueprintjs/select";
+import { Select } from "@blueprintjs/select";
 import { isFunction } from "lodash";
 import PropTypes from "prop-types"
 import { allKeysInObject } from "../../../services/objects/checks";
@@ -9,10 +9,9 @@ Combobox.propTypes = {
     items: PropTypes.array.isRequired,
     buttonText: PropTypes.string, 
     fill : PropTypes.bool,
-    callback: PropTypes.func.isRequired,
     disabled: PropTypes.bool,
     buttonProps: PropTypes.object,
-    callback : PropTypes.func.isRequired
+    onChange : PropTypes.func.isRequired
     
 }
 
@@ -25,7 +24,7 @@ export function Combobox(
         disabled = false,
         buttonProps = {
             minimal : false,
-            small : false
+            small : true
         },
         fill = true}) {
 
@@ -43,28 +42,29 @@ export function Combobox(
                 text={itemsAsObject ? item.text : item} 
                 label = {itemsAsObject ? item.label : ""}
                 onClick={handleClick} 
-                intent={selected? "primary" : "none"} 
-                icon={selected? "small-tick" : "none"}/>
+                intent={selected? "primary" : "blank"} 
+                icon={selected? "small-tick" : "blank"}/>
         )
     }
 
     const onItemSelection = (item) => {
         //handles item selection
-        if (isFunction(onChange) && callbackKey ===undefined) onChange(item)
+        if (isFunction(onChange) && callbackKey === undefined) onChange(item)
 
         else if (isFunction(onChange) && callbackKey !==undefined) onChange(callbackKey,item)
 
     }
 
     return(
-        <Select2
+        <Select
             fill={fill}
+            noResults={<MenuItem text="No more items/attributes available." disabled={true}/>}
             filterable={false}
             items={itemsAsObject ?  itemsValid : items}
             itemRenderer={renderItems}
             onItemSelect={onItemSelection}
             disabled={disabled}>
             <Button text={value!==undefined?value:placeholder} disabled={disabled} {...buttonProps} fill={fill}/>
-        </Select2>
+        </Select>
     )
 }

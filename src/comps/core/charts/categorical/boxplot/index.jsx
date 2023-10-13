@@ -10,6 +10,7 @@ import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
 import Box from "../../boxplot/Box"
 import { getColorPalette } from "../../../colors/colorPalette"
+import MetricTable from "../../../base/metrictable"
 
 
 CategoricalBoxplot.propTypes = {
@@ -62,7 +63,6 @@ function CategoricalBoxplot({
     innerColorPadding = 0.0,
     svgID = undefined,
     }) {
-
         // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
@@ -85,13 +85,16 @@ function CategoricalBoxplot({
     
     const getTooltipData = (boxData) => {
 
-        const quantileData = extractQuantileData(boxData,undefined,false)
-        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => [tooltipName, boxData[tooltipName]]).filter(v => v[1] !== undefined))
-        return {...quantileData, ...tooltipInfo}
+        const quantileData = extractQuantileData(boxData,undefined,false,true)
+        const tooltipInfo = _.map(tooltipNames, tooltipName => { return { name: tooltipName, value: boxData[tooltipName] } })
+      
+        return _.concat(tooltipInfo,quantileData) 
     }
 
-    const extractQuantileData = (array, yScale, scale = true) => {
-        
+    const extractQuantileData = (array, yScale, scale = true, forTooltip = false) => {
+        if (forTooltip) {
+            return _.map(array[yaxisName], (q,idx) => {return { name :  array.labels[idx],value :  scale ? yScale(q) : _.round(q,2)}})
+        }
         return Object.assign(...array[yaxisName].map((q, idx) => { return ({ [array.labels[idx]]: scale ? yScale(q) : _.round(q,2)}) }))
 
     }
@@ -335,10 +338,11 @@ function CategoricalBoxplot({
                 top={tooltipTop}
                 left={tooltipLeft}
                 >   
-                    <div className="flex flex-column">
+                    {_.isArray(tooltipData) ? <MetricTable data={tooltipData} /> : null}
+                    {/* <div className="flex flex-column">
                         {Object.keys(tooltipData).map(qLabel => <div key={qLabel}>{qLabel} : <span className="h0-span">{tooltipData[qLabel]}</span></div>)}
-                        
-                    </div>
+                         */}
+
                 </TooltipInPortal>
             )}
             </div>

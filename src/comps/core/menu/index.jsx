@@ -1,5 +1,4 @@
-import { Menu, } from "@blueprintjs/core";
-import { Popover2, MenuItem2 } from "@blueprintjs/popover2";
+import { Menu, Popover, MenuItem } from "@blueprintjs/core";
 import PropTypes from "prop-types"
 
 import { BaseDashboardIcon } from "../svg/icons/dashboard/IconBase"
@@ -10,14 +9,13 @@ function BasicMenu({ items = [], width = 30, height=30 }) {
     
     return (
         
-        <Popover2 content={<Menu>
-            {items.map((itemProps,itemIdx) => <MenuItem2 key={`dash-menu-${itemIdx}`} {...itemProps} />)}
+        <Popover content={<Menu>
+            {items.map((itemProps,itemIdx) => <MenuItem key={`dash-menu-${itemIdx}`} {...itemProps} />)}
         </Menu>}>
             <BaseDashboardIcon width={width} height={height}>
                 <MenuDashboardIcon/>
             </BaseDashboardIcon>
-        </Popover2>
-
+        </Popover>
     )
 }
 

@@ -29,7 +29,7 @@ function MultipleMetrices({ metrices = [
                 <Categorical
                     key={`${metricIdx}-${metricProps.label}`}
                     spanClassName={`h${metricIdx % 4}-span`}
-                        callbackOnClick={() => copyTextToClipboard({ text: `${metricProps.label}: ${metricProps.metric}` })}
+                    callbackOnClick={() => copyTextToClipboard({ text: `${metricProps.label}: ${metricProps.metric}` })}
                     {   ...metricProps}/>)}
         </div>
         )

@@ -19,7 +19,7 @@ function PlottypeIcon({ height, placeholder = "", items = [{ text: "Menu1" }], p
                 { min: 18, q25: 12, median: 5, q75: 3, max: 2 },
                 { min: 16, q25: 15, median: 10, q75: 8, max: 4 }].map((boxplotProps, idx) => {
                     return (
-                        <Box {...boxplotProps} width = {7} x={5 + 10*idx}  fill={colorPalette[idx]} strokeWidth={0.5}/>
+                        <Box key={`${idx}-plotType-box`}{...boxplotProps} width = {7} x={5 + 10*idx}  fill={colorPalette[idx]} strokeWidth={0.5}/>
                 )
                 }) : null}
             {plotType === "lineplot"?[{ cy: 3 }, { cy: 14 }, { cy: 8 }, { cy: 13 }].map((pointProps, idx) => {

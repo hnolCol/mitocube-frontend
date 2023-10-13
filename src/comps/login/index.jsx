@@ -4,11 +4,12 @@ import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
 import { useEffect, useState } from "react"
-import { Link, redirect } from "react-router-dom"
-import { useLoginUser } from "../../hooks/queries/login.hooks"
+import { Link, useNavigate} from "react-router-dom"
+import { useLoginUser, useVerifyToken } from "../../hooks/queries/login.hooks"
 import APIError from "../core/error/APIerror"
 
-
+import _ from "lodash"
+import { checkBasicEmailPattern } from "../../services/checks/email"
 
 Login.propTypes = {
     setAuthenticationStatus : PropTypes.func,
@@ -16,55 +17,110 @@ Login.propTypes = {
 }
 
 function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
-    
-    const [userInput, setUserInput] = useState({password : undefined, username : undefined})
-    
+    const redirect = useNavigate()
+    const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
+    const [userLoginResponse, setUserLoginResponse] = useState({success : false, token : "", msg : ""})
+
+
+
     const {
         data,
         isError: loginIsError,
-        error : loginError,
+        error: loginError,
         isSuccess: loginSuccess,
         isFetching: loginFetching,
         isLoading: loginLoading,
-        refetch: handleLoginAttempt } = useLoginUser(userInput, { enabled: false })
+        refetch: handleLoginAttempt } = useLoginUser(userInput, { enabled: false, onSuccess : (data) => setUserLoginResponse(data)})
 
+    const {
+        data: verifiedToken,
+        isError: verifyTokenIsError,
+        isSuccess : verifyTokenIsSuccess,
+        error: verfiyTokenError,
+        isFetching: verifyTokenIsFetching,
+        isLoading: verifyTokenIsLoading,
+        refetch: verifyToken } = useVerifyToken({verificationCode: userInput.verificationCode, tokenString : userLoginResponse.token},{enabled : false})
+    
+    
     useEffect(() => {
-        if (loginSuccess) {
+       
+        if (verifyTokenIsSuccess && verifiedToken.success) {
+            setAuthenticationStatus({
+                isAuth: verifiedToken.verified,
+                token: verifiedToken.token,
+                role: verifiedToken.role, //user role encoded as integer. 
+            })
             redirect("/index")
+            
         }
-    },[data, loginSuccess])
+    }, [verifyTokenIsSuccess])
 
     const handleInputChange = (e) => {
         //save user input to state
         const inputID = e.target.id
         setUserInput(prevValues => {return {...prevValues, [inputID] : e.target.value}})
     }
-    console.log(loginError)
+
     return (
         <div className="flex center-items justify-center div--expand">
+            
             <div className="flex flex-column center-items">   
-            <div className="flex justify-space-between" style={{width : "50vw"}}>
-                <InputGroup
-                    id = "username"
-                    placeholder="Username (E-Mail)"
-                    value={userInput.username}
-                    onChange={handleInputChange}
-                    {...inputProps} /> 
-                <InputGroup
-                    id = "password"
-                    placeholder="Password"
-                    type={"password"}
-                    value={userInput.password}
-                    onChange={handleInputChange}
-                    {...inputProps} /> 
-                <Button icon="log-in" intent={"primary"} loading={loginFetching || loginLoading} onClick={handleLoginAttempt}/>
-            </div>
+                <div className="intent-margin-bottom--little">
+                    <Header text="User Login" />
+                </div>
+
+                {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
+                    
+                    
+                    <div className="flex justify-space-between intent-margin-bottom--little" style={{ width: "45vw" }}>
+                        <InputGroup
+                            key="ver"
+                            id = "verificationCode"
+                            placeholder="Verification Code ..."
+                            value={userInput.verificationCode}
+                            onChange={handleInputChange}
+                            {...inputProps} /> 
+                        <Button
+                                key="buttin-verify-token"
+                                icon="log-in"
+                                intent={"success"}
+                                disabled={!_.isString(userInput.verificationCode) || userInput.verificationCode.length === 0}
+                                loading={verifyTokenIsFetching || verifyTokenIsLoading}
+                                onClick={verifyToken} />
+                    </div> :
+                    
+                    <div className="flex justify-space-between intent-margin-bottom--little" style={{ width: "45vw" }}>
+                        <InputGroup
+                            key="user"
+                            id = "username"
+                            placeholder="Username (E-Mail)"
+                            intent={_.isString(userInput.username) && userInput.username.length > 2 ? checkBasicEmailPattern(userInput.username) ? "none" : "danger" : "none"}
+                            value={userInput.username}
+                            onChange={handleInputChange}
+                            {...inputProps} /> 
+                        <InputGroup
+                            key="pw"
+                            id = "password"
+                            placeholder="Password"
+                            type={"password"}
+                            value={userInput.password}
+                            onChange={handleInputChange}
+                            {...inputProps} /> 
+                        <Button
+                                icon="log-in"
+                                intent={"primary"}
+                                disabled={!_.isString(userInput.password) || !_.isString(userInput.username) || userInput.password.length < 3 || !checkBasicEmailPattern(userInput.username)}
+                                loading={loginFetching || loginLoading}
+                                onClick={handleLoginAttempt} />
+                            {/* handleLoginAttempt */}
+                    </div>}
+            
             <div className="flex">
                 <p>No account yet?</p>
                 <Link className="router-link" to="/register">Please create an account.</Link>
                 </div>
             
-                {loginIsError ? <APIError error={loginError} />:null}
+                {loginIsError || verifyTokenIsError? <APIError error={verifyTokenIsError?verfiyTokenError:loginError} />:null}
             </div>
             
         </div>

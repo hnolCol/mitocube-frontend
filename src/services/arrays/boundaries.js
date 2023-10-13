@@ -1,5 +1,9 @@
 import _ from "lodash"
 
+export function getMaxAbsoluteValue({ data }) {
+    console.log(_.map(data, v => Math.abs(v)))
+    return _.max(_.map(data, v => Math.abs(v)))
+}
 
 
 export function getDomainWithBoundaries({ data, keyName, frac = 0.08}) {

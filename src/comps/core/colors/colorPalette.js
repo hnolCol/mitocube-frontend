@@ -1,10 +1,14 @@
 const STD_CHART_COLOR_PALETTE = [
     "#466688",
+    
     "#79c29e",
     "#e7ad00",
+    "#b62444",
+    "#c5959d",
     "#297d37",
     "#b2b2b2",
-    "#e700d2"]
+    "#d97a4b"
+    ]
 
 export function getColorPalette(n) {
     return STD_CHART_COLOR_PALETTE.slice(0,n)

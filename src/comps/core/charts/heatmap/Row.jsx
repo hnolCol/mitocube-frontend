@@ -4,7 +4,19 @@ import _ from "lodash"
 import { Text } from "@visx/text"
 
 
+function Rect({x,y,width,height,fill,stroke = "#000000", strokeWidth = 0.5, opacity = 1}) {
+    return (
+        <rect 
+            {...{x,y,width,height,stroke,fill,strokeWidth,opacity}}/>
+    )
+}
 
+function RowLabel({ x, y, text, dx = 5, fontSize = 12, verticalAnchor = "middle", textAnchor = "start" }) {
+
+    return (
+        <Text {...{x,y,dx,textAnchor, verticalAnchor, fontSize}}>{text}</Text>
+    )
+}
 HeatmapRow.propTypes = {
     data : PropTypes.array,
     size: PropTypes.number, // pixels, rectangle height and witdh
@@ -20,18 +32,33 @@ HeatmapRow.propTypes = {
     clusterIndexColor: PropTypes.string
 }
 function HeatmapRow({
-    index,
+    valueScale,
+    extraColorScale,
+    xValuesEnd,
+    y,
     data,
-    size,
-    N,
-    label,
-    colorScale,
+    valueNames,
+    colorNames,
+    colorValuesExist,
+    labelsExist,
     opacity = 1,
-    fontSize = 10,
-    stroke = "black",
-    clusterIndexColor = "red",
-    strokeWidth = 0.4,
-    annotationColor = "#bf3525" }) {
+    binHeight,
+    marginBetweenValuesAndColors,
+    marginBetweenValuesAndLabels,
+    labelString = ""
+    // index,
+    // data,
+    // size,
+    // N,
+    // label,
+    // colorScale,
+    // opacity = 1,
+    // fontSize = 10,
+    // stroke = "black",
+    // clusterIndexColor = "red",
+    // strokeWidth = 0.4,
+    // annotationColor = "#bf3525" 
+}) {
     
     // const {
     //     binHeight, 
@@ -51,7 +78,7 @@ function HeatmapRow({
             opacity={opacity} >
             {/* onMouseEnter = {focusView?() => handleHighlightedItems(rowData[nColumns]):undefined}> */}
         {/* Add cluster color rectangle */}
-            <rect 
+            {/* <rect 
                 key = {`cluster-${index}`}
                 x = {0} 
                 y={index*size} 
@@ -59,45 +86,34 @@ function HeatmapRow({
                 height = {size} 
                 fill = {clusterIndexColor}
                 stroke={stroke}
-                strokeWidth={strokeWidth} />
+                strokeWidth={strokeWidth} /> */}
             
-        {/* Add heatmap data */}
-            {_.range(N).map(columnIndex => {
-                const v = data[columnIndex]
-                return(
-                    <rect 
-                        key = {`${columnIndex}-${index}`}
-                        x = {(columnIndex+1)*size+5} 
-                        y={index*size} 
-                        width={size} 
-                        height = {size} 
-                        fill = {colorScale(v)} 
-                        stroke={stroke}
-                        strokeWidth={strokeWidth}/>)
-            })}
-        {/* Add annotation to heatmap */}
-            <Text  
-                x = {(nColumns+(nExtraColumns+1))*(size)+8} 
-                y={index*size+size/2} 
-                fontSize={fontSize} 
-                textAnchor={"start"} 
-                verticalAnchor={"middle"}>
-                {/* {`${rowData[nColumns+2]} (${rowData[nColumns]})`} */}
-                    {label}
-            </Text>
-        {/* Add annotation data */}
-            {_.range(nExtraColumns).map(iiExtra => {
-                return(
-                    <rect 
-                        key = {`annotation-${index}-${iiExtra}`}
-                        x = {(N+1+iiExtra)*size+8} 
-                        y={index*size} 
-                        width={size} 
-                        height = {size} 
-                        fill = {rowData[nColumns+(3+iiExtra)]!=="-"?annotationColor:"#efefef"}
-                        stroke={stroke}
-                        strokeWidth={strokeWidth}/>)})}
-            </g>
+            {valueNames.map((valueName, valueIdx) =>
+               
+                <Rect
+                        x={valueIdx * binHeight}
+                        y={y}
+                        width={binHeight}
+                        height={binHeight}
+                        fill={data[valueName]===undefined ? "#fafafa" : valueScale(data[valueName])}
+                    />)}
+                    {colorValuesExist ?
+                        colorNames.map((colorName, colorIdx) => {
+                            return (
+                                <Rect
+                                    x={xValuesEnd + marginBetweenValuesAndColors + colorIdx * binHeight}
+                                    width={binHeight}
+                                    height={binHeight}
+                                    y={y}
+                                    fill = {extraColorScale(data[colorName])} />)
+                        })
+                    : null}
+                        {labelsExist ?
+                            <RowLabel
+                                x={xValuesEnd + marginBetweenValuesAndLabels}
+                                fontSize={binHeight/2}
+                                y={y + binHeight / 2} text={labelString} /> : null}
+                    </g>
 
 
     )
@@ -108,28 +124,22 @@ function HeatmapRow({
     the same result as passing prevProps to render,
     otherwise return false
     */
-
-   // check first if data changed 
-   if (prevProps.rowData === undefined && nextProps.rowData !== undefined) {
-    return false
-   }
-   // check if index changed
-   if (prevProps.index !== nextProps.index) {
-    return false
-   }
-   // check if column number changed
-      if (prevProps.rowData[prevProps.nColumns] !== nextProps.rowData[nextProps.nColumns]) {
-       
-    return false
-   }
-   //deep comparision of data array
-   if (!_.isEqual(prevProps.rowData,nextProps.rowData)){
-    return false
-   }
+      
+    if (prevProps.opacity !== nextProps.opacity) {
+        return false
+    }
+    if (prevProps.valueNames !== prevProps.valueNames) {
+        return false
+    }
+    if (prevProps.y !== prevProps.y) {
+        return false
+    }
+    if (prevProps.binHeight !== prevProps.binHeight) {
+        return false
+    }
+   
    // check opacity change
-   if (prevProps.opacity !== nextProps.opacity) {
-    return false
-   }
+  
       
    return true
 

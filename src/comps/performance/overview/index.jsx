@@ -40,14 +40,13 @@ PerformanceOverview.propTypes = {
 
 function PerformanceOverview({ }) {
 
-    const { data, isLoading } = useGetDendro()
-    console.log(data)
+    // const { data, isLoading } = useGetDendro()
+    // console.log(data)
     return (
         <div>
-            {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null}
+            {/* {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null} */}
             <Maintenance />
             <QualityControl />
-            <Heatmap />
             <PercentageLine />
             <System />
         </div>

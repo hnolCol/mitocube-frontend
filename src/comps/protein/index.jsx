@@ -24,12 +24,10 @@ function ProteinHeader({ }) {
         }
             
     }
-    console.log(featureList)
     return (
-        <div>
-            <Tabs tabs={featureList.items} />
-                
-            <div className="no-scroll">
+        <div className="no-scroll div--expand">
+            <Tabs tabs={_.uniqBy(featureList.items,"to")} />
+            <div >
                 <Outlet context={{handleFeatureList,featureID}} />
             </div>
             

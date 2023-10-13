@@ -15,13 +15,22 @@ export function useGetFeatures (useQueryOptions = {}, APIParams = {}) {
 
 // get data for features 
 
-async function getDataByFeatureID_API({ token, featureID }) {
+async function getDataByFeatureID_API({ tokenString, featureID }) {
     //fet the data for a feature ID
-    const res = await axios.get("/api/features/data", { params: { token, featureID} })
-return res.data
-}
+   // const res = await axios.get("/api/features/data", { params: { token, featureID } })
+    
+    const res = await axios.get(`/api/features/${featureID}/data`,
+      {
+          headers: {
+              "Authorization": `Bearer ${tokenString}`,
+              'Content-Type': 'application/json'
+          }
+        })
+    
+    return res.data
+    }
 
 
-export function useGetDataByFeatureID(useQueryOptions = {}, APIParams = {}) {
+export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
     return useQuery(["getDataByFeautreID",APIParams.featureID],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
 }

@@ -19,11 +19,13 @@ import BoxplotWithValue from "../../../core/charts/boxplot/minimal"
 import ResultChart from "../resultCard/chart"
 import { useGetDataByFeatureID } from "../../../../hooks/queries/feature.hooks"
 import { useLocation, useMatch, useOutletContext } from "react-router"
+import APIError from "../../../core/error/APIerror"
 
 
 
 
 function ProteinOverview({
+    authenticationStatus,
     // yaxisName = "y",
     // sizeName = "y",
     // colorName = "T",
@@ -43,16 +45,19 @@ function ProteinOverview({
     // const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
     // const debouncedSearchString = useDebounce(searchDetails.searchString, 200)
     const { featureID } = useOutletContext()
-    const { data: data2 } = useGetDataByFeatureID({}, { token: "asda", featureID })
 
+    const { data: featureData, isError , error } = useGetDataByFeatureID({ tokenString: authenticationStatus.token, featureID }, {})
+    console.log(featureData)
+    if (isError) return <APIError error={error} />
     return (
-        <div className="flex flex--wrap center-items">
+        <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
             
-            {_.isObject(data2) ? Object.keys(data2).map(dataID => {
-                const chartData = data2[dataID]
-                
+            {_.isObject(featureData) ? featureData["dataset_labels"].map(dataID => {
+                const data = featureData["data"][dataID] //get data for dataset
+                console.log(data)
+                console.log(featureData["attributes_samples"])
                 return (
-                    <ResultChart key={`${featureID}-${dataID}`} {...chartData} {...{dataID, featureID}} yaxisName="value"/>
+                    <ResultChart key={`${featureID}-${dataID}`} groupings={featureData["attributes_samples"][dataID]} data={data} {...{dataID, featureID}} yaxisName="value"/>
                 )
             }): null}
             

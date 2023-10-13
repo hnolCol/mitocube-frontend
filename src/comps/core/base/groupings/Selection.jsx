@@ -4,12 +4,14 @@ import _ from "lodash"
 import ColorIconWithName from "../../svg/icons/chartSelection/Color"
 import SplitIconWithName from "../../svg/icons/chartSelection/Split"
 import SubplotIconWithName from "../../svg/icons/chartSelection/Subplot"
+import SizeIconWithName from "../../svg/icons/chartSelection/Size"
 
 
 const IconBasedComboboxes = {
     "colorName": ColorIconWithName,
     "splitName": SplitIconWithName,
-    "subplotName" : SubplotIconWithName
+    "subplotName": SubplotIconWithName,
+    "sizeName" : SizeIconWithName
 }
 
 export function getIcon(iconName, props) {
@@ -35,8 +37,7 @@ GroupingSelection.propTypes = {
 function GroupingSelection({keyNames, groupings = {}, handleSelection, selectedItems}) {
     // keynames => selection keyNames
     const groupingNames = _.concat(Object.keys(groupings), ["none"])
-   
-    
+
     return (
         
         <div className="flex center-items">

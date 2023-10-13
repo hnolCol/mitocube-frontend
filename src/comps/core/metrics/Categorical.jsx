@@ -3,7 +3,7 @@ import { motion } from "framer-motion"
 import _ from "lodash"
 
 Categorical.propTypes = {
-    text: PropTypes.string.isRequired,
+    metric: PropTypes.string.isRequired,
     label : PropTypes.string.isRequired
 }
 

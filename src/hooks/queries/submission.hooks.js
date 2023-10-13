@@ -19,7 +19,7 @@ export const useGetSubmissions = (useQueryOptions = {}, APIParams = {}) => {
 
 async function getSubmissionID_API(token) {
 
-    const res = await axios.get('/api/data/submission/id', { params: { token: token } })
+    const res = await axios.get('/api/submission/id', { params: { token: token } })
     return res.data
 }
 
@@ -43,5 +43,31 @@ export const useGetSubmissionHelp = (useQueryOptions = {}, APIParams = {}) => {
 }
 
 
+
+
+// submission attributes
+
+async function getSubmissionAttribute_API({tokenString}) {
+
+    console.log(tokenString)
+        
+    const res = await axios.get('/api/attributes',
+    {
+        headers: {
+            "Authorization": `Bearer ${tokenString}`,
+            'Content-Type': 'application/json'
+        }
+        })
+    
+    return res.data 
+}
+
+
+export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {}) => {
+
+
+    return useQuery(["attributes_for_submission"], () => getSubmissionAttribute_API({...APIParams}), useQueryOptions)
+
+}
 
 

@@ -2,10 +2,12 @@
 import PropTypes from "prop-types"
 import { Header } from "../../base/Header"
 import { Link, useLocation } from "react-router-dom"
+import _ from "lodash"
 import "../navigation.css"
 
 Tabs.propTypes = {
     tabs: PropTypes.arrayOf(PropTypes.object).isRequired,
+    rightHeader : PropTypes.string,
     selectFirstTabIfPathNameDoesNotMatch : PropTypes.bool
 }
 
@@ -29,7 +31,7 @@ function TabItem({text,to, active = false}) {
     )
 }
 
-function Tabs({ tabs, selectFirstTabIfPathNameDoesNotMatch = true }) {
+function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }) {
     // Container for Tabs in the Topbar.
     const location = useLocation()
     const locationMatches = tabs.filter(tab => tab.to === location.pathname).length > 0 
@@ -40,7 +42,11 @@ function Tabs({ tabs, selectFirstTabIfPathNameDoesNotMatch = true }) {
                 <TabItem key={`${tabIdx}-${tab.text}`}
                     active={locationMatches?location.pathname === tab.to:selectFirstTabIfPathNameDoesNotMatch?tabIdx===0:false}
                     {...{ to: tab.to, text: tab.text }} />
-        )})}
+            )
+        })}
+            {_.isString(rightHeader) && rightHeader.length > 0 ?
+                <div className="div--expand tabs__item intent-margin-left">
+                    <Header {...{ text : rightHeader }} hexColor={"#466688"} /></div> : null}
         </div>
     )
 }

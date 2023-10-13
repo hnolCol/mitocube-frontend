@@ -30,7 +30,8 @@ function ResultChart({
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
     const [selectedGroupings, setSelectedGroupings] = useState({colorName : groupingNames[0], splitName : groupingNames[1], subplotName : groupingNames[2]})
 
-    const keyNamesForSplitting = _.uniq(Object.values(selectedGroupings).filter(v => v !== undefined && _.has(data[0],v)))
+    const keyNamesForSplitting = _.uniq(Object.values(selectedGroupings).filter(v => v !== undefined && _.has(data[0], v)))
+    console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const numberGroupings = groupingNames.length 
@@ -177,7 +178,7 @@ function ResultChart({
                 </div>
                 <PlottypeIcon callback={cyclePlotTypes} {...{ plotType }} />
             
-                <DownloadIcon items={["Raw", "Aggregated", "Normalized","PNG","SVG"].map(dataType => {
+                <DownloadIcon items={["Raw", "Aggregated", "Normalized","DIVIDER","PNG","SVG"].map(dataType => {
                     return ({ text: dataType, disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0 ): false})
                 })} placeholder="" callback={handleDataDownload} callbackValueOnly={true} />
             </div>

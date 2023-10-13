@@ -1,13 +1,12 @@
-import { Button } from "@blueprintjs/core";
-import { Tooltip2 } from "@blueprintjs/popover2";
+import { Button, Tooltip } from "@blueprintjs/core";
 
 
 function TooltipButton(props) {
     const {content, ...rest} = props
     return (
-        <Tooltip2 content={content} disabled={content===undefined}>
+        <Tooltip minimal={true} content={<div className="">{content}</div>} disabled={content===undefined} compact={true}>
             <Button {...rest} minimal={true}/>
-        </Tooltip2>
+        </Tooltip>
         
     )
 }

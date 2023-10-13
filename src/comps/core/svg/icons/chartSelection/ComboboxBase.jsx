@@ -1,4 +1,4 @@
-import { Menu } from "@blueprintjs/core"
+import { Menu, MenuDivider } from "@blueprintjs/core"
 import { SVG } from "../../../charts/SVGHeader"
 import { getColorPalette } from "../../../colors/colorPalette"
 import AnimatedText from "../../AniamtedText"
@@ -26,9 +26,11 @@ function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Men
     return (
         <div> 
             <Popover2 position="bottom-left" content={<Menu>
-            {checkedItems.map((itemProps, itemIdx) => {
+                {checkedItems.map((itemProps, itemIdx) => {
+                    if (itemProps.text === "DIVIDER") return <MenuDivider key={`${itemIdx}-comboMenuDiv`} />
                 const itemSelected = _.has(itemProps,"selected")?itemProps.selected:itemProps.text === placeholder
-                return (
+                    return (
+                    
                     <MenuItem2
                     key={`dash-menu-${itemIdx}`}
                     icon={itemSelected ? "tick" : "none"}

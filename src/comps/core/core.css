@@ -21,6 +21,10 @@
     border-radius: 0.3rem;
 }
 
+.div-border-bottom {
+    border-bottom: #696969 1px solid;
+}
+
 .div--expand{
     height : 100%;
     width : 100%;
@@ -57,16 +61,18 @@
     font-size: 2rem;
 }
 
-
-
-
 .font-color--red {
     color: #b66476;
 }
 
 
-.font-weight--bolder{
+.font-weight--bold{
     font-weight: bold;
+}
+
+
+.font--monospace{
+    font-family: 'Courier New', Courier, monospace;
 }
 
 /* Spans */
@@ -88,7 +94,7 @@
 
 .h3-span {
     font-weight: bolder;
-    color: #b66476;
+    color: #b62444;
 }
 
 
@@ -134,10 +140,17 @@
 .margin--medium {
     margin : 1rem
 }
-
+.margin-top-bottom--medium {
+    margin-top: 0.75rem;
+    margin-bottom: 0.75rem;
+}
 .margin-top-bottom--little {
     margin-top: 0.3rem;
     margin-bottom: 0.3rem;
+}
+.margin-top-bottom--smallest {
+    margin-top: 0.1rem;
+    margin-bottom: 0.1rem;
 }
 .intent-margin-left {
     margin-left: 2rem;
@@ -160,7 +173,10 @@
 .intent-margin-top--medium {
     margin-top: 1.0rem;
 }
-.intent-marign-left-little{
+.intent-marign-left--little{
+    margin-left : 0.7rem
+}
+.intent-marign-left--medium{
     margin-left : 0.7rem
 }
 .intent-margin-top--little {
@@ -209,7 +225,7 @@
     grid-row-end: 5;
     background-color: #efefef;
     padding-left: 1rem;
-    padding-right: 1rem;
+    padding-right: 0rem;
     overflow-y: scroll;
   }
 
@@ -223,7 +239,7 @@
 .dashboard__grid__help--topright {
     position: absolute;
     right : 1rem;
-    top : 1rem;
+    top : 3rem;
     max-width : 20vw;
 }
 

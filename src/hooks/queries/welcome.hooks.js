@@ -1,25 +1,53 @@
 import axios from "axios"
 import { useQuery } from "react-query";
 
-// get new mesages 
 
-async function getNews_API(token) {
-    const res = await axios.get('/api/news', { params: { token } })
+
+// get app info
+
+async function getBackendInfo_API({tokenString}) {
+    const res = await axios.get('/api/info/app', {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${tokenString}`
+        }
+    })
     return res.data 
 }
 
-export const useGetNews = (useQueryOptions = {}, APIParams = {}) => {
+export const useGetBackendInfo = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["backendInfo"],() =>  getBackendInfo_API({...APIParams}), useQueryOptions)
+}
+
+// get new mesages 
+async function getNews_API({tokenString}) {
+    const res = await axios.get('/api/news', {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${tokenString}`
+        }
+    })
+    return res.data 
+}
+
+export const useGetNews = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["getNews"],() =>  getNews_API({...APIParams}), useQueryOptions)
 }
 
 
 // get key figures 
 
-async function getKeyFigures_API(token) {
-    const res = await axios.get('/api/keyfigures', { params: { token } })
+async function getKeyFigures_API({ tokenString }) {
+    return [{"label": "Proteins", "metric" : 7834}, {"label": "Instruments", "metric" : 5}, {"label": "Users", "metric" : 25}, {"label": "Turnaround [d]", "metric" : 23}]
+    const res = await axios.get('/api/info/keyfigures', {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${tokenString}`
+        }
+    })
     return res.data 
 }
 
-export const useGetKeyFigures = (useQueryOptions = {}, APIParams = {}) => {
+export const useGetKeyFigures = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["getKeyFigures"],() =>  getKeyFigures_API({...APIParams}), useQueryOptions)
 }

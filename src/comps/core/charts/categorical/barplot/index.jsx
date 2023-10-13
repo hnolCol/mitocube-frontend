@@ -12,6 +12,7 @@ import AxisWithBackground from "../../axis"
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
+import MetricTable from "../../../base/metrictable"
 
 
 
@@ -87,8 +88,11 @@ function CategoricalBarplot({
       })
     
     const getTooltipData = (value, errorValue, barData) => {
-        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => [tooltipName, barData[tooltipName]]).filter(v => v[1] !== undefined))
-        return {[yaxisName] : _.round(value,2), error : _.isNaN(errorValue)?"NaN":_.round(errorValue,2), ...tooltipInfo}
+        const tooltipInfo = _.map(tooltipNames, tooltipName => {
+            return { name : tooltipName, value : barData[tooltipName] }
+        })
+        const barInfo = [{name : yaxisName, value : _.round(value,2)}, {name : "Error", value : _.isNaN(errorValue)?"NaN":_.round(errorValue,2)}]
+        return _.concat(barInfo,tooltipInfo)
     }
     
     const handleMouseOver = (event, bartooltipData) => {
@@ -358,10 +362,7 @@ function CategoricalBarplot({
                 top={tooltipTop}
                 left={tooltipLeft}
                 >   
-                    <div className="flex flex-column">
-                        {Object.keys(tooltipData).map(qLabel => <div key={qLabel}>{qLabel} : <span className="h0-span">{tooltipData[qLabel]}</span></div>)}
-                        
-                    </div>
+                    <MetricTable data={tooltipData}/>
                 </TooltipInPortal>
             )}
             </div>

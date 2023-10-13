@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { array } from "prop-types";
 
 export function filterArrayBySearchString({searchString = "", array = [], searchColumns = []}) {
     // Filter array of objects using a search string, specify the search columns to limit the search to
@@ -11,6 +12,21 @@ export function filterArrayBySearchString({searchString = "", array = [], search
     const re = new RegExp(_.escapeRegExp(searchString), 'i')
     const isMatch = arrayItem => _.filter(columnsToSearch.map(v => re.test(arrayItem[v]))).length > 0
     return _.filter(array, isMatch)
+}
+
+export function filterArrayOfObjects({ array = [], keyName = "", keyValue = "" }) {
+    return _.filter(array, v => v[keyName] === keyValue)
+}
+
+export function removeKeyInArrayOfObjects({ array = [], keyName = ""}){
+    
+    return array.map(o => _.omit(o,keyName))
+
+}
+
+
+export function clearArrayOfObjectsByKeyName({ array = [], keyName = "", newValue = "" }) {
+    return array.map(o => {return{ ...o, [keyName] : newValue}})
 }
 
 

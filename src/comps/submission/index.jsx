@@ -5,7 +5,7 @@ import Tabs from "../core/navigation/tabs";
 function SubmissionHeader({ }) {
     
     return (
-        <div>
+        <div className="no-scroll div--expand">
             <Tabs tabs={[
                 { text: "New Submission", to: "/submission/new" },
                 { text: "Submissions", to: "/submission/view" },

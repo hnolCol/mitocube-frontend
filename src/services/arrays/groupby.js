@@ -3,13 +3,22 @@ import { getQuantiles } from "../statistics/quantiles";
 import { getStandardDeviationAndAverage } from "../statistics/average";
 import { getDomainWithBoundaries } from "./boundaries";
 
+
+
+export function groupListByProperty(data, propertyName = "id") {
+    return data.reduce((groups, item) => ({
+        ...groups,
+        [item[propertyName]]: [...(groups[item[propertyName]] || []), item]
+      }), {});
+}
+
 export function getAverageAndErrorByGroups(
     data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],
     keyNames = ["Genotype", "T"],
     yaxisName = "y") {
     
     const minMaxYDomain = getDomainWithBoundaries({ data, keyName: yaxisName, frac : 0.1})
-    const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '|'))
+    const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '//|//'))
     const groups = Object.keys(groupedByKeyNames)
     const groupedAggratedData = groups.map(group => {
         var groupData = groupedByKeyNames[group]
@@ -31,7 +40,7 @@ export function getQuantilesByGroups(
     yaxisName = "y") {
     // groups data in an aray of object based on keyNames (keys present in the objects in the data array).
     // then the quantile is calculated using the yaxisName (numeric key name). 
-    const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '|'))
+    const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '//|//'))
     const groups = Object.keys(groupedByKeyNames)
     const minMaxYDomain = getDomainWithBoundaries({ data, keyName: yaxisName, frac : 0.1})
     const groupedAggratedData = groups.map(group => {

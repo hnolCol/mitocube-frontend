@@ -5,14 +5,14 @@ import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
 import "@blueprintjs/select/lib/css/blueprint-select.css"
 import "@blueprintjs/popover2/lib/css/blueprint-popover2.css"
+import "@blueprintjs/table/lib/css/table.css"
 import "react-grid-layout/css/styles.css"
 import "react-resizable/css/styles.css"
 import { Route, Routes, useLocation } from 'react-router'
 import Leftbar from './comps/core/navigation/dashboard/Leftbar'
-import { ProtectedRoute } from './comps/core/routes/ProtectedRoute'
+import { ProtectedAdminRoute, ProtectedRoute } from './comps/core/routes/ProtectedRoute'
 import { useEffect, useState } from 'react'
 import { checkForTokenInLocalStorage, removeTokenFromLocalStorage } from './services/localstorage'
-import { useGetDatasets } from './hooks/queries/datasets.hooks'
 import Login from './comps/login';
 import SubmissionHeader from './comps/submission';
 import SubmissionView from './comps/submission/view';
@@ -22,10 +22,6 @@ import SubmissionHelp from "./comps/submission/help";
 import DatasetHeader from "./comps/dataset";
 import DatasetOverview from "./comps/dataset/overview";
 import PerformanceHeader from "./comps/performance";
-import CategoricalBarplot from "./comps/core/charts/categorical/barplot";
-import CollapsableAxes from "./comps/core/charts/collapsableCharts";
-import { Button } from "@blueprintjs/core";
-import AxisWithBackground from "./comps/core/charts/axis";
 import ProteinOverview from "./comps/protein/charts/overview";
 import { Link } from "react-router-dom";
 import { getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "./services/arrays/groupby";
@@ -36,20 +32,41 @@ import PerformanceOverview from "./comps/performance/overview";
 import SubmissionStatistics from "./comps/submission/statistics";
 import ProteinHeader from "./comps/protein";
 import ProteinSelection from "./comps/protein/selection";
+import DatasetHeatmap from "./comps/dataset/heatmap";
+import DatasetVolcanoPlot from "./comps/dataset/volcano";
+import RadialCategoricalScatter from "./comps/core/charts/radialscatter";
+import PTM from "./comps/ptm";
+import { ScatterPlot } from "./comps/core/charts/scatter";
+import InitialSubmission from "./comps/submission/new/InitialSubmission";
+import DatasetQC from "./comps/dataset/qc";
+import DatasetPCA from "./comps/dataset/pca";
+import AdminHeader from "./comps/admin";
+import ShareToken from "./comps/admin/ShareToken";
+import AdminUsers from "./comps/admin/Users";
+import AdminAttributes from "./comps/admin/Attributes";
 
 
 
 const initAuthenticationStatus = {
-  isAuth: true,
-  token: null,
+  isAuth: false,
+  token: "", //logout
   role: 0, //user role encoded as integer. 
-  verified: false
+  verified: true
 }
 
+const initApplicationInfo = {
+  app_name: undefined,
+  app_description : undefined,
+  version: "0.0",
+  lead_contact: undefined,
+  email : ""
+}
 
 function App() {
 
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
+  const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
+
   const location = useLocation()
   const basePathName = location.pathname.split("/")[1]
   
@@ -67,9 +84,6 @@ function App() {
     removeTokenFromLocalStorage()
     setAuthenticationStatus(initAuthenticationStatus)
   }
-  const cc = getAverageAndErrorByGroups()
-  const a = getQuantilesByGroups()
-  const d = normalizeDataToGroup()
   
   return (
     <div className='dashboard__grid no-scroll'>
@@ -79,13 +93,13 @@ function App() {
       </div>
 
       <div className='dashboard__grid__top-row bg--lightgrey'>
-        <Topbar isAuthenticated={authenticationStatus.isAuth} {...{basePathName}}/>
+        <Topbar {...{basePathName,authenticationStatus}}/>
       </div>
 
       <div className='dashboard__grid__fill-center'>
       <Routes>
         <Route path="/" element={
-          <Login />
+            <Login {...{ setAuthenticationStatus}}/>
         } />
 
 
@@ -97,7 +111,7 @@ function App() {
       {/* Redirected after successful login */}
       <Route path="/index" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
-              <Welcome />
+              <Welcome {...{authenticationStatus,applicationInfo, setApplicationInfo}}/>
           </ProtectedRoute>} />
 
       <Route path="/protein" element={
@@ -105,12 +119,12 @@ function App() {
                 <ProteinHeader/>
             </ProtectedRoute>}>
             <Route path="/protein/selection" element={<ProteinSelection />} />
-            <Route path="/protein/:ID" element={<ProteinOverview />} />
+            <Route path="/protein/:ID" element={<ProteinOverview {...{authenticationStatus}}/>} />
         </Route>
 
           <Route path="/ptm" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
-              <h3>PTM</h3>
+              <PTM />
             </ProtectedRoute>} />
 
         <Route path="/dataset/:dataID" element={
@@ -118,8 +132,10 @@ function App() {
               <DatasetHeader/>
             </ProtectedRoute>}>
             <Route path="/dataset/:dataID" element={<DatasetOverview />} />
-            <Route path="/dataset/:dataID/volcano" element={<h3>Volcano</h3>} />
-            <Route path="/dataset/:dataID/heatmap" element={<h3>Heatmap</h3>} />
+            <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot />} />
+            <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap />} />
+            <Route path="/dataset/:dataID/pca" element={<DatasetPCA />} />
+            <Route path="/dataset/:dataID/qc" element={<DatasetQC />} />
             <Route path="/dataset/:dataID/mitomap" element={<h3>MitoMap</h3>} />
             <Route path="/dataset/:dataID/timeline" element={<Timeline />} />
             <Route path="/dataset/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
@@ -132,6 +148,7 @@ function App() {
                 <p>Pleaase select a dataset to explore. Tag based search supported.</p>
                 <p>Previous selected datasets ...</p>
                 <Link to="/dataset/8dlTWpi5MMhF">Dataset1</Link>
+                <ScatterPlot width={400} height={300} data={[{"x":2,"y":3},{"x":4,"y":5}]} xaxisName={"x"} yaxisName={"y"} />
               </div>
               
           </ProtectedRoute>} />
@@ -158,8 +175,8 @@ function App() {
               <SubmissionHeader/>
             </ProtectedRoute>
           }>
-            <Route index element={<NewSubmission authStatus={authenticationStatus} />}/>
-            <Route path="/submission/new" element={<NewSubmission authStatus={authenticationStatus} />}/>
+            <Route index element={<NewSubmission {...{authenticationStatus}}/>} />
+            <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus}}/>}/>
             <Route path="/submission/view" element={
               <SubmissionView />} />
             <Route path="/submission/help" element={
@@ -167,11 +184,17 @@ function App() {
             <Route path="/submission/statistics" element={
               <SubmissionStatistics/>} />
       </Route>
-    
+      
       <Route path="/admin" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
-              <h3>Admin</h3>
-            </ProtectedRoute>} />
+          <ProtectedAdminRoute isAuthenticated={authenticationStatus.isAuth} isAdmin={authenticationStatus.role === 4}>
+              <AdminHeader {...{authenticationStatus}}/>
+            </ProtectedAdminRoute>
+          }>
+            <Route index element={<div>Admin Settings</div>} />
+            <Route path="/admin/users" element={<AdminUsers {...{authenticationStatus}}/>}/>
+            <Route path="/admin/sharetoken" element={<ShareToken {...{authenticationStatus}}/>}/>
+            <Route path="/admin/attributes" element={<AdminAttributes {...{authenticationStatus}}/>}/>
+            </Route>
           
 
           <Route path="/contact" element={

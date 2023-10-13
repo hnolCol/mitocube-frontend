@@ -6,7 +6,6 @@ function Box({x, width, median, min, max, q25, q75, fill = "#efefef", stroke="bl
     // provide box coordinates in pixel 
     const whishkerWidth = width * whiskerScale
     const halfWidth = width / 2
-
     if (!areAllValuesNumbers([x,width,median,min,max,q25,q75])) return null
     return (
         <g {...{opacity}}>

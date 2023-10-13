@@ -7,7 +7,7 @@ import { getColorPalette, getRedBlueColorScale } from "../../colors/colorPalette
 import { SVG } from "../SVGHeader"
 import { getQuantiles } from "../../../../services/statistics/quantiles"
 import { Text } from "@visx/text"
-
+import HeatmapRow from "./Row"
 
 Heatmap.propTypes = {
     width : PropTypes.number,
@@ -18,45 +18,25 @@ Heatmap.propTypes = {
     binHeight : PropTypes.number
 }
 
-
-function Rect({x,y,width,height,fill,stroke = "#000000", strokeWidth = 0.5, opacity = 1}) {
-    return (
-        <rect 
-            {...{x,y,width,height,stroke,fill,strokeWidth,opacity}}/>
-    )
-}
-
-
-function RowLabel({ x, y, text, dx = 5, fontSize = 12, verticalAnchor = "middle", textAnchor = "start"}) {
-    return (
-        <Text {...{x,y,dx,textAnchor, verticalAnchor, fontSize}}>{text}</Text>
-    )
-}
-
-
-
 function Heatmap({
-    width = 500,
     data = [{v : 2, v1 : 4, B : "+", C : "-"},{v : 2, v1 : 4, B : "+", C : "-"},{v : 2, v1 : 4, B : "+", C : "-"},{v : -2, v1 : 2, B : "-", C : "+"}, {v : 0, v1 : 1.2, B : "-", C : "+"}],
     valueNames = ["v","v1"],
     clusterName = "c",
     colorNames = ["B", "C"],
     labelNames = ["B"],
-    binHeight = 30,
-    
+    binHeight = 15
 }) {
-
-    const uniqueColorValues = useMemo(() => colorNames.length > 0 ? getUniqueValuesInArrayOfObjects({data, keyName : colorNames}) : [], [colorNames, data])
-    const uniqueClusterValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, clusterName }), [clusterName, data])
-    const heatmapValues = useMemo(() => _.map(data, d => _.map(valueNames, valueName => d[valueName])), [data, valueNames])
+    //updates only on datalength. can be dangerous
+    const uniqueColorValues = useMemo(() => colorNames.length > 0 ? getUniqueValuesInArrayOfObjects({data, keyName : colorNames}) : [], [_.join(colorNames),data.length])
+    const uniqueClusterValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, clusterName }), [clusterName])
+    const heatmapValues = useMemo(() => _.map(data, d => _.map(valueNames, valueName => d[valueName])), [_.join(valueNames),data.length])
     const minMax = useMemo(() => getQuantiles(_.flatten(heatmapValues), [0, 1], 1.5, false, "valueRange", ["min", "max"]).valueRange, [heatmapValues])
-    const labels = useMemo(() => { return labelNames.length > 0?_.map(data, d => _.join(_.map(labelNames, labelName => d[labelName])," | ")) : undefined}, [labelNames])
+    const labels = useMemo(() => { return labelNames.length > 0?_.map(data, d => _.join(_.map(labelNames, labelName => d[labelName])," | ")) : undefined}, [_.join(labelNames)])
     const labelsExist = _.isArray(labels)
     const colorValuesExist = uniqueColorValues.length > 0
     const numberRows = data.length
     const heatmapSVGHeight = numberRows * binHeight
-    const heatmapSVGWidth = valueNames.length * binHeight + colorNames * binHeight + binHeight
-
+    const heatmapSVGWidth = valueNames.length * binHeight + colorNames.length * binHeight + 300
 
     //value scale 
     const valueScale = useMemo(() => {
@@ -77,52 +57,46 @@ function Heatmap({
 
     //color that indicates extra values (plotted next to the value heatmap) 
     const extraColorScale = useMemo(() => {
-        if (uniqueColorValues.length === 0) return ( ) => "#fafafa"
+        if (uniqueColorValues.length === 0) return () => "#fafafa"
+        var colorPalette = getColorPalette(uniqueColorValues.length)
+        const idx = uniqueColorValues.indexOf("-")
+        colorPalette[idx] = "#fafafa"
         return scaleOrdinal({
             domain: uniqueColorValues,
-            range: getColorPalette(uniqueColorValues.length),
+            range: colorPalette,
         })
     }, [uniqueColorValues])
 
     //
     return (
         
-        <div>
+        <div style={{overflowY:"scroll",maxHeight:"70vh"}}>
             {/* The actual heatmap with values */}
-            <SVG {...{width, height : heatmapSVGHeight}}>
+            <SVG {...{width : heatmapSVGWidth, height : heatmapSVGHeight}}>
                 {_.range(numberRows).map(rowNumber => {
                     var rowValues = heatmapValues[rowNumber]
                     var y = rowNumber * binHeight
                     var xValuesEnd = rowValues.length * binHeight
                     var marginBetweenValuesAndColors = colorValuesExist ? binHeight : 0
-                    var marginBetweenValuesAndLabels = colorValuesExist ?  colorNames.length * binHeight  + marginBetweenValuesAndColors : marginBetweenValuesAndColors 
+                    var marginBetweenValuesAndLabels = colorValuesExist ? colorNames.length * binHeight + marginBetweenValuesAndColors : marginBetweenValuesAndColors 
+                    var labelString = labelsExist ? labels[rowNumber] : undefined
                     return (
-                        <g>
-                            {rowValues.map((value, valueIdx) =>
-                                <Rect
-                                    x={valueIdx * binHeight}
-                                    y={y}
-                                    width={binHeight}
-                                    height={binHeight}
-                                    fill={value===undefined ? "#fafafa" : valueScale(value)}
-                                />)}
-                            {colorValuesExist ?
-                                colorNames.map((colorName, colorIdx) => {
-                                    return (
-                                        <Rect
-                                            x={xValuesEnd + marginBetweenValuesAndColors + colorIdx * binHeight}
-                                            width={binHeight}
-                                            height={binHeight}
-                                            y={y}
-                                            fill = {extraColorScale(data[rowNumber][colorName])} />)
-                                })
-                            : null}
-                            {labelsExist ?
-                                <RowLabel
-                                    x={xValuesEnd + marginBetweenValuesAndLabels}
-                                    fontSize={binHeight/2}
-                                    y={y + binHeight / 2} text={labels[rowNumber]} /> : null}
-                        </g>
+                        <HeatmapRow {...{
+                            key: `${rowNumber}-${labelString}`,
+                            data : data[rowNumber],
+                            valueNames,
+                            y,
+                            binHeight,
+                            valueScale,
+                            xValuesEnd,
+                            extraColorScale,
+                            marginBetweenValuesAndColors,
+                            marginBetweenValuesAndLabels,
+                            colorValuesExist,
+                            colorNames,
+                            labelsExist,
+                            labelString
+                        }} />
                     )
                 })}
                 

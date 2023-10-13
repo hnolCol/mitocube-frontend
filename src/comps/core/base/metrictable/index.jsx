@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 import "./table.css"
 import { Button } from "@blueprintjs/core"
 import { copyTextToClipboardFromArrayOfObjects } from "../../../../services/clipboard"
-
+import _ from "lodash"
 MetricTable.propTpyes = {
     data: PropTypes.array,
     
@@ -10,7 +10,7 @@ MetricTable.propTpyes = {
 
 // metric table show a name of a metric and a value. 
 // hence it has only two columns 
-function MetricTable({data = [{name : "Proteins", value : 8230}, {name : "Peptides", value : 28230}, {name : "Material", value : "HeLa"}], showClipboard = false}) {
+function MetricTable({data = [{name : "Proteins", value : 8230}, {name : "Peptides", value : 28230}, {name : "Material", value : "HeLa"}], showClipboard = false, round=true}) {
     
 
     return (
@@ -25,7 +25,7 @@ function MetricTable({data = [{name : "Proteins", value : 8230}, {name : "Peptid
                                 {d.name}: 
                             </td>
                             <td className="table__item--align-center bg--lightgrey">
-                                <span className={`h${0}-span`}>{d.value}</span>
+                                <span className={`h${0}-span`}>{_.isNumber(d.value) && round ? _.round(d.value,2) : _.isBoolean(d.value) ?  _.toString(d.value): d.value}</span>
                                 
                             </td>
                         </tr>

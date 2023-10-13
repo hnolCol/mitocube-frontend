@@ -10,8 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@blueprintjs/core": "^4.18.0",
-    "@blueprintjs/select": "^4.9.17",
+    "@blueprintjs/core": "^5.3.2",
+    "@blueprintjs/popover2": "^2.0.12",
+    "@blueprintjs/select": "^5.0.12",
+    "@blueprintjs/table": "^5.0.12",
     "@visx/axis": "^3.1.0",
     "@visx/curve": "^3.0.0",
     "@visx/event": "^3.0.1",
@@ -37,6 +39,7 @@
     "react-query": "^3.39.3",
     "react-router": "^6.10.0",
     "react-router-dom": "^6.10.0",
+    "react-syntax-highlighter": "^15.5.0",
     "vite-plugin-require": "^1.1.10"
   },
   "devDependencies": {

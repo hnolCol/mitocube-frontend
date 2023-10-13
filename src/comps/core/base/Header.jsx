@@ -33,7 +33,6 @@ export function Header({
             marginTop:"0.1rem",
             marginBottom: "0.25rem",
             transitionDuration: "1.0s",
-            transitionProperty: "color fontWeight",
             cursor:"default"}}>
             {text}
         </div>

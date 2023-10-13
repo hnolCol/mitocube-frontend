@@ -8,37 +8,14 @@ import AxisWithBackground from "../../axis"
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
-import Box from "../../boxplot/Box"
 import { STROKE_COLOR, getColorPalette } from "../../../colors/colorPalette"
-import ErrorBar from "../../error"
 import { areAllValuesNumbers } from "../../../../../services/arrays/checks"
-
+import CircleWithError from "./CircleWithError"
 
 CategoricalLineplot.propTypes = {
     colorName: PropTypes.string,
     errorName : PropTypes.string
     
-}
-
-function CircleWithError({ cx, cy, yValue, errorValue, yScale, fill, left, handleMouseOver, getTooltipData, hideTooltip, pointRadius, dataArray }) {
-    if (!areAllValuesNumbers([cx,cy,yValue])) return 
-    return (
-        <Group left={left}
-                onMouseEnter={e => handleMouseOver(e, getTooltipData(yValue, errorValue, dataArray))}
-                onMouseLeave={hideTooltip}>
-
-            {_.isNumber(errorValue) && !_.isNaN(errorValue) && errorValue !== 0?
-            <g>
-                <ErrorBar x={cx} y0={cy} y1={yScale(yValue + errorValue)} stroke={fill} cap={false} /> 
-                <ErrorBar x={cx} y0={cy} y1={yScale(yValue - errorValue)} stroke={fill}  cap={false} /> 
-                </g> :
-            null}
-            
-            <circle cx={cx} cy={cy} r={pointRadius} fill={fill} />
-        {/* <Box {...boxQuantiles} fill={colorScale(colorCategory)} x={xBar+boxWidth/2} width={boxWidth}/> */}
-
-    </Group>
-    )
 }
 
 function CategoricalLineplot({
@@ -171,13 +148,14 @@ function CategoricalLineplot({
                                     textAnchor="middle">{colorName}
                                 </Text>
                                 
-                                {colorCategories.map(colorCategory => {
+                                {colorCategories.map((colorCategory,colorIdx) => {
                                     const dataForColorCategory = data.filter(d => d[colorName] === colorCategory)[0]
                                     var errorValue = dataForColorCategory[errorName]
                                     var yValue = dataForColorCategory[yaxisName]
                                     var cy = yScale(yValue)
                                     return (
                                         <CircleWithError
+                                              key={`${colorCategory}-${yaxisName}-${colorIdx}`}
                                               left={margins.left} 
                                               {...{
                                                     yScale,
@@ -283,7 +261,7 @@ function CategoricalLineplot({
                           {(!splitCategoryFound && colorCategoryFound && subplotCategoryFound) ?
                               subplotData.map(subplotDataArray => {
                                   
-                                    var colorCategory = subplotDataArray[colorName]
+                                 var colorCategory = subplotDataArray[colorName]
                                   var cx = splitColorScale(colorCategory) + splitColorScale.bandwidth()/2
                                   var color = colorScale(colorCategory)
                                   var errorValue = subplotDataArray[errorName]
@@ -291,25 +269,12 @@ function CategoricalLineplot({
                                   var cy = yScale(yValue)
                                   return (
                                       <CircleWithError
+                                            key={`${colorCategory}-${yaxisName}-${yValue}`}
                                             left={subplotStart} 
                                             cx={cx} 
                                             dataArray={subplotDataArray}
                                             {...{ errorValue, yScale, yValue, hideTooltip, fill : color, pointRadius, cy, getTooltipData, handleMouseOver }}
                                             />
-                                        // <Group left={subplotStart}
-                                        //     onMouseEnter={e => handleMouseOver(e, getTooltipData(subplotDataArray))}
-                                        //     onMouseLeave={hideTooltip}>
-                                            
-                                        //     {_.isNumber(errorValue) && !_.isNaN(errorValue) ?
-                                        //             <g>
-                                        //                 <ErrorBar x={xBar+boxWidth/2} y0={cy} y1={yScale(yValue + errorValue)} stroke={color}  cap={false} /> 
-                                        //                 <ErrorBar x={xBar+boxWidth/2} y0={cy} y1={yScale(yValue - errorValue)} stroke={color}  cap={false} /> 
-                                        //         </g> : null}
-                                            
-                                        //     <circle cx={xBar+boxWidth/2} cy={cy} r={pointRadius} fill={color} />
-                                        //     {/* <Box {...boxQuantiles} fill={colorScale(colorCategory)} x={xBar+boxWidth/2} width={boxWidth}/> */}
-
-                                        // </Group>
                                     )
                                 })
                             
@@ -318,7 +283,7 @@ function CategoricalLineplot({
 
                          {/* If there is just a split Category, the split scale cannot be used -- very odd case*/}
                           {!splitCategoryFound && !colorCategoryFound ?
-                              subplotData.map(subplotDataArray => {
+                              subplotData.map((subplotDataArray,subplotIdx) => {
                                  
                                   var yValue = subplotDataArray[yaxisName]
                                   var errorValue = subplotDataArray[errorName]
@@ -327,7 +292,8 @@ function CategoricalLineplot({
                                   return (
                             
                                           
-                                          <CircleWithError
+                                      <CircleWithError
+                                            key={`${subplotIdx}-${yaxisName}-${yValue}`}
                                             left={subplotStart} 
                                             dataArray={subplotDataArray}
                                               {...{
@@ -341,16 +307,7 @@ function CategoricalLineplot({
                                                     cy, yValue,
                                                     fill: colorScale()
                                                         }}
-                                                    />     
-
-                                        //   {_.isNumber(errorValue) && !_.isNaN(errorValue) ?
-                                        //             <g>
-                                        //                 <ErrorBar x={subplotWidth / 2} y0={cy} y1={yScale(yValue + errorValue)} stroke={color}  cap={false} /> 
-                                        //                 <ErrorBar x={subplotWidth / 2} y0={cy} y1={yScale(yValue - errorValue)} stroke={color}  cap={false} /> 
-                                        //             </g>: null}
-                                        //             <circle cx={subplotWidth / 2} cy={cy} fill={colorScale()} r={pointRadius } />
-
-                                        //     </Group>  
+                                                    /> 
                                   )
                               })
                             

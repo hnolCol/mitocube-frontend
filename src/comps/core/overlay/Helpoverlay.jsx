@@ -3,8 +3,8 @@ import { useState } from "react"
 
 
 
-function HelpOverlay({header = "Help", children}) {
-    const [isOpen, setIsOpen] = useState(true)
+function HelpOverlay({header = "Help", startsOpen = false, children}) {
+    const [isOpen, setIsOpen] = useState(startsOpen)
 
     return (
         <div className="dashboard__grid__help--topright bg--lightgrey" style={{border: "0.1px darkgrey solid"}}>
