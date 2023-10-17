@@ -37,3 +37,29 @@ async function verifyToken({tokenString, verificationCode}) {
 export const useVerifyToken = (APIParams = {}, queryOptions = {}) => {
   return useQuery(["verifyToken",APIParams], () => verifyToken({...APIParams}), queryOptions)
 }
+
+
+// check if token is valid 
+
+async function checkToken({ tokenString }) {
+  console.log(tokenString)
+  const res = await axios.get('/api/auth/token/valid',
+    {
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${tokenString}`
+      }
+    })
+  
+  return res.data
+}
+
+export const useTokenValid = (APIParams = {}, queryOptions = {}) => {
+  return useQuery(["isTokenValid",APIParams], () => checkToken({...APIParams}), queryOptions)
+}
+
+
+
+
+
+

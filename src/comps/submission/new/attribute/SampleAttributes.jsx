@@ -52,6 +52,43 @@ function AttributeGroupingButton({
 }
 
 
+
+function DatasetAttributeContextMenuSearch({ attributes, attributeValuesByTag }) {
+    const [queryString, setQuery] = useState("")
+
+    return (
+        <Menu>
+            <TextInput
+                    value={queryString}
+                    callbackKey={"a"}
+                    placeholder="Search attribute value..."
+                    onChange={(key,value,type) => setQuery(value)}
+            />
+            <Menu style={{ overflowY: "scroll", maxHeight: "280px" }}> 
+                {attributes.map(attribute => {
+                    const attributeValuesAsArray = _.has(attributeValuesByTag, attribute.tag) && _.isArray(attributeValuesByTag[attribute.tag]) && attributeValuesByTag[attribute.tag].length > 0
+                    return (
+                        attributeValuesAsArray ? 
+                            <Menu>
+                                <MenuItem text={attribute} disabled={true} />
+                                {
+                                    attributeValuesByTag[attribute.tag].map(attributeValue => {
+                                        return (
+                                            <MenuItem text={attributeValue.tag} label={attributeValue.details} />
+                                        )
+                                    })
+                                }
+                            </Menu> : null 
+                    
+                    )
+                })}
+            </Menu>
+
+        </Menu>
+    )
+}
+
+
 function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined}) {
     const [queryString, setQuery] = useState("")
     let attributeValueBySearchQuery = useMemo(() => queryString === ""? attributeValues:filterArrayBySearchString({searchString : queryString, array : attributeValues, searchColumns : ["name","details"]}),[queryString])

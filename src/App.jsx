@@ -8,7 +8,7 @@ import "@blueprintjs/popover2/lib/css/blueprint-popover2.css"
 import "@blueprintjs/table/lib/css/table.css"
 import "react-grid-layout/css/styles.css"
 import "react-resizable/css/styles.css"
-import { Route, Routes, useLocation } from 'react-router'
+import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import Leftbar from './comps/core/navigation/dashboard/Leftbar'
 import { ProtectedAdminRoute, ProtectedRoute } from './comps/core/routes/ProtectedRoute'
 import { useEffect, useState } from 'react'
@@ -44,7 +44,8 @@ import AdminHeader from "./comps/admin";
 import ShareToken from "./comps/admin/ShareToken";
 import AdminUsers from "./comps/admin/Users";
 import AdminAttributes from "./comps/admin/Attributes";
-
+import { useTokenValid } from "./hooks/queries/login.hooks";
+import _ from "lodash"
 
 
 const initAuthenticationStatus = {
@@ -63,26 +64,42 @@ const initApplicationInfo = {
 }
 
 function App() {
-
+  const [tokenFromStorage, setTokenFromStorage] = useState(undefined)
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
+  // check if token is valid, if a token is found in storage.
+  const { data: isTokenValid, isSuccess : tokenValidSuccess , isError : tokenValidError, error, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
 
   const location = useLocation()
+  const redirect = useNavigate()
   const basePathName = location.pathname.split("/")[1]
   
   useEffect(() => {
     //check for token in local storage and validate if present
     const { tokenFound, tokenString } = checkForTokenInLocalStorage()
     if (tokenFound) {
-      console.log(tokenString)
+      setTokenFromStorage(tokenString)
     }
   }, [])
 
+
+  useEffect(() => {
+    // use effect if token string was found in storage. 
+    if (tokenValidError) {
+      console.log("log out due to error")
+      logout()
+    }
+    if (_.isObject(isTokenValid) && isTokenValid.success) {
+      setAuthenticationStatus({ isAuth: true, token: tokenFromStorage, role: isTokenValid.role, verified: isTokenValid.verified })
+      redirect("/index")
+    }
+  }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidError])
 
   const logout = () => {
     //logs the user out, deletes the token from local storage. 
     removeTokenFromLocalStorage()
     setAuthenticationStatus(initAuthenticationStatus)
+    redirect("/")
   }
   
   return (
@@ -93,7 +110,7 @@ function App() {
       </div>
 
       <div className='dashboard__grid__top-row bg--lightgrey'>
-        <Topbar {...{basePathName,authenticationStatus}}/>
+        <Topbar {...{basePathName,authenticationStatus,logout}}/>
       </div>
 
       <div className='dashboard__grid__fill-center'>

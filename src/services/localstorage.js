@@ -1,6 +1,11 @@
 
 import _ from "lodash"
 
+
+export const storeTokenInLocalStorage = (tokenString) => {
+    localStorage.setItem("mitocube-token",tokenString)
+}
+
 export const checkForTokenInLocalStorage = () => {
     //checks if there is a mitocube-token in the local storage
     const tokenString = localStorage.getItem("mitocube-token")

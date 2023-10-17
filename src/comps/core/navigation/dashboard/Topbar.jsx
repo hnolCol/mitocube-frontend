@@ -10,15 +10,14 @@ import { useGetBackendInfo } from "../../../../hooks/queries/welcome.hooks"
 import { getUserRoles } from "../../../../services/users/roles"
 
 
-
-
-
 function Topbar({
     authenticationStatus,
     logout,
     applicationInfo,
     basePathName }) {
+    
     const userRoles = getUserRoles() //get from API to do! 
+
     const { isSuccess: backendInfoIsSucces, data : backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token }, { enabled : authenticationStatus.isAuth})
 
     
@@ -34,7 +33,7 @@ function Topbar({
                 </div>
                 <div className="bg--grey margin--little">
                     <Popover position={Position.BOTTOM_LEFT} content={<Menu>
-                        <MenuItem text="Logout" icon="log-out"/>
+                        <MenuItem text="Logout" icon="log-out" onClick={logout}/>
                     </Menu>}>
                         <BaseDashboardIcon width={30} height={30}>
                             <UserDashboardIcon text=""/>

@@ -10,6 +10,8 @@ import APIError from "../core/error/APIerror"
 
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
+import { storeTokenInLocalStorage } from "../../services/localstorage"
+import DescriptionButton from "../core/base/buttons/DescriptionButton"
 
 Login.propTypes = {
     setAuthenticationStatus : PropTypes.func,
@@ -50,6 +52,7 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                 token: verifiedToken.token,
                 role: verifiedToken.role, //user role encoded as integer. 
             })
+            storeTokenInLocalStorage(verifiedToken.token)
             redirect("/index")
             
         }
@@ -63,7 +66,6 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
 
     return (
         <div className="flex center-items justify-center div--expand">
-            
             <div className="flex flex-column center-items">   
                 <div className="intent-margin-bottom--little">
                     <Header text="User Login" />
