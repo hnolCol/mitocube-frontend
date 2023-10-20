@@ -53,40 +53,6 @@ function AttributeGroupingButton({
 
 
 
-function DatasetAttributeContextMenuSearch({ attributes, attributeValuesByTag }) {
-    const [queryString, setQuery] = useState("")
-
-    return (
-        <Menu>
-            <TextInput
-                    value={queryString}
-                    callbackKey={"a"}
-                    placeholder="Search attribute value..."
-                    onChange={(key,value,type) => setQuery(value)}
-            />
-            <Menu style={{ overflowY: "scroll", maxHeight: "280px" }}> 
-                {attributes.map(attribute => {
-                    const attributeValuesAsArray = _.has(attributeValuesByTag, attribute.tag) && _.isArray(attributeValuesByTag[attribute.tag]) && attributeValuesByTag[attribute.tag].length > 0
-                    return (
-                        attributeValuesAsArray ? 
-                            <Menu>
-                                <MenuItem text={attribute} disabled={true} />
-                                {
-                                    attributeValuesByTag[attribute.tag].map(attributeValue => {
-                                        return (
-                                            <MenuItem text={attributeValue.tag} label={attributeValue.details} />
-                                        )
-                                    })
-                                }
-                            </Menu> : null 
-                    
-                    )
-                })}
-            </Menu>
-
-        </Menu>
-    )
-}
 
 
 function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined}) {
@@ -105,7 +71,7 @@ function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeS
                 <Menu style={{ overflowY: "scroll", maxHeight: "280px" }}> 
                 {attributeValueBySearchQuery.map(attributeValue =>
                     <MenuItem
-                        onClick={(e) => onAttributeSelect(attributeTag,attributeValue.tag,rowIdces)}
+                        onClick={(e) => onAttributeSelect(attributeTag, attributeValue,rowIdces)}
                         key={attributeValue.name}
                         text={attributeValue.name}
                         label={attributeValue.details}
@@ -126,11 +92,11 @@ function AttributeGrouping({
     attributeValuesByID = {},
     groupings = [],
     onAttributeSelect,
-    addGrouping = undefined,
+    addSampleAttr = undefined,
     onGroupingSelect = undefined,
     onGroupingRename = undefined,
     onTagRemove = undefined,
-    removeGroupingByIndex = undefined,
+    removeSampleAttrByIndex = undefined,
     clearGroupingByIndex = undefined,
     clearAttributeTableByRowIndex=undefined,
     rerenderTableDependency = 0,
@@ -218,12 +184,13 @@ function AttributeGrouping({
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
             <div className="flex flex--wrap center-items">
-                {_.isArray(cellData) && cellData.length === 0 ? "" : cellData.map(attributeValueTag =>
-                    <div key={`${rowIndex}-${columnIndex}-${attributeValueTag}`} className="padding--little">
-                        <Tag minimal={true} onRemove={() => onTagRemove(rowIndex, attribute, attributeValueTag)}>
-                            {attributeValueTag}
+                {_.isArray(cellData) && cellData.length === 0 ? "" : cellData.map(attributeValue => {
+                    const cellDataIsAttr = _.isObject(attributeValue)
+                    return <div key={`${rowIndex}-${columnIndex}-${cellDataIsAttr ? attributeValue.tag : attributeValue}`} className="padding--little">
+                        <Tag minimal={true} onRemove={() => onTagRemove(rowIndex, attribute, attributeValue)}>
+                            {cellDataIsAttr?attributeValue.name:attributeValue}
                         </Tag>
-                    </div>)}
+                    </div>})}
             </div>
         </Cell>
     }
@@ -243,7 +210,7 @@ function AttributeGrouping({
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
                 <MenuItem text="Clear" icon="clean" onClick={() => clearGroupingByIndex(groupingIdx, attribute.tag)} disabled={!attributeDefined} />
-                <MenuItem text="Delete" icon="cross" onClick={() => removeGroupingByIndex(groupingIdx)} />
+                <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(groupingIdx)} />
                 
             </Menu>)
     }
@@ -254,7 +221,7 @@ function AttributeGrouping({
         const groupingDefined = _.isObject(groupingInfo)
         const attributesTagsInUse  = groupings.filter(groupingInfo => _.isObject(groupingInfo) && _.has(groupingInfo.attribute,"tag")).map(groupingInfo => groupingInfo.attribute.tag)
         return (
-            <ColumnHeaderCell menuRenderer={renderGroupingHeaderMenu}>
+            <ColumnHeaderCell menuRenderer={renderGroupingHeaderMenu} selectCellsOnMenuClick={false} isColumnSelected={false}>
                 <div className="margin--little">
                     <AttributeGroupingButton
                         {...{
@@ -305,16 +272,19 @@ function AttributeGrouping({
 
     const selectedRegionTransform = (e) => {
         //cell selection to full row selection transformation
+        if (!_.has(e, "rows")) return { rows: [], cols: [] } //prevents selection of table if column header is selected.
         return {
             rows: e.rows
         }
     }
+
     return (
     
         <div style={{paddingTop:"1rem",paddingBottom:"1rem",height:"500px",overflowY:"hidden"}}>
             <HotkeysProvider>
                 <Table2
-                    numRows={sampleNames.length + 1}
+                    enableGhostCells = {true}
+                    numRows={sampleNames.length}
                     cellRendererDependencies={[rerenderTableDependency]}
                     bodyContextMenuRenderer={renderBodyContextMenu}
                     defaultRowHeight={30}
@@ -329,7 +299,7 @@ function AttributeGrouping({
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.name}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
                     <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">
-                        <Button icon="plus" onClick={addGrouping} /></div></ColumnHeaderCell>} />
+                        <Button icon="plus" onClick={addSampleAttr} /></div></ColumnHeaderCell>} />
             </Table2>
             </HotkeysProvider>
         </div>

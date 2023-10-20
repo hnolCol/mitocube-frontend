@@ -6,7 +6,8 @@ import { motion } from "framer-motion"
 import TooltipButton from "../buttons/TooltipButton";
 import { getFormatDateFromTimestamp } from "../../../../services/date/format";
 import moment from "moment";
-import { TableLikeItem } from "../tags/TableLikeItem";
+import { TagWithTooltip } from "../tags/TagWithTooltip";
+
 
 User.propTypes = {
     id: PropTypes.any,
@@ -16,8 +17,6 @@ User.propTypes = {
     created_on: PropTypes.number,
     role : PropTypes.number
 }
-
-
 
 
 function Affiliation({}) {
@@ -70,11 +69,7 @@ export function User({firstname,lastname,email, role, created_on, userRoles, ...
                 </motion.div>
                 <div>Created : {m.fromNow()}</div>
                 <div className="flex flex--wrap center-items">
-                    {Object.keys(rest).map(attrName => <Tooltip key={attrName} content={<div style={{textTransform:"capitalize"}}>{attrName.replaceAll("_"," ")}</div>} minimal={false} compact={true}  inheritDarkTheme={false} hoverOpenDelay={400} position="top">
-                        <motion.div className="padding--little cursor--default div--round intent-margin-right--little"
-                        whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
-                            {rest[attrName]}</motion.div>
-                    </Tooltip>)}
+                    {Object.keys(rest).map(attrName => <TagWithTooltip key={attrName} tagText={rest[attrName]} tooltipText={attrName} />)}
                 </div>
                 </div>
             

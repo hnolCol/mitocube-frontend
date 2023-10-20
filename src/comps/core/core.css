@@ -40,6 +40,10 @@
     background-color: #fafafa;
 }
 
+.bg--white{
+    background-color: #ffffff;
+}
+
 .no-scroll {
     overflow: hidden;
 }
@@ -216,7 +220,7 @@
 .dashboard__grid__left {
     grid-column: 1;
     grid-row-start : 2;
-    grid-row-end : 3;
+    grid-row-end : 5;
   }
 .dashboard__grid__fill-center {
     grid-column-start: 2;

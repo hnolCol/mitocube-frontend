@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"
-import { EditableText } from "@blueprintjs/core"
+import { EditableText, FormGroup } from "@blueprintjs/core"
 
 
 
@@ -12,17 +12,27 @@ TextFieldInput.propTypes = {
     
 }
 
-function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = "Click to edit", minLength = 0, optional = false}) {
+function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = "Click to edit", minLength = 0, isRequired}) {
 
+    const lengthHint = minLength > 0?`(min. ${minLength} characters)`: ""
     return (
-            <div className="intent-margin-top--little">
-            <div className="font-size--small">
-                {optional?"Optional : ": ""}{`${hint} ${minLength > 0?`(min. ${minLength} characters)`:""}`}
+        <FormGroup
+            label={hint}
+            labelInfo={isRequired ? "(required) "+lengthHint : "(optional) "}
+            inline={false}
+            helperText={""}>
+            <div style={{backgroundColor:"#ffffff"}}>
+            <EditableText onChange={value => onChange(callbackKey, value, "text")} multiline={true} minLines={5} {...{placeholder,value}} />
             </div>
-            <div className="bg--lightgrey container--scroll-y-hide-x">
-                <EditableText onChange={value => onChange(callbackKey, value, "text")} multiline={true} minLines={5} {...{placeholder,value}} />
-            </div>
-            </div>
+            </FormGroup>
+            // <div className="intent-margin-top--little">
+            // <div className="font-size--small">
+            //     {optional?"Optional : ": ""}{`${hint} ${minLength > 0?`(min. ${minLength} characters)`:""}`}
+            // </div>
+            // <div className="bg--white container--scroll-y-hide-x">
+                
+            // </div>
+            // </div>
     )
 }
 

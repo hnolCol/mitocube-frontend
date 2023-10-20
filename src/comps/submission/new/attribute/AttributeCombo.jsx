@@ -7,15 +7,14 @@ import { filterArrayBySearchString } from "../../../../services/arrays/filter"
 import _ from "lodash"
 
 AttributeInput.propTypes = {
-    tag: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
+    attribute : PropTypes.object.isRequired,
     attributes: PropTypes.arrayOf(PropTypes.object),
     onItemSelect: PropTypes.func.isRequired,
     onRemove : PropTypes.func.isRequired
 }
 
 
-function AttributeInput({tag, name, attributeValues, isRequired = true, selectedItems = [], onItemSelect = undefined, onRemove = undefined, matchTargetWidth = true, ...rest}) {
+function AttributeInput({attribute, attributeValues, isRequired = true, selectedItems = [], onItemSelect = undefined, onRemove = undefined, matchTargetWidth = true, ...rest}) {
     //Atribute Input
 
     const [query, setQuery] = useState("") //search query for MutliSelect
@@ -30,7 +29,7 @@ function AttributeInput({tag, name, attributeValues, isRequired = true, selected
                 active={props.modifiers.active}
                 icon={selectedItems.includes(item)?"tick":"blank"}
                 shouldDismissPopover={true}
-                key={`${tag}-${item.id}-${item.name}`}
+                key={`${attribute.tag}-${item.id}-${item.name}`}
                 text={item.name}
                 label={item.details}
                 multiline={true} />
@@ -38,10 +37,12 @@ function AttributeInput({tag, name, attributeValues, isRequired = true, selected
     }
 
     const handleQueryChange = (query, event) => { 
+        //handle query change (e.g. search)
         setQuery(query)
     }
 
     const renderSelectedItemAsTag = (item) => {
+        //render selected item as a tag 
         return item.name
     }
 
@@ -53,7 +54,7 @@ function AttributeInput({tag, name, attributeValues, isRequired = true, selected
 
     return (
         <FormGroup
-            label={name}
+            label={attribute.name}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
             helperText={""}>
@@ -67,8 +68,8 @@ function AttributeInput({tag, name, attributeValues, isRequired = true, selected
                 itemRenderer={renderAttribute}
                 tagInputProps={{minimal : true, large : false, round : true}}
                 tagRenderer={renderSelectedItemAsTag}
-                onItemSelect={(item) => onItemSelect(tag, item)}
-                onRemove = {(item,index) => onItemSelect(tag,item)}
+                onItemSelect={(item) => onItemSelect(attribute, item)}
+                onRemove = {(item,index) => onItemSelect(attribute,item)}
                { ...{selectedItems}}/>
         </FormGroup>
     )

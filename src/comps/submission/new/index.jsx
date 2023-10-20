@@ -11,7 +11,6 @@ function NewSubmission({
     return (
         <div className="flex center-items justify-center div--expand" >
             <div className="flex flex-column center-items">
-                <Header text="Sample Submission" />
                 <div className="flex flex--wrap justify-space-between">
                     <Link to="/submission/new" className="router-link">
                         <DescriptionButton

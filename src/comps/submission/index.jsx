@@ -12,6 +12,7 @@ function SubmissionHeader({ }) {
                 { text: "Statistics", to: "/submission/statistics" },
                 { text : "Help", to : "/submission/help"}]} />
             <div className="no-scroll div--expand">
+            
             <Outlet />
             </div>
             

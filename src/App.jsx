@@ -86,11 +86,17 @@ function App() {
   useEffect(() => {
     // use effect if token string was found in storage. 
     if (tokenValidError) {
-      console.log("log out due to error")
       logout()
     }
     if (_.isObject(isTokenValid) && isTokenValid.success) {
-      setAuthenticationStatus({ isAuth: true, token: tokenFromStorage, role: isTokenValid.role, verified: isTokenValid.verified })
+      setAuthenticationStatus({
+        isAuth: true,
+        token: tokenFromStorage,
+        role: isTokenValid.role,
+        verified: isTokenValid.verified,
+        label: isTokenValid.label,
+        firstname: isTokenValid.firstname,
+        lastname : isTokenValid.lastname })
       redirect("/index")
     }
   }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidError])
