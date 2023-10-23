@@ -4,12 +4,11 @@ import _ from "lodash"
 import { Button, FormGroup, Menu, MenuItem } from "@blueprintjs/core"
 import { useState } from "react"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
+import Loading from "../base/loading"
 
 function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, formGroupProps = {label : "Collaborators"}}) {
 
     const { isLoading, isFetching, isSuccess, data } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
-    
-    console.log(onUserSelection,selectedUsers,authenticationStatus)
 
     const renderUser = (item, props) => {
         const itemText = `${item.firstname} ${item.lastname}`
@@ -51,7 +50,8 @@ function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, f
                             onRemove={(item) => handleUserSelection(item)} />
                     </FormGroup>
             </div>
-                :null }
+                : null}
+            {isLoading || isFetching ? <Loading /> : null}
         </div>
     )
 }

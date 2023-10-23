@@ -14,7 +14,15 @@ AttributeInput.propTypes = {
 }
 
 
-function AttributeInput({attribute, attributeValues, isRequired = true, selectedItems = [], onItemSelect = undefined, onRemove = undefined, matchTargetWidth = true, ...rest}) {
+function AttributeInput({ attribute,
+    attributeValues,
+    isRequired = true,
+    selectedItems = [],
+    onItemSelect = undefined,
+    onRemove = undefined,
+    helperText = "",
+    matchTargetWidth = true,
+    disabled = false, ...rest }) {
     //Atribute Input
 
     const [query, setQuery] = useState("") //search query for MutliSelect
@@ -57,9 +65,11 @@ function AttributeInput({attribute, attributeValues, isRequired = true, selected
             label={attribute.name}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
-            helperText={""}>
+            disabled={disabled}
+            helperText={helperText}>
             
             <MultiSelect
+                disabled={disabled}
                 popoverProps={{ matchTargetWidth, minimal: true}}
                 resetOnSelect={true}
                 fill={true}

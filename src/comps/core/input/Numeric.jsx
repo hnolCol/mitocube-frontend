@@ -19,7 +19,7 @@ import { useState } from "react"
 
 NumericValueInput.propTypes = {
     callbackKey: PropTypes.string,
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
     onChange: PropTypes.func,
     placeholder : PropTypes.string,
     optional: PropTypes.bool,

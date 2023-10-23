@@ -30,6 +30,23 @@
     width : 100%;
 }
 
+
+/* Paragraphs & headings */
+p{
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
+}
+
+h3 {
+    margin-top : 0.0rem;
+    margin-bottom: 0.2rem;
+    padding : 0rem;
+}
+h4 {
+    margin-top : 0.0rem;
+    margin-bottom: 0.2rem;
+    padding : 0rem;
+}
+
 /* Background containers */
 
 .bg--grey {

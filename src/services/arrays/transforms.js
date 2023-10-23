@@ -6,6 +6,11 @@ export function getValueFromArrayOfObjectsByKey({ data, keyName }) {
     return data.map(d => d[keyName])
 }
 
+export function isItemInArrayDeepComp({ array, item }) {
+    const itemFound = _.some(array, (i) => _.isEqual(i,item))
+    return itemFound
+}
+
 export function addItemToArrayOrRemoveItIfPresent({ array, item }) {
     // checks if an item in an array, if there it will remove the item from the array
     // otherswise it will add it to the array.
@@ -17,7 +22,7 @@ export function addItemToArrayOrRemoveItIfPresent({ array, item }) {
 export function addItemToArrayIfNotPresent({ array, item }) {
     // checks if an item in an array, if there it will remove the item from the array
     // otherswise it will add it to the array.
-    const itemInArray = array.includes(item)
+    const itemInArray = isItemInArrayDeepComp({array,item})
     if (itemInArray) return array
     return _.concat(array, [item])
 }

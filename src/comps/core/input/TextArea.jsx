@@ -13,8 +13,8 @@ TextFieldInput.propTypes = {
 }
 
 function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = "Click to edit", minLength = 0, isRequired}) {
-
-    const lengthHint = minLength > 0?`(min. ${minLength} characters)`: ""
+    const inputCharLength = value.length
+    const lengthHint = minLength > 0?value===""?`(min. ${minLength} characters)`:inputCharLength > minLength?"":`(${inputCharLength}/${minLength} characters)`: ""
     return (
         <FormGroup
             label={hint}

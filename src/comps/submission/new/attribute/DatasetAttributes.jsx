@@ -10,7 +10,7 @@ function DatasetAttributeContextMenuSearch({ attributes, attributeValuesByID }) 
     return (
         <Menu style={{ overflowY: "scroll", maxHeight: "300px" }}>
                 {attributes.map(attribute => {
-                    const attributeValuesAsArray = _.has(attributeValuesByID, attribute.id) && _.isArray(attributeValuesByID[attribute.id]) &&attributeValuesByID[attribute.id].length > 0
+                    const attributeValuesAsArray = _.has(attributeValuesByID, attribute.id) && _.isArray(attributeValuesByID[attribute.id]) && attributeValuesByID[attribute.id].length > 0
                     //console.log(attributeValuesAsArray)
                     return (
                         attributeValuesAsArray ? 
@@ -58,7 +58,9 @@ function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttr
                             <MenuItem text={attribute.name} disabled={true} />
                             <MenuDivider />
                             <div style={{overflowY : "visible"}}>
-                            {attributeValuesByID[attribute.id].map(attributeValue =>
+                                {attributeValuesByID[attribute.id].map((attributeValue, index) =>
+                                    
+                                    index === 11 ? <MenuItem text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 11 ? null :
                                 <MenuItem
                                     active = {activeItem.id === attributeValue.id}
                                     key={`${attributeValue.name}-${attributeValue.tag}`}

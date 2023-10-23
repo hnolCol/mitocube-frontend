@@ -13,7 +13,7 @@ import { checkBasicEmailPattern } from "../../services/checks/email"
 import { storeTokenInLocalStorage } from "../../services/localstorage"
 
 Login.propTypes = {
-    setAuthenticationStatus : PropTypes.func,
+    setAuthenticationStatus : PropTypes.func.isRequired,
     inputProps: PropTypes.object
 }
 
@@ -22,10 +22,7 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
     const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
     const [userLoginResponse, setUserLoginResponse] = useState({success : false, token : "", msg : ""})
 
-
-
     const {
-        data,
         isError: loginIsError,
         error: loginError,
         isSuccess: loginSuccess,
@@ -66,6 +63,8 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
         setUserInput(prevValues => {return {...prevValues, [inputID] : e.target.value}})
     }
 
+    const loginDisabled = !_.isString(userInput.password) || !_.isString(userInput.username) || userInput.password.length < 3 || !checkBasicEmailPattern(userInput.username)
+    const verifyTokenDisabled = !_.isString(userInput.verificationCode) || userInput.verificationCode.length === 0
     return (
         <div className="flex center-items justify-center div--expand">
             <div className="flex flex-column center-items">  
@@ -84,12 +83,17 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                             placeholder="Verification Code ..."
                             value={userInput.verificationCode}
                             onChange={handleInputChange}
+                            onKeyUp={(e) => {
+                                if (e.key === "Enter" && !verifyTokenDisabled) {
+                                    verifyToken()
+                                }
+                            }}
                             {...inputProps} /> 
                         <Button
                                 key="buttin-verify-token"
                                 icon="log-in"
                                 intent={"success"}
-                                disabled={!_.isString(userInput.verificationCode) || userInput.verificationCode.length === 0}
+                                disabled={verifyTokenDisabled}
                                 loading={verifyTokenIsFetching || verifyTokenIsLoading}
                                 onClick={verifyToken} />
                     </div> :
@@ -110,11 +114,16 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                             type={"password"}
                             value={userInput.password}
                             onChange={handleInputChange}
+                            onKeyUp={(e) => {
+                                if (e.key === "Enter" && !loginDisabled) {
+                                    handleLoginAttempt()
+                                }
+                            }}
                             {...inputProps} /> 
                         <Button
                                 icon="log-in"
                                 intent={"primary"}
-                                disabled={!_.isString(userInput.password) || !_.isString(userInput.username) || userInput.password.length < 3 || !checkBasicEmailPattern(userInput.username)}
+                                disabled={loginDisabled}
                                 loading={loginFetching || loginLoading}
                                 onClick={handleLoginAttempt} />
                             {/* handleLoginAttempt */}

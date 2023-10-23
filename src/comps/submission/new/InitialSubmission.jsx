@@ -17,8 +17,9 @@ import DatasetAttributeSelect from "./attribute/DatasetAttributes"
 import DatasetAttributeHierarchy from "./attribute/DatasetAttributesHierarchy"
 import TextInput from "../../core/input/Text"
 import TextFieldInput from "../../core/input/TextArea"
-import { Button } from "@blueprintjs/core"
+import { Alert, Button } from "@blueprintjs/core"
 import HelpOverlay from "../../core/overlay/Helpoverlay"
+import MetaText from "./MetaText"
 
 function constructSampleNames(id, sampleNumber) {
     const date = getCurrentDate()
@@ -39,15 +40,16 @@ function InitialSubmission({
         collaborators : [],
         attributeTable: [],
         samplesAttributes: [],
-        rerenderTableDependency: 0,
+        metatext : {},
         attributes: {},
         datasetAttributeValues: {},
-        datasetAttributes: []
+        datasetAttributes: [],
+        rerenderTableDependency: 0,
     })
+    const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
+    const {data : metatext} = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime : 1200000})
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
-    const {data : metatext, isLoading : metatextIsLoading} = useGetSubmissionMetatext({ tokenString: authenticationStatus.token })
-
-
+    
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
@@ -65,7 +67,6 @@ function InitialSubmission({
             return submissionAttributes.attributes.filter(attribute => attribute["mandatory_for_submission"])
 
         },[attributesIsSuccess])
-    
 
     useEffect(() => {
 
@@ -75,7 +76,6 @@ function InitialSubmission({
         if (!_.isObject(submissionID) || !_.isString(submissionID.id)) return
 
         const sampleNames = constructSampleNames(submissionID.id, sampleNumber)
-        
 
         //adjust attribute table 
         let attributeTable = submission.attributeTable
@@ -89,12 +89,66 @@ function InitialSubmission({
             })
         }
 
-        setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable}})
+        setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable, rerenderTableDependency : Math.random()}})
 
     }, [submission.attributes.sampleNumber,submissionID])
 
-    if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
-    if (submissionIDLoading || attributesLoading) return <div>Loading...</div>
+
+
+    const onSubmssionRequest = () => {
+        let errMsgs = [] //collect error messages
+        if (submission.sampleNames.length === 0) {
+            errMsgs.push("No samples number provided.")
+            
+        }
+        if (submission.attributeTable.length === 0) {
+            errMsgs.push("No samples attributes provided. Require at least one.")
+        }
+
+        if (!_.isString(submission.attributes.title) || submission.attributes.title.length < 10) {
+            errMsgs.push("Title not defined or to short (<10 characters).")
+        }
+
+        //check for all mandatory attributes
+        let requiredAttributeNotSubmitted = _.filter(attributesRequiredForSubmission, attrRequired => !(objectHasKey({
+                        object: submission.datasetAttributeValues, keyName: attrRequired.tag})
+            && submission.datasetAttributeValues[attrRequired.tag].length > 0))
+        // TO DO check if present in samples attributes
+        if (submission.attributeTable.length > 0) {
+            // check the attributes that are maybe in the sample attributes.
+            requiredAttributeNotSubmitted = requiredAttributeNotSubmitted.filter(reqAttr => !_.has(submission.attributeTable[0],reqAttr.tag))
+        }
+        
+
+        if (requiredAttributeNotSubmitted.length > 0) {
+            errMsgs.push("Mandatory Dataset Attributes Missing: "+_.join(requiredAttributeNotSubmitted.map(attr => attr.name), ", "))
+        }
+
+        // check if sample attributes table is complete 
+        const emptySampleInfo = submission.attributeTable.map(sampleAttributes => _.some(Object.values(sampleAttributes), array => array.length == 0))
+        if (_.some(emptySampleInfo)) {
+            const indices = _.range(emptySampleInfo.length).filter(idx => emptySampleInfo[idx])
+            errMsgs.push("Missing sample attributes for samples in rows : " + _.join(indices.map(v => v+1),", "))
+        }
+
+        //check metatext details 
+        const requiredMetaText = metatext["required"]
+        const minLengthMetaText = metatext["min_text_length"]
+        console.log(minLengthMetaText)
+        const metatextTag = metatext["tags"]
+        const missingMetaText = Object.keys(requiredMetaText).filter(metatextTitle => requiredMetaText[metatextTitle] && !objectHasKey({ object: submission.metatext, keyName: metatextTag[metatextTitle] }))
+        console.log(missingMetaText, submission.metatext)
+        if (missingMetaText.length > 0) {
+            errMsgs.push("Required metatext missing for: " + _.join(missingMetaText,", "))
+        }
+        else {
+            const lengthReqMetaText = Object.keys(requiredMetaText).filter(metatextTitle => _.isString(submission.metatext[metatextTag[metatextTitle]]) && submission.metatext[metatextTag[metatextTitle]].length < minLengthMetaText[metatextTitle])
+            errMsgs.push("Minimal length of metatext not met for: " + _.join(lengthReqMetaText,", "))
+        }
+        
+        setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
+
+    }
 
     
     const onAttributeChange = (attributeTag, attributeValue) => {
@@ -110,7 +164,7 @@ function InitialSubmission({
     }
 
     const addSampleAttr = () => {
-        //adds a new grouping
+        //adds a new sample attribute
         setSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, { name: "", attribute: undefined }) } })
     }
 
@@ -165,38 +219,52 @@ function InitialSubmission({
         })
     }
 
-    const onSampleAttributeValueSelect = (attributeTag, attributeValueTag,rowIdces) => {
+    const onSampleAttributeValueSelect = (attributeTag, attributeValueTag, rowIdces) => {
+        //on selection of a sample attribute value
         let d = submission.attributeTable
         if (!objectHasKey({ object: d[0], keyName: attributeTag })) {
             d = d.map(rowData => {return { ...rowData, [attributeTag] : []}})
         }
-
         rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attributeTag] = addItemToArrayOrRemoveItIfPresent({array:d[rowIndex][attributeTag],item:attributeValueTag}))
         setSubmission(prevValues => {return{...prevValues,attributeTable : d, rerenderTableDependency : Math.random()}})
     }
 
-    const onGroupingRename = (sampleAttrIdx, groupingName) => {
-        let groupingInfos = submission.samplesAttributes
-        groupingInfos[sampleAttrIdx].name = groupingName
+    const onSampleAttributeRename = (sampleAttrIdx, sampleAttributeName) => {
+        let sampleAttrs = submission.samplesAttributes
+        sampleAttrs[sampleAttrIdx].name = sampleAttributeName
 
-        setSubmission(prevValues => {return {...prevValues, samplesAttributes : groupingInfos} })
+        setSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs} })
     }
 
-    const onGroupingSelect = (sampleAttrIdx, groupingName, attribute) => {
+    const warnForMandatoryAttr = (addedAttribute) => {
+        console.log("check")
+        if (_.isObject(addedAttribute) && _.isObject(addedAttribute.attribute) && attributesRequiredForSubmission.includes(addedAttribute.attribute)) {
+            setAlertProps({
+                isOpen: true, children: <div><h3>Warning</h3><p>The selected attribute is defined as a mandatory dataset attribute.</p>
+                    <p>Defining it as a sample attribute overwrite the dataset attribute selection and is <strong>only recommended if the attribute differs between samples.</strong></p></div>
+            })
+        }
+    }
+
+    const onSampleAttributeSelect = (sampleAttrIdx, sampleAttrName, attribute, attributeChanged = false) => {
+        // To DO: Rename to sample attribute
         let sampleAttrs = submission.samplesAttributes.slice()
         let sampleAttr = sampleAttrs[sampleAttrIdx]
         if (!_.isObject(attribute)) {
-            //if (groupInfo.name === groupingName) return 
-            sampleAttrs[sampleAttrIdx] = {name : groupingName, attribute : _.isObject(sampleAttr) ? sampleAttr.attribute : undefined}
+            sampleAttrs[sampleAttrIdx] = {
+                name: sampleAttrName,
+                attribute: _.isObject(sampleAttr) ? sampleAttr.attribute : undefined
+            }
         }
         else {
             
             if (_.isObject(sampleAttr.attribute) && sampleAttr.attribute.tag !== attribute.tag) {
                 //different tag selected 
+                
                 const prevGroupingAttributeTag = sampleAttr.attribute.tag
                 //requires cleaning up the old ag
                 let updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: prevGroupingAttributeTag })
-                sampleAttrs[sampleAttrIdx] = {name : groupingName, attribute}
+                sampleAttrs[sampleAttrIdx] = {name : sampleAttrName === ""? attribute.name : sampleAttrName, attribute}
                 setSubmission(prevValues => {
                     return {
                         ...prevValues,
@@ -205,34 +273,60 @@ function InitialSubmission({
                         rerenderTableDependency: Math.random()
                     }
                 })
+                warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
                 return 
             }
-            sampleAttrs[sampleAttrIdx] = {name : groupingName, attribute}
+            sampleAttrs[sampleAttrIdx] = {
+                name: sampleAttrName === "" ? attribute.name : sampleAttrName,
+                attribute
+            }
         }
+        if (attributeChanged) {
+            // only warn again if changed.
+            warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
+        }
+
         setSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs} })
         
     }
 
+
+    const onMetaTextChange = (tag, text) => {
+        //handles changes in the metatext 
+        let metatext = submission.metatext
+        metatext[tag] = text
+        setSubmission(prevValues => {return {...prevValues,metatext}})
+        
+    }
+
     const handleDatasetAttributeSelection = (attribute, attributeValue) => {
+        // handles dataset attribute selection (adding and removing) Dataset values are stored in a list. 
+        //check if attributes has nodeChilds
+
         let filteredDatasetAttr = addItemToArrayIfNotPresent({ array: submission.datasetAttributes, item: attribute })
         let datasetAttrValues = submission.datasetAttributeValues
-        if (_.has(datasetAttrValues, attribute.id)) {
-            const attrValuesForAttr = datasetAttrValues[attribute.id]
+        if (_.has(datasetAttrValues, attribute.tag)) {
+            const attrValuesForAttr = datasetAttrValues[attribute.tag]
             const filteredAttrValuesForAttr = addItemToArrayOrRemoveItIfPresent({ array: attrValuesForAttr, item: attributeValue })
             if (filteredAttrValuesForAttr.length === 0) {
                
-                delete datasetAttrValues[attribute.id]
-                filteredDatasetAttr = filteredDatasetAttr.filter(attr => attr.id !== attribute.id)
+                delete datasetAttrValues[attribute.tag]
+                filteredDatasetAttr = filteredDatasetAttr.filter(attr => attr.tag !== attribute.tag)
             }
             else {
-                datasetAttrValues[attribute.id] = filteredAttrValuesForAttr
+                datasetAttrValues[attribute.tag] = filteredAttrValuesForAttr
             }
             
         }
         else {
-            datasetAttrValues[attribute.id] = [attributeValue]
+
+            datasetAttrValues[attribute.tag] = [attributeValue]
         }
         setSubmission(prevValues => { return {...prevValues, datasetAttributes : filteredDatasetAttr, datasetAttributeValues : datasetAttrValues}})
+    }
+    const resetAlter = () => {
+
+        setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
     }
 
     const handleCollaboratorSelection = (selectedUser) => {
@@ -240,22 +334,16 @@ function InitialSubmission({
         setSubmission(prevValues => {return{...prevValues, collaborators : selectedUser}})
     }
 
-    // const handleAttributeSelection = (attributeTag, attributeValue) => {
-    //     //handle the selection/deseltion of attribute values
-    //     let selectedAttributes = []
-    //     if (objectHasKey({object : submission, keyName : attributeTag})) {
-    //         selectedAttributes = addItemToArrayOrRemoveItIfPresent({ array: submission[attributeTag].slice(), item: attributeValue })
-    //     }
-    //     else {
-    //         selectedAttributes.push(attributeValue)
-    //     }
-    //     setSubmission(prevValues => {return {...prevValues, [attributeTag] : selectedAttributes}})
-    // }
+
+    if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
+    if (submissionIDLoading || attributesLoading) return <div>Loading...</div>
 
     return (
-            
-        <div className="flex flex-column container--scroll-y-hide-x margin--medium intent-margin-right intent-padding-right--little" style={{maxHeight:"90vh", position:"relative"}}>
-            
+        <div className="flex flex-column">
+             
+       
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-right intent-padding-right--little" style={{maxHeight : "82vh",position:"relative"}}>
+                <Alert canEscapeKeyCancel={true} canOutsideClickCancel={true} onConfirm={resetAlter } onClose={resetAlter } {...alertProps}/>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
@@ -266,57 +354,57 @@ function InitialSubmission({
             </p>
 
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="Contact and Collaborators" />
+                <Header text="1. Contact and Collaborators" />
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
                 <div><span>Unique identifier: </span> <span className="h3-span">{submissionID.id}</span></div>
 
                 <UserSelection onUserSelection={handleCollaboratorSelection} selectedUsers={submission.collaborators}  {...{ authenticationStatus }} />
             </div>
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="Mandatory Attributes" />
-                <TextInput placeholder="Set title of your project" hint="Project Title" onChange={(callbackKey, titleString) => console.log(titleString)} />
+                <Header text="2. Mandatory Attributes" />
+                <p>Attributes that are required for the project submission. </p>
+                <TextInput placeholder="Set title of your project" hint="Project Title" callbackKey="label" onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
+                
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
+                    const samplesAttributesPresent = submission.samplesAttributes.length > 0
                     if (objectHasKey({ object: attributeValuesByAtrributeID, keyName: attribute.id })) {
                         const attributeValues = attributeValuesByAtrributeID[attribute.id]
-                        return <AttributeInput {...{attributeValues, attribute }}
-                            selectedItems={objectHasKey({ object: submission.datasetAttributeValues, keyName: attribute.id }) ? submission.datasetAttributeValues[attribute.id] : []}
+                        const isDefinedAsSamplesAttributes = samplesAttributesPresent ? submission.samplesAttributes.map(sampleAttr => sampleAttr.attribute).includes(attribute) : false
+                        const attributeInputDisabled = samplesAttributesPresent && isDefinedAsSamplesAttributes
+                        return <AttributeInput {...{ attributeValues, attribute }}
+                            key={`${attribute.name}-${attribute.id}-mandatory`}
+                            helperText={attributeInputDisabled?"Defined as an sample attribute below.":""}
+                            disabled={attributeInputDisabled}
+                            selectedItems={objectHasKey({ object: submission.datasetAttributeValues, keyName: attribute.tag }) ? submission.datasetAttributeValues[attribute.tag] : []}
                             onItemSelect={handleDatasetAttributeSelection}
                             onRemove={handleDatasetAttributeSelection}/>
                     }
-                    
                 }) : null}
-                <Header text="Meta Text" />
-                {_.isObject(metatext) ? metatext.titles.map(metatextTitle => 
-                    <TextFieldInput
-                        placeholder={metatext.placeholders[metatextTitle]}
-                        minLength={metatext["min_text_length"][metatextTitle]}
-                        isRequired={metatext["required"][metatextTitle]}
-                        hint={metatextTitle}
-                        callbackKey={metatext.tags[metatextTitle]}
-                        onChange={(key, text) => console.log(key, text)} />
-                    ) : null}
             </div>
+            <MetaText metatextValues={submission.metatext} {...{onMetaTextChange,authenticationStatus}} />
+            
 
             {attributesIsSuccess && _.isArray(submissionAttributes.attributes) ?
             <div>
 
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                        <Header text="Dataset Attributes" />
-                        <p>Dataset attributes describe the dataset and are valid for all samples.
+                        <Header text="4. Dataset Attributes" />
+                        <p className="p">Dataset attributes describe the dataset and are valid for all samples.
                             As an example, if you have a project that uses the same cell line throughout the study, the cell line should be added here.</p>
-                        <p>Other examples are: Tissue, Lysis buffer and Cell culture media</p>
+                        <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
                         <DatasetAttributeSelect
                             attributes={submissionAttributes.attributes}
                             attributeValues={submissionAttributes.attribute_values}
                             {...{ handleDatasetAttributeSelection }} />
                         <DatasetAttributeHierarchy
-                            submissionID = {submissionID.id}
+                            submissionID={submissionID.id}
                             selectedAttributes={submission.datasetAttributes}
-                            selectedDasetAttributeValues={submission.datasetAttributeValues} />
+                            selectedDasetAttributeValues={submission.datasetAttributeValues}
+                            onDatasetAttributeRemove={handleDatasetAttributeSelection} />
                 </div>
                     
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="Sample Attributes" />
+                <Header text="5. Sample Attributes" />
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
                     </p>
@@ -342,32 +430,25 @@ function InitialSubmission({
                             addSampleAttr,
                             clearGroupingByIndex,
                             clearAttributeTableByRowIndex,
-                            onGroupingSelect,
-                            onGroupingRename,
+                            onSampleAttributeSelect,
+                            onSampleAttributeRename,
                             removeSampleAttrByIndex,
                             groupings: submission.samplesAttributes
                         }} />
-                </div>
-                
-                    <div>
-                        Submit
                     </div>
-
-                {/* {submissionAttributes.attributes.filter(attribute => _.has(attributeValuesByAtrributeID,attribute.id)).map(attribute => {
-                    return <AttributeInput {...attribute}
-                        key = {`${attribute.id}-${attribute.name}`}
-                        attributeValues={attributeValuesByAtrributeID[attribute.id]}
-                        selectedItems={submission[attribute.tag] === undefined ? [] : submission[attribute.tag]}
-                        onItemSelect={handleAttributeSelection}
-                        onRemove={handleAttributeSelection}/>
-                })
-                } */}
-
+                    
 
 
             </div> : null}
             
-        </div>
+       
+                     
+            </div>
+            <div className="flex padding--medium">
+                <Button text="Submit" onClick={onSubmssionRequest} />
+            </div>
+            
+            </div>
         )
     }
 

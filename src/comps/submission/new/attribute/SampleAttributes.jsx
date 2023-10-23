@@ -23,18 +23,18 @@ function AttributeGroupingButton({
     groupingName = "",
     attributeName = "attribute type ...",
     attributesTagsInUse = [],
-    onGroupingSelect = undefined,
-    onGroupingRename = undefined,
+    onSampleAttributeSelect = undefined,
+    onSampleAttributeRename = undefined,
     disabled = false }) {
     // const [groupingName, setGroupingName] = useState("")
-    const groupingIndex = columnIndex-1
+    const sampleAttrIndex = columnIndex-1
     return (
         <div>
-            <H4><EditableText
+            <h4><EditableText
                 defaultValue=""
                 value={groupingName}
-                onChange={groupingNameEdit => onGroupingRename(groupingIndex,groupingNameEdit)}
-                onConfirm={() => onGroupingSelect(groupingIndex, groupingName, undefined)}/></H4>
+                onChange={groupingNameEdit => onSampleAttributeRename(sampleAttrIndex,groupingNameEdit)}
+                onConfirm={() => onSampleAttributeSelect(sampleAttrIndex, groupingName, undefined)}/></h4>
                 
             <Combobox
                 items={attributes.filter(a => !attributesTagsInUse.includes(a.tag)).map(a => a.name)}
@@ -42,11 +42,11 @@ function AttributeGroupingButton({
                // disabled={groupingName.length < 2}
                 buttonProps={{ minimal: true, fill: false, disabled}}
                 callbackKey={groupingName}
-                onChange={(callbackKey, attributeName) => onGroupingSelect(groupingIndex, groupingName, filterArrayOfObjects({
+                onChange={(callbackKey, attributeName) => onSampleAttributeSelect(sampleAttrIndex, groupingName, filterArrayOfObjects({
                     array: attributes,
                     keyName: "name", 
                     keyValue: attributeName
-                })[0])} />
+                })[0], true)} />
         </div>
     )
 }
@@ -69,7 +69,8 @@ function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeS
                     
                 />
                 <Menu style={{ overflowY: "scroll", maxHeight: "280px" }}> 
-                {attributeValueBySearchQuery.map(attributeValue =>
+                {attributeValueBySearchQuery.map((attributeValue, index) =>
+                    index === 25 ? <MenuItem key={attributeValue.name} text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 25 ? null :
                     <MenuItem
                         onClick={(e) => onAttributeSelect(attributeTag, attributeValue,rowIdces)}
                         key={attributeValue.name}
@@ -93,8 +94,8 @@ function AttributeGrouping({
     groupings = [],
     onAttributeSelect,
     addSampleAttr = undefined,
-    onGroupingSelect = undefined,
-    onGroupingRename = undefined,
+    onSampleAttributeSelect = undefined,
+    onSampleAttributeRename = undefined,
     onTagRemove = undefined,
     removeSampleAttrByIndex = undefined,
     clearGroupingByIndex = undefined,
@@ -226,10 +227,10 @@ function AttributeGrouping({
                     <AttributeGroupingButton
                         {...{
                             attributes,
-                            onGroupingSelect,
+                            onSampleAttributeSelect,
                             columnIndex,
                             attributesTagsInUse,
-                            onGroupingRename,
+                            onSampleAttributeRename,
                             disabled : sampleNames.length === 0,
                             groupingName : groupingDefined && _.isString(groupingInfo.name)? groupingInfo.name : undefined,
                             attributeName: groupingDefined && _.isObject(groupingInfo.attribute) ? groupingInfo.attribute.name : undefined
@@ -295,7 +296,7 @@ function AttributeGrouping({
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
                         cellRenderer={renderCell}
-                        columnHeaderCellRenderer={() => <ColumnHeaderCell><div className="margin--little"><H4>Sample Run</H4></div></ColumnHeaderCell>} />
+                        columnHeaderCellRenderer={() => <ColumnHeaderCell><div className="margin--little"><h4>Sample Run</h4></div></ColumnHeaderCell>} />
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.name}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
                     <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">
