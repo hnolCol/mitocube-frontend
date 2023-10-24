@@ -12,6 +12,7 @@ import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
 import { storeTokenInLocalStorage } from "../../services/localstorage"
 import DescriptionButton from "../core/base/buttons/DescriptionButton"
+import InteractiveChart from "../core/charts/interactive"
 
 Login.propTypes = {
     setAuthenticationStatus : PropTypes.func,
@@ -70,7 +71,19 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                 <div className="intent-margin-bottom--little">
                     <Header text="User Login" />
                 </div>
+                <InteractiveChart >
 
+                    {(categoricalData) => categoricalData.map(({
+                            index : idx,
+                            limits,
+                            handleItemSelection,
+                            findIndexInRectangle,
+                            findDataInRectangle
+                        }, didx) => {
+                            
+                            return (<p>e</p>)})}
+
+                </InteractiveChart>
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     
