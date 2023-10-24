@@ -98,7 +98,7 @@ function AttributeGrouping({
     onSampleAttributeRename = undefined,
     onTagRemove = undefined,
     removeSampleAttrByIndex = undefined,
-    clearGroupingByIndex = undefined,
+    clearSampleAttrByIndex = undefined,
     clearAttributeTableByRowIndex=undefined,
     rerenderTableDependency = 0,
     }) {
@@ -210,7 +210,7 @@ function AttributeGrouping({
                 <MenuItem text={nameDefined ? `Name : ${groupingInfo.name}` : "Name missing."} intent={nameDefined?"none":"danger"} />
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
-                <MenuItem text="Clear" icon="clean" onClick={() => clearGroupingByIndex(groupingIdx, attribute.tag)} disabled={!attributeDefined} />
+                <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(groupingIdx, attribute.tag)} disabled={!attributeDefined} />
                 <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(groupingIdx)} />
                 
             </Menu>)

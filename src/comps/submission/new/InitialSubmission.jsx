@@ -1,10 +1,10 @@
-import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks"
-import PropTypes from "prop-types"
+import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
+import PropTypes, { number } from "prop-types"
 import { Header } from "../../core/base/Header"
 import APIError from "../../core/error/APIerror"
 import AttributeInput from "./attribute/AttributeCombo"
 import { useMemo, useState, useEffect } from "react"
-import { groupListByProperty } from "../../../services/arrays/groupby"
+import { getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../services/arrays/groupby"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { objectHasKey } from "../../../services/objects/checks"
 import AttributeGrouping from "./attribute/SampleAttributes"
@@ -47,14 +47,20 @@ function InitialSubmission({
         rerenderTableDependency: 0,
     })
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
-    const {data : metatext} = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime : 1200000})
+    
+    const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
+    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: 1200000 })
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
     
+
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
         isError: attributeIsError,
         isSuccess: attributesIsSuccess } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }) //
+    
+    
+    
     
     const attributeValuesByAtrributeID = useMemo(() => {
         if (!attributesIsSuccess) return {}
@@ -97,16 +103,20 @@ function InitialSubmission({
 
     const onSubmssionRequest = () => {
         let errMsgs = [] //collect error messages
-        if (submission.sampleNames.length === 0) {
-            errMsgs.push("No samples number provided.")
-            
-        }
-        if (submission.attributeTable.length === 0) {
-            errMsgs.push("No samples attributes provided. Require at least one.")
-        }
+        const numberSamples = submission.sampleNames.length
+        const attributeTable = submission.attributeTable.slice(0,numberSamples)
 
         if (!_.isString(submission.attributes.title) || submission.attributes.title.length < 10) {
             errMsgs.push("Title not defined or to short (<10 characters).")
+        }
+
+        if (numberSamples === 0) {
+            errMsgs.push("No samples number provided.")
+            
+        }
+
+        if (Object.keys(attributeTable[0]).length === 0) {
+            errMsgs.push("No samples attributes provided. Require at least one.")
         }
 
         //check for all mandatory attributes
@@ -114,9 +124,9 @@ function InitialSubmission({
                         object: submission.datasetAttributeValues, keyName: attrRequired.tag})
             && submission.datasetAttributeValues[attrRequired.tag].length > 0))
         // TO DO check if present in samples attributes
-        if (submission.attributeTable.length > 0) {
+        if (attributeTable.length > 0) {
             // check the attributes that are maybe in the sample attributes.
-            requiredAttributeNotSubmitted = requiredAttributeNotSubmitted.filter(reqAttr => !_.has(submission.attributeTable[0],reqAttr.tag))
+            requiredAttributeNotSubmitted = requiredAttributeNotSubmitted.filter(reqAttr => !_.has(attributeTable[0],reqAttr.tag))
         }
         
 
@@ -125,7 +135,7 @@ function InitialSubmission({
         }
 
         // check if sample attributes table is complete 
-        const emptySampleInfo = submission.attributeTable.map(sampleAttributes => _.some(Object.values(sampleAttributes), array => array.length == 0))
+        const emptySampleInfo = attributeTable.map(sampleAttributes => _.some(Object.values(sampleAttributes), array => array.length == 0))
         if (_.some(emptySampleInfo)) {
             const indices = _.range(emptySampleInfo.length).filter(idx => emptySampleInfo[idx])
             errMsgs.push("Missing sample attributes for samples in rows : " + _.join(indices.map(v => v+1),", "))
@@ -134,10 +144,10 @@ function InitialSubmission({
         //check metatext details 
         const requiredMetaText = metatext["required"]
         const minLengthMetaText = metatext["min_text_length"]
-        console.log(minLengthMetaText)
+        
         const metatextTag = metatext["tags"]
         const missingMetaText = Object.keys(requiredMetaText).filter(metatextTitle => requiredMetaText[metatextTitle] && !objectHasKey({ object: submission.metatext, keyName: metatextTag[metatextTitle] }))
-        console.log(missingMetaText, submission.metatext)
+        
         if (missingMetaText.length > 0) {
             errMsgs.push("Required metatext missing for: " + _.join(missingMetaText,", "))
         }
@@ -146,7 +156,23 @@ function InitialSubmission({
             errMsgs.push("Minimal length of metatext not met for: " + _.join(lengthReqMetaText,", "))
         }
         
-        setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
+        // check if sample attributes are non-unique
+        const uniqueValuesPerSampleAttribute = getUniqueValuesFromArrayOfObjectsByKey(submission.attributeTable)
+        const sampleAttributesWithSingleUniqueValue = _.filter(Object.keys(uniqueValuesPerSampleAttribute), sampleAttribute => uniqueValuesPerSampleAttribute[sampleAttribute].length < 2)
+        if (sampleAttributesWithSingleUniqueValue.length > 0) {
+            errMsgs.push("At least one samples attribute has less than two unique values. It should therefore be defined as a dataset attribute: "+_.join(sampleAttributesWithSingleUniqueValue,", "))
+        }
+
+        
+
+        if (errMsgs.length > 0) {
+            // if there are error messages, show it to the user.
+            setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
+        }
+        let submissionDetails = { ...submission }
+        // delete rendering float
+        delete submissionDetails["rerenderTableDependency"]
+        postSubmission({tokenString : authenticationStatus.token, submission : submissionDetails})
 
     }
 
@@ -187,7 +213,7 @@ function InitialSubmission({
         setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
     }
 
-    const clearGroupingByIndex = (groupingIdx,attributeTag) => {
+    const clearSampleAttrByIndex = (groupingIdx,attributeTag) => {
         let attributeTable  = clearArrayOfObjectsByKeyName({array : submission.attributeTable,keyName : attributeTag, newValue : []})
         setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
     }
@@ -237,11 +263,11 @@ function InitialSubmission({
     }
 
     const warnForMandatoryAttr = (addedAttribute) => {
-        console.log("check")
+        // warns if a mandatory attribute (dataset) was selected
         if (_.isObject(addedAttribute) && _.isObject(addedAttribute.attribute) && attributesRequiredForSubmission.includes(addedAttribute.attribute)) {
             setAlertProps({
                 isOpen: true, children: <div><h3>Warning</h3><p>The selected attribute is defined as a mandatory dataset attribute.</p>
-                    <p>Defining it as a sample attribute overwrite the dataset attribute selection and is <strong>only recommended if the attribute differs between samples.</strong></p></div>
+                    <p>Defining it as a sample attribute overwrites the dataset attribute selection and is <strong>only recommended if the attribute differs between samples.</strong></p></div>
             })
         }
     }
@@ -428,7 +454,7 @@ function InitialSubmission({
                         onTagRemove={onSampleAttrRemove}
                         {...{
                             addSampleAttr,
-                            clearGroupingByIndex,
+                            clearSampleAttrByIndex,
                             clearAttributeTableByRowIndex,
                             onSampleAttributeSelect,
                             onSampleAttributeRename,

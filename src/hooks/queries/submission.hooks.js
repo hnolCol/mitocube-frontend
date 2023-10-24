@@ -1,4 +1,4 @@
-import { useQuery } from "react-query";
+import { useMutation, useQuery } from "react-query";
 import axios from "axios"
 
 
@@ -89,4 +89,26 @@ async function getSubmissionMetatexts_API({tokenString}) {
 export const useGetSubmissionMetatext = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["metatext_for_submission"], () => getSubmissionMetatexts_API({...APIParams}), useQueryOptions)
 
+}
+
+
+
+//submit submission
+
+async function postSumbmission_API({ tokenString, submission }) {
+    console.log(tokenString)
+    console.log(submission)
+    const res = await axios.post('/api/submission',
+        submission,
+        {
+            headers : {
+                "Authorization": `Bearer ${tokenString}`,
+                'Content-Type': 'application/json'
+            }
+        }
+        )
+}
+
+export const usePostSubmission = (useMutationOptions = {}) => {
+    return useMutation((APIParams) => postSumbmission_API({...APIParams}), useMutationOptions)
 }
