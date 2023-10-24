@@ -217,7 +217,7 @@ function AttributeGrouping({
     }
 
     const renderGroupingHeader = (columnIndex) => {
-
+        
         const groupingInfo = groupings[columnIndex - 1] //first column blocked
         const groupingDefined = _.isObject(groupingInfo)
         const attributesTagsInUse  = groupings.filter(groupingInfo => _.isObject(groupingInfo) && _.has(groupingInfo.attribute,"tag")).map(groupingInfo => groupingInfo.attribute.tag)

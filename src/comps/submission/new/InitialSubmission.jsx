@@ -153,7 +153,10 @@ function InitialSubmission({
         }
         else {
             const lengthReqMetaText = Object.keys(requiredMetaText).filter(metatextTitle => _.isString(submission.metatext[metatextTag[metatextTitle]]) && submission.metatext[metatextTag[metatextTitle]].length < minLengthMetaText[metatextTitle])
-            errMsgs.push("Minimal length of metatext not met for: " + _.join(lengthReqMetaText,", "))
+            if (lengthReqMetaText.length > 0) {
+                errMsgs.push("Minimal length of metatext not met for: " + _.join(lengthReqMetaText, ", "))
+            }
+            
         }
         
         // check if sample attributes are non-unique
@@ -171,7 +174,13 @@ function InitialSubmission({
         }
         let submissionDetails = { ...submission }
         // delete rendering float
+        const flexAttributes = submissionDetails["attributes"]
         delete submissionDetails["rerenderTableDependency"]
+        delete submissionDetails["attributes"]
+        submissionDetails["attributeTable"] = attributeTable
+        submissionDetails["label"] = submissionID.id
+        submissionDetails["title"] = flexAttributes.title 
+        
         postSubmission({tokenString : authenticationStatus.token, submission : submissionDetails})
 
     }
@@ -389,7 +398,7 @@ function InitialSubmission({
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <Header text="2. Mandatory Attributes" />
                 <p>Attributes that are required for the project submission. </p>
-                <TextInput placeholder="Set title of your project" hint="Project Title" callbackKey="label" onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
+                <TextInput placeholder="Set title of your project" hint="Project Title" callbackKey="title" onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
                 
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
                     const samplesAttributesPresent = submission.samplesAttributes.length > 0
