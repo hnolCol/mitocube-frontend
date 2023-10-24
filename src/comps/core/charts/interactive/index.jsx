@@ -1,37 +1,16 @@
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { addItemToArrayIfNotPresent } from "../../../../services/arrays/transforms"
 import _ from "lodash"
 import KDBush from 'kdbush';
-import { partitionData } from "../../../../services/arrays/partion";
+import { getMinMaxForMultipleKeyNames } from "../../../../services/arrays/boundaries";
 
-function getMinMaxForMultipleKeyNames({data = [], keyNames = ["x","y"]}){
-    // return an object with the keyName and object as value with min max key words.
-    console.log(keyNames)
-    console.log(data)
-    const minMaxByKeyName = Object.fromEntries(keyNames.map(keyName => {return [keyName, {min : Infinity, max : -Infinity}]}))
-    return data.reduce((p,c) => {
-        
-        _.forEach(keyNames, keyName => {
-            
-            const v = c[keyName]
-     
-            if (v >  p[keyName].max ) {
-                p[keyName].max = v
-            }
-            if (v < p[keyName].min){
-                p[keyName].min = v
-            }
-            
-        })   
-        return p 
-    },minMaxByKeyName)
-}
+
 
 
 
 
 function InteractiveChart({data = [{"x" : -2, "y" : 1},{"x" : 2, "y" : 3}, {"x" : 5, "y" : 1}], numberCharts = 1, keyNames = [{xName : "x", yName : "y"}], children}){
-    
+    // TO DO CHECK FOR isNAN -> filter data by index.
     
     const [hoverData, setHoverData] = useState()
     const [selectedItems, setSelectedItems]  = useState()
@@ -47,7 +26,6 @@ function InteractiveChart({data = [{"x" : -2, "y" : 1},{"x" : 2, "y" : 3}, {"x" 
             const {xName, yName} = keyNames[chartIdx]
             _.forEach(data, d => index.add(d[xName],d[yName]))
             index.finish()
-            index.range()
             return [chartIdx, {tree : index, xName, yName, limits}]
         }))
     },[_.join(keyNamesFlatten),numberCharts])
