@@ -24,17 +24,15 @@ import MetaText from "./MetaText"
 function constructSampleNames(id, sampleNumber) {
     const date = getCurrentDate()
     const zeroPadding = sampleNumber.toString().length
-
-
     return _.range(sampleNumber).map(idx => `${date}_${id}_${(idx+1).toString().padStart(zeroPadding > 1 ? zeroPadding : 2,'0')}`)
 }
 
 
 function InitialSubmission({
     authenticationStatus,
+    logout
 }
 ) {
-
     const [submission, setSubmission] = useState({
         sampleNames: [],
         collaborators : [],
@@ -51,16 +49,13 @@ function InitialSubmission({
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: 1200000 })
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
-    
+
 
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
         isError: attributeIsError,
         isSuccess: attributesIsSuccess } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }) //
-    
-    
-    
     
     const attributeValuesByAtrributeID = useMemo(() => {
         if (!attributesIsSuccess) return {}
@@ -115,7 +110,7 @@ function InitialSubmission({
             
         }
 
-        if (Object.keys(attributeTable[0]).length === 0) {
+        if (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0) {
             errMsgs.push("No samples attributes provided. Require at least one.")
         }
 
@@ -146,13 +141,13 @@ function InitialSubmission({
         const minLengthMetaText = metatext["min_text_length"]
         
         const metatextTag = metatext["tags"]
-        const missingMetaText = Object.keys(requiredMetaText).filter(metatextTitle => requiredMetaText[metatextTitle] && !objectHasKey({ object: submission.metatext, keyName: metatextTag[metatextTitle] }))
+        const missingMetaText = Object.keys(requiredMetaText).filter(metatextTag => requiredMetaText[metatextTag] && !objectHasKey({ object: submission.metatext, keyName: metatextTag }))
         
         if (missingMetaText.length > 0) {
             errMsgs.push("Required metatext missing for: " + _.join(missingMetaText,", "))
         }
         else {
-            const lengthReqMetaText = Object.keys(requiredMetaText).filter(metatextTitle => _.isString(submission.metatext[metatextTag[metatextTitle]]) && submission.metatext[metatextTag[metatextTitle]].length < minLengthMetaText[metatextTitle])
+            const lengthReqMetaText = Object.keys(requiredMetaText).filter(metatextTag => _.isString(submission.metatext[metatextTag]) && submission.metatext[metatextTag].length < minLengthMetaText[metatextTag])
             if (lengthReqMetaText.length > 0) {
                 errMsgs.push("Minimal length of metatext not met for: " + _.join(lengthReqMetaText, ", "))
             }
@@ -166,25 +161,59 @@ function InitialSubmission({
             errMsgs.push("At least one samples attribute has less than two unique values. It should therefore be defined as a dataset attribute: "+_.join(sampleAttributesWithSingleUniqueValue,", "))
         }
 
-        
-
+    
         if (errMsgs.length > 0) {
             // if there are error messages, show it to the user.
             setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
         }
-        let submissionDetails = { ...submission }
-        // delete rendering float
-        const flexAttributes = submissionDetails["attributes"]
-        delete submissionDetails["rerenderTableDependency"]
-        delete submissionDetails["attributes"]
-        submissionDetails["attributeTable"] = attributeTable
-        submissionDetails["label"] = submissionID.id
-        submissionDetails["title"] = flexAttributes.title 
+
+        else {
+
+            let submissionDetails = { ...submission }
+            // delete rendering float
+            const flexAttributes = submissionDetails["attributes"]
+            delete submissionDetails["rerenderTableDependency"]
+            delete submissionDetails["attributes"]
+            submissionDetails["attributeTable"] = attributeTable
+            submissionDetails["label"] = submissionID.id
+            submissionDetails["title"] = flexAttributes.title 
+
+            postSubmission({ tokenString: authenticationStatus.token, submission: submissionDetails },
+                {
+                    onSuccess: (data) => setAlertProps({
+                        isOpen: true,
+                        children: <div><h3>Submission Successfull</h3>
+                            <p>The submission was successfull. An email was sent to your email account and your collaborators. You will be redirected to the submission overview.</p>
+                        </div>,
+                        intent : "success"
+                    }),
+                    onError: (error) => setAlertProps({
+                        isOpen: true,
+                        children: <div><h3>Error</h3>
+                            <p>There was an error in the submission.</p>
+                            <p>If you token experied you will be re-direct to the login. 
+                                Otherwise please contact the system administrator. 
+                            </p>
+                            <APIError error={error} />
+                        </div>,
+                        onConfirm: () => closeAlertAndLogout(error),
+                        onClose : () => closeAlertAndLogout(error)
+                    })
+                })
+            }
         
-        postSubmission({tokenString : authenticationStatus.token, submission : submissionDetails})
 
     }
 
+
+    const closeAlertAndLogout = (error) => {
+        setAlertProps({ isOpen: false })
+        if (error.response.status === 401) {
+            //logout if response is Unauthorized
+            logout()
+        }
+       
+    }
     
     const onAttributeChange = (attributeTag, attributeValue) => {
         

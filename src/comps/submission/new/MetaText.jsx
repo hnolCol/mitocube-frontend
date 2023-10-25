@@ -18,16 +18,18 @@ function MetaText({authenticationStatus, onMetaTextChange, metatextValues, index
 
         <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
             <Header text={`${index}. Meta Text`} />
-                {_.isObject(metatext) ? metatext.titles.map((metatextTitle, index) => 
-                    <TextFieldInput
-                        key = {`${metatext.tags[metatextTitle]}-${index}`}
-                        value={_.isString(metatextValues[metatext.tags[metatextTitle]])?metatextValues[metatext.tags[metatextTitle]]:""}
-                        placeholder={metatext.placeholders[metatextTitle]}
-                        minLength={metatext["min_text_length"][metatextTitle]}
-                        isRequired={metatext["required"][metatextTitle]}
+            {metatextIsLoading ? <p>....</p> : null}
+            {_.isObject(metatext) ? metatext.titles.map((metatextTitle, index) => {
+                    const metatextTag = metatext.tags[metatextTitle]
+                    return<TextFieldInput
+                        key = {`${ metatextTag}-${index}`}
+                        value={_.isString(metatextValues[ metatextTag])?metatextValues[metatextTag]:""}
+                        placeholder={metatext.placeholders[ metatextTag]}
+                        minLength={metatext["min_text_length"][ metatextTag]}
+                        isRequired={metatext["required"][ metatextTag]}
                         hint={metatextTitle}
-                        callbackKey={metatext.tags[metatextTitle]}
-                        onChange={onMetaTextChange} />
+                        callbackKey={metatextTag}
+                        onChange={onMetaTextChange} />}
                     ) : null}
             </div>
         

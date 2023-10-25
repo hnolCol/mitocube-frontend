@@ -198,8 +198,8 @@ function App() {
               <SubmissionHeader/>
             </ProtectedRoute>
           }>
-            <Route index element={<NewSubmission {...{authenticationStatus}}/>} />
-            <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus}}/>}/>
+            <Route index element={<NewSubmission {...{authenticationStatus, logout}}/>} />
+            <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
             <Route path="/submission/view" element={
               <SubmissionView />} />
             <Route path="/submission/help" element={
