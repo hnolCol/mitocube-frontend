@@ -2,7 +2,6 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import { Link } from "react-router-dom"
 import DescriptionButton from "../../core/base/buttons/DescriptionButton"
-import { Header } from "../../core/base/Header"
 
 function NewSubmission({
     authStatus,

@@ -3,9 +3,8 @@ import PropTypes from "prop-types"
 import { Combobox } from "../../../core/input/Combobox"
 import TextInput from "../../../core/input/Text"
 
-import { Column, Table2, ColumnHeaderCell, EditableName, SelectionModes, EditableCell2, Cell, RegionCardinality, RowHeaderCell } from "@blueprintjs/table"
-import { EditableText, HotkeysProvider, InputGroup, Menu, MenuItem, Popover, Tag, TagInput, H4, Button, MenuDivider, NumericInput} from "@blueprintjs/core"
-import AttributeInput from "./AttributeCombo"
+import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
+import { EditableText, HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider} from "@blueprintjs/core"
 import { useMemo, useState } from "react"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../../services/arrays/filter"
 import _ from "lodash"
@@ -55,7 +54,7 @@ function AttributeGroupingButton({
 
 
 
-function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined}) {
+export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined}) {
     const [queryString, setQuery] = useState("")
     let attributeValueBySearchQuery = useMemo(() => queryString === ""? attributeValues:filterArrayBySearchString({searchString : queryString, array : attributeValues, searchColumns : ["name","details"]}),[queryString])
     return (
@@ -217,7 +216,7 @@ function AttributeGrouping({
     }
 
     const renderGroupingHeader = (columnIndex) => {
-        
+
         const groupingInfo = groupings[columnIndex - 1] //first column blocked
         const groupingDefined = _.isObject(groupingInfo)
         const attributesTagsInUse  = groupings.filter(groupingInfo => _.isObject(groupingInfo) && _.has(groupingInfo.attribute,"tag")).map(groupingInfo => groupingInfo.attribute.tag)

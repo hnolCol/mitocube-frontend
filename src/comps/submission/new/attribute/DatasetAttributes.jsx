@@ -3,6 +3,7 @@ import { Suggest } from "@blueprintjs/select"
 import { filterArrayBySearchString } from "../../../../services/arrays/filter"
 import { groupListByProperty } from "../../../../services/arrays/groupby"
 import _ from "lodash"
+import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
@@ -43,7 +44,6 @@ function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttr
     const handleKeyDownSelect = (attributeValue) => {
 
         const attributeFromKey = attributes.filter(attr => attr.id === attributeValue.attribute_id)[0]
-        console.log(attributeFromKey)
         handleItemSelect(attributeFromKey,attributeValue)
     }
 
@@ -51,25 +51,8 @@ function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttr
         const attributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
         // render items 
         return (
-            <Menu>
-                {attributes.map(attribute =>
-                    _.has(attributeValuesByID,attribute.id) ? 
-                        <div>
-                            <MenuItem text={attribute.name} disabled={true} />
-                            <MenuDivider />
-                            <div style={{overflowY : "visible"}}>
-                                {attributeValuesByID[attribute.id].map((attributeValue, index) =>
-                                    
-                                    index === 11 ? <MenuItem text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 11 ? null :
-                                <MenuItem
-                                    active = {activeItem.id === attributeValue.id}
-                                    key={`${attributeValue.name}-${attributeValue.tag}`}
-                                    text={attributeValue.name} label={attributeValue.details}
-                                    onClick={ () => handleItemSelect(attribute,attributeValue)}/>)}
-                            </div>
-                        </div> : null)}
-                
-            </Menu>
+            <AttributeValueSelectionMenu {...{activeItem, attributes,attributeValuesByID,handleItemSelect}}/>
+
             //<DatasetAttributeContextMenuSearch {...{ attributes, attributeValuesByID } } />
         )
     }

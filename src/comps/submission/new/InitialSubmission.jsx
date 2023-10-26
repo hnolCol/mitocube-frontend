@@ -1,5 +1,5 @@
 import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
-import PropTypes, { number } from "prop-types"
+import PropTypes from "prop-types"
 import { Header } from "../../core/base/Header"
 import APIError from "../../core/error/APIerror"
 import AttributeInput from "./attribute/AttributeCombo"
@@ -16,16 +16,34 @@ import UserSelection from "../../core/input/Users"
 import DatasetAttributeSelect from "./attribute/DatasetAttributes"
 import DatasetAttributeHierarchy from "./attribute/DatasetAttributesHierarchy"
 import TextInput from "../../core/input/Text"
-import TextFieldInput from "../../core/input/TextArea"
+
 import { Alert, Button } from "@blueprintjs/core"
-import HelpOverlay from "../../core/overlay/Helpoverlay"
+
 import MetaText from "./MetaText"
+import { loadSavedSubmissionFromLocalStorage, removeSubmissionFromLocalStorage, saveSubmissionInLocalStorage } from "../../../services/localstorage"
+import DatasetLinks from "./Links"
+import { getRandomID } from "../../../services/random"
+import GenotypeGenerator from "./Genotype"
+
+
 
 function constructSampleNames(id, sampleNumber) {
     const date = getCurrentDate()
     const zeroPadding = sampleNumber.toString().length
     return _.range(sampleNumber).map(idx => `${date}_${id}_${(idx+1).toString().padStart(zeroPadding > 1 ? zeroPadding : 2,'0')}`)
 }
+const randomInitLinkID = getRandomID({n : 5})
+const initSubmissionState = {
+            sampleNames: [],
+            collaborators : [],
+            attributeTable: [],
+            samplesAttributes: [],
+            metatext: {},
+            links : [{id : randomInitLinkID, link : "", comment : ""}],
+            attributes: {sampleNumber : 0},
+            datasetAttributeValues: {},
+            datasetAttributes: [],
+            rerenderTableDependency: 0}
 
 
 function InitialSubmission({
@@ -33,17 +51,7 @@ function InitialSubmission({
     logout
 }
 ) {
-    const [submission, setSubmission] = useState({
-        sampleNames: [],
-        collaborators : [],
-        attributeTable: [],
-        samplesAttributes: [],
-        metatext : {},
-        attributes: {},
-        datasetAttributeValues: {},
-        datasetAttributes: [],
-        rerenderTableDependency: 0,
-    })
+    const [submission, setSubmission] = useState(initSubmissionState)
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
@@ -69,6 +77,11 @@ function InitialSubmission({
 
         },[attributesIsSuccess])
 
+    
+    useEffect(() => {
+        loadSubmission()
+    }, [])
+    
     useEffect(() => {
 
         //handle changes that effect the samples names 
@@ -92,9 +105,8 @@ function InitialSubmission({
 
         setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable, rerenderTableDependency : Math.random()}})
 
-    }, [submission.attributes.sampleNumber,submissionID])
-
-
+    }, [submission.attributes.sampleNumber, submissionID])
+    
 
     const onSubmssionRequest = () => {
         let errMsgs = [] //collect error messages
@@ -139,8 +151,6 @@ function InitialSubmission({
         //check metatext details 
         const requiredMetaText = metatext["required"]
         const minLengthMetaText = metatext["min_text_length"]
-        
-        const metatextTag = metatext["tags"]
         const missingMetaText = Object.keys(requiredMetaText).filter(metatextTag => requiredMetaText[metatextTag] && !objectHasKey({ object: submission.metatext, keyName: metatextTag }))
         
         if (missingMetaText.length > 0) {
@@ -205,14 +215,38 @@ function InitialSubmission({
 
     }
 
-
     const closeAlertAndLogout = (error) => {
+        // function to handle altert closing 
         setAlertProps({ isOpen: false })
         if (error.response.status === 401) {
             //logout if response is Unauthorized
             logout()
         }
        
+    }
+
+    const saveSubmission = () => {
+        const msg = saveSubmissionInLocalStorage(submission)
+        setAlertProps({
+            isOpen: true, children: <div><h3>Saved Submission</h3>
+                <p>Submission has been saved. Please note that closing the browser will also remove the saved submission.</p>
+            </div>
+        })
+
+    }
+
+    const resetSubmission = () => {
+        removeSubmissionFromLocalStorage()
+        setSubmission(initSubmissionState)
+    }
+
+    const loadSubmission = () => {
+        const submission = loadSavedSubmissionFromLocalStorage()
+        console.log(submission)
+        if (_.isObject(submission)) {
+
+            setSubmission(prevValues => {return {...prevValues, ...submission}})
+        }
     }
     
     const onAttributeChange = (attributeTag, attributeValue) => {
@@ -398,36 +432,56 @@ function InitialSubmission({
         setSubmission(prevValues => {return{...prevValues, collaborators : selectedUser}})
     }
 
+    const addLink = () => {
+        // add a new link
+        const linkID = getRandomID({n : 5})
+        setSubmission(prevValues => {return {...prevValues,links : _.concat(submission.links, [{link : "", comment : "", id : linkID }])}})
+    }
+
+    const removeLinkByIndex = (linkIdx) => {
+        //remove a link by index
+        setSubmission(prevValues => {return {...prevValues,"links" : prevValues.links.filter((d,idx) => idx !== linkIdx)}})
+    }
+
+    const handleLinkChange = (linkIdx, updatedLinkProps) => {
+        console.log(linkIdx,updatedLinkProps)
+        let links = submission.links 
+        links[linkIdx] = updatedLinkProps
+        setSubmission(prevValues => {return {...prevValues,links}})
+    }
+
 
     if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
     if (submissionIDLoading || attributesLoading) return <div>Loading...</div>
 
     return (
         <div className="flex flex-column">
-             
-       
-        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-right intent-padding-right--little" style={{maxHeight : "82vh",position:"relative"}}>
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
                 <Alert canEscapeKeyCancel={true} canOutsideClickCancel={true} onConfirm={resetAlter } onClose={resetAlter } {...alertProps}/>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
+                <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+                <Header text="Information" />
             <p>
-                In this section, you can enter details about your new project. If you are looking for advise for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
-            <p>The unique datset identifier {submissionID.id} was created for your dataset. Please include this identifier (id) in any request about the project.</p>
-               <p> All files (such as raw file) will include the identifier. Please note that you and your collaborators will be notified via email when the state of your project changes.
-            </p>
-
+                In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
+            <p>The unique datset identifier <span className="h0-span">{submissionID.id}</span> has been created for your submission. Please include this unique identifier in any request about your project.
+                All files (such as raw file) will include the identifier. Please note that you and your collaborators will be notified via email when the state of your project changes.
+                The meta data are based on pre-defined attributes/ontologies and hence it might happen that you are missing an attribute for your project. 
+                    </p>
+                    <span className="h0-span">Please take care to fill out the submission in a meticulously way. Data without carefully curated meta data are less informative.</span>
+            </div>
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <Header text="1. Contact and Collaborators" />
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
-                <div><span>Unique identifier: </span> <span className="h3-span">{submissionID.id}</span></div>
+                <div><span>Unique identifier: </span> <span className="h0-span">{submissionID.id}</span></div>
 
                 <UserSelection onUserSelection={handleCollaboratorSelection} selectedUsers={submission.collaborators}  {...{ authenticationStatus }} />
             </div>
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <Header text="2. Mandatory Attributes" />
                 <p>Attributes that are required for the project submission. </p>
-                <TextInput placeholder="Set title of your project" hint="Project Title" callbackKey="title" onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
+                    <TextInput placeholder="Set title of your project" hint="Project Title" value={_.isString(submission.attributes["title"])?submission.attributes["title"]:""} callbackKey="title" onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
                 
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
                     const samplesAttributesPresent = submission.samplesAttributes.length > 0
@@ -437,7 +491,7 @@ function InitialSubmission({
                         const attributeInputDisabled = samplesAttributesPresent && isDefinedAsSamplesAttributes
                         return <AttributeInput {...{ attributeValues, attribute }}
                             key={`${attribute.name}-${attribute.id}-mandatory`}
-                            helperText={attributeInputDisabled?"Defined as an sample attribute below.":""}
+                            helperText={attributeInputDisabled?"Defined as a sample attribute below.":""}
                             disabled={attributeInputDisabled}
                             selectedItems={objectHasKey({ object: submission.datasetAttributeValues, keyName: attribute.tag }) ? submission.datasetAttributeValues[attribute.tag] : []}
                             onItemSelect={handleDatasetAttributeSelection}
@@ -447,13 +501,14 @@ function InitialSubmission({
             </div>
             <MetaText metatextValues={submission.metatext} {...{onMetaTextChange,authenticationStatus}} />
             
+            <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange}/>
 
             {attributesIsSuccess && _.isArray(submissionAttributes.attributes) ?
             <div>
 
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                        <Header text="4. Dataset Attributes" />
-                        <p className="p">Dataset attributes describe the dataset and are valid for all samples.
+                        <Header text="5. Dataset Attributes" />
+                        <p>Dataset attributes describe the dataset and are valid for all samples.
                             As an example, if you have a project that uses the same cell line throughout the study, the cell line should be added here.</p>
                         <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
                         <DatasetAttributeSelect
@@ -467,8 +522,10 @@ function InitialSubmission({
                             onDatasetAttributeRemove={handleDatasetAttributeSelection} />
                 </div>
                     
+                        
+                <GenotypeGenerator />
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="5. Sample Attributes" />
+                <Header text="6. Sample Attributes" />
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
                     </p>
@@ -509,7 +566,9 @@ function InitialSubmission({
                      
             </div>
             <div className="flex padding--medium">
-                <Button text="Submit" onClick={onSubmssionRequest} />
+                <Button text="Submit" onClick={onSubmssionRequest} intent="primary" />
+                <Button text="Save" onClick={saveSubmission} />
+                <Button text="Reset Form" onClick={resetSubmission} />
             </div>
             
             </div>
