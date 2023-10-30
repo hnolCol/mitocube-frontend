@@ -98,7 +98,8 @@ function AttributeGrouping({
     onTagRemove = undefined,
     removeSampleAttrByIndex = undefined,
     clearSampleAttrByIndex = undefined,
-    clearAttributeTableByRowIndex=undefined,
+    clearAttributeTableByRowIndex = undefined,
+    handleFeatureSelection = undefined,
     rerenderTableDependency = 0,
     }) {
 
@@ -133,10 +134,13 @@ function AttributeGrouping({
 
         if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
         //find row indices from the selected region
-        
+        //attribute.allow_features_as_values ? attributeValuesByID[-1] : 
         let attributeValues = groupingInfo === undefined ? [] : attributeValuesByID[groupingInfo.attribute.id]
         // if there is no attribute values, then a numeric value can be inserted by the user
-        if (!_.isArray(attributeValues)) return (<Menu>
+        if (attribute.allow_features_as_values) {
+            return <Menu><MenuItem text="Select protein sequence..." onClick={() => handleFeatureSelection(attribute, true, selectedRows)}/></Menu>
+        }
+        else if (!_.isArray(attributeValues)) return (<Menu>
             
             <MenuItem text="Enter numeric value." disabled={true} />
             <NumericValueInput

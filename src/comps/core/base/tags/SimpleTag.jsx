@@ -3,7 +3,8 @@ import { motion } from "framer-motion"
 export function SimpleTag({ text = "" }) {
     
     return (
-            <motion.div
+        <motion.div
+            transition={{delay : 0.15}}
                 className="padding--little cursor--default div--round intent-margin-right--little"
                 style = {{backgroundColor : "#efefef", color:"#000000"}}
                 whileHover={{backgroundColor: "#466688",  color : "#ffffff"}}>

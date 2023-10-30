@@ -1,5 +1,4 @@
 import { useQuery } from "react-query";
-import PropTypes from "prop-types"
 import axios from "axios"
 
 

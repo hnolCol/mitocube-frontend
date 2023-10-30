@@ -1,8 +1,7 @@
 
-import { FormGroup, MenuItem, Tag, TagInput } from "@blueprintjs/core"
+import { FormGroup, Menu, MenuItem, Tag, TagInput } from "@blueprintjs/core"
 import { MultiSelect } from "@blueprintjs/select"
 import PropTypes from "prop-types"
-import { useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../../../services/arrays/filter"
 import _ from "lodash"
 
@@ -22,31 +21,41 @@ function AttributeInput({ attribute,
     onRemove = undefined,
     helperText = "",
     matchTargetWidth = true,
+    searchColumns = ["name", "details"],
+    maxItemsShown = 30,
+    minimumSearchStringLength = 2,
+    handleFeatureSelection = undefined,
     disabled = false, ...rest }) {
     //Atribute Input
 
-    const [query, setQuery] = useState("") //search query for MutliSelect
-    const renderAttribute = (item, props) => {
-        if (!props.modifiers.matchesPredicate) {
-            return null;
-        }
-        return (
-            <MenuItem
-                onClick={props.handleClick}
-                onFocus={props.handleFocus}
-                active={props.modifiers.active}
-                icon={selectedItems.includes(item)?"tick":"blank"}
-                shouldDismissPopover={true}
-                key={`${attribute.tag}-${item.id}-${item.name}`}
-                text={item.name}
-                label={item.details}
-                multiline={true} />
-        )
-    }
+    const selectedItemsIDs = selectedItems.map(item => item.id)
 
-    const handleQueryChange = (query, event) => { 
-        //handle query change (e.g. search)
-        setQuery(query)
+    const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
+        
+        if (attribute.allow_features_as_values && attributeValues.length === 0) {
+            return <Menu>
+                <MenuItem text="Select protein feature..." onClick={() => handleFeatureSelection(attribute)}/>
+            </Menu>
+        }
+
+        return <Menu>
+            {filteredItems.map((attrValue, attrIdx) => {
+                if (attrIdx < maxItemsShown) return <MenuItem
+                    key={`${attrValue.id}-${attribute.tag}`}
+                    icon={selectedItemsIDs.includes(attrValue.id)?"tick":"blank"}
+                    selected={selectedItemsIDs.includes(attrValue.id)}
+                    active={activeItem.id === attrValue.id}
+                    text={attrValue.name}
+                    onClick={() => onItemSelect(attribute, attrValue)}
+                    labelElement={<div style={{ maxWidth: "18rem" }}>{attrValue.details}</div>} />
+                
+                if (attrIdx === maxItemsShown) return <MenuItem key={`items-not-show${attribute.id}`} text="Not all items shown ..." disabled={true} /> 
+
+                return null 
+                        
+            })}
+
+        </Menu>
     }
 
     const renderSelectedItemAsTag = (item) => {
@@ -54,12 +63,18 @@ function AttributeInput({ attribute,
         return item.name
     }
 
-    const selectableItems = useMemo(() => {
-        if (!_.isArray(attributeValues)) return []
-        if (query === "") return attributeValues
-        return filterArrayBySearchString({searchString:[query],searchColumns:["name","details"],array:attributeValues})
-    }, [query])
+    // const selectableItems = useMemo(() => {
+    //     if (!_.isArray(attributeValues)) return []
+    //     if (query === "") return attributeValues
+    //     return filterArrayBySearchString({searchString:[query],searchColumns:["name","details"],array:attributeValues})
+    // }, [query])
 
+    const filterItems = (searchString, items) => {
+        if (searchString === "") return items 
+        if (searchString.length <= minimumSearchStringLength) return items
+        const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns, searchString })
+        return filteredAttributeValues
+    }
     return (
         <FormGroup
             label={attribute.name}
@@ -70,13 +85,16 @@ function AttributeInput({ attribute,
             
             <MultiSelect
                 disabled={disabled}
-                popoverProps={{ matchTargetWidth, minimal: true}}
+                popoverProps={{ matchTargetWidth, minimal: true }}
+                resetOnQuery={true}
                 resetOnSelect={true}
                 fill={true}
-                onQueryChange={handleQueryChange}
-                items={selectableItems}
-                itemRenderer={renderAttribute}
-                tagInputProps={{minimal : true, large : false, round : true}}
+                tagInputProps={{
+                    tagProps: {minimal : true},
+                }}
+                items={attributeValues}
+                itemListRenderer={renderItems}
+                itemListPredicate={filterItems}
                 tagRenderer={renderSelectedItemAsTag}
                 onItemSelect={(item) => onItemSelect(attribute, item)}
                 onRemove = {(item,index) => onItemSelect(attribute,item)}

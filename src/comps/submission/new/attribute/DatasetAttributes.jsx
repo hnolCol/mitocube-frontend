@@ -7,34 +7,7 @@ import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
-function DatasetAttributeContextMenuSearch({ attributes, attributeValuesByID }) {
-    return (
-        <Menu style={{ overflowY: "scroll", maxHeight: "300px" }}>
-                {attributes.map(attribute => {
-                    const attributeValuesAsArray = _.has(attributeValuesByID, attribute.id) && _.isArray(attributeValuesByID[attribute.id]) && attributeValuesByID[attribute.id].length > 0
-                    //console.log(attributeValuesAsArray)
-                    return (
-                        attributeValuesAsArray ? 
-                            <Menu>
-                                <MenuItem text={attribute} disabled={true} />
-                                {
-                                    attributeValuesByID[attribute.id].map(attributeValue => {
-                                       // console.log(attributeValue)
-                                        return (
-                                            <MenuItem text={attributeValue.tag} label={attributeValue.details} />
-                                        )
-                                    })
-                                }
-                            </Menu> : null 
-                    
-                    )
-                })}
-            </Menu>
-    )
-}
-
-
-function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttributeSelection}) {
+function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details","name","tag","attribute_id_tag","attribute_id_name"]}) {
 
     const handleItemSelect = (attribute,attributeValue) => {
         //handle item select
@@ -47,19 +20,18 @@ function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttr
         handleItemSelect(attributeFromKey,attributeValue)
     }
 
-    const renderItems = ({ activeItem, filteredItems}) => { 
+    const renderItems = ({ activeItem, filteredItems, query}) => { 
         const attributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
         // render items 
         return (
-            <AttributeValueSelectionMenu {...{activeItem, attributes,attributeValuesByID,handleItemSelect}}/>
+            <AttributeValueSelectionMenu {...{activeItem, attributes,attributeValuesByID,handleItemSelect, query, handleFeatureSelection}}/>
 
-            //<DatasetAttributeContextMenuSearch {...{ attributes, attributeValuesByID } } />
         )
     }
 
-    const filterItems = (searchString) => {
-        const filteredAttributeValues = filterArrayBySearchString({ array: attributeValues, searchColumns: ["details","name","tag"], searchString })
-         return filteredAttributeValues
+    const filterItems = (searchString, items) => {
+        const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns, searchString })
+        return filteredAttributeValues
     }
 
     return (
