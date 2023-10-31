@@ -9,6 +9,7 @@ import { useMemo, useState } from "react"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../../services/arrays/filter"
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric"
+import { AttributeSelection } from "../Genotype"
 
 AttributeGrouping.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
@@ -16,8 +17,9 @@ AttributeGrouping.propTypes = {
     attributeValuesByID : PropTypes.object
 }
 
-function AttributeGroupingButton({
+function AttributeSelectionHeader({
     columnIndex,
+    sampleAttrIndex,
     attributes = [],
     groupingName = "",
     attributeName = "attribute type ...",
@@ -26,7 +28,7 @@ function AttributeGroupingButton({
     onSampleAttributeRename = undefined,
     disabled = false }) {
     // const [groupingName, setGroupingName] = useState("")
-    const sampleAttrIndex = columnIndex-1
+    
     return (
         <div>
             <h4><EditableText
@@ -34,18 +36,13 @@ function AttributeGroupingButton({
                 value={groupingName}
                 onChange={groupingNameEdit => onSampleAttributeRename(sampleAttrIndex,groupingNameEdit)}
                 onConfirm={() => onSampleAttributeSelect(sampleAttrIndex, groupingName, undefined)}/></h4>
-                
             <Combobox
-                items={attributes.filter(a => !attributesTagsInUse.includes(a.tag)).map(a => a.name)}
+                items={_.sortBy(attributes.filter(a => !attributesTagsInUse.includes(a.tag)),"name")}
                 value={attributeName}
                // disabled={groupingName.length < 2}
                 buttonProps={{ minimal: true, fill: false, disabled}}
                 callbackKey={groupingName}
-                onChange={(callbackKey, attributeName) => onSampleAttributeSelect(sampleAttrIndex, groupingName, filterArrayOfObjects({
-                    array: attributes,
-                    keyName: "name", 
-                    keyValue: attributeName
-                })[0], true)} />
+                onChange={(callbackKey, attribute) => onSampleAttributeSelect(sampleAttrIndex, groupingName, attribute, true)} />
         </div>
     )
 }
@@ -101,6 +98,9 @@ function AttributeGrouping({
     clearAttributeTableByRowIndex = undefined,
     handleFeatureSelection = undefined,
     rerenderTableDependency = 0,
+    onReplicateChange = undefined,
+    replicates = [],
+    numberReplicates = 0
     }) {
 
     const [selectedRows, setSelectedRows] = useState([])
@@ -114,7 +114,11 @@ function AttributeGrouping({
 
     const getGroupingInfoByColumnIndex = (columnIndex) => {
         //returns the grouping info by column index
-        return groupings[columnIndex - 1] //first column blocked
+        return groupings[getSampleAttrIndex(columnIndex)] //first column blocked
+    }
+
+    const getSampleAttrIndex = (columnIndex) => {
+        return columnIndex - 2
     }
 
     const getGroupingAttributeByColumnIndex = (columnIndex) => {
@@ -129,7 +133,35 @@ function AttributeGrouping({
         let columnIndex = targetColumns[0]
         if (columnIndex === 0) return <Menu><MenuItem text="Samples names" disabled={true} /></Menu>
         if (sampleNames.length === 0) return <Menu><MenuItem text="Set number of samples first." disabled={true} /></Menu>
-        let groupingInfo = groupings[columnIndex - 1] //first column blocked
+
+        //replicates menu 
+        console.log(columnIndex === 1, numberReplicates)
+        if (columnIndex === 1) return <Menu>
+            <MenuItem text="Replicates." disabled={true} />
+            <MenuDivider /> 
+            {numberReplicates === 0 ? <MenuItem text="Select the number of replicates above." /> :
+                <Menu>
+                    <MenuItem text="Fill pattern" disabled={true} />
+                    <MenuItem text="1,2,3 ... 1,2,3" onClick={() => onReplicateChange(selectedRows,undefined,0)}/>
+                    <MenuItem text={`1,1,1 ... ${_.join([numberReplicates, numberReplicates, numberReplicates], ",")}`}
+                        onClick={() => onReplicateChange(selectedRows, undefined, 1)} />
+                    <MenuDivider />
+                    <NumericValueInput
+                        placeholder={`Select replicate`}
+                        callbackKey={"replicate"}
+                        submitButton={true}
+                        buttonProps={{
+                            intent: "primary",
+                            icon: "rocket"
+                        }}
+                        minValue = {1}
+                        maxValue = {_.toNumber(numberReplicates)}
+                        onButtonClick={(callbackKey, replicate) => onReplicateChange(selectedRows,_.toInteger(replicate),undefined)}
+                        />
+                    </Menu>
+            }
+        </Menu>
+        let groupingInfo = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
 
         if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
@@ -178,6 +210,12 @@ function AttributeGrouping({
             </Cell>
         }
 
+        if (columnIndex === 1) {
+            return <Cell key={cellKey}>
+                {replicates[rowIndex]}
+            </Cell>
+        }
+
         if (rowIndex >= sampleNames.length) return <Cell key={cellKey}></Cell>
 
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
@@ -204,31 +242,32 @@ function AttributeGrouping({
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute.tag])?rowData[attribute.tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0
-        const groupingIdx = columnIndex - 1
+        const sampleAttrIndex = getSampleAttrIndex(columnIndex)
         const nameDefined = _.isString(groupingInfo.name) && groupingInfo.name.length > 0
         return (
             <Menu small={true}>
-                <MenuItem text="Grouping" disabled={true} />
+                <MenuItem text="Sample Attribute" disabled={true} />
                 <MenuDivider />
                 <MenuItem text={nameDefined ? `Name : ${groupingInfo.name}` : "Name missing."} intent={nameDefined?"none":"danger"} />
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
-                <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(groupingIdx, attribute.tag)} disabled={!attributeDefined} />
-                <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(groupingIdx)} />
+                <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(sampleAttrIndex, attribute.tag)} disabled={!attributeDefined} />
+                <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(sampleAttrIndex)} />
                 
             </Menu>)
     }
 
     const renderGroupingHeader = (columnIndex) => {
-
-        const groupingInfo = groupings[columnIndex - 1] //first column blocked
+        const sampleAttrIndex = getSampleAttrIndex(columnIndex)
+        const groupingInfo = groupings[sampleAttrIndex] //first column blocked
         const groupingDefined = _.isObject(groupingInfo)
         const attributesTagsInUse  = groupings.filter(groupingInfo => _.isObject(groupingInfo) && _.has(groupingInfo.attribute,"tag")).map(groupingInfo => groupingInfo.attribute.tag)
         return (
-            <ColumnHeaderCell menuRenderer={renderGroupingHeaderMenu} selectCellsOnMenuClick={false} isColumnSelected={false}>
-                <div className="margin--little">
-                    <AttributeGroupingButton
+            <ColumnHeaderCell style={{minHeight : "3rem"}} menuRenderer={renderGroupingHeaderMenu} selectCellsOnMenuClick={false} isColumnSelected={false}>
+                <div className="margin--little" style={{minHeight : "80px"}}>
+                    <AttributeSelectionHeader
                         {...{
+                            sampleAttrIndex,
                             attributes,
                             onSampleAttributeSelect,
                             columnIndex,
@@ -274,6 +313,14 @@ function AttributeGrouping({
         setSelectedRows(rows)
     }
 
+    const renderDefaultHeader = (headerName) => {
+
+        return <ColumnHeaderCell>
+            <div className="margin--little" style={{ minHeight: "80px" }}>
+                <h4>{headerName}</h4></div>
+        </ColumnHeaderCell>
+    }
+
     const selectedRegionTransform = (e) => {
         //cell selection to full row selection transformation
         if (!_.has(e, "rows")) return { rows: [], cols: [] } //prevents selection of table if column header is selected.
@@ -281,6 +328,7 @@ function AttributeGrouping({
             rows: e.rows
         }
     }
+
 
     return (
     
@@ -299,7 +347,10 @@ function AttributeGrouping({
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
                         cellRenderer={renderCell}
-                        columnHeaderCellRenderer={() => <ColumnHeaderCell><div className="margin--little"><h4>Sample Run</h4></div></ColumnHeaderCell>} />
+                        columnHeaderCellRenderer={() => renderDefaultHeader("Sample Run")} />
+                    <Column
+                        cellRenderer={renderCell}
+                        columnHeaderCellRenderer={() => renderDefaultHeader("Replicates")} />
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.name}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
                     <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">

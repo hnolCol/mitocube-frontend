@@ -1,9 +1,10 @@
 import { Button, MenuItem } from "@blueprintjs/core";
-import { Select } from "@blueprintjs/select";
 import { isFunction } from "lodash";
 import PropTypes from "prop-types"
 import { allKeysInObject } from "../../../services/objects/checks";
 import _ from "lodash"
+import { Select } from "@blueprintjs/select";
+import { filterArrayBySearchString } from "../../../services/arrays/filter";
 
 Combobox.propTypes = {
     items: PropTypes.array.isRequired,
@@ -16,11 +17,13 @@ Combobox.propTypes = {
 }
 
 export function Combobox(
-        {items = ["I1","I2","ABC"],
+        {items,
         onChange,
         value,
         placeholder = "Plase select",
         callbackKey,
+        textKey = "name",
+        labelKey = undefined,
         disabled = false,
         buttonProps = {
             minimal : false,
@@ -28,23 +31,26 @@ export function Combobox(
         },
         fill = true}) {
 
-    const itemsAsObject = _.isObject(items[0])
-    
-    const itemsValid = itemsAsObject?_.filter(items, item => allKeysInObject({object : item, keyNames : ["text", "label"]}) ): undefined
+    const keyNames = [textKey,labelKey].filter(keyName => _.isString(keyName))
     
     const renderItems = (item, { handleClick, modifiers, query }) => {
         //render items as a Menu item. 
 
-        const selected = itemsAsObject ? placeholder === item.text: placeholder === item
+        const selected = placeholder === item.name
         return(
             <MenuItem 
-                key = {itemsAsObject ?item.text : item} 
-                text={itemsAsObject ? item.text : item} 
-                label = {itemsAsObject ? item.label : ""}
+                key = {item.name} 
+                text={item[textKey]} 
+                label = {_.isString(labelKey)?item[labelKey]:""}
                 onClick={handleClick} 
                 intent={selected? "primary" : "blank"} 
                 icon={selected? "small-tick" : "blank"}/>
         )
+    }
+
+    const filterItems = (query, items) => {
+        if (query.length < 2) return items 
+        else return filterArrayBySearchString({array : items, searchString : query, searchColumns : keyNames})
     }
 
     const onItemSelection = (item) => {
@@ -58,13 +64,15 @@ export function Combobox(
     return(
         <Select
             fill={fill}
-            noResults={<MenuItem text="No more items/attributes available." disabled={true}/>}
-            filterable={false}
-            items={itemsAsObject ?  itemsValid : items}
+            noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
+            filterable={items.length > 5 ? true : false }
+            items={items}
+            resetOnSelect={true}
+            itemListPredicate={filterItems}
             itemRenderer={renderItems}
             onItemSelect={onItemSelection}
             disabled={disabled}>
-            <Button text={value!==undefined?value:placeholder} disabled={disabled} {...buttonProps} fill={fill}/>
+            <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
         </Select>
     )
 }

@@ -96,8 +96,10 @@ function App() {
         verified: isTokenValid.verified,
         label: isTokenValid.label,
         firstname: isTokenValid.firstname,
-        lastname : isTokenValid.lastname })
-      redirect("/index")
+        lastname: isTokenValid.lastname
+      })
+      console.log(location)
+      redirect(location)
     }
   }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidError])
 
@@ -200,10 +202,9 @@ function App() {
           }>
             <Route index element={<NewSubmission {...{authenticationStatus, logout}}/>} />
             <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
-            <Route path="/submission/view" element={
-              <SubmissionView />} />
-            <Route path="/submission/help" element={
-              <SubmissionHelp authStatus={authenticationStatus} />} />
+            <Route path="/submission/view" element={<SubmissionView {...{authenticationStatus, logout}}/>}/>
+            <Route path="/submission/a" element={<h3>Submission Overview</h3>}/>
+            <Route path="/submission/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route path="/submission/statistics" element={
               <SubmissionStatistics/>} />
       </Route>

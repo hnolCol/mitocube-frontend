@@ -2,26 +2,24 @@ import { Button, FormGroup, InputGroup } from "@blueprintjs/core";
 import _ from "lodash"
 import { Header } from "../../core/base/Header";
 
-function Link({index, url = "",comment = "", removeLink, onChange}) {
-
+function Link({index, id = "", url = "",comment = "", removeLink, onChange}) {
+    //displays a link
     return (
         <div>
             <FormGroup
                 inline={false}>
                 <div className="flex" style={{ minWidth: "200px", maxWidth : "28vw"}}>
-                    <InputGroup placeholder="https://" value={url} onValueChange={(valueString => onChange(index, {url : valueString,comment}))} leftIcon="link"/>
-                    <InputGroup placeholder="Comment" value={comment} onValueChange={(valueString => onChange(index, {comment : valueString,url}))}/>
+                    <InputGroup placeholder="https://" value={url} onValueChange={(valueString => onChange(index, {url : valueString,comment, id}))} leftIcon="link"/>
+                    <InputGroup placeholder="Comment" value={comment} onValueChange={(valueString => onChange(index, {comment : valueString,url, id}))}/>
                     <Button icon="minus" small={true} intent="danger" onClick={() => removeLink(index)}/>
                 </div>
             </FormGroup>
-
         </div>
     )
 }
 
-function DatasetLinks({ links = [{ url: "", comment: "" }], addLink, removeLink, onChange, index = 4}) {
-    console.log(links)
-
+function DatasetLinks({ links = [{id : "", url: "", comment: "" }], addLink, removeLink, onChange, index = 4}) {
+    //handle dataset links 
     return (
         <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
             <Header text={`${index}. Links`} />

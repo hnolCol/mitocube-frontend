@@ -27,7 +27,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, attributeValuesByI
                             <MenuDivider />
                             
                             {attribute.allow_features_as_values ?
-                                <MenuItem text={`Select feature (${attribute.name})`} onClick={() => handleFeatureSelection(attribute)} /> :
+                                <MenuItem text={`Select feature for ${attribute.name}`} onClick={() => handleFeatureSelection(attribute)} /> :
                                 
                                 <div style={{ overflowY: "visible" }}>
                                 {attrValues.map((attributeValue, index) =>

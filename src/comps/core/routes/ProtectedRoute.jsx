@@ -1,13 +1,14 @@
 import PropTypes from 'prop-types';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 
 
 export function ProtectedRoute({
     isAuthenticated,
     redirectPath = '/',
-    children }) {
+  children }) {
+   const location = useLocation()
     if (!isAuthenticated) {
-      return <Navigate to={redirectPath} replace />;
+      return <Navigate to={location} replace />;
     }
   
     return <>{children}</>;

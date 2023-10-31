@@ -1,5 +1,5 @@
 import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
-import PropTypes from "prop-types"
+import PropTypes, { number } from "prop-types"
 import { Header } from "../../core/base/Header"
 import APIError from "../../core/error/APIerror"
 import AttributeInput from "./attribute/AttributeCombo"
@@ -35,6 +35,7 @@ function constructSampleNames(id, sampleNumber) {
 }
 const randomInitLinkID = getRandomID({n : 5})
 const initSubmissionState = {
+            replicates : [],
             sampleNames: [],
             collaborators : [],
             attributeTable: [],
@@ -42,7 +43,7 @@ const initSubmissionState = {
             metatext: {},
             genotypes: {},
             links : [{id : randomInitLinkID, link : "", comment : ""}],
-            attributes: {sampleNumber : 0},
+            attributes: {sampleNumber : 0, replicates : 0},
             datasetAttributeValues: {},
             datasetAttributes: [],
             rerenderTableDependency: 0}
@@ -59,9 +60,7 @@ function InitialSubmission({
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: 12000000 }) // put metatext for long time in cache (staleTime - define in hooks!) 
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
-   // const { data : features} = useGetAnnotationFeatures({ tokenString: authenticationStatus.token }, { staleTime: 12000000 })
-    
-    //console.log(features)
+
 
 
     const { data: submissionAttributes,
@@ -127,6 +126,9 @@ function InitialSubmission({
     const onSubmssionRequest = () => {
         let errMsgs = [] //collect error messages
         const numberSamples = submission.sampleNames.length
+        const maxReplicateID = _.toInteger(submission.attributes.replicates)
+        const validReplicates = submission.replicates.filter((rep, idx) => _.isNumber(rep) && idx < numberSamples && rep <= maxReplicateID)
+        const numberReplicates = validReplicates.length
         const attributeTable = submission.attributeTable.slice(0,numberSamples)
 
         if (!_.isString(submission.attributes.title) || submission.attributes.title.length < 10) {
@@ -135,8 +137,16 @@ function InitialSubmission({
 
         if (numberSamples === 0) {
             errMsgs.push("No samples number provided.")
-            
         }
+
+        if (numberReplicates === 0) {
+            errMsgs.push("No replicates defined")
+        }
+
+        if (numberReplicates < numberSamples) {
+            errMsgs.push("Less replicates defined than samples. Check for missing cells in the sample attribute table. Maybe you also changed the number of replicates after you defined them in the table.")
+        }
+
 
         if (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0) {
             errMsgs.push("No samples attributes provided. Require at least one.")
@@ -203,7 +213,8 @@ function InitialSubmission({
             submissionDetails["attributeTable"] = attributeTable
             submissionDetails["label"] = submissionID.id
             submissionDetails["title"] = flexAttributes.title 
-
+            submissionDetails["replicates"] = validReplicates
+            submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
             postSubmission({ tokenString: authenticationStatus.token, submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
@@ -258,13 +269,16 @@ function InitialSubmission({
 
     const loadSubmission = () => {
         const submission = loadSavedSubmissionFromLocalStorage()
-        console.log(submission)
         if (_.isObject(submission)) {
 
             setSubmission(prevValues => {return {...prevValues, ...submission}})
         }
     }
     
+    const onReplicateChange = () => {
+
+    }
+
     const onAttributeChange = (attributeTag, attributeValue) => {
         
         let submissionAttributes = submission.attributes
@@ -492,7 +506,6 @@ function InitialSubmission({
     }
 
     const handleFeatureSelection = (attribute, isSampleAttribute=false, rowIdces = []) => {
-        console.log(submission)
         
         if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
             || submission.datasetAttributeValues["att_organism"].length === 0) {
@@ -517,10 +530,6 @@ function InitialSubmission({
                 onSave : onFeatureSelection
             }} />
         })
-
-
-        console.log(organisms)
-        console.log(attribute)
     }
 
     const handleDatasetAttributeSelection = (attribute, attributeValue) => {
@@ -570,10 +579,41 @@ function InitialSubmission({
     }
 
     const handleLinkChange = (linkIdx, updatedLinkProps) => {
-        console.log(linkIdx,updatedLinkProps)
         let links = submission.links 
         links[linkIdx] = updatedLinkProps
         setSubmission(prevValues => {return {...prevValues,links}})
+    }
+
+    const handleReplicateChange = (rowIdcs, replicate, patternIndex) => {
+        let reps = submission.replicates
+        let numberSamples = submission.sampleNames.length
+        if (reps.length === 0) {
+            reps = Array(numberSamples).fill(undefined)
+        }
+        if (reps.length < numberSamples) {
+            reps = _.concat(reps,Array(numberSamples - reps.length).fill(undefined))
+        }
+
+        if (_.isNumber(replicate)) {
+            
+            rowIdcs.filter(rowIndex => rowIndex < numberSamples).forEach(rowIndex => reps[rowIndex] = replicate)
+        }
+        else {
+            
+            if (patternIndex === 0) {
+
+                let repsByPattern = _.range(submission.attributes.replicates).map(rep => rep + 1)
+                reps = reps.map((value, idx) => repsByPattern[idx % repsByPattern.length])   
+
+            }
+
+            else if (patternIndex === 1) {
+                const repetitions = _.toInteger(numberSamples / submission.attributes.replicates+0.5)
+                reps = _.flatten(_.range(submission.attributes.replicates).map(repIdx => Array(repetitions).fill(repIdx+1)))
+            }
+        }
+
+        setSubmission(prevValues => {return{...prevValues,replicates : reps, rerenderTableDependency : Math.random()}})
     }
 
 
@@ -582,7 +622,7 @@ function InitialSubmission({
 
     return (
         <div className="flex flex-column">
-        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
                 <Alert style={{minWidth : "700px"}} canEscapeKeyCancel={true} canOutsideClickCancel={true} onConfirm={resetAlert } onClose={resetAlert } {...alertProps}/>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
@@ -670,11 +710,15 @@ function InitialSubmission({
                         After attribute selection you will be able to select from a defined set of attribute values from the drop-down menu (right click on the table cells).
                         If you want to assign an attribute value to multiple rows, select the rows and then choose the attribute value from the drop-down menu.</p>
                     <p>An attribute can only be assigned to a <span className="h0-span">single samples attribute</span> and the attribute values must have at least <span className="h0-span">two unique values</span>.
-                        Otherwise they should be specified as dataset attributes above.</p>
+                                Otherwise they should be specified as dataset attributes above.</p>
+                    <NumericValueInput
+                        placeholder="Number of replicates"
+                        callbackKey={"replicates"}
+                        value={_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
                     <NumericValueInput
                         placeholder="Sample number"
                         callbackKey={"sampleNumber"}
-                        value={_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
+                        value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
                     
                     <AttributeGrouping
                         sampleNames={submission.sampleNames}
@@ -692,7 +736,10 @@ function InitialSubmission({
                             onSampleAttributeRename,
                             removeSampleAttrByIndex,
                             groupings: submission.samplesAttributes,
-                            handleFeatureSelection
+                            handleFeatureSelection,
+                            numberReplicates: submission.attributes.replicates,
+                                replicates: submission.replicates,
+                            onReplicateChange : handleReplicateChange
                         }} />
                     </div>
                     
