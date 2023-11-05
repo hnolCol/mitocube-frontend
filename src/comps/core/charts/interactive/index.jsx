@@ -6,27 +6,35 @@ import { getMinMaxForMultipleKeyNames } from "../../../../services/arrays/bounda
 
 
 
+let dataTest = _.range(10000).map(idx => {return {x : Math.random(), y : Math.random()}})
 
 
-
-function InteractiveChart({data = [{"x" : -2, "y" : 1},{"x" : 2, "y" : 3}, {"x" : 5, "y" : 1}], numberCharts = 1, keyNames = [{xName : "x", yName : "y"}], children}){
-    // TO DO CHECK FOR isNAN -> filter data by index.
-    
-    const [hoverData, setHoverData] = useState()
+function InteractiveChart({data = dataTest, numberCharts = 2, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "y", yaxisName  : "x"},], children}){
+    // remove number charts
+    const [hoverData, setHoverData] = useState({data : [], rerender : [Math.random()]})
     const [selectedItems, setSelectedItems]  = useState()
-    
+    const [rerenderBackground, setRerender] = useState([Math.random()])
     
     const keyNamesFlatten = _.flatten(keyNames.map(keys => Object.values(keys)))
     const limits  = getMinMaxForMultipleKeyNames({data,keyNames : keyNamesFlatten})
+    
+    const validIndices = useMemo(() => {
+        const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
+        console.log(isNumber)
+        return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {
+            return([chartIdx, _.map(isNumber, d => d[xaxisName] && d[yaxisName ])])
+        }))
+    },[_.join(keyNamesFlatten)])
+
     const searchTrees = useMemo(() => {
         //create search trees for fast point finding in the array
         return Object.fromEntries(_.range(numberCharts).map(chartIdx => {
             const nPoints = data.length 
             const index = new KDBush(nPoints);
-            const {xName, yName} = keyNames[chartIdx]
-            _.forEach(data, d => index.add(d[xName],d[yName]))
+            const {xaxisName, yaxisName } = keyNames[chartIdx]
+            _.forEach(data, d => index.add(d[xaxisName],d[yaxisName ]))
             index.finish()
-            return [chartIdx, {tree : index, xName, yName, limits}]
+            return [chartIdx, {tree : index, xaxisName, yaxisName , limits}]
         }))
     },[_.join(keyNamesFlatten),numberCharts])
 
@@ -37,6 +45,7 @@ function InteractiveChart({data = [{"x" : -2, "y" : 1},{"x" : 2, "y" : 3}, {"x" 
     }
 
     const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
+        // returns the data that are in a rectangle. 
         const idcs = searchTrees[chartIdx].tree.range(minX,minY,maxX,maxY)
         return _.map(idcs, idx => data[idx])
     }
@@ -44,7 +53,7 @@ function InteractiveChart({data = [{"x" : -2, "y" : 1},{"x" : 2, "y" : 3}, {"x" 
     const setHoverDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         //finds data in an rectangle of coordinates and changes the state of hoverData
         const hoverData = findDataInRectangle(chartIdx,minX,minY,maxX,maxY)
-        setHoverData(hoverData)
+        setHoverData({data : hoverData, rerender : [Math.random()]})
     }
 
     const handleItemSelection = (itemIndex = undefined) => {
@@ -53,19 +62,26 @@ function InteractiveChart({data = [{"x" : -2, "y" : 1},{"x" : 2, "y" : 3}, {"x" 
         let selectedItems = addItemToArrayIfNotPresent({array : data, item : data[itemIndex]})
     }
 
-    const findClosestPoint = (xName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
+    const findClosestPoint = (xaxisName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
         //find closest point 
     }
 
-    const chartProps = _.range(numberCharts).map((idx,ii) => {
+    const chartProps = _.range(numberCharts).map(chartIdx => {
+        const {xaxisName, yaxisName } = keyNames[chartIdx]
         return{
-            index : idx,
+            data,
+            chartIdx,
+            valid : validIndices[chartIdx],
+            xaxisName,
+            yaxisName,
             limits,
             handleItemSelection,
             findIndexInRectangle,
             findDataInRectangle,
             setHoverDataInRectangle,
-            hoverData
+            hoverData : hoverData.data,
+            rerenderHover : hoverData.rerender,
+            rerenderBackground
         }
     })  
     

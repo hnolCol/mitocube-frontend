@@ -13,6 +13,7 @@ import { checkBasicEmailPattern } from "../../services/checks/email"
 import { storeTokenInLocalStorage } from "../../services/localstorage"
 import DescriptionButton from "../core/base/buttons/DescriptionButton"
 import InteractiveChart from "../core/charts/interactive"
+import { ScatterPlot } from "../core/charts/scatter"
 
 Login.propTypes = {
     setAuthenticationStatus : PropTypes.func,
@@ -74,14 +75,22 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                 <InteractiveChart >
 
                     {(categoricalData) => categoricalData.map(({
-                            index : idx,
+                            data,
+                            chartIdx,
+                            xaxisName,
+                            yaxisName,
+                            valid,
                             limits,
                             handleItemSelection,
                             findIndexInRectangle,
-                            findDataInRectangle
+                            findDataInRectangle,
+                            setHoverDataInRectangle,
+                            hoverData,
+                            rerenderHover,
+                            rerenderBackground
                         }, didx) => {
-                            
-                            return (<p>e</p>)})}
+                        
+                            return (<ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,hoverData,rerenderHover,rerenderBackground}}/>)})}
 
                 </InteractiveChart>
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
