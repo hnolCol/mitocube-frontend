@@ -8,7 +8,7 @@ import AxisWithBackground from "../../axis"
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
-import Box from "../../boxplot/Box"
+import Box from "../../boxplot/cached_box"
 import { getColorPalette } from "../../../colors/colorPalette"
 import MetricTable from "../../../base/metrictable"
 
