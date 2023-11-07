@@ -8,10 +8,13 @@ import { groupListByProperty } from "../../services/arrays/groupby"
 import TextInput from "../core/input/Text"
 import { useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../services/arrays/filter"
+import useDebounce from "../../hooks/useDebounce"
+import APIError from "../core/error/APIerror"
 
 
-function AdminAttributes({ authenticationStatus }) {
+function AdminAttributes({ authenticationStatus, maxShown = 10}) {
     const [query, setQuery] = useState("")
+    const debounceSearchString = useDebounce(query, 400)
 
     const { data: attributes,
         isLoading: attributesLoading,
@@ -24,48 +27,42 @@ function AdminAttributes({ authenticationStatus }) {
 
     const attrValuesByAttrID = useMemo(() => {
         if (!_.isObject(attributes)) return {}
-        console.log("called")
         //group attr values by attr id, handling search queries
         let attrValues = attributes.attribute_values
-        if (query === "" || !_.isString(query)) return groupListByProperty(attributes.attribute_values, "attribute_id")
+        if (debounceSearchString === "" || !_.isString(debounceSearchString)) return groupListByProperty(attributes.attribute_values, "attribute_id")
         else {
-            const attrValueMatchQuery = filterArrayBySearchString({ searchString: query, searchColumns: ["name", "tag", "details"], array: attrValues })
+            const attrValueMatchQuery = filterArrayBySearchString({ searchString: debounceSearchString, searchColumns: ["name", "tag", "details"], array: attrValues })
             return groupListByProperty(attrValueMatchQuery, "attribute_id")
         }
-    }, [query,attributesIsSuccess]) 
-    // .submission__item__container {
-    //     font-size: 0.85rem;
-    //     background-color :#fafafa;
-    //     cursor: default;
-    //     border-radius: 0.25rem;
-    //     margin-top : 0.8rem;
-    //     padding-left : 0.5rem;
-    //     box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
-    //     transition: 0.3s;
-    //     width : 100%;
-    //     margin : 1rem;
-    // }style={{,margin : "1rem"}}
+    }, [debounceSearchString,attributesIsSuccess]) 
+
     return (
         <div className="intent-margin-top--little padding--medium" >
-            <p>Attributes are used to ensure that submission are accompanied by standardized attributes.</p>
-            <TextInput placeholder="Search attribute" callbackKey={"query"}  onChange={(callbackKey,value) => setQuery(value)}/>
-            <div className="container--scroll-y-hide-x div--expand" style={{height : "80vh"}}>
-            
-            <div className="bg--lightgrey">  
-            {attributesIsSuccess ? attributes.attributes.map(attribute => {
-                const attrHasValues = objectHasKey({ object: attrValuesByAttrID, keyName: attribute.id })
-                return <div key={attribute.tag} className="intent-margin-top--medium" >
-                    <AttributeHeader {...attribute} addStringToName={attrHasValues?`(${attrValuesByAttrID[attribute.id].length})`:``} />
-                    <div className="container--scroll-y-hide-x div--expand padding--medium" style={{maxHeight : "15rem"}}>
-                    {attrHasValues ?
-                        attrValuesByAttrID[attribute.id].map(attributeValue =>
-                            <AttributeValue key={`${attribute.tag}-${attributeValue.tag}`} {...attributeValue}/>) : null}
-                    </div>
-                    </div>
-            }) : null}
-            </div>  
-            </div>
-
+            {attributeIsError ? <APIError error={attributesAPIError}/> :
+            <div>
+                <p>Attributes are used to ensure that submission are accompanied by standardized attributes.</p>
+                <TextInput placeholder="Search attribute" callbackKey={"query"}  onChange={(callbackKey,value) => setQuery(value)}/>
+                <div className="container--scroll-y-hide-x div--expand" style={{height : "80vh"}}>
+                
+                <div className="bg--lightgrey">  
+                {attributesIsSuccess && _.isArray(attributes.attributes) ? attributes.attributes.map(attribute => {
+                    const attrHasValues = objectHasKey({ object: attrValuesByAttrID, keyName: attribute.id })
+                    const numberAttributeValues = attrHasValues?attrValuesByAttrID[attribute.id].length:0
+                    return attrHasValues ? <div key={attribute.tag} className="intent-margin-top--medium intent-padding-right--little" >
+                        <AttributeHeader {...attribute} addStringToName={attrHasValues?`(${numberAttributeValues})`:``} />
+                        <div className="container--scroll-y-hide-x div--expand padding--medium" style={{maxHeight : "15rem"}}>
+                        {
+                                attrValuesByAttrID[attribute.id].map((attributeValue, attrValueIdx) =>{
+                                    if (attrValueIdx === maxShown - 1) return <p>Not all attribute values {maxShown} / {numberAttributeValues} shown. Use search option.</p>
+                                    if (attrValueIdx >= maxShown) return null 
+                                    return <AttributeValue key={`${attribute.tag}-${attributeValue.tag}`} {...attributeValue} />
+                                })}
+                        </div>
+                        </div> : null
+                }) : null}
+                </div>  
+                </div>
+            </div>}
         </div>
     )
 }

@@ -2,7 +2,6 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import { Link } from "react-router-dom"
 import DescriptionButton from "../../core/base/buttons/DescriptionButton"
-import { Header } from "../../core/base/Header"
 
 function NewSubmission({
     authStatus,
@@ -11,7 +10,6 @@ function NewSubmission({
     return (
         <div className="flex center-items justify-center div--expand" >
             <div className="flex flex-column center-items">
-                <Header text="Sample Submission" />
                 <div className="flex flex--wrap justify-space-between">
                     <Link to="/submission/new" className="router-link">
                         <DescriptionButton

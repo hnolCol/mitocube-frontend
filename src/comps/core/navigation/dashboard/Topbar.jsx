@@ -1,4 +1,4 @@
-import { Code, Menu, MenuItem, Popover, Position } from "@blueprintjs/core"
+import { Code, Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase"
 import UserDashboardIcon from "../../svg/icons/dashboard/User"
 import MenuDashboardIcon from "../../svg/icons/dashboard/Menu"
@@ -7,8 +7,8 @@ import { openInNewTab } from "../../../../services/tabs/newtab"
 import { getGithubLink } from "../../links/github"
 import { Header } from "../../base/Header"
 import { useGetBackendInfo } from "../../../../hooks/queries/welcome.hooks"
-import { getUserRoles } from "../../../../services/users/roles"
-
+import { useGetUserRoles } from "../../../../hooks/queries/user.hooks"
+import _ from "lodash"
 
 function Topbar({
     authenticationStatus,
@@ -16,10 +16,15 @@ function Topbar({
     applicationInfo,
     basePathName }) {
     
-    const userRoles = getUserRoles() //get from API to do! 
+    const { data: userRoles } = useGetUserRoles({ tokenString: authenticationStatus.token },
+        { enabled: authenticationStatus.isAuth, staleTime: 3000000 })
+    const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token },
+        {
+            enabled: authenticationStatus.isAuth,
+            
+        })
 
-    const { isSuccess: backendInfoIsSucces, data : backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token }, { enabled : authenticationStatus.isAuth})
-
+    if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
     
     return (
 
@@ -29,14 +34,16 @@ function Topbar({
                 <Header text={backendInfoIsSucces?backendInfo.app_name:null} /></div>
             <div className="flex">
                 <div className="flex flex-column justify-center">
-                    <Code>role: {userRoles[authenticationStatus.role]}</Code>
+                    <Code>role: {_.isObject(userRoles)?userRoles[authenticationStatus.role]:null}</Code>
                 </div>
                 <div className="bg--grey margin--little">
                     <Popover position={Position.BOTTOM_LEFT} content={<Menu>
+                        <MenuItem disabled={true} text={`${authenticationStatus.firstname} ${authenticationStatus.lastname}`} />
+                        <MenuDivider />
                         <MenuItem text="Logout" icon="log-out" onClick={logout}/>
                     </Menu>}>
                         <BaseDashboardIcon width={30} height={30}>
-                            <UserDashboardIcon text=""/>
+                            <UserDashboardIcon text={`${authenticationStatus.firstname[0]}${authenticationStatus.lastname[0]}`} />
                         </BaseDashboardIcon>
                     </Popover>
                     

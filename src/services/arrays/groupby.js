@@ -5,6 +5,19 @@ import { getDomainWithBoundaries } from "./boundaries";
 
 
 
+export function getUniqueValuesFromArrayOfObjectsByKey(data = []) {
+    
+    return data.reduce((p, c) => {
+        let keyNames = Object.keys(c)
+
+        _.forEach(keyNames, keyName => !_.has(p,keyName) ? p[keyName] = [] : null)
+
+        _.forEach(keyNames,keyName => p[keyName] = _.uniq(_.concat(c[keyName],p[keyName])))
+       
+        return p 
+    }, {})
+}
+
 export function groupListByProperty(data, propertyName = "id") {
     return data.reduce((groups, item) => ({
         ...groups,

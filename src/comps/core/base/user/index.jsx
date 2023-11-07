@@ -6,7 +6,8 @@ import { motion } from "framer-motion"
 import TooltipButton from "../buttons/TooltipButton";
 import { getFormatDateFromTimestamp } from "../../../../services/date/format";
 import moment from "moment";
-import { TableLikeItem } from "../tags/TableLikeItem";
+import { TagWithTooltip } from "../tags/TagWithTooltip";
+
 
 User.propTypes = {
     id: PropTypes.any,
@@ -14,10 +15,9 @@ User.propTypes = {
     lastname: PropTypes.string,
     email: PropTypes.string,
     created_on: PropTypes.number,
-    role : PropTypes.number
+    role: PropTypes.number,
+    label : PropTypes.string.isRequired
 }
-
-
 
 
 function Affiliation({}) {
@@ -31,8 +31,8 @@ function Affiliation({}) {
     )
 }
 
-export function User({firstname,lastname,email, role, created_on, userRoles, ...rest}) {
-    const [ m, formatedTime ] = getFormatDateFromTimestamp(created_on)
+export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, ...rest}) {
+    const [m, formatedTime] = getFormatDateFromTimestamp(created_on)
     return (
         <div className="bg--lightgrey margin--little center-items padding--little">
             <div className="flex flex-column bg--grey">
@@ -42,13 +42,13 @@ export function User({firstname,lastname,email, role, created_on, userRoles, ...
                         <UserDashboardIcon text={`${firstname[0]}${lastname[0]}`} />   
                 </BaseDashboardIcon>
                         <div><span className="h0-span">{firstname} {lastname}</span></div>
-                        
+                        <div className="intent-margin-left--little">{!allow_login ? <span className="h2-span">blocked </span>: null}</div>
             </div>
                 <div>
                 <Code>{userRoles[role]}</Code>
                 <TooltipButton
                         content={<div>Edit user.</div>}
-                        onClick = {() => console.log("edit user")}
+                        onClick = {() => editUser(userProps)}
                     icon="edit"
                     />
                 <TooltipButton
@@ -58,7 +58,8 @@ export function User({firstname,lastname,email, role, created_on, userRoles, ...
                     />
                 <TooltipButton
                     content={<div>Block user.</div>}
-                    icon="disable"
+                            icon="disable"
+                            onClick = {() => blockUser(label)}
                     />
                 <TooltipButton
                     content={<div>Delete user.</div>}
@@ -70,11 +71,7 @@ export function User({firstname,lastname,email, role, created_on, userRoles, ...
                 </motion.div>
                 <div>Created : {m.fromNow()}</div>
                 <div className="flex flex--wrap center-items">
-                    {Object.keys(rest).map(attrName => <Tooltip key={attrName} content={<div style={{textTransform:"capitalize"}}>{attrName.replaceAll("_"," ")}</div>} minimal={false} compact={true}  inheritDarkTheme={false} hoverOpenDelay={400} position="top">
-                        <motion.div className="padding--little cursor--default div--round intent-margin-right--little"
-                        whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
-                            {rest[attrName]}</motion.div>
-                    </Tooltip>)}
+                    {Object.keys(rest).map(attrName => <TagWithTooltip key={attrName} tagText={rest[attrName]} tooltipText={attrName} />)}
                 </div>
                 </div>
             

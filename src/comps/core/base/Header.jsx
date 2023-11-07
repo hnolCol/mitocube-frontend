@@ -29,7 +29,7 @@ export function Header({
             fontWeight,
             textTransform,
             letterSpacing,
-            fontFamily: "Helvetica",
+            fontFamily: "Linotype Univers W01 Regular",
             marginTop:"0.1rem",
             marginBottom: "0.25rem",
             transitionDuration: "1.0s",

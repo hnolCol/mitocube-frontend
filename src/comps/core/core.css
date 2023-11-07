@@ -29,6 +29,27 @@
     height : 100%;
     width : 100%;
 }
+.prevent-select {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none; /* Standard syntax */
+  }
+
+/* Paragraphs & headings */
+p{
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
+}
+
+h3 {
+    margin-top : 0.0rem;
+    margin-bottom: 0.2rem;
+    padding : 0rem;
+}
+h4 {
+    margin-top : 0.0rem;
+    margin-bottom: 0.2rem;
+    padding : 0rem;
+}
 
 /* Background containers */
 
@@ -38,6 +59,10 @@
 
 .bg--lightgrey {
     background-color: #fafafa;
+}
+
+.bg--white{
+    background-color: #ffffff;
 }
 
 .no-scroll {
@@ -129,6 +154,16 @@
     padding-top: 0.75rem;
 }
 
+
+.intent-padding-bottom-top--smallest {
+
+    padding-top: 0.3rem;
+}
+
+.intent-padding-bottom--smallest {
+
+    padding-bottom: 0.15rem;
+}
 /* Margins */
 
 .margin--little {
@@ -216,7 +251,7 @@
 .dashboard__grid__left {
     grid-column: 1;
     grid-row-start : 2;
-    grid-row-end : 3;
+    grid-row-end : 5;
   }
 .dashboard__grid__fill-center {
     grid-column-start: 2;
