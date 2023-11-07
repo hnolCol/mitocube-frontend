@@ -2,7 +2,7 @@
 
 import _ from "lodash"
 import { useMemo, useState } from "react"
-import GroupingSelection, { getIcon } from "../../../core/base/attribute_groupings/selection"
+import GroupingSelection, { getIcon } from "../../../core/base/attribute_selection/Selection"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
@@ -31,7 +31,7 @@ function ResultChart({
     const [selectedGroupings, setSelectedGroupings] = useState({colorName : groupingNames[0], splitName : groupingNames[1], subplotName : groupingNames[2]})
 
     const keyNamesForSplitting = _.uniq(Object.values(selectedGroupings).filter(v => v !== undefined && _.has(data[0], v)))
-    console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
+    //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const numberGroupings = groupingNames.length 

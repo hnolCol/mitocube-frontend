@@ -62,7 +62,6 @@ function InitialSubmission({
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
 
 
-
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
@@ -71,12 +70,11 @@ function InitialSubmission({
     
     
     //filter attributes that are not for dataset
-    
     const { attributeValuesByAtrributeID, attributeValuesWithParentInfo }  = useMemo(() => {
         if (!attributesIsSuccess) return {}
         let attrById = Object.fromEntries(submissionAttributes.attributes.map(attrs => [attrs.id,[attrs.tag,attrs.name]]))
         let attrsValues = submissionAttributes.attribute_values
-        let attrs = attrsValues.map(attrValue => { return { ...attrValue, attribute_id_tag: attrById[attrValue.attribute_id][0], attribute_id_name: attrById[attrValue.attribute_id][1] } })
+        let attrs = attrsValues.map(attrValue => { return { ...attrValue, attribute_id_tag: attrById[attrValue.attribute_id][0], attribute_id_name: attrById[attrValue.attribute_id][1]} })
 
         return { attributeValuesByAtrributeID: groupListByProperty(attrs, "attribute_id"), attributeValuesWithParentInfo : attrs }
     }, [attributesIsSuccess])
@@ -206,8 +204,8 @@ function InitialSubmission({
         if (sampleAttributesWithSingleUniqueValue.length > 0) {
             errMsgs.push("At least one samples attribute has less than two unique values. It should therefore be defined as a dataset attribute: "+_.join(sampleAttributesWithSingleUniqueValue,", "))
         }
-
     
+        console.log(submission)
         if (errMsgs.length > 0) {
             // if there are error messages, show it to the user.
             setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
@@ -698,6 +696,7 @@ function InitialSubmission({
                         <DatasetAttributeSelect
                             attributes={attributesAllowedForDataset}
                             attributeValues={attributeValuesWithParentInfo}
+                            attributeValuesByID={attributeValuesByAtrributeID}
                             {...{ handleDatasetAttributeSelection, handleFeatureSelection}} />
                         <DatasetAttributeHierarchy
                             submissionID={submissionID.id}
@@ -728,7 +727,7 @@ function InitialSubmission({
                     <NumericValueInput
                         placeholder="Number of replicates"
                         callbackKey={"replicates"}
-                        value={_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
+                        value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
                     <NumericValueInput
                         placeholder="Sample number"
                         callbackKey={"sampleNumber"}

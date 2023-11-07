@@ -4,25 +4,29 @@ import { filterArrayBySearchString } from "../../../../services/arrays/filter";
 import { useMemo } from "react";
 import { objectHasKey } from "../../../../services/objects/checks";
 import NumericValueInput from "../../../core/input/Numeric";
+import { createFakeAttribute } from "../../../../services/attributes";
 
-function AttributeValueSelectionMenu({activeItem, attributes, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", handleFeatureSelection = undefined}) {
+
+function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeValuesByID, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", handleFeatureSelection = undefined}) {
+    
     const attributesMatch = !_.isEmpty(attributeValuesByID)
-
     const attributeIDsMatchingQuery = useMemo(() => {
         if (query === "") return Object.fromEntries(attributes.map(attr => [attr.id,attr.id]))
         return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, searchColumns: ["tag", "name"]}).map(attr => [attr.id,attr.tag]))
     }, [query])
 
     const attributeMatch = !_.isEmpty(attributeIDsMatchingQuery)
-
     return (
         <Menu>
             {!attributesMatch && !attributeMatch? <MenuItem text="No attributes found ..." disabled={true} /> :
                 attributes.map(attribute => {
                     const attributeID = attribute.allow_features_as_values? -1 : attribute.id
-                    const attrValues = _.has(attributeValuesByID, attribute.id) ? attributeValuesByID[attributeID] : []
+                    const attrValues = _.has(filteredAttributeValuesByID, attribute.id) ? filteredAttributeValuesByID[attributeID] : []
                     const attributeMatchesQuery = objectHasKey({ object: attributeIDsMatchingQuery, keyName : attribute.id })
-                    if (attrValues.length === 0 && !attribute.allow_features_as_values && attributeMatchesQuery) return <NumericValueInput
+                    if (attrValues.length === 0 && !attribute.allow_features_as_values && !_.has(attributeValuesByID, attribute.id) && attributeMatchesQuery)  return <div>
+                        <MenuItem text={`Enter numeric value for ${attribute.name}`} disabled={true} />
+                        <MenuDivider />
+                        <NumericValueInput
                                                 key={`${attribute.tag}-numeric-input`}
                                                 placeholder={`${attribute.name}`}
                                                 callbackKey={attribute.tag}
@@ -31,17 +35,18 @@ function AttributeValueSelectionMenu({activeItem, attributes, attributeValuesByI
                                                     intent: "primary",
                                                     icon: "rocket"
                                                 }}
-                        onButtonClick={(attributeTag, numericInput) => handleItemSelect(attribute, {id : -1, attribute_id : attribute.id , tag: `${attribute.tag}:${numericInput}`, name : `${numericInput}`})} //create fake attribute value for numeric inputs
-                                                />
+                            onButtonClick={(attributeTag, numericInput) => handleItemSelect(attribute, createFakeAttribute({ ...{ attribute, numericInput } }))} //create fake attribute value for numeric inputs
+                    />
+                        </div>
                     if (attrValues.length === 0 && !attribute.allow_features_as_values) return null
                     //hide attribute values that are not featureu and were not found.
-                    if (!attributeMatchesQuery) return []
+                    if (attribute.allow_features_as_values && !attributeMatchesQuery) return null
                     return (
                         <div key={`${attribute.tag}`}>
                             <MenuItem text={attribute.name} disabled={true} />
                             <MenuDivider />
                             
-                            {attribute.allow_features_as_values ?
+                            {attribute.allow_features_as_values && attributeMatchesQuery?
                                 <MenuItem text={`Select feature for ${attribute.name}`} onClick={() => handleFeatureSelection(attribute)} /> :
                                 
                                 <div style={{ overflowY: "visible" }}>

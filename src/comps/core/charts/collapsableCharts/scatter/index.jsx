@@ -26,7 +26,7 @@ import { downloadSVG } from "../../../../../services/downloads/svg"
 import AnimatedPoint from "../../scatter/AnimatedPoint"
 import { Combobox } from "../../../input/Combobox"
 import TagBasedSearch from "../../../base/search/TagSearch"
-import GroupingSelection from "../../../base/attribute_groupings/selection"
+import GroupingSelection from "../../../base/attribute_selection/Selection"
 
 function CollapsableScatter({
     width = 1000,

@@ -9,6 +9,7 @@ import { useMemo, useState } from "react"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../../services/arrays/filter"
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric"
+import { createFakeAttribute } from "../../../../services/attributes"
 
 AttributeGrouping.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
@@ -182,7 +183,7 @@ function AttributeGrouping({
                     intent: "primary",
                     icon: "rocket"
                 }}
-                onButtonClick={(attributeTag, attributeValue) => onAttributeSelect(attributeTag, parseInt(attributeValue), selectedRows)}
+                onButtonClick={(attributeTag, attributeValue) => onAttributeSelect(attributeTag, createFakeAttribute({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
                 />
             {selectedRows.length > 0 ?
                 <Menu>

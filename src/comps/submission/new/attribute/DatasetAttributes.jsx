@@ -7,7 +7,7 @@ import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
-function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details","name","tag","attribute_id_tag","attribute_id_name"]}) {
+function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details","name","tag","attribute_id_tag","attribute_id_name"]}) {
 
     const handleItemSelect = (attribute,attributeValue) => {
         //handle item select
@@ -21,11 +21,10 @@ function DatasetAttributeSelect({ attributes, attributeValues, handleDatasetAttr
     }
 
     const renderItems = ({ activeItem, filteredItems, query}) => { 
-        const attributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
+        const filteredAttributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
         // render items 
         return (
-            <AttributeValueSelectionMenu {...{activeItem, attributes,attributeValuesByID,handleItemSelect, query, handleFeatureSelection}}/>
-
+            <AttributeValueSelectionMenu {...{activeItem, attributes,filteredAttributeValuesByID,attributeValuesByID,handleItemSelect, query, handleFeatureSelection}}/>
         )
     }
 
