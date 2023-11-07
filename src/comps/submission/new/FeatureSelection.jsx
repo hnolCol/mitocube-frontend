@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useGetAnnotationFeatures } from "../../../hooks/queries/annotation.hooks"
 import Loading from "../../core/base/loading"
-import AttributeInput from "./attribute/AttributeCombo"
+import AttributeInput from "./attribute/MultiSelectAttribute"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { Button } from "@blueprintjs/core"
 

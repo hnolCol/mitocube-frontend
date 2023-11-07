@@ -9,7 +9,6 @@ import { useMemo, useState } from "react"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../../services/arrays/filter"
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric"
-import { AttributeSelection } from "../Genotype"
 
 AttributeGrouping.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),

@@ -14,11 +14,11 @@ function APIError({ error }) {
                 <div className="intent-margin-bottom--little">{extraDetail}</div>
                 
                 <p>
-                    The API returned an error. The error code :{errorResponse.status} (Status Text : {errorResponse.statusText})
-                    <div style={{maxHeight : "500px", overflowY:"scroll"}}>
-                        {<ReactJson src={errorResponse.data} />}
-                    </div>
-                </p>
+                    The API returned an error. The error code :{errorResponse.status} (Status Text : {errorResponse.statusText}) </p>
+                <div style={{maxHeight : "500px", overflowY:"scroll"}}>
+                    {_.isObject(errorResponse.data.detail)?<ReactJson src={errorResponse.data} />: null}
+                </div>
+               
             </div>
             <div className="font-size--smallest">
                 Error Message : {error.message}

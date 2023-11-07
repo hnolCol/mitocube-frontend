@@ -16,38 +16,42 @@ import { objectHasKey } from "../../../services/objects/checks"
 import { useGetAnnotationsByFeatureID } from "../../../hooks/queries/feature.hooks"
 import { splitStringByNCharacters } from "../../../services/format/string"
 import {motion} from "framer-motion"
+import AttributeInput from "./attribute/MultiSelectAttribute"
+import SingleAttributeInput from "./attribute/SelectAttribute"
 
 
-export function AttributeSelection({label, attribute, attributeValues, onSelection, selectedAttributeValue = undefined, entryIdx }) {
-    const renderItem = (item, { handleClick, modifiers, index, query }) => {
-        const itemSelected = _.isObject(selectedAttributeValue)?item.tag === selectedAttributeValue.tag:false
-        return <MenuItem
-            icon={itemSelected?"tick":"blank"}
-            key={item.tag}
-            onClick={handleClick}
-            text={item.name}
-            active={modifiers.active}
-            disabled={modifiers.disabled}
-            multiline={true}
-            labelElement={<div style={{ width: "14rem", fontSize: "0.7rem", textAlign:"left"}}>{item.details}</div>} />
-    }
+// export function AttributeSelection({ label, attribute, attributeValues, onSelection, selectedAttributeValue = undefined, entryIdx }) {
+//     console.log(attributeValues,attribute)
+//     const renderItem = (item, { handleClick, modifiers, index, query }) => {
+//         const itemSelected = _.isObject(selectedAttributeValue)?item.tag === selectedAttributeValue.tag:false
+//         return <MenuItem
+//             icon={itemSelected?"tick":"blank"}
+//             key={item.tag}
+//             onClick={handleClick}
+//             text={item.name}
+//             active={modifiers.active}
+//             disabled={modifiers.disabled}
+//             multiline={true}
+//             labelElement={<div style={{ width: "14rem", fontSize: "0.7rem", textAlign:"left"}}>{item.details}</div>} />
+//     }
 
-    const filterItems = (query, items) => {
-        if (query.length < 2) return items 
-        const filteredItems = filterArrayBySearchString({ array:  items, searchString: query, searchColumns : ["tag","name","details"]})
-        return filteredItems
-    }
-    return <Select
-        fill={false}
-        items={attributeValues}
-        itemListPredicate={filterItems}
-        itemRenderer={renderItem}
-        onItemSelect={attributeValue => onSelection(label, attribute.tag, attributeValue, entryIdx)}
-        resetOnSelect={true}
-        >
-        <SimpleTag text={_.isObject(selectedAttributeValue)?selectedAttributeValue.name:attribute.name}/>
-    </Select>
-}
+//     const filterItems = (query, items) => {
+//         if (query.length < 2) return items 
+//         const filteredItems = filterArrayBySearchString({ array:  items, searchString: query, searchColumns : ["tag","name","details"]})
+//         return filteredItems
+//     }
+//     return <Select
+//         fill={false}
+//         items={attributeValues}
+//         itemListPredicate={filterItems}
+//         itemRenderer={renderItem}
+//         onItemSelect={attributeValue => onSelection(label, attribute.tag, attributeValue, entryIdx)}
+//         resetOnSelect={true}
+//         >
+//         <SimpleTag text={_.isObject(selectedAttributeValue)?selectedAttributeValue.name:attribute.name}/>
+//     </Select>
+// }
+
 
 
 function AASequencePositionMutation({ }) {
@@ -96,21 +100,24 @@ function GenotypeAttributeSelection({
             prevAttribute = {},
             genotypeProps,
             genotypeLabel = 0,
-            entryIdx  }) {
-
+            entryIdx,handleFeatureSelection
+          }) {
+    
     const hasChildNodes = attribute.childNodes.length > 0
+    const allowFeatures = attribute.allow_features_as_values && !_.has(attributeValuesByID,attribute.id)
     const hasAttibuteData = _.isEmpty(prevAttribute) ? false : objectHasKey({ object: genotypeProps.attributes[entryIdx], keyName: attribute.tag }) 
     const hasSlectionValue = _.isObject(genotypeProps.attributes[entryIdx]) && _.has(genotypeProps.attributes[entryIdx],attribute.tag) && genotypeProps.attributes[entryIdx][attribute.tag].length > 0
     const childNode = attribute.childNodes[0]
                 // handles only a signle child node! Set warnong 
     return (
         <div className="flex" style={{paddingTop:`${attrIdx*0.05}rem`}}>
-            <AttributeSelection {...{
+            <SingleAttributeInput {...{
                 attribute,
-                attributeValues,
+                attributeValues : allowFeatures?[]:attributeValues,
                 onSelection,
-                label : genotypeLabel,
-                entryIdx,
+                handleFeatureSelection,
+                //label : genotypeLabel,
+                //entryIdx,
                 selectedAttributeValue: hasSlectionValue  ? genotypeProps.attributes[entryIdx][attribute.tag][0] : null
             }} />
             <div>
@@ -122,11 +129,10 @@ function GenotypeAttributeSelection({
 }
 
 
-function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps, addGenotypeEntry, removeGenotypeEntry, authenticationStatus}) {
+function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection}) {
     const genotypeEntries = genotypeProps.attributes.length 
 
 
-    console.log(genotypeProps)
     return (
         <div>
             <div>Genotype Name : {genotypeProps.name}</div>
@@ -142,6 +148,7 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
                                     attrIdx,
                                     attribute,
                                     attributeValues: attributeValuesByID[attribute.id],
+                                    handleFeatureSelection,
                                     attributeValuesByID,
                                     genotypeProps,
                                     onSelection,
@@ -251,7 +258,7 @@ function PositionSelection({authenticationStatus, featureID}) {
 
 
 
-function GenotypeGenerator({ index = 6, attributes, attributeValuesByID, onSelection, addGenotype, genotypes, addGenotypeEntry, removeGenotypeEntry, authenticationStatus}) {
+function GenotypeGenerator({ index = 6, attributes, attributeValuesByID, onSelection, addGenotype, genotypes, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection}) {
     
     const nestedAttributes = createDataTree({ array: attributes, link: "parent_id" })
     return (
@@ -263,12 +270,12 @@ function GenotypeGenerator({ index = 6, attributes, attributeValuesByID, onSelec
             {Object.keys(genotypes).map(genotypeLabel => {
                 const genotypeProps = genotypes[genotypeLabel]
                 return <GenotypeRow key={genotypes[genotypeLabel].label}
-                    {...{ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps,addGenotypeEntry, removeGenotypeEntry, authenticationStatus}} />
+                    {...{ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps,addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection}} />
             })}
                     
 
             <Button icon="plus" onClick={addGenotype} small={true} />
-            <PositionSelection {...{authenticationStatus,featureID : "Q96E52"}} />
+            {/* <PositionSelection {...{authenticationStatus,featureID : "Q96E52"}} /> */}
         </div>
     )
 }

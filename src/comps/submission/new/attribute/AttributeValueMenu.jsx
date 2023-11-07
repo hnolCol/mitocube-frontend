@@ -3,24 +3,39 @@ import _ from "lodash"
 import { filterArrayBySearchString } from "../../../../services/arrays/filter";
 import { useMemo } from "react";
 import { objectHasKey } from "../../../../services/objects/checks";
+import NumericValueInput from "../../../core/input/Numeric";
 
 function AttributeValueSelectionMenu({activeItem, attributes, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", handleFeatureSelection = undefined}) {
-    const nothingToShow = _.isEmpty(attributeValuesByID)
+    const attributesMatch = !_.isEmpty(attributeValuesByID)
 
     const attributeIDsMatchingQuery = useMemo(() => {
         if (query === "") return Object.fromEntries(attributes.map(attr => [attr.id,attr.id]))
-        return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, searchColumns: ["tag", "name"]}).map(attr => [attr.id,attr.id]))
+        return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, searchColumns: ["tag", "name"]}).map(attr => [attr.id,attr.tag]))
     }, [query])
+
+    const attributeMatch = !_.isEmpty(attributeIDsMatchingQuery)
 
     return (
         <Menu>
-            {nothingToShow ? <MenuItem text="No attributes found ..." disabled={true} /> :
+            {!attributesMatch && !attributeMatch? <MenuItem text="No attributes found ..." disabled={true} /> :
                 attributes.map(attribute => {
                     const attributeID = attribute.allow_features_as_values? -1 : attribute.id
-                    const attrValues = _.has(attributeValuesByID, attribute.id ) ? attributeValuesByID[attributeID] : []
-                    if (attrValues.length === 0 && !attribute.allow_features_as_values) return null 
+                    const attrValues = _.has(attributeValuesByID, attribute.id) ? attributeValuesByID[attributeID] : []
+                    const attributeMatchesQuery = objectHasKey({ object: attributeIDsMatchingQuery, keyName : attribute.id })
+                    if (attrValues.length === 0 && !attribute.allow_features_as_values && attributeMatchesQuery) return <NumericValueInput
+                                                key={`${attribute.tag}-numeric-input`}
+                                                placeholder={`${attribute.name}`}
+                                                callbackKey={attribute.tag}
+                                                submitButton={true}
+                                                buttonProps={{
+                                                    intent: "primary",
+                                                    icon: "rocket"
+                                                }}
+                        onButtonClick={(attributeTag, numericInput) => handleItemSelect(attribute, {id : -1, attribute_id : attribute.id , tag: `${attribute.tag}:${numericInput}`, name : `${numericInput}`})} //create fake attribute value for numeric inputs
+                                                />
+                    if (attrValues.length === 0 && !attribute.allow_features_as_values) return null
                     //hide attribute values that are not featureu and were not found.
-                    if (!objectHasKey({ object: attributeIDsMatchingQuery, keyName : attribute.id })) return []
+                    if (!attributeMatchesQuery) return []
                     return (
                         <div key={`${attribute.tag}`}>
                             <MenuItem text={attribute.name} disabled={true} />

@@ -15,7 +15,8 @@ User.propTypes = {
     lastname: PropTypes.string,
     email: PropTypes.string,
     created_on: PropTypes.number,
-    role : PropTypes.number
+    role: PropTypes.number,
+    label : PropTypes.string.isRequired
 }
 
 
@@ -30,8 +31,8 @@ function Affiliation({}) {
     )
 }
 
-export function User({firstname,lastname,email, role, created_on, userRoles, ...rest}) {
-    const [ m, formatedTime ] = getFormatDateFromTimestamp(created_on)
+export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, ...rest}) {
+    const [m, formatedTime] = getFormatDateFromTimestamp(created_on)
     return (
         <div className="bg--lightgrey margin--little center-items padding--little">
             <div className="flex flex-column bg--grey">
@@ -41,13 +42,13 @@ export function User({firstname,lastname,email, role, created_on, userRoles, ...
                         <UserDashboardIcon text={`${firstname[0]}${lastname[0]}`} />   
                 </BaseDashboardIcon>
                         <div><span className="h0-span">{firstname} {lastname}</span></div>
-                        
+                        <div className="intent-margin-left--little">{!allow_login ? <span className="h2-span">blocked </span>: null}</div>
             </div>
                 <div>
                 <Code>{userRoles[role]}</Code>
                 <TooltipButton
                         content={<div>Edit user.</div>}
-                        onClick = {() => console.log("edit user")}
+                        onClick = {() => editUser(userProps)}
                     icon="edit"
                     />
                 <TooltipButton
@@ -57,7 +58,8 @@ export function User({firstname,lastname,email, role, created_on, userRoles, ...
                     />
                 <TooltipButton
                     content={<div>Block user.</div>}
-                    icon="disable"
+                            icon="disable"
+                            onClick = {() => blockUser(label)}
                     />
                 <TooltipButton
                     content={<div>Delete user.</div>}

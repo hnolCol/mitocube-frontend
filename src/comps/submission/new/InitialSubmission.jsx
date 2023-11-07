@@ -2,7 +2,7 @@ import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetate
 import PropTypes, { number } from "prop-types"
 import { Header } from "../../core/base/Header"
 import APIError from "../../core/error/APIerror"
-import AttributeInput from "./attribute/AttributeCombo"
+import AttributeInput from "./attribute/MultiSelectAttribute"
 import { useMemo, useState, useEffect } from "react"
 import { getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../services/arrays/groupby"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
@@ -69,6 +69,9 @@ function InitialSubmission({
         isError: attributeIsError,
         isSuccess: attributesIsSuccess } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }) //
     
+    
+    //filter attributes that are not for dataset
+    
     const { attributeValuesByAtrributeID, attributeValuesWithParentInfo }  = useMemo(() => {
         if (!attributesIsSuccess) return {}
         let attrById = Object.fromEntries(submissionAttributes.attributes.map(attrs => [attrs.id,[attrs.tag,attrs.name]]))
@@ -82,6 +85,13 @@ function InitialSubmission({
         ) => {
             if (!attributesIsSuccess) return []
             return submissionAttributes.attributes.filter(attribute => attribute["mandatory_for_submission"])
+
+    }, [attributesIsSuccess])
+    
+    const attributesAllowedForDataset = useMemo((
+        ) => {
+            if (!attributesIsSuccess) return []
+            return submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"])
 
         },[attributesIsSuccess])
 
@@ -253,6 +263,7 @@ function InitialSubmission({
     }
 
     const saveSubmission = () => {
+        //save the submission to local store and inform the user
         const msg = saveSubmissionInLocalStorage(submission)
         setAlertProps({
             isOpen: true, children: <div><h3>Saved Submission</h3>
@@ -263,11 +274,13 @@ function InitialSubmission({
     }
 
     const resetSubmission = () => {
+        // deletes the submission in the local storage.
         removeSubmissionFromLocalStorage()
         setSubmission(initSubmissionState)
     }
 
     const loadSubmission = () => {
+        // load a submission from the submission.
         const submission = loadSavedSubmissionFromLocalStorage()
         if (_.isObject(submission)) {
 
@@ -674,7 +687,7 @@ function InitialSubmission({
             
             <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange}/>
 
-            {attributesIsSuccess && _.isArray(submissionAttributes.attributes) ?
+            {attributesIsSuccess && _.isArray(attributesAllowedForDataset) ?
             <div>
 
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
@@ -683,7 +696,7 @@ function InitialSubmission({
                             As an example, if you have a project that uses the same cell line throughout the study, the cell line should be added here.</p>
                         <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
                         <DatasetAttributeSelect
-                            attributes={submissionAttributes.attributes}
+                            attributes={attributesAllowedForDataset}
                             attributeValues={attributeValuesWithParentInfo}
                             {...{ handleDatasetAttributeSelection, handleFeatureSelection}} />
                         <DatasetAttributeHierarchy
@@ -698,8 +711,9 @@ function InitialSubmission({
                     attributes={attributesForGenotype}
                     attributeValuesByID={attributeValuesByAtrributeID}
                     onSelection={genotypeSelection}
-                    {...{addGenotype,addGenotypeEntry,removeGenotypeEntry,authenticationStatus}}
-                            genotypes={submission.genotypes} />
+                    genotypes={submission.genotypes} 
+                    {...{addGenotype,addGenotypeEntry,removeGenotypeEntry,authenticationStatus,handleFeatureSelection}}/>
+                            
                         
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <Header text="6. Sample Attributes" />
@@ -709,7 +723,7 @@ function InitialSubmission({
                     <p>First, create a sample attribute and name it in the table header. Then specify an attribute such as <span className="h1-span">Genotype</span> or <span className="h2-span">Treatment</span>.
                         After attribute selection you will be able to select from a defined set of attribute values from the drop-down menu (right click on the table cells).
                         If you want to assign an attribute value to multiple rows, select the rows and then choose the attribute value from the drop-down menu.</p>
-                    <p>An attribute can only be assigned to a <span className="h0-span">single samples attribute</span> and the attribute values must have at least <span className="h0-span">two unique values</span>.
+                    <p>An attribute can only be assigned to a <span className="h0-span">single sample attribute</span> and the attribute values must have at least <span className="h0-span">two unique values</span>.
                                 Otherwise they should be specified as dataset attributes above.</p>
                     <NumericValueInput
                         placeholder="Number of replicates"
@@ -723,7 +737,7 @@ function InitialSubmission({
                     <AttributeGrouping
                         sampleNames={submission.sampleNames}
                         attributeTable={submission.attributeTable}
-                        attributes={submissionAttributes.attributes}
+                        attributes={attributesAllowedForDataset}
                         attributeValuesByID={attributeValuesByAtrributeID}
                         rerenderTableDependency={submission.rerenderTableDependency}
                         onAttributeSelect={onSampleAttributeValueSelect}

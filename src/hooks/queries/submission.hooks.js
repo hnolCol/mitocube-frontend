@@ -96,8 +96,6 @@ export const useGetSubmissionMetatext = (APIParams = {}, useQueryOptions = {}) =
 //submit submission
 
 async function postSumbmission_API({ tokenString, submission }) {
-    console.log(tokenString)
-    console.log(submission)
     const res = await axios.post('/api/submission',
         submission,
         {

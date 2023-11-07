@@ -1,15 +1,18 @@
 import PropTypes from 'prop-types';
 import { Navigate, useLocation } from 'react-router-dom';
+import Loading from '../base/loading';
 
 
 export function ProtectedRoute({
-    isAuthenticated,
-    redirectPath = '/',
+  isAuthenticated,
+  isLoadingToken,
+  redirectPath = '/',
   children }) {
-   const location = useLocation()
-    if (!isAuthenticated) {
-      return <Navigate to={location} replace />;
-    }
+  if (!isAuthenticated && !isLoadingToken) {
+      return <Navigate to={redirectPath} replace />;
+  }
+  
+  if (isLoadingToken) return <Loading />
   
     return <>{children}</>;
   };

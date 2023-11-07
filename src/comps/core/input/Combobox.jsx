@@ -1,4 +1,4 @@
-import { Button, MenuItem } from "@blueprintjs/core";
+import { Button, FormGroup, MenuItem } from "@blueprintjs/core";
 import { isFunction } from "lodash";
 import PropTypes from "prop-types"
 import { allKeysInObject } from "../../../services/objects/checks";
@@ -21,6 +21,8 @@ export function Combobox(
         onChange,
         value,
         placeholder = "Plase select",
+        isRequired = true,
+        hint = "",
         callbackKey,
         textKey = "name",
         labelKey = undefined,
@@ -41,8 +43,9 @@ export function Combobox(
             <MenuItem 
                 key = {item.name} 
                 text={item[textKey]} 
-                label = {_.isString(labelKey)?item[labelKey]:""}
+                labelElement={<div style={{ maxWidth: "10rem", fontSize : "0.75rem"}}>{_.isString(labelKey)?item[labelKey]:""}</div>}
                 onClick={handleClick} 
+                multiline={true}
                 intent={selected? "primary" : "blank"} 
                 icon={selected? "small-tick" : "blank"}/>
         )
@@ -61,7 +64,12 @@ export function Combobox(
 
     }
 
-    return(
+    return (
+        <FormGroup
+            label={hint}
+            labelInfo={isRequired ? "(required)" : "(optional)"}
+            inline={false}
+            helperText={""}>
         <Select
             fill={fill}
             noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
@@ -73,6 +81,7 @@ export function Combobox(
             onItemSelect={onItemSelection}
             disabled={disabled}>
             <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
-        </Select>
+            </Select>
+            </FormGroup>
     )
 }

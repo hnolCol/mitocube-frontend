@@ -46,6 +46,7 @@ import AdminUsers from "./comps/admin/Users";
 import AdminAttributes from "./comps/admin/Attributes";
 import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
+import Loading from "./comps/core/base/loading";
 
 
 const initAuthenticationStatus = {
@@ -68,7 +69,7 @@ function App() {
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
   // check if token is valid, if a token is found in storage.
-  const { data: isTokenValid, isSuccess : tokenValidSuccess , isError : tokenValidError, error, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
+  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidError, error, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
 
   const location = useLocation()
   const redirect = useNavigate()
@@ -109,7 +110,8 @@ function App() {
     setAuthenticationStatus(initAuthenticationStatus)
     redirect("/")
   }
-  
+
+  //console.log(tokenValidIsFetching || tokenValidIsLoading)
   return (
     <div className='dashboard__grid no-scroll'>
 
@@ -135,12 +137,12 @@ function App() {
 
       {/* Redirected after successful login */}
       <Route path="/index" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading} >
               <Welcome {...{authenticationStatus,applicationInfo, setApplicationInfo}}/>
           </ProtectedRoute>} />
 
       <Route path="/protein" element={
-              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
                 <ProteinHeader/>
             </ProtectedRoute>}>
             <Route path="/protein/selection" element={<ProteinSelection />} />
@@ -148,12 +150,12 @@ function App() {
         </Route>
 
           <Route path="/ptm" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <PTM />
             </ProtectedRoute>} />
 
         <Route path="/dataset/:dataID" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <DatasetHeader/>
             </ProtectedRoute>}>
             <Route path="/dataset/:dataID" element={<DatasetOverview />} />
@@ -167,7 +169,7 @@ function App() {
           </Route>
 
       <Route path="/dataset" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <div>
                 <h3>Datasets Selection</h3>
                 <p>Pleaase select a dataset to explore. Tag based search supported.</p>
@@ -179,7 +181,7 @@ function App() {
           </ProtectedRoute>} />
         {/* Performance Routes */}
       <Route path="/performance" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <PerformanceHeader />
             </ProtectedRoute>}>
             
@@ -196,7 +198,7 @@ function App() {
         
           {/* Submission Routes */}
       <Route path="/submission" element={
-            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <SubmissionHeader/>
             </ProtectedRoute>
           }>
