@@ -3,7 +3,7 @@ import MultipleMetrices from "../../core/metrics/collection";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "../../core/base/Header";
 import _ from "lodash"
-import GroupingTable from "../../core/base/groupings/table";
+import GroupingTable from "../../core/base/attribute_groupings/table";
 import { motion } from "framer-motion";
 import { Button } from "@blueprintjs/core";
 import APIError from "../../core/error/APIerror";

@@ -2,7 +2,7 @@
 
 import _ from "lodash"
 import { useMemo, useState } from "react"
-import GroupingSelection, { getIcon } from "../../../core/base/groupings/selection"
+import GroupingSelection, { getIcon } from "../../../core/base/attribute_groupings/selection"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
