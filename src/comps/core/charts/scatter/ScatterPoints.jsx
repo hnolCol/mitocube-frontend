@@ -12,15 +12,16 @@ ScatterPoints.propTypes = {
 }
 
 
-function ScatterPoints({data = [], valid = [], xaxisName, yaxisName, sizeName, xScale, yScale, sizeScale, fill = "#efefef", stroke = "#000000", strokeWidth = 0.5,  rerenderDependency = []}){
+function ScatterPoints({data = [], valid = [], xaxisName, yaxisName, sizeName, xScale, yScale, sizeScale, fill = "#efefef", stroke = "#000000", strokeWidth = 0.5,  rerenderDependency = [], filterIndices =  new Set()}){
     // Scatter points that have a rerenderDependcy and are only rerendered if the dependency changes
     // Hence, it requires to be checked outside if the scatter point should rerender 
-
+    const filterByIdx = filterIndices.size !== 0
     return(
         <g>
 
             {data.filter((d,idx) => valid[idx]).map((d,idx) => {
                 //filter data first and then map over it 
+                if (filterByIdx && !filterIndices.has(idx)) return null 
                 return <circle 
                     cx={xScale(d[xaxisName])} 
                     cy={yScale(d[yaxisName])} 

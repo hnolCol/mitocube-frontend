@@ -52,13 +52,16 @@ export function ScatterPlot({
     centerXAxisAtZero = false,
     defaultRadius = 5,
     rerenderHover,
-    rerenderBackground}) {
+    hoverPosition,
+    rerenderBackground,
+    filterIndices}) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const svgRef = useRef(null);
+    const tooltipOpen = hoverPosition.length === 2 && hoverData.length > 0
     const rectDist = Object.fromEntries([xaxisName,yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
-        let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.01
+        let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.005
         return [keyName,  dist]}))
     // const {
     //     tooltipData,
@@ -68,12 +71,12 @@ export function ScatterPlot({
     //     showTooltip,
     //     hideTooltip,
     // } = useTooltip();
-    //   const { containerRef, TooltipInPortal } = useTooltipInPortal({
-    //     // use TooltipWithBounds
-    //     detectBounds: true,
-    //     // when tooltip containers are scrolled, this will correctly update the Tooltip position
-    //     scroll: true,
-    //   })
+      const { containerRef, TooltipInPortal } = useTooltipInPortal({
+        // use TooltipWithBounds
+        detectBounds: true,
+        // when tooltip containers are scrolled, this will correctly update the Tooltip position
+        scroll: true,
+      })
     
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins(width,height,margins)
     
@@ -115,11 +118,11 @@ export function ScatterPlot({
 
     const handeMouseHover = (e) => {
         const mouseCoord = localPoint(svgRef.current,e)
+        
         const x = xScale.invert(mouseCoord.x)
         const y = yScale.invert(mouseCoord.y)
-        console.log(rectDist)
-        console.log(x-rectDist[xaxisName],y-rectDist[yaxisName],x+rectDist[xaxisName],y+rectDist[yaxisName])
-        setHoverDataInRectangle(chartIdx,x-rectDist[xaxisName],y-rectDist[yaxisName],x+rectDist[xaxisName],y+rectDist[yaxisName])
+       
+        setHoverDataInRectangle(chartIdx,x-rectDist[xaxisName],y-rectDist[yaxisName],x+rectDist[xaxisName],y+rectDist[yaxisName],[e.clientX,e.clientY])
         //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
 
     }
@@ -139,6 +142,7 @@ export function ScatterPlot({
     return (
         <div>
         <SVG {...{ width, height, svgID, svgRef}}>
+            
             <AxisWithBackground
                 margins={margins}
                 leftScale={yScale}
@@ -148,25 +152,28 @@ export function ScatterPlot({
                 leftLabel={yaxisName}
                 moveBottomToLeft={false}
                 {...{ chartHeight, chartWidth }} />
-            <g onMouseMove={handeMouseHover}>
-            <ScatterPoints {...{data,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, rerenderDependency : rerenderBackground}} />
+            <g >
+            {/* Render data points */}
+            <ScatterPoints {...{data,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, rerenderDependency : rerenderBackground, filterIndices}} />
             </g>
             <g>
+            {/* Rerender hover points */}
             <ScatterPoints {...{data : hoverData,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, fill:"red",rerenderDependency : rerenderHover}} />
             </g>
+            <rect x={0} y={0} width={width} height={height} onMouseMove={handeMouseHover} fill="transparent"/>
         </SVG >
-            {/* {tooltipOpen && (
+            {tooltipOpen && (
                 <TooltipInPortal
                 // set this to random so it correctly updates with parent bounds
                 key={Math.random()}
-                top={tooltipTop}
-                left={tooltipLeft}
+                top={hoverPosition[1]}
+                left={hoverPosition[0]}
                 >   
                     <div className="flex flex-column center-items">
-                        <div>DataID :  <strong>{tooltipData}</strong></div>
+                        {hoverData.map((v,idx) => idx < 10?<div>{v.x}</div>:null)}
                     </div>
                 </TooltipInPortal>
-            )} */}
+            )}
         </div>
         
 

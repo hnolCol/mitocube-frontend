@@ -1,5 +1,5 @@
 
-import { InputGroup, Button } from "@blueprintjs/core"
+import { InputGroup, Button, Slider, RangeSlider } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
@@ -85,12 +85,18 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                             findIndexInRectangle,
                             findDataInRectangle,
                             setHoverDataInRectangle,
+                            handleNumericFilter,
                             hoverData,
+                            hoverPosition,
                             rerenderHover,
-                            rerenderBackground
-                        }, didx) => {
-                        
-                            return (<ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,hoverData,rerenderHover,rerenderBackground}}/>)})}
+                            rerenderBackground,
+                            filterIndices,
+                            filterRange
+                        }, didx) =>  {
+                            
+                            return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,hoverData,rerenderHover,rerenderBackground,filterIndices,hoverPosition}}/>
+                            {didx===0?<div>
+                                <RangeSlider min={0} max={100} value={filterRange} stepSize={5} onChange={range => handleNumericFilter(0,"x",range[0],range[1])}/><Button onClick={() => handleNumericFilter(0,"x",0.2,0.5)}/></div>:null}</div>)})}
 
                 </InteractiveChart>
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
