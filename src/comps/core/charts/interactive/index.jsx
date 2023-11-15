@@ -3,20 +3,32 @@ import { addItemToArrayIfNotPresent } from "../../../../services/arrays/transfor
 import _ from "lodash"
 import KDBush from 'kdbush';
 import { getMinMaxForMultipleKeyNames } from "../../../../services/arrays/boundaries";
+import { filterArrayBySearchStringBySingleKey } from "../../../../services/arrays/filter";
+
+function makeid(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let counter = 0;
+    while (counter < length) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+      counter += 1;
+    }
+    return result;
+}
+
+let dataTest = _.range(5000).map(idx => {return {x : Math.random() * 1000, y : Math.random() * 5000, label : makeid(5)}})
 
 
-
-let dataTest = _.range(50000).map(idx => {return {x : Math.random() * 1000, y : Math.random() * 5000}})
-
-
-function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"}], children}){ //,{xaxisName : "y", yaxisName  : "x"},
+function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"}], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
 
     const [hoverData, setHoverData] = useState({data : [], idcs : [], rerender : [Math.random()], rect : []})
     const [selectedItems, setSelectedItems]  = useState()
-    const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100]})
+    const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set()})
     const numberCharts = keyNames.length
     const keyNamesFlatten = _.flatten(keyNames.map(keys => Object.values(keys)))
     const limits  = getMinMaxForMultipleKeyNames({data,keyNames : keyNamesFlatten})
+    
     
     const validIndices = useMemo(() => {
         const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
@@ -66,21 +78,29 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     }
 
     const handleNumericFilter = (chartIdx, keyName, min = -Infinity, max = Infinity) => {
-        console.log(min,max)
         let idcs = data.reduce((s, d, idx) => (d[keyName] > min && d[keyName] < max ? s.add(idx) : null, s), new Set());
-        console.log(idcs)
         //let idcs = data.reduce((group,d,idx) => d[keyName] > min && d[keyName] < max),[])
         
         setRerender({rerender : [Math.random()], filterIndices : idcs, filterRange : [min,max]})
-
-
     }
 
+    const handleStringSearch = (keyName,searchString) => {
+        // searching in the data returns a list of indices matching the search
+        //check if numeric filter is active then one should only search there, also save idcs and search string, then one can also subset the 
+        // data first (TO DO)
+        console.log(keyName,searchString)
+        const {idcs, data : filteredData} = filterArrayBySearchStringBySingleKey({array : data, keyName, searchString})
+        
+        console.log(idcs,filteredData)
+        setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : idcs}})
+    }
 
     const findClosestPoint = (xaxisName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
         //find closest point 
     }
 
+
+    
     const chartProps = _.range(numberCharts).map(chartIdx => {
         const {xaxisName, yaxisName } = keyNames[chartIdx]
         return{
@@ -95,12 +115,10 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
             findDataInRectangle,
             setHoverDataInRectangle,
             handleNumericFilter,
-            hoverData : hoverData.data,
-            rerenderHover : hoverData.rerender,
-            hoverPosition : hoverData.rect,
-            rerenderBackground : backgroundScatter.rerender,
-            filterIndices : backgroundScatter.filterIndices,
-            filterRange : backgroundScatter.filterRange
+            handleStringSearch,
+            hoverProps : {hoverData : hoverData.data,rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect},
+            filterProps : {rerenderBackground : backgroundScatter.rerender, filterIndices : backgroundScatter.filterIndices,filterRange : backgroundScatter.filterRange, searchIndices : backgroundScatter.searchIndices}
+            
         }
     })  
     

@@ -44,9 +44,10 @@ export function ScatterPlot({
     limits,
     xaxisName,
     yaxisName,
-    colorName = undefined,
+    colorName = "x",
     sizeName = undefined,
     svgID = "scatterplot",
+    tooltipNames = ["label"],
     findDataInRectangle,
     setHoverDataInRectangle,
     centerXAxisAtZero = false,
@@ -54,7 +55,8 @@ export function ScatterPlot({
     rerenderHover,
     hoverPosition,
     rerenderBackground,
-    filterIndices}) {
+    filterIndices,
+    searchIndices}) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const svgRef = useRef(null);
@@ -111,6 +113,12 @@ export function ScatterPlot({
         )
     }, [xaxisName, chartWidth])
 
+    const colorScale = useMemo(() => {
+        return scaleLinear({
+            domain : [0,100],
+            range : ['#75fcfc', '#3236b8']
+        })
+    }, [colorName])
 
     const sizeScale = useMemo(() => {
         return () => defaultRadius
@@ -154,11 +162,11 @@ export function ScatterPlot({
                 {...{ chartHeight, chartWidth }} />
             <g >
             {/* Render data points */}
-            <ScatterPoints {...{data,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, rerenderDependency : rerenderBackground, filterIndices}} />
+            <ScatterPoints {...{data,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, colorName, colorScale, rerenderDependency : rerenderBackground, filterIndices, searchIndices}} />
             </g>
             <g>
             {/* Rerender hover points */}
-            <ScatterPoints {...{data : hoverData,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, fill:"red",rerenderDependency : rerenderHover}} />
+            <ScatterPoints {...{data : hoverData,valid,xScale,yScale,xaxisName,yaxisName,sizeScale,sizeName, colorName : undefined, fill:"red",rerenderDependency : rerenderHover}} />
             </g>
             <rect x={0} y={0} width={width} height={height} onMouseMove={handeMouseHover} fill="transparent"/>
         </SVG >
@@ -169,8 +177,9 @@ export function ScatterPlot({
                 top={hoverPosition[1]}
                 left={hoverPosition[0]}
                 >   
-                    <div className="flex flex-column center-items">
-                        {hoverData.map((v,idx) => idx < 10?<div>{v.x}</div>:null)}
+                    <div className="flex flex-column justify-start">
+                        {hoverData.map((v,idx) => idx < 10?<div key={`${idx}-hover`}>
+                            {v[tooltipNames[0]]}</div>:null)}
                     </div>
                 </TooltipInPortal>
             )}
