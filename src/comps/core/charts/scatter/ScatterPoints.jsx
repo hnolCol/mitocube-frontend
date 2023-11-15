@@ -39,6 +39,7 @@ function ScatterPoints({
                 if (filterByIdx && !filterIndices.has(idx)) return null 
                 
                 return <circle 
+                //dont use opacity, very very slow on safari 
                     cx={xScale(d[xaxisName])} 
                     cy={yScale(d[yaxisName])} 
                     r={sizeScale(d[sizeName])} 
