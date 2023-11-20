@@ -47,6 +47,7 @@ import AdminAttributes from "./comps/admin/Attributes";
 import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
 import Loading from "./comps/core/base/loading";
+import DatasetSelection from "./comps/dataset/selection";
 
 
 const initAuthenticationStatus = {
@@ -156,27 +157,28 @@ function App() {
 
         <Route path="/dataset/:dataID" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-              <DatasetHeader/>
+              <DatasetHeader {...{authenticationStatus, logout}}/>
             </ProtectedRoute>}>
-            <Route path="/dataset/:dataID" element={<DatasetOverview />} />
-            <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot />} />
-            <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap />} />
-            <Route path="/dataset/:dataID/pca" element={<DatasetPCA />} />
-            <Route path="/dataset/:dataID/qc" element={<DatasetQC />} />
+            <Route path="/dataset/:dataID" element={<DatasetOverview {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/pca" element={<DatasetPCA {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/qc" element={<DatasetQC {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/mitomap" element={<h3>MitoMap</h3>} />
-            <Route path="/dataset/:dataID/timeline" element={<Timeline />} />
+            <Route path="/dataset/:dataID/timeline" element={<Timeline {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
           </Route>
 
       <Route path="/dataset" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-              <div>
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+              <DatasetSelection {...{authenticationStatus, logout}}/>
+              {/* <div>
                 <h3>Datasets Selection</h3>
                 <p>Pleaase select a dataset to explore. Tag based search supported.</p>
                 <p>Previous selected datasets ...</p>
                 <Link to="/dataset/8dlTWpi5MMhF">Dataset1</Link>
                 <ScatterPlot width={400} height={300} data={[{"x":2,"y":3},{"x":4,"y":5}]} xaxisName={"x"} yaxisName={"y"} />
-              </div>
+              </div> */}
               
           </ProtectedRoute>} />
         {/* Performance Routes */}
@@ -208,7 +210,7 @@ function App() {
             <Route path="/submission/a" element={<h3>Submission Overview</h3>}/>
             <Route path="/submission/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route path="/submission/statistics" element={
-              <SubmissionStatistics/>} />
+              <SubmissionStatistics {...{authenticationStatus, logout}}/>} />
       </Route>
       
       <Route path="/admin" element={

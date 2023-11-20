@@ -9,7 +9,7 @@ import { useMemo, useState } from "react"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../../services/arrays/filter"
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric"
-import { createFakeAttribute } from "../../../../services/attributes"
+import { createFakeAttributeValue } from "../../../../services/attributes"
 
 AttributeGrouping.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
@@ -47,7 +47,45 @@ function AttributeSelectionHeader({
     )
 }
 
+function GenotypeContextMenu({ }) {
+    
+    return (
+        <Menu>
+            <MenuItem text="Genotypes" disabled={true} />
+            <MenuDivider/>
+        </Menu>
+    )
+}
 
+function ReplicateContextMenu({numberReplicates, onReplicateChange, selectedRows }) {
+    
+    return (
+        <Menu>
+            <MenuItem text="Replicates." disabled={true} />
+            <MenuDivider /> 
+            {numberReplicates === 0 ? <MenuItem text="Select the number of replicates above." /> :
+                <Menu>
+                    <MenuItem text="Fill pattern" disabled={true} />
+                    <MenuItem text="1,2,3 ... 1,2,3" onClick={() => onReplicateChange(selectedRows,undefined,0)}/>
+                    <MenuItem text={`1,1,1 ... ${_.join([numberReplicates, numberReplicates, numberReplicates], ",")}`}
+                        onClick={() => onReplicateChange(selectedRows, undefined, 1)} />
+                    <MenuDivider />
+                    <NumericValueInput
+                        placeholder={`Select replicate`}
+                        callbackKey={"replicate"}
+                        submitButton={true}
+                        buttonProps={{
+                            intent: "primary",
+                            icon: "rocket"
+                        }}
+                        minValue = {1}
+                        maxValue = {_.toNumber(numberReplicates)}
+                        onButtonClick={(callbackKey, replicate) => onReplicateChange(selectedRows,_.toInteger(replicate),undefined)}
+                        />
+        </Menu>}
+    </Menu>
+    )
+}
 
 
 
@@ -71,7 +109,7 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
                         onClick={(e) => onAttributeSelect(attributeTag, attributeValue,rowIdces)}
                         key={attributeValue.name}
                         text={attributeValue.name}
-                        label={attributeValue.details}
+                        labelElement={<div style={{ width: "18rem", textAlign : "right" }}>{attributeValue.details}</div>}
                         role="listoption" />)}
             </Menu>
             <MenuDivider />
@@ -118,13 +156,26 @@ function AttributeGrouping({
     }
 
     const getSampleAttrIndex = (columnIndex) => {
-        return columnIndex - 2
+        return columnIndex - 3
     }
 
     const getGroupingAttributeByColumnIndex = (columnIndex) => {
         const groupingInfo = getGroupingInfoByColumnIndex(columnIndex)
         if (!_.isObject(groupingInfo)) return undefined
         return groupingInfo.attribute
+    }
+
+
+    const handleNumericInput = (numericInput, attrValues, attribute, selectedRows) => {
+        const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.name === _.toString(numericInput))
+        console.log(attributeAlreadyPresent)
+        if (attributeAlreadyPresent.length > 0) {
+            const attrValueMatches = attributeAlreadyPresent[0]
+            onAttributeSelect(attribute.tag, attrValueMatches, selectedRows)
+        }
+        else {
+            onAttributeSelect(attribute.tag, createFakeAttributeValue({ ... { attribute, numericInput } }), selectedRows)
+        }
     }
 
     const renderBodyContextMenu = (r) => {
@@ -135,32 +186,8 @@ function AttributeGrouping({
         if (sampleNames.length === 0) return <Menu><MenuItem text="Set number of samples first." disabled={true} /></Menu>
 
         //replicates menu 
-        console.log(columnIndex === 1, numberReplicates)
-        if (columnIndex === 1) return <Menu>
-            <MenuItem text="Replicates." disabled={true} />
-            <MenuDivider /> 
-            {numberReplicates === 0 ? <MenuItem text="Select the number of replicates above." /> :
-                <Menu>
-                    <MenuItem text="Fill pattern" disabled={true} />
-                    <MenuItem text="1,2,3 ... 1,2,3" onClick={() => onReplicateChange(selectedRows,undefined,0)}/>
-                    <MenuItem text={`1,1,1 ... ${_.join([numberReplicates, numberReplicates, numberReplicates], ",")}`}
-                        onClick={() => onReplicateChange(selectedRows, undefined, 1)} />
-                    <MenuDivider />
-                    <NumericValueInput
-                        placeholder={`Select replicate`}
-                        callbackKey={"replicate"}
-                        submitButton={true}
-                        buttonProps={{
-                            intent: "primary",
-                            icon: "rocket"
-                        }}
-                        minValue = {1}
-                        maxValue = {_.toNumber(numberReplicates)}
-                        onButtonClick={(callbackKey, replicate) => onReplicateChange(selectedRows,_.toInteger(replicate),undefined)}
-                        />
-                    </Menu>
-            }
-        </Menu>
+        if (columnIndex === 1) return <ReplicateContextMenu {...{ numberReplicates, onReplicateChange, selectedRows }} />
+        if (columnIndex === 2) return <GenotypeContextMenu {...{}}/>
         let groupingInfo = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
 
@@ -168,13 +195,27 @@ function AttributeGrouping({
         //find row indices from the selected region
         //attribute.allow_features_as_values ? attributeValuesByID[-1] : 
         let attributeValues = groupingInfo === undefined ? [] : attributeValuesByID[groupingInfo.attribute.id]
+        const valuesAlreadyUsed = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag].map(attrValue => attrValue.name))))
+
         // if there is no attribute values, then a numeric value can be inserted by the user
         if (attribute.allow_features_as_values) {
-            return <Menu><MenuItem text="Select protein sequence..." onClick={() => handleFeatureSelection(attribute, true, selectedRows)}/></Menu>
+            return <Menu><MenuItem
+                text="Select protein sequence..."
+                onClick={() => handleFeatureSelection({ attribute, isSampleAttribute: true, rowIdces: selectedRows })} />
+            </Menu>
         }
-        else if (!_.isArray(attributeValues)) return (<Menu>
+        else if (attribute.allow_numeric_input) return (<Menu>
             
             <MenuItem text="Enter numeric value." disabled={true} />
+            <MenuDivider />
+            {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
+            {attributeValues.map(attrValue => <MenuItem
+                key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
+                text={attrValue.name}
+                labelElement={<div style={{ width: "18rem", textAlign : "right" }}>{attrValue.details}</div>}
+                onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
+            }
+            
             <NumericValueInput
                 placeholder={`${groupingInfo.attribute.name}`}
                 callbackKey={groupingInfo.attribute.tag}
@@ -183,7 +224,7 @@ function AttributeGrouping({
                     intent: "primary",
                     icon: "rocket"
                 }}
-                onButtonClick={(attributeTag, attributeValue) => onAttributeSelect(attributeTag, createFakeAttribute({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
+                onButtonClick={(attributeTag, attributeValue) => handleNumericInput(attributeValue,attributeValues,attribute,selectedRows)}  //onAttributeSelect(attributeTag, createFakeAttributeValue({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
                 />
             {selectedRows.length > 0 ?
                 <Menu>
@@ -342,7 +383,7 @@ function AttributeGrouping({
                     defaultRowHeight={30}
                     selectionModes={SelectionModes.CELLS}
                     //columnWidths={_.concat([220],_.range(groupings.length).map(_ => undefined),[50])}
-                    minColumnWidth={220}
+                    minColumnWidth={120}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
@@ -351,6 +392,9 @@ function AttributeGrouping({
                     <Column
                         cellRenderer={renderCell}
                         columnHeaderCellRenderer={() => renderDefaultHeader("Replicates")} />
+                    <Column
+                        cellRenderer={renderCell}
+                        columnHeaderCellRenderer={() => renderDefaultHeader("Genotype")} />
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.name}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
                     <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">

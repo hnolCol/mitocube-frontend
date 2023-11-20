@@ -19,11 +19,52 @@ export function getUniqueValuesFromArrayOfObjectsByKey(data = []) {
 }
 
 export function groupListByProperty(data, propertyName = "id") {
+    if (!_.isArray(data) || data.length === 0) return {}
     return data.reduce((groups, item) => ({
         ...groups,
         [item[propertyName]]: [...(groups[item[propertyName]] || []), item]
       }), {});
 }
+
+export function arrayOfObjectsToObjectByProperty(data = [], propertyName) {
+    return Object.fromEntries(data.map(item => [item[propertyName],item]))
+}
+
+
+export function getUniqueSetsOfAllValuesinArrayOfObjects(data = []) {
+
+    return data.reduce((acc, item) => {
+        Object.keys(item).forEach(keyName => acc[keyName] ??= { values: new Set(), counts: {} })
+        Object.keys(item).forEach(keyName => {
+            item[keyName].forEach(attrValueTag => {
+                acc[keyName].counts[attrValueTag] ??= 0
+            if (!acc[keyName].values.has(attrValueTag)) {
+                acc[keyName].values.add(attrValueTag)
+                } 
+                acc[keyName].counts[attrValueTag] += 1
+            })
+        })
+        return acc 
+        }
+    , {})
+
+}
+
+
+export function getUniqueValuesAndCountsFromList(data) {
+    return _.flatten(data).reduce((acc, item) => {
+        
+        acc.counts[item] ??= 0 
+        if (!acc.values.has(item)) {
+            acc.values.add(item)
+        }
+        acc.counts[item] += 1
+        return acc
+    }, { values: new Set(), counts: {} })
+}
+
+
+
 
 export function getAverageAndErrorByGroups(
     data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],

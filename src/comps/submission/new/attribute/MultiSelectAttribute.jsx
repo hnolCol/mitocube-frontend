@@ -19,26 +19,35 @@ function AttributeInput({ attribute,
     selectedItems = [],
     onItemSelect = undefined,
     onRemove = undefined,
+    onItemCreate = undefined,
     helperText = "",
     matchTargetWidth = true,
     searchColumns = ["name", "details"],
     maxItemsShown = 30,
-    minimumSearchStringLength = 2,
+    minimumSearchStringLength = 0,
     handleFeatureSelection = undefined,
+    showLabel = true,
+    inline = false,
+    placeholder = "Search..",
     disabled = false, ...rest }) {
     //Atribute Input
 
     const selectedItemsIDs = selectedItems.map(item => item.id)
-
     const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
-        
+        const queryLength = query.length
+        const justNumbersString = query.replace(/[^\d.]/g, "")
         if (attribute.allow_features_as_values && attributeValues.length === 0) {
             return <Menu>
-                <MenuItem text="Select protein feature..." onClick={() => handleFeatureSelection(attribute)}/>
+                <MenuItem text="Select protein feature..." onClick={() => handleFeatureSelection({ attribute })} />
             </Menu>
         }
-
         return <Menu>
+            {filteredItems.length === 0 && attribute.allow_numeric_input ? <MenuItem
+                icon={queryLength ? "add" : "blank"}
+                text={queryLength === 0 ? "Enter numeric value to create item" : `Create: ${justNumbersString}`}
+                disabled={!queryLength || !_.isFinite(_.toNumber(justNumbersString))}
+                onClick={() => onItemCreate(attribute,justNumbersString)}/> : null}
+            {filteredItems.length === 0 && !attribute.allow_numeric_input? <MenuItem text="No attribute values found." disabled={true} />: null}
             {filteredItems.map((attrValue, attrIdx) => {
                 if (attrIdx < maxItemsShown) return <MenuItem
                     key={`${attrValue.id}-${attribute.tag}`}
@@ -47,13 +56,14 @@ function AttributeInput({ attribute,
                     active={activeItem.id === attrValue.id}
                     text={attrValue.name}
                     onClick={() => onItemSelect(attribute, attrValue)}
-                    labelElement={<div style={{ maxWidth: "18rem" }}>{attrValue.details}</div>} />
+                    labelElement={<div style={{ maxWidth: "24rem", textAlign : "right" }}>{attrValue.details}</div>} />
                 
                 if (attrIdx === maxItemsShown) return <MenuItem key={`items-not-show${attribute.id}`} text="Not all items shown ..." disabled={true} /> 
 
                 return null 
                         
             })}
+            
 
         </Menu>
     }
@@ -71,23 +81,27 @@ function AttributeInput({ attribute,
 
     const filterItems = (searchString, items) => {
         if (searchString === "") return items 
-        if (searchString.length <= minimumSearchStringLength) return items
+        if (searchString.length < minimumSearchStringLength) return items
         const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns, searchString })
         return filteredAttributeValues
     }
     return (
         <FormGroup
-            label={attribute.name}
+            style={{margin : "0.1rem"}}
+            label={showLabel?attribute.name:""}
             labelInfo={isRequired ? "(required)" : "(optional)"}
-            inline={false}
+            inline={inline}
             disabled={disabled}
             helperText={helperText}>
             
             <MultiSelect
                 disabled={disabled}
+                
                 popoverProps={{ matchTargetWidth, minimal: true }}
                 resetOnQuery={true}
                 resetOnSelect={true}
+                //createNewItemFromQuery={numericInput => console.log(numericInput)}
+                //renderCreateFilmsMenuItem={(query, active, handleClick) => <MenuItem text="Create" shouldDismissPopover={false} />}
                 fill={true}
                 tagInputProps={{
                     tagProps: {minimal : true},
@@ -98,7 +112,7 @@ function AttributeInput({ attribute,
                 tagRenderer={renderSelectedItemAsTag}
                 onItemSelect={(item) => onItemSelect(attribute, item)}
                 onRemove = {(item,index) => onItemSelect(attribute,item)}
-               { ...{selectedItems}}/>
+               { ...{selectedItems, placeholder}}/>
         </FormGroup>
     )
 }

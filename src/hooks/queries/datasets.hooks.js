@@ -2,13 +2,51 @@ import { useQuery } from "react-query";
 import axios from "axios"
 
 
+async function getDatasetForSelection_API({ tokenString }) {
+    const res = axios.get('/api/datasets',
+    {
+        headers: {
+            "Authorization": `Bearer ${tokenString}`,
+            'Content-Type': 'application/json'
+        }
+      })
+    return res.data
+}
+
+export const useGetDatasetForSelection = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["getDatasetForSelection"],() =>  getDatasetForSelection_API({...APIParams}), useQueryOptions)
+}
+
+
+
+async function getDatasetMetadata_API({ tokenString, dataset_label }) {
+    const res = await axios.get('/api/datasets/'+dataset_label+'/meta',
+        {
+            headers : {
+                "Authorization": `Bearer ${tokenString}`,
+                'Content-Type': 'application/json'
+            }}
+    )
+    return res.data
+
+}
+
+export const useGetMetadata = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["getDatasetmeta",APIParams.dataset_label],() => getDatasetMetadata_API({...APIParams}), useQueryOptions)
+}
+
+
+//// 
+
+
+
+
 
 
 // get all datasets and its details from the API 
 async function getDatasets_API(filters) {
     const res = await axios.get('/api/dataset/details', { params: { filters : filters } })
     return res.data 
-
 }
 
 export const useGetDatasets = (filters = {}, useQueryOptions = {}) => {

@@ -8,6 +8,8 @@ function APIError({ error }) {
     if (_.has(errorResponse, ["data", "detail"]) && _.isString(errorResponse.data.detail)) {
         extraDetail = errorResponse.data.detail
     }
+
+    if (errorResponse === undefined) return <p>Unknown error.</p>
     return (
         <div className="flex flex-column center-items ">
             <div className="font-size--small font-color--red font-weight--bold">

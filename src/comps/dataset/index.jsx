@@ -7,10 +7,10 @@ import { useState } from "react";
 
 function DatasetHeader({token = "43453asda"}) {
     const params = useParams()
-    const dataID = params.dataID
-    const urlStart = `/dataset/${dataID}`
+    const dataset_label = params.dataID
+    const urlStart = `/dataset/${dataset_label}`
     const [tabHeader, setTabHeader] = useState("")
-    const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
+    // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
     
     return (
         <div className="no-scroll div--expand">
@@ -24,9 +24,9 @@ function DatasetHeader({token = "43453asda"}) {
                     { text: "MitoMap", to: `${urlStart}/mitomap` }, 
                     { text: "QC", to: `${urlStart}/qc` },
                     { text: "Timeline", to: `${urlStart}/timeline` },
-                    { text: "Help", to : `${urlStart}/help`}]} />
-            
-            <Outlet context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}}/>
+                    { text: "Help", to : `${urlStart}/help`}]} />   
+            {/* context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}} */}
+            <Outlet context={{dataset_label, tabHeader, setTabHeader}}/>
            
             
         </div>

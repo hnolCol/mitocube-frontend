@@ -1,9 +1,14 @@
 import { useMemo } from "react"
-import { useGetSubmissions } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions } from "../../../hooks/queries/submission.hooks"
 import _ from "lodash"
 import LineChart from "../../core/charts/linechart"
 import { getAndTransformDatesFromArrayOfObjectsByKey } from "../../../services/arrays/transforms"
 import APIError from "../../core/error/APIerror"
+import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby"
+import { AttributeFilterSelection, StateFilterButton, UserFilterSelection } from "../view/SubmissionContainer"
+import { Button } from "@blueprintjs/core"
+import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
+import { useOutletContext } from "react-router"
 
 function combineMultipleParamFilesFromSubmissions(submissions, dateHeader = "Creation Date") {
     if (_.isArray(submissions)) {
@@ -45,23 +50,57 @@ function combineMultipleParamFilesFromSubmissions(submissions, dateHeader = "Cre
 }
 
 
-function SubmissionStatistics({ }) {
+function SubmissionStatistics({authenticationStatus}) {
     //fetch data from API
-    const { isSuccess, isLoading : submissionIDLoading, isFetching : submissionIDFetching, isError : submissionIsError, error : submissionAPIError, data } = useGetSubmissions()
-    const paramFilesWithDate = useMemo(() => { return isSuccess && _.isObject(data) && _.has(data, "submissions") ? combineMultipleParamFilesFromSubmissions(data.submissions) : {} }, [data])
+    // const { isSuccess, isLoading : submissionIDLoading, isFetching : submissionIDFetching, isError : submissionIsError, error : submissionAPIError, data } = useGetSubmissions()
+    // const paramFilesWithDate = useMemo(() => { return isSuccess && _.isObject(data) && _.has(data, "submissions") ? combineMultipleParamFilesFromSubmissions(data.submissions) : {} }, [data])
+    //fetch data from API
+    const { submissionFilter, setSubmissionFilter,attributeSearchQuery, setAttributeSearchQuery } = useOutletContext() 
 
-    if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
-    if (submissionIDLoading || submissionIDFetching) return <div>Loading...</div>
+    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions({ tokenString: authenticationStatus.token })    
+    const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
+    const { data: states, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
+        { staleTime: Infinity }) //request only once. 
+    const { data: attributesByTag } = useGetSubmissionAttributesByTag({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+
+    if (!_.isArray(submissions) || !_.isArray(users) || !_.isObject(attributesByTag)) return null 
+    const submissionsByState = groupListByProperty(submissions, "state")
+    const userLabelsInSubmssion = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
+    const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
+    // if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
+    // if (submissionIDLoading || submissionIDFetching) return <div>Loading...</div>
 
     return (
-        <div>
-            {_.isArray(paramFilesWithDate) ?
-                <LineChart data={paramFilesWithDate} xAxisIsTime={true} xaxisName="asDate" yaxisNames={["SampleNumber"]} tooltipCircleNames={["Creation Date","dataID","SampleNumber"]} /> : null}
+        <div className="flex" style={{ width: "100%" }}>
+            <div className="flex flex-column submission__side__filter__container ">
+                <h3>States</h3>
+                <div className="flex flex-column">
+                    {Object.keys(states.states).map(stateName => {
+                        const state = states.states[stateName]
+                        const numSubmssionsInState = _.has(submissionsByState,state)?submissionsByState[state].length:0
+                        return <StateFilterButton
+                        numberSubmissionWithTag={numSubmssionsInState}
+                        key={stateName}
+                        {...{ submissionFilter, setSubmissionFilter, stateName, states }} />})}
+                </div>
+                <div>
+                    <UserFilterSelection {...{submissionFilter,setSubmissionFilter,users : users.users,userLabelsInSubmssion}} />
+                    <AttributeFilterSelection {...{uniqueAtributesInSubmissions,attributesByTag,submissionFilter, setSubmissionFilter, attributeSearchQuery, setAttributeSearchQuery}} />
+                    <h3>Options</h3>
+                    <Button minimal={true} text="Clear Filter" onClick={() => setSubmissionFilter({})}/>
+                </div>
+            </div>
 
+        <div className="submission__items__container">
+            
+            <h1>Time Series</h1>
+            {/* {_.isArray(paramFilesWithDate) ?
+                <LineChart data={paramFilesWithDate} xAxisIsTime={true} xaxisName="asDate" yaxisNames={["SampleNumber"]} tooltipCircleNames={["Creation Date","dataID","SampleNumber"]} /> : null} */}
 
+            <h1>Count plots</h1>
 
-
-        </div>
+            </div>
+            </div>
     )
 }
 

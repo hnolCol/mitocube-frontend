@@ -7,7 +7,7 @@ import { Button } from "@blueprintjs/core"
 
 
 
-function FeatureSelection({authenticationStatus,selectedItems = [], attribute, organisms = [], isSampleAttribute, onSave = undefined, rowIdces = []}) {
+function FeatureSelection({authenticationStatus,selectedItems = [], attribute, organisms = [], isSampleAttribute, onSave = undefined, rowIdces = [], genotypeLabel = undefined, entryIdx = 0}) {
     // feature selection for attributes
     const [selectedFeatures, setSelectedFeatures] = useState(selectedItems)
     const { data: features, isLoading, isFetching } = useGetAnnotationFeatures({ tokenString: authenticationStatus.token, organisms })
@@ -16,7 +16,6 @@ function FeatureSelection({authenticationStatus,selectedItems = [], attribute, o
         //add remove feature
         setSelectedFeatures(addItemToArrayOrRemoveItIfPresent({ array: selectedFeatures, item: updatedItem }))
     }
-    
 
     return (
         <div >
@@ -31,7 +30,7 @@ function FeatureSelection({authenticationStatus,selectedItems = [], attribute, o
                     onRemove={handleFeatureSelection} />
                 <div>
                     
-                    <Button text="Save" intent="primary" onClick={() => onSave(attribute,selectedFeatures,isSampleAttribute,rowIdces)}/>
+                    <Button text="Save" intent="primary" onClick={() => onSave(attribute,selectedFeatures,isSampleAttribute,rowIdces,genotypeLabel,entryIdx)}/>
                     </div>
             </div>}
         </div>

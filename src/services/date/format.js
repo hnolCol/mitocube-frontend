@@ -6,7 +6,7 @@ const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric
 
 export function getFormatDateFromTimestamp(timestamp) {
    const m = moment.unix(timestamp)
-   return [m, m.format("YYYYMMDD")]
+   return [m, m.format("YYYY-MM-DD")]
 }
 
 export function getCurrentDate() {

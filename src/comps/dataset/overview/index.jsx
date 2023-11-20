@@ -11,25 +11,35 @@ import { copyTextToClipboard } from "../../../services/clipboard";
 import HelpOverlay from "../../core/overlay/Helpoverlay";
 import {useOnScreen} from "../../../hooks/useOnScreen";
 import { readDateFromString, readDateFromStringAndReturnDateAndDistToNow } from "../../../services/date/read";
+import { useGetMetadata } from "../../../hooks/queries/datasets.hooks";
+import { getFormatDateFromTimestamp } from "../../../services/date/format";
+import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
+import { StateIndicator } from "../../submission/view/SubmissionContainer";
+import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
+import { groupListByProperty } from "../../../services/arrays/groupby";
 
-function AuthorList({
-    authors = [{ name: "Hendrik Nolte", email: "h.nolte@age.mpg.de", owner: true }, { name: "Andreas Lindner", email: "a.l@uni-bonn.de", owner: false }],
-    emailSubject = "" }) {
+function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
     
+    const { data: users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
+    if (!_.isObject(users)) return null 
+    const userByLabel = groupListByProperty(users.users, "label")
+    const datasetUserLabels = _.concat(user, collaborators).filter(userLabel => _.has(userByLabel,userLabel))
     return (
         <div className="flex">
-            {authors.map((authorProps, idx) => {
+            {datasetUserLabels
+                .map((userLabel, idx) => {
+                const user = userByLabel[userLabel][0]
                 return (
-                    <div className="flex intent-margin-right--little div--round" key={`${authorProps.email}-${idx}`}>
+                    <div className="flex intent-margin-right--little div--round" key={`${user.email}-${idx}`}>
                             <a
-                                href={`mailto:${authorProps.email}?cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}&subject=${emailSubject}`}
+                                href={`mailto:${user.email}?subject=${emailSubject}`} //cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}
                                 className="router-link">
-                            <div className={authorProps.owner ? "h2-span" : "h0-span"}>
-                                {authorProps.name}
+                            <div className={idx === 0 ? "h2-span" : "h0-span"}>
+                                {`${user.firstname} ${user.lastname}`}
                             </div>
                         </a>
-                        {authors.length > 1?
-                            idx === authors.length - 2 ? <div>, and</div> : idx !== authors.length - 1?<div>,</div> : null : null}
+                        {datasetUserLabels.length > 1?
+                            idx === datasetUserLabels.length - 2 ? <div>, and</div> : idx !== datasetUserLabels.length - 1?<div>,</div> : null : null}
                         </div>
                 )
             })}
@@ -133,63 +143,50 @@ function DatasetInfoContainer({datasetInfo,dataID, isFetched, setTabHeader}) {
 }
 
 
-function DatasetOverview({ }) {
+function DatasetOverview({authenticationStatus}) {
 
-    const { datasetInfo, dataID, isLoading, isFetched, isError, error, setTabHeader } = useOutletContext()    
-    
+    const { dataset_label, setTabHeader, tabHeader } = useOutletContext()    
+    console.log(dataset_label)
+    const {data : metadata} = useGetMetadata({tokenString : authenticationStatus.token, dataset_label})
 
-    if (isError) return <APIError error={error} />
-    if (isLoading) return <div>Loading...</div>
+    console.log(metadata)
+    const headerRef = useRef(null)
+    const isVisible = useOnScreen(headerRef)
+
+    // useEffect(() => {
+    //     if (_.isObject(metadata) && _.has(metadata, ["title"]) && !isVisible) {
+    //         setTabHeader(metadata.title)
+    //     }
+    //     else {
+    //         setTabHeader("")
+    //     }
+    // }, [isVisible])
+    if (!_.isObject(metadata)) return null
+    const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
+     
+    // if (isError) return <APIError error={error} />
+    // if (isLoading) return <div>Loading...</div>
     return (
-        <DatasetInfoContainer {...{datasetInfo,setTabHeader,dataID, isFetched}} />
-        // <div className="container--scroll-y-hide-x div--expand intent-margin-top">
-            
-        //     <div id="top" className="flex flex-column center-items">
-        //         <div ref={headerRef} className="intent-margin-top">
-        //         <Header text={datasetInfo.info.Title} fontSize="1.8rem" />
-        //         </div>
-        //         <AuthorList emailSubject={`Related to dataset '${datasetInfo.info.Title}'`} />
-                
-           
-        //         <div id="keyfigures" className="intent-margin-top">
-        //         <MultipleMetrices metrices={keyfigureMetrices}/>
-        //         </div >
-                
-        //     <div id = "groupings" className="flex justify-space-around intent-margin-top">
-        //         <GroupingTable grouping={datasetInfo.info.groupings} />
-        //     </div>
-            
-        //     </div>
-            
-        //     <div id="expinfo" className="intent-margin-left intent-margin-right--little">
-        //     <div> Experimental Information</div>
-        //     {_.has(datasetInfo.info, experimentInfoName) ?
-        //         datasetInfo.info[experimentInfoName].map((expInfoProps, expInfoIdx) => {
-        //             if (!(_.has(expInfoProps,"title") && _.has(expInfoProps,"details"))) return null 
-        //             return (
-        //                 <ExperimentalInfo key={`${expInfoIdx}-${expInfoProps.title}`} {...expInfoProps}/>
-        //             )
-        //         })
-        //     : null}
-        //     </div>
+        <div>
+             <div id="top" className="flex flex-column center-items">
+                <div ref={headerRef} className="intent-margin-top">
+                <Header text={metadata.title} fontSize="2.5rem" hexColor={"#000000"} fontWeight={300}/>
+                </div>
+                <AuthorList {...{
+                    authenticationStatus,
+                    user: metadata.user_label,
+                    collaborators: metadata.collaborators,
+                    emailSubject : `Related to dataset ${metadata.title} (${metadata.label})`
+                }} />
+                <div className="font-size--small intent-margin-top--little">
+                    {m.fromNow()}
+                    <div>
+                        <StateIndicator state={metadata.state} {...{authenticationStatus}} />
+                    </div>
+                </div>
 
-        //     <div id="rawfiles" className="intent-margin-left intent-margin-right--little">
-        //         <div>Raw files</div>
-        //         {_.range(100).map(i => <p>{i}</p>)}
-        //     </div>
-
-        //     <HelpOverlay header="Content">
-        //         <div className="flex flex-column">
-        //         <a href="#top">Top</a>
-        //         <a href="#expinfo">Experimental Information</a>
-        //         <a href="#rawfiles">Raw files</a>
-        //         </div>
-                
-        //     </HelpOverlay>
-           
-        // </div>
-    )
-}
-
+            </div>
+        </div>
+        )}
 
 export default DatasetOverview

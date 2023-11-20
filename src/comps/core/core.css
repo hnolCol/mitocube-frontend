@@ -51,6 +51,13 @@ h4 {
     padding : 0rem;
 }
 
+h5 {
+    margin-top : 0.0rem;
+    margin-bottom: 0.2rem;
+    padding : 0rem;
+    font-weight: 400;
+}
+
 /* Background containers */
 
 .bg--grey {
@@ -167,7 +174,7 @@ h4 {
 /* Margins */
 
 .margin--little {
-    margin : 0.2rem
+    margin : 0.25rem
 }
 .margin--very-little{
     margin : 0.1rem
@@ -195,6 +202,9 @@ h4 {
 }
 .intent-margin-right--little {
     margin-right: 0.5rem;
+}
+.intent-margin-right--tiny {
+    margin-right: 0.2rem;
 }
 .intent-margin-left--little {
     margin-left: 0.5rem;

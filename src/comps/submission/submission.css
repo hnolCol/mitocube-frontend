@@ -1,34 +1,70 @@
 
 
+
 .submission__items__container {
-    max-height :  calc(100vh - 5rem - 145px);
+    max-height :  100%;
+    width: 100%;
     overflow-y: scroll;
     padding-bottom: 3rem;
+    padding-right: 2rem;
+    padding-left  : 2rem;
+    margin-left : 2rem;
+    border-left: 1px darkgrey solid;
     display: flex;
+    flex-direction: column;
     justify-content: flex-start;
-    flex-wrap: wrap;
-    
+    height : 85vh;
   }
 
+
+.submission__side__filter__container {
+  max-width: 12rem;
+  min-width: 12rem;
+  overflow-y: scroll;
+  overflow-x:hidden;
+  height: 85vh;
+  padding-bottom: 3rem;
+  padding-right: 0.2rem;
+}
+
+.submission__state_container {
+  /* Container for state specific submissions */
+  padding-bottom: 1.5rem;
+  padding-left: 0.75rem;
+  overflow-y: visible;
+
+}
+
 .submission__item__container {
+  /* Container for a submission item in a state container */
     font-size: 0.85rem;
     background-color :#fafafa;
     cursor: default;
-    border-radius: 0.25rem;
-    margin-top : 0.8rem;
-    padding-left : 0.5rem;
+    /* border-radius: 0.25rem; */
+    margin-top : 0.3rem;
+    padding-left : 0.2rem;
     box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
     transition: 0.3s;
     width : 100%;
-    margin : 1rem;
+    min-height: 2rem;
+    margin : 0.rem;
 }
 .submission__item__container:hover {
     background-color :#fff;
     transition-property: background-color;
     transition-duration: 400ms;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+    /* box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2); */
 }
 
+.submission__state__header{
+  width : 10rem;
+  font-size: 1.1rem;
+  padding-left : 1rem;
+  padding-top : 0.2rem;
+  padding-bottom : 0.1rem;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
 
 .submission__header__container {
     display: flex;
@@ -47,4 +83,23 @@
     justify-content: space-between;
     border-radius: 5px;
     position: relative;
+  }
+
+
+
+  .submssion__filter__button {
+    padding : 0px;
+    border : 0px;
+    border-radius: 0.2rem;
+    font-size: 0.75rem;
+  }
+
+
+  .submission__state__menuitem {
+    margin : 0.2rem;
+    opacity: 0.85;
+  }
+
+  .submission__state__menuitem:hover {
+    opacity: 1.0;
   }

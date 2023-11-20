@@ -1,4 +1,4 @@
-import { Button, ButtonGroup, MenuDivider, Alert, InputGroup } from "@blueprintjs/core"
+import { Button, ButtonGroup, MenuDivider, Alert, InputGroup, Dialog, DialogBody } from "@blueprintjs/core"
 import { Tooltip2 } from "@blueprintjs/popover2"
 import PropTypes from "prop-types"
 import { useEffect, useMemo, useState } from "react"
@@ -7,19 +7,24 @@ import SubmissionOverviewDialog from "./dialogs/SubmissionOverview"
 import GroupingNameDialog from "./dialogs/GroupingRename"
 import MethodEditingDialog from "./dialogs/ExperimentalInfoEditing"
 import _ from "lodash"
-import SubmissionItem from "./SubmissionItem"
 import { Combobox } from "../../core/input/Combobox"
 import { Header } from "../../core/base/Header"
-import { useGetSubmissions } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions, usePatchSubmission } from "../../../hooks/queries/submission.hooks"
 import APIError from "../../core/error/APIerror"
 import Numeric from "../../core/metrics/Numeric"
+import Loading from "../../core/base/loading"
+import { SubmissionContainer } from "./SubmissionContainer"
+import "../submission.css"
+import TextInput from "../../core/input/Text"
+import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
+import { AttributeSlectionDialog } from "./dialogs/AttributeSelectionDialog"
+import { useOutletContext } from "react-router"
 
 
-
-SubmissionView.propTypes = {
-    token: PropTypes.string.isRequired, //the token 
-    logout : PropTypes.func.isRequired //logout if API returns that the token is not valid. 
-}
+// SubmissionView.propTypes = {
+//     token: PropTypes.string.isRequired, //the token 
+//     logout : PropTypes.func.isRequired //logout if API returns that the token is not valid. 
+// }
 const initRenameGrouping = {
     isOpen: false,
     groupingNames: [],
@@ -32,8 +37,8 @@ const initExperimental = {
     paramsFile: {}
 }
 
-function SubmissionView({token,logout}) {
-
+function SubmissionView({authenticationStatus, logout}) {
+   
     const [submissionDetails, setSubmissions] = useState({
         submissions: [],
         states: [],
@@ -46,15 +51,83 @@ function SubmissionView({token,logout}) {
         submissionSummaryParams: []
     })
     
-    const [groupingRenameDetails, setGroupingRenameDetails] = useState(initRenameGrouping)
-    const [experimentalDetails, setExperimentalDetails] = useState(initExperimental)
-    const [sampleListDialog, setSampleListDialog] = useState({ isOpen: false })
-    const [subissionOverviewDialog, setSubissionOverviewDialog] = useState({ isOpen: false, dataID: undefined, paramsFile: {} })
+    const { submissionFilter, setSubmissionFilter, attributeSearchQuery, setAttributeSearchQuery} = useOutletContext() 
+    const [attributeSelectionDialog, setAttributeSelectionDialog] = useState({
+        isOpen: false,
+        attributeFilter: {},
+        prevSelectedAttributes: {},
+        submission: {},
+        newSubmissionState: undefined,
+        error : undefined,
+        isLoading: false,
+        success: false,
+        submitted : false
+    })
+    // const [groupingRenameDetails, setGroupingRenameDetails] = useState(initRenameGrouping)
+    // const [experimentalDetails, setExperimentalDetails] = useState(initExperimental)
+    // const [sampleListDialog, setSampleListDialog] = useState({ isOpen: false })
+    // const [subissionOverviewDialog, setSubissionOverviewDialog] = useState({ isOpen: false, dataID: undefined, paramsFile: {} })
     const [updatedDataIDs, setUpdatedDataIDs] = useState({})
     const [alertState, setAlertState] = useState({isOpen:false,children:<div>Warning!</div>})
     //fetch data from API
-    const { isSuccess, isLoading, isFetching, isError, error, data } = useGetSubmissions()
-
+    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
+        { staleTime: Infinity }) //request only once. 
+    
+    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions({ tokenString: authenticationStatus.token })    
+    const {data : attributesByTag} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
+    const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
+       
+    const {
+        mutate: patchSubmission,
+        isLoading: patchSubmissionIsLoading,
+        isSuccess: patchSubmissionSuccess,
+        error: patchSubmissionError,
+        isError: patchSubmissionIsError } = usePatchSubmission()
+    
+    const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState) => {
+        //datasetAttributeValues : Dict[str,List[AttributeValue]]
+        //datasetAttributes: List[Attribute]
+        
+        let datasetAttributes = Object.keys(datasetAttributeValues).map(attributeTag => attributesByTag.attributes[attributeTag])
+        console.log(datasetAttributeValues)
+        let updatedSubmission = {datasetAttributes, datasetAttributeValues}
+        const data = {
+            datasetAttributes: updatedSubmission,
+            state_change: {
+                state,
+                prev_state: prevState,
+                comment: "I just want to measure"
+            }
+        }
+        patchSubmission({ tokenString: authenticationStatus.token, label, data},
+            {
+                onSuccess: () => {
+                    setAttributeSelectionDialog(prevValues => {
+                        return {
+                            ...prevValues,
+                            isLoading: false,
+                            submitted: true,
+                            success: true
+                        }
+                    }),
+                        refetchSubmissions()
+                },
+                onError: (error) => {
+                    setAttributeSelectionDialog(prevValues => {
+                        return {
+                            ...prevValues,
+                            isLoading: false,
+                            submitted: true,
+                            success: false,
+                            error
+                        }
+                    })
+                
+                }
+            })
+        setAttributeSelectionDialog(prevValues => {return {...prevValues,isLoading : true}})
+    }
+    
 
     const getStateCounts = (states, submissions) => {
         //count the states 
@@ -66,12 +139,12 @@ function SubmissionView({token,logout}) {
         return stateCounts
     }
 
-    const stateCounts = useMemo(() => {
-        if (_.isObject(data) && _.isArray(data.states) && _.isArray(data.submissions)) {
-            return getStateCounts(data.states, data.submissions)
-        }
-        return {}
-    },[data])
+    // const stateCounts = useMemo(() => {
+    //     if (_.isObject(data) && _.isArray(data.states) && _.isArray(data.submissions)) {
+    //         return getStateCounts(data.states, data.submissions)
+    //     }
+    //     return {}
+    // },[data])
 
 
     const openRenameGroupingDialog = (dataID,paramsFile) => {
@@ -212,8 +285,14 @@ function SubmissionView({token,logout}) {
     
     return (
         <div className="no-scroll">
+            <AttributeSlectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog}} {...attributeSelectionDialog} onSubmit={handleSubmissionDatasetAttributeUpdate}/>
             
-            <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
+            
+            {isLoading || isFetching || userIsFetching || userIsLoading?
+                <Loading /> : isError ?
+                    <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") ? 
+                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users.users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, attributeSearchQuery, setAttributeSearchQuery}} /> : null}
+            {/* <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
             <SubmissionOverviewDialog
                 {...subissionOverviewDialog}
                 canEscapeKeyCancel={true}
@@ -221,7 +300,7 @@ function SubmissionView({token,logout}) {
                 paramNames={submissionDetails.submissionSummaryParams}
                 onClose={() => setSubissionOverviewDialog(prevValues => { return { ...prevValues, isOpen: false } })} />
             
-             <CreateSampleList {...sampleListDialog} onClose={setSampleListDialog} token={token} handleDataChange={handleSubmissionUpdate} />
+             <CreateSampleList {...sampleListDialog} onClose={setSampleListDialog} handleDataChange={handleSubmissionUpdate} />
             <MethodEditingDialog
                 {...experimentalDetails}
                 methodsHeader="Experimental Info"
@@ -230,9 +309,9 @@ function SubmissionView({token,logout}) {
             <GroupingNameDialog 
                 {...groupingRenameDetails}
                 closeDialog = {closeRenameGroupingDialog} 
-                changeGroupingNames={handleRenameGrouping} />
+                changeGroupingNames={handleRenameGrouping} /> */}
             
-            <div className="flex center-items justify-end intent-margin-bottom--little">
+            {/* <div className="flex center-items justify-end intent-margin-bottom--little">
             
                 {_.isObject(stateCounts) ? Object.keys(stateCounts).map((state, stateIdx) => {
                     return (
@@ -247,8 +326,8 @@ function SubmissionView({token,logout}) {
                 }
         
 
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
             <InputGroup 
                         leftIcon={"filter"} 
                         onChange={handleSearchInput}
@@ -307,36 +386,37 @@ function SubmissionView({token,logout}) {
                     </ButtonGroup>
                 </div>
             
-            </div>
-            <div className="submission__items__container">
-                {_.isObject(data) && _.isArray(data.submissions)?data.submissions.map(v => {
+            </div> */}
+            {/* <div className="submission__items__container">
+                {_.isArray(data) ? data.map(v => {
+                    return <SubmissionItem paramsFile={v}/>
 
-                    if ((submissionDetails.submissionsToShow.length === 0 &&
-                        submissionDetails.searchString === "" &&
-                        submissionDetails.submissionFilter === "None") || submissionDetails.submissionsToShow.includes(v.dataID)) {
-                        return(
-                        <SubmissionItem
-                            key = {v.dataID} 
-                            token= {token} 
-                            handleDataChange = {handleSubmissionUpdate} 
-                            openSampleListDialog = {openSampleListDialog}
-                            openRenameGroupingDialog = {openRenameGroupingDialog}
-                                openMethodEditingDialog={openMethodEditingDialog}
-                                openSubmissionOverviewDialog={openSubmissionOverviewDialog}
-                            setAlertState = {setAlertState} 
-                            states={data.states}
-                            tagNames={data.tagNames}
+                    // if ((submissionDetails.submissionsToShow.length === 0 &&
+                    //     submissionDetails.searchString === "" &&
+                    //     submissionDetails.submissionFilter === "None") || submissionDetails.submissionsToShow.includes(v.dataID)) {
+                    //     return(
+                    //     <SubmissionItem
+                    //         key = {v.dataID} 
+                    //          //= {token} token
+                    //         handleDataChange = {handleSubmissionUpdate} 
+                    //         openSampleListDialog = {openSampleListDialog}
+                    //         openRenameGroupingDialog = {openRenameGroupingDialog}
+                    //             openMethodEditingDialog={openMethodEditingDialog}
+                    //             openSubmissionOverviewDialog={openSubmissionOverviewDialog}
+                    //         setAlertState = {setAlertState} 
+                    //         states={data.states}
+                    //         tagNames={data.tagNames}
                             
-                            isUpdated = {Object.keys(updatedDataIDs).includes(v.dataID)?updatedDataIDs[v.dataID]:false}
-                            setIsUpdated = {setUpdatedState}
-                            {...v}/>)
-                    }
-                    else {
-                        return null
-                    }
+                    //         isUpdated = {Object.keys(updatedDataIDs).includes(v.dataID)?updatedDataIDs[v.dataID]:false}
+                    //         setIsUpdated = {setUpdatedState}
+                    //         {...v}/>)
+                    // }
+                    // else {
+                    //     return null
+                    // }
 
                 }): isLoading || isFetching ? <p>Loading...</p> :  isError ? <APIError error={error}/> :null}
-            </div>
+            </div> */}
         </div>
     )
 }

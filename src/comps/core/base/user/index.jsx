@@ -1,4 +1,4 @@
-import { Button, Code, Tooltip } from "@blueprintjs/core";
+import { Button, Code, Popover, Tooltip } from "@blueprintjs/core";
 import UserDashboardIcon from "../../svg/icons/dashboard/User";
 import PropTypes from "prop-types"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase";
@@ -7,6 +7,29 @@ import TooltipButton from "../buttons/TooltipButton";
 import { getFormatDateFromTimestamp } from "../../../../services/date/format";
 import moment from "moment";
 import { TagWithTooltip } from "../tags/TagWithTooltip";
+
+
+export function UserIcon({text}) {
+    return (
+        <BaseDashboardIcon width={30} height={30}>
+            <UserDashboardIcon {...{ text }} />   
+        </BaseDashboardIcon>
+    )
+}
+
+
+export function UserIconWithTooltip({text}) {
+    return (
+        <Popover content={<div>User detials</div>} interactionKind="hover" position="top">
+        <button>
+        <BaseDashboardIcon width={30} height={30}>
+            <UserDashboardIcon {...{ text }} />   
+            </BaseDashboardIcon>
+        
+            </button>
+            </Popover>
+    )
+}
 
 
 User.propTypes = {
@@ -19,17 +42,6 @@ User.propTypes = {
     label : PropTypes.string.isRequired
 }
 
-
-function Affiliation({}) {
-    
-
-    return (
-        <p>
-
-
-        </p>
-    )
-}
 
 export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, ...rest}) {
     const [m, formatedTime] = getFormatDateFromTimestamp(created_on)
