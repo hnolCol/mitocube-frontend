@@ -75,7 +75,7 @@ export function SampleAttributeTagWithTooltip({ name, values, sampleNames, attrV
                         {values[attrValueTag].map(sampleIdx => {
                             return <MenuItem text={sampleIdx}
                                 key={`${attrValueTag}-${sampleIdx}`}
-                                labelElement={<div style={{ width: "14rem", fontSize: "0.75rem", textAlign: "left" }}>{sampleNames[sampleIdx]}</div>} />
+                                labelElement={<div style={{ width: "16rem", fontSize: "0.75rem", textAlign: "left", wordWrap : "break-word"}}>{sampleNames[sampleIdx]}</div>} />
                         })}
                         </MenuItem>
                 })}

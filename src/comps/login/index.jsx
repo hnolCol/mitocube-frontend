@@ -76,7 +76,7 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                 <div className="intent-margin-bottom--little">
                     <Header text="User Login" />
                 </div>
-                <WellPlate96 />
+                {/* <WellPlate96 /> */}
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     
