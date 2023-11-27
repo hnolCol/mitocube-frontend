@@ -1,8 +1,8 @@
 import { Button, ContextMenu, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
 import { Header } from "../../core/base/Header";
-import { AttributeTagWithTooltip, TagWithTooltip } from "../../core/base/tags/TagWithTooltip";
-import { User, UserIcon } from "../../core/base/user";
+import { AttributeTagWithTooltip, SampleAttributeTagWithTooltip, TagWithTooltip } from "../../core/base/tags/TagWithTooltip";
+import { User, UserIcon, UserIconWithTooltip } from "../../core/base/user";
 import { BaseDashboardIcon } from "../../core/svg/icons/dashboard/IconBase";
 import UserDashboardIcon from "../../core/svg/icons/dashboard/User";
 
@@ -12,6 +12,10 @@ import BasicMenu from "../../core/menu";
 import _ from "lodash"
 import { isHexColorLight } from "../../../services/colors";
 import { titleFormat } from "../../../services/format/string";
+
+
+
+
 
 function StateSubMenu({states, stateName, onStateChange}) {
     const inState = states.states[stateName]
@@ -50,13 +54,14 @@ export function SubmissionItem({
     attributesByTag = {},
     attributeValuesByTag = {},
     setAttributeSelectionDialog,
+    usersByLabel
 }) {
-
-    const usersPartInSubmission = _.concat([submission.user_label],submission.collaborators)
+    
+    const usersPartInSubmission = _.concat([submission.user_label], submission.collaborators)
+   
     const [m, formatedTime] = getFormatDateFromTimestamp(submission.created_on)
 
     const handleStateChange = (state) => {
-        console.log(state)
         setAttributeSelectionDialog(prevValues => {
             return {
                 ...prevValues,
@@ -73,11 +78,15 @@ export function SubmissionItem({
 
         <ContextMenu
             content={<Menu small={true}>
+                <MenuItem text={submission.label}/>
                 <MenuDivider />
+                {/* <MenuItem text={"Users"}>
+                    {usersPartInSubmission.map(userLabe => )}
+                </MenuItem> */}
                 <MenuItem text="State">
-                    <MenuItem />
                     <StateSubMenu {...{stateName,states,onStateChange : handleStateChange}} />
                 </MenuItem>
+                
         </Menu>}>
         <div
             className="submission__item__container bg--white padding--little"
@@ -85,16 +94,45 @@ export function SubmissionItem({
             onMouseEnter={() => handleMouseOver(submission.label)}
             onMouseLeave={() => handleMouseOver(undefined)}>
             <div className="bg--grey margin--little padding--little">
-            
+            <div className="flex justify-space-between" >
             <div className="flex flex--wrap center-items">
                 
                 {/* {usersPartInSubmission.map(user => <UserIcon />)} */}
                 
                 <div>{m.fromNow()} ({formatedTime})</div>
                 
-                <div style={{paddingLeft : "1rem"}}>{submission.title}</div>
+                <div style={{paddingLeft : "1rem", fontWeight:600}}>{submission.title}</div>
+                            
+            </div>
+                        <div className="flex flex--wrap center-items">
+                            <div>
+                                <UserIconWithTooltip userLabel={usersPartInSubmission[0]} usersByLabel={usersByLabel} />
+                            </div>
+                <div>
+                                <AttributeTagWithTooltip {...{
+                                    attribute: { name: "Replicates", tag: "reps" },
+                                    attributeValue: { tag: "numb-reps", name: _.uniq(submission.replicates).length }
+                                }} />
+                </div>  
+                    <div>
+                            <AttributeTagWithTooltip {...{
+                                    attribute: { name: "Number samples", tag: "samples" },
+                                    attributeValue: { tag: "numb-samps", name: submission.sample_names.length}
+                                }} />
+                </div>        
+            </div>
+
 
             </div>
+                <div>
+                        {_.keys(submission.samples_attributes).map(sampleAttrs => {
+                            const {name, values } = submission.samples_attributes[sampleAttrs]
+                            return (
+                                <SampleAttributeTagWithTooltip {...{ name, values, attrValuesByTag : attributeValuesByTag, sampleNames : submission.sample_names }} />
+                            )
+                        })}
+                
+                </div>
                 <div className="flex flex--wrap intent-margin-top--little">
                     {Object.keys(submission.dataset_attributes).map(attributeTag => {
                         const attrValueTags = submission.dataset_attributes[attributeTag]
@@ -113,7 +151,6 @@ export function SubmissionItem({
                     })}
                 </div>   
                 </div>    
-            {mouseIsOver ? <div style={{ position: "absolute", right: 0, top: 0 }}><div className="bg--grey margin--little"><BasicMenu /> </div></div> : null}
             </div>
             </ContextMenu>
 )

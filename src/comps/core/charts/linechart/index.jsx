@@ -1,6 +1,6 @@
 
-import { scaleLinear, scaleOrdinal, scaleUtc } from '@visx/scale';
-import { LinePath} from '@visx/shape'
+import { scaleLinear, scaleOrdinal, scaleTime, scaleUtc } from '@visx/scale';
+import { LinePath, line} from '@visx/shape'
 import { useMemo } from 'react';
 import * as allCurves from '@visx/curve';
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from '../../../../services/arrays/boundaries';
@@ -24,7 +24,9 @@ LineChart.propTypes = {
     xaxisName: PropTypes.string,
     yaxisNames: PropTypes.arrayOf(PropTypes.string).isRequired,
     xAxisIsTime: PropTypes.bool,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired
+    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    showLine: PropTypes.bool,
+    showPoints : PropTypes.bool
 }
 
 
@@ -33,7 +35,7 @@ function LineChart({
     height = 300,
     margins = {
         left: 50,
-        right: 15,
+        right: 40,
         bottom: 40,
         top: 10
     },
@@ -41,11 +43,14 @@ function LineChart({
     xaxisName = "x",
     xAxisIsTime = false,
     yaxisNames = ["y", "z", "m"],
+    yaxisStartsAtZero = false,
     curveType = "curveNatural",
     showPoints = true,
+    showLine = true,
     circleRadius = 5,
+    circleFill = "#efefef",
     strokeWidth = 2,
-    circleStrokeWidth = 0.3,
+    circleStrokeWidth = 0.5,
     highlightedYAxisName = undefined,
     showGrid = false,
     showMean = true,
@@ -86,10 +91,10 @@ function LineChart({
 
         if (xAxisIsTime) {
 
-            return scaleUtc({
+            return scaleTime({
                 range : [margins.left,chartWidth+margins.left],
                 domain: [sortedData[0][xaxisName], sortedData[sortedData.length - 1][xaxisName]],
-                nice : true
+                // nice : true
             })
         }
 
@@ -103,7 +108,7 @@ function LineChart({
                 nice: true
             }
         )
-    }, [xaxisName, width, xAxisIsTime])
+    }, [xaxisName, width, xAxisIsTime, data.length])
 
     const yScale = useMemo(() => {
         
@@ -111,14 +116,15 @@ function LineChart({
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
         return scaleLinear(
             {
-                domain: [yDomainWithMargin.max, yDomainWithMargin.min],
+                domain: [yDomainWithMargin.max, yaxisStartsAtZero ? 0 : yDomainWithMargin.min],
                 range: [margins.top, margins.top + chartHeight],
                 nice: true
             }
         )
-    }, [yaxisNames, height])
+    }, [yaxisNames, height, data.length])
     
     const colorScale = useMemo(() => {
+        if (circleFill !== undefined) return () => circleFill
         return (
             scaleOrdinal(
                 {
@@ -156,17 +162,17 @@ function LineChart({
                         return (
                             <g key={`${yaxisName}-${lineIdx}`}>
                             
-                                <LinePath
+                                {showLine || lineData.length > 4 ? <LinePath
                                     data={lineData}
                                     x={(d) => xScale(d[xaxisName])}
                                     y={(d) => yScale(d[yaxisName])}
-                                    stroke={yaxisColor}
+                                    stroke={"black"}
                                     onMouseOver={(e) => handleMouseOver(e, yaxisName)}
                                     onMouseLeave={hideTooltip}
                                     fill="none"
                                     curve={allCurves[curveType]}
                                     shapeRendering="geometricPrecision"
-                                    {...{ strokeWidth }} />
+                                    {...{ strokeWidth }} /> : null}
                             
                                 {showPoints ? lineData.map((point,pointIdx) =>
                                     <circle

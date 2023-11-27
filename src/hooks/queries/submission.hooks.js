@@ -78,12 +78,7 @@ export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {})
 async function getSubmissionAttributeByTag_API({tokenString}) {
     //TO DO: merge with function from above 
     const res = await axios.get('/api/attributes',
-    {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-        })    
+    )    
     let attributesByTag = arrayOfObjectsToObjectByProperty(res.data.attributes,"tag")
     let attributeValuesByTag = arrayOfObjectsToObjectByProperty(res.data.attribute_values,"tag")
     return {attributes : attributesByTag, attribute_values : attributeValuesByTag}

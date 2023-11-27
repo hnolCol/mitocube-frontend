@@ -20,3 +20,29 @@ export function mapAttributeTagsToAttributes({tagAttributes, attributesByTag}) {
                 createFakeAttributeValue({ attribute: attributesByTag.attributes[attributeTag], numericInput: attributeValueTag.split(":").at(-1) }))]
     }))
 }
+
+export function getAttributeForUserNumericInput({ attributeTag, attributeValueTag, attributesByTag }) {
+    return createFakeAttributeValue({ attribute: attributesByTag.attributes[attributeTag], numericInput: attributeValueTag.split(":").at(-1) })
+}
+
+
+export function mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag, joinString = " + " }) {
+    let attrValues = undefined
+    if (_.isString(attrValueTag) && attrValueTag.startsWith("att_")) {
+        if (attrValueTag.includes(" ")) {
+            attrValues = attrValueTag.split(" ").map(splitAttrValueTag => _.has(attrValuesByTag,splitAttrValueTag)?attrValuesByTag[splitAttrValueTag]:attrValueTag)
+        }
+        else if (_.has(attrValuesByTag,attrValueTag)){
+            attrValues = [attrValuesByTag[attrValueTag]]
+        }
+
+        else {
+            attrValues = [{tag : attrValueTag, name : attrValueTag.split(":").at(-1)}]
+        }
+        return {attrValues, asString : _.join(attrValues.map(attr => attr.name),joinString), isAttrValue : true}
+    }
+    else {
+        return {attrValues, asString : attrValueTag, isAttrValue : false}
+    }
+    
+}

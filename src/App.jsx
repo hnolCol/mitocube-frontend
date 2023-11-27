@@ -48,7 +48,11 @@ import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
 import Loading from "./comps/core/base/loading";
 import DatasetSelection from "./comps/dataset/selection";
+import axios from "axios";
 
+//axios defaults
+axios.defaults.headers.post['Content-Type'] = 'application/json';
+axios.defaults.headers.get['Content-Type'] = 'application/json';
 
 const initAuthenticationStatus = {
   isAuth: false,
@@ -100,7 +104,9 @@ function App() {
         firstname: isTokenValid.firstname,
         lastname: isTokenValid.lastname
       })
-      console.log(location)
+
+      axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage}`;
+
       redirect(location)
     }
   }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidError])
@@ -109,6 +115,7 @@ function App() {
     //logs the user out, deletes the token from local storage. 
     removeTokenFromLocalStorage()
     setAuthenticationStatus(initAuthenticationStatus)
+    axios.defaults.headers.common['Authorization'] = `Bearer`;
     redirect("/")
   }
 
@@ -146,7 +153,7 @@ function App() {
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
                 <ProteinHeader/>
             </ProtectedRoute>}>
-            <Route path="/protein/selection" element={<ProteinSelection />} />
+            <Route path="/protein/selection" element={<ProteinSelection {...{authenticationStatus}}/>} />
             <Route path="/protein/:ID" element={<ProteinOverview {...{authenticationStatus}}/>} />
         </Route>
 

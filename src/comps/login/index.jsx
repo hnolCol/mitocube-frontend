@@ -7,10 +7,11 @@ import { useEffect, useState } from "react"
 import { Link, useNavigate} from "react-router-dom"
 import { useLoginUser, useVerifyToken } from "../../hooks/queries/login.hooks"
 import APIError from "../core/error/APIerror"
-
+import axios from "axios"
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
 import { storeTokenInLocalStorage } from "../../services/localstorage"
+import { WellPlate96 } from "../core/plate/nintysix"
 
 Login.propTypes = {
     setAuthenticationStatus : PropTypes.func.isRequired,
@@ -52,6 +53,8 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
                 label: verifiedToken.label
             })
             storeTokenInLocalStorage(verifiedToken.token)
+            axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
+      
             redirect("/index")
             
         }
@@ -67,12 +70,13 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
     const verifyTokenDisabled = !_.isString(userInput.verificationCode) || userInput.verificationCode.length === 0
     return (
         <div className="flex center-items justify-center div--expand">
+            
             <div className="flex flex-column center-items">  
             
                 <div className="intent-margin-bottom--little">
                     <Header text="User Login" />
                 </div>
-
+                <WellPlate96 />
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     

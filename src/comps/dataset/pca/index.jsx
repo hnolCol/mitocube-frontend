@@ -5,14 +5,11 @@ import { Header } from "../../core/base/Header";
 
 function DatasetPCA({ }) {
     
-    const { datasetInfo, dataID, isLoading, isFetched, isError, error } = useOutletContext()   
-
-    if (isError) return <APIError error={error} />
-    if (isLoading) return <div>Loading...</div>
+    const { dataset_label, metadata } = useOutletContext()   
 
     return (
         <div>
-            <Header text="Principal Component Analysis" />
+            <h2>Principal Component Analysis</h2>
             <p>Please select the desired components showing the projection (left) as well the drivers (right). Selecting a point in the right point displays the feature's profile in the bottom.</p>
 
 

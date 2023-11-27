@@ -3,7 +3,7 @@ import Tabs from "../core/navigation/tabs";
 import { useEffect, useState } from "react";
 import _ from "lodash"
 
-function ProteinHeader({ }) {
+function ProteinHeader({}) {
     const [featureList, setFeatureList] = useState({ items: [{ text: "+", to: "/protein/selection" }] })
     const params = useParams()
     const featureID = params.ID

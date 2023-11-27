@@ -13,7 +13,7 @@ import {useOnScreen} from "../../../hooks/useOnScreen";
 import { readDateFromString, readDateFromStringAndReturnDateAndDistToNow } from "../../../services/date/read";
 import { useGetMetadata } from "../../../hooks/queries/datasets.hooks";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
-import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
+import { useGetSubmissionMetatext, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { groupListByProperty } from "../../../services/arrays/groupby";
@@ -34,8 +34,8 @@ function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
                             <a
                                 href={`mailto:${user.email}?subject=${emailSubject}`} //cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}
                                 className="router-link">
-                            <div className={idx === 0 ? "h2-span" : "h0-span"}>
-                                {`${user.firstname} ${user.lastname}`}
+                            <div style={{color : "black"}}>
+                                <strong>{`${user.firstname} ${user.lastname}`}</strong>
                             </div>
                         </a>
                         {datasetUserLabels.length > 1?
@@ -145,13 +145,25 @@ function DatasetInfoContainer({datasetInfo,dataID, isFetched, setTabHeader}) {
 
 function DatasetOverview({authenticationStatus}) {
 
-    const { dataset_label, setTabHeader, tabHeader } = useOutletContext()    
+    const { dataset_label, metadata, setTabHeader, tabHeader } = useOutletContext()    
     console.log(dataset_label)
-    const {data : metadata} = useGetMetadata({tokenString : authenticationStatus.token, dataset_label})
+    //const {data : metadata} = useGetMetadata({tokenString : authenticationStatus.token, dataset_label})
+    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+    
 
-    console.log(metadata)
-    const headerRef = useRef(null)
-    const isVisible = useOnScreen(headerRef)
+    const datasetMetrices = useMemo(() => {
+        if (!_.isObject(metadata)) return []
+        //get metrices available at any state of the project
+        let basicMetrices =  [
+            { label: "Samples", metric: metadata.sample_names.length },
+            { label: "Replicates", metric: _.uniq(metadata.replicates).length },
+            { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
+        ]
+        //add others / optional 
+        return basicMetrices 
+    }, [dataset_label,_.isObject(metadata)])
+    // const headerRef = useRef(null)
+    // const isVisible = useOnScreen(headerRef)
 
     // useEffect(() => {
     //     if (_.isObject(metadata) && _.has(metadata, ["title"]) && !isVisible) {
@@ -169,8 +181,8 @@ function DatasetOverview({authenticationStatus}) {
     return (
         <div>
              <div id="top" className="flex flex-column center-items">
-                <div ref={headerRef} className="intent-margin-top">
-                <Header text={metadata.title} fontSize="2.5rem" hexColor={"#000000"} fontWeight={300}/>
+                <div className="intent-margin-top" style={{ maxWidth : "66vw"}}>
+                <h1>{metadata.title}</h1>
                 </div>
                 <AuthorList {...{
                     authenticationStatus,
@@ -186,6 +198,25 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
 
             </div>
+            <MultipleMetrices metrices={datasetMetrices} />
+            <h2>Sample Attributes</h2>
+            <h2>Dataset Attributes</h2>
+            <div className="intent-margin-right ">
+            <h2>Metatext</h2>
+            {_.isObject(metadata) && _.isObject(metadata.metatext) && _.isObject(metatext) ?
+                    _.keys(metatext.names).filter(metatextTag => _.isString(metadata.metatext[metatextTag])).map(metatextTag => <div
+                        className="container--shadow padding--little intent-margin-top--little">
+                    <div className="margin--little">
+                        <h3>{metatext.names[metatextTag]}</h3>
+                    </div>
+                    <div className="margin--little intent-margin-left intent-margin-right" style={{textAlign:"justify"}}>
+                    {metadata.metatext[metatextTag]}
+                    </div>
+                
+                    </div>)
+                
+                    : null}
+                </div>
         </div>
         )}
 

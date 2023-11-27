@@ -14,18 +14,18 @@ function MetricTable({data = [{name : "Proteins", value : 8230}, {name : "Peptid
     
 
     return (
-        <div className="table__container">
+        <div className="table__container" style={{maxWidth: "15rem", fontSize : "0.75rem"}}>
             {showClipboard ? <Button icon="clipboard" small="true" minimal="true" onClick={() => copyTextToClipboardFromArrayOfObjects({ data })} /> : null}
             <table>
                 <tbody>
                 {data.map((d,idx) => {
                     return (
-                        <tr key={`${idx}-metric-table-row`}>
+                        <tr key={`${idx}-metric-table-row`} >
                             <td className="table__item table__item--align-right">
                                 {d.name}: 
                             </td>
-                            <td className="table__item--align-center bg--lightgrey">
-                                <span className={`h${0}-span`}>{_.isNumber(d.value) && round ? _.round(d.value,2) : _.isBoolean(d.value) ?  _.toString(d.value): d.value}</span>
+                            <td className="table__item table__item--align-left bg--lightgrey" >
+                                <span >{_.isNumber(d.value) && round ? _.round(d.value,2) : _.isBoolean(d.value) ?  _.toString(d.value): d.value}</span>
                                 
                             </td>
                         </tr>

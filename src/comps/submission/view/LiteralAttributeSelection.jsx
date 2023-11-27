@@ -58,7 +58,6 @@ export function LiteralAttributeSelection({ selectedAttributes, setSelectedAttri
     const { data: attrs, isLoading, isFetching } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }, {staleTime : Infinity})
     if (isLoading || isFetching) return <Loading />
     if (!_.isObject(attrs)) return 
-    console.log(selectedAttributes)
     const {attributes, attribute_values } = attrs
     const attributeMatchingFilter = _.filter(attributes, attributeFilter)
     const attributeValuesByID = groupListByProperty(attribute_values,"attribute_id")

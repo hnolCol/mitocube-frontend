@@ -63,7 +63,25 @@ export function getUniqueValuesAndCountsFromList(data) {
     }, { values: new Set(), counts: {} })
 }
 
-
+export function getCountsByGroups(
+    data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],
+    keyNames = ["Genotype", "T"],
+    yaxisName = undefined) {
+    
+    const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '//|//'))
+    const groups = Object.keys(groupedByKeyNames)
+    const groupedAggratedData = groups.map(group => {
+        var groupData = groupedByKeyNames[group]
+        //var yaxisvalues = groupData.map(d => d[yaxisName])
+        console.log(groupData.length,yaxisName)
+        return {
+            ...Object.fromEntries(keyNames.map(keyName => [keyName, groupData[0][keyName]])),
+            N : yaxisName !== undefined ? groupData.filter(d => _.isNumber(d[yaxisName])).length : groupData.length}
+    })
+    const maxNumber = _.maxBy(groupedAggratedData,"N")["N"]
+    const minMaxYDomain = {min : 0, max : maxNumber+maxNumber*0.05}
+    return ({ groupedAggratedData, minMaxYDomain})
+}
 
 
 export function getAverageAndErrorByGroups(

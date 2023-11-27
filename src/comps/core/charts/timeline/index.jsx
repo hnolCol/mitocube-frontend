@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import { SVG } from "../SVGHeader";
-import { scaleOrdinal, scaleUtc } from "@visx/scale";
+import { scaleOrdinal, scaleTime } from "@visx/scale";
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size";
 import _ from "lodash"
 import { AxisLeft } from "@visx/axis";
-import { motion } from "framer-motion"
+import { color, motion } from "framer-motion"
 import { getColorPalette } from "../../colors/colorPalette";
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique";
 import AnimatedText from "../../svg/AniamtedText";
@@ -40,8 +40,9 @@ function TimelineChart({
     dateName = "Date",
     labelName = "label",
     colorName = "c",
+    tooltipNames = ["comment"],
+    colorMapper = undefined,
     r = 8 }) {
-    
     const {
             tooltipData,
             tooltipLeft,
@@ -64,7 +65,6 @@ function TimelineChart({
     const handleMouseOver = (event, datum) => {
         
         const coords = localPoint(event.target.ownerSVGElement, event);
-        console.log(coords,datum)
         showTooltip({
           tooltipLeft: coords.x,
           tooltipTop: coords.y,
@@ -74,15 +74,23 @@ function TimelineChart({
 
 
     const colorScale = useMemo(() => {
-        const uniqueColorCategories = getUniqueValuesInArrayOfObjects({data,keyName : colorName})
+        const uniqueColorCategories = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
+        let colorValues = []
+        if (!_.isEmpty(colorMapper)) {
+            console.log(colorMapper)
+            colorValues = uniqueColorCategories.map(category => colorMapper[category])
+        }
+        else {
+            colorValues = getColorPalette()
+        }
         return scaleOrdinal({
-            range: getColorPalette(),
+            range: colorValues,
             domain: uniqueColorCategories
         })
     }, [colorName,data])
 
     const timeScale = useMemo(() => {
-        return scaleUtc({
+        return scaleTime({
             range : [margins.top,chartHeight],
             domain: [sortedData[0][dateName], sortedData[sortedData.length - 1][dateName]],
             nice : true
@@ -137,13 +145,16 @@ function TimelineChart({
                                 <motion.circle
                                     transition={{ duration: 0.5, delay: 0.5 + idx + (0.5 * idx) }}
                                     opacity={0} animate={{ opacity: 1 }}
-                                    onMouseOver={(e) => handleMouseOver(e,)}
+                                    onMouseOver={(e) => handleMouseOver(e, <div>
+                                        {d[labelName]}
+                                        <div className="flex flex-column">
+                                        {tooltipNames.map(keyName => {return <div key={`${keyName}-tooltip`}>{d[keyName]}</div>})}
+                                        </div>
+                                    </div>)}
                                     onMouseOut={hideTooltip}
                                     {...{ cx: xCenter, cy: y, r, fill: _.has(d, colorName) ? colorScale(d[colorName]) : "red", stroke: "black", strokeWidth: 0.5 }} />
                                 <AnimatedText x={xCenter + labelMargin} y={y} text={d[labelName]} delay={0.5 + idx + (0.5 * idx)} duration={0.5} textAnchor={labelRight ? "start" : "end"} reverse={!labelRight} />
-                                {/* <Text x={xCenter} y={y} verticalAnchor="middle" dx={labelRight?linePointMargin:-linePointMargin} textAnchor={labelRight?"start":"end"}>
-                                    {d[labelName]}
-                                </Text> */}
+                                
                                 
                             </g>
                         )

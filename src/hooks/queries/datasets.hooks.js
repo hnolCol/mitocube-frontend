@@ -19,6 +19,25 @@ export const useGetDatasetForSelection = (APIParams = {}, useQueryOptions = {}) 
 
 
 
+//data table 
+
+async function getDatasetQC_API({ tokenString, dataset_label }) {
+    const res = await axios.get('/api/datasets/'+dataset_label+'/qc',
+        {
+            headers : {
+                "Authorization": `Bearer ${tokenString}`,
+                'Content-Type': 'application/json'
+            }}
+    )
+    return res.data
+}
+
+export const useGetDataQC = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["getDatasetTable",APIParams.dataset_label],() => getDatasetQC_API({...APIParams}), useQueryOptions)
+}
+
+//meta data 
+
 async function getDatasetMetadata_API({ tokenString, dataset_label }) {
     const res = await axios.get('/api/datasets/'+dataset_label+'/meta',
         {
@@ -32,7 +51,7 @@ async function getDatasetMetadata_API({ tokenString, dataset_label }) {
 }
 
 export const useGetMetadata = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getDatasetmeta",APIParams.dataset_label],() => getDatasetMetadata_API({...APIParams}), useQueryOptions)
+    return useQuery(["getDatasetMeta",APIParams.dataset_label],() => getDatasetMetadata_API({...APIParams}), useQueryOptions)
 }
 
 

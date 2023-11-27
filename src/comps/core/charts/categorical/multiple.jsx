@@ -71,6 +71,7 @@ function MultiCategoricalChart({
     yScaleStartsAtZero = true,
     children
 }) {
+    
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
     const colorCategoryFound = _.has(data[0], colorName)
     const subplotCategoryFound = _.has(data[0], subplotName)

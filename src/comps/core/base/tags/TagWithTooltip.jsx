@@ -1,6 +1,7 @@
 import { Menu, MenuDivider, MenuItem, Popover, Tooltip } from "@blueprintjs/core"
 import { motion } from "framer-motion"
-
+import _ from "lodash"
+import {mapAttributeValueTagsToAttributes} from "../../../../services/attributes"
 export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false }) {
     
     return (
@@ -51,6 +52,47 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}}) 
                 className="padding--little cursor--default div--round intent-margin-right--tiny"
                 whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
                             {attributeValue.name}</motion.div>
+            </Popover>
+    )
+}
+
+
+
+export function SampleAttributeTagWithTooltip({ name, values, sampleNames, attrValuesByTag }) {
+    return (
+        
+        <Popover content={<div className="padding--little">
+            <Menu small={true}>
+                <MenuItem text={name} disabled={true} />
+                <MenuDivider />
+                {_.keys(values).map(attrValueTag => {
+                    const mappedAttributeValue = mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag })
+                    const label = mappedAttributeValue.isAttrValue ? mappedAttributeValue.attrValues.map(attrValue => attrValue.details) : ""
+                    return <MenuItem
+                        key={attrValueTag}
+                        text={`${mappedAttributeValue.asString} (${values[attrValueTag].length})`}
+                        labelElement={<div style={{ width: "14rem", fontSize: "0.75rem", textAlign: "left" }}>{label}</div>}>
+                        {values[attrValueTag].map(sampleIdx => {
+                            return <MenuItem text={sampleIdx}
+                                key={`${attrValueTag}-${sampleIdx}`}
+                                labelElement={<div style={{ width: "14rem", fontSize: "0.75rem", textAlign: "left" }}>{sampleNames[sampleIdx]}</div>} />
+                        })}
+                        </MenuItem>
+                })}
+            </Menu>
+        </div>}
+            minimal={false}
+            compact={true}
+            popoverClassName = ""
+            interactionKind="hover"
+            inheritDarkTheme={false}
+            hoverOpenDelay={400}
+            position="top">
+            <motion.div
+                style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :
+                className="padding--little cursor--default div--round intent-margin-right--tiny"
+                whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
+                            {name}</motion.div>
             </Popover>
     )
 }

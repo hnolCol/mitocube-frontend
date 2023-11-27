@@ -84,19 +84,18 @@ function SubmissionView({authenticationStatus, logout}) {
         error: patchSubmissionError,
         isError: patchSubmissionIsError } = usePatchSubmission()
     
-    const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState) => {
+    const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "") => {
         //datasetAttributeValues : Dict[str,List[AttributeValue]]
         //datasetAttributes: List[Attribute]
         
         let datasetAttributes = Object.keys(datasetAttributeValues).map(attributeTag => attributesByTag.attributes[attributeTag])
-        console.log(datasetAttributeValues)
         let updatedSubmission = {datasetAttributes, datasetAttributeValues}
         const data = {
             datasetAttributes: updatedSubmission,
             state_change: {
                 state,
                 prev_state: prevState,
-                comment: "I just want to measure"
+                comment
             }
         }
         patchSubmission({ tokenString: authenticationStatus.token, label, data},

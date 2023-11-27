@@ -33,6 +33,7 @@ export function AttributeSlectionDialog({
     error = undefined
 }) {
     const [selectedAttributes, setSelectedAttributes] = useState({})
+    const [comment, setComment] = useState("")
     useEffect(() => {
         const matchedPrevSelectedAttributes = mapAttributeTagsToAttributes({ tagAttributes: prevSelectedAttributes, attributesByTag })
         setSelectedAttributes(matchedPrevSelectedAttributes)
@@ -73,8 +74,8 @@ export function AttributeSlectionDialog({
         
         <DialogBody>
             <h4>Timeline comment</h4>
-            <TextArea fill={true} placeholder="Enter a comment here which will be visible in the timeline."/>
+            <TextArea fill={true} value={comment} placeholder="Enter a comment here which will be visible in the timeline." onChange={e => setComment(e.target.value)}/>
         </DialogBody>
-        <DialogFooter actions={[<div className="flex"><Button text="Submit" onClick={() => onSubmit(submission.label, selectedAttributes,newSubmissionState, submission.state)}/> <Button text="Cancel" intent="danger"  onClick={onClose}/></div>]} />
+        <DialogFooter actions={[<div className="flex"><Button text="Submit" onClick={() => onSubmit(submission.label, selectedAttributes,newSubmissionState, submission.state, comment)}/> <Button text="Cancel" intent="danger"  onClick={onClose}/></div>]} />
 </Dialog>
 }

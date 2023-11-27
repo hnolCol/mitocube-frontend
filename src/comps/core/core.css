@@ -40,15 +40,24 @@ p{
     font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 
+h1 {
+    font-size: 2.5rem;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
+    text-align: center;
+    font-weight: 400;
+}
+
 h3 {
     margin-top : 0.0rem;
     margin-bottom: 0.2rem;
     padding : 0rem;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 h4 {
     margin-top : 0.0rem;
     margin-bottom: 0.2rem;
     padding : 0rem;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 
 h5 {
@@ -56,6 +65,7 @@ h5 {
     margin-bottom: 0.2rem;
     padding : 0rem;
     font-weight: 400;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 
 /* Background containers */
@@ -157,6 +167,12 @@ h5 {
 }
 
 .intent-padding-top--little {
+
+    padding-left: 0.75rem;
+}
+
+
+.intent-padding-left--little {
 
     padding-top: 0.75rem;
 }
@@ -360,3 +376,14 @@ h5 {
     overflow-y: scroll;
     overflow-x: hidden;
 }
+
+
+
+.container--shadow {
+           background-color :#fafafa;
+        /* border-radius: 0.25rem; */
+        margin-top : 0.3rem;
+        padding-left : 0.2rem;
+        box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
+        transition: 0.3s;
+    }

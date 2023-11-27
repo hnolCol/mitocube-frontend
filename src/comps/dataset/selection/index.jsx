@@ -16,6 +16,8 @@ function DatasetSelection({authenticationStatus, logout}) {
         
            <h3>Dataset Selection</h3>
             <Link to="/dataset/KUbPyK1ASG">Dataset1</Link>
+            <Link to="/dataset/BuXOSlIl6G">dataset2</Link>
+            <Link to="/dataset/rfP4nAAmgA">D3</Link>
         </div>
     )
 

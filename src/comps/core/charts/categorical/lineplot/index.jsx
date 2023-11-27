@@ -11,6 +11,7 @@ import PropTypes from "prop-types"
 import { STROKE_COLOR, getColorPalette } from "../../../colors/colorPalette"
 import { areAllValuesNumbers } from "../../../../../services/arrays/checks"
 import CircleWithError from "./CircleWithError"
+import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
 
 CategoricalLineplot.propTypes = {
     colorName: PropTypes.string,
@@ -61,9 +62,11 @@ function CategoricalLineplot({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
+    attributesByTag = {}
     }) {
 
-        // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
+    // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
+    
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
@@ -84,7 +87,12 @@ function CategoricalLineplot({
       })
     
     const getTooltipData = (value, errorValue, pointData) => {
-        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => [tooltipName, pointData[tooltipName]]).filter(v => v[1] !== undefined))
+        const attrValuesByTag = attributesByTag.attribute_values
+        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => {
+            let tooltipValue = pointData[tooltipName]
+            const {asString} = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
+            return [tooltipName, asString]
+        }).filter(v => v[1] !== undefined))
         return {[yaxisName] : _.round(value,2), error : _.isNaN(errorValue)?"NaN":_.round(errorValue,2), ...tooltipInfo}
     }
     
@@ -100,7 +108,7 @@ function CategoricalLineplot({
     
     return (
         <div className="flex flex-column">
-            {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null}
+            {/* {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null} */}
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
@@ -136,6 +144,7 @@ function CategoricalLineplot({
                                 <AxisWithBackground
                                     margins={margins}
                                     leftScale={yScale}
+                                    bandwidth={colorBandwidth}
                                     bottomScale={splitColorScale}
                                     bottomLabel={""}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
@@ -223,7 +232,6 @@ function CategoricalLineplot({
                     splitCategoryFound}, didx) => {
                 const subplotStart = subplotScale(subplotCategory)
                 const subplotWidth = subplotScale.bandwidth()
-                
                   return(
                         <g key={`${subplotCategory}-subplot`}>
                         
@@ -233,7 +241,8 @@ function CategoricalLineplot({
                                 topBottom={margins.top + chartHeight}
                                 margins={margins}
                                 leftScale={yScale}
-                                bottomScale={splitScale}
+                              bottomScale={splitScale}
+                              bandwidth={colorBandwidth * 1.1}
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
                                 bottomLabel={""}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
@@ -243,10 +252,11 @@ function CategoricalLineplot({
                               <g>
                                   <Text
                                     x={xcenter}
-                                    y={margins.top + 10}
-                                    verticalAnchor="middle"
+                                    y={margins.top + 12}
+                                      verticalAnchor="middle"
+                                      width={subplotWidth}
                                     textAnchor="middle">
-                                    {subplotCategory}
+                                    {mapAttributeValueTagsToAttributes({attrValueTag : subplotCategory, attrValuesByTag : attributesByTag.attribute_values}).asString}
                                 </Text>
                               </g> : null}
                           

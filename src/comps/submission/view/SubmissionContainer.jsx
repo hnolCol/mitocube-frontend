@@ -272,15 +272,15 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
 }
 
 
-export function UserFilterSelection({ userLabelsInSubmssion, users, submissionFilter, setSubmissionFilter }) {
-    const groupedUsers = groupListByProperty(users, "label")
+export function UserFilterSelection({ userLabelsInSubmssion, usersByLabel, submissionFilter, setSubmissionFilter }) {
+
     const { values, counts } = userLabelsInSubmssion
     return (<div>
         <h3>Users</h3>
         <div className="flex flex--wrap">
         {[...values].map(userLabel => {
-            if (_.has(groupedUsers, userLabel)) {
-                const userData = groupedUsers[userLabel][0]
+            if (_.has(usersByLabel, userLabel)) {
+                const userData = usersByLabel[userLabel][0]
                 return <UserIcon text = {userData.firstname[0]+userData.lastname[0]} />
 
             }})}
@@ -289,7 +289,8 @@ export function UserFilterSelection({ userLabelsInSubmssion, users, submissionFi
 }
 
 
-export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter}) {
+export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter }) {
+    
     const allFilterKeysFound = _.every(datasetAttributeFilter.map(filterKey => _.has(submissionDatasetAttributes, filterKey)))
     if (!allFilterKeysFound) return false
     const datasetAttributeMatch = _.every(datasetAttributeFilter.map(filterKey => _.some(submissionDatasetAttributes[filterKey].map(attrValueTags => submissionFilter[filterKey].has(attrValueTags)))))
@@ -306,7 +307,7 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
     const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
     const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
     const userLabelsInSubmssion = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
-
+    const usersByLabel = groupListByProperty(users, "label")
     const submissionMatchesFilterByIndex = Object.fromEntries(Object.keys(submissionsByState).map(
         state => [state, Object.fromEntries(_.map(submissionsByState[_.toString(state)], (submission, idx) => {
             return [idx, filterSubmissionByDatasetAttribute({
@@ -338,7 +339,7 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                 <InputGroup placeholder="Search..." small={true} />
                 
                 <div>
-                    <UserFilterSelection {...{ submissionFilter, setSubmissionFilter, users, userLabelsInSubmssion }} />
+                    <UserFilterSelection {...{ submissionFilter, setSubmissionFilter, usersByLabel, userLabelsInSubmssion }} />
                     
                     <AttributeFilterSelection {...{uniqueAtributesInSubmissions,attributesByTag,submissionFilter, setSubmissionFilter,attributeSearchQuery, setAttributeSearchQuery}} />
                     <h3>Options</h3>
@@ -367,14 +368,16 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                                 <SubmissionItem
                                     key={submission.label}
                                     {...{
-                                        stateName : states.states_inv[state], 
-                                        states,
-                                        submission,
-                                        setAttributeSelectionDialog,
+                                    stateName : states.states_inv[state], 
+                                    states,
+                                    usersByLabel,
+                                    submission,
+                                    setAttributeSelectionDialog,
                                     mouseIsOver: mouseOverLabel === submission.label,
                                     handleMouseOver: setMouseOverLabel,
                                     attributesByTag : attributesByTag.attributes,
                                     attributeValuesByTag: attributesByTag.attribute_values
+                                    
                                 }} stateColor={states.colors_inv[state]} />
                             )
                         })}
