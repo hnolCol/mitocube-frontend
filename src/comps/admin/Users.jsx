@@ -1,4 +1,4 @@
-import { useGetUserAttributes, useGetUserRoles, useGetUsers, usePatchUser, usePostBlockUser, usePostUser } from "../../hooks/queries/user.hooks"
+import { useDeleteUser, useGetUserAttributes, useGetUserRoles, useGetUsers, usePatchUser, usePostBlockUser, usePostUser } from "../../hooks/queries/user.hooks"
 import _ from "lodash"
 import { User } from "../core/base/user"
 import Loading from "../core/base/loading"
@@ -9,15 +9,17 @@ import { objectHasKey } from "../../services/objects/checks"
 import { filterArrayBySearchString } from "../../services/arrays/filter"
 import UserAttributes from "./users/UserAttributes"
 import { Button, Dialog, DialogBody, DialogFooter } from "@blueprintjs/core"
+import { UserAttributeSelection } from "../core/base/user/UserAttributeSelection"
+import { ConfirmAlert } from "../core/overlay/ConfirmAlert"
 
 
 
 function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUsers, onClose, ...rest }) {
     
     const [userProps, setUserProps] = useState({})
-        const { data, isLoading, isFetching, isSuccess, isFetched, isError, error} = useGetUserAttributes({ tokenString: authenticationStatus.token })
+    const { data, isLoading, isFetching, isSuccess, isFetched, isError, error} = useGetUserAttributes()
     const {mutate : patchUser, isLoading : patchUserIsLoading, iserror : patchUserIsError, error : patchUserError} = usePatchUser()
-
+    
     useEffect(() => {
         //this has to change, so prone for bugs ... 
         if (!isSuccess) return 
@@ -31,7 +33,8 @@ function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUse
     }, [isSuccess, user.label])
 
     const handleEdit = () => {
-        let userPropsToUpdate = { ...userProps, label : user.label}
+        let userPropsToUpdate = { ...userProps, label: user.label }
+        console.log(userPropsToUpdate)
         patchUser({ tokenString: authenticationStatus.token, userProps : userPropsToUpdate }, {
             onSuccess: (data) => {
                 refetchUsers()
@@ -39,19 +42,21 @@ function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUse
         }})
     }
 
-    const updateUserProps = (attributeTag, attributeValue) => {
-        //update
-        setUserProps(prevValues => {return {...prevValues,[attributeTag] : attributeValue}})
-    }
+    // const updateUserProps = (attributeTag, attributeValue) => {
+    //     //update
+    //     setUserProps(prevValues => {return {...prevValues,[attributeTag] : attributeValue}})
+    // }
 
 
     return (
         <Dialog {...{ isOpen, onClose }} canOutsideClickClose={true} canEscapeKeyClose={false} title="Edit user" {...rest}>
             <DialogBody>
-                <div className="margin--little">
+                {_.isObject(data) ? <UserAttributeSelection {...{ attributes: data.attributes, attributeValues: data.attributeValues, userProps, setUserProps}} /> : null}
+                {isError || patchUserIsError ? <APIError error={isError ? error : patchUserError} /> : null}
+                {/* <div className="margin--little">
                 {_.isObject(data)  ? <UserAttributes {...{ userProps, updateUserProps, attributes: data.attributes, attributeValues: data.attribute_values}} /> : null}
                 {isError || patchUserIsError ? <APIError error={isError ? error : patchUserError} /> : null}
-                </div>
+                </div> */}
         </DialogBody>
         <DialogFooter
             actions={<Button text="Edit"
@@ -67,10 +72,10 @@ function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUse
 function AddUserDialog({ authenticationStatus, isOpen = false, refetchUsers, onClose, ...rest }) {
     const [userProps, setUserProps] = useState({})
     //put this in a common dialog? 
-    const {data : userRoles} = useGetUserRoles({tokenString : authenticationStatus.token}, { staleTime : 3000000})
+    // const {data : userRoles} = useGetUserRoles({tokenString : authenticationStatus.token}, { staleTime : 3000000})
     const { data, isLoading, isFetching, isSuccess, isFetched, isError, error} = useGetUserAttributes({ tokenString: authenticationStatus.token })
     const { mutate: postUser, isLoading: postUserIsLoading, isError: postUserIsError, error: postUserError } = usePostUser()
-
+    
     const handleSubmit = () => {
         postUser({ tokenString: authenticationStatus.token, userProps }, {
             onSuccess: (data) => {
@@ -105,10 +110,18 @@ function AddUserDialog({ authenticationStatus, isOpen = false, refetchUsers, onC
 
 function AdminUsers({ authenticationStatus }) {
     const [query, setQuery] = useState()
+    
+    const [confirmAlertProps, setConfirmAlertProps] = useState({
+        isOpen: false,
+        text: "Please confirm that you would like to delete the selected user.",
+        onCancel: () => {},
+        onConfirm: undefined, cancelButtonText: "Cancel"
+    })
+
     const [isUserDialogOpen, setIsUserDialogOpen] = useState(false)
     const [editUserDialog, setEditUserDialog] = useState({isOpen : false, user : {}})
     const { mutate: blockUserByLabel } = usePostBlockUser()
-    
+    const { mutate : deleteUserByLabel} = useDeleteUser()
     const {
         data,
         isError,
@@ -117,13 +130,34 @@ function AdminUsers({ authenticationStatus }) {
         isLoading,
         isFetching, refetch : refetchUsers } = useGetUsers({ tokenString: authenticationStatus.token })
     
-    const blockUser = (user_label) => {
-        blockUserByLabel({tokenString : authenticationStatus.token, userProps : {label : user_label}}, {onSuccess : () => refetchUsers()})
+    
+    const closeAlert = () => {
+        setConfirmAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
     }
+    
+    const blockUser = (user_label) => {
+        setConfirmAlertProps(prevValues => {
+            return {
+                isOpen: true,
+                text : `Please confirm blocking the user (${user_label})`,
+                onClose: closeAlert,
+                onCancel: closeAlert,
+                onConfirm: () =>  blockUserByLabel({userProps : {label : user_label}}, {onSuccess : () => refetchUsers()})
+            }})}
 
     const editUser = (user) => {
         setEditUserDialog({isOpen : true, user})
     }
+
+    const deleteUser = (user_label) => {
+        setConfirmAlertProps(prevValues => {
+            return {
+                isOpen: true,
+                text : `Please confirm delete the user (${user_label})`,
+                onClose: closeAlert,
+                onCancel: closeAlert,
+                onConfirm: () =>  deleteUserByLabel({ userProps: { label: user_label } }, { onSuccess: () => refetchUsers() })
+            }})}
 
     const userMatchingQuery = useMemo(() => {
         if (!_.isObject(data) || !objectHasKey({object : data, keyName : "users"})) return []
@@ -134,9 +168,10 @@ function AdminUsers({ authenticationStatus }) {
     },[query, isLoading, isSuccess, isFetching])
     
     if (isError) return<APIError error={error} /> 
-    if (isLoading || isFetching ) return <Loading />
+    if (isLoading || isFetching) return <Loading />
     return (
         <div className="intent-margin-top--little padding--medium" >
+            <ConfirmAlert {...confirmAlertProps} />
             {isError ? <APIError error={error} /> : isLoading || isFetching ? <Loading /> :
                 <div>
                     <AddUserDialog isOpen={isUserDialogOpen} {...{ authenticationStatus, refetchUsers }} onClose={() => setIsUserDialogOpen(false)} />
@@ -144,7 +179,7 @@ function AdminUsers({ authenticationStatus }) {
                     <Button icon="plus" onClick={() => setIsUserDialogOpen(true)} />
                     <TextInput placeholder="Search user" callbackKey={"query"} onChange={(callbackKey, value) => setQuery(value)} />
                     {isSuccess && _.isArray(userMatchingQuery) ?
-                        userMatchingQuery.map(user => <User key={user.label} {...user} userRoles={data.roles} {...{ blockUser, editUser, userProps: user }} />) : null}
+                        userMatchingQuery.map(user => <User key={user.label} {...user} userRoles={data.roles} {...{ blockUser, editUser, userProps: user, deleteUser }} />) : null}
                 </div>}
                 </div>
             

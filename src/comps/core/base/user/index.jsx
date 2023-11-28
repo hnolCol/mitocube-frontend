@@ -10,9 +10,12 @@ import { TagWithTooltip } from "../tags/TagWithTooltip";
 import _ from "lodash"
 
 
-export function UserIconWithTooltip({ userLabel, usersByLabel }) {
+
+
+
+export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false }) {
     if (!_.has(usersByLabel, userLabel)) return null 
-    const { firstname, lastname, email, label, institute, research_group } =usersByLabel[userLabel][0]
+    const { firstname, lastname, email, label, institute, research_group } = usersByLabel[userLabel][0]
     const text = firstname[0]+lastname[0]
     return (
         <Popover content={<Menu small={true}>
@@ -20,7 +23,7 @@ export function UserIconWithTooltip({ userLabel, usersByLabel }) {
 
         </Menu>} interactionKind="hover" position="top">
         <BaseDashboardIcon width={30} height={30}>
-            <UserDashboardIcon {...{ text }} />   
+                <UserDashboardIcon {...{ text, fillColor : selected? "#b91e18" : undefined}} />   
             </BaseDashboardIcon>
         </Popover>
     )
@@ -60,7 +63,7 @@ User.propTypes = {
 }
 
 
-export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, ...rest}) {
+export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, deleteUser, ...rest}) {
     const [m, formatedTime] = getFormatDateFromTimestamp(created_on)
     return (
         <div className="bg--lightgrey margin--little center-items padding--little">
@@ -92,7 +95,8 @@ export function User({firstname,lastname,email, role, created_on, userRoles, blo
                     />
                 <TooltipButton
                     content={<div>Delete user.</div>}
-                    icon="cross"
+                            icon="cross"
+                            onClick={() => deleteUser(label)}
                     />
 
                 </div>

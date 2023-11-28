@@ -3,6 +3,7 @@ import Tabs from "../core/navigation/tabs";
 import { useGetMetadata } from "../../hooks/queries/datasets.hooks";
 import { useState } from "react";
 import Loading from "../core/base/loading";
+import { useGetSubmissionAttributesByTag, useGetSubmissionStates } from "../../hooks/queries/submission.hooks";
 
 
 
@@ -11,9 +12,13 @@ function DatasetHeader({authenticationStatus}) {
     const dataset_label = params.dataID
     const urlStart = `/dataset/${dataset_label}`
     const [tabHeader, setTabHeader] = useState("")
+    
     // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
-    const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching} = useGetMetadata({tokenString : authenticationStatus.token, dataset_label})
-
+    const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching} = useGetMetadata({dataset_label})
+    const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
+    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
+        { staleTime: Infinity }) //request only once. 
+    
     return (
         <div className="no-scroll div--expand">
             <Tabs
@@ -28,9 +33,10 @@ function DatasetHeader({authenticationStatus}) {
                     { text: "Timeline", to: `${urlStart}/timeline` },
                     { text: "Help", to : `${urlStart}/help`}]} />   
             {/* context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}} */}
-            {metadataIsFetching || metadataIsLoading ? <Loading /> : null }
-            <Outlet context={{dataset_label, metadata, tabHeader, setTabHeader}}/>
-           
+            {metadataIsFetching || metadataIsLoading || attrIsLoading || attrIsFetching || submissionStatesLoading? <Loading /> : null}
+            <div className="no-scroll div--expand">
+            <Outlet context={{dataset_label, metadata, tabHeader, setTabHeader,attributesByTag,submissionStates}}/>
+            </div>
             
         </div>
     )

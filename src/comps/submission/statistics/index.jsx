@@ -5,12 +5,13 @@ import LineChart from "../../core/charts/linechart"
 import { getAndTransformDatesFromArrayOfObjectsByKey } from "../../../services/arrays/transforms"
 import APIError from "../../core/error/APIerror"
 import { getCountsByGroups, getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby"
-import { AttributeFilterSelection, StateFilterButton, UserFilterSelection, filterSubmissionByDatasetAttribute } from "../view/SubmissionContainer"
+import { AttributeFilterSelection, StateFilterButton, UserFilterSelection, extractSubmissionDetails, filterSubmissionByDatasetAttribute, filterSubmissions } from "../view/SubmissionContainer"
 import { Button } from "@blueprintjs/core"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { useOutletContext } from "react-router"
 import { getStateName } from "../../../services/states"
 import moment from "moment"
+import { SubmissionBaseFilter } from "../filter"
 
 function combineMultipleParamFilesFromSubmissions(submissions, dateHeader = "Creation Date") {
     if (_.isArray(submissions)) {
@@ -52,12 +53,11 @@ function combineMultipleParamFilesFromSubmissions(submissions, dateHeader = "Cre
 }
 
 
-function SubmissionStatistics({authenticationStatus}) {
+function SubmissionStatistics({authenticationStatus, submissionsQuery, setSubmissionQuery, submissionFilter, setSubmissionFilter}) {
     //fetch data from API
     // const { isSuccess, isLoading : submissionIDLoading, isFetching : submissionIDFetching, isError : submissionIsError, error : submissionAPIError, data } = useGetSubmissions()
     // const paramFilesWithDate = useMemo(() => { return isSuccess && _.isObject(data) && _.has(data, "submissions") ? combineMultipleParamFilesFromSubmissions(data.submissions) : {} }, [data])
     //fetch data from API
-    const { submissionFilter, setSubmissionFilter,attributeSearchQuery, setAttributeSearchQuery } = useOutletContext() 
 
     const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions({ tokenString: authenticationStatus.token })    
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
@@ -65,28 +65,36 @@ function SubmissionStatistics({authenticationStatus}) {
         { staleTime: Infinity }) //request only once. 
     const { data: attributesByTag } = useGetSubmissionAttributesByTag({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
     if (!_.isArray(submissions) || !_.isObject(users) || !_.isObject(attributesByTag)) return null 
-    const submissionsByState = groupListByProperty(submissions, "state")
-    const userLabelsInSubmssion = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
-    const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
-    const datasetAttributeFilter = Object.keys(submissionFilter).filter(filterKey => filterKey !== "states") //exclude statefilter
+
+    if (submissions.length === 0) return <div><p>No submissions found. Please use the submission portal to create your first submission.</p></div>
+    
+
+
+    const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
+    // const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
+    // const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
+    // const userLabelsInSubmission = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
+   
 
     // if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
     // if (submissionIDLoading || submissionIDFetching) return <div>Loading...</div>
-    const usersByLabel = groupListByProperty(users.users, "label")
-    const submissionMatchesFilterByIndex = Object.fromEntries(Object.keys(submissionsByState).map(
-        state => [state, Object.fromEntries(_.map(submissionsByState[_.toString(state)], (submission, idx) => {
-            return [idx, filterSubmissionByDatasetAttribute({
-                submissionFilter,
-                submissionDatasetAttributes: submission.dataset_attributes,
-                datasetAttributeFilter
-            })]
-        }))]))
+    const usersByLabel = groupListByProperty(users, "label")
 
-    let filteredSubmission = submissions.filter(submission => filterSubmissionByDatasetAttribute({
-        submissionFilter,
-        submissionDatasetAttributes: submission.dataset_attributes,
-        datasetAttributeFilter
-    }))
+    const filteredSubmission = filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel })   
+    const submissionsByState = groupListByProperty(filteredSubmission, "state")
+    const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+
+    // const submissionMatchesFilterByIndex = Object.fromEntries(Object.keys(submissionsByState).map(
+    //     state => [state, Object.fromEntries(_.map(submissionsByState[_.toString(state)], (submission, idx) => {
+    //         return [idx, filterSubmissionByDatasetAttribute({
+    //             submissionFilter,
+    //             submissionDatasetAttributes: submission.dataset_attributes,
+    //             datasetAttributeFilter
+    //         })]
+    //     }))]))
+
+
+
     // console.log(filteredSubmission)
     let dataForLineChart = filteredSubmission.map(d => {
         const stringAsMoment = moment.unix(d.created_on)
@@ -116,18 +124,23 @@ function SubmissionStatistics({authenticationStatus}) {
                         key={stateName}
                         {...{ submissionFilter, setSubmissionFilter, stateName, states }} />})}
                 </div>
-                <div>
-                    <UserFilterSelection {...{submissionFilter,setSubmissionFilter,users : users.users,userLabelsInSubmssion}} />
-                    <AttributeFilterSelection {...{uniqueAtributesInSubmissions,attributesByTag,submissionFilter, setSubmissionFilter, attributeSearchQuery, setAttributeSearchQuery}} />
-                    <h3>Options</h3>
-                    <Button minimal={true} text="Clear Filter" onClick={() => setSubmissionFilter({})}/>
-                </div>
+                <SubmissionBaseFilter {...{
+                    submissionFilter,
+                    submissionsQuery,
+                    setSubmissionFilter,
+                    setSubmissionQuery,
+                    attributesByTag, userLabelsInSubmission,
+                    usersByLabel,
+                    uniqueAtributesInSubmissions,
+                    users: users
+                }} />
+
             </div>
 
         <div className="submission__items__container">
-            
+                <p>Submission : {filteredSubmission.length}</p>
             <h1>Time Series</h1>
-            <LineChart data={dataForLineChart} xAxisIsTime={true} xaxisName="asDate" yaxisNames={["n_samples"]} tooltipCircleNames={["n_samples","title","label"]} /> 
+                {dataForLineChart.length > 0 ? <LineChart data={dataForLineChart} xAxisIsTime={true} xaxisName="asDate" yaxisNames={["n_samples"]} tooltipCircleNames={["n_samples", "title", "label"]} /> : null}
 
             <h1>Count plots</h1>
                 

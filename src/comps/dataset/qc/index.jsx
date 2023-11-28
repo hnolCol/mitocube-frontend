@@ -11,9 +11,11 @@ function DatasetQC({authenticationStatus }) {
     
     const { dataset_label, metadata } = useOutletContext()   
 
-    const {data : datatable, isLoading, isFetching} = useGetDataQC({tokenString : authenticationStatus.token, dataset_label})
+    const {data : datatable, isLoading, isFetching, isError, error} = useGetDataQC({dataset_label})
 
+    if (isError) return <APIError error={error}/>
     if (isLoading || isFetching) return <Loading />
+
     const featureCounts = _.keys(datatable.stats).map((sampleName, idx) => {
         return {
             "#valid": datatable.stats[sampleName].count, idx, sampleName,

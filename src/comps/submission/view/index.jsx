@@ -37,7 +37,7 @@ const initExperimental = {
     paramsFile: {}
 }
 
-function SubmissionView({authenticationStatus, logout}) {
+function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
    
     const [submissionDetails, setSubmissions] = useState({
         submissions: [],
@@ -51,7 +51,6 @@ function SubmissionView({authenticationStatus, logout}) {
         submissionSummaryParams: []
     })
     
-    const { submissionFilter, setSubmissionFilter, attributeSearchQuery, setAttributeSearchQuery} = useOutletContext() 
     const [attributeSelectionDialog, setAttributeSelectionDialog] = useState({
         isOpen: false,
         attributeFilter: {},
@@ -290,7 +289,7 @@ function SubmissionView({authenticationStatus, logout}) {
             {isLoading || isFetching || userIsFetching || userIsLoading?
                 <Loading /> : isError ?
                     <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") ? 
-                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users.users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, attributeSearchQuery, setAttributeSearchQuery}} /> : null}
+                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, submissionsQuery, setSubmissionQuery}} /> : null}
             {/* <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
             <SubmissionOverviewDialog
                 {...subissionOverviewDialog}

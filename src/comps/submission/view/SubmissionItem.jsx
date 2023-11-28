@@ -46,11 +46,9 @@ function StateSubMenu({states, stateName, onStateChange}) {
 
 export function SubmissionItem({
     submission,
-    stateColor,
+    borderColor,
     stateName,
     states,
-    mouseIsOver = false,
-    handleMouseOver = undefined,
     attributesByTag = {},
     attributeValuesByTag = {},
     setAttributeSelectionDialog,
@@ -77,6 +75,7 @@ export function SubmissionItem({
     return (
 
         <ContextMenu
+            
             content={<Menu small={true}>
                 <MenuItem text={submission.label}/>
                 <MenuDivider />
@@ -90,9 +89,7 @@ export function SubmissionItem({
         </Menu>}>
         <div
             className="submission__item__container bg--white padding--little"
-            style={{ borderLeft: `3px solid ${stateColor}`, position: "relative"}}
-            onMouseEnter={() => handleMouseOver(submission.label)}
-            onMouseLeave={() => handleMouseOver(undefined)}>
+            style={{ borderLeft: `3px solid ${borderColor}`, position: "relative"}}>
             <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" >
             <div className="flex flex--wrap center-items">
@@ -104,22 +101,22 @@ export function SubmissionItem({
                 <div style={{paddingLeft : "1rem", fontWeight:600}}>{submission.title}</div>
                             
             </div>
-                        <div className="flex flex--wrap center-items">
-                            <div>
-                                <UserIconWithTooltip userLabel={usersPartInSubmission[0]} usersByLabel={usersByLabel} />
-                            </div>
-                <div>
-                                <AttributeTagWithTooltip {...{
-                                    attribute: { name: "Replicates", tag: "reps" },
-                                    attributeValue: { tag: "numb-reps", name: _.uniq(submission.replicates).length }
-                                }} />
-                </div>  
+                <div className="flex flex--wrap center-items">
                     <div>
-                            <AttributeTagWithTooltip {...{
-                                    attribute: { name: "Number samples", tag: "samples" },
-                                    attributeValue: { tag: "numb-samps", name: submission.sample_names.length}
-                                }} />
-                </div>        
+                        <AttributeTagWithTooltip {...{
+                            attribute: { name: "Replicates", tag: "reps" },
+                            attributeValue: { tag: "numb-reps", name: _.uniq(submission.replicates).length }
+                        }} />
+                    </div>  
+                    <div>
+                    <AttributeTagWithTooltip {...{
+                            attribute: { name: "Number samples", tag: "samples" },
+                            attributeValue: { tag: "numb-samps", name: submission.sample_names.length}
+                        }} />
+                    </div> 
+                    <div>
+                        <UserIconWithTooltip userLabel={usersPartInSubmission[0]} usersByLabel={usersByLabel} />
+                    </div>            
             </div>
 
 

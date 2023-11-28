@@ -8,12 +8,12 @@
     padding-bottom: 3rem;
     padding-right: 2rem;
     padding-left  : 2rem;
-    margin-left : 2rem;
+    margin-left : 1rem;
     border-left: 1px darkgrey solid;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height : 85vh;
+    height : 90vh;
   }
 
 
@@ -22,9 +22,9 @@
   min-width: 12rem;
   overflow-y: scroll;
   overflow-x:hidden;
-  height: 85vh;
+  height: 90vh;
   padding-bottom: 3rem;
-  padding-right: 0.2rem;
+  padding-right: 1rem;
 }
 
 .submission__state_container {

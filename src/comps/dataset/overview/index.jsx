@@ -13,16 +13,43 @@ import {useOnScreen} from "../../../hooks/useOnScreen";
 import { readDateFromString, readDateFromStringAndReturnDateAndDistToNow } from "../../../services/date/read";
 import { useGetMetadata } from "../../../hooks/queries/datasets.hooks";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
-import { useGetSubmissionMetatext, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
+import { useGetSubmissionAttributes, useGetSubmissionAttributesByTag, useGetSubmissionMetatext, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { groupListByProperty } from "../../../services/arrays/groupby";
+import DatasetAttributeHierarchy from "../../submission/new/attribute/DatasetAttributesHierarchy";
+import { getAttributeForUserNumericInput, mapAttributeValueTagsToAttributes } from "../../../services/attributes";
+
+function Metatext({ metatextTag, metadata, metatext }) {
+    
+    const [mouseIn, setMouseIn] = useState(false)
+    return (
+        <motion.div onMouseEnter={() => setMouseIn(true)} onMouseLeave={() => setMouseIn(false)}>
+        <div className="flex margin--little justify-space-between">
+                <div className="flex flex-column"><div><h3>{metatext.names[metatextTag]}</h3></div></div>
+                <div><Button
+                    style={{ opacity: mouseIn ? 1 : 0 }}
+                    icon="clipboard"
+                    small={true}
+                    minimal={true}
+                    onClick={() => copyTextToClipboard({ text: metadata.metatext[metatextTag] })}/></div>
+        </div>
+        <motion.div
+            className="margin--little intent-margin-left intent-padding-right--little container--scroll-y-hide-x"
+            style={{ textAlign: "justify", width: "25vw", height: "33vh" }}>
+            
+                {metadata.metatext[metatextTag]}
+    </motion.div>
+    </motion.div>)
+
+}
+
 
 function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
     
     const { data: users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
     if (!_.isObject(users)) return null 
-    const userByLabel = groupListByProperty(users.users, "label")
+    const userByLabel = groupListByProperty(users, "label")
     const datasetUserLabels = _.concat(user, collaborators).filter(userLabel => _.has(userByLabel,userLabel))
     return (
         <div className="flex">
@@ -145,16 +172,14 @@ function DatasetInfoContainer({datasetInfo,dataID, isFetched, setTabHeader}) {
 
 function DatasetOverview({authenticationStatus}) {
 
-    const { dataset_label, metadata, setTabHeader, tabHeader } = useOutletContext()    
-    console.log(dataset_label)
-    //const {data : metadata} = useGetMetadata({tokenString : authenticationStatus.token, dataset_label})
+    const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
     const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
-    
 
     const datasetMetrices = useMemo(() => {
         if (!_.isObject(metadata)) return []
         //get metrices available at any state of the project
-        let basicMetrices =  [
+        let basicMetrices = [
+            { label : "Label", metric : metadata.label},
             { label: "Samples", metric: metadata.sample_names.length },
             { label: "Replicates", metric: _.uniq(metadata.replicates).length },
             { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
@@ -162,24 +187,33 @@ function DatasetOverview({authenticationStatus}) {
         //add others / optional 
         return basicMetrices 
     }, [dataset_label,_.isObject(metadata)])
-    // const headerRef = useRef(null)
-    // const isVisible = useOnScreen(headerRef)
 
-    // useEffect(() => {
-    //     if (_.isObject(metadata) && _.has(metadata, ["title"]) && !isVisible) {
-    //         setTabHeader(metadata.title)
-    //     }
-    //     else {
-    //         setTabHeader("")
-    //     }
-    // }, [isVisible])
     if (!_.isObject(metadata)) return null
+    if (!_.isObject(attributesByTag)) return null 
+
     const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
+    
+    let sampleAttributesKey = Object.keys(metadata.samples_attributes)
+    let sampleAttributeValues = Object.fromEntries(sampleAttributesKey.map(attributeTag =>
+        [attributeTag, Object.keys(metadata.samples_attributes[attributeTag].values).map(attributeValueTag => _.has(attributesByTag.attribute_values, attributeValueTag) ?
+            attributesByTag.attribute_values[attributeValueTag] : getAttributeForUserNumericInput({attributesByTag,attributeTag,attributeValueTag}))]))
+    
+    let datasetAttributeTags = Object.keys(metadata.dataset_attributes)
+    let dataAttributes = datasetAttributeTags.map(attrTag => attributesByTag.attributes[attrTag])
+    let datasetAttributeValues = Object.fromEntries(datasetAttributeTags.map(attributeTag =>
+        [attributeTag, metadata.dataset_attributes[attributeTag].map(attrValueTag =>
+            _.has(attributesByTag.attribute_values, attrValueTag) ? attributesByTag.attribute_values[attrValueTag] :
+                getAttributeForUserNumericInput({ attributesByTag, attributeTag, attributeValueTag : attrValueTag }))]))
+
+    console.log(dataAttributes, datasetAttributeValues)
+    
+    console.log(metadata.samples_attributes, sampleAttributeValues, attributesByTag)
      
     // if (isError) return <APIError error={error} />
     // if (isLoading) return <div>Loading...</div>
+    console.log(metadata.dataset_attributes)
     return (
-        <div>
+        <div style={{overflowY:"scroll", height : "90vh "}}>
              <div id="top" className="flex flex-column center-items">
                 <div className="intent-margin-top" style={{ maxWidth : "66vw"}}>
                 <h1>{metadata.title}</h1>
@@ -191,31 +225,35 @@ function DatasetOverview({authenticationStatus}) {
                     emailSubject : `Related to dataset ${metadata.title} (${metadata.label})`
                 }} />
                 <div className="font-size--small intent-margin-top--little">
-                    {m.fromNow()}
-                    <div>
-                        <StateIndicator state={metadata.state} {...{authenticationStatus}} />
-                    </div>
+                    {`${m.fromNow()} (${formatedTime})`}
                 </div>
+                <div className="intent-margin-top--little">
+                    <StateIndicator state={metadata.state} {...{authenticationStatus}} />
+                </div>
+                
 
             </div>
             <MultipleMetrices metrices={datasetMetrices} />
             <h2>Sample Attributes</h2>
             <h2>Dataset Attributes</h2>
+            <DatasetAttributeHierarchy {...{
+                selectedDasetAttributeValues: datasetAttributeValues,
+                selectedAttributes: dataAttributes
+            }} />
             <div className="intent-margin-right ">
-            <h2>Metatext</h2>
+                <h2>Metatext</h2>
+            <div className="flex flex--wrap" style={{gap:"2rem"}}>
             {_.isObject(metadata) && _.isObject(metadata.metatext) && _.isObject(metatext) ?
                     _.keys(metatext.names).filter(metatextTag => _.isString(metadata.metatext[metatextTag])).map(metatextTag => <div
-                        className="container--shadow padding--little intent-margin-top--little">
-                    <div className="margin--little">
-                        <h3>{metatext.names[metatextTag]}</h3>
-                    </div>
-                    <div className="margin--little intent-margin-left intent-margin-right" style={{textAlign:"justify"}}>
-                    {metadata.metatext[metatextTag]}
-                    </div>
+                        className="container--shadow padding--little intent-margin-top--little "
+                        key = {metatextTag} >
+                    
+                        <Metatext {...{metadata,metatextTag,metatext}} />
                 
                     </div>)
                 
-                    : null}
+                        : null}
+            </div>
                 </div>
         </div>
         )}

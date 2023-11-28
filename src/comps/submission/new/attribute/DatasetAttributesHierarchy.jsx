@@ -5,6 +5,7 @@ import { Code, H5, Tag } from "@blueprintjs/core"
 import { Header } from "../../../core/base/Header"
 import TooltipButton from "../../../core/base/buttons/TooltipButton"
 import { objectHasKey } from "../../../../services/objects/checks"
+import { useMemo } from "react"
 
 
 
@@ -23,13 +24,14 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
     return (
         <div style={{marginLeft:`${level+0.5}rem`, marginBottom : level===0?"0.5rem":"0rem"}}>
             <Header text= {attribute.name} hexColor={"#000000"} fontSize="0.85rem"/>
-                <div className="flex" style={{paddingBottom: "0.2rem"}}>
+            <div className="flex" style={{ paddingBottom: "0.2rem" }}>
+                
                 {attributeValuesByTag[attribute.tag].map(attributeValue => <Tag
                     key={`${attributeValue.name}-${attributeValue.id}`}
                     style={{ marginRight: "0.4rem" }}
                     onRemove={e => handleAttributeRemove(attributeValue)}
                     minimal={true}
-                    large={true}>
+                    large={false}>
                         {attributeValue.name}
                 </Tag>)}
                 {attributeValuesByTag[attribute.tag].length > 1 ? <TooltipButton
@@ -52,9 +54,9 @@ DatasetAttributeHierarchy.propTpyes = {
     onDatasetAttributeRemove : PropTypes.func.isRequired
 }
 
-function DatasetAttributeHierarchy({submissionID, selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove}) {
+function DatasetAttributeHierarchy({selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove}) {
     //show dataet attributes
-    const nestedAttributes = createDataTree({ array: selectedAttributes, link: "parent_id" })
+    const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes, link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
     return (
         <div className="padding--little div--round bg--lightgrey intent-margin-top--little" style={{ maxHeight: "600px", overflow: "scroll" }}>
             

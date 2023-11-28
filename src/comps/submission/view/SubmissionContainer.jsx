@@ -13,6 +13,7 @@ import { User, UserIcon, UserIconWithTooltip } from "../../core/base/user"
 import TextInput from "../../core/input/Text"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../services/arrays/filter"
 import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
+import { SubmissionBaseFilter } from "../filter"
 
 
 
@@ -173,13 +174,13 @@ export function StateFilterButton({ states, stateName, setSubmissionFilter, subm
 export function StateIndicator({ state, authenticationStatus }) {
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
         { staleTime: Infinity }) //request only once. 
-    console.log(submissionStates)
     if (submissionStatesLoading) return null 
     const stateName = submissionStates.states_inv[state]
     const stateColor = submissionStates.colors_inv[state]
 
-    return <div className="flex"><div>State: </div><div className="flex flex-column center-items div--round" style={{
+    return <div className="flex"><div className="flex flex-column center-items div--round padding--little" style={{
         backgroundColor: stateColor,
+        fontSize : "1.1rem",
         color: isHexColorLight(stateColor) ? "black" : "white"
     }}>{titleFormat(stateName)}
     </div></div>
@@ -272,16 +273,14 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
 }
 
 
-export function UserFilterSelection({ userLabelsInSubmssion, usersByLabel, submissionFilter, setSubmissionFilter }) {
-
-    const { values, counts } = userLabelsInSubmssion
+export function UserFilterSelection({ userLabelsInSubmission, usersByLabel, submissionFilter, setSubmissionFilter }) {
+    const { values, counts } = userLabelsInSubmission
     return (<div>
         <h3>Users</h3>
         <div className="flex flex--wrap">
         {[...values].map(userLabel => {
             if (_.has(usersByLabel, userLabel)) {
-                const userData = usersByLabel[userLabel][0]
-                return <UserIcon text = {userData.firstname[0]+userData.lastname[0]} />
+                return <UserIconWithTooltip {...{userLabel, usersByLabel, selected : true}} /> // text = {userData.firstname[0]+userData.lastname[0]} />
 
             }})}
         </div>
@@ -289,7 +288,7 @@ export function UserFilterSelection({ userLabelsInSubmssion, usersByLabel, submi
 }
 
 
-export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter }) {
+export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter,  }) {
     
     const allFilterKeysFound = _.every(datasetAttributeFilter.map(filterKey => _.has(submissionDatasetAttributes, filterKey)))
     if (!allFilterKeysFound) return false
@@ -297,28 +296,87 @@ export function filterSubmissionByDatasetAttribute({ submissionFilter, submissio
     return datasetAttributeMatch
 }
 
-
-export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,attributeSearchQuery, setAttributeSearchQuery}) {
-    const [mouseOverLabel, setMouseOverLabel] = useState(undefined)
-
-    const submissionsByState = groupListByProperty(submissions, "state")
-    const stateFilterIsActive = _.has(submissionFilter, "states") && submissionFilter.states.size > 0
-    const datasetAttributeFilter = Object.keys(submissionFilter).filter(filterKey => filterKey !== "states") //exclude statefilter
+export function extractSubmissionDetails({ submissions }) {
+    
     const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
     const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
-    const userLabelsInSubmssion = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
+    
+    return { uniqueAtributesInSubmissions, usersByDataLabel}
+}
+
+
+export function filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel, ignoreState = false }) {
+
+    const stateFilterIsActive = _.has(submissionFilter, "states") && submissionFilter.states.size > 0
+    const datasetAttributeFilter = _.keys(submissionFilter).filter(filterKey => filterKey !== "states" && filterKey !== "users") //exclude statefilter
+    const userSearchActive = _.has(submissionFilter, "users") && submissionFilter.users.size > 0 
+    
+    // should be combined in a single iteration...
+    let filteredSubmission = submissions
+    if (stateFilterIsActive && !ignoreState) {
+        filteredSubmission = filteredSubmission.filter(submission => submissionFilter.states.has(_.toInteger(submission.state)))
+    }
+    //filter by dataset attributes
+    if (datasetAttributeFilter.length > 0){
+        filteredSubmission = submissions.filter(submission => filterSubmissionByDatasetAttribute({
+            submissionFilter,
+            submissionDatasetAttributes: submission.dataset_attributes,
+            datasetAttributeFilter
+        }))
+    }
+    if (submissionsQuery.plain !== "") {
+        //filter by plain serach
+        filteredSubmission = filterArrayBySearchString({
+            array: submissions,
+            searchColumns: ["title", "label"],
+            searchString: submissionsQuery.plain
+        })
+    }
+
+    if (userSearchActive) {
+        // filter by user
+        filteredSubmission = filteredSubmission.filter(submission => _.some(usersByDataLabel[submission.label].map(userLabel => submissionFilter.users.has(userLabel))))
+    }
+
+    return filteredSubmission
+
+
+}
+
+export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery}) {
+
+    
+    
+    //const datasetAttributeFilter = _.keys(submissionFilter).filter(filterKey => filterKey !== "states" && filterKey !== "users") //exclude statefilter
+    
+    const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
+    // const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
+    // const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
+    // const userLabelsInSubmission = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
     const usersByLabel = groupListByProperty(users, "label")
-    const submissionMatchesFilterByIndex = Object.fromEntries(Object.keys(submissionsByState).map(
-        state => [state, Object.fromEntries(_.map(submissionsByState[_.toString(state)], (submission, idx) => {
-            return [idx, filterSubmissionByDatasetAttribute({
-                submissionFilter,
-                submissionDatasetAttributes: submission.dataset_attributes,
-                datasetAttributeFilter
-            })]
-        }))]))
+    const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
+    const submissionsByState = groupListByProperty(filteredSubmission, "state")
+    const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+
+    // const submissionMatchesFilterByIndex = Object.fromEntries(Object.keys(submissionsByState).map(
+    //     state => [state, Object.fromEntries(_.map(submissionsByState[_.toString(state)], (submission, idx) => {
+    //         return [idx, filterSubmissionByDatasetAttribute({
+    //             submissionFilter,
+    //             submissionDatasetAttributes: submission.dataset_attributes,
+    //             datasetAttributeFilter
+    //         })]
+    //     }))]))
     
     
-    if (_.isEmpty(submissionsByState)) return <div><p>No submssions found. Please use the submission portal.</p></div>
+    // const submissionMatchingPlainQuery = useMemo(() => {
+    //     if (submissionsQuery.plain === "") return new Set()
+    //     return new Set(filterArrayBySearchString({ array: submissions, searchColumns: ["title", "label"], searchString: submissionsQuery.plain }).map(s => s.label))
+    // }, [submissionsQuery.plain])
+    
+    
+    // const plainSearchActive = submissionsQuery.plain !== ""
+    // const userSearchActive = _.has(submissionFilter,"users") && submissionFilter.users.size > 0 
+    //if (_.isEmpty(submissionsByState)) return <div><p>No submissions found. Please use the submission portal to start with your first one. Please visit the dataset sectio to explore published datasets.</p></div>
     return (
         <div className="flex" style={{ width: "100%" }}>
             
@@ -335,27 +393,30 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                         key={stateName}
                         {...{ submissionFilter, setSubmissionFilter, stateName, states }} />})}
                 </div>
-                <h3>Search</h3>
-                <InputGroup placeholder="Search..." small={true} />
-                
-                <div>
-                    <UserFilterSelection {...{ submissionFilter, setSubmissionFilter, usersByLabel, userLabelsInSubmssion }} />
-                    
-                    <AttributeFilterSelection {...{uniqueAtributesInSubmissions,attributesByTag,submissionFilter, setSubmissionFilter,attributeSearchQuery, setAttributeSearchQuery}} />
-                    <h3>Options</h3>
-                    <Button minimal={true} text="Clear Filter" onClick={() => setSubmissionFilter({})}/>
-                </div>
+                <SubmissionBaseFilter {...{
+                    submissionFilter,
+                    submissionsQuery,
+                    setSubmissionFilter,
+                    setSubmissionQuery,
+                    attributesByTag,
+                    userLabelsInSubmission,
+                    usersByLabel,
+                    uniqueAtributesInSubmissions,
+                    users
+                }} />
             </div>
 
         <div className="submission__items__container">
-            
+                {_.isEmpty(submissionsByState) ? <p>No submission found that match the filter.</p> : null}
             {Object.values(states.states).map((state,stateIdx) => {
                 const submissionsAreInState = _.has(submissionsByState, state)
-                
                 if (!submissionsAreInState) return null 
-                if (stateFilterIsActive && !submissionFilter.states.has(_.toInteger(state))) return null
-                 if (!_.some(Object.values(submissionMatchesFilterByIndex[state]))) return null 
-
+                
+                
+                // if (stateFilterIsActive && !submissionFilter.states.has(_.toInteger(state))) return null
+                // if (!_.some(Object.values(submissionMatchesFilterByIndex[state]))) return null 
+                // if (plainSearchActive  && !_.some(submissionsByState[_.toString(state)].map(s => submissionMatchingPlainQuery.has(s.label)))) return null
+                //console.log("reach?", plainSearchActive)
                 return (
                     <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
                         <StateHeader {...{
@@ -363,7 +424,9 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                             stateColor: states.colors_inv[state]
                         }} />
                         {submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
-                            if (!submissionMatchesFilterByIndex[state][submissionIdx]) return null 
+                            // if (!submissionMatchesFilterByIndex[state][submissionIdx]) return null 
+                            // if (plainSearchActive && !submissionMatchingPlainQuery.has(submission.label)) return null
+                            // if (userSearchActive && !_.some(usersByDataLabel[submission.label].map(userLabel => submissionFilter.users.has(userLabel)))) return null
                             return (
                                 <SubmissionItem
                                     key={submission.label}
@@ -373,12 +436,10 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                                     usersByLabel,
                                     submission,
                                     setAttributeSelectionDialog,
-                                    mouseIsOver: mouseOverLabel === submission.label,
-                                    handleMouseOver: setMouseOverLabel,
                                     attributesByTag : attributesByTag.attributes,
                                     attributeValuesByTag: attributesByTag.attribute_values
                                     
-                                }} stateColor={states.colors_inv[state]} />
+                                }} borderColor={states.colors_inv[state]} />
                             )
                         })}
                     </div>

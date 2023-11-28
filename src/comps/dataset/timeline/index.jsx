@@ -3,13 +3,10 @@ import _ from "lodash"
 import { getAndTransformDatesFromArrayOfObjectsByKey } from "../../../services/arrays/transforms"
 import TimelineChart from "../../core/charts/timeline"
 import { useOutletContext } from "react-router"
-import { useGetMetadata } from "../../../hooks/queries/datasets.hooks"
-import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { groupListByProperty } from "../../../services/arrays/groupby"
 import { titleFormat } from "../../../services/format/string"
 import { getStateName } from "../../../services/states"
-import { millisecondsToDays } from "../../../services/format/dates"
 import { getFormatDateFromTimestamp } from "../../../services/date/format"
 
 
@@ -19,13 +16,12 @@ Timeline.propTypes = {
 //data = [{Date : "20230402", label : "Initialized",c : "State Changed"},{Date : "20230702", label : "Processed", c : "Edited"},{Date : "20230708", label : "Groupings Changed", c : "Modified"},{Date : "20230802", label : "Done",c : "State Changed"}], dateKeyName = "asDate", isDate = false
 function Timeline({ authenticationStatus }) {
 
-    const { dataset_label, metadata} = useOutletContext()   
-    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
-        { staleTime: Infinity }) //request only once. 
+    const { dataset_label, metadata, submissionStates} = useOutletContext()   
+    
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
     const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
     if (!_.isObject(metadata) || !_.isObject(submissionStates) || !_.isObject(users)) return null 
-    const groupedUsers = groupListByProperty(users.users, "label")
+    const groupedUsers = groupListByProperty(users, "label")
     const timeline = metadata.timeline 
     let dataForLineChart = getAndTransformDatesFromArrayOfObjectsByKey({ data: timeline.entries, keyName: "created_on", dateFormat: "YYYYMMDD" })
     

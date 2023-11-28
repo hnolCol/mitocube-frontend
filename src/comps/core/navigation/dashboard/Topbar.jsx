@@ -1,4 +1,4 @@
-import { Code, Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core"
+import { Code, Dialog, DialogBody, DialogFooter, Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase"
 import UserDashboardIcon from "../../svg/icons/dashboard/User"
 import MenuDashboardIcon from "../../svg/icons/dashboard/Menu"
@@ -9,6 +9,9 @@ import { Header } from "../../base/Header"
 import { useGetBackendInfo } from "../../../../hooks/queries/welcome.hooks"
 import { useGetUserRoles } from "../../../../hooks/queries/user.hooks"
 import _ from "lodash"
+import { BaseDialog } from "../dialogs/BaseDialog"
+import { useState } from "react"
+import { EditUser } from "../../base/user/EditUser"
 
 function Topbar({
     authenticationStatus,
@@ -16,6 +19,7 @@ function Topbar({
     applicationInfo,
     basePathName }) {
     
+    const [dialogProps, setDialogProps] = useState({isOpen : false})
     const { data: userRoles } = useGetUserRoles({ tokenString: authenticationStatus.token },
         { enabled: authenticationStatus.isAuth, staleTime: 3000000 })
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token },
@@ -26,9 +30,22 @@ function Topbar({
 
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
     
+    const onEidt = (e) => {
+
+        setDialogProps(prevValues => {
+            return {
+                ...prevValues,
+                isOpen: true,
+                title : "Edit User",
+                children: <EditUser userLabel={authenticationStatus.label} />
+            }
+        })
+    }
+
     return (
 
         <div className="flex justify-space-between">
+            <BaseDialog {...{...dialogProps}} onClose={() => setDialogProps(prevValues => {return{...prevValues,isOpen : false}})}/>
             {/* <div>{basePathName.toUpperCase()}</div> */}
             <div className="flex flex-column justify-center">
                 <Header text={backendInfoIsSucces?backendInfo.app_name:null} /></div>
@@ -40,6 +57,7 @@ function Topbar({
                     <Popover position={Position.BOTTOM_LEFT} content={<Menu>
                         <MenuItem disabled={true} text={`${authenticationStatus.firstname} ${authenticationStatus.lastname}`} />
                         <MenuDivider />
+                        <MenuItem text="Edit" icon="edit" onClick={onEidt}/>
                         <MenuItem text="Logout" icon="log-out" onClick={logout}/>
                     </Menu>}>
                         <BaseDashboardIcon width={30} height={30}>

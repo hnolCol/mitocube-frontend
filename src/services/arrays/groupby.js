@@ -4,6 +4,13 @@ import { getStandardDeviationAndAverage } from "../statistics/average";
 import { getDomainWithBoundaries } from "./boundaries";
 
 
+// export function getUniqueValuesInArrayByKeyNames(data = [], keyNames = []){
+
+//     return data.reduce((p, c) => {
+//         _.forEach(keyNames, k)
+//     }, {})
+// }
+
 
 export function getUniqueValuesFromArrayOfObjectsByKey(data = []) {
     

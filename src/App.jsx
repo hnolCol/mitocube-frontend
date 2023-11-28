@@ -51,8 +51,8 @@ import DatasetSelection from "./comps/dataset/selection";
 import axios from "axios";
 
 //axios defaults
-axios.defaults.headers.post['Content-Type'] = 'application/json';
-axios.defaults.headers.get['Content-Type'] = 'application/json';
+
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 const initAuthenticationStatus = {
   isAuth: false,
@@ -73,8 +73,12 @@ function App() {
   const [tokenFromStorage, setTokenFromStorage] = useState(undefined)
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
+  const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
+  const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : ""})
+
+  const [submissionFilter, setSubmissionFilter] = useState({})
   // check if token is valid, if a token is found in storage.
-  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidError, error, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
+  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidIsError, error : tokenValidError, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
 
   const location = useLocation()
   const redirect = useNavigate()
@@ -91,10 +95,10 @@ function App() {
 
   useEffect(() => {
     // use effect if token string was found in storage. 
-    if (tokenValidError) {
+    if (tokenValidIsError && tokenValidError.response.status === 401) {
       logout()
     }
-    if (_.isObject(isTokenValid) && isTokenValid.success) {
+    else if (_.isObject(isTokenValid) && isTokenValid.success) {
       setAuthenticationStatus({
         isAuth: true,
         token: tokenFromStorage,
@@ -109,7 +113,7 @@ function App() {
 
       redirect(location)
     }
-  }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidError])
+  }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidIsError])
 
   const logout = () => {
     //logs the user out, deletes the token from local storage. 
@@ -178,7 +182,7 @@ function App() {
 
       <Route path="/dataset" element={
             <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-              <DatasetSelection {...{authenticationStatus, logout}}/>
+              <DatasetSelection {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>
               {/* <div>
                 <h3>Datasets Selection</h3>
                 <p>Pleaase select a dataset to explore. Tag based search supported.</p>
@@ -213,11 +217,11 @@ function App() {
           }>
             <Route index element={<NewSubmission {...{authenticationStatus, logout}}/>} />
             <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
-            <Route path="/submission/view" element={<SubmissionView {...{authenticationStatus, logout}}/>}/>
+            <Route path="/submission/view" element={<SubmissionView {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>}/>
             <Route path="/submission/a" element={<h3>Submission Overview</h3>}/>
             <Route path="/submission/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route path="/submission/statistics" element={
-              <SubmissionStatistics {...{authenticationStatus, logout}}/>} />
+              <SubmissionStatistics {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>} />
       </Route>
       
       <Route path="/admin" element={

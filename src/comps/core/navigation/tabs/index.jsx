@@ -23,7 +23,8 @@ function TabItem({text,to, active = false}) {
         <div className={"bg--lightgrey tabs__item" + `${active ? "" : " tabs__item-inactive"}`}>
             <Link className="router-link" {...{ to }}>
                 <div className="div--expand tabs__item__inner" >
-                    <Header {...{ text }} hexColor={active ? "#466688" : "#696969"} />
+                    {/* <Header {...{ text }} hexColor={active ? "#466688" : "#696969"} /> */}
+                    <h3>{text}</h3>
                 </div>
             </Link>
         </div>
