@@ -6,18 +6,18 @@ import MultipleMetrices from "../../core/metrics/collection";
 
 function DatasetHeatmap({}) {
     
-    const { datasetInfo, dataID, isLoading, isFetched, isError, error, token } = useOutletContext()   
+    const { dataset_label, metadata } = useOutletContext()   
   
     const anovaDetails = {pvalue : 0.05, anovaType : "1-way ANOVA",grouping1 : "Genotype"}
-    const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})
+   // const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})
 
-    console.log(heatmapData)
+    // console.log(heatmapData)
 
-    if (isError) return <APIError error={error} />
-    if (isLoading) return <div>Loading...</div>
+    // if (isError) return <APIError error={error} />
+    // if (isLoading) return <div>Loading...</div>
 
 
-    if (heatmapIsLoading) return <div>Calculating ANOVA, clusters, and color values. Loading...</div>
+    // if (heatmapIsLoading) return <div>Calculating ANOVA, clusters, and color values. Loading...</div>
 
     return (
         <div>

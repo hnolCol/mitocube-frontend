@@ -1,4 +1,4 @@
-import { Button, Code, Tooltip } from "@blueprintjs/core";
+import { Button, Code, Popover, Tooltip, Menu, MenuItem } from "@blueprintjs/core";
 import UserDashboardIcon from "../../svg/icons/dashboard/User";
 import PropTypes from "prop-types"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase";
@@ -7,6 +7,49 @@ import TooltipButton from "../buttons/TooltipButton";
 import { getFormatDateFromTimestamp } from "../../../../services/date/format";
 import moment from "moment";
 import { TagWithTooltip } from "../tags/TagWithTooltip";
+import _ from "lodash"
+
+
+
+
+
+export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false }) {
+    if (!_.has(usersByLabel, userLabel)) return null 
+    const { firstname, lastname, email, label, institute, research_group } = usersByLabel[userLabel][0]
+    const text = firstname[0]+lastname[0]
+    return (
+        <Popover content={<Menu small={true}>
+            <MenuItem text={`${firstname} ${lastname}`} icon="envelope" labelElement={<div style={{ width: "14rem", fontSize: "0.6rem", textAlign: "left" }}><div>{institute}</div><div>{research_group}</div></div>} />
+
+        </Menu>} interactionKind="hover" position="top">
+        <BaseDashboardIcon width={30} height={30}>
+                <UserDashboardIcon {...{ text, fillColor : selected? "#b91e18" : undefined}} />   
+            </BaseDashboardIcon>
+        </Popover>
+    )
+}
+
+export function UserIcon({text}) {
+    return (
+        <BaseDashboardIcon width={30} height={30}>
+            <UserDashboardIcon {...{ text }} />   
+        </BaseDashboardIcon>
+    )
+}
+
+
+// export function UserIconWithTooltip({text}) {
+//     return (
+//         <Popover content={<div>User detials</div>} interactionKind="hover" position="top">
+//         <button>
+//         <BaseDashboardIcon width={30} height={30}>
+//             <UserDashboardIcon {...{ text }} />   
+//             </BaseDashboardIcon>
+        
+//             </button>
+//             </Popover>
+//     )
+// }
 
 
 User.propTypes = {
@@ -20,18 +63,7 @@ User.propTypes = {
 }
 
 
-function Affiliation({}) {
-    
-
-    return (
-        <p>
-
-
-        </p>
-    )
-}
-
-export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, ...rest}) {
+export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, deleteUser, ...rest}) {
     const [m, formatedTime] = getFormatDateFromTimestamp(created_on)
     return (
         <div className="bg--lightgrey margin--little center-items padding--little">
@@ -63,7 +95,8 @@ export function User({firstname,lastname,email, role, created_on, userRoles, blo
                     />
                 <TooltipButton
                     content={<div>Delete user.</div>}
-                    icon="cross"
+                            icon="cross"
+                            onClick={() => deleteUser(label)}
                     />
 
                 </div>

@@ -35,7 +35,8 @@ function NumericValueInput({ callbackKey, value, onChange, minValue = -Infinity,
             label={hint}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
-                helperText={""}>
+            helperText={""}>
+            <div className="flex center-items">
             <NumericInput
                     value={submitButton ? valueString : value} 
                     onKeyUp={submitButton && valueString !== "" && valueInRange? (e) => {
@@ -47,14 +48,15 @@ function NumericValueInput({ callbackKey, value, onChange, minValue = -Infinity,
                     onValueChange={submitButton ? (value,valueAsString) => setValue(valueAsString) : _.isFunction(onChange) ? (value, valueAsString) => onChange(callbackKey, valueAsString, "text") : undefined}
                     { ...rest}
                 />
-            {submitButton ? <div className="flex center-items intent-padding-top--little">
+            {submitButton ? <div className="flex center-items">
                 <Button
                     onClick={(e) => onButtonClick(callbackKey, valueString, "text")}
                     {...buttonProps}
                     disabled={valueString === "" || !valueInRange}
-                    text="Save" />
+                        text="Save" />
+                
                 <div>{!valueInRange && valueString !== ""? `Not in range: [${minValue}-${maxValue}]` : ""}</div>
-            </div> : null}
+            </div> : null}</div>
             </FormGroup>
     )
 }

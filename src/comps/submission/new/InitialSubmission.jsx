@@ -23,7 +23,7 @@ import MetaText from "./MetaText"
 import { loadSavedSubmissionFromLocalStorage, removeSubmissionFromLocalStorage, saveSubmissionInLocalStorage } from "../../../services/localstorage"
 import DatasetLinks from "./Links"
 import { getRandomID } from "../../../services/random"
-import GenotypeGenerator from "./Genotype"
+import GenotypeGenerator, { PositionSelection } from "./Genotype"
 import FeatureSelection from "./FeatureSelection"
 
 
@@ -58,7 +58,7 @@ function InitialSubmission({
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
-    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: 12000000 }) // put metatext for long time in cache (staleTime - define in hooks!) 
+    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
 
 
@@ -205,7 +205,6 @@ function InitialSubmission({
             errMsgs.push("At least one samples attribute has less than two unique values. It should therefore be defined as a dataset attribute: "+_.join(sampleAttributesWithSingleUniqueValue,", "))
         }
     
-        console.log(submission)
         if (errMsgs.length > 0) {
             // if there are error messages, show it to the user.
             setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
@@ -495,9 +494,13 @@ function InitialSubmission({
         
     }
 
-    const onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces) => {
-        
-        if (isSampleAttribute) {
+    const onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
+        //console.log(attribute)
+        if (attribute.allow_for_genotype) {
+            genotypeSelection(genotypeLabel,attribute.tag,selectedFeatures[0],entryIdx) //double check entry!! 
+        }
+
+        else if (isSampleAttribute) {
             let d = submission.attributeTable
             if (!objectHasKey({ object: d[0], keyName: attribute.tag })) {
                 d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
@@ -516,7 +519,7 @@ function InitialSubmission({
         setAlertProps({isOpen : false})
     }
 
-    const handleFeatureSelection = (attribute, isSampleAttribute=false, rowIdces = []) => {
+    const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
         
         if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
             || submission.datasetAttributeValues["att_organism"].length === 0) {
@@ -536,11 +539,22 @@ function InitialSubmission({
                 selectedItems,
                 attribute,
                 rowIdces,
+                entryIdx,
+                genotypeLabel,
                 organisms: submission.datasetAttributeValues["att_organism"],
                 isSampleAttribute,
                 onSave : onFeatureSelection
             }} />
         })
+    }
+
+    const handlePositionSelection = (featureID) => {
+        setAlertProps({
+            isOpen: true,
+            confirmButtonText : "Cancel",
+            children : <PositionSelection {...{authenticationStatus,featureID, onClose : () => setAlertProps({isOpen : false})}}/>
+        })
+        
     }
 
     const handleDatasetAttributeSelection = (attribute, attributeValue) => {
@@ -661,7 +675,11 @@ function InitialSubmission({
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <Header text="2. Mandatory Attributes" />
                 <p>Attributes that are required for the project submission. </p>
-                    <TextInput placeholder="Set title of your project" hint="Project Title" value={_.isString(submission.attributes["title"])?submission.attributes["title"]:""} callbackKey="title" onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
+                    <TextInput placeholder="Set the title of your submission.."
+                        hint="Project Title"
+                        value={_.isString(submission.attributes["title"]) ? submission.attributes["title"] : ""}
+                        callbackKey="title"
+                        onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
                 
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
                     const samplesAttributesPresent = submission.samplesAttributes.length > 0
@@ -705,17 +723,17 @@ function InitialSubmission({
                             onDatasetAttributeRemove={handleDatasetAttributeSelection} />
                 </div>
                     
-                        
+                {/* <Button onClick={handleGenotypeCreation} /> */}
                 <GenotypeGenerator
                     attributes={attributesForGenotype}
                     attributeValuesByID={attributeValuesByAtrributeID}
                     onSelection={genotypeSelection}
                     genotypes={submission.genotypes} 
-                    {...{addGenotype,addGenotypeEntry,removeGenotypeEntry,authenticationStatus,handleFeatureSelection}}/>
+                    {...{addGenotype,addGenotypeEntry,removeGenotypeEntry,authenticationStatus,handleFeatureSelection,handlePositionSelection }}/>
                             
                         
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="6. Sample Attributes" />
+                <Header text="7. Sample Attributes" />
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
                     </p>
@@ -729,7 +747,7 @@ function InitialSubmission({
                         callbackKey={"replicates"}
                         value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
                     <NumericValueInput
-                        placeholder="Sample number"
+                        placeholder="Number of samples"
                         callbackKey={"sampleNumber"}
                         value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
                     

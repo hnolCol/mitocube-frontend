@@ -40,15 +40,32 @@ p{
     font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 
+h1 {
+    font-size: 2.5rem;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
+    text-align: center;
+    font-weight: 400;
+}
+
 h3 {
     margin-top : 0.0rem;
     margin-bottom: 0.2rem;
     padding : 0rem;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 h4 {
     margin-top : 0.0rem;
     margin-bottom: 0.2rem;
     padding : 0rem;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
+}
+
+h5 {
+    margin-top : 0.0rem;
+    margin-bottom: 0.2rem;
+    padding : 0rem;
+    font-weight: 400;
+    font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
 }
 
 /* Background containers */
@@ -151,6 +168,12 @@ h4 {
 
 .intent-padding-top--little {
 
+    padding-left: 0.75rem;
+}
+
+
+.intent-padding-left--little {
+
     padding-top: 0.75rem;
 }
 
@@ -167,7 +190,7 @@ h4 {
 /* Margins */
 
 .margin--little {
-    margin : 0.2rem
+    margin : 0.25rem
 }
 .margin--very-little{
     margin : 0.1rem
@@ -195,6 +218,9 @@ h4 {
 }
 .intent-margin-right--little {
     margin-right: 0.5rem;
+}
+.intent-margin-right--tiny {
+    margin-right: 0.2rem;
 }
 .intent-margin-left--little {
     margin-left: 0.5rem;
@@ -349,4 +375,23 @@ h4 {
 .container--scroll-y-hide-x{
     overflow-y: scroll;
     overflow-x: hidden;
+}
+
+
+
+.container--shadow {
+           background-color :#fafafa;
+        /* border-radius: 0.25rem; */
+        margin-top : 0.3rem;
+        padding-left : 0.2rem;
+        box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
+        transition: 0.3s;
+    }
+
+
+.labelelement-wrap--fixed-width {
+    width : 17rem;
+    font-size: 0.75rem;
+    text-align: left;
+    padding-left: 0.5rem;
 }

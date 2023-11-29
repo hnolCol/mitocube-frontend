@@ -4,7 +4,7 @@ import { Combobox } from "../../core/input/Combobox"
 import { Header } from "../../core/base/Header"
 import { Select } from "@blueprintjs/select"
 import { TagWithTooltip } from "../../core/base/tags/TagWithTooltip"
-import { Button, InputGroup, Menu, MenuItem } from "@blueprintjs/core"
+import { Button, Collapse, InputGroup, Menu, MenuItem } from "@blueprintjs/core"
 import { filterArrayBySearchString } from "../../../services/arrays/filter"
 import SimpleTag from "../../core/base/tags/SimpleTag"
 import NumericValueInput from "../../core/input/Numeric"
@@ -70,27 +70,6 @@ function AASequencePositionMutation({ }) {
 }
 
 
-function AASequenceTruncation({ }) {
-    return (<div className="flex center-items">
-        <NumericValueInput placeholder="Start AA ..."/>
-        <NumericValueInput placeholder="End AA ..." />
-        </div>
-    )
-}
-
-
-
-function Mutations({ }) {
-    //mutation includes truncations/tags  
-
-    return (
-        <div>
-
-
-        </div>
-    )
-}
-
 function GenotypeAttributeSelection({
             attrIdx = 0,
             attribute,
@@ -100,7 +79,8 @@ function GenotypeAttributeSelection({
             prevAttribute = {},
             genotypeProps,
             genotypeLabel = 0,
-            entryIdx,handleFeatureSelection
+    entryIdx, handleFeatureSelection,
+    handlePositionSelection 
           }) {
     
     const hasChildNodes = attribute.childNodes.length > 0
@@ -109,39 +89,63 @@ function GenotypeAttributeSelection({
     const hasSlectionValue = _.isObject(genotypeProps.attributes[entryIdx]) && _.has(genotypeProps.attributes[entryIdx],attribute.tag) && genotypeProps.attributes[entryIdx][attribute.tag].length > 0
     const childNode = attribute.childNodes[0]
                 // handles only a signle child node! Set warnong 
+    
+    const handleSelection = (attribute, attrValue) => {
+       
+        // change this.
+        if (attrValue.tag === "att_protein_position:aa" || attrValue.tag === "att_protein_position:region") {
+            handlePositionSelection("Q96E52")
+            onSelection(genotypeLabel,attribute.tag, attrValue, entryIdx)
+        }
+        else {
+            onSelection(genotypeLabel,attribute.tag, attrValue, entryIdx)
+        }
+        
+       
+    }
     return (
-        <div className="flex" style={{paddingTop:`${attrIdx*0.05}rem`}}>
+        <div className="flex">
             <SingleAttributeInput {...{
                 attribute,
                 attributeValues : allowFeatures?[]:attributeValues,
-                onSelection,
+                onItemSelect: handleSelection,
+                //genotypeLabel, attributeTag, attributeValue, entryIdx = 0
                 handleFeatureSelection,
+                featureSelectionProps: { genotypeLabel, entryIdx },
+                selectedItems : hasSlectionValue  ? genotypeProps.attributes[entryIdx][attribute.tag] : [],
                 //label : genotypeLabel,
                 //entryIdx,
+                matchTargetWidth : false,
                 selectedAttributeValue: hasSlectionValue  ? genotypeProps.attributes[entryIdx][attribute.tag][0] : null
             }} />
             <div>
-                {hasChildNodes && hasAttibuteData ? <GenotypeAttributeSelection attribute={childNode} attributeValues={attributeValuesByID[childNode.id]}
-                    {...{attributeValuesByID, genotypeLabel, onSelection, genotypeProps, entryIdx}} prevAttribute={attribute} attrIdx={attrIdx+1}/> : null}
+                {hasChildNodes && hasAttibuteData ? <GenotypeAttributeSelection
+                    attribute={childNode}
+                    attributeValues={attributeValuesByID[childNode.id]}
+                    {...{
+                        attributeValuesByID,
+                        handleFeatureSelection,
+                        handlePositionSelection,
+                        genotypeLabel,
+                        onSelection,
+                        genotypeProps, entryIdx
+                    }} prevAttribute={attribute} attrIdx={attrIdx + 1} /> : null}
             </div>
         </div>
     )
 }
 
 
-function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection}) {
+function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection,handlePositionSelection }) {
     const genotypeEntries = genotypeProps.attributes.length 
-
 
     return (
         <div>
-            <div>Genotype Name : {genotypeProps.name}</div>
+            {/* <div>Genotype Name : {genotypeProps.name}</div> */}
         {_.range(genotypeEntries).map(entryIdx => {
                 return (
-                    <div className="flex bg--white padding--little">
+                    <div className="flex bg--white padding--little" key={`genotype-row${entryIdx}`} style={{width : "100%"}}>
                         <div className="flex">
-                        
-                            
                             {nestedAttributes.map((attribute, attrIdx) => <GenotypeAttributeSelection
                                 key={`genotype-row-${attribute.tag}-${attrIdx}-${entryIdx}`}
                                 {...{
@@ -154,7 +158,8 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
                                     onSelection,
                                     genotypeLabel,
                                     entryIdx: entryIdx,
-                                    prevAttribute : attribute
+                                    prevAttribute: attribute,
+                                    handlePositionSelection 
                                 }} />)}
                         
                         </div>
@@ -163,7 +168,8 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
                     </div>
                 )
             })
-            }
+                }
+               
             <Button icon="plus" small={true} minimal={true} intent="primary" onClick={() => addGenotypeEntry(genotypeLabel)} />
             <hr/>
         </div>
@@ -171,7 +177,7 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
     )
 }
 
-function PositionSelection({authenticationStatus, featureID}) {
+export function PositionSelection({authenticationStatus, featureID, onSelection, onClose}) {
     // Select a position in 
     const {data : feautreAnnotations, isSuccess : featureIsSuccess} = useGetAnnotationsByFeatureID({featureID,tokenString : authenticationStatus.token})
     const [isMouseDown, setMouseDown] = useState(false)
@@ -216,6 +222,11 @@ function PositionSelection({authenticationStatus, featureID}) {
         }
         setSelectedAA(aaIndcs)
     }
+
+    const handleSelection = () => {
+        onClose()
+    }
+
     // const aaSorted = selectedAA.slice().sort().reverse()
     //  console.log(selectedAA,aaSorted)
     // const aasSorted = isRegionSelected ? selectedAA.slice().sort() : selectedAA
@@ -226,8 +237,9 @@ function PositionSelection({authenticationStatus, featureID}) {
     const maxAAIndex = _.max(selectedAA)
     return (
         <div>
-            <p>Sequence</p>
-            <div className="flex flex--wrap prevent-select" style={{ fontFamily: "monospace", fontSize : "0.9rem"}} onMouseLeave={handleMouseUp} onMouseUp={handleMouseUp}>
+            <h4>Sequence</h4>
+            <p>Select the amino acid position or region.</p>
+            <div className="flex flex--wrap prevent-select" style={{ fontFamily: "monospace", fontSize : "0.8rem", height : "50vh", overflowY : "scroll"}} onMouseLeave={handleMouseUp} onMouseUp={handleMouseUp}>
                 
                     {featureIsSuccess ? splitSequence.map((splitSeq, idx) => {
                         return <div key={`${splitSeq}-${idx}`} className="bg--white" style={{ margin: "0.4rem" }}>
@@ -242,7 +254,6 @@ function PositionSelection({authenticationStatus, featureID}) {
                                     onMouseDown={e => handleMouseDown(e,aminoAcidPosition)}
                                     onMouseUp={handleMouseUp}
                                     onMouseEnter={(e) => handleMouseEnter(e,aminoAcidPosition)}
-                                    // whileHover={isMouseDown ? {} : { y : -8 }}>
                                 >
                                     {aa}
                                 </motion.span>})}</div>
@@ -250,29 +261,41 @@ function PositionSelection({authenticationStatus, featureID}) {
                     }):null}
                 
             </div>
-            <h3>{featureIsSuccess ? isRegionSelected ? `Selected region: ${minAAIndex + 1} (${feautreAnnotations.aa_sequence[minAAIndex]}) .... ${maxAAIndex} (${feautreAnnotations.aa_sequence[maxAAIndex]})` :
-                `Selected AA: ${minAAIndex + 1} (${feautreAnnotations.aa_sequence[minAAIndex]})` : null}</h3>
+            <h4>{featureIsSuccess ? isRegionSelected ? `Selected region: ${minAAIndex + 1} (${feautreAnnotations.aa_sequence[minAAIndex]}) .... ${maxAAIndex} (${feautreAnnotations.aa_sequence[maxAAIndex]})` :
+                `Selected AA: ${minAAIndex + 1} (${feautreAnnotations.aa_sequence[minAAIndex]})` : null}</h4>
+            <Button text="Save" intent="primary" onClick={handleSelection} disabled={!(featureIsSuccess && selectedAA.length > 0)} />
         </div>
     )
 }
 
 
 
-function GenotypeGenerator({ index = 6, attributes, attributeValuesByID, onSelection, addGenotype, genotypes, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection}) {
+function GenotypeGenerator({ index = 6, attributes, attributeValuesByID, onSelection, addGenotype, genotypes, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection,handlePositionSelection }) {
     
     const nestedAttributes = createDataTree({ array: attributes, link: "parent_id" })
     return (
         
         <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
             <Header text={`${index}. Genotypes`} />
-            <p>Please specifiy your genotypes. This section requires you to provide an organism before to select specific target protein. You are able to specify amino acid mutations and truncations as well as tags. If you are just using wild types, for exmaple knock-down of a gene expression in just wild type cells does not require the definition of a genotype. </p>
-            <p>Once you have defined your genotypes, you will have to assign them to each sample below in the sample attributes. Once you defined your genotypes you will not have to enter it again and it is available from the drop-down menu.</p>
+            <p>Please specifiy your genotypes. This section requires you to provide an organism before to select specific target protein. You are able to specify amino acid mutations and truncations as well as tags. If you are just using wild types, for example knock-down of a gene expression in just wild type cells does not require the definition of a genotype. </p>
+            <p>Once you have defined your genotypes, you will have to assign them to each sample below in the sample attributes. Once you defined your genotypes, they are available from the drop-down menu for future submission.</p>
             {Object.keys(genotypes).map(genotypeLabel => {
                 const genotypeProps = genotypes[genotypeLabel]
                 return <GenotypeRow key={genotypes[genotypeLabel].label}
-                    {...{ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps,addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection}} />
-            })}
-                    
+                    {...{
+                        attributes,
+                    nestedAttributes,
+                    attributeValuesByID,
+                    onSelection,
+                    genotypeLabel,
+                    genotypeProps,
+                    addGenotypeEntry,
+                    removeGenotypeEntry,
+                    authenticationStatus,
+                    handleFeatureSelection,
+                    handlePositionSelection 
+                    }} />
+            })}            
 
             <Button icon="plus" onClick={addGenotype} small={true} />
             {/* <PositionSelection {...{authenticationStatus,featureID : "Q96E52"}} /> */}

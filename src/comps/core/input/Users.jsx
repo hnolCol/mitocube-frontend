@@ -8,14 +8,13 @@ import Loading from "../base/loading"
 
 function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, formGroupProps = {label : "Collaborators"}}) {
 
-    const { isLoading, isFetching, isSuccess, data } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
-
+    const { isLoading, isFetching, isSuccess, data : users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
     const renderUser = (item, props) => {
         const itemText = `${item.firstname} ${item.lastname}`
         return <MenuItem
             text={itemText}
             key={`${item.label}`} //must be unique
-            label={`${item.institute} - ${item.research_group} - ${item.email}`}
+            labelElement={<div className="labelelement-wrap--fixed-width">{`${item.institute} - ${item.research_group} - ${item.email}`}</div>}
             onClick={props.handleClick}
             onFocus={props.handleFocus}
             active={props.modifiers.active}
@@ -34,12 +33,12 @@ function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, f
     return (
         
         <div>{
-            isSuccess && _.isArray(data.users) && data.users.length > 0 ? 
+            isSuccess && _.isArray(users) && users.length > 0 ? 
                 <div className="intent-margin-top--little">
                     <FormGroup {...formGroupProps}>
                 <MultiSelect
                     itemRenderer={renderUser}
-                    items={data.users.filter(user => user.label !== authenticationStatus.label)}
+                    items={users.filter(user => user.label !== authenticationStatus.label)}
                     tagRenderer={renderSelectedItemAsTag}
                     onItemSelect={(item) => handleUserSelection(item)}
                     popoverProps={{ matchTargetWidth: true, minimal: true }}

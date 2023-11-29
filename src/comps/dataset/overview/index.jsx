@@ -3,7 +3,7 @@ import MultipleMetrices from "../../core/metrics/collection";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Header } from "../../core/base/Header";
 import _ from "lodash"
-import GroupingTable from "../../core/base/attribute_selection/Table";
+import GroupingTable from "../../core/base/attribute_selection/AttributeTable";
 import { motion } from "framer-motion";
 import { Button } from "@blueprintjs/core";
 import APIError from "../../core/error/APIerror";
@@ -11,25 +11,62 @@ import { copyTextToClipboard } from "../../../services/clipboard";
 import HelpOverlay from "../../core/overlay/Helpoverlay";
 import {useOnScreen} from "../../../hooks/useOnScreen";
 import { readDateFromString, readDateFromStringAndReturnDateAndDistToNow } from "../../../services/date/read";
+import { useGetMetadata } from "../../../hooks/queries/datasets.hooks";
+import { getFormatDateFromTimestamp } from "../../../services/date/format";
+import { useGetSubmissionAttributes, useGetSubmissionAttributesByTag, useGetSubmissionMetatext, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
+import { StateIndicator } from "../../submission/view/SubmissionContainer";
+import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
+import { groupListByProperty } from "../../../services/arrays/groupby";
+import DatasetAttributeHierarchy from "../../submission/new/attribute/DatasetAttributesHierarchy";
+import { getAttributeForUserNumericInput, mapAttributeValueTagsToAttributes } from "../../../services/attributes";
 
-function AuthorList({
-    authors = [{ name: "Hendrik Nolte", email: "h.nolte@age.mpg.de", owner: true }, { name: "Andreas Lindner", email: "a.l@uni-bonn.de", owner: false }],
-    emailSubject = "" }) {
+function Metatext({ metatextTag, metadata, metatext }) {
     
+    const [mouseIn, setMouseIn] = useState(false)
+    return (
+        <motion.div onMouseEnter={() => setMouseIn(true)} onMouseLeave={() => setMouseIn(false)}>
+        <div className="flex margin--little justify-space-between">
+                <div className="flex flex-column"><div><h3>{metatext.names[metatextTag]}</h3></div></div>
+                <div><Button
+                    style={{ opacity: mouseIn ? 1 : 0 }}
+                    icon="clipboard"
+                    small={true}
+                    minimal={true}
+                    onClick={() => copyTextToClipboard({ text: metadata.metatext[metatextTag] })}/></div>
+        </div>
+        <motion.div
+            className="margin--little intent-margin-left intent-padding-right--little container--scroll-y-hide-x"
+            style={{ textAlign: "justify", width: "25vw", height: "33vh" }}>
+            
+                {metadata.metatext[metatextTag]}
+    </motion.div>
+    </motion.div>)
+
+}
+
+
+function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
+    
+    const { data: users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
+    if (!_.isObject(users)) return null 
+    const userByLabel = groupListByProperty(users, "label")
+    const datasetUserLabels = _.concat(user, collaborators).filter(userLabel => _.has(userByLabel,userLabel))
     return (
         <div className="flex">
-            {authors.map((authorProps, idx) => {
+            {datasetUserLabels
+                .map((userLabel, idx) => {
+                const user = userByLabel[userLabel][0]
                 return (
-                    <div className="flex intent-margin-right--little div--round" key={`${authorProps.email}-${idx}`}>
+                    <div className="flex intent-margin-right--little div--round" key={`${user.email}-${idx}`}>
                             <a
-                                href={`mailto:${authorProps.email}?cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}&subject=${emailSubject}`}
+                                href={`mailto:${user.email}?subject=${emailSubject}`} //cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}
                                 className="router-link">
-                            <div className={authorProps.owner ? "h2-span" : "h0-span"}>
-                                {authorProps.name}
+                            <div style={{color : "black"}}>
+                                <strong>{`${user.firstname} ${user.lastname}`}</strong>
                             </div>
                         </a>
-                        {authors.length > 1?
-                            idx === authors.length - 2 ? <div>, and</div> : idx !== authors.length - 1?<div>,</div> : null : null}
+                        {datasetUserLabels.length > 1?
+                            idx === datasetUserLabels.length - 2 ? <div>, and</div> : idx !== datasetUserLabels.length - 1?<div>,</div> : null : null}
                         </div>
                 )
             })}
@@ -133,63 +170,92 @@ function DatasetInfoContainer({datasetInfo,dataID, isFetched, setTabHeader}) {
 }
 
 
-function DatasetOverview({ }) {
+function DatasetOverview({authenticationStatus}) {
 
-    const { datasetInfo, dataID, isLoading, isFetched, isError, error, setTabHeader } = useOutletContext()    
+    const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
+    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+
+    const datasetMetrices = useMemo(() => {
+        if (!_.isObject(metadata)) return []
+        //get metrices available at any state of the project
+        let basicMetrices = [
+            { label : "Label", metric : metadata.label},
+            { label: "Samples", metric: metadata.sample_names.length },
+            { label: "Replicates", metric: _.uniq(metadata.replicates).length },
+            { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
+        ]
+        //add others / optional 
+        return basicMetrices 
+    }, [dataset_label,_.isObject(metadata)])
+
+    if (!_.isObject(metadata)) return null
+    if (!_.isObject(attributesByTag)) return null 
+
+    const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
     
+    let sampleAttributesKey = Object.keys(metadata.samples_attributes)
+    let sampleAttributeValues = Object.fromEntries(sampleAttributesKey.map(attributeTag =>
+        [attributeTag, Object.keys(metadata.samples_attributes[attributeTag].values).map(attributeValueTag => _.has(attributesByTag.attribute_values, attributeValueTag) ?
+            attributesByTag.attribute_values[attributeValueTag] : getAttributeForUserNumericInput({attributesByTag,attributeTag,attributeValueTag}))]))
+    
+    let datasetAttributeTags = Object.keys(metadata.dataset_attributes)
+    let dataAttributes = datasetAttributeTags.map(attrTag => attributesByTag.attributes[attrTag])
+    let datasetAttributeValues = Object.fromEntries(datasetAttributeTags.map(attributeTag =>
+        [attributeTag, metadata.dataset_attributes[attributeTag].map(attrValueTag =>
+            _.has(attributesByTag.attribute_values, attrValueTag) ? attributesByTag.attribute_values[attrValueTag] :
+                getAttributeForUserNumericInput({ attributesByTag, attributeTag, attributeValueTag : attrValueTag }))]))
 
-    if (isError) return <APIError error={error} />
-    if (isLoading) return <div>Loading...</div>
+    console.log(dataAttributes, datasetAttributeValues)
+    
+    console.log(metadata.samples_attributes, sampleAttributeValues, attributesByTag)
+     
+    // if (isError) return <APIError error={error} />
+    // if (isLoading) return <div>Loading...</div>
+    console.log(metadata.dataset_attributes)
     return (
-        <DatasetInfoContainer {...{datasetInfo,setTabHeader,dataID, isFetched}} />
-        // <div className="container--scroll-y-hide-x div--expand intent-margin-top">
-            
-        //     <div id="top" className="flex flex-column center-items">
-        //         <div ref={headerRef} className="intent-margin-top">
-        //         <Header text={datasetInfo.info.Title} fontSize="1.8rem" />
-        //         </div>
-        //         <AuthorList emailSubject={`Related to dataset '${datasetInfo.info.Title}'`} />
+        <div style={{overflowY:"scroll", height : "90vh "}}>
+             <div id="top" className="flex flex-column center-items">
+                <div className="intent-margin-top" style={{ maxWidth : "66vw"}}>
+                <h1>{metadata.title}</h1>
+                </div>
+                <AuthorList {...{
+                    authenticationStatus,
+                    user: metadata.user_label,
+                    collaborators: metadata.collaborators,
+                    emailSubject : `Related to dataset ${metadata.title} (${metadata.label})`
+                }} />
+                <div className="font-size--small intent-margin-top--little">
+                    {`${m.fromNow()} (${formatedTime})`}
+                </div>
+                <div className="intent-margin-top--little">
+                    <StateIndicator state={metadata.state} {...{authenticationStatus}} />
+                </div>
                 
-           
-        //         <div id="keyfigures" className="intent-margin-top">
-        //         <MultipleMetrices metrices={keyfigureMetrices}/>
-        //         </div >
+
+            </div>
+            <MultipleMetrices metrices={datasetMetrices} />
+            <h2>Sample Attributes</h2>
+            <h2>Dataset Attributes</h2>
+            <DatasetAttributeHierarchy {...{
+                selectedDasetAttributeValues: datasetAttributeValues,
+                selectedAttributes: dataAttributes
+            }} />
+            <div className="intent-margin-right ">
+                <h2>Metatext</h2>
+            <div className="flex flex--wrap" style={{gap:"2rem"}}>
+            {_.isObject(metadata) && _.isObject(metadata.metatext) && _.isObject(metatext) ?
+                    _.keys(metatext.names).filter(metatextTag => _.isString(metadata.metatext[metatextTag])).map(metatextTag => <div
+                        className="container--shadow padding--little intent-margin-top--little "
+                        key = {metatextTag} >
+                    
+                        <Metatext {...{metadata,metatextTag,metatext}} />
                 
-        //     <div id = "groupings" className="flex justify-space-around intent-margin-top">
-        //         <GroupingTable grouping={datasetInfo.info.groupings} />
-        //     </div>
-            
-        //     </div>
-            
-        //     <div id="expinfo" className="intent-margin-left intent-margin-right--little">
-        //     <div> Experimental Information</div>
-        //     {_.has(datasetInfo.info, experimentInfoName) ?
-        //         datasetInfo.info[experimentInfoName].map((expInfoProps, expInfoIdx) => {
-        //             if (!(_.has(expInfoProps,"title") && _.has(expInfoProps,"details"))) return null 
-        //             return (
-        //                 <ExperimentalInfo key={`${expInfoIdx}-${expInfoProps.title}`} {...expInfoProps}/>
-        //             )
-        //         })
-        //     : null}
-        //     </div>
-
-        //     <div id="rawfiles" className="intent-margin-left intent-margin-right--little">
-        //         <div>Raw files</div>
-        //         {_.range(100).map(i => <p>{i}</p>)}
-        //     </div>
-
-        //     <HelpOverlay header="Content">
-        //         <div className="flex flex-column">
-        //         <a href="#top">Top</a>
-        //         <a href="#expinfo">Experimental Information</a>
-        //         <a href="#rawfiles">Raw files</a>
-        //         </div>
+                    </div>)
                 
-        //     </HelpOverlay>
-           
-        // </div>
-    )
-}
-
+                        : null}
+            </div>
+                </div>
+        </div>
+        )}
 
 export default DatasetOverview

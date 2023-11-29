@@ -1,13 +1,10 @@
 import { useMemo, useState } from "react";
-import { useGetUserAttributes, useGetUserRoles, usePostUser } from "../../../hooks/queries/user.hooks";
 import { Header } from "../../core/base/Header";
 import Loading from "../../core/base/loading";
 import TextInput from "../../core/input/Text";
 import _ from "lodash"
 import { groupListByProperty } from "../../../services/arrays/groupby";
 import { Combobox } from "../../core/input/Combobox";
-import { Button } from "@blueprintjs/core";
-import APIError from "../../core/error/APIerror";
 
 
 function UserAttributes({ attributes, attributeValues, userProps, updateUserProps}) {

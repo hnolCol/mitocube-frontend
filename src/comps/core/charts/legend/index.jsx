@@ -6,7 +6,7 @@ import { Group } from "@visx/group";
 
 
 export function ChartLegend({
-    width = 400,
+    width = 80,
     height = 20,
     svgID = undefined,
     marginLeft = 0,
