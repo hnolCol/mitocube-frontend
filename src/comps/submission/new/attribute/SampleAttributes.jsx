@@ -194,9 +194,8 @@ function AttributeGrouping({
         if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
         //find row indices from the selected region
         //attribute.allow_features_as_values ? attributeValuesByID[-1] : 
-        let attributeValues = groupingInfo === undefined ? [] : attributeValuesByID[groupingInfo.attribute.id]
+        let attributeValues = groupingInfo === undefined || !_.has(attributeValuesByID, groupingInfo.attribute.id)? [] : attributeValuesByID[groupingInfo.attribute.id]
         const valuesAlreadyUsed = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag].map(attrValue => attrValue.name))))
-
         // if there is no attribute values, then a numeric value can be inserted by the user
         if (attribute.allow_features_as_values) {
             return <Menu><MenuItem
