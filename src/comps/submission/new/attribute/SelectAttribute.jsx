@@ -48,7 +48,7 @@ function SingleAttributeInput({ attribute,
                     multiline={true}
                     text={attrValue.name}
                     onClick={() => onItemSelect(attribute, attrValue)}
-                    labelElement={<div style={{ maxWidth: "16rem", fontSize : "0.75rem", paddingLeft : "0.5rem", textAlign : "right" }}>{attrValue.details}</div>} />
+                    labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.details}</div>} />
                 
                 if (attrIdx === maxItemsShown) return <MenuItem key={`items-not-show${attribute.id}`} text="Not all items shown ..." disabled={true} /> 
 

@@ -205,7 +205,6 @@ function InitialSubmission({
             errMsgs.push("At least one samples attribute has less than two unique values. It should therefore be defined as a dataset attribute: "+_.join(sampleAttributesWithSingleUniqueValue,", "))
         }
     
-        console.log(submission)
         if (errMsgs.length > 0) {
             // if there are error messages, show it to the user.
             setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})

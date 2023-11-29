@@ -3,14 +3,10 @@ import axios from "axios"
 
 
 // get all annotation features
-async function getAnnotationFeatures_API({ tokenString }) {
-    const res = await axios.get('/api/annotations/features/attributeValues',
-    {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-      })
+async function getAnnotationFeatures_API({ organisms }) {
+    organisms // list of attributes
+    console.log(organisms)
+    const res = await axios.post('/api/annotations/features/attributeValues', organisms)
     return res.data 
 }
 

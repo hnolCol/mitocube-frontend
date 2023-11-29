@@ -109,7 +109,7 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
                         onClick={(e) => onAttributeSelect(attributeTag, attributeValue,rowIdces)}
                         key={attributeValue.name}
                         text={attributeValue.name}
-                        labelElement={<div style={{ width: "18rem", textAlign : "right" }}>{attributeValue.details}</div>}
+                        labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.details}</div>}
                         role="listoption" />)}
             </Menu>
             <MenuDivider />
@@ -212,7 +212,7 @@ function AttributeGrouping({
             {attributeValues.map(attrValue => <MenuItem
                 key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
                 text={attrValue.name}
-                labelElement={<div style={{ width: "18rem", textAlign : "right" }}>{attrValue.details}</div>}
+                labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.details}</div>}
                 onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
             }
             

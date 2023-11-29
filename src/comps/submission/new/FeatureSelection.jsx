@@ -7,10 +7,11 @@ import { Button } from "@blueprintjs/core"
 
 
 
-function FeatureSelection({authenticationStatus,selectedItems = [], attribute, organisms = [], isSampleAttribute, onSave = undefined, rowIdces = [], genotypeLabel = undefined, entryIdx = 0}) {
+function FeatureSelection({selectedItems = [], attribute, organisms = [], isSampleAttribute, onSave = undefined, rowIdces = [], genotypeLabel = undefined, entryIdx = 0}) {
     // feature selection for attributes
+    console.log(organisms)
     const [selectedFeatures, setSelectedFeatures] = useState(selectedItems)
-    const { data: features, isLoading, isFetching } = useGetAnnotationFeatures({ tokenString: authenticationStatus.token, organisms })
+    const { data: features, isLoading, isFetching } = useGetAnnotationFeatures({organisms })
     const handleFeatureSelection = (attribute, item) => {
         const updatedItem = { ...item, attribute_id: attribute.id, tag: `${item.tag.replace("att_feature",attribute.tag)}` }
         //add remove feature

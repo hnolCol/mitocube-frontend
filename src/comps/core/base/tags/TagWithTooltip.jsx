@@ -71,11 +71,11 @@ export function SampleAttributeTagWithTooltip({ name, values, sampleNames, attrV
                     return <MenuItem
                         key={attrValueTag}
                         text={`${mappedAttributeValue.asString} (${values[attrValueTag].length})`}
-                        labelElement={<div style={{ width: "14rem", fontSize: "0.75rem", textAlign: "left" }}>{label}</div>}>
+                        labelElement={<div className="labelelement-wrap--fixed-width">{label}</div>}>
                         {values[attrValueTag].map(sampleIdx => {
                             return <MenuItem text={sampleIdx}
                                 key={`${attrValueTag}-${sampleIdx}`}
-                                labelElement={<div style={{ width: "16rem", fontSize: "0.75rem", textAlign: "left", wordWrap : "break-word"}}>{sampleNames[sampleIdx]}</div>} />
+                                labelElement={<div className="labelelement-wrap--fixed-width" style={{wordWrap : "break-word"}}>{sampleNames[sampleIdx]}</div>} />
                         })}
                         </MenuItem>
                 })}

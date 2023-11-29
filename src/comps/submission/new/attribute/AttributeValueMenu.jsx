@@ -44,7 +44,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                                 key={`${attribute.tag}-${attributeValue.tag}`}
                                 text={attributeValue.name}
                                 onClick={() => handleItemSelect(attribute, attributeValue)}
-                                labelElement={<div style={{ width: "18rem", textAlign : "right" }}>{attributeValue.details}</div>}/>) : 
+                                labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.details}</div>}/>) : 
                             null}
                         {hasAttrValues ? <MenuDivider /> : null}
                         <NumericValueInput
@@ -81,7 +81,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                                             active={activeItem.id === attributeValue.id}
                                             key={`${attributeValue.name}-${attributeValue.tag}`}
                                             text={attributeValue.name}
-                                            labelElement={<div style={{ width: "18rem", textAlign : "right"  }}>{attributeValue.details}</div>}
+                                            labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.details}</div>}
                                             onClick={() => handleItemSelect(attribute, attributeValue)} />)
                                 }
                             </div>}
