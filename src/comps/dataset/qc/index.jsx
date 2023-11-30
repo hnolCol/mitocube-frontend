@@ -24,7 +24,8 @@ function DatasetQC({authenticationStatus }) {
     })
 
     return (
-        <div style={{overflowY:"scroll", height : "80vh "}}>
+        <div style={{ overflowY: "scroll", height: "80vh " }}>
+            <h2>Quality Control</h2>
             <h2>Basic metrices</h2>
             {/* <CategoricalBoxplot/> */}
             {/* <CategoricalBoxplot data={datatable} /> */}

@@ -18,11 +18,11 @@ Login.propTypes = {
     inputProps: PropTypes.object
 }
 
-function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
+function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fill: true } }) {
     const redirect = useNavigate()
     const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
     const [userLoginResponse, setUserLoginResponse] = useState({success : false, token : "", msg : ""})
-
+    console.log(redirectedFrom)
     const {
         isError: loginIsError,
         error: loginError,
@@ -54,8 +54,14 @@ function Login({setAuthenticationStatus ,inputProps = { fill: true } }) {
             })
             storeTokenInLocalStorage(verifiedToken.token)
             axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
-      
-            redirect("/index")
+            if (redirectedFrom === "/") {
+                redirect("/index")
+            }
+            else {
+                //go back to the visitited site
+                redirect(redirectedFrom)
+            }
+            
             
         }
     }, [verifyTokenIsSuccess])

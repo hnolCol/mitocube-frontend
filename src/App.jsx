@@ -23,8 +23,6 @@ import DatasetHeader from "./comps/dataset";
 import DatasetOverview from "./comps/dataset/overview";
 import PerformanceHeader from "./comps/performance";
 import ProteinOverview from "./comps/protein/charts/overview";
-import { Link } from "react-router-dom";
-import { getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "./services/arrays/groupby";
 import Welcome from "./comps/welcome";
 import Timeline from "./comps/dataset/timeline";
 import Register from "./comps/register";
@@ -70,26 +68,28 @@ const initApplicationInfo = {
 }
 
 function App() {
-  const [tokenFromStorage, setTokenFromStorage] = useState(undefined)
+  const [tokenFromStorage, setTokenFromStorage] = useState({ token: undefined, locationPathName: "/" })
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
-  const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
+  //const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
   const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : ""})
 
   const [submissionFilter, setSubmissionFilter] = useState({})
   // check if token is valid, if a token is found in storage.
-  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidIsError, error : tokenValidError, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
+  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidIsError, error : tokenValidError, } = useTokenValid({tokenString : tokenFromStorage.token}, {enabled : _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth})
 
   const location = useLocation()
   const redirect = useNavigate()
   const basePathName = location.pathname.split("/")[1]
   
   useEffect(() => {
+    console.log(location)
     //check for token in local storage and validate if present
     const { tokenFound, tokenString } = checkForTokenInLocalStorage()
     if (tokenFound) {
-      setTokenFromStorage(tokenString)
+      setTokenFromStorage({ token: tokenString, locationPathName: location.pathname })
     }
+    setTokenFromStorage({ token: undefined, locationPathName: location.pathname })
   }, [])
 
 
@@ -99,26 +99,26 @@ function App() {
       logout()
     }
     else if (_.isObject(isTokenValid) && isTokenValid.success) {
-      setAuthenticationStatus({
-        isAuth: true,
-        token: tokenFromStorage,
-        role: isTokenValid.role,
-        verified: isTokenValid.verified,
-        label: isTokenValid.label,
-        firstname: isTokenValid.firstname,
-        lastname: isTokenValid.lastname
-      })
+        setAuthenticationStatus({
+          isAuth: true,
+          token: tokenFromStorage.token,
+          role: isTokenValid.role,
+          verified: isTokenValid.verified,
+          label: isTokenValid.label,
+          firstname: isTokenValid.firstname,
+          lastname: isTokenValid.lastname
+        })
 
-      axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage}`;
-
-      redirect(location)
-    }
+        axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
+        redirect(tokenFromStorage.locationPathName)
+      }
   }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidIsError])
 
   const logout = () => {
     //logs the user out, deletes the token from local storage. 
     removeTokenFromLocalStorage()
     setAuthenticationStatus(initAuthenticationStatus)
+    setTokenFromStorage({ token: undefined, locationPathName: "/" })
     axios.defaults.headers.common['Authorization'] = `Bearer`;
     redirect("/")
   }
@@ -138,7 +138,7 @@ function App() {
       <div className='dashboard__grid__fill-center'>
       <Routes>
         <Route path="/" element={
-            <Login {...{ setAuthenticationStatus}}/>
+            <Login {...{ setAuthenticationStatus, redirectedFrom : tokenFromStorage.locationPathName}}/>
         } />
 
 

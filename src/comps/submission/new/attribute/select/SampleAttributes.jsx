@@ -1,21 +1,24 @@
 
 import PropTypes from "prop-types"
-import { Combobox } from "../../../core/input/Combobox"
-import TextInput from "../../../core/input/Text"
+import { Combobox } from "../../../../core/input/Combobox"
+import TextInput from "../../../../core/input/Text"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
 import { EditableText, HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider} from "@blueprintjs/core"
 import { useMemo, useState } from "react"
-import { filterArrayBySearchString, filterArrayOfObjects } from "../../../../services/arrays/filter"
+import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
 import _ from "lodash"
-import NumericValueInput from "../../../core/input/Numeric"
-import { createFakeAttributeValue } from "../../../../services/attributes"
+import NumericValueInput from "../../../../core/input/Numeric"
+import { createFakeAttributeValue } from "../../../../../services/attributes"
 
-AttributeGrouping.propTypes = {
+SamplesAttributes.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
     attributes: PropTypes.arrayOf(PropTypes.object),
     attributeValuesByID : PropTypes.object
 }
+
+
+
 
 function AttributeSelectionHeader({
     columnIndex,
@@ -27,8 +30,7 @@ function AttributeSelectionHeader({
     onSampleAttributeSelect = undefined,
     onSampleAttributeRename = undefined,
     disabled = false }) {
-    // const [groupingName, setGroupingName] = useState("")
-    
+    // table column header that allows to select an attribute -> which then enables the user to select features of that attribute.
     return (
         <div>
             <h4><EditableText
@@ -120,7 +122,7 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
 
 
 
-function AttributeGrouping({
+function SamplesAttributes({
     sampleNames = [],
     attributeTable = [],
     attributes = [],
@@ -405,4 +407,4 @@ function AttributeGrouping({
 }
 
 
-export default AttributeGrouping
+export default SamplesAttributes

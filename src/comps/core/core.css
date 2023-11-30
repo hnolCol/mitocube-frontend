@@ -235,13 +235,16 @@ h5 {
     margin-top: 1.0rem;
 }
 .intent-marign-left--little{
-    margin-left : 0.7rem
+    margin-left : 0.5rem
 }
 .intent-marign-left--medium{
     margin-left : 0.7rem
 }
 .intent-margin-top--little {
     margin-top: 0.7rem;
+}
+.intent-margin-top--tiny {
+    margin-top: 0.1rem;
 }
 .intent-margin-bottom--little {
     margin-bottom: 0.7rem;

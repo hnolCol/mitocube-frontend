@@ -2,13 +2,11 @@ import { useGetSubmissionAttributes } from "../../../hooks/queries/submission.ho
 import { createDataTree } from "../../../services/arrays/nest"
 import Loading from "../../core/base/loading"
 import _ from "lodash"
-import AttributeInput from "../new/attribute/MultiSelectAttribute"
+import AttributeInput from "../new/attribute/select/MultiSelectAttribute"
 import { groupListByProperty } from "../../../services/arrays/groupby"
-import NumericValueInput from "../../core/input/Numeric"
 import { randomColor } from "../../../services/colors"
-import { useEffect, useMemo, useState } from "react"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
-import { createFakeAttributeValue, mapAttributeTagsToAttributes , } from "../../../services/attributes"
+import { createFakeAttributeValue } from "../../../services/attributes"
 
 
 
@@ -54,8 +52,8 @@ function HierarchicalAttributeSelection({attribute, attributeValues, onItemSelec
 
 
 export function LiteralAttributeSelection({ selectedAttributes, setSelectedAttributes, authenticationStatus, attributeFilter}) {
-    
-    const { data: attrs, isLoading, isFetching } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }, {staleTime : Infinity})
+    //attribute selection
+    const { data: attrs, isLoading, isFetching } = useGetSubmissionAttributes()
     if (isLoading || isFetching) return <Loading />
     if (!_.isObject(attrs)) return 
     const {attributes, attribute_values } = attrs

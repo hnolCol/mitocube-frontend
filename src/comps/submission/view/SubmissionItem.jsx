@@ -12,7 +12,7 @@ import BasicMenu from "../../core/menu";
 import _ from "lodash"
 import { isHexColorLight } from "../../../services/colors";
 import { titleFormat } from "../../../services/format/string";
-
+import { motion } from "framer-motion";
 
 
 
@@ -89,7 +89,10 @@ export function SubmissionItem({
         </Menu>}>
         <div
             className="submission__item__container bg--white padding--little"
-            style={{ borderLeft: `3px solid ${borderColor}`, position: "relative"}}>
+                style={{ borderLeft: `3px solid ${borderColor}`, position: "relative" }}>
+                {/* <motion.div style={{position : "absolute", left : "50%", top: "10%"}}>
+                    <Button text="explore" />
+                </motion.div> */}
             <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" >
             <div className="flex flex--wrap center-items">
@@ -125,10 +128,9 @@ export function SubmissionItem({
                         {_.keys(submission.samples_attributes).map(sampleAttrs => {
                             const {name, values } = submission.samples_attributes[sampleAttrs]
                             return (
-                                <SampleAttributeTagWithTooltip {...{ name, values, attrValuesByTag : attributeValuesByTag, sampleNames : submission.sample_names }} />
+                                <SampleAttributeTagWithTooltip key={`sampleAttr-${name}`} {...{ name, values, attrValuesByTag : attributeValuesByTag, sampleNames : submission.sample_names }} />
                             )
                         })}
-                
                 </div>
                 <div className="flex flex--wrap intent-margin-top--little">
                     {Object.keys(submission.dataset_attributes).map(attributeTag => {
@@ -140,7 +142,7 @@ export function SubmissionItem({
                                 {attrValueTags.map(attrValueTag => {
                                 const attrValueFound = _.has(attributeValuesByTag, attrValueTag)
                                 const attributeValue = attrValueFound ? attributeValuesByTag[attrValueTag] : { name: attrValueTag }
-                                return <div key={`${attributeTag}-${attrValueTag}`} className="intent-margin-right--little">
+                                return <div key={`${attributeTag}-${attrValueTag}`} className="intent-margin-right--little intent-margin-top--tiny">
                                     <AttributeTagWithTooltip {...{ attribute, attributeValue }} />
                                 </div>
                             })}</div>

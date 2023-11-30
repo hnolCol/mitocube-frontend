@@ -1,14 +1,15 @@
 import { Menu, MenuDivider, MenuItem } from "@blueprintjs/core"
 import { Suggest } from "@blueprintjs/select"
-import { filterArrayBySearchString } from "../../../../services/arrays/filter"
-import { groupListByProperty } from "../../../../services/arrays/groupby"
+import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
+import { groupListByProperty } from "../../../../../services/arrays/groupby"
 import _ from "lodash"
 import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
 function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details","name","tag","attribute_id_tag","attribute_id_name"]}) {
-
+    //handles the selection of a dataset attribute 
+    
     const handleItemSelect = (attribute,attributeValue) => {
         //handle item select
         handleDatasetAttributeSelection(attribute, attributeValue)

@@ -21,20 +21,21 @@ function DatasetHeatmap({}) {
 
     return (
         <div>
-
-            <MultipleMetrices metrices={[
+            <h2>Hierarchical Clustering</h2>
+            
+            {/* <MultipleMetrices metrices={[
                 { label: "Number Features", metric: heatmapData.params.heatmap.values.length },
                 { label: "Clusters", metric: 8 },
                 { label: "p-value", metric: anovaDetails.pvalue },
                 { label: "Anova Type", metric: anovaDetails.anovaType },
-                { label: "Grouping", metric: anovaDetails.grouping1}]} />
+                { label: "Grouping", metric: anovaDetails.grouping1}]} /> */}
             
-            <Heatmap
+            {/* <Heatmap
                 data={heatmapData.params.heatmap.values}
                 colorNames={heatmapData.params.heatmap.colorNames}
                 valueNames={heatmapData.params.heatmap.valueNames}
                 labelNames={heatmapData.params.heatmap.labelNames}
-                clusterName={heatmapData.params.heatmap.clusterName} />
+                clusterName={heatmapData.params.heatmap.clusterName} /> */}
 
         </div>
     )

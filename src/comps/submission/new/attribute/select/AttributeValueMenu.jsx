@@ -1,10 +1,10 @@
 import { Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
 import _ from "lodash"
-import { filterArrayBySearchString } from "../../../../services/arrays/filter";
+import { filterArrayBySearchString } from "../../../../../services/arrays/filter";
 import { useMemo } from "react";
-import { objectHasKey } from "../../../../services/objects/checks";
-import NumericValueInput from "../../../core/input/Numeric";
-import { createFakeAttributeValue } from "../../../../services/attributes";
+import { objectHasKey } from "../../../../../services/objects/checks";
+import NumericValueInput from "../../../../core/input/Numeric";
+import { createFakeAttributeValue } from "../../../../../services/attributes";
 
 
 function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeValuesByID, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", handleFeatureSelection = undefined}) {

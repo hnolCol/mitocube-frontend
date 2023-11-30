@@ -2,19 +2,19 @@ import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetate
 import PropTypes, { number } from "prop-types"
 import { Header } from "../../core/base/Header"
 import APIError from "../../core/error/APIerror"
-import AttributeInput from "./attribute/MultiSelectAttribute"
+import AttributeInput from "./attribute/select/MultiSelectAttribute"
 import { useMemo, useState, useEffect } from "react"
 import { getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../services/arrays/groupby"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { objectHasKey } from "../../../services/objects/checks"
-import AttributeGrouping from "./attribute/SampleAttributes"
+import SamplesAttributes from "./attribute/select/SampleAttributes"
 import _ from "lodash"
 import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../services/arrays/filter"
 import NumericValueInput from "../../core/input/Numeric"
 import { getCurrentDate } from "../../../services/date/format"
 import UserSelection from "../../core/input/Users"
-import DatasetAttributeSelect from "./attribute/DatasetAttributes"
-import DatasetAttributeHierarchy from "./attribute/DatasetAttributesHierarchy"
+import DatasetAttributeSelect from "./attribute/select/DatasetAttributes"
+import DatasetAttributeHierarchy from "./attribute/view/DatasetAttributesHierarchy"
 import TextInput from "../../core/input/Text"
 
 import { Alert, Button } from "@blueprintjs/core"
@@ -66,7 +66,7 @@ function InitialSubmission({
         isLoading: attributesLoading,
         error: attributesAPIError,
         isError: attributeIsError,
-        isSuccess: attributesIsSuccess } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }) //
+        isSuccess: attributesIsSuccess } = useGetSubmissionAttributes() //
     
     
     //filter attributes that are not for dataset
@@ -132,6 +132,9 @@ function InitialSubmission({
     
 
     const onSubmssionRequest = () => {
+        // check the submisison before sending it to the API 
+        // note that the API should also do its own checking. 
+
         let errMsgs = [] //collect error messages
         const numberSamples = submission.sampleNames.length
         const maxReplicateID = _.toInteger(submission.attributes.replicates)
@@ -235,8 +238,8 @@ function InitialSubmission({
                         isOpen: true,
                         children: <div><h3>Error</h3>
                             <p>There was an error in the submission.</p>
-                            <p>If you token experied you will be re-direct to the login. 
-                                Otherwise please contact the system administrator. 
+                            <p>If your token experied you will be re-direct to the login. 
+                                Otherwise please contact the system administrator and/or the check the help. 
                             </p>
                             <APIError error={error} />
                         </div>,
@@ -289,10 +292,10 @@ function InitialSubmission({
 
     }
 
-    const onAttributeChange = (attributeTag, attributeValue) => {
-        
+    const onInputChange = (inputTag, inputValue) => {
+        // handles the change of an attribute / attributeValue combination 
         let submissionAttributes = submission.attributes
-        submissionAttributes[attributeTag] = attributeValue
+        submissionAttributes[inputTag] = inputValue
 
         setSubmission(prevValues => {
             {
@@ -306,7 +309,8 @@ function InitialSubmission({
         setSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, { name: "", attribute: undefined }) } })
     }
 
-    const onSampleAttrRemove = (rowIndex ,attribute, attributeValueTag) => {
+    const onSampleAttrRemove = (rowIndex, attribute, attributeValueTag) => {
+        //handles the removal of a samples attributes
         let attributeTable = submission.attributeTable
         let rowData = attributeTable[rowIndex]
       
@@ -325,7 +329,8 @@ function InitialSubmission({
         setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
     }
 
-    const clearSampleAttrByIndex = (groupingIdx,attributeTag) => {
+    const clearSampleAttrByIndex = (groupingIdx, attributeTag) => {
+        // clears the complete column of the samples attributes
         let attributeTable  = clearArrayOfObjectsByKeyName({array : submission.attributeTable,keyName : attributeTag, newValue : []})
         setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
     }
@@ -679,7 +684,7 @@ function InitialSubmission({
                         hint="Project Title"
                         value={_.isString(submission.attributes["title"]) ? submission.attributes["title"] : ""}
                         callbackKey="title"
-                        onChange={(callbackKey, title) => onAttributeChange(callbackKey, title)} />
+                        onChange={(callbackKey, title) => onInputChange(callbackKey, title)} />
                 
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
                     const samplesAttributesPresent = submission.samplesAttributes.length > 0
@@ -745,13 +750,13 @@ function InitialSubmission({
                     <NumericValueInput
                         placeholder="Number of replicates"
                         callbackKey={"replicates"}
-                        value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
+                        value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     <NumericValueInput
                         placeholder="Number of samples"
                         callbackKey={"sampleNumber"}
-                        value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onAttributeChange(callbackKey, value)} />
+                        value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     
-                    <AttributeGrouping
+                    <SamplesAttributes
                         sampleNames={submission.sampleNames}
                         attributeTable={submission.attributeTable}
                         attributes={attributesAllowedForDataset}
