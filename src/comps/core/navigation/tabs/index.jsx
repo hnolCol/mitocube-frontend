@@ -38,6 +38,7 @@ function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }
     const locationMatches = tabs.filter(tab => tab.to === location.pathname).length > 0 
     return (
         <div className="flex tabs__container">
+
         {tabs.map((tab,tabIdx) => {
             return (
                 <TabItem key={`${tabIdx}-${tab.text}`}
@@ -46,8 +47,8 @@ function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }
             )
         })}
             {_.isString(rightHeader) && rightHeader.length > 0 ?
-                <div className="div--expand tabs__item intent-margin-left">
-                    <Header {...{ text : rightHeader }} hexColor={"#466688"} /></div> : null}
+                <div className="div--expand tabs__item intent-margin-left" style={{textAlign:"right"}}>
+                    <h3>{rightHeader}</h3> </div>: null}
         </div>
     )
 }

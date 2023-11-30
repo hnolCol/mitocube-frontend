@@ -10,15 +10,13 @@ import APIError from "../../core/error/APIerror";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import HelpOverlay from "../../core/overlay/Helpoverlay";
 import {useOnScreen} from "../../../hooks/useOnScreen";
-import { readDateFromString, readDateFromStringAndReturnDateAndDistToNow } from "../../../services/date/read";
-import { useGetMetadata } from "../../../hooks/queries/datasets.hooks";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
-import { useGetSubmissionAttributes, useGetSubmissionAttributesByTag, useGetSubmissionMetatext, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
+import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks";
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { groupListByProperty } from "../../../services/arrays/groupby";
-import DatasetAttributeHierarchy from "../../submission/new/attribute/DatasetAttributesHierarchy";
-import { getAttributeForUserNumericInput, mapAttributeValueTagsToAttributes } from "../../../services/attributes";
+import DatasetAttributeHierarchy from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
+import { getAttributeForUserNumericInput } from "../../../services/attributes";
 
 function Metatext({ metatextTag, metadata, metatext }) {
     
@@ -174,6 +172,11 @@ function DatasetOverview({authenticationStatus}) {
 
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
     const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+    
+    useEffect(() => {
+        if (tabHeader !== "") setTabHeader("")
+        
+    }, [])
 
     const datasetMetrices = useMemo(() => {
         if (!_.isObject(metadata)) return []
@@ -204,14 +207,8 @@ function DatasetOverview({authenticationStatus}) {
         [attributeTag, metadata.dataset_attributes[attributeTag].map(attrValueTag =>
             _.has(attributesByTag.attribute_values, attrValueTag) ? attributesByTag.attribute_values[attrValueTag] :
                 getAttributeForUserNumericInput({ attributesByTag, attributeTag, attributeValueTag : attrValueTag }))]))
-
-    console.log(dataAttributes, datasetAttributeValues)
-    
-    console.log(metadata.samples_attributes, sampleAttributeValues, attributesByTag)
      
-    // if (isError) return <APIError error={error} />
-    // if (isLoading) return <div>Loading...</div>
-    console.log(metadata.dataset_attributes)
+
     return (
         <div style={{overflowY:"scroll", height : "90vh "}}>
              <div id="top" className="flex flex-column center-items">

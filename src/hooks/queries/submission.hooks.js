@@ -51,40 +51,30 @@ export const useGetSubmissionHelp = (useQueryOptions = {}, APIParams = {}) => {
 
 
 
-// submission attributes
 
-async function getSubmissionAttribute_API({tokenString}) {
-        
-    const res = await axios.get('/api/attributes',
-    {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-        })
-    
+
+async function getSubmissionAttribute_API() {
+    // returns submission attributes
+    const res = await axios.get('/api/attributes')
     return res.data 
 }
 
-export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["attributes"], () => getSubmissionAttribute_API({...APIParams}), useQueryOptions)
 
 }
 
 
-
-// submission attributes
-
-async function getSubmissionAttributeByTag_API({tokenString}) {
+async function getSubmissionAttributeByTag_API() {
+    // returns submission attributes but puts them in a dictionary where key is the tag
     //TO DO: merge with function from above 
-    const res = await axios.get('/api/attributes',
-    )    
+    const res = await axios.get('/api/attributes')    
     let attributesByTag = arrayOfObjectsToObjectByProperty(res.data.attributes,"tag")
     let attributeValuesByTag = arrayOfObjectsToObjectByProperty(res.data.attribute_values,"tag")
     return {attributes : attributesByTag, attribute_values : attributeValuesByTag}
 }
 
-export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["attributes_by_tag"], () => getSubmissionAttributeByTag_API({...APIParams}), useQueryOptions)
 
 }
@@ -155,17 +145,11 @@ export const usePatchSubmission = (useMutationOptions = {}) => {
 
 //submission states
 
-async function getSubmissionStates_API({ tokenString, submission }) {
-    const res = await axios.get('/api/submissions/states',
-        {
-            headers : {
-                "Authorization": `Bearer ${tokenString}`,
-                'Content-Type': 'application/json'
-            }}
-    )
+async function getSubmissionStates_API() {
+    const res = await axios.get('/api/submissions/states')
     return res.data
 }
 
-export const useGetSubmissionStates = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetSubmissionStates = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["submissionStates"], () => getSubmissionStates_API({...APIParams}), useQueryOptions)
 }

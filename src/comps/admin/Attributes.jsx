@@ -20,7 +20,7 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
         isLoading: attributesLoading,
         error: attributesAPIError,
         isError: attributeIsError,
-        isSuccess: attributesIsSuccess } = useGetSubmissionAttributes({ tokenString: authenticationStatus.token }) //
+        isSuccess: attributesIsSuccess } = useGetSubmissionAttributes() //
     
     //const {data : attributes, isLoading, isFetching } = useGetSubmissionAttributes({tokenString : authenticationStatus.token})
     //console.log(attributes)

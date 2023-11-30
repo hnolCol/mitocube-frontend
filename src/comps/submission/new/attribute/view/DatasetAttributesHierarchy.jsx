@@ -1,10 +1,10 @@
 import _ from "lodash"
 import PropTypes from "prop-types"
-import { createDataTree } from "../../../../services/arrays/nest"
+import { createDataTree } from "../../../../../services/arrays/nest"
 import { Code, H5, Tag } from "@blueprintjs/core"
-import { Header } from "../../../core/base/Header"
-import TooltipButton from "../../../core/base/buttons/TooltipButton"
-import { objectHasKey } from "../../../../services/objects/checks"
+import { Header } from "../../../../core/base/Header"
+import TooltipButton from "../../../../core/base/buttons/TooltipButton"
+import { objectHasKey } from "../../../../../services/objects/checks"
 import { useMemo } from "react"
 
 

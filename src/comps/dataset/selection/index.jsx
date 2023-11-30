@@ -19,27 +19,19 @@ function DatasetSelection({ authenticationStatus, logout, submissionFilter, setS
     const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch: refetchSubmissions } = useGetSubmissions({ tokenString: authenticationStatus.token })    
     
     const { data: users, isLoading: userIsLoading, isFetching: userIsFetching } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
-    const { data: states, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
-        { staleTime: Infinity }) //request only once. 
+    const { data: states, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     
+    if (isError) return <APIError error={error}/>
     
-    
-        const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
-        // const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
-        // const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
-        // const userLabelsInSubmission = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
-       
-    
-        // if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
-        // if (submissionIDLoading || submissionIDFetching) return <div>Loading...</div>
-        const usersByLabel = groupListByProperty(users, "label")
-    
-        const filteredSubmission = filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel, ignoreState : true})   
-       // const submissionsByState = groupListByProperty(filteredSubmission, "state")
-        const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+    if (attrIsFetching || userIsLoading || userIsFetching || isLoading || isFetching || !_.isArray(submissions) || submissionStatesLoading || attrIsLoading) return <Loading />
 
-   
-        if (userIsLoading || userIsFetching || isLoading || isFetching || !_.isArray(submissions) || submissionStatesLoading) return <Loading />
+
+    const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
+    const usersByLabel = groupListByProperty(users, "label")
+    const filteredSubmission = filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel, ignoreState : true})   
+    const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+
+
    
 
     // if (isError) return <APIError error={error} />
@@ -61,7 +53,7 @@ function DatasetSelection({ authenticationStatus, logout, submissionFilter, setS
     return (
         <div>
             
-           <h3>Dataset Selection</h3>
+           <h2>Dataset Selection</h2>
             <Link to="/dataset/KUbPyK1ASG">Dataset1</Link>
             <Link to="/dataset/BuXOSlIl6G">dataset2</Link>
             <Link to="/dataset/rfP4nAAmgA">D3</Link>
@@ -70,7 +62,7 @@ function DatasetSelection({ authenticationStatus, logout, submissionFilter, setS
             <div className="flex flex-column submission__side__filter__container ">
             
             
-            <SubmissionBaseFilter {...{submissionFilter,submissionsQuery,setSubmissionFilter,setSubmissionQuery,attributesByTag,userLabelsInSubmission, usersByLabel, uniqueAtributesInSubmissions, users : users}} />
+            <SubmissionBaseFilter {...{submissionFilter,submissionsQuery,setSubmissionFilter,setSubmissionQuery,attributesByTag,userLabelsInSubmission, uniqueAtributesInSubmissions, users, enableStteSelection : false}} />
         
             </div>
                 <div className="submission__items__container">

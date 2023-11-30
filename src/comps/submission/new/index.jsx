@@ -3,9 +3,7 @@ import _ from "lodash"
 import { Link } from "react-router-dom"
 import DescriptionButton from "../../core/base/buttons/DescriptionButton"
 
-function NewSubmission({
-    authStatus,
-}
+function NewSubmission({}
 ) {
     return (
         <div className="flex center-items justify-center div--expand" >

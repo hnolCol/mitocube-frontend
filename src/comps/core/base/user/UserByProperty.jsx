@@ -4,10 +4,10 @@ import { createDataTree, nestLinearArrayByLink } from "../../../../services/arra
 import { AttributeFilterButton } from "../../../submission/view/SubmissionContainer"
 import { InputGroup } from "@blueprintjs/core"
 
-export function UserByProp({ users, userLabelsInSubmission, submissionFilter, setSubmissionFilter }) {
-    console.log(submissionFilter)
-    const groupedUser = groupListByProperty(users, "institute")
-    const researchGroupGroupedUser = _.fromPairs(_.keys(groupedUser).map(instName => [instName,groupListByProperty(groupedUser[instName],"research_group")]))
+export function HierarchicalUserView({ users, userLabelsInSubmission, submissionFilter, setSubmissionFilter, firstLevel = "institute", secondLevel = "research_group"}) {
+    //groups user by institute and research group
+    const groupedUser = groupListByProperty(users, firstLevel)
+    const researchGroupGroupedUser = _.fromPairs(_.keys(groupedUser).map(instName => [instName,groupListByProperty(groupedUser[instName],secondLevel)]))
     return (
         <div>
             <h3>Users</h3>
@@ -21,10 +21,10 @@ export function UserByProp({ users, userLabelsInSubmission, submissionFilter, se
                 marginTop: "0.3rem"
             }}>
             {_.keys(groupedUser).map(instituteName => {
-                return <div className="flex flex-column">
-                    <h4>{instituteName}</h4>
+                return <div className="flex flex-column" key={instituteName}>
+                    <h5>{instituteName}</h5>
                     {_.keys(researchGroupGroupedUser[instituteName]).map(research_group => {
-                        return <div className="flex flex-column intent-margin-left--little"><h5>{research_group}</h5>
+                        return <div className="flex flex-column intent-margin-left--little" key={`${research_group}-${instituteName}`}><h5>{research_group}</h5>
                             {researchGroupGroupedUser[instituteName][research_group].map(user => <AttributeFilterButton
                                 submissionKey={"users"}
                                 submissionFilter={submissionFilter}

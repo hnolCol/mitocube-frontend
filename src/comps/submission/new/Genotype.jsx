@@ -16,8 +16,8 @@ import { objectHasKey } from "../../../services/objects/checks"
 import { useGetAnnotationsByFeatureID } from "../../../hooks/queries/feature.hooks"
 import { splitStringByNCharacters } from "../../../services/format/string"
 import {motion} from "framer-motion"
-import AttributeInput from "./attribute/MultiSelectAttribute"
-import SingleAttributeInput from "./attribute/SelectAttribute"
+import AttributeInput from "./attribute/select/MultiSelectAttribute"
+import SingleAttributeInput from "./attribute/select/SelectAttribute"
 
 
 // export function AttributeSelection({ label, attribute, attributeValues, onSelection, selectedAttributeValue = undefined, entryIdx }) {

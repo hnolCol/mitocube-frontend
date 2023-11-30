@@ -14,6 +14,7 @@ import TextInput from "../../core/input/Text"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../services/arrays/filter"
 import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
 import { SubmissionBaseFilter } from "../filter"
+import { StateSelection } from "../filter/StateSelection"
 
 
 
@@ -97,83 +98,8 @@ export function AttributeFilterButton({ attributeValue, submissionKey, setSubmis
 }
 
 
-export function StateFilterButton({ states, stateName, setSubmissionFilter, submissionFilter ,numberSubmissionWithTag = undefined }) {
-    const state = states.states[stateName]
-    
-    const stateFilterActive = _.has(submissionFilter, "states") && submissionFilter.states.size > 0
-
-    const isStateFilter = stateFilterActive ? submissionFilter.states.has(state) : false    
-    const [isAnimationPlaying, setIsAnimationPlaying] = useState(false);
-	const divAnimationControls = useAnimation();
-	const divAnimationVariants = {
-	    init: {
-            opacity: 0,
-            width : "0rem"
-            
-	    },
-	    anim: {
-            opacity: 0.8,
-            width: "1.3rem",
-            
-		transition: {
-            type: "linear"
-	      },
-	    }
-    }
-    
-    const handleClick = () => {
-        let statesForFiltering = stateFilterActive? submissionFilter.states: new Set()
-        if (!stateFilterActive) {
-            statesForFiltering.add(state)
-        }
-        else if (isStateFilter) {
-            statesForFiltering.delete(state)
-        }
-        else {
-            statesForFiltering.add(state)
-        }
-
-        setSubmissionFilter(prevValues => {return {...prevValues,states : statesForFiltering}})
-    }
-
-    return <motion.button
-        onClick={handleClick}
-        className = "submssion__filter__button margin--very-little"
-        style={{
-            backgroundColor: states.colors[stateName],
-            opacity : !isStateFilter && stateFilterActive ? 0.3 : 1.0,
-            color: isHexColorLight(states.colors[stateName]) ? "black" : "white"
-        }}
-       // whileHover={{ opacity: 1.0 }}
-        onHoverStart={() => {
-            if (!isAnimationPlaying) {
-                setIsAnimationPlaying(true)
-                divAnimationControls.start(divAnimationVariants.anim)}
-        }}
-        onHoverEnd={() => {
-            divAnimationControls.start(divAnimationVariants.init)
-        }}
-        >
-        <div className="flex justify-space-between">
-        <div className="padding--little">
-            {titleFormat(stateName)}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
-        </div>
-        <motion.div style={{opacity : 0, width : "0rem"}} onAnimationComplete={() => {
-            setIsAnimationPlaying(false)
-            }} animate={divAnimationControls}>
-                <div className="flex center-items" style={{ height: "100%" }}>
-                    <div><Icon icon={isStateFilter ? "filter-remove" : "filter-keep"}/>
-                    </div>
-                </div>
-        </motion.div>
-        </div>
-    </motion.button>
-
-}
-
 export function StateIndicator({ state, authenticationStatus }) {
-    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
-        { staleTime: Infinity }) //request only once. 
+    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     if (submissionStatesLoading) return null 
     const stateName = submissionStates.states_inv[state]
     const stateColor = submissionStates.colors_inv[state]
@@ -298,10 +224,14 @@ export function filterSubmissionByDatasetAttribute({ submissionFilter, submissio
 
 export function extractSubmissionDetails({ submissions }) {
     
+    
     const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
     const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
-    
     return { uniqueAtributesInSubmissions, usersByDataLabel}
+    
+    
+    
+    
 }
 
 
@@ -347,52 +277,19 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
 
     
     
-    //const datasetAttributeFilter = _.keys(submissionFilter).filter(filterKey => filterKey !== "states" && filterKey !== "users") //exclude statefilter
+    let labelsCombined = _.join(submissions.map(submission => submission.label))
+    const { uniqueAtributesInSubmissions, usersByDataLabel } = useMemo(() => extractSubmissionDetails({ submissions }), [labelsCombined])
     
-    const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
-    // const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
-    // const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
-    // const userLabelsInSubmission = getUniqueValuesAndCountsFromList(submissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
     const usersByLabel = groupListByProperty(users, "label")
     const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
     const submissionsByState = groupListByProperty(filteredSubmission, "state")
     const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
 
-    // const submissionMatchesFilterByIndex = Object.fromEntries(Object.keys(submissionsByState).map(
-    //     state => [state, Object.fromEntries(_.map(submissionsByState[_.toString(state)], (submission, idx) => {
-    //         return [idx, filterSubmissionByDatasetAttribute({
-    //             submissionFilter,
-    //             submissionDatasetAttributes: submission.dataset_attributes,
-    //             datasetAttributeFilter
-    //         })]
-    //     }))]))
-    
-    
-    // const submissionMatchingPlainQuery = useMemo(() => {
-    //     if (submissionsQuery.plain === "") return new Set()
-    //     return new Set(filterArrayBySearchString({ array: submissions, searchColumns: ["title", "label"], searchString: submissionsQuery.plain }).map(s => s.label))
-    // }, [submissionsQuery.plain])
-    
-    
-    // const plainSearchActive = submissionsQuery.plain !== ""
-    // const userSearchActive = _.has(submissionFilter,"users") && submissionFilter.users.size > 0 
-    //if (_.isEmpty(submissionsByState)) return <div><p>No submissions found. Please use the submission portal to start with your first one. Please visit the dataset sectio to explore published datasets.</p></div>
     return (
         <div className="flex" style={{ width: "100%" }}>
             
             <div className="flex flex-column submission__side__filter__container ">
-            
-                
-                <h3>States</h3>
-                <div className="flex flex-column">
-                    {Object.keys(states.states).map(stateName => {
-                        const state = states.states[stateName]
-                        const numSubmssionsInState = _.has(submissionsByState,state)?submissionsByState[state].length:0
-                        return <StateFilterButton
-                        numberSubmissionWithTag={numSubmssionsInState}
-                        key={stateName}
-                        {...{ submissionFilter, setSubmissionFilter, stateName, states }} />})}
-                </div>
+                <p>Submissions : {submissions.length}</p>
                 <SubmissionBaseFilter {...{
                     submissionFilter,
                     submissionsQuery,
@@ -400,9 +297,10 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                     setSubmissionQuery,
                     attributesByTag,
                     userLabelsInSubmission,
-                    usersByLabel,
                     uniqueAtributesInSubmissions,
-                    users
+                    users,
+                    states,
+                    submissionsByState
                 }} />
             </div>
 
@@ -412,11 +310,6 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                 const submissionsAreInState = _.has(submissionsByState, state)
                 if (!submissionsAreInState) return null 
                 
-                
-                // if (stateFilterIsActive && !submissionFilter.states.has(_.toInteger(state))) return null
-                // if (!_.some(Object.values(submissionMatchesFilterByIndex[state]))) return null 
-                // if (plainSearchActive  && !_.some(submissionsByState[_.toString(state)].map(s => submissionMatchingPlainQuery.has(s.label)))) return null
-                //console.log("reach?", plainSearchActive)
                 return (
                     <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
                         <StateHeader {...{
@@ -424,9 +317,7 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                             stateColor: states.colors_inv[state]
                         }} />
                         {submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
-                            // if (!submissionMatchesFilterByIndex[state][submissionIdx]) return null 
-                            // if (plainSearchActive && !submissionMatchingPlainQuery.has(submission.label)) return null
-                            // if (userSearchActive && !_.some(usersByDataLabel[submission.label].map(userLabel => submissionFilter.users.has(userLabel)))) return null
+                            //key are always strings .... 
                             return (
                                 <SubmissionItem
                                     key={submission.label}

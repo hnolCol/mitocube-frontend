@@ -288,7 +288,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
             
             {isLoading || isFetching || userIsFetching || userIsLoading?
                 <Loading /> : isError ?
-                    <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") ? 
+                    <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") && _.isArray(submissions) ? 
                         <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, submissionsQuery, setSubmissionQuery}} /> : null}
             {/* <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
             <SubmissionOverviewDialog
