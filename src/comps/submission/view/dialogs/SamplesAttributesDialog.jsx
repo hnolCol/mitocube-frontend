@@ -5,6 +5,7 @@ import { mapAttributeTagsToAttributes, mapAttributeValueTagsToAttributeValues, m
 import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks";
 import _ from "lodash"
 import { SampleAttributeTableWrapper } from "../../new/attribute/select/SamplesAttributeWrapper";
+import NumericValueInput from "../../../core/input/Numeric";
 
 
 // sampleNames: [],
@@ -21,7 +22,7 @@ import { SampleAttributeTableWrapper } from "../../new/attribute/select/SamplesA
 
 export function EditSamplesAttributeDialog({ isOpen, submission, onClose }) {
     const { data : attributesByTag, isLoading, isFetching} = useGetSubmissionAttributesByTag()
-    const [samplesAttributesProps, setSamplesAttributesProps] = useState({ attributeTable: [], sampleNames : [], replicates : [], rerenderTableDependency : [Math.random()] , samplesAttributes : []})
+    const [samplesAttributesProps, setSamplesAttributesProps] = useState({ attributeTable: [], sampleNames : [], replicates : [], rerenderTableDependency : [Math.random()] , samplesAttributes : [], n_samples : 0})
     
     useEffect(() => {
         if (!_.isObject(attributesByTag)) return 
@@ -42,6 +43,7 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose }) {
         })
 
         setSamplesAttributesProps({
+            n_samples : submission.sample_names.length,
             sampleNames: submission.sample_names,
             attributeTable: attributeTable,
             replicates: submission.replicates,
@@ -56,7 +58,9 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose }) {
 
     return (
         <Dialog style={{minWidth : "80vw", height : "80vh"}} {...{ isOpen }} title="Edit Samples Attributes" onClose={onClose}>
-            <div className="padding--medium" style={{height : "50vh", overflowY:"scroll"}}>
+            <div className="padding--medium" style={{ height: "50vh", overflowY: "scroll" }}>
+                <NumericValueInput placeholder="Number of samples.." hint="Sample number" value={_.toString(samplesAttributesProps.n_samples)} callbackKey="n_samples" onChange={(callbackKey,value) => setSamplesAttributesProps(prevValues => {return {...prevValues,"n_samples" : value}})}/>
+                <NumericValueInput placeholder="Number of replicates" />
             <SampleAttributeTableWrapper
                 submission={samplesAttributesProps}
                 attributes={_.values(attributesByTag.attributes)}

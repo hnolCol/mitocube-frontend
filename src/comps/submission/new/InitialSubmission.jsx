@@ -26,15 +26,12 @@ import { getRandomID } from "../../../services/random"
 import GenotypeGenerator, { PositionSelection } from "./Genotype"
 import FeatureSelection from "./FeatureSelection"
 import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
+import { constructSampleNames } from "../../../services/samples"
 
 
 
 
-function constructSampleNames(id, sampleNumber) {
-    const date = getCurrentDate()
-    const zeroPadding = sampleNumber.toString().length
-    return _.range(sampleNumber).map(idx => `${date}_${id}_${(idx+1).toString().padStart(zeroPadding > 1 ? zeroPadding : 2,'0')}`)
-}
+
 const randomInitLinkID = getRandomID({n : 5})
 const initSubmissionState = {
             replicates : [],
@@ -115,19 +112,20 @@ function InitialSubmission({
         if (!_.isNumber(sampleNumber)) return 
         if (!_.isObject(submissionID) || !_.isString(submissionID.id)) return
 
-        const sampleNames = constructSampleNames(submissionID.id, sampleNumber)
+        
 
         //adjust attribute table 
         let attributeTable = submission.attributeTable
-        if (sampleNames.length > attributeTable.length) {
+        if (sampleNumber > attributeTable.length) {
             //add rows 
-            const diff = sampleNames.length - attributeTable.length
+            const diff = sampleNumber - attributeTable.length
             //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 
             const existingAttributeTags = attributeTable.length > 0?Object.keys(attributeTable[0]):submission.samplesAttributes.filter(groupInfo => _.isObject(groupInfo.attribute)).map(groupInfo => groupInfo.attribute.tag)
             _.forEach(_.range(diff), () => {
                 attributeTable.push(Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
         }
+        const sampleNames = constructSampleNames(submissionID.id, sampleNumber, attributeTable)
 
         setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable, rerenderTableDependency : Math.random()}})
 

@@ -9,6 +9,7 @@ import SamplesAttributes from "./SampleAttributes"
 import { useMemo, useState } from "react"
 import FeatureSelection from "../../FeatureSelection"
 import { Alert } from "@blueprintjs/core"
+import { constructSampleNames } from "../../../../../services/samples"
 
 
 export function SampleAttributeTableWrapper({ submission, attributes, updateSubmission, numberReplicates }) {
@@ -16,7 +17,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     const { data: attributesByTag, isSuccess, isLoading, isFetching } = useGetSubmissionAttributesByTag()
 
-    if (isLoading || isFetching) return <Loading />
+    
 
     const { attributeValuesByAtrributeID, attributesAllowedForDataset } = useMemo((
         ) => {
@@ -27,7 +28,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             attributeValuesByAtrributeID: groupListByProperty(attributeValues, "attribute_id"),
             attributesAllowedForDataset : attributes.filter(attribute => attribute["allow_for_dataset"])
         })
-        }, [isSuccess])
+    }, [isSuccess])
+    if (isLoading || isFetching) return <Loading />
     
     const addSampleAttr = () => {
         //adds a new sample attribute
@@ -38,13 +40,24 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         //clear rows in table for specific attribute by its tg
         let attributeTable = submission.attributeTable
         rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach((rowIndex) => attributeTable[rowIndex][attributeTag] = [])
-        updateSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : [Math.random()]}})
+        updateSubmission(prevValues => {
+            return {
+                ...prevValues, attributeTable,
+                rerenderTableDependency: [Math.random()],
+                sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, submission.attributeTable)
+            }
+        })
     }
 
     const clearSampleAttrByIndex = (attributeTag) => {
         // clears the complete column of the samples attributes
         let attributeTable  = clearArrayOfObjectsByKeyName({array : submission.attributeTable,keyName : attributeTag, newValue : []})
-        updateSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : [Math.random()]}})
+        updateSubmission(prevValues => {
+            return {
+                ...prevValues, attributeTable, rerenderTableDependency: [Math.random()], sampleNames:
+                    constructSampleNames(submission.label, submission.sampleNames.length, attributeTable)
+            }
+        })
     }
 
 
@@ -140,7 +153,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         if (_.has(rowData,attribute.tag)){
             rowData[attribute.tag] = rowData[attribute.tag].filter(attrValueTag => attrValueTag !== attributeValueTag)
             attributeTable[rowIndex] = rowData
-            updateSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : [Math.random()]}})
+            updateSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : [Math.random()],sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, attributeTable)}})
         }
     }
 
@@ -157,7 +170,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             d = d.map(rowData => { return { ...rowData, [attributeTag]: [] } })
         }
         rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attributeTag] = addItemToArrayOrRemoveItIfPresent({array:d[rowIndex][attributeTag],item:attributeValueTag}))
-        updateSubmission(prevValues => {return{...prevValues,attributeTable : d, rerenderTableDependency : [Math.random()]}})
+        updateSubmission(prevValues => {return{...prevValues,attributeTable : d, rerenderTableDependency : [Math.random()],sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, d)}})
     }
 
     const onSampleAttributeSelect = (sampleAttrIdx, sampleAttrName, attribute, attributeChanged = false) => {
@@ -183,7 +196,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                         ...prevValues,
                         samplesAttributes: sampleAttrs,
                         attributeTable: updatedAttributeTable,
-                        rerenderTableDependency: [Math.random()]
+                        rerenderTableDependency: [Math.random()],
+                        sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, updatedAttributeTable)
                     }
                 })
                 // warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
@@ -198,7 +212,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         //     // only warn again if changed.
         //     warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
         // }
-        updateSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs, rerenderTableDependency : [Math.random()]} })
+        updateSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs, rerenderTableDependency : [Math.random()],sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, submission.attributeTable)} })
     }
 
     const removeSampleAttrByIndex = (sampleAttrIdx) => {
@@ -214,7 +228,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                     ...prevValues,
                     samplesAttributes: prevValues.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx),
                     attributeTable: updatedAttributeTable,
-                    rerenderTableDependency: [Math.random()]
+                    rerenderTableDependency: [Math.random()],
+                    sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, updatedAttributeTable)
                 }
             })
             return 
@@ -224,7 +239,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             return {
                 ...prevValues,
                 samplesAttributes: prevValues.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx),
-                rerenderTableDependency: [Math.random()]
+                rerenderTableDependency: [Math.random()],
+                sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, submission.attributeTable)
             }
         })
     }
