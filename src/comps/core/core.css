@@ -157,6 +157,9 @@ h5 {
 .padding--little {
     padding : 0.2rem
 }
+.padding--tiny {
+    padding : 0.15rem
+}
 .padding--medium {
     padding : 0.5rem
 }

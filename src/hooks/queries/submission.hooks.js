@@ -87,20 +87,14 @@ export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions 
 // submission metatexts 
 
 
-async function getSubmissionMetatexts_API({tokenString}) {
+async function getSubmissionMetatexts_API({}) {
         
-    const res = await axios.get('/api/submissions/metatext',
-    {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-        })
+    const res = await axios.get('/api/submissions/metatext')
     
     return res.data 
 }
 
-export const useGetSubmissionMetatext = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetSubmissionMetatext = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["metatext_for_submission"], () => getSubmissionMetatexts_API({...APIParams}), useQueryOptions)
 }
 

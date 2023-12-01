@@ -25,7 +25,16 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
         const filteredAttributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
         // render items 
         return (
-            <AttributeValueSelectionMenu {...{activeItem, attributes,filteredAttributeValuesByID,attributeValuesByID,handleItemSelect, query, handleFeatureSelection}}/>
+            <AttributeValueSelectionMenu {...{
+                activeItem,
+                attributes,
+                filteredAttributeValuesByID,
+                attributeValuesByID,
+                handleItemSelect,
+                query,
+                handleFeatureSelection
+            }} />
+
         )
     }
 

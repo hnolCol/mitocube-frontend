@@ -94,7 +94,7 @@ function LineChart({
             return scaleTime({
                 range : [margins.left,chartWidth+margins.left],
                 domain: [sortedData[0][xaxisName], sortedData[sortedData.length - 1][xaxisName]],
-                // nice : true
+                nice : true
             })
         }
 
@@ -146,7 +146,8 @@ function LineChart({
                         chartHeight,
                         leftScale: yScale,
                         bottomScale: xScale,
-                        moveBottomToLeft: false
+                        moveBottomToLeft: false,
+                        findAttributesForBottomScale : false
                     }} />
                 
             {showGrid ? <g>
@@ -162,7 +163,7 @@ function LineChart({
                         return (
                             <g key={`${yaxisName}-${lineIdx}`}>
                             
-                                {showLine || lineData.length > 4 ? <LinePath
+                                {showLine && lineData.length > 4 ? <LinePath
                                     data={lineData}
                                     x={(d) => xScale(d[xaxisName])}
                                     y={(d) => yScale(d[yaxisName])}

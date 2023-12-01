@@ -1,8 +1,8 @@
 import { Button, InputGroup } from "@blueprintjs/core"
-import { AttributeFilterSelection, UserFilterSelection } from "../view/SubmissionContainer"
-import { HierarchicalUserView } from "../../core/base/user/UserByProperty"
+import { AttributeFilterSelection} from "../view/SubmissionContainer"
 import _ from "lodash"
 import { StateSelection } from "./StateSelection"
+import { HierarchicalUserView } from "../../core/base/user/UserFilterByProperty"
 
 export function SubmissionBaseFilter({
     submissionsQuery,
@@ -22,7 +22,7 @@ export function SubmissionBaseFilter({
             <InputGroup value={submissionsQuery.plain} placeholder="Search..." small={true} onValueChange={value => setSubmissionQuery(prevValues => { return { ...prevValues, plain: value } })}/>
             <hr />
             {enableStteSelection ? <div><StateSelection {...{ setSubmissionFilter, states, submissionFilter, submissionsByState }} /><hr/></div> : null}
-            
+        
                 <HierarchicalUserView users={users} {...{userLabelsInSubmission, setSubmissionFilter, submissionFilter}} />
                 <hr/>
                 <AttributeFilterSelection {...{

@@ -227,10 +227,13 @@ function DatasetOverview({authenticationStatus}) {
                 <div className="intent-margin-top--little">
                     <StateIndicator state={metadata.state} {...{authenticationStatus}} />
                 </div>
-                
+
+                <div>
+                <MultipleMetrices metrices={datasetMetrices} />
+                </div>
 
             </div>
-            <MultipleMetrices metrices={datasetMetrices} />
+            
             <h2>Sample Attributes</h2>
             <h2>Dataset Attributes</h2>
             <DatasetAttributeHierarchy {...{

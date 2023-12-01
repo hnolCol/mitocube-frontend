@@ -51,7 +51,7 @@ function HierarchicalAttributeSelection({attribute, attributeValues, onItemSelec
 
 
 
-export function LiteralAttributeSelection({ selectedAttributes, setSelectedAttributes, authenticationStatus, attributeFilter}) {
+export function LiteralAttributeSelection({ selectedAttributes, setSelectedAttributes, attributeFilter}) {
     //attribute selection
     const { data: attrs, isLoading, isFetching } = useGetSubmissionAttributes()
     if (isLoading || isFetching) return <Loading />

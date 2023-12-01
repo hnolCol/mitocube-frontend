@@ -1,4 +1,4 @@
-import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission, useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks"
 import PropTypes, { number } from "prop-types"
 import { Header } from "../../core/base/Header"
 import APIError from "../../core/error/APIerror"
@@ -25,6 +25,8 @@ import DatasetLinks from "./Links"
 import { getRandomID } from "../../../services/random"
 import GenotypeGenerator, { PositionSelection } from "./Genotype"
 import FeatureSelection from "./FeatureSelection"
+import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
+
 
 
 
@@ -49,6 +51,8 @@ const initSubmissionState = {
             rerenderTableDependency: 0}
 
 
+
+
 function InitialSubmission({
     authenticationStatus,
     logout
@@ -67,7 +71,6 @@ function InitialSubmission({
         error: attributesAPIError,
         isError: attributeIsError,
         isSuccess: attributesIsSuccess } = useGetSubmissionAttributes() //
-    
     
     //filter attributes that are not for dataset
     const { attributeValuesByAtrributeID, attributeValuesWithParentInfo }  = useMemo(() => {
@@ -287,10 +290,7 @@ function InitialSubmission({
             setSubmission(prevValues => {return {...prevValues, ...submission}})
         }
     }
-    
-    const onReplicateChange = () => {
 
-    }
 
     const onInputChange = (inputTag, inputValue) => {
         // handles the change of an attribute / attributeValue combination 
@@ -304,81 +304,7 @@ function InitialSubmission({
         })
     }
 
-    const addSampleAttr = () => {
-        //adds a new sample attribute
-        setSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, { name: "", attribute: undefined }) } })
-    }
-
-    const onSampleAttrRemove = (rowIndex, attribute, attributeValueTag) => {
-        //handles the removal of a samples attributes
-        let attributeTable = submission.attributeTable
-        let rowData = attributeTable[rowIndex]
-      
-        if (objectHasKey({ object: rowData, keyName: attribute.tag })){
-            
-            rowData[attribute.tag] = rowData[attribute.tag].filter(attrValueTag => attrValueTag !== attributeValueTag)
-            attributeTable[rowIndex] = rowData
-            setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
-        }
-    }
-
-    const clearAttributeTableByRowIndex = (rowIdces, attributeTag) => {
-        //clear rows in table for specific attribute
-        let attributeTable = submission.attributeTable
-        rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach((rowIndex) => attributeTable[rowIndex][attributeTag] = [])
-        setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
-    }
-
-    const clearSampleAttrByIndex = (groupingIdx, attributeTag) => {
-        // clears the complete column of the samples attributes
-        let attributeTable  = clearArrayOfObjectsByKeyName({array : submission.attributeTable,keyName : attributeTag, newValue : []})
-        setSubmission(prevValues => {return {...prevValues,attributeTable, rerenderTableDependency : Math.random()}})
-    }
-
-    const removeSampleAttrByIndex = (sampleAttrIdx) => {
-        //remove grouping by groupingIdx
-        let groupingInfos = submission.samplesAttributes
-        //remove attribute from attribibuteTable
-        let groupingAttribute = groupingInfos[sampleAttrIdx].attribute
-        if (_.has(groupingAttribute, "tag")) {
-            let groupingAttributeTag = groupingAttribute.tag 
-
-            const updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: groupingAttributeTag })
-            setSubmission(prevValues => {
-                return {
-                    ...prevValues,
-                    samplesAttributes: prevValues.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx),
-                    attributeTable : updatedAttributeTable
-                }
-            })
-            return 
-        }
-
-        setSubmission(prevValues => {
-            return {
-                ...prevValues,
-                samplesAttributes: prevValues.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx)
-            }
-        })
-    }
-
-    const onSampleAttributeValueSelect = (attributeTag, attributeValueTag, rowIdces) => {
-        //on selection of a sample attribute value
-        let d = submission.attributeTable
-        if (!objectHasKey({ object: d[0], keyName: attributeTag })) {
-            d = d.map(rowData => {return { ...rowData, [attributeTag] : []}})
-        }
-        rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attributeTag] = addItemToArrayOrRemoveItIfPresent({array:d[rowIndex][attributeTag],item:attributeValueTag}))
-        setSubmission(prevValues => {return{...prevValues,attributeTable : d, rerenderTableDependency : Math.random()}})
-    }
-
-    const onSampleAttributeRename = (sampleAttrIdx, sampleAttributeName) => {
-        let sampleAttrs = submission.samplesAttributes
-        sampleAttrs[sampleAttrIdx].name = sampleAttributeName
-
-        setSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs} })
-    }
-
+   
     const addGenotype = () => {
         let genotypes = submission.genotypes
         const genotypeLabel = getRandomID({ n : 5})
@@ -430,10 +356,7 @@ function InitialSubmission({
         genotypeEntry[attributeTag] = [attributeValue] //overwrite - just one possible
         genotypes[genotypeLabel].attributes[entryIdx] = genotypeEntry
         genotypes[genotypeLabel].name = constructGenotypeName(genotypes[genotypeLabel].attributes)
-
-
         setSubmission(prevValues => {return{...prevValues,genotypes}})
-
     }
 
     const warnForMandatoryAttr = (addedAttribute) => {
@@ -446,49 +369,7 @@ function InitialSubmission({
         }
     }
 
-    const onSampleAttributeSelect = (sampleAttrIdx, sampleAttrName, attribute, attributeChanged = false) => {
-        // To DO: Rename to sample attribute
-        let sampleAttrs = submission.samplesAttributes.slice()
-        let sampleAttr = sampleAttrs[sampleAttrIdx]
-        if (!_.isObject(attribute)) {
-            sampleAttrs[sampleAttrIdx] = {
-                name: sampleAttrName,
-                attribute: _.isObject(sampleAttr) ? sampleAttr.attribute : undefined
-            }
-        }
-        else {
-            
-            if (_.isObject(sampleAttr.attribute) && sampleAttr.attribute.tag !== attribute.tag) {
-                //different tag selected 
-                
-                const prevGroupingAttributeTag = sampleAttr.attribute.tag
-                //requires cleaning up the old ag
-                let updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: prevGroupingAttributeTag })
-                sampleAttrs[sampleAttrIdx] = {name : sampleAttrName === ""? attribute.name : sampleAttrName, attribute}
-                setSubmission(prevValues => {
-                    return {
-                        ...prevValues,
-                        samplesAttributes: sampleAttrs,
-                        attributeTable: updatedAttributeTable,
-                        rerenderTableDependency: Math.random()
-                    }
-                })
-                warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
-                return 
-            }
-            sampleAttrs[sampleAttrIdx] = {
-                name: sampleAttrName === "" ? attribute.name : sampleAttrName,
-                attribute
-            }
-        }
-        if (attributeChanged) {
-            // only warn again if changed.
-            warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
-        }
-
-        setSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs} })
-        
-    }
+    
 
 
     const onMetaTextChange = (tag, text) => {
@@ -504,22 +385,21 @@ function InitialSubmission({
         if (attribute.allow_for_genotype) {
             genotypeSelection(genotypeLabel,attribute.tag,selectedFeatures[0],entryIdx) //double check entry!! 
         }
-
         else if (isSampleAttribute) {
             let d = submission.attributeTable
-            if (!objectHasKey({ object: d[0], keyName: attribute.tag })) {
+            if (!_.has(d[0],attribute.tag)) {
                 d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
             }
             //save feature selection
             rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attribute.tag] = selectedFeatures )
             //update table
-            setSubmission(prevValues => { return { ...prevValues, attributeTable: d, rerenderTableDependency: Math.random() } })
+            setSubmission(prevValues => { return { ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()] } })
             }
         else {
             let filteredDatasetAttr = addItemToArrayIfNotPresent({ array: submission.datasetAttributes, item: attribute })
             let datasetAttrValues = submission.datasetAttributeValues
             datasetAttrValues[attribute.tag] = selectedFeatures
-            setSubmission(prevValues => { return {...prevValues, datasetAttributes : filteredDatasetAttr, datasetAttributeValues : datasetAttrValues}})
+            setSubmission(prevValues => { return {...prevValues, datasetAttributes : filteredDatasetAttr, datasetAttributeValues : datasetAttrValues, rerenderTableDependency: [Math.random()]}})
         }
         setAlertProps({isOpen : false})
     }
@@ -587,10 +467,6 @@ function InitialSubmission({
         }
         setSubmission(prevValues => { return {...prevValues, datasetAttributes : filteredDatasetAttr, datasetAttributeValues : datasetAttrValues}})
     }
-    const resetAlert = () => {
-
-        setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
-    }
 
     const handleCollaboratorSelection = (selectedUser) => {
         //save collaborations that are seleted
@@ -653,12 +529,11 @@ function InitialSubmission({
     return (
         <div className="flex flex-column">
         <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
-                <Alert style={{minWidth : "700px"}} canEscapeKeyCancel={true} canOutsideClickCancel={true} onConfirm={resetAlert } onClose={resetAlert } {...alertProps}/>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="Information" />
+                <h3>Information</h3>
             <p>
                 In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
             <p>The unique datset identifier <span className="h0-span">{submissionID.id}</span> has been created for your submission. Please include this unique identifier in any request about your project.
@@ -668,7 +543,7 @@ function InitialSubmission({
                     <span className="h0-span">Please take care to fill out the submission in a meticulously way. Data without carefully curated meta data are less informative.</span>
             </div>
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="1. Contact and Collaborators" />
+                <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
                 <div><span>Unique identifier: </span> <span className="h0-span">{submissionID.id}</span></div>
 
@@ -678,7 +553,7 @@ function InitialSubmission({
                         ...{ authenticationStatus }} />
             </div>
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="2. Mandatory Attributes" />
+                <h3>2. Mandatory Attributes</h3>
                 <p>Attributes that are required for the project submission. </p>
                     <TextInput placeholder="Set the title of your submission.."
                         hint="Project Title"
@@ -703,16 +578,18 @@ function InitialSubmission({
                         />
                     }
                 }) : null}
-            </div>
+                </div>
+            <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+                    <h3>4. Meta Text</h3>
             <MetaText metatextValues={submission.metatext} {...{onMetaTextChange,authenticationStatus}} />
-            
+            </div>
             <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange}/>
 
             {attributesIsSuccess && _.isArray(attributesAllowedForDataset) ?
             <div>
 
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                        <Header text="5. Dataset Attributes" />
+                        <h3>5. Dataset Attributes</h3>
                         <p>Dataset attributes describe the dataset and are valid for all samples.
                             As an example, if you have a project that uses the same cell line throughout the study, the cell line should be added here.</p>
                         <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
@@ -738,7 +615,7 @@ function InitialSubmission({
                             
                         
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                <Header text="7. Sample Attributes" />
+                <h3>7. Sample Attributes</h3>
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
                     </p>
@@ -756,27 +633,7 @@ function InitialSubmission({
                         callbackKey={"sampleNumber"}
                         value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     
-                    <SamplesAttributes
-                        sampleNames={submission.sampleNames}
-                        attributeTable={submission.attributeTable}
-                        attributes={attributesAllowedForDataset}
-                        attributeValuesByID={attributeValuesByAtrributeID}
-                        rerenderTableDependency={submission.rerenderTableDependency}
-                        onAttributeSelect={onSampleAttributeValueSelect}
-                        onTagRemove={onSampleAttrRemove}
-                        {...{
-                            addSampleAttr,
-                            clearSampleAttrByIndex,
-                            clearAttributeTableByRowIndex,
-                            onSampleAttributeSelect,
-                            onSampleAttributeRename,
-                            removeSampleAttrByIndex,
-                            groupings: submission.samplesAttributes,
-                            handleFeatureSelection,
-                            numberReplicates: submission.attributes.replicates,
-                                replicates: submission.replicates,
-                            onReplicateChange : handleReplicateChange
-                        }} />
+                        <SampleAttributeTableWrapper {...{submission, updateSubmission : setSubmission, attributes : attributesAllowedForDataset, numberReplicates : submission.attributes.replicates, handleFeatureSelection}} />
                     </div>
                     
 

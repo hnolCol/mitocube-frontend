@@ -25,6 +25,22 @@ export function getAttributeForUserNumericInput({ attributeTag, attributeValueTa
     return createFakeAttributeValue({ attribute: attributesByTag.attributes[attributeTag], numericInput: attributeValueTag.split(":").at(-1) })
 }
 
+export function mapAttributeValueTagsToAttributeValues({ attributeTags = [], attributesByTag = {} }) {
+    console.log(attributeTags)
+    return attributeTags.map(attrValueTag => {
+        console.log(_.has(attributesByTag.attribute_values, attrValueTag))
+        if (_.has(attributesByTag.attribute_values, attrValueTag)) return attributesByTag.attribute_values[attrValueTag]
+        else {
+            let attributeTag = attrValueTag.split(":")[0]
+            console.log(attributeTag, attributesByTag)
+            let attribute = attributesByTag.attributes[attributeTag]
+            
+            return createFakeAttributeValue({attribute,numericInput: attrValueTag.split(":").at(-1)})
+        }
+    })
+}
+
+
 
 export function mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag, joinString = " + " }) {
     let attrValues = undefined
@@ -46,3 +62,5 @@ export function mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTa
     }
     
 }
+
+

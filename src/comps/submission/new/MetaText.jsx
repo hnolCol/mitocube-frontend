@@ -4,6 +4,7 @@ import { Header } from "../../core/base/Header"
 import TextFieldInput from "../../core/input/TextArea"
 import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks"
 import _ from "lodash"
+import Loading from "../../core/base/loading"
 
 MetaText.propTypes = {
     onMetaTextChange: PropTypes.func.isRequired,
@@ -12,15 +13,15 @@ MetaText.propTypes = {
 }
 
 
-function MetaText({authenticationStatus, onMetaTextChange, metatextValues, index = "3"}){
-    const {data : metatext, isLoading : metatextIsLoading} = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime : 1200000})
+function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0}){
+    const {data : metatext, isLoading : metatextIsLoading} = useGetSubmissionMetatext()
+    
     return (
-
-        <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-            <Header text={`${index}. Meta Text`} />
-            {metatextIsLoading ? <p>....</p> : null}
+        <div>
+            {metatextIsLoading ? <Loading /> : null}
             {_.isObject(metatext) ? metatext.titles.map((metatextTitle, index) => {
-                    const metatextTag = metatext.tags[metatextTitle]
+                const metatextTag = metatext.tags[metatextTitle]
+                if (_.has(metatext,"allowed_for_state") && _.has(metatext.allowed_for_state,metatextTag) && metatext.allowed_for_state[metatextTag] !== allowTextForState) return null 
                     return<TextFieldInput
                         key = {`${ metatextTag}-${index}`}
                         value={_.isString(metatextValues[ metatextTag])?metatextValues[metatextTag]:""}

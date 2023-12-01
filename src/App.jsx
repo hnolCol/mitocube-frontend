@@ -83,13 +83,12 @@ function App() {
   const basePathName = location.pathname.split("/")[1]
   
   useEffect(() => {
-    console.log(location)
     //check for token in local storage and validate if present
     const { tokenFound, tokenString } = checkForTokenInLocalStorage()
     if (tokenFound) {
       setTokenFromStorage({ token: tokenString, locationPathName: location.pathname })
     }
-    setTokenFromStorage({ token: undefined, locationPathName: location.pathname })
+    setTokenFromStorage(prevValues => { return { ...prevValues, locationPathName: location.pathname }})
   }, [])
 
 
@@ -108,9 +107,11 @@ function App() {
           firstname: isTokenValid.firstname,
           lastname: isTokenValid.lastname
         })
-
-        axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
-        redirect(tokenFromStorage.locationPathName)
+      axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
+      if (tokenFromStorage.locationPathName === "/") {
+        redirect("/index")
+      }
+      else { redirect(tokenFromStorage.locationPathName) }
       }
   }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidIsError])
 

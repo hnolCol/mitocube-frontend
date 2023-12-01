@@ -19,6 +19,7 @@ import TextInput from "../../core/input/Text"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { AttributeSlectionDialog } from "./dialogs/AttributeSelectionDialog"
 import { useOutletContext } from "react-router"
+import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
 
 
 // SubmissionView.propTypes = {
@@ -61,6 +62,14 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         isLoading: false,
         success: false,
         submitted : false
+    })
+
+
+
+    const [samplesAttributesDialog, setSamplesAttributesDialog] = useState({
+        isOpen: false, 
+        submission: {},
+        onClose : undefined
     })
     // const [groupingRenameDetails, setGroupingRenameDetails] = useState(initRenameGrouping)
     // const [experimentalDetails, setExperimentalDetails] = useState(initExperimental)
@@ -284,12 +293,12 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     return (
         <div className="no-scroll">
             <AttributeSlectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog}} {...attributeSelectionDialog} onSubmit={handleSubmissionDatasetAttributeUpdate}/>
-            
+            {_.isArray(submissions) ? <EditSamplesAttributeDialog {...samplesAttributesDialog} onClose={() => setSamplesAttributesDialog(prevValues => {return {...prevValues,isOpen : false}})}/> : null}
             
             {isLoading || isFetching || userIsFetching || userIsLoading?
                 <Loading /> : isError ?
                     <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") && _.isArray(submissions) ? 
-                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, submissionsQuery, setSubmissionQuery}} /> : null}
+                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, submissionsQuery, setSubmissionQuery, setSamplesAttributesDialog}} /> : null}
             {/* <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
             <SubmissionOverviewDialog
                 {...subissionOverviewDialog}

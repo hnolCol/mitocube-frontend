@@ -98,13 +98,14 @@ export function AttributeFilterButton({ attributeValue, submissionKey, setSubmis
 }
 
 
-export function StateIndicator({ state, authenticationStatus }) {
+export function StateIndicator({ state, padding = "little" }) {
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     if (submissionStatesLoading) return null 
+    if (!_.has(submissionStates.states_inv,state)) return null 
     const stateName = submissionStates.states_inv[state]
     const stateColor = submissionStates.colors_inv[state]
 
-    return <div className="flex"><div className="flex flex-column center-items div--round padding--little" style={{
+    return <div className="flex"><div className={`flex flex-column center-items div--round padding--${padding}`}style={{
         backgroundColor: stateColor,
         fontSize : "1.1rem",
         color: isHexColorLight(stateColor) ? "black" : "white"
@@ -149,18 +150,21 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
             filteredAttributeTags: new Set()
         }
         else {
-    
+            //first check attributes match the query
             let attributeTagsMatchingFilterString = filterArrayBySearchString({
                 array: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter).map(attributeTag => attribtesByTag[attributeTag]),
                 searchColumns: ["tag", "name"], searchString: attributeSearchQuery
             })
-           // console.log(filterArrayBySearchString({ array: [...uniqueAtributesInSubmissions[attributeTags[0]].values].map(attrValueTag => attribteValuesByTag[attrValueTag]), searchString : query, searchColumns : ["tag", "name"]}))
-            let filteredAttributeValuesByTag = Object.fromEntries(attributeTags.map(attrTag =>
-                [attrTag, filterArrayBySearchString({
-                    array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => attribteValuesByTag[attrValueTag]),
+            //then find the attribute Values that match the query.
+            // optiona TO DO: one could add the tag and name of the attribute to the values to iteratte only through a single array
+            let filteredAttributeValuesByTag = Object.fromEntries(attributeTags.map(attrTag => {
+                return [attrTag, filterArrayBySearchString({
+                    array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => _.has(attribteValuesByTag,attrValueTag)?attribteValuesByTag[attrValueTag]:{tag:attrValueTag}),
                     searchString: attributeSearchQuery,
-                    searchColumns: ["tag", "name","details"]
-                })]).filter(attrValues => attrValues[1].length > 0))
+                    searchColumns: ["tag", "name", "details"]
+                })]
+            }).filter(attrValues => attrValues[1].length > 0))
+            
             return {
                 filteredAtributes: _.uniq(_.concat(
                     attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter && _.has(filteredAttributeValuesByTag, attributeTag)),
@@ -196,21 +200,6 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
             </div>
         
     )
-}
-
-
-export function UserFilterSelection({ userLabelsInSubmission, usersByLabel, submissionFilter, setSubmissionFilter }) {
-    const { values, counts } = userLabelsInSubmission
-    return (<div>
-        <h3>Users</h3>
-        <div className="flex flex--wrap">
-        {[...values].map(userLabel => {
-            if (_.has(usersByLabel, userLabel)) {
-                return <UserIconWithTooltip {...{userLabel, usersByLabel, selected : true}} /> // text = {userData.firstname[0]+userData.lastname[0]} />
-
-            }})}
-        </div>
-    </div>)
 }
 
 
@@ -273,7 +262,7 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 
 }
 
-export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery}) {
+export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setSamplesAttributesDialog}) {
 
     
     
@@ -328,7 +317,8 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                                     submission,
                                     setAttributeSelectionDialog,
                                     attributesByTag : attributesByTag.attributes,
-                                    attributeValuesByTag: attributesByTag.attribute_values
+                                    attributeValuesByTag: attributesByTag.attribute_values,
+                                    setSamplesAttributesDialog
                                     
                                 }} borderColor={states.colors_inv[state]} />
                             )

@@ -1,56 +1,14 @@
 
 import _ from "lodash"
-import { Combobox } from "../../core/input/Combobox"
-import { Header } from "../../core/base/Header"
-import { Select } from "@blueprintjs/select"
-import { TagWithTooltip } from "../../core/base/tags/TagWithTooltip"
-import { Button, Collapse, InputGroup, Menu, MenuItem } from "@blueprintjs/core"
-import { filterArrayBySearchString } from "../../../services/arrays/filter"
-import SimpleTag from "../../core/base/tags/SimpleTag"
+import { Button } from "@blueprintjs/core"
 import NumericValueInput from "../../core/input/Numeric"
 import { useMemo, useState } from "react"
-import DeleteButton from "../../core/base/buttons/DeleteButton"
-import TextInput from "../../core/input/Text"
 import { createDataTree } from "../../../services/arrays/nest"
 import { objectHasKey } from "../../../services/objects/checks"
 import { useGetAnnotationsByFeatureID } from "../../../hooks/queries/feature.hooks"
 import { splitStringByNCharacters } from "../../../services/format/string"
 import {motion} from "framer-motion"
-import AttributeInput from "./attribute/select/MultiSelectAttribute"
 import SingleAttributeInput from "./attribute/select/SelectAttribute"
-
-
-// export function AttributeSelection({ label, attribute, attributeValues, onSelection, selectedAttributeValue = undefined, entryIdx }) {
-//     console.log(attributeValues,attribute)
-//     const renderItem = (item, { handleClick, modifiers, index, query }) => {
-//         const itemSelected = _.isObject(selectedAttributeValue)?item.tag === selectedAttributeValue.tag:false
-//         return <MenuItem
-//             icon={itemSelected?"tick":"blank"}
-//             key={item.tag}
-//             onClick={handleClick}
-//             text={item.name}
-//             active={modifiers.active}
-//             disabled={modifiers.disabled}
-//             multiline={true}
-//             labelElement={<div style={{ width: "14rem", fontSize: "0.7rem", textAlign:"left"}}>{item.details}</div>} />
-//     }
-
-//     const filterItems = (query, items) => {
-//         if (query.length < 2) return items 
-//         const filteredItems = filterArrayBySearchString({ array:  items, searchString: query, searchColumns : ["tag","name","details"]})
-//         return filteredItems
-//     }
-//     return <Select
-//         fill={false}
-//         items={attributeValues}
-//         itemListPredicate={filterItems}
-//         itemRenderer={renderItem}
-//         onItemSelect={attributeValue => onSelection(label, attribute.tag, attributeValue, entryIdx)}
-//         resetOnSelect={true}
-//         >
-//         <SimpleTag text={_.isObject(selectedAttributeValue)?selectedAttributeValue.name:attribute.name}/>
-//     </Select>
-// }
 
 
 
@@ -269,14 +227,22 @@ export function PositionSelection({authenticationStatus, featureID, onSelection,
 }
 
 
-
-function GenotypeGenerator({ index = 6, attributes, attributeValuesByID, onSelection, addGenotype, genotypes, addGenotypeEntry, removeGenotypeEntry, authenticationStatus, handleFeatureSelection,handlePositionSelection }) {
-    
+function GenotypeGenerator({ index = 6,
+    attributes,
+    attributeValuesByID,
+    onSelection,
+    addGenotype,
+    genotypes,
+    addGenotypeEntry,
+    removeGenotypeEntry,
+    authenticationStatus,
+    handleFeatureSelection,
+    handlePositionSelection }) {    
     const nestedAttributes = createDataTree({ array: attributes, link: "parent_id" })
     return (
         
         <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-            <Header text={`${index}. Genotypes`} />
+            <h3>{`${index}. Genotypes`}</h3>
             <p>Please specifiy your genotypes. This section requires you to provide an organism before to select specific target protein. You are able to specify amino acid mutations and truncations as well as tags. If you are just using wild types, for example knock-down of a gene expression in just wild type cells does not require the definition of a genotype. </p>
             <p>Once you have defined your genotypes, you will have to assign them to each sample below in the sample attributes. Once you defined your genotypes, they are available from the drop-down menu for future submission.</p>
             {Object.keys(genotypes).map(genotypeLabel => {
