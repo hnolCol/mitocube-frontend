@@ -26,18 +26,15 @@ export function getAttributeForUserNumericInput({ attributeTag, attributeValueTa
 }
 
 export function mapAttributeValueTagsToAttributeValues({ attributeTags = [], attributesByTag = {} }) {
-    console.log(attributeTags)
     return attributeTags.map(attrValueTag => {
-        console.log(_.has(attributesByTag.attribute_values, attrValueTag))
         if (_.has(attributesByTag.attribute_values, attrValueTag)) return attributesByTag.attribute_values[attrValueTag]
         else {
-            let attributeTag = attrValueTag.split(":")[0]
-            console.log(attributeTag, attributesByTag)
-            let attribute = attributesByTag.attributes[attributeTag]
-            
-            return createFakeAttributeValue({attribute,numericInput: attrValueTag.split(":").at(-1)})
+            let attributeTagSplit = attrValueTag.split(":")
+            let attribute = attributesByTag.attributes[attributeTagSplit[0]]
+            if (!_.isObject(attribute)) return 
+            return createFakeAttributeValue({attribute, numericInput: attributeTagSplit[1]})
         }
-    })
+    }).filter(v => _.isObject(v))
 }
 
 

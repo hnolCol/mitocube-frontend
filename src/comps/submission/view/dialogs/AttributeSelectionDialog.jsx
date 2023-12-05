@@ -36,6 +36,7 @@ export function AttributeSlectionDialog({
     const [selectedAttributes, setSelectedAttributes] = useState({})
     const [comment, setComment] = useState("")
     const [metatext, setMetatext] = useState({})
+
     useEffect(() => {
         const matchedPrevSelectedAttributes = mapAttributeTagsToAttributes({ tagAttributes: prevSelectedAttributes, attributesByTag })
         setSelectedAttributes(matchedPrevSelectedAttributes)

@@ -7,6 +7,7 @@ import { useState } from "react"
 import { useAnimation } from "framer-motion"
 import { isHexColorLight } from "../../../../services/colors"
 import {motion} from "framer-motion"
+import { getUserFullName } from "../../../../services/format/user"
 
 
 
@@ -137,7 +138,7 @@ export function HierarchicalUserView({ users, userLabelsInSubmission, submission
                                 submissionFilter={submissionFilter}
                                 setSubmissionFilter={setSubmissionFilter}
                                 numberSubmissionWithTag={userLabelsInSubmission.values.has(user.label)?userLabelsInSubmission.counts[user.label]:0}
-                                attributeValue={{ name: `${user.firstname} ${user.lastname}`, tag: user.label }} />)}
+                                attributeValue={{ name: getUserFullName(user), tag: user.label }} />)}
                         </div>
                     })}
                 </div>

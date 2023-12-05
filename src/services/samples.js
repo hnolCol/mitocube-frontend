@@ -5,8 +5,9 @@ export function constructSampleNames(submission_label, sampleNumber, sampleAttri
     const zeroPadding = sampleNumber.toString().length
     
     return _.range(sampleNumber).map(idx => {
+        //create sample attributes
         let sampleNumber = (idx + 1).toString().padStart(zeroPadding > 1 ? zeroPadding : 2, '0')
-        let sampleAttributeString = _.join(_.keys(sampleAttributes[idx]).map(attributeTag => _.join(sampleAttributes[idx][attributeTag].map(attrValue => attrValue.name),"-")),"_")
+        let sampleAttributeString = _.join(_.keys(sampleAttributes[idx]).map(attributeTag => _.join(sampleAttributes[idx][attributeTag].map(attrValue => attrValue.name),"-")).filter(v => v!==""),"_")
         return `${date}_${submission_label}_${sampleNumber}_${sampleAttributeString}`
     }
     )

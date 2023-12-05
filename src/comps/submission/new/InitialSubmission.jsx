@@ -1,15 +1,12 @@
-import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission, useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks"
-import PropTypes, { number } from "prop-types"
-import { Header } from "../../core/base/Header"
+import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
+import PropTypes from "prop-types"
 import APIError from "../../core/error/APIerror"
 import AttributeInput from "./attribute/select/MultiSelectAttribute"
 import { useMemo, useState, useEffect } from "react"
 import { getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../services/arrays/groupby"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { objectHasKey } from "../../../services/objects/checks"
-import SamplesAttributes from "./attribute/select/SampleAttributes"
 import _ from "lodash"
-import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../services/arrays/filter"
 import NumericValueInput from "../../core/input/Numeric"
 import { getCurrentDate } from "../../../services/date/format"
 import UserSelection from "../../core/input/Users"
@@ -17,7 +14,7 @@ import DatasetAttributeSelect from "./attribute/select/DatasetAttributes"
 import DatasetAttributeHierarchy from "./attribute/view/DatasetAttributesHierarchy"
 import TextInput from "../../core/input/Text"
 
-import { Alert, Button } from "@blueprintjs/core"
+import { Button } from "@blueprintjs/core"
 
 import MetaText from "./MetaText"
 import { loadSavedSubmissionFromLocalStorage, removeSubmissionFromLocalStorage, saveSubmissionInLocalStorage } from "../../../services/localstorage"
@@ -34,6 +31,7 @@ import { constructSampleNames } from "../../../services/samples"
 
 const randomInitLinkID = getRandomID({n : 5})
 const initSubmissionState = {
+            label : "",
             replicates : [],
             sampleNames: [],
             collaborators : [],
@@ -111,9 +109,6 @@ function InitialSubmission({
         const sampleNumber = parseInt(submission.attributes.sampleNumber)
         if (!_.isNumber(sampleNumber)) return 
         if (!_.isObject(submissionID) || !_.isString(submissionID.id)) return
-
-        
-
         //adjust attribute table 
         let attributeTable = submission.attributeTable
         if (sampleNumber > attributeTable.length) {
@@ -127,7 +122,7 @@ function InitialSubmission({
         }
         const sampleNames = constructSampleNames(submissionID.id, sampleNumber, attributeTable)
 
-        setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable, rerenderTableDependency : Math.random()}})
+        setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable, label : submissionID.id, rerenderTableDependency : [Math.random()]}})
 
     }, [submission.attributes.sampleNumber, submissionID])
     
@@ -226,7 +221,7 @@ function InitialSubmission({
             submissionDetails["title"] = flexAttributes.title 
             submissionDetails["replicates"] = validReplicates
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
-            postSubmission({ tokenString: authenticationStatus.token, submission: submissionDetails },
+            postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
                         isOpen: true,
@@ -597,7 +592,6 @@ function InitialSubmission({
                             attributeValuesByID={attributeValuesByAtrributeID}
                             {...{ handleDatasetAttributeSelection, handleFeatureSelection}} />
                         <DatasetAttributeHierarchy
-                            submissionID={submissionID.id}
                             selectedAttributes={submission.datasetAttributes}
                             selectedDasetAttributeValues={submission.datasetAttributeValues}
                             onDatasetAttributeRemove={handleDatasetAttributeSelection} />
@@ -631,7 +625,13 @@ function InitialSubmission({
                         callbackKey={"sampleNumber"}
                         value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     
-                        <SampleAttributeTableWrapper {...{submission, updateSubmission : setSubmission, attributes : attributesAllowedForDataset, numberReplicates : submission.attributes.replicates, handleFeatureSelection}} />
+                            <SampleAttributeTableWrapper {...{
+                                submission,
+                                updateSubmission: setSubmission,
+                                attributes: attributesAllowedForDataset,
+                                numberReplicates: submission.attributes.replicates,
+                                handleFeatureSelection
+                            }} />
                     </div>
                     
 

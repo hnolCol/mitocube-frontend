@@ -17,8 +17,6 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     const { data: attributesByTag, isSuccess, isLoading, isFetching } = useGetSubmissionAttributesByTag()
 
-    
-
     const { attributeValuesByAtrributeID, attributesAllowedForDataset } = useMemo((
         ) => {
         if (!isSuccess) return []
@@ -130,14 +128,14 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             
             if (patternIndex === 0) {
 
-                let repsByPattern = _.range(submission.attributes.replicates).map(rep => rep + 1)
+                let repsByPattern = _.range(numberReplicates).map(rep => rep + 1)
                 reps = reps.map((value, idx) => repsByPattern[idx % repsByPattern.length])   
 
             }
 
             else if (patternIndex === 1) {
-                const repetitions = _.toInteger(numberSamples / submission.attributes.replicates+0.5)
-                reps = _.flatten(_.range(submission.attributes.replicates).map(repIdx => Array(repetitions).fill(repIdx+1)))
+                const repetitions = _.toInteger(numberSamples / numberReplicates+0.5)
+                reps = _.flatten(_.range(numberReplicates).map(repIdx => Array(repetitions).fill(repIdx+1)))
             }
         }
 
@@ -217,11 +215,11 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
 
     const removeSampleAttrByIndex = (sampleAttrIdx) => {
         //remove grouping by groupingIdx
-        let groupingInfos = submission.samplesAttributes
+        let sampleAttrs = submission.samplesAttributes
         //remove attribute from attribibuteTable
-        let groupingAttribute = groupingInfos[sampleAttrIdx].attribute
-        if (_.has(groupingAttribute, "tag")) {
-            let groupingAttributeTag = groupingAttribute.tag 
+        let samplAttribute = sampleAttrs[sampleAttrIdx].attribute
+        if (_.has(samplAttribute, "tag")) {
+            let groupingAttributeTag = samplAttribute.tag 
             const updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: groupingAttributeTag })
             updateSubmission(prevValues => {
                 return {
@@ -244,9 +242,9 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             }
         })
     }
-
+    
     const resetAlert = () => {
-
+        // close the alert 
         setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
     }
 
@@ -255,7 +253,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
 
-        <SamplesAttributes
+            <SamplesAttributes
             sampleNames={submission.sampleNames}
             attributeTable={submission.attributeTable}
             rerenderTableDependency={submission.rerenderTableDependency}

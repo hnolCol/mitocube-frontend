@@ -20,10 +20,9 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
         }
         onDatasetAttributeRemove(attribute,attributeValue)
     }
-
     return (
         <div style={{marginLeft:`${level+0.5}rem`, marginBottom : level===0?"0.5rem":"0rem"}}>
-            <Header text= {attribute.name} hexColor={"#000000"} fontSize="0.85rem"/>
+            <h5>{attribute.name}</h5>
             <div className="flex" style={{ paddingBottom: "0.2rem" }}>
                 
                 {attributeValuesByTag[attribute.tag].map(attributeValue => <Tag
@@ -39,7 +38,7 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                     icon="issue" small={false} intent="danger"/> : null}
                 
                 </div>
-            {attribute.childNodes.length > 0 ? attribute.childNodes.map(child =>
+            {_.has(attribute,"childNodes") && attribute.childNodes.length > 0 ? attribute.childNodes.map(child =>
                 <DisplayDatasetAttribute key={`${child.id}-${child.attribute_id}`} attribute={child} {...{ attributeValuesByTag, onDatasetAttributeRemove}} level={level + 1} />) : null}
         {level===0?<hr/>:null}
         </div>
@@ -56,7 +55,7 @@ DatasetAttributeHierarchy.propTpyes = {
 
 function DatasetAttributeHierarchy({selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove}) {
     //show dataet attributes
-    const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes, link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
+    const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes.filter(attr => selectedDasetAttributeValues[attr.tag].length > 0), link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
     return (
         <div className="padding--little div--round bg--lightgrey intent-margin-top--little" style={{ maxHeight: "600px", overflow: "scroll" }}>
             

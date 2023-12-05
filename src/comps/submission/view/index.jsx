@@ -20,6 +20,7 @@ import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { AttributeSlectionDialog } from "./dialogs/AttributeSelectionDialog"
 import { useOutletContext } from "react-router"
 import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
+import { EditDatasetAttributeDialog } from "./dialogs/DatasetAttributesDialog"
 
 
 // SubmissionView.propTypes = {
@@ -69,8 +70,11 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     const [samplesAttributesDialog, setSamplesAttributesDialog] = useState({
         isOpen: false, 
         submission: {},
-        onClose : undefined
+        onClose: undefined,
+        samplesAttributes : true // true samples, false for dataset
     })
+
+
     // const [groupingRenameDetails, setGroupingRenameDetails] = useState(initRenameGrouping)
     // const [experimentalDetails, setExperimentalDetails] = useState(initExperimental)
     // const [sampleListDialog, setSampleListDialog] = useState({ isOpen: false })
@@ -293,8 +297,8 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     return (
         <div className="no-scroll">
             <AttributeSlectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog}} {...attributeSelectionDialog} onSubmit={handleSubmissionDatasetAttributeUpdate}/>
-            {_.isArray(submissions) ? <EditSamplesAttributeDialog {...samplesAttributesDialog} onClose={() => setSamplesAttributesDialog(prevValues => {return {...prevValues,isOpen : false}})}/> : null}
-            
+            {_.isArray(submissions) ? <EditSamplesAttributeDialog {...samplesAttributesDialog} isOpen={samplesAttributesDialog.isOpen && samplesAttributesDialog.samplesAttributes} onClose={() => setSamplesAttributesDialog(prevValues => {return {...prevValues,isOpen : false}})}/> : null}
+            {_.isArray(submissions) ? <EditDatasetAttributeDialog {...samplesAttributesDialog} onSubmit={handleSubmissionDatasetAttributeUpdate} isOpen={samplesAttributesDialog.isOpen && !samplesAttributesDialog.samplesAttributes} onClose={() => setSamplesAttributesDialog(prevValues => {return {...prevValues,isOpen : false}})}/> : null}
             {isLoading || isFetching || userIsFetching || userIsLoading?
                 <Loading /> : isError ?
                     <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") && _.isArray(submissions) ? 

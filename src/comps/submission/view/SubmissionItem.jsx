@@ -88,10 +88,11 @@ export function SubmissionItem({
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Edit">
-                    <MenuItem text ="Samples Attributes" onClick={() => {setSamplesAttributesDialog(prevValues => {return {...prevValues,isOpen : true, submission}})}}/>
-                    <MenuItem text="Dataset Attributes" />
+                    <MenuItem text="Samples Attributes"
+                        onClick={() => { setSamplesAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: true } }) }} />
+                    <MenuItem text="Dataset Attributes"
+                        onClick={() => { setSamplesAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) }} />
                 </MenuItem>
-                
                 
         </Menu>}>
         <div
