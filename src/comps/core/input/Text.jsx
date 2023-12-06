@@ -1,4 +1,4 @@
-import { InputGroup } from "@blueprintjs/core"
+import { FormGroup, InputGroup } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import _ from "lodash"
 
@@ -12,7 +12,7 @@ TextInput.propTypes = {
     style : PropTypes.object
 }
 
-function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, optional, placeholder = "Enter value ..", disabled =  false, style = {}}) {
+function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, optional, placeholder = "Enter value ..", disabled =  false, style = {},  isRequired = true}) {
     //Textinput when props are derived from backend.
     const checkForMinLength = minLength > 0 
 
@@ -30,12 +30,20 @@ function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, option
     
     return(
         <div>
-            <div className="font-size--small">
+            
+            <FormGroup
+            label={hint}
+            labelInfo={isRequired ? "(required)" : "(optional)"}
+            inline={false}
+            helperText={""}>
+                <InputGroup value={value} onValueChange={handleValueChange} {...{ placeholder, disabled }} {...style} />
+            </FormGroup>
+            {/* <div className="font-size--small">
                 {optional?"Optional : ": ""}{`${hint} ${checkForMinLength?`(min. ${minLength} characters)`:""}`}
             </div>
             <div>
-                <InputGroup value={value} onValueChange={handleValueChange} {...{ placeholder, disabled }} {...style} />
-            </div>
+                
+            </div> */}
             
         </div>
     )

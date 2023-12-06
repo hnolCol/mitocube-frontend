@@ -8,7 +8,7 @@ import AxisWithBackground from "../../axis";
 import { getColorPalette } from "../../../colors/colorPalette";
 import { useTooltip, useTooltipInPortal, TooltipWithBounds } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
-import GroupingTable from "../../../base/groupings/table";
+import GroupingTable from "../../../base/attribute_groupings/Table";
 import MetricTable from "../../../base/metrictable";
 import SubplotName from "../../annotations/SubplotName";
 

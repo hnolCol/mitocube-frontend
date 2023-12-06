@@ -1,0 +1,26 @@
+
+.well-border {
+    width: 3.5rem;
+    height : 3.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    margin: 0.1rem;
+}
+.well {
+    width : 3rem;
+    height : 3rem;
+    border-radius: 50%;
+    background-color: #fafafa;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.well:hover {
+    background-color: #efefef;
+}

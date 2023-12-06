@@ -1,24 +1,9 @@
-import CategoricalScatter from "../../../core/charts/categorical/scatter"
-import CollapsableAxes from "../../../core/charts/collapsableCharts"
-import _ from "lodash"
-import { getColorPalette } from "../../../core/colors/colorPalette"
-import { useMemo, useState } from "react"
-import { getDomainWithBoundaries } from "../../../../services/arrays/boundaries"
-import { SVG, SVGHeader } from "../../../core/charts/SVGHeader"
-import { Text } from "@visx/text"
-import CategoricalBarplot from "../../../core/charts/categorical/barplot"
-import { Combobox } from "../../../core/input/Combobox"
-import { InputGroup } from "@blueprintjs/core"
-import { ParentSize } from "@visx/responsive"
-import LineChart from "../../../core/charts/linechart"
-import { ChartLegend } from "../../../core/charts/legend"
-import { LegendItem, LegendLabel, LegendOrdinal, LegendSize } from "@visx/legend"
-import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 
-import BoxplotWithValue from "../../../core/charts/boxplot/minimal"
+import _ from "lodash"
+
 import ResultChart from "../resultCard/chart"
 import { useGetDataByFeatureID } from "../../../../hooks/queries/feature.hooks"
-import { useLocation, useMatch, useOutletContext } from "react-router"
+import { useOutletContext } from "react-router"
 import APIError from "../../../core/error/APIerror"
 
 

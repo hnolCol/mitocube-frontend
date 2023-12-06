@@ -23,8 +23,6 @@ import DatasetHeader from "./comps/dataset";
 import DatasetOverview from "./comps/dataset/overview";
 import PerformanceHeader from "./comps/performance";
 import ProteinOverview from "./comps/protein/charts/overview";
-import { Link } from "react-router-dom";
-import { getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "./services/arrays/groupby";
 import Welcome from "./comps/welcome";
 import Timeline from "./comps/dataset/timeline";
 import Register from "./comps/register";
@@ -46,7 +44,13 @@ import AdminUsers from "./comps/admin/Users";
 import AdminAttributes from "./comps/admin/Attributes";
 import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
+import Loading from "./comps/core/base/loading";
+import DatasetSelection from "./comps/dataset/selection";
+import axios from "axios";
 
+//axios defaults
+
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 const initAuthenticationStatus = {
   isAuth: false,
@@ -64,44 +68,62 @@ const initApplicationInfo = {
 }
 
 function App() {
-  const [tokenFromStorage, setTokenFromStorage] = useState(undefined)
+  const [tokenFromStorage, setTokenFromStorage] = useState({ token: undefined, locationPathName: "/" })
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
+  //const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
+  const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : ""})
+
+  const [submissionFilter, setSubmissionFilter] = useState({})
   // check if token is valid, if a token is found in storage.
-  const { data: isTokenValid, isSuccess : tokenValidSuccess , isError : tokenValidError, error, } = useTokenValid({tokenString : tokenFromStorage}, {enabled : _.isString(tokenFromStorage) && !authenticationStatus.isAuth})
+  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidIsError, error : tokenValidError, } = useTokenValid({tokenString : tokenFromStorage.token}, {enabled : _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth})
 
   const location = useLocation()
   const redirect = useNavigate()
   const basePathName = location.pathname.split("/")[1]
   
   useEffect(() => {
+    console.log(location)
     //check for token in local storage and validate if present
     const { tokenFound, tokenString } = checkForTokenInLocalStorage()
     if (tokenFound) {
-      setTokenFromStorage(tokenString)
+      setTokenFromStorage({ token: tokenString, locationPathName: location.pathname })
     }
+    setTokenFromStorage({ token: undefined, locationPathName: location.pathname })
   }, [])
 
 
   useEffect(() => {
     // use effect if token string was found in storage. 
-    if (tokenValidError) {
-      console.log("log out due to error")
+    if (tokenValidIsError && tokenValidError.response.status === 401) {
       logout()
     }
-    if (_.isObject(isTokenValid) && isTokenValid.success) {
-      setAuthenticationStatus({ isAuth: true, token: tokenFromStorage, role: isTokenValid.role, verified: isTokenValid.verified })
-      redirect("/index")
-    }
-  }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidError])
+    else if (_.isObject(isTokenValid) && isTokenValid.success) {
+        setAuthenticationStatus({
+          isAuth: true,
+          token: tokenFromStorage.token,
+          role: isTokenValid.role,
+          verified: isTokenValid.verified,
+          label: isTokenValid.label,
+          firstname: isTokenValid.firstname,
+          lastname: isTokenValid.lastname
+        })
+
+        axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
+        redirect(tokenFromStorage.locationPathName)
+      }
+  }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidIsError])
 
   const logout = () => {
     //logs the user out, deletes the token from local storage. 
     removeTokenFromLocalStorage()
     setAuthenticationStatus(initAuthenticationStatus)
+    setTokenFromStorage({ token: undefined, locationPathName: "/" })
+    axios.defaults.headers.common['Authorization'] = `Bearer`;
     redirect("/")
   }
-  
+
+  //console.log(tokenValidIsFetching || tokenValidIsLoading)
   return (
     <div className='dashboard__grid no-scroll'>
 
@@ -116,7 +138,7 @@ function App() {
       <div className='dashboard__grid__fill-center'>
       <Routes>
         <Route path="/" element={
-            <Login {...{ setAuthenticationStatus}}/>
+            <Login {...{ setAuthenticationStatus, redirectedFrom : tokenFromStorage.locationPathName}}/>
         } />
 
 
@@ -127,51 +149,52 @@ function App() {
 
       {/* Redirected after successful login */}
       <Route path="/index" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading} >
               <Welcome {...{authenticationStatus,applicationInfo, setApplicationInfo}}/>
           </ProtectedRoute>} />
 
       <Route path="/protein" element={
-              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
                 <ProteinHeader/>
             </ProtectedRoute>}>
-            <Route path="/protein/selection" element={<ProteinSelection />} />
+            <Route path="/protein/selection" element={<ProteinSelection {...{authenticationStatus}}/>} />
             <Route path="/protein/:ID" element={<ProteinOverview {...{authenticationStatus}}/>} />
         </Route>
 
           <Route path="/ptm" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <PTM />
             </ProtectedRoute>} />
 
         <Route path="/dataset/:dataID" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
-              <DatasetHeader/>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+              <DatasetHeader {...{authenticationStatus, logout}}/>
             </ProtectedRoute>}>
-            <Route path="/dataset/:dataID" element={<DatasetOverview />} />
-            <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot />} />
-            <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap />} />
-            <Route path="/dataset/:dataID/pca" element={<DatasetPCA />} />
-            <Route path="/dataset/:dataID/qc" element={<DatasetQC />} />
+            <Route path="/dataset/:dataID" element={<DatasetOverview {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/pca" element={<DatasetPCA {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/qc" element={<DatasetQC {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/mitomap" element={<h3>MitoMap</h3>} />
-            <Route path="/dataset/:dataID/timeline" element={<Timeline />} />
+            <Route path="/dataset/:dataID/timeline" element={<Timeline {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
           </Route>
 
       <Route path="/dataset" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
-              <div>
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+              <DatasetSelection {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>
+              {/* <div>
                 <h3>Datasets Selection</h3>
                 <p>Pleaase select a dataset to explore. Tag based search supported.</p>
                 <p>Previous selected datasets ...</p>
                 <Link to="/dataset/8dlTWpi5MMhF">Dataset1</Link>
                 <ScatterPlot width={400} height={300} data={[{"x":2,"y":3},{"x":4,"y":5}]} xaxisName={"x"} yaxisName={"y"} />
-              </div>
+              </div> */}
               
           </ProtectedRoute>} />
         {/* Performance Routes */}
       <Route path="/performance" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <PerformanceHeader />
             </ProtectedRoute>}>
             
@@ -188,18 +211,17 @@ function App() {
         
           {/* Submission Routes */}
       <Route path="/submission" element={
-            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth}>
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <SubmissionHeader/>
             </ProtectedRoute>
           }>
-            <Route index element={<NewSubmission {...{authenticationStatus}}/>} />
-            <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus}}/>}/>
-            <Route path="/submission/view" element={
-              <SubmissionView />} />
-            <Route path="/submission/help" element={
-              <SubmissionHelp authStatus={authenticationStatus} />} />
+            <Route index element={<NewSubmission {...{authenticationStatus, logout}}/>} />
+            <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
+            <Route path="/submission/view" element={<SubmissionView {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>}/>
+            <Route path="/submission/a" element={<h3>Submission Overview</h3>}/>
+            <Route path="/submission/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route path="/submission/statistics" element={
-              <SubmissionStatistics/>} />
+              <SubmissionStatistics {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>} />
       </Route>
       
       <Route path="/admin" element={

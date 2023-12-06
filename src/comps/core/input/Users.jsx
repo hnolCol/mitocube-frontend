@@ -1,24 +1,20 @@
 import { MultiSelect, Select } from "@blueprintjs/select"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import _ from "lodash"
-import { Button, Menu, MenuItem } from "@blueprintjs/core"
+import { Button, FormGroup, Menu, MenuItem } from "@blueprintjs/core"
 import { useState } from "react"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
+import Loading from "../base/loading"
 
+function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, formGroupProps = {label : "Collaborators"}}) {
 
-
-function UserSelection({ authenticationStatus }) {
-
-    const { isLoading, isFetching, isSuccess, data } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
-    
-    const [selectedUsers, setSelectedUsers] = useState([])
-
+    const { isLoading, isFetching, isSuccess, data : users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
     const renderUser = (item, props) => {
-        
+        const itemText = `${item.firstname} ${item.lastname}`
         return <MenuItem
-            text={`${item.firstname} ${item.lastname}`}
-            key={`${item.firstname}`}
-            label={`${item.institute} - ${item.research_group}`}
+            text={itemText}
+            key={`${item.label}`} //must be unique
+            labelElement={<div className="labelelement-wrap--fixed-width">{`${item.institute} - ${item.research_group} - ${item.email}`}</div>}
             onClick={props.handleClick}
             onFocus={props.handleFocus}
             active={props.modifiers.active}
@@ -29,23 +25,32 @@ function UserSelection({ authenticationStatus }) {
         return item.firstname
     }
 
+    const handleUserSelection = (item) => {
+        const updatedUserSelection = addItemToArrayOrRemoveItIfPresent({ array: selectedUsers, item })
+        onUserSelection(updatedUserSelection)
+    }
+
     return (
         
         <div>{
-            isSuccess && _.isArray(data.users) && data.users.length > 0 ? 
-            <div>
+            isSuccess && _.isArray(users) && users.length > 0 ? 
+                <div className="intent-margin-top--little">
+                    <FormGroup {...formGroupProps}>
                 <MultiSelect
                     itemRenderer={renderUser}
-                    items={data.users}
+                    items={users.filter(user => user.label !== authenticationStatus.label)}
                     tagRenderer={renderSelectedItemAsTag}
-                    onItemSelect={(item) => setSelectedUsers(addItemToArrayOrRemoveItIfPresent({array : selectedUsers, item}))}
+                    onItemSelect={(item) => handleUserSelection(item)}
                     popoverProps={{ matchTargetWidth: true, minimal: true }}
                     tagInputProps={{minimal : true, large : false, round : true}}
                     resetOnSelect={true}
                     fill={true}
-                    selectedItems={selectedUsers}/>
+                        selectedItems={selectedUsers}
+                            onRemove={(item) => handleUserSelection(item)} />
+                    </FormGroup>
             </div>
-                :null }
+                : null}
+            {isLoading || isFetching ? <Loading /> : null}
         </div>
     )
 }

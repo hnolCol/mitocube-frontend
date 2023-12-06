@@ -2,7 +2,9 @@ import { AxisBottom, AxisLeft } from "@visx/axis"
 import { getNumberTicks } from "../../../../services/plotting/ticks"
 import { getAxisStrokeColor } from "../../colors/colorPalette"
 import AxisBackground from "../background"
-
+import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
+import _ from "lodash"
+import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
 
 function AxisWithBackground({
     leftLeft,
@@ -14,14 +16,18 @@ function AxisWithBackground({
     leftLabel,
     leftHideTicks = false,
     bottomHideTicks = false,
+    leftTickLabelsVisible = true,
     moveBottomToLeft = true,
     leftTickLabelProps,
     bottomTickLabelProps,
+    bandwidth,
     chartHeight,
     chartWidth }) {
     
     const leftStart = leftLeft === undefined ? margins.left : leftLeft
-    const topStart = topBottom===undefined?margins.top + chartHeight: topBottom
+    const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
+    const {data : attributesByTag, isLoading, isFetching} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
+    if (isLoading || isFetching) return null 
     return (
         <g>
             <AxisBackground
@@ -32,7 +38,8 @@ function AxisWithBackground({
             <AxisLeft
                 label={leftLabel} //label only first axis
                 labelOffset={25}
-                tickLabelProps={leftTickLabelProps}
+                tickLabelProps={{ fontSize: "0.8rem", ...leftTickLabelProps }}
+                tickFormat={(tickLabel) => leftTickLabelsVisible ? tickLabel : undefined}
                 left={leftStart}
                 scale={leftScale}
                 hideTicks={leftHideTicks}
@@ -41,11 +48,12 @@ function AxisWithBackground({
                 tickLength={3} />
         
             <AxisBottom
-                left={moveBottomToLeft?leftStart:0}
+                left={moveBottomToLeft ? leftStart : 0}
+                tickFormat={(tickLabel) => mapAttributeValueTagsToAttributes({attrValueTag : tickLabel, attrValuesByTag : attributesByTag.attribute_values}).asString }
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}
-                tickLabelProps={bottomTickLabelProps}
+                tickLabelProps={{fontSize : "0.8rem", width : bandwidth, verticalAnchor : "middle",...bottomTickLabelProps }}
                 labelOffset={1}
                 numTicks={getNumberTicks({ space: chartWidth })}
                 scale={bottomScale}

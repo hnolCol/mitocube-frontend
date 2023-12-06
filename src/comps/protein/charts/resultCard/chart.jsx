@@ -2,7 +2,7 @@
 
 import _ from "lodash"
 import { useMemo, useState } from "react"
-import GroupingSelection, { getIcon } from "../../../core/base/groupings/selection"
+import GroupingSelection, { getIcon } from "../../../core/base/attribute_selection/Selection"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
@@ -15,15 +15,20 @@ import { arrayOfObjectsToString } from "../../../../services/arrays/transforms"
 import SelectionDialog from "../../../core/dialogs/Selection"
 import CategoricalLineplot from "../../../core/charts/categorical/lineplot"
 import { downloadSVG } from "../../../../services/downloads/svg"
+import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
+import Loading from "../../../core/base/loading"
 
 
 function ResultChart({
+    authenticationStatus,
     data = [{ "y": 24.2, Genotype: "WT", Treatment : "DMSO", Time : "00min"},{ "y": 24.2, Genotype: "WT", Treatment : "Treat", Time : "15min"},{ "y": 24.5, Genotype: "WT", Treatment : "DMSO", Time : "15min"}, { "y": 24.6, Genotype: "KO", Treatment : "Treat", Time : "15min"}, { "y": 25, Genotype: "KO", Treatment : "DMSO", Time : "00min"},{ "y": 25.4, Genotype: "KO", Treatment : "DMSO", Time : "15min"} ,{ "y": 25.2, Genotype: "KO", Treatment : "DMSO", Time : "15min"}, { "y": 24.7, Genotype: "WT" ,Treatment : "DMSO", Time : "15min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" },{ "y": 24, Genotype: "KO" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.2, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 23.4, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y": 24, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y":24.55, Genotype: "KO",  Treatment : "Treat", Time : "15min"  }, { "y": 24.3, Genotype: "KO", Treatment : "Treat" , Time : "00min"  }, { "y": 23.2, Genotype: "WT" , Treatment : "Treat" , Time : "15min" }, { "y": 23.5, Genotype: "WT", Treatment : "Treat", Time : "00min" }],
     yaxisName = "y",
     groupings = { Genotype: { KO: ["KO_01", "KO_02"], WT: ["WT1", "WT2"] }, Treatment: { DMSO: [], Treat: [] }, Time: { "00min": [], "15min": [] } },
     dataID = "",
     featureID = ""
 }) {
+    const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
+    
     const groupingNames = useMemo(() => Object.keys(groupings), [groupings])
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
@@ -31,7 +36,7 @@ function ResultChart({
     const [selectedGroupings, setSelectedGroupings] = useState({colorName : groupingNames[0], splitName : groupingNames[1], subplotName : groupingNames[2]})
 
     const keyNamesForSplitting = _.uniq(Object.values(selectedGroupings).filter(v => v !== undefined && _.has(data[0], v)))
-    console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
+    //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const numberGroupings = groupingNames.length 
@@ -52,7 +57,7 @@ function ResultChart({
             //calculate average and standard deviation for lineplots and barplots.
             return getAverageAndErrorByGroups(chartData, keyNamesForSplitting, yaxisName)
         }
-    }, [plotType, yaxisName, keyNamesForSplitting, data, normalization])
+    }, [plotType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
 
     const handleDataDownload = (dataType) => {
 
@@ -96,6 +101,7 @@ function ResultChart({
                 minMaxYDomain,
                 svgID,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
+                attributesByTag
                 
             }} />
         }
@@ -109,7 +115,8 @@ function ResultChart({
                 svgID,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting)
+                tooltipNames: _.concat(["N"], keyNamesForSplitting),
+                attributesByTag
             }} />
         }
         else if (plotType === "boxplot") {
@@ -122,10 +129,12 @@ function ResultChart({
                 svgID,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting)
+                tooltipNames: _.concat(["N"], keyNamesForSplitting),
+                attributesByTag
             }} />
         }
     }
+    if (isLoading || isFetching) return <Loading/>
 
     return (
 
@@ -163,7 +172,7 @@ function ResultChart({
             <div>
                 <GroupingSelection
                     groupings={groupings}
-                    keyNames={["colorName", "splitName", "subplotName"].slice(0, numberGroupings)}
+                    keyNames={["colorName", "splitName", "subplotName"]}
                     handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(data[0],value)?value:undefined}})}
                     selectedItems={selectedGroupings} />
             </div>

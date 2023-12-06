@@ -1,18 +1,19 @@
 import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
 import { Header } from "../../core/base/Header";
+import { useEffect } from "react";
 
 
 function DatasetPCA({ }) {
     
-    const { datasetInfo, dataID, isLoading, isFetched, isError, error } = useOutletContext()   
+    const { dataset_label, metadata, setTabHeader } = useOutletContext()   
 
-    if (isError) return <APIError error={error} />
-    if (isLoading) return <div>Loading...</div>
-
+    useEffect(() => {
+        setTabHeader(metadata.title)
+    }, [])
     return (
         <div>
-            <Header text="Principal Component Analysis" />
+            <h2>Principal Component Analysis</h2>
             <p>Please select the desired components showing the projection (left) as well the drivers (right). Selecting a point in the right point displays the feature's profile in the bottom.</p>
 
 

@@ -1,7 +1,7 @@
 
 
 
-import { Button, NumericInput } from "@blueprintjs/core"
+import { Button, FormGroup, NumericInput } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import _ from "lodash"
 import { useState } from "react"
@@ -19,28 +19,28 @@ import { useState } from "react"
 
 NumericValueInput.propTypes = {
     callbackKey: PropTypes.string,
-    value: PropTypes.string.isRequired,
+    value: PropTypes.string,
     onChange: PropTypes.func,
     placeholder : PropTypes.string,
     optional: PropTypes.bool,
     fill : PropTypes.bool
 }
 
-function NumericValueInput({ callbackKey, value, onChange, hint = "", optional = false, placeholder = "Enter value ..", fill = true, buttonPosition = "none", submitButton = false, onButtonClick = undefined, buttonProps = {}, ...rest}) {
-    
-    const [valueString, setValue ] = useState("")
+function NumericValueInput({ callbackKey, value, onChange, minValue = -Infinity, maxValue = Infinity, hint = "", isRequired = false, placeholder = "Enter value ..", fill = true, buttonPosition = "none", submitButton = false, onButtonClick = undefined, buttonProps = {}, ...rest}) {
+    const [valueString, setValue] = useState("")
+    const valueInRange = _.inRange(_.toNumber(valueString), minValue, maxValue + 1)
     return (
-        <div>
+        <FormGroup
             
-            <div className="font-size--small">
-                {optional?"Optional : ": ""}{`${hint}`}
-            </div>
+            label={hint}
+            labelInfo={isRequired ? "(required)" : "(optional)"}
+            inline={false}
+            helperText={""}>
             <div className="flex center-items">
-                <NumericInput
+            <NumericInput
                     value={submitButton ? valueString : value} 
-                    onKeyUp={submitButton && valueString !== ""? (e) => {
+                    onKeyUp={submitButton && valueString !== "" && valueInRange? (e) => {
                         if (e.key === "Enter") {
-                            console.log("enter")
                             onButtonClick(callbackKey,valueString,"text")
                         }
                     }:undefined}
@@ -48,11 +48,16 @@ function NumericValueInput({ callbackKey, value, onChange, hint = "", optional =
                     onValueChange={submitButton ? (value,valueAsString) => setValue(valueAsString) : _.isFunction(onChange) ? (value, valueAsString) => onChange(callbackKey, valueAsString, "text") : undefined}
                     { ...rest}
                 />
-                {submitButton ? <Button onClick={(e) => onButtonClick(callbackKey, valueString, "text")} {...buttonProps} disabled={valueString === ""}/> : null}
-            </div>
-        </div>
-
-        
+            {submitButton ? <div className="flex center-items">
+                <Button
+                    onClick={(e) => onButtonClick(callbackKey, valueString, "text")}
+                    {...buttonProps}
+                    disabled={valueString === "" || !valueInRange}
+                        text="Save" />
+                
+                <div>{!valueInRange && valueString !== ""? `Not in range: [${minValue}-${maxValue}]` : ""}</div>
+            </div> : null}</div>
+            </FormGroup>
     )
 }
 

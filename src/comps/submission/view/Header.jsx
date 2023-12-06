@@ -15,6 +15,9 @@ import { Combobox } from "../../core/input/Combobox"
 import { downloadJSONFile } from "../../../services/downloads/json"
 import { arrayOfObjectsToString } from "../../../services/arrays/transforms"
 import { getColorPalette } from "../../core/colors/colorPalette"
+import { getFormatDateFromTimestamp } from "../../../services/date/format"
+import SimpleTag from "../../core/base/tags/SimpleTag"
+import { TagWithTooltip } from "../../core/base/tags/TagWithTooltip"
 
 function extractMainParamsFromJSON(paramsFile) {
     //
@@ -46,7 +49,7 @@ function SubmissionHeader({ paramsFile,
 
     const [mouseOverDataID, setMouseOverDataID] = useState(false)
 
-    const dateString =  `${paramsFile["Creation Date"].substring(0,4)}-${paramsFile["Creation Date"].substring(4,6)}-${paramsFile["Creation Date"].substring(6)}`
+    const [m, formatedTime] = getFormatDateFromTimestamp(paramsFile.created_on)
     
     const getDaysSinceSumbission = (dateString) => {
 
@@ -81,16 +84,18 @@ function SubmissionHeader({ paramsFile,
         
             <div className="submission__header__upper-container">
                 <div className="margin-top-bottom--little intent-margin-left intent-margin-top--medium">
-                <Header text={paramsFile.Title} fontWeight={500} hexColor={getColorPalette(1)[0]}/>
+                <Header text={paramsFile.title} fontWeight={500} hexColor={getColorPalette(1)[0]}/>
                 </div>
                 {/* <div className="margin-top-bottom--little intent-margin-right font-size--small">
                     {getResearchAimFromParamsFile(paramsFile)}
                 </div> */}
+                <p>{m.fromNow()}</p>
                 <div className="flex flex--wrap margin-top-bottom--little">
-                    {tagNames.map(k => {
+                    {Object.keys(paramsFile.dataset_attributes).map(k => {
                         return (
-                            <div key={k} className="intent-margin-right--little">
-                            <Code>{paramsFile[k]}</Code>
+                            <div key={k} className="intent-margin-right--little">
+                                <TagWithTooltip tagText={paramsFile.dataset_attributes[k]} tooltipText={ k} />
+                            {/* <Code>{paramsFile.dataset_attributes[k]}</Code> */}
                         </div>
                         )
                     })}                           
@@ -141,7 +146,7 @@ function SubmissionHeader({ paramsFile,
                         icon="th-list"
                         onClick={() => openSampleListDialog(paramsFile.dataID)}/>
 
-                        <Combobox 
+                        {/* <Combobox 
                                 items = {states} 
                                 placeholder="State .."
                                 callback = {handleStateChange}
@@ -149,7 +154,7 @@ function SubmissionHeader({ paramsFile,
                                             minimal : true,
                                             small : true,
                                             icon : "tag"
-                        }} />
+                        }} /> */}
                     
                     {/* <Tooltip2 content={<div><p>Upload file (quantitative matrix) for submission and transfer to MitoCube database for direct accessment.</p></div>}>
                         <label style={{outline:"none"}}>
@@ -186,10 +191,10 @@ function SubmissionHeader({ paramsFile,
                     </ButtonGroup>
                     </div>
 
-                <div className="submission-box" >
+                {/* <div className="submission-box" >
                             {dateString} ({getDaysSinceSumbission(dateString)})
                             <SubmissionTimeLine states={states} state={paramsFile.State}/>
-                </div>
+                </div> */}
                 </div>
     )
 }

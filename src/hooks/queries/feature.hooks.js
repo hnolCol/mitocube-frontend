@@ -34,3 +34,26 @@ async function getDataByFeatureID_API({ tokenString, featureID }) {
 export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
     return useQuery(["getDataByFeautreID",APIParams.featureID],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
 }
+
+
+
+
+
+// get feature annotation
+
+async function getAnnotationsByFeatureID_API({ tokenString, featureID }) {
+    //TO DO add filter to select annotation 
+    const res = await axios.get(`/api/features/${featureID}/annotation`,
+        {
+            headers: {
+                "Authorization": `Bearer ${tokenString}`,
+                'Content-Type': 'application/json'
+            }
+        })
+    
+    return res.data
+}
+
+export function useGetAnnotationsByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
+    return useQuery(["getDataByFeautreID",APIParams.featureID],() =>  getAnnotationsByFeatureID_API({...APIParams}), useQueryOptions)
+}

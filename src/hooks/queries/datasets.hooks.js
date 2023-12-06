@@ -1,6 +1,53 @@
 import { useQuery } from "react-query";
-import PropTypes from "prop-types"
 import axios from "axios"
+
+
+async function getDatasetForSelection_API({ tokenString }) {
+    const res = axios.get('/api/datasets',
+    {
+        headers: {
+            "Authorization": `Bearer ${tokenString}`,
+            'Content-Type': 'application/json'
+        }
+      })
+    return res.data
+}
+
+export const useGetDatasetForSelection = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["getDatasetForSelection"],() =>  getDatasetForSelection_API({...APIParams}), useQueryOptions)
+}
+
+
+
+//data table 
+
+async function getDatasetQC_API({ tokenString, dataset_label }) {
+    const res = await axios.get('/api/datasets/'+dataset_label+'/qc',
+    )
+    return res.data
+}
+
+export const useGetDataQC = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["getDatasetTable",APIParams.dataset_label],() => getDatasetQC_API({...APIParams}), useQueryOptions)
+}
+
+//meta data 
+
+async function getDatasetMetadata_API({ dataset_label }) {
+    const res = await axios.get('/api/datasets/'+dataset_label+'/meta'
+    )
+    return res.data
+
+}
+
+export const useGetMetadata = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["getDatasetMeta",APIParams.dataset_label],() => getDatasetMetadata_API({...APIParams}), useQueryOptions)
+}
+
+
+//// 
+
+
 
 
 
@@ -9,7 +56,6 @@ import axios from "axios"
 async function getDatasets_API(filters) {
     const res = await axios.get('/api/dataset/details', { params: { filters : filters } })
     return res.data 
-
 }
 
 export const useGetDatasets = (filters = {}, useQueryOptions = {}) => {

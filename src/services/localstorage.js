@@ -19,7 +19,7 @@ export const removeTokenFromLocalStorage = () => {
     }
 }
 
-export function saveSubmission(submissionState) {
+export function saveSubmissionInLocalStorage(submissionState) {
     // save a submission state to local storage 
     if (submissionState===null) {
         localStorage.removeItem("mitocube-submission")
@@ -33,8 +33,18 @@ export function saveSubmission(submissionState) {
     }
 }
 
-export function getSavedSubmission() {
+export function loadSavedSubmissionFromLocalStorage() {
     //return the saved submission.
-    return JSON.parse(localStorage.getItem("mitocube-submission"))
+    const submission = localStorage.getItem("mitocube-submission")
+    if (submission !== null && _.isString(submission))
+        return JSON.parse(localStorage.getItem("mitocube-submission"))
 
+}
+
+
+export const removeSubmissionFromLocalStorage = () => {
+    // submission removed from local storage.
+    if (localStorage.getItem("mitocube-submission") !== null){
+        localStorage.removeItem("mitocube-submission")
+    }
 }

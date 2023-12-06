@@ -3,6 +3,7 @@ import { Tooltip2 } from "@blueprintjs/popover2"
 import { Button, InputGroup } from "@blueprintjs/core"
 import { useEffect, useState } from "react"
 import _ from "lodash"
+import { Tooltip } from "@visx/tooltip"
 
 PasswordInput.propTypes = {
     callbackKey: PropTypes.string, //name to be return on onChange 
@@ -30,9 +31,9 @@ function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange,
         let secondPWExists = _.isString(pws["2"]) && pws["2"].length > 0
         
         const lengthWarning = (
-                    <Tooltip2 content={`The password must be at least ${minLength} characters long.`}>
+                    <Tooltip content={`The password must be at least ${minLength} characters long.`}>
                         <Button icon="warning-sign" intent="danger" minimal={true} /> 
-                    </Tooltip2>)
+                    </Tooltip>)
 
         let rightElements = { "1": undefined, "2": undefined }
         let pwString = ""
@@ -77,10 +78,10 @@ function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange,
                 return (
                     <div style={{ fontSize: "0px", paddingTop: pwKey === "2" ? "0.2rem" : "0rem" }}>
                         <InputGroup
-                            placeholder={pwKey === "2" ? "Please repeat password." : "Enter password"}
-                        type="password"
-                        {...rest}
-                        onChange={(e) => handleValueChange(e.target.value, pwKey)}
+                            placeholder={pwKey === "2" ? "Please repeat password." : "Enter password."}
+                            type="password"
+                            {...rest}
+                            onValueChange={(valueString ) =>  handleValueChange(valueString,pwKey)}
                             rightElement={rightElements[pwKey]} />
                     </div>)
                 

@@ -23,7 +23,8 @@ function TabItem({text,to, active = false}) {
         <div className={"bg--lightgrey tabs__item" + `${active ? "" : " tabs__item-inactive"}`}>
             <Link className="router-link" {...{ to }}>
                 <div className="div--expand tabs__item__inner" >
-                    <Header {...{ text }} hexColor={active ? "#466688" : "#696969"} />
+                    {/* <Header {...{ text }} hexColor={active ? "#466688" : "#696969"} /> */}
+                    <h3>{text}</h3>
                 </div>
             </Link>
         </div>
@@ -37,6 +38,7 @@ function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }
     const locationMatches = tabs.filter(tab => tab.to === location.pathname).length > 0 
     return (
         <div className="flex tabs__container">
+
         {tabs.map((tab,tabIdx) => {
             return (
                 <TabItem key={`${tabIdx}-${tab.text}`}
@@ -45,8 +47,8 @@ function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }
             )
         })}
             {_.isString(rightHeader) && rightHeader.length > 0 ?
-                <div className="div--expand tabs__item intent-margin-left">
-                    <Header {...{ text : rightHeader }} hexColor={"#466688"} /></div> : null}
+                <div className="div--expand tabs__item intent-margin-left" style={{textAlign:"right"}}>
+                    <h3>{rightHeader}</h3> </div>: null}
         </div>
     )
 }

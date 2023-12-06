@@ -15,9 +15,17 @@ export function isItemInArrayDeepComp({ array, item }) {
 export function addItemToArrayOrRemoveItIfPresent({ array, item }) {
     // checks if an item in an array, if there it will remove the item from the array
     // otherswise it will add it to the array.
-    const itemInArray = array.includes(item)
+    const itemInArray = isItemInArrayDeepComp({array,item})
     if (!itemInArray) return _.concat(array, [item])
-    return array.filter(i => i !== item)
+    return array.filter(i => !_.isEqual(i,item))
+}
+
+export function addItemToArrayIfNotPresent({ array, item }) {
+    // checks if an item in an array, if there it will remove the item from the array
+    // otherswise it will add it to the array.
+    const itemInArray = isItemInArrayDeepComp({array,item})
+    if (itemInArray) return array
+    return _.concat(array, [item])
 }
 
 export function addItemToArrayIfNotPresent({ array, item }) {
@@ -45,8 +53,11 @@ export function arrayOfObjectsToString(data = [{}],keyNames = [], cellSplit = "\
 export function getAndTransformDatesFromArrayOfObjectsByKey({ data, keyName, dateFormat = "YYYYMMDD" }) {
     // returns any array containing the transformed string dates "asDate" and "asMoment" (used package)
     return data.map(d => {
-        var stringAsMoment = moment(d[keyName], dateFormat)
+        var stringAsMoment = moment.unix(d[keyName])
         var formattedDate =  stringAsMoment._d
         return { ...d, asDate: formattedDate, asMoment : stringAsMoment}
     })
 }
+
+
+

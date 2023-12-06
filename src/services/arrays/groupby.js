@@ -4,13 +4,92 @@ import { getStandardDeviationAndAverage } from "../statistics/average";
 import { getDomainWithBoundaries } from "./boundaries";
 
 
+// export function getUniqueValuesInArrayByKeyNames(data = [], keyNames = []){
+
+//     return data.reduce((p, c) => {
+//         _.forEach(keyNames, k)
+//     }, {})
+// }
+
+
+export function getUniqueValuesFromArrayOfObjectsByKey(data = []) {
+    
+    return data.reduce((p, c) => {
+        let keyNames = Object.keys(c)
+
+        _.forEach(keyNames, keyName => !_.has(p,keyName) ? p[keyName] = [] : null)
+
+        _.forEach(keyNames,keyName => p[keyName] = _.uniq(_.concat(c[keyName],p[keyName])))
+       
+        return p 
+    }, {})
+}
 
 export function groupListByProperty(data, propertyName = "id") {
+    if (!_.isArray(data) || data.length === 0) return {}
     return data.reduce((groups, item) => ({
         ...groups,
         [item[propertyName]]: [...(groups[item[propertyName]] || []), item]
       }), {});
 }
+
+export function arrayOfObjectsToObjectByProperty(data = [], propertyName) {
+    return Object.fromEntries(data.map(item => [item[propertyName],item]))
+}
+
+
+export function getUniqueSetsOfAllValuesinArrayOfObjects(data = []) {
+
+    return data.reduce((acc, item) => {
+        Object.keys(item).forEach(keyName => acc[keyName] ??= { values: new Set(), counts: {} })
+        Object.keys(item).forEach(keyName => {
+            item[keyName].forEach(attrValueTag => {
+                acc[keyName].counts[attrValueTag] ??= 0
+            if (!acc[keyName].values.has(attrValueTag)) {
+                acc[keyName].values.add(attrValueTag)
+                } 
+                acc[keyName].counts[attrValueTag] += 1
+            })
+        })
+        return acc 
+        }
+    , {})
+
+}
+
+
+export function getUniqueValuesAndCountsFromList(data) {
+    return _.flatten(data).reduce((acc, item) => {
+        
+        acc.counts[item] ??= 0 
+        if (!acc.values.has(item)) {
+            acc.values.add(item)
+        }
+        acc.counts[item] += 1
+        return acc
+    }, { values: new Set(), counts: {} })
+}
+
+export function getCountsByGroups(
+    data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],
+    keyNames = ["Genotype", "T"],
+    yaxisName = undefined) {
+    
+    const groupedByKeyNames = _.groupBy(data, d => _.join(keyNames.map(keyName => d[keyName]), '//|//'))
+    const groups = Object.keys(groupedByKeyNames)
+    const groupedAggratedData = groups.map(group => {
+        var groupData = groupedByKeyNames[group]
+        //var yaxisvalues = groupData.map(d => d[yaxisName])
+        console.log(groupData.length,yaxisName)
+        return {
+            ...Object.fromEntries(keyNames.map(keyName => [keyName, groupData[0][keyName]])),
+            N : yaxisName !== undefined ? groupData.filter(d => _.isNumber(d[yaxisName])).length : groupData.length}
+    })
+    const maxNumber = _.maxBy(groupedAggratedData,"N")["N"]
+    const minMaxYDomain = {min : 0, max : maxNumber+maxNumber*0.05}
+    return ({ groupedAggratedData, minMaxYDomain})
+}
+
 
 export function getAverageAndErrorByGroups(
     data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],

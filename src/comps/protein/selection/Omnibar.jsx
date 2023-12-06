@@ -84,11 +84,11 @@ export function OmnibarSearch(props) {
         <Omnibar
             itemRenderer={renderItem}
             // itemListPredicate={filterItems}
+            
             query={featureDeatails.searchString}
             resetOnSelect={true}
             onQueryChange={setSearchString}
             inputProps={{ placeholder: isFetching || isLoading ? "Fetching ..." :isError ? 'An error occured fetching the feature list.' : _.isArray(data.features) && data.features.length===0?'No feature items available. API is loading or filtering excluded all features.':`Search in ${data.features.length} items.. (example: Yme1l1, Uniprot ID) `}}
-            
             {...{ isOpen, onClose, items : featureDeatails.itemsToShow}} />
     )
 

@@ -1,16 +1,22 @@
 import { Outlet, useParams } from "react-router";
 import Tabs from "../core/navigation/tabs";
-import { useGetDatasetInfo } from "../../hooks/queries/datasets.hooks";
+import { useGetMetadata } from "../../hooks/queries/datasets.hooks";
 import { useState } from "react";
+import Loading from "../core/base/loading";
+import { useGetSubmissionAttributesByTag, useGetSubmissionStates } from "../../hooks/queries/submission.hooks";
 
 
 
-function DatasetHeader({token = "43453asda"}) {
+function DatasetHeader({authenticationStatus}) {
     const params = useParams()
-    const dataID = params.dataID
-    const urlStart = `/dataset/${dataID}`
+    const dataset_label = params.dataID
+    const urlStart = `/dataset/${dataset_label}`
     const [tabHeader, setTabHeader] = useState("")
-    const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
+    
+    // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
+    const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching} = useGetMetadata({dataset_label})
+    const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
+    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     
     return (
         <div className="no-scroll div--expand">
@@ -24,10 +30,12 @@ function DatasetHeader({token = "43453asda"}) {
                     { text: "MitoMap", to: `${urlStart}/mitomap` }, 
                     { text: "QC", to: `${urlStart}/qc` },
                     { text: "Timeline", to: `${urlStart}/timeline` },
-                    { text: "Help", to : `${urlStart}/help`}]} />
-            
-            <Outlet context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}}/>
-           
+                    { text: "Help", to : `${urlStart}/help`}]} />   
+            {/* context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}} */}
+            {metadataIsFetching || metadataIsLoading || attrIsLoading || attrIsFetching || submissionStatesLoading? <Loading /> : null}
+            <div className="no-scroll div--expand">
+            <Outlet context={{dataset_label, metadata, tabHeader, setTabHeader,attributesByTag,submissionStates}}/>
+            </div>
             
         </div>
     )

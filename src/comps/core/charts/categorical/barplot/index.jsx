@@ -13,6 +13,7 @@ import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
 import MetricTable from "../../../base/metrictable"
+import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
 
 
 
@@ -65,6 +66,7 @@ function CategoricalBarplot({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
+    attributesByTag
     }) {
     
    // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
@@ -88,8 +90,11 @@ function CategoricalBarplot({
       })
     
     const getTooltipData = (value, errorValue, barData) => {
+        const attrValuesByTag = attributesByTag.attribute_values
         const tooltipInfo = _.map(tooltipNames, tooltipName => {
-            return { name : tooltipName, value : barData[tooltipName] }
+            let tooltipValue = barData[tooltipName]
+            const { attrValues, asString, isAttrValue } = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
+            return { name : tooltipName, value : asString }
         })
         const barInfo = [{name : yaxisName, value : _.round(value,2)}, {name : "Error", value : _.isNaN(errorValue)?"NaN":_.round(errorValue,2)}]
         return _.concat(barInfo,tooltipInfo)
@@ -108,7 +113,8 @@ function CategoricalBarplot({
     return (
         <div className="flex flex-column">
             {/* {colorName !== undefined ? <ChartLegend groupings={{ [colorName]: legendColors }} title={colorName} /> : null} */}
-            {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend  {...{width}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null}
+            {colorName !== undefined ? <div className="intent-margin-bottom--middle">
+                <ChartLegend  {...{ width}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left} /></div> : null}
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
@@ -236,7 +242,8 @@ function CategoricalBarplot({
                                 topBottom={margins.top + chartHeight}
                                 margins={margins}
                                 leftScale={yScale}
-                                bottomScale={splitScale}
+                              bottomScale={splitScale}
+                              bandwidth={colorBandwidth * 1.1}
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
                                 bottomLabel={""}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
@@ -246,10 +253,11 @@ function CategoricalBarplot({
                               <g>
                                   <Text
                                     x={xcenter}
-                                    y={margins.top + 10}
-                                    verticalAnchor="middle"
+                                    y={margins.top + 12}
+                                      verticalAnchor="middle"
+                                      width={subplotWidth}
                                     textAnchor="middle">
-                                    {subplotCategory}
+                                    {mapAttributeValueTagsToAttributes({attrValueTag : subplotCategory, attrValuesByTag : attributesByTag.attribute_values}).asString}
                                 </Text>
                               </g> : null}
                           

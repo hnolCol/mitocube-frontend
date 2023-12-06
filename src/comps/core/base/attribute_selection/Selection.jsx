@@ -44,22 +44,22 @@ function GroupingSelection({keyNames, groupings = {}, handleSelection, selectedI
             {keyNames.map(keyName => {
                 const Icon = getIcon(keyName)
                 return (
-                    <div>
-                        {Icon !== undefined ? <Icon
-                            items={groupingNames}
-                            callback={handleSelection}
-                            callbackKey={keyName}
-                            placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "..."} /> :
-                            <div className="flex center-items">
-                            <div>{keyName}:</div>
-                            <div><Combobox
-                                        items={groupingNames}
-                                        callback={handleSelection}
-                                        callbackKey={keyName}
-                                        placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "..."}
-                                    />
-                                </div>
-                            </div>}
+                <div>
+                    {Icon !== undefined ? <Icon
+                        items={groupingNames}
+                        callback={handleSelection}
+                        callbackKey={keyName}
+                        placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "..."} /> :
+                        <div className="flex center-items">
+                        <div>{keyName}:</div>
+                        <div><Combobox
+                                    items={groupingNames}
+                                    callback={handleSelection}
+                                    callbackKey={keyName}
+                                    placeholder={_.has(selectedItems, keyName) ? selectedItems[keyName] : "..."}
+                                />
+                            </div>
+                    </div>}
                     </div>
             )})}
         </div>

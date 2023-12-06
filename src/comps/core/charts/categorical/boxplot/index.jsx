@@ -8,10 +8,35 @@ import AxisWithBackground from "../../axis"
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { localPoint } from "@visx/event"
 import PropTypes from "prop-types"
-import Box from "../../boxplot/Box"
+import Box from "../../boxplot/cached_box"
 import { getColorPalette } from "../../../colors/colorPalette"
 import MetricTable from "../../../base/metrictable"
+import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
+import { useMemo } from "react"
 
+
+function Legend({ x, y, width, height, colorScale, colorName, attrValuesByTag, handleMouseOver, hideTooltip, }) {
+    if (!_.isFunction(colorScale) || !_.isFunction(colorScale.domain) || !_.isArray(colorScale.domain())) return null 
+    const colorCategories = useMemo(() => colorScale.domain().map(attrValueTag => mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag })), [colorScale])
+    const tooltipInfo = useMemo(() => colorCategories.map(mappedAttrValues => _.flatten(_.concat(mappedAttrValues.attrValues.map(attrValue => { return [{ name: "Name", value: attrValue.name }, {name: "Details", value: attrValue.details }] })))),[colorScale])
+    const colors = colorScale.range() 
+
+    return (
+        <Group>
+            <rect {...{ x, y, width, height }} fill="#fafafa" />
+            <Group top={5}>
+            <Text x={x} y={y} verticalAnchor="start" textAnchor="start">{colorName}</Text>
+            {colorCategories.map((colorCaetgory,idx) => {
+                return <Group left={x} top={y + 15 + idx * 35} onMouseLeave={hideTooltip} onMouseEnter={e => handleMouseOver(e, tooltipInfo[idx])}>
+                    <rect x={0} y={0} {...{width,height : 11}} fill="transparent"/>
+                    <rect x={1} y={1} width={11} height={11} fill={colors[idx]} stroke="black" strokeWidth={0.2}/>
+                    <Text x={17} y={6} width={width} verticalAnchor="middle" fontSize={"0.7rem"} cursor={"default"}>{colorCaetgory.asString}</Text>
+                </Group>
+            })}
+            </Group>
+        </Group>
+    )
+}
 
 CategoricalBoxplot.propTypes = {
     colorName: PropTypes.string,
@@ -43,7 +68,7 @@ function CategoricalBoxplot({
     
     margins = {
         left: 35,
-        right: 0,
+        right: 70,
         bottom: 35,
         top: 5
     },
@@ -62,8 +87,10 @@ function CategoricalBoxplot({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
+    attributesByTag = {}
     }) {
-        // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
+    // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
+
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
@@ -84,10 +111,17 @@ function CategoricalBoxplot({
       })
     
     const getTooltipData = (boxData) => {
-
+        const attrValuesByTag = attributesByTag.attribute_values
         const quantileData = extractQuantileData(boxData,undefined,false,true)
-        const tooltipInfo = _.map(tooltipNames, tooltipName => { return { name: tooltipName, value: boxData[tooltipName] } })
-      
+        const tooltipInfo = _.map(tooltipNames, tooltipName => {
+            let tooltipValue = boxData[tooltipName]
+            const { attrValues, asString, isAttrValue } = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
+          
+            return {
+                name: tooltipName,
+                value: asString
+            }
+        })
         return _.concat(tooltipInfo,quantileData) 
     }
 
@@ -96,11 +130,9 @@ function CategoricalBoxplot({
             return _.map(array[yaxisName], (q,idx) => {return { name :  array.labels[idx],value :  scale ? yScale(q) : _.round(q,2)}})
         }
         return Object.assign(...array[yaxisName].map((q, idx) => { return ({ [array.labels[idx]]: scale ? yScale(q) : _.round(q,2)}) }))
-
     }
     
     const handleMouseOver = (event, bartooltipData) => {
-        
         const coords = localPoint(event.target.ownerSVGElement, event);
         showTooltip({
           tooltipLeft: coords.x,
@@ -110,8 +142,8 @@ function CategoricalBoxplot({
     };
     
     return (
-        <div className="flex flex-column">
-            {colorName !== undefined ? <div className="intent-margin-bottom--middle"><ChartLegend groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left}/></div> : null}
+        <div className="flex flex column">
+            
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
@@ -148,7 +180,9 @@ function CategoricalBoxplot({
                                     margins={margins}
                                     leftScale={yScale}
                                     bottomScale={splitColorScale}
+                                    bandwidth={colorBandwidth}
                                     bottomLabel={""}
+                                    
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
                                 {/* x axis label */}
@@ -226,16 +260,19 @@ function CategoricalBoxplot({
                 
                   return(
                         <g key={`${subplotCategory}-subplot`}>
+                    
                         
+
                           
                           <AxisWithBackground
                                 leftLeft={subplotStart}
                                 topBottom={margins.top + chartHeight}
                                 margins={margins}
                                 leftScale={yScale}
+                                leftTickLabelsVisible={didx === 0}
                                 bottomScale={splitScale}
-                                leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
                                 bottomLabel={""}
+                                bandwidth={colorBandwidth * 1.1}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
                                 {...{ chartHeight, chartWidth :  subplotWidth}} />
                         
@@ -243,10 +280,11 @@ function CategoricalBoxplot({
                               <g>
                                   <Text
                                     x={xcenter}
-                                    y={margins.top + 10}
+                                    y={margins.top + 12}
+                                    width={subplotWidth}
                                     verticalAnchor="middle"
                                     textAnchor="middle">
-                                    {subplotCategory}
+                                    {mapAttributeValueTagsToAttributes({attrValueTag : subplotCategory, attrValuesByTag : attributesByTag.attribute_values}).asString}
                                 </Text>
                               </g> : null}
                           
@@ -260,7 +298,7 @@ function CategoricalBoxplot({
                         {/* {If there is not split but a subplot} */}
                           {(!splitCategoryFound && colorCategoryFound && subplotCategoryFound) ?
                               subplotData.map(subplotDataArray => {
-                                  
+                                    
                                     var boxWidth = splitColorScale.bandwidth()
                                     var colorCategory = subplotDataArray[colorName]
                                     var xBar = splitColorScale(colorCategory)
@@ -299,7 +337,7 @@ function CategoricalBoxplot({
                             
                               
                         : null}
-
+                        
                         {/* if splitName is undefined, splitCategories will be en empty array, no plotting required */}
                         {splitCategories.map((splitCategory, splitIdx) => {
                             
@@ -328,8 +366,15 @@ function CategoricalBoxplot({
                             </Group>
                         )
                         })}
-                    </g>)})}
-                </MultiCategoricalChart> }
+                          <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top} {...{ colorScale, colorName, attrValuesByTag : attributesByTag.attribute_values, handleMouseOver, hideTooltip }} />
+                    </g>)
+            })}
+            
+                </MultiCategoricalChart>}
+            
+            
+            {/* {colorName !== undefined ? <div className="intent-margin-bottom--middle">
+                <ChartLegend {...{height}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left} /></div> : null} */}
             
             {tooltipOpen && (
                 <TooltipInPortal
