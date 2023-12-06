@@ -17,6 +17,7 @@ import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { groupListByProperty } from "../../../services/arrays/groupby";
 import DatasetAttributeHierarchy from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
 import { getAttributeForUserNumericInput } from "../../../services/attributes";
+import { getUserFullName } from "../../../services/format/user";
 
 function Metatext({ metatextTag, metadata, metatext }) {
     
@@ -60,7 +61,7 @@ function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
                                 href={`mailto:${user.email}?subject=${emailSubject}`} //cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}
                                 className="router-link">
                             <div style={{color : "black"}}>
-                                <strong>{`${user.firstname} ${user.lastname}`}</strong>
+                                <strong>{getUserFullName(user)}</strong>
                             </div>
                         </a>
                         {datasetUserLabels.length > 1?
@@ -227,10 +228,13 @@ function DatasetOverview({authenticationStatus}) {
                 <div className="intent-margin-top--little">
                     <StateIndicator state={metadata.state} {...{authenticationStatus}} />
                 </div>
-                
+
+                <div>
+                <MultipleMetrices metrices={datasetMetrices} />
+                </div>
 
             </div>
-            <MultipleMetrices metrices={datasetMetrices} />
+            
             <h2>Sample Attributes</h2>
             <h2>Dataset Attributes</h2>
             <DatasetAttributeHierarchy {...{

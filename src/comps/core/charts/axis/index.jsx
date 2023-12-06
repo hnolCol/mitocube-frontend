@@ -19,7 +19,8 @@ function AxisWithBackground({
     leftTickLabelsVisible = true,
     moveBottomToLeft = true,
     leftTickLabelProps,
-    bottomTickLabelProps,
+    bottomTickLabelProps = {},
+    findAttributesForBottomScale = true,
     bandwidth,
     chartHeight,
     chartWidth }) {
@@ -28,6 +29,7 @@ function AxisWithBackground({
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
     const {data : attributesByTag, isLoading, isFetching} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     if (isLoading || isFetching) return null 
+    if (_.isNumber(bandwidth)) bottomTickLabelProps["width"] = bandwidth
     return (
         <g>
             <AxisBackground
@@ -49,11 +51,11 @@ function AxisWithBackground({
         
             <AxisBottom
                 left={moveBottomToLeft ? leftStart : 0}
-                tickFormat={(tickLabel) => mapAttributeValueTagsToAttributes({attrValueTag : tickLabel, attrValuesByTag : attributesByTag.attribute_values}).asString }
+                tickFormat={findAttributesForBottomScale ? (tickLabel) => mapAttributeValueTagsToAttributes({attrValueTag : tickLabel, attrValuesByTag : attributesByTag.attribute_values}).asString : null}
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}
-                tickLabelProps={{fontSize : "0.8rem", width : bandwidth, verticalAnchor : "middle",...bottomTickLabelProps }}
+                tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps }}
                 labelOffset={1}
                 numTicks={getNumberTicks({ space: chartWidth })}
                 scale={bottomScale}

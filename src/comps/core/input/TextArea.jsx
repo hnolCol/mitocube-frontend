@@ -25,14 +25,6 @@ function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = 
             <EditableText onChange={value => onChange(callbackKey, value, "text")} multiline={true} minLines={5} {...{placeholder,value}} />
             </div>
             </FormGroup>
-            // <div className="intent-margin-top--little">
-            // <div className="font-size--small">
-            //     {optional?"Optional : ": ""}{`${hint} ${minLength > 0?`(min. ${minLength} characters)`:""}`}
-            // </div>
-            // <div className="bg--white container--scroll-y-hide-x">
-                
-            // </div>
-            // </div>
     )
 }
 

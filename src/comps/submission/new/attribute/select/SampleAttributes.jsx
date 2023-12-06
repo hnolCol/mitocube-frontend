@@ -293,7 +293,7 @@ function SamplesAttributes({
                 <MenuItem text={nameDefined ? `Name : ${groupingInfo.name}` : "Name missing."} intent={nameDefined?"none":"danger"} />
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
-                <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(sampleAttrIndex, attribute.tag)} disabled={!attributeDefined} />
+                <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(attribute.tag)} disabled={!attributeDefined} />
                 <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(sampleAttrIndex)} />
                 
             </Menu>)
@@ -371,13 +371,13 @@ function SamplesAttributes({
         }
     }
 
-
     return (
     
         <div style={{paddingTop:"1rem",paddingBottom:"1rem",height:"500px",overflowY:"hidden"}}>
             <HotkeysProvider>
                 <Table2
-                    enableGhostCells = {true}
+                    enableGhostCells={true}
+                    numFrozenColumns={1}
                     numRows={sampleNames.length}
                     cellRendererDependencies={[rerenderTableDependency]}
                     bodyContextMenuRenderer={renderBodyContextMenu}

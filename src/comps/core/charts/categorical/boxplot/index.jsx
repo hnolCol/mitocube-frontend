@@ -182,7 +182,6 @@ function CategoricalBoxplot({
                                     bottomScale={splitColorScale}
                                     bandwidth={colorBandwidth}
                                     bottomLabel={""}
-                                    
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
                                 {/* x axis label */}

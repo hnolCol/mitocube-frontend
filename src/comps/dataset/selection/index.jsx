@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { SubmissionItem } from "../../submission/view/SubmissionItem";
 import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions } from "../../../hooks/queries/submission.hooks";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
-import { AttributeFilterSelection, UserFilterSelection, extractSubmissionDetails, filterSubmissionByDatasetAttribute, filterSubmissions } from "../../submission/view/SubmissionContainer";
+import { AttributeFilterSelection, extractSubmissionDetails, filterSubmissionByDatasetAttribute, filterSubmissions } from "../../submission/view/SubmissionContainer";
 import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby";
 import _ from "lodash"
 import { InputGroup } from "@blueprintjs/core";

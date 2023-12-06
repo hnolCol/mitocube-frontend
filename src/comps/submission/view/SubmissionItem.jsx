@@ -52,7 +52,8 @@ export function SubmissionItem({
     attributesByTag = {},
     attributeValuesByTag = {},
     setAttributeSelectionDialog,
-    usersByLabel
+    usersByLabel,
+    setSamplesAttributesDialog
 }) {
     
     const usersPartInSubmission = _.concat([submission.user_label], submission.collaborators)
@@ -84,6 +85,13 @@ export function SubmissionItem({
                 </MenuItem> */}
                 <MenuItem text="State">
                     <StateSubMenu {...{stateName,states,onStateChange : handleStateChange}} />
+                </MenuItem>
+                <MenuDivider />
+                <MenuItem text="Edit">
+                    <MenuItem text="Samples Attributes"
+                        onClick={() => { setSamplesAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: true } }) }} />
+                    <MenuItem text="Dataset Attributes"
+                        onClick={() => { setSamplesAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) }} />
                 </MenuItem>
                 
         </Menu>}>

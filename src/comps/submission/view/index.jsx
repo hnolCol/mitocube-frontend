@@ -1,24 +1,16 @@
-import { Button, ButtonGroup, MenuDivider, Alert, InputGroup, Dialog, DialogBody } from "@blueprintjs/core"
-import { Tooltip2 } from "@blueprintjs/popover2"
-import PropTypes from "prop-types"
-import { useEffect, useMemo, useState } from "react"
-import CreateSampleList from "./dialogs/CreateSampleList"
-import SubmissionOverviewDialog from "./dialogs/SubmissionOverview"
-import GroupingNameDialog from "./dialogs/GroupingRename"
-import MethodEditingDialog from "./dialogs/ExperimentalInfoEditing"
+
+import { useState } from "react"
 import _ from "lodash"
-import { Combobox } from "../../core/input/Combobox"
-import { Header } from "../../core/base/Header"
 import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions, usePatchSubmission } from "../../../hooks/queries/submission.hooks"
 import APIError from "../../core/error/APIerror"
-import Numeric from "../../core/metrics/Numeric"
 import Loading from "../../core/base/loading"
 import { SubmissionContainer } from "./SubmissionContainer"
-import "../submission.css"
-import TextInput from "../../core/input/Text"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { AttributeSlectionDialog } from "./dialogs/AttributeSelectionDialog"
-import { useOutletContext } from "react-router"
+import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
+import { EditDatasetAttributeDialog } from "./dialogs/DatasetAttributesDialog"
+import "../submission.css"
+
 
 
 // SubmissionView.propTypes = {
@@ -62,6 +54,19 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         success: false,
         submitted : false
     })
+
+
+
+    const [samplesAttributesDialog, setSamplesAttributesDialog] = useState({
+        isOpen: false, 
+        submission: {},
+        onClose: undefined,
+        isLoading: false,
+        isSuccess: false,
+        samplesAttributes : true // true samples, false for dataset
+    })
+
+
     // const [groupingRenameDetails, setGroupingRenameDetails] = useState(initRenameGrouping)
     // const [experimentalDetails, setExperimentalDetails] = useState(initExperimental)
     // const [sampleListDialog, setSampleListDialog] = useState({ isOpen: false })
@@ -83,9 +88,17 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         error: patchSubmissionError,
         isError: patchSubmissionIsError } = usePatchSubmission()
     
-    const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "") => {
-        //datasetAttributeValues : Dict[str,List[AttributeValue]]
-        //datasetAttributes: List[Attribute]
+    
+    const handleStateChangeAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "") => {
+        handleSubmissionDatasetAttributeUpdate(label, datasetAttributeValues, state, prevState, comment, setAttributeSelectionDialog)
+    }
+
+    const handleDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "") => {
+        handleSubmissionDatasetAttributeUpdate(label, datasetAttributeValues, state, prevState, comment, setSamplesAttributesDialog)
+    }
+    
+    const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "", alertUpdateFn) => {
+        // handle patching the submission.
         
         let datasetAttributes = Object.keys(datasetAttributeValues).map(attributeTag => attributesByTag.attributes[attributeTag])
         let updatedSubmission = {datasetAttributes, datasetAttributeValues}
@@ -100,7 +113,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         patchSubmission({ tokenString: authenticationStatus.token, label, data},
             {
                 onSuccess: () => {
-                    setAttributeSelectionDialog(prevValues => {
+                    alertUpdateFn(prevValues => {
                         return {
                             ...prevValues,
                             isLoading: false,
@@ -111,7 +124,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                         refetchSubmissions()
                 },
                 onError: (error) => {
-                    setAttributeSelectionDialog(prevValues => {
+                    alertUpdateFn(prevValues => {
                         return {
                             ...prevValues,
                             isLoading: false,
@@ -123,135 +136,9 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                 
                 }
             })
-        setAttributeSelectionDialog(prevValues => {return {...prevValues,isLoading : true}})
+            alertUpdateFn(prevValues => {return {...prevValues,isLoading : true}})
     }
     
-
-    const getStateCounts = (states, submissions) => {
-        //count the states 
-        const stateCounts = Object.fromEntries(_.concat(["Total"],states).map(state => [state,0]))
-        _.forEach(submissions, v => {
-            stateCounts[v.paramsFile.State] += 1
-            stateCounts["Total"] += 1 
-        })
-        return stateCounts
-    }
-
-    // const stateCounts = useMemo(() => {
-    //     if (_.isObject(data) && _.isArray(data.states) && _.isArray(data.submissions)) {
-    //         return getStateCounts(data.states, data.submissions)
-    //     }
-    //     return {}
-    // },[data])
-
-
-    const openRenameGroupingDialog = (dataID,paramsFile) => {
-        setGroupingRenameDetails({isOpen:true,dataID:dataID,paramsFile:paramsFile,groupingNames:paramsFile.groupingNames})
-    }
-
-    const openMethodEditingDialog = (dataID,paramsFile) => {
-        setExperimentalDetails({isOpen:true,dataID:dataID,paramsFile:paramsFile})
-        setUpdatedState(dataID,true)
-    }
-
-    const closeMethodEditingDialog = () => {
-        setExperimentalDetails(initExperimental)
-    }
-
-    const handleRenameGrouping = (renameDict, dataID, paramsFile) => {
-        
-        // renaming grouping names requires changes at multiple places including
-        // the groupingCmap (e.g. color mappings for a grouping) as well as the groupingNames and the groupings.
-        const groupingNamesToRename = Object.keys(renameDict)
-        const originalGroupingNames = paramsFile.groupingNames
-        const updatedGroupingNames = originalGroupingNames.map(groupingName => groupingNamesToRename.includes(groupingName)?renameDict[groupingName]:groupingName)
-        var updated_src = {...paramsFile}
-        updated_src["groupingNames"] = updatedGroupingNames
-        var groupings = updated_src["groupings"]
-        // add grouping cmap here! 
-        const updatedGroupings = Object.fromEntries(Object.keys(groupings).map(v => [groupingNamesToRename.includes(v)?renameDict[v]:v,groupings[v]]))
-        updated_src["groupings"] = updatedGroupings
-        //update color mapping
-        var groupingCmap = updated_src["groupingCmap"]
-        const updatedCmapGrouping = Object.fromEntries(Object.keys(groupingCmap).map(v => [groupingNamesToRename.includes(v)?renameDict[v]:v,groupingCmap[v]]))
-        updated_src["groupingCmap"] = updatedCmapGrouping
-
-        handleSubmissionUpdate(dataID,updated_src)
-        setUpdatedState(dataID,true)
-        closeRenameGroupingDialog()
-        
-
-    }
-
-    const closeRenameGroupingDialog = () => {
-        //simply close the renaming dialog
-        setGroupingRenameDetails(initRenameGrouping)
-    }
-
-    
-
-    const handleFilterSelection = (filterName) => {
-        var filteredSubmissions = getStringMatchSubmissions(submissionDetails.searchString)
-        const submissionsFiltered = filterName === "None"?_.map(filteredSubmissions, v => v.dataID):_.map(_.filter(filteredSubmissions, v => v.paramsFile.State === filterName),v => v.dataID)
-        setSubmissions(prevValues => {
-            return { ...prevValues, "submissionsToShow":submissionsFiltered, "submissionFilter":filterName}})
-
-    }
-
-    const getStringMatchSubmissions = (searchString) => {
-        if (searchString === "") return data.submissions
-        const re = new RegExp(_.escapeRegExp(searchString), 'i')
-        // search columns should be provided by API!
-        const searchColumns = data.searchColumns.slice() // ["shortDescription","Material","Organism","dataID","Title","Email","Type","Experimentator"]
-        const isMatch = result => _.filter(searchColumns.map(v => re.test(result.paramsFile[v]))).length > 0
-        //const isMatch = result => re.test(result.shortDescription) | re.test(result.Material) | re.test(result.Organism) | re.test(result.dataID) | re.test(result.Title) | re.test(result.Email)  | re.test(result.Email)
-        var filteredSubmissions = _.filter(data.submissions, isMatch)
-        return filteredSubmissions
-    }
-
-    const handleSearchInput = (e) => {
-        const searchString =  e.target.value 
-        //const isMatch = result => re.test(result.shortDescription) | re.test(result.Material) | re.test(result.Organism) | re.test(result.dataID) | re.test(result.Title) | re.test(result.Email)  | re.test(result.Email)
-        var filteredSubmissions = getStringMatchSubmissions(searchString)
-
-        if (submissionDetails.submissionFilter !== undefined && submissionDetails.submissionFilter !== "None") {
-            filteredSubmissions = _.filter(filteredSubmissions,v => v.paramsFile.State === submissionDetails.submissionFilter)
-        }
-        var filteredDataIDSubmissions  = filteredSubmissions.map(v => v.dataID)
-        setSubmissions(prevValues => {
-            return { ...prevValues, "submissionsToShow":filteredDataIDSubmissions,"searchString" : searchString}})
-    }
-
-    const openSampleListDialog = (dataID) => {
-        setSampleListDialog({isOpen:true,dataID:dataID})
-    }
-
-
-    const handleSubmissionUpdate = (dataID,updated_src) => {
-        
-        let s = submissionDetails.submissions.map(v => {
-            if (v.dataID === dataID){
-                v.paramsFile = updated_src
-                return v
-            }
-            else {
-                return v
-            }
-        })
-
-        // to show only the ones that were selected before
-
-        setSubmissions(prevValues => {
-            return { ...prevValues, "submissions":s, "submissionSatesCounts":getStateCounts(submissionDetails.states,s)}})
-    }
-
-
-    const setUpdatedState = (dataID,state=true) => {
-        var copiedState = {...updatedDataIDs}
-        copiedState[dataID] = state
-        setUpdatedDataIDs(copiedState)
-    }
-
 
     const downloadProjectSummary = (event, notThisState = undefined) => {
         //download the projects summary as a txt file.
@@ -280,16 +167,21 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         setSubissionOverviewDialog(prevValues => {return {...prevValues,isOpen : true, dataID : dataID, paramsFile: paramsFile}})
     }
     
-    
+    //setAlertProps(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false } })
     return (
         <div className="no-scroll">
-            <AttributeSlectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog}} {...attributeSelectionDialog} onSubmit={handleSubmissionDatasetAttributeUpdate}/>
-            
-            
+            <AttributeSlectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
+                onSubmit={handleStateChangeAttributeUpdate} />
+            {_.isArray(submissions) ? <EditSamplesAttributeDialog {...samplesAttributesDialog}
+                isOpen={samplesAttributesDialog.isOpen && samplesAttributesDialog.samplesAttributes}
+                onClose={() => setSamplesAttributesDialog(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false } })} /> : null}
+            {_.isArray(submissions) ? <EditDatasetAttributeDialog {...samplesAttributesDialog}
+                onSubmit={handleDatasetAttributeUpdate} isOpen={samplesAttributesDialog.isOpen && !samplesAttributesDialog.samplesAttributes}
+                onClose={() => setSamplesAttributesDialog(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false} })} /> : null}
             {isLoading || isFetching || userIsFetching || userIsLoading?
                 <Loading /> : isError ?
                     <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") && _.isArray(submissions) ? 
-                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, submissionsQuery, setSubmissionQuery}} /> : null}
+                        <SubmissionContainer states={submissionStates} {...{ submissions, attributesByTag, users : users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, handleSubmissionDatasetAttributeUpdate, submissionsQuery, setSubmissionQuery, setSamplesAttributesDialog}} /> : null}
             {/* <Alert {...alertState} canEscapeKeyCancel={true} canOutsideClickCancel={true} onClose={e => setAlertState({ isOpen: false })} />
             <SubmissionOverviewDialog
                 {...subissionOverviewDialog}

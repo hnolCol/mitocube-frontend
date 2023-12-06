@@ -72,7 +72,6 @@ function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUse
 function AddUserDialog({ authenticationStatus, isOpen = false, refetchUsers, onClose, ...rest }) {
     const [userProps, setUserProps] = useState({})
     //put this in a common dialog? 
-    // const {data : userRoles} = useGetUserRoles({tokenString : authenticationStatus.token}, { staleTime : 3000000})
     const { data, isLoading, isFetching, isSuccess, isFetched, isError, error} = useGetUserAttributes({ tokenString: authenticationStatus.token })
     const { mutate: postUser, isLoading: postUserIsLoading, isError: postUserIsError, error: postUserError } = usePostUser()
     

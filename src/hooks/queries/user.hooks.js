@@ -41,14 +41,8 @@ export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {}) => {
 
 
 // get user registration information 
-async function getUserRoles_API({ tokenString }) {
-    const res = await axios.get('/api//users/roles',
-        {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-      })
+async function getUserRoles_API({ }) {
+    const res = await axios.get('/api/users/roles')
     return res.data.roles
 }
 

@@ -39,12 +39,11 @@ export function arrayOfObjectsToString(data = [{}],keyNames = [], cellSplit = "\
 
 
 // Date formatting 
-
 export function getAndTransformDatesFromArrayOfObjectsByKey({ data, keyName, dateFormat = "YYYYMMDD" }) {
     // returns any array containing the transformed string dates "asDate" and "asMoment" (used package)
     return data.map(d => {
-        var stringAsMoment = moment.unix(d[keyName])
-        var formattedDate =  stringAsMoment._d
+        const stringAsMoment = moment.unix(d[keyName])
+        const formattedDate =  stringAsMoment._d
         return { ...d, asDate: formattedDate, asMoment : stringAsMoment}
     })
 }

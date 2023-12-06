@@ -1,8 +1,8 @@
 import { Dialog } from "@blueprintjs/core"
-import { Header } from "../../../core/base/Header"
-import { TableLikeItem } from "../../../core/base/tags/TableLikeItem"
+import { Header } from "../../../../core/base/Header"
+import { TableLikeItem } from "../../../../core/base/tags/TableLikeItem"
 import _ from "lodash"
-import { extractGroupsByRunNameFromGrouping } from "../../../../services/groupings/runNameWithGrouping"
+import { extractGroupsByRunNameFromGrouping } from "../../../../../services/groupings/runNameWithGrouping"
 
 function SubmissionOverviewDialog(props) {
     

@@ -12,6 +12,26 @@ import { getDomainWithBoundaries } from "./boundaries";
 // }
 
 
+export function binDataByDate(data = [], unixName = "created_on", ) {
+    return data.reduce((p, c) => {
+        let d1 = new Date(c[unixName] * 1000)
+        const month = d1.getMonth()
+        const year = d1.getFullYear()
+        let d = new Date(year, month, 1)
+        let timeFormat = `${year}-${month}`
+        //add date and last day of month to it
+        p[timeFormat] ??= { dates: { dateMiddle: new Date(year, month, 15), dateStart: d, dateEnd: new Date(year, month + 1, 0) }, values: [] }
+        p[timeFormat].values.push(c)
+        return p
+    }, {})
+
+    
+    
+
+
+}
+
+
 export function getUniqueValuesFromArrayOfObjectsByKey(data = []) {
     
     return data.reduce((p, c) => {

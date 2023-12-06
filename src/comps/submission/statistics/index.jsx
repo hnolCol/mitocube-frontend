@@ -2,19 +2,21 @@ import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissi
 import _ from "lodash"
 import LineChart from "../../core/charts/linechart"
 import APIError from "../../core/error/APIerror"
-import { getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby"
+import { binDataByDate, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby"
 import { extractSubmissionDetails, filterSubmissions } from "../view/SubmissionContainer"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { getStateName } from "../../../services/states"
 import moment from "moment"
 import { SubmissionBaseFilter } from "../filter"
 import Loading from "../../core/base/loading"
+import { AnimatedBarplot } from "../../core/charts/barplot/AnimatedBarplot"
+import PercentageLine from "../../core/charts/percentage/line"
 
 
 
 function SubmissionStatistics({authenticationStatus, submissionsQuery, setSubmissionQuery, submissionFilter, setSubmissionFilter}) {
 
-    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions({ tokenString: authenticationStatus.token })    
+    const { isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions({ tokenString: authenticationStatus.token })    
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
     const { data: states, isLoading: submissionStatesLoading, isFetching : satesIsFetching } = useGetSubmissionStates()
     const { data: attributesByTag } = useGetSubmissionAttributesByTag({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
@@ -26,12 +28,12 @@ function SubmissionStatistics({authenticationStatus, submissionsQuery, setSubmis
     
     const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
     const usersByLabel = groupListByProperty(users, "label")
-    const filteredSubmission = filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel })   
-    const submissionsByState = groupListByProperty(filteredSubmission, "state")
-    const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+    const filteredSubmissions = filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel })   
+    const submissionsByState = groupListByProperty(filteredSubmissions, "state")
+    const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmissions.map(submission => _.concat(submission.collaborators, submission.user_label)))
 
     //get line data
-    let dataForLineChart = filteredSubmission.map(d => {
+    let dataForLineChart = filteredSubmissions.map(d => {
         const stringAsMoment = moment.unix(d.created_on)
         const formattedDate = stringAsMoment._d
         const userFound = _.has(usersByLabel, d.user_label)
@@ -43,7 +45,11 @@ function SubmissionStatistics({authenticationStatus, submissionsQuery, setSubmis
                 user: userFound?usersByLabel[d.user_label][0]:{},
                 user_name: userFound?`${usersByLabel[d.user_label][0].firstname} ${usersByLabel[d.user_label][0].lastname}`:""
             }
-        })
+    })
+    
+    const binnedSubmission = binDataByDate(filteredSubmissions)
+    const countBinnedSubmissions = _.sortBy(_.keys(binnedSubmission).map(d => {return {n : binnedSubmission[d].values.length, ...binnedSubmission[d].dates}}),"dateStart")
+    console.log(filteredSubmissions)
     // console.log(dataForLineChart)
     // console.log(getCountsByGroups(submissions, ["state"],undefined))
     return (
@@ -64,12 +70,14 @@ function SubmissionStatistics({authenticationStatus, submissionsQuery, setSubmis
 
             </div>
 
-        <div className="submission__items__container">
-                <p>Submission : {filteredSubmission.length}</p>
+        <div style={{height : "90vh", overflowY:"scroll"}}>
+                <p>Submission : {filteredSubmissions.length}</p>
             <h1>Time Series</h1>
-                {dataForLineChart.length > 0 ? <LineChart data={dataForLineChart} xAxisIsTime={true} xaxisName="asDate" yaxisNames={["n_samples"]} tooltipCircleNames={["n_samples", "title", "label"]} /> : null}
+                {dataForLineChart.length > 0 ? <LineChart data={dataForLineChart} xAxisIsTime={true} xaxisName="asDate" yaxisNames={["n_samples"]} tooltipCircleNames={["n_samples", "title", "label", "user_name"]} showLine={false} /> : null}
 
                 <h1>Count plots</h1>
+
+                {countBinnedSubmissions.length > 1 ? <AnimatedBarplot leftLabel = "Number of submissions" title = "Submission by month" data={countBinnedSubmissions} yaxisName={"n"} xAxisIsTime={true} xaxisName={"dateMiddle"} />: null}
                 
 
             </div>

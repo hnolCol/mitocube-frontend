@@ -8,6 +8,7 @@ import { groupListByProperty } from "../../../services/arrays/groupby"
 import { titleFormat } from "../../../services/format/string"
 import { getStateName } from "../../../services/states"
 import { getFormatDateFromTimestamp } from "../../../services/date/format"
+import { StateIndicator } from "../../submission/view/SubmissionContainer"
 
 
 Timeline.propTypes = {
@@ -34,11 +35,13 @@ function Timeline({ authenticationStatus }) {
         }
     })
     const colorByStateName = Object.fromEntries(_.keys(submissionStates.colors).map(stateName => [titleFormat(stateName),submissionStates.colors[stateName]]))
+    
     return (
         <div>
-            <p>The current state of the project is : <strong className="h2-span">{getStateName({ submissionStates, state: metadata.state })}</strong>.</p>
             <p>Project started: <strong>{m.fromNow()}</strong></p>
-            {dataForLineChart.length > 0 ? <TimelineChart data={dataForLineChart} dateName={"asDate"} labelName="label" colorName="stateName" tooltipNames={["user_name", "comment"]} colorMapper={colorByStateName} /> : null}
+            <div className="flex center-items">The current state of the project is : <StateIndicator state={metadata.state} padding="tiny"/></div>
+            <div className="flex center-items">The next state of your project will be :<StateIndicator state={metadata.state + 1} padding="tiny"/> </div>
+            {dataForLineChart.length > 0 ? <TimelineChart data={dataForLineChart} dateName={"asDate"} labelName="stateName" colorName="stateName" tooltipNames={["user_name", "comment"]} colorMapper={colorByStateName} /> : null}
         </div>
     )
 }

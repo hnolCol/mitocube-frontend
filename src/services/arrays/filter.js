@@ -4,7 +4,6 @@ import { array } from "prop-types";
 export function filterArrayBySearchString({searchString = "", array = [], searchColumns = []}) {
     // Filter array of objects using a search string, specify the search columns to limit the search to
     // certain keys of the objects. 
-    
     if (!_.isArray(searchColumns)) return []
     if (!_.isArray(array)) return []
     if (!_.isObject(array[0])) return []
