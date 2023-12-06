@@ -1,5 +1,5 @@
 
-import { InputGroup, Button } from "@blueprintjs/core"
+import { InputGroup, Button, Slider, RangeSlider } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
@@ -11,7 +11,11 @@ import axios from "axios"
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
 import { storeTokenInLocalStorage } from "../../services/localstorage"
-import { WellPlate96 } from "../core/plate/nintysix"
+
+import DescriptionButton from "../core/base/buttons/DescriptionButton"
+import InteractiveChart from "../core/charts/interactive"
+import { ScatterPlot } from "../core/charts/scatter"
+
 
 Login.propTypes = {
     setAuthenticationStatus : PropTypes.func.isRequired,
@@ -82,7 +86,36 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                 <div className="intent-margin-bottom--little">
                     <Header text="User Login" />
                 </div>
-                {/* <WellPlate96 /> */}
+
+                <InteractiveChart >
+
+                    {(categoricalData) => categoricalData.map(({
+                            data,
+                            chartIdx,
+                            xaxisName,
+                            yaxisName,
+                            valid,
+                            limits,
+                            handleItemSelection,
+                            findIndexInRectangle,
+                            findDataInRectangle,
+                            setHoverDataInRectangle,
+                            handleNumericFilter,
+                            handleStringSearch,
+                            hoverProps,
+                            filterProps,
+                            // hoverData,
+                            // hoverPosition,
+                            // rerenderHover,
+                        }, didx) =>  {
+                            return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/>
+                            {didx===0?<div>
+                                <RangeSlider min={0} max={100} value={filterProps.filterRange} stepSize={5} onChange={range => handleNumericFilter(0,"x",range[0],range[1])}/><Button onClick={() => handleNumericFilter(0,"x",0.2,0.5)}/>
+                                <InputGroup onChange={(e) => handleStringSearch("label",e.target.value)}/>
+                                </div>:null}</div>)})}
+
+                </InteractiveChart>
+
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     

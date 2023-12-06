@@ -13,6 +13,20 @@ export function filterArrayBySearchString({searchString = "", array = [], search
     return _.filter(array, isMatch)
 }
 
+
+export function filterArrayBySearchStringBySingleKey({array = [], keyName = "", searchString = ""}){
+    //Returns the data and index which match
+    const re = new RegExp(_.escapeRegExp(searchString), 'i')
+    const isMatch = i => re.test(i)
+    return array.reduce((acc,i,idx) => {
+        if (isMatch(i[keyName])) {
+            acc.idcs.add(idx)
+            acc.data.push(i)
+        }
+        return acc 
+    }, {idcs : new Set(), data : []})
+}
+
 export function filterArrayOfObjects({ array = [], keyName = "", keyValue = "" }) {
     return _.filter(array, v => v[keyName] === keyValue)
 }
