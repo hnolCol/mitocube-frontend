@@ -20,27 +20,26 @@ function makeid(length) {
 let dataTest = _.range(5000).map(idx => {return {x : Math.random() * 1000, y : Math.random() * 5000, label : makeid(5)}})
 
 
-function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"}], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
+function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "idx", yaxisName  : ["x","y"]}], isPointChart = [true,false], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
 
     const [hoverData, setHoverData] = useState({data : [], idcs : [], rerender : [Math.random()], rect : []})
-    const [selectedItems, setSelectedItems]  = useState()
+    //const [selectedItems, setSelectedItems]  = useState()
     const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set()})
     const numberCharts = keyNames.length
-    const keyNamesFlatten = _.flatten(keyNames.map(keys => Object.values(keys)))
+    const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
     const limits  = getMinMaxForMultipleKeyNames({data,keyNames : keyNamesFlatten})
     
     
     const validIndices = useMemo(() => {
         const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
-        console.log(isNumber)
         return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {
-            return([chartIdx, _.map(isNumber, d => d[xaxisName] && d[yaxisName ])])
+            return([chartIdx, _.map(isNumber, d => isPointChart[chartIdx] ? d[xaxisName] && d[yaxisName ] : _.every(yaxisName, yName => d[yName]))])
         }))
     },[_.join(keyNamesFlatten)])
 
     const searchTrees = useMemo(() => {
         //create search trees for fast point finding in the array
-        return Object.fromEntries(_.range(numberCharts).map(chartIdx => {
+        return Object.fromEntries(_.range(numberCharts).filter(chartIdx => isPointChart[chartIdx]).map(chartIdx => {
             const nPoints = data.length 
             const index = new KDBush(nPoints);
             const {xaxisName, yaxisName } = keyNames[chartIdx]
@@ -86,12 +85,10 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
 
     const handleStringSearch = (keyName,searchString) => {
         // searching in the data returns a list of indices matching the search
-        //check if numeric filter is active then one should only search there, also save idcs and search string, then one can also subset the 
+        //check if numeric filter is active then one should only search there, also save idcs and search string, then one can also subset the
         // data first (TO DO)
-        console.log(keyName,searchString)
-        const {idcs, data : filteredData} = filterArrayBySearchStringBySingleKey({array : data, keyName, searchString})
         
-        console.log(idcs,filteredData)
+        const {idcs, data : filteredData} = filterArrayBySearchStringBySingleKey({array : data, keyName, searchString})
         setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : idcs}})
     }
 
@@ -99,8 +96,6 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         //find closest point 
     }
 
-
-    
     const chartProps = _.range(numberCharts).map(chartIdx => {
         const {xaxisName, yaxisName } = keyNames[chartIdx]
         return{

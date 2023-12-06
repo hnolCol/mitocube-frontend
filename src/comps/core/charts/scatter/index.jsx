@@ -130,19 +130,14 @@ export function ScatterPlot({
         const x = xScale.invert(mouseCoord.x)
         const y = yScale.invert(mouseCoord.y)
        
-        setHoverDataInRectangle(chartIdx,x-rectDist[xaxisName],y-rectDist[yaxisName],x+rectDist[xaxisName],y+rectDist[yaxisName],[e.clientX,e.clientY])
+        setHoverDataInRectangle(chartIdx,
+            x - rectDist[xaxisName],
+            y - rectDist[yaxisName],
+            x + rectDist[xaxisName],
+            y + rectDist[yaxisName], [e.clientX, e.clientY])
         //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
 
     }
-
-    const handleMouseOver = (event, datum, mouseOverParams) => {
-        const coords = localPoint(event.target.ownerSVGElement, event);
-        showTooltip({
-          tooltipLeft: coords.x,
-          tooltipTop: coords.y,
-          tooltipData: mouseOverParams.dataID
-        });
-    };
     
     // const points = useMemo(() => _.map(data, d => { return { p: [xScale(d[xaxisName]), yScale(d[yaxisName])], r: defaultRadius } }),
     //     [xaxisName, yaxisName,sizeName,colorName])
@@ -158,7 +153,8 @@ export function ScatterPlot({
                 bottomLabel={xaxisName}
                 leftHideTicks={false}
                 leftLabel={yaxisName}
-                moveBottomToLeft={false}
+                    moveBottomToLeft={false}
+                findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
             <g >
             {/* Render data points */}

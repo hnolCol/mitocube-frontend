@@ -1,22 +1,26 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
-ScatterPoints.propTypes = {
+import { LinePath } from "@visx/shape"
+
+ProfileLine.propTypes = {
     data : PropTypes.array.isRequired,
     valid : PropTypes.arrayOf(PropTypes.bool).isRequired, // boolean
     xaxisName : PropTypes.string.isRequired,
-    yaxisName : PropTypes.string.isRequired,
+    yaxisName : PropTypes.arrayOf(PropTypes.string).isRequired,
     xScale : PropTypes.func.isRequired,
     yScale : PropTypes.func.isRequired,
     rerenderDependency : PropTypes.array.isRequired
 }
 
 
-function ScatterPoints({
+function ProfileLine({
     data = [], 
     valid = [], 
     xaxisName, 
-    yaxisName, sizeName, colorName, 
+    yaxisName,
+    sizeName,
+    colorName, 
     xScale, 
     yScale, 
     sizeScale, 
@@ -31,10 +35,14 @@ function ScatterPoints({
     // Hence, it requires to be checked outside if the scatter point should rerender 
     const filterByIdx = filterIndices.size !== 0
     const oapcityBySearch = searchIndices.size !== 0
+    console.log(data, filterIndices)
     return(
         <g>
+            {data.map(d => <polyline
+                points={_.join(_.map(yaxisName, (yName, idx) => `${xScale(idx)},${yScale(d[yName])}`), ", ")}
+                {...{ stroke, strokeWidth }} />)}
 
-            {data.filter((d,idx) => valid[idx]).map((d,idx) => {
+            {/* {data.filter((d,idx) => valid[idx]).map((d,idx) => {
                 //filter data first and then map over it 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
                 
@@ -48,7 +56,7 @@ function ScatterPoints({
                     strokeOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
                     {...{fill : colorName===undefined?fill:colorScale(d[colorName]),
                         stroke,strokeWidth}}/>
-            })}
+            })} */}
 
         </g>
     )
@@ -65,4 +73,4 @@ function areEqual(prevProps, nextProps) {
     if (_.some(prevProps.rerenderDependency, (value,idx) => nextProps.rerenderDependency[idx] !== value)) return false 
     return true
   }
-  export default React.memo(ScatterPoints, areEqual);
+  export default React.memo(ProfileLine, areEqual);

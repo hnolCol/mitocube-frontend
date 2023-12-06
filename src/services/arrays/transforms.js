@@ -28,13 +28,6 @@ export function addItemToArrayIfNotPresent({ array, item }) {
     return _.concat(array, [item])
 }
 
-export function addItemToArrayIfNotPresent({ array, item }) {
-    // checks if an item in an array, if there it will remove the item from the array
-    // otherswise it will add it to the array.
-    const itemInArray = isItemInArrayDeepComp({array,item})
-    if (itemInArray) return array
-    return _.concat(array, [item])
-}
 
 
 export function arrayOfObjectsToString(data = [{}],keyNames = [], cellSplit = "\t", lineSplit = "\n"){

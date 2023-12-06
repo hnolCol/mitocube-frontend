@@ -15,6 +15,7 @@ import { storeTokenInLocalStorage } from "../../services/localstorage"
 import DescriptionButton from "../core/base/buttons/DescriptionButton"
 import InteractiveChart from "../core/charts/interactive"
 import { ScatterPlot } from "../core/charts/scatter"
+import { ProfileChart } from "../core/charts/profiles/ProfileChart"
 
 
 Login.propTypes = {
@@ -87,7 +88,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                     <Header text="User Login" />
                 </div>
 
-                <InteractiveChart >
+                {/* <InteractiveChart >
 
                     {(categoricalData) => categoricalData.map(({
                             data,
@@ -107,14 +108,15 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                             // hoverData,
                             // hoverPosition,
                             // rerenderHover,
-                        }, didx) =>  {
+                    }, didx) => {
+                            if (didx === 1) return <div><ProfileChart {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/></div>
                             return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/>
                             {didx===0?<div>
                                 <RangeSlider min={0} max={100} value={filterProps.filterRange} stepSize={5} onChange={range => handleNumericFilter(0,"x",range[0],range[1])}/><Button onClick={() => handleNumericFilter(0,"x",0.2,0.5)}/>
                                 <InputGroup onChange={(e) => handleStringSearch("label",e.target.value)}/>
                                 </div>:null}</div>)})}
 
-                </InteractiveChart>
+                </InteractiveChart> */}
 
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
