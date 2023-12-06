@@ -1,5 +1,5 @@
 import { Button, Dialog, DialogBody, DialogFooter, Spinner, TextArea } from "@blueprintjs/core";
-import { LiteralAttributeSelection } from "../LiteralAttributeSelection";
+import { LiteralAttributeSelection } from "../../new/attribute/select/LiteralAttributeSelection";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types"
 import APIError from "../../../core/error/APIerror";

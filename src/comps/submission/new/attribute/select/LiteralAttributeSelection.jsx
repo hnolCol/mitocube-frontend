@@ -1,12 +1,12 @@
-import { useGetSubmissionAttributes } from "../../../hooks/queries/submission.hooks"
-import { createDataTree } from "../../../services/arrays/nest"
-import Loading from "../../core/base/loading"
+import { useGetSubmissionAttributes } from "../../../../../hooks/queries/submission.hooks"
+import { createDataTree } from "../../../../../services/arrays/nest"
+import Loading from "../../../../core/base/loading"
 import _ from "lodash"
-import AttributeInput from "../new/attribute/select/MultiSelectAttribute"
-import { groupListByProperty } from "../../../services/arrays/groupby"
-import { randomColor } from "../../../services/colors"
-import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
-import { createFakeAttributeValue } from "../../../services/attributes"
+import AttributeInput from "./MultiSelectAttribute"
+import { groupListByProperty } from "../../../../../services/arrays/groupby"
+import { randomColor } from "../../../../../services/colors"
+import { addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
+import { createFakeAttributeValue } from "../../../../../services/attributes"
 
 
 

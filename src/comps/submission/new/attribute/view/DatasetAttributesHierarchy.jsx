@@ -9,7 +9,7 @@ import { useMemo } from "react"
 
 
 
-function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, level = 0}) {
+function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, level = 0, highlightAttributeValuesByTag = [],warnAtTwoAttrValues = false}) {
     // displaying hierarchical dataset attributes.
 
     const handleAttributeRemove = (attributeValue) => {
@@ -27,13 +27,14 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                 
                 {attributeValuesByTag[attribute.tag].map(attributeValue => <Tag
                     key={`${attributeValue.name}-${attributeValue.id}`}
+                    intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
                     style={{ marginRight: "0.4rem" }}
                     onRemove={e => handleAttributeRemove(attributeValue)}
                     minimal={true}
                     large={false}>
                         {attributeValue.name}
                 </Tag>)}
-                {attributeValuesByTag[attribute.tag].length > 1 ? <TooltipButton
+                {attributeValuesByTag[attribute.tag].length > 1 && warnAtTwoAttrValues? <TooltipButton
                     content={<div><div>You defined two dataset attribute values for an attribute ({attribute.name}).</div><div>Consider adding them as sample attributes, otherwise they are not accessible to statistical tests.</div></div>}
                     icon="issue" small={false} intent="danger"/> : null}
                 
@@ -53,11 +54,11 @@ DatasetAttributeHierarchy.propTpyes = {
     onDatasetAttributeRemove : PropTypes.func.isRequired
 }
 
-function DatasetAttributeHierarchy({selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove}) {
+function DatasetAttributeHierarchy({ selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false }) {
     //show dataet attributes
     const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes.filter(attr => selectedDasetAttributeValues[attr.tag].length > 0), link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
     return (
-        <div className="padding--little div--round bg--lightgrey intent-margin-top--little" style={{ maxHeight: "600px", overflow: "scroll" }}>
+        <div className="padding--little div--round bg--lightgrey intent-margin-top--little">
             
             {nestedAttributes.map(attribute => {
                 return (                
@@ -65,7 +66,8 @@ function DatasetAttributeHierarchy({selectedAttributes, selectedDasetAttributeVa
                         key={`${attribute.id}-level-0`}
                         attribute={attribute}
                         onDatasetAttributeRemove={onDatasetAttributeRemove}
-                        attributeValuesByTag={selectedDasetAttributeValues} />  
+                        attributeValuesByTag={selectedDasetAttributeValues}
+                        {...{highlightAttributeValuesByTag,warnAtTwoAttrValues}} />  
                 )
             })}
 

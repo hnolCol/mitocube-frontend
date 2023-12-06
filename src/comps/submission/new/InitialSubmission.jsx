@@ -14,7 +14,7 @@ import DatasetAttributeSelect from "./attribute/select/DatasetAttributes"
 import DatasetAttributeHierarchy from "./attribute/view/DatasetAttributesHierarchy"
 import TextInput from "../../core/input/Text"
 
-import { Button } from "@blueprintjs/core"
+import { Alert, Button } from "@blueprintjs/core"
 
 import MetaText from "./MetaText"
 import { loadSavedSubmissionFromLocalStorage, removeSubmissionFromLocalStorage, saveSubmissionInLocalStorage } from "../../../services/localstorage"
@@ -398,7 +398,7 @@ function InitialSubmission({
     }
 
     const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
-        
+        console.log(attribute)
         if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
             || submission.datasetAttributeValues["att_organism"].length === 0) {
             //if organism has not been selected
@@ -514,13 +514,18 @@ function InitialSubmission({
 
         setSubmission(prevValues => {return{...prevValues,replicates : reps, rerenderTableDependency : Math.random()}})
     }
-
+    const resetAlert = () => {
+        // close the alert 
+        setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
+    }
 
     if (submissionIsError) return <APIError {...{error : submissionAPIError}} />
     if (submissionIDLoading || attributesLoading) return <div>Loading...</div>
 
     return (
         <div className="flex flex-column">
+            <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
+                onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
         <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />

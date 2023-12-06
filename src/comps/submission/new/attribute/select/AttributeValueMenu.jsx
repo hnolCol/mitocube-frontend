@@ -29,7 +29,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
     }
 
     return (
-        <Menu>
+        <Menu small={true}>
             {!attributesMatch && !attributeMatch? <MenuItem text="No attributes found ..." disabled={true} /> :
                 attributes.map(attribute => {
                     const attributeID = attribute.allow_features_as_values? -1 : attribute.id
@@ -69,7 +69,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                             <MenuDivider />
                             
                             {attribute.allow_features_as_values && attributeMatchesQuery?
-                                <MenuItem text={`Select feature for ${attribute.name}`} onClick={() => handleFeatureSelection(attribute)} /> :
+                                <MenuItem text={`Select feature for ${attribute.name}`} onClick={() => handleFeatureSelection({attribute})} /> :
                                 
                                 <div style={{ overflowY: "visible" }}>
                                 {attrValues.map((attributeValue, index) =>

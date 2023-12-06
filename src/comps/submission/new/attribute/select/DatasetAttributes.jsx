@@ -6,10 +6,10 @@ import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
-function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details","name","tag","attribute_id_tag","attribute_id_name"]}) {
+function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details", "name", "tag", "attribute_id_tag", "attribute_id_name"] }) {
     //handles the selection of a dataset attribute 
     
-    const handleItemSelect = (attribute,attributeValue) => {
+    const handleItemSelect = (attribute, attributeValue) => {
         //handle item select
         handleDatasetAttributeSelection(attribute, attributeValue)
     }
@@ -17,10 +17,10 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
     const handleKeyDownSelect = (attributeValue) => {
 
         const attributeFromKey = attributes.filter(attr => attr.id === attributeValue.attribute_id)[0]
-        handleItemSelect(attributeFromKey,attributeValue)
+        handleItemSelect(attributeFromKey, attributeValue)
     }
 
-    const renderItems = ({ activeItem, filteredItems, query}) => { 
+    const renderItems = ({ activeItem, filteredItems, query }) => {
         const filteredAttributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
         // render items 
         return (
@@ -44,6 +44,9 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
 
     return (
         <Suggest
+            resetOnSelect={true}
+            resetOnClose={true}
+            scrollToActiveItem={true}
             onItemSelect={item => handleKeyDownSelect(item)}
             inputValueRenderer={(item) => ""}
             popoverProps={{ matchTargetWidth : true, minimal: true}}

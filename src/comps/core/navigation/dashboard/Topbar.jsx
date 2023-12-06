@@ -20,8 +20,7 @@ function Topbar({
     basePathName }) {
     
     const [dialogProps, setDialogProps] = useState({isOpen : false})
-    const { data: userRoles } = useGetUserRoles({ tokenString: authenticationStatus.token },
-        { enabled: authenticationStatus.isAuth, staleTime: 3000000 })
+    const { data: userRoles } = useGetUserRoles({}, { enabled: authenticationStatus.isAuth, staleTime: 3000000 })
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token },
         {
             enabled: authenticationStatus.isAuth,
