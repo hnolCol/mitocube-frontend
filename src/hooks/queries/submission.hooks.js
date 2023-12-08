@@ -5,15 +5,16 @@ import { arrayOfObjectsToObjectByProperty} from "../../services/arrays/groupby";
 
 // get submissions
 
-async function getSubmissions_API({ tokenString }) {
-    const res = await axios.get('/api/submissions', {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-        })
-    return res.data 
 
+/**
+ * @description Returns the submission from the API.
+ * @author Hendrik Nolte 
+ * @since 0.1.0
+ * @returns {import("../../types/submissions").Submission[]} - Array of submissions.
+ */
+async function getSubmissions_API({}) {
+    const res = await axios.get('/api/submissions')
+    return res.data 
 }
 
 export const useGetSubmissions = (APIParams = {},useQueryOptions = {}) => {
@@ -22,7 +23,6 @@ export const useGetSubmissions = (APIParams = {},useQueryOptions = {}) => {
 
 
 // sumbission ID
-
 async function getSubmissionID_API(token) {
 
     const res = await axios.get('/api/submission/id', { params: { token: token } })
@@ -67,18 +67,30 @@ export const useGetSubmissionHelp = (useQueryOptions = {}, APIParams = {}) => {
 }
 
 
+
+/**
+ * @description Returns the attributes and attributes_values from the API.
+ * @author Hendrik Nolte 
+ * @since 0.1.0
+ * @returns {import("../../types/attributes").AttributesAPIResponse} -  The attributes and attribute_values as an array of its type.
+ */
 async function getSubmissionAttribute_API() {
     // returns submission attributes
     const res = await axios.get('/api/attributes')
     return res.data 
 }
-
 export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["attributes"], () => getSubmissionAttribute_API({...APIParams}), useQueryOptions)
 
 }
 
-
+/**
+ * @description Returns the attributes and attributes_values from the API and transform it to a object witht the tag as the key. This 
+ * is useful when tranforming the tag based submission json objects back to the real attributes.
+ * @author Hendrik Nolte 
+ * @since 0.1.0
+ * @returns {import("../../types/attributes").AttributesByTagAPIResponse} -  The attributes and attribute_values as an object where the tag is the key.
+ */
 async function getSubmissionAttributeByTag_API() {
     // returns submission attributes but puts them in a dictionary where key is the tag
     //TO DO: merge with function from above 
@@ -144,8 +156,12 @@ export const usePatchSubmission = (useMutationOptions = {}) => {
     return useMutation((APIParams) => patchSubmission_API({...APIParams}), useMutationOptions)
 }
 
-//submission states
-
+/**
+ * @description Returns the available states of a submission from the API.
+ * @author Hendrik Nolte 
+ * @since 0.1.0
+ * @returns {import("../../types/states").StatesResponse} - The available states.
+ */
 async function getSubmissionStates_API() {
     const res = await axios.get('/api/submissions/states')
     return res.data

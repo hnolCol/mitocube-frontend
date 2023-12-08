@@ -1,5 +1,6 @@
 
 import { useState } from "react"
+import "../submission.css"
 import _ from "lodash"
 import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions, usePatchSubmission } from "../../../hooks/queries/submission.hooks"
 import APIError from "../../core/error/APIerror"
@@ -9,7 +10,7 @@ import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { AttributeSlectionDialog } from "./dialogs/AttributeSelectionDialog"
 import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
 import { EditDatasetAttributeDialog } from "./dialogs/DatasetAttributesDialog"
-import "../submission.css"
+
 
 
 
@@ -30,18 +31,6 @@ const initExperimental = {
 }
 
 function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
-   
-    const [submissionDetails, setSubmissions] = useState({
-        submissions: [],
-        states: [],
-        tagNames : [],
-        searchColumns : [], //columns that are available from the 
-        submissionSatesCounts: {}, //counts the states.
-        submissionsToShow: [],
-        submissionFilter: "None",
-        searchString: "",
-        submissionSummaryParams: []
-    })
     
     const [attributeSelectionDialog, setAttributeSelectionDialog] = useState({
         isOpen: false,
@@ -77,7 +66,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({ tokenString: authenticationStatus.token },
         { staleTime: Infinity }) //request only once. 
     
-    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions({ tokenString: authenticationStatus.token })    
+    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions()    
     const {data : attributesByTag} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
        
@@ -85,7 +74,6 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         mutate: patchSubmission,
         isLoading: patchSubmissionIsLoading,
         isSuccess: patchSubmissionSuccess,
-        error: patchSubmissionError,
         isError: patchSubmissionIsError } = usePatchSubmission()
     
     
@@ -116,9 +104,9 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                     alertUpdateFn(prevValues => {
                         return {
                             ...prevValues,
-                            isLoading: false,
+                            isLoading: patchSubmissionIsLoading,
                             submitted: true,
-                            success: true
+                            success: patchSubmissionSuccess
                         }
                     }),
                         refetchSubmissions()
@@ -127,45 +115,46 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                     alertUpdateFn(prevValues => {
                         return {
                             ...prevValues,
-                            isLoading: false,
+                            isLoading: patchSubmissionIsLoading,
                             submitted: true,
-                            success: false,
+                            success: patchSubmissionSuccess,
+                            isError : patchSubmissionIsError,
                             error
                         }
                     })
                 
                 }
             })
-            alertUpdateFn(prevValues => {return {...prevValues,isLoading : true}})
+            alertUpdateFn(prevValues => {return {...prevValues,isLoading : patchSubmissionIsLoading}})
     }
     
 
-    const downloadProjectSummary = (event, notThisState = undefined) => {
-        //download the projects summary as a txt file.
-        let submissions = submissionDetails.submissions
-        if (submissions.length > 0) {
-            let summaryColumns = submissionDetails.submissionSummaryParams
-            if (_.isArray(summaryColumns) && summaryColumns.length > 0){ 
-                let filteredSubmission = notThisState!==undefined?_.filter(submissions, v => v.paramsFile.State !== notThisState):submissions.slice()
-                let submissionSummary = filteredSubmission.map(submission => Object.fromEntries(summaryColumns.map(sumColumn => [sumColumn, submission.paramsFile[sumColumn]])))
-                downloadTxtFile(arrayOfObjectsToTabDel(submissionSummary,summaryColumns),`ProjectSummary(${notThisState===undefined?"allStates":"allStatesBut"+notThisState}).txt`)
-            }
-        }
-    }
+    // const downloadProjectSummary = (event, notThisState = undefined) => {
+    //     //download the projects summary as a txt file.
+    //     let submissions = submissionDetails.submissions
+    //     if (submissions.length > 0) {
+    //         let summaryColumns = submissionDetails.submissionSummaryParams
+    //         if (_.isArray(summaryColumns) && summaryColumns.length > 0){ 
+    //             let filteredSubmission = notThisState!==undefined?_.filter(submissions, v => v.paramsFile.State !== notThisState):submissions.slice()
+    //             let submissionSummary = filteredSubmission.map(submission => Object.fromEntries(summaryColumns.map(sumColumn => [sumColumn, submission.paramsFile[sumColumn]])))
+    //             downloadTxtFile(arrayOfObjectsToTabDel(submissionSummary,summaryColumns),`ProjectSummary(${notThisState===undefined?"allStates":"allStatesBut"+notThisState}).txt`)
+    //         }
+    //     }
+    // }
 
 
-    const downloadNotLastStateProjects = (event) => {
-        // download all projects that are not the last state (e.g. assuming that the last state in the list is done.)
-        let notThisState = submissionDetails.states.slice(-1)[0]
-        if (notThisState !== undefined) {
-            downloadProjectSummary(undefined, notThisState)
-        }
-    }
+    // const downloadNotLastStateProjects = (event) => {
+    //     // download all projects that are not the last state (e.g. assuming that the last state in the list is done.)
+    //     let notThisState = submissionDetails.states.slice(-1)[0]
+    //     if (notThisState !== undefined) {
+    //         downloadProjectSummary(undefined, notThisState)
+    //     }
+    // }
 
-    const openSubmissionOverviewDialog = (dataID, paramsFile) => {
-        // openns a dialog to view the submission
-        setSubissionOverviewDialog(prevValues => {return {...prevValues,isOpen : true, dataID : dataID, paramsFile: paramsFile}})
-    }
+    // const openSubmissionOverviewDialog = (dataID, paramsFile) => {
+    //     // openns a dialog to view the submission
+    //     setSubissionOverviewDialog(prevValues => {return {...prevValues,isOpen : true, dataID : dataID, paramsFile: paramsFile}})
+    // }
     
     //setAlertProps(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false } })
     return (

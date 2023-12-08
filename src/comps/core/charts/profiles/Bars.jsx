@@ -1,9 +1,13 @@
-import PropTypes from "prop-types"
+import PropTypes, { array } from "prop-types"
 import _ from "lodash"
 import React from "react"
 import { LinePath } from "@visx/shape"
+import Bar from "../barplot/Bar"
+import { getStandardDeviationAndAverage } from "../../../../services/statistics/average"
+import { getAverageAndErrorForKeysInArrayOfObject } from "../../../../services/arrays/groupby"
+import ErrorBar from "../error"
 
-ProfileLine.propTypes = {
+ProfileBars.propTypes = {
     data : PropTypes.array.isRequired,
     valid : PropTypes.arrayOf(PropTypes.bool).isRequired, // boolean
     xaxisName : PropTypes.string.isRequired,
@@ -14,7 +18,7 @@ ProfileLine.propTypes = {
 }
 
 
-function ProfileLine({
+function ProfileBars({
     data = [], 
     valid = [], 
     xaxisName, 
@@ -36,12 +40,25 @@ function ProfileLine({
     const filterByIdx = filterIndices.size !== 0
     const oapcityBySearch = searchIndices.size !== 0
 
-    const halfBandWidth = xScale.bandwidth()/2
+    if (data.length === 0) return null 
+    const dataMerged = getAverageAndErrorForKeysInArrayOfObject(data, yaxisName)
     return(
         <g>
-            {data.map(d => <polyline
-                points={_.join(_.map(yaxisName, yName => `${xScale(yName)+halfBandWidth},${yScale(d[yName])}`), ", ")}
-                {...{ stroke, strokeWidth, fill  }} />)}
+            {_.map(yaxisName, yaxisName => {
+                const { [yaxisName]: mean, e: errorValue } = dataMerged[yaxisName]
+                const barWidth = xScale.bandwidth()
+                const barX = xScale(yaxisName)
+                if (!_.isNumber(mean)) return null 
+                return <g>
+                    <Bar x={barX} y0={yScale(0)} width={barWidth} y1={yScale(mean)} />
+                    {_.isNumber(errorValue) ? <ErrorBar
+                        x={barX+barWidth/2}
+                        y0={yScale(mean)} //bar start 
+                        y1={mean > 0 ? yScale(mean + errorValue) : yScale(mean - errorValue)}
+                        width={barWidth*0.5} /> : null}
+                </g>
+            })}
+            
 
             {/* {data.filter((d,idx) => valid[idx]).map((d,idx) => {
                 //filter data first and then map over it 
@@ -74,4 +91,4 @@ function areEqual(prevProps, nextProps) {
     if (_.some(prevProps.rerenderDependency, (value,idx) => nextProps.rerenderDependency[idx] !== value)) return false 
     return true
   }
-  export default React.memo(ProfileLine, areEqual);
+  export default React.memo(ProfileBars, areEqual);

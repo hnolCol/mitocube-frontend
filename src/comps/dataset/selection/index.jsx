@@ -16,7 +16,7 @@ import { SubmissionBaseFilter } from "../../submission/filter";
 function DatasetSelection({ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
     const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
-    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch: refetchSubmissions } = useGetSubmissions({ tokenString: authenticationStatus.token })    
+    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch: refetchSubmissions } = useGetSubmissions()    
     
     const { data: users, isLoading: userIsLoading, isFetching: userIsFetching } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
     const { data: states, isLoading: submissionStatesLoading } = useGetSubmissionStates()

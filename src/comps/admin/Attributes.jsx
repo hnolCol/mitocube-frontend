@@ -20,8 +20,8 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
         isLoading: attributesLoading,
         error: attributesAPIError,
         isError: attributeIsError,
-        isSuccess: attributesIsSuccess } = useGetSubmissionAttributes() //
-    
+        isSuccess: attributesIsSuccess } = useGetSubmissionAttributes()
+
     //const {data : attributes, isLoading, isFetching } = useGetSubmissionAttributes({tokenString : authenticationStatus.token})
     //console.log(attributes)
 
@@ -31,7 +31,7 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
         let attrValues = attributes.attribute_values
         if (debounceSearchString === "" || !_.isString(debounceSearchString)) return groupListByProperty(attributes.attribute_values, "attribute_id")
         else {
-            const attrValueMatchQuery = filterArrayBySearchString({ searchString: debounceSearchString, searchColumns: ["name", "tag", "details"], array: attrValues })
+            const attrValueMatchQuery = filterArrayBySearchString({ searchString: debounceSearchString, keyNames: ["name", "tag", "details"], array: attrValues })
             return groupListByProperty(attrValueMatchQuery, "attribute_id")
         }
     }, [debounceSearchString,attributesIsSuccess]) 

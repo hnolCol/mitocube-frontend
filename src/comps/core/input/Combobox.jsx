@@ -53,7 +53,7 @@ export function Combobox(
 
     const filterItems = (query, items) => {
         if (query.length < 2) return items 
-        else return filterArrayBySearchString({array : items, searchString : query, searchColumns : keyNames})
+        else return filterArrayBySearchString({array : items, searchString : query, keyNames})
     }
 
     const onItemSelection = (item) => {

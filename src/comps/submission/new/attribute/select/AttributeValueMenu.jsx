@@ -12,7 +12,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
     const attributesMatch = !_.isEmpty(attributeValuesByID)
     const attributeIDsMatchingQuery = useMemo(() => {
         if (query === "") return Object.fromEntries(attributes.map(attr => [attr.id,attr.id]))
-        return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, searchColumns: ["tag", "name"]}).map(attr => [attr.id,attr.tag]))
+        return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, keyNames: ["tag", "name"]}).map(attr => [attr.id,attr.tag]))
     }, [query])
 
     const attributeMatch = !_.isEmpty(attributeIDsMatchingQuery)

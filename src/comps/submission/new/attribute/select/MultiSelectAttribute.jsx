@@ -81,7 +81,7 @@ function AttributeInput({ attribute,
     // const selectableItems = useMemo(() => {
     //     if (!_.isArray(attributeValues)) return []
     //     if (query === "") return attributeValues
-    //     return filterArrayBySearchString({searchString:[query],searchColumns:["name","details"],array:attributeValues})
+    //     return filterArrayBySearchString({searchString:[query],keyNames:["name","details"],array:attributeValues})
     // }, [query])
 
     const filterItems = (searchString, items) => {

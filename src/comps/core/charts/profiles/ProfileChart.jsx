@@ -4,10 +4,10 @@ import { SVG } from "../SVGHeader";
 import AxisWithBackground from "../axis";
 import { useMemo, useRef } from "react";
 import { localPoint } from "@visx/event";
-import { scaleLinear } from "@visx/scale";
+import { scaleBand, scaleLinear } from "@visx/scale";
 
 import ProfileLine from "./Line"
-
+import ProfileBars from "./Bars"
 
 
 
@@ -28,11 +28,13 @@ export function ProfileChart({
     limits,
     svgID,
     rerenderHover,
-    hoverData
+    hoverData,
+    profileAsLine = true,
+    profileAsBar = false,
     
 }) {
 
-    console.log(data, limits,yaxisName, valid)
+   
 
     const svgRef = useRef(null);
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins(width, height, margins)
@@ -43,7 +45,6 @@ export function ProfileChart({
     
         const yDomain = { min: 0, max: 5000 }//limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
-        console.log(yDomainWithMargin)
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],
@@ -53,20 +54,22 @@ export function ProfileChart({
         )
     }, [yaxisName, chartHeight])
 
-
     const xScale = useMemo(() => {
         // y scale for the scatter
-        const xDomain = limits[xaxisName]
+        const xDomain = {min : 0, max : yaxisName.length-1}
         const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
         console.log(xDomain)
-        return scaleLinear(
+        return scaleBand(
             {
-                domain: [0,yaxisName.length],
+                domain: yaxisName,
                 range: [margins.left, margins.left + chartWidth],
-                nice: true
+                nice: true,
+                paddingInner: 0.2,
+                paddingOuter : 0.2
             }
         )
-    }, [xaxisName, chartWidth])
+    }, [xaxisName, chartWidth, yaxisName.length])
+
 
     const handeMouseHover = (e) => {
         const mouseCoord = localPoint(svgRef.current,e)
@@ -96,9 +99,12 @@ export function ProfileChart({
                 moveBottomToLeft={false}
                 findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
-            <g >
-                <ProfileLine {...{valid,data : hoverData,xScale,yScale,yaxisName,xaxisName,rerenderDependency : rerenderHover}} />
-            </g>
+            {profileAsLine ? <g >
+                <ProfileLine {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
+            </g> : null}
+            {profileAsBar ? <g>
+                <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
+            </g> : null}
             <rect x={0} y={0} width={width} height={height} onMouseMove={handeMouseHover} fill="transparent"/>
         </SVG >
     )

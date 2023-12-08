@@ -162,7 +162,7 @@ function AdminUsers({ authenticationStatus }) {
         if (!_.isObject(data) || !objectHasKey({object : data, keyName : "users"})) return []
         if (query === "") return data.users
         else {
-            return filterArrayBySearchString({array : data.users, searchString : query, searchColumns : ["firstname","lastname","institute","research_group","email"]})
+            return filterArrayBySearchString({array : data.users, searchString : query, keyNames : ["firstname","lastname","institute","research_group","email"]})
         }
     },[query, isLoading, isSuccess, isFetching])
     

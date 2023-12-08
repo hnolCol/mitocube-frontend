@@ -6,12 +6,23 @@ import LineChart from "../../core/charts/linechart";
 import Loading from "../../core/base/loading";
 import _ from "lodash"
 import ResultChart from "../../protein/charts/resultCard/chart";
+import { useEffect } from "react";
 
-function DatasetQC({authenticationStatus }) {
+function DatasetQC() {
     
-    const { dataset_label, metadata } = useOutletContext()   
+    const { dataset_label, metadata, refetchMetaData, setTabHeader } = useOutletContext()   
 
-    const {data : datatable, isLoading, isFetching, isError, error} = useGetDataQC({dataset_label})
+    const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_label })
+    
+    useEffect(() => {
+        if (_.isObject(metadata) && _.has(metadata, "title")) {
+            setTabHeader(metadata.title)
+        }
+        else {
+            refetchMetaData()
+        }
+       
+    }, [metadata.title])
 
     if (isError) return <APIError error={error}/>
     if (isLoading || isFetching) return <Loading />

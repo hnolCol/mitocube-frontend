@@ -47,6 +47,7 @@ import _ from "lodash"
 import Loading from "./comps/core/base/loading";
 import DatasetSelection from "./comps/dataset/selection";
 import axios from "axios";
+import AddExistingSubmission from "./comps/submission/add";
 
 //axios defaults
 
@@ -174,8 +175,8 @@ function App() {
             <Route path="/dataset/:dataID" element={<DatasetOverview {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
-            <Route path="/dataset/:dataID/pca" element={<DatasetPCA {...{authenticationStatus, logout}}/>} />
-            <Route path="/dataset/:dataID/qc" element={<DatasetQC {...{authenticationStatus, logout}}/>} />
+            <Route path="/dataset/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
+            <Route path="/dataset/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
             <Route path="/dataset/:dataID/mitomap" element={<h3>MitoMap</h3>} />
             <Route path="/dataset/:dataID/timeline" element={<Timeline {...{authenticationStatus, logout}}/>} />
             <Route path="/dataset/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
@@ -219,7 +220,7 @@ function App() {
             <Route index element={<NewSubmission {...{authenticationStatus, logout}}/>} />
             <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
             <Route path="/submission/view" element={<SubmissionView {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>}/>
-            <Route path="/submission/a" element={<h3>Submission Overview</h3>}/>
+            <Route path="/submission/existing" element={<AddExistingSubmission {...{authenticationStatus, logout}}/>}/>
             <Route path="/submission/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route path="/submission/statistics" element={
               <SubmissionStatistics {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>} />

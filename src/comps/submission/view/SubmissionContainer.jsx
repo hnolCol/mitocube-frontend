@@ -19,10 +19,41 @@ import { StateSelection } from "../filter/StateSelection"
 
 
 
-export function AttributeFilterButton({ attributeValue, submissionKey, setSubmissionFilter, submissionFilter, backgroundColors = {}, numberSubmissionWithTag = undefined,  }) {
+
+AttributeFilterButton.propTypes = {
+    /**
+     * Attribute value used to display the filter button.
+     */
+    attributeValue: PropTpyes.object.isRequired,
+    
+}
+
+
+
+/**
+ * Attribute Filter Button. A JSX Component that animates a filter icon. 
+ * Selecting the filter button leads to a filter by the given attribute tag, which is defined
+ * as the attributeValue
+ * @param {Object} props - The props
+ * @param {import("../../../types/attributes").AttributeValue} props.attributeValue 
+ * @param {string} props.submissionKey - The submissionKey to be used for filtering by the Attribute Value.
+ * @param {Function} props.setSubmissionFilter - The function be called when the button is clicked. Returns the prevValues and [submissionKey] : Set() using the attribute tag.
+ * @param {Object} props.backgroundColors - The background color to be used for the button. Must contain the the submissionKey
+ * @param {number} props.numberSubmissionWithTag - The number of submission that do actually contain this tag.
+ * @returns The JSX Element :: AttributeFilter Button
+ */
+export function AttributeFilterButton({
+    attributeValue,
+    submissionKey,
+    setSubmissionFilter,
+    submissionFilter,
+    backgroundColors = {},
+    numberSubmissionWithTag
+}) {
     // Attribute Filter Button
     // submssion Key === attribute.tag
-    // 
+    // <
+
     const isFilterKeyActive = _.has(submissionFilter, submissionKey) && submissionFilter[submissionKey].size > 0
     const attrValueTag = attributeValue.tag
     const isFilterActive = isFilterKeyActive ? submissionFilter[submissionKey].has(attrValueTag ) : false 
@@ -98,6 +129,9 @@ export function AttributeFilterButton({ attributeValue, submissionKey, setSubmis
 }
 
 
+
+
+
 export function StateIndicator({ state, padding = "little" }) {
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     if (submissionStatesLoading) return null 
@@ -153,7 +187,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
             //first check attributes match the query
             let attributeTagsMatchingFilterString = filterArrayBySearchString({
                 array: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter).map(attributeTag => attribtesByTag[attributeTag]),
-                searchColumns: ["tag", "name"], searchString: attributeSearchQuery
+                keyNames: ["tag", "name"], searchString: attributeSearchQuery
             })
             //then find the attribute Values that match the query.
             // optiona TO DO: one could add the tag and name of the attribute to the values to iteratte only through a single array
@@ -161,7 +195,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
                 return [attrTag, filterArrayBySearchString({
                     array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => _.has(attribteValuesByTag,attrValueTag)?attribteValuesByTag[attrValueTag]:{tag:attrValueTag}),
                     searchString: attributeSearchQuery,
-                    searchColumns: ["tag", "name", "details"]
+                    keyNames: ["tag", "name", "details"]
                 })]
             }).filter(attrValues => attrValues[1].length > 0))
             
@@ -247,7 +281,7 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
         //filter by plain serach
         filteredSubmission = filterArrayBySearchString({
             array: submissions,
-            searchColumns: ["title", "label"],
+            keyNames: ["title", "label"],
             searchString: submissionsQuery.plain
         })
     }
@@ -261,6 +295,9 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 
 
 }
+
+
+
 
 export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setSamplesAttributesDialog}) {
 

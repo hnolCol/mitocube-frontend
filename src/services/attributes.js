@@ -1,5 +1,13 @@
 import _ from "lodash"
 
+
+/**
+ * 
+ * @param {Object} props
+ * @param {import("../types/attributes").Attribute} props.attribute - The attribute this fake attribute value is for
+ * @param {string|number} props.numericInput - Numeric input value 
+ * @returns 
+ */
 export function createFakeAttributeValue({ attribute, numericInput }) {
     return {
         id: -1,

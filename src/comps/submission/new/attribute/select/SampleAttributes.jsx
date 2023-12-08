@@ -93,7 +93,11 @@ function ReplicateContextMenu({numberReplicates, onReplicateChange, selectedRows
 
 export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined}) {
     const [queryString, setQuery] = useState("")
-    let attributeValueBySearchQuery = useMemo(() => queryString === ""? attributeValues:filterArrayBySearchString({searchString : queryString, array : attributeValues, searchColumns : ["name","details"]}),[queryString])
+    let attributeValueBySearchQuery = useMemo(() => queryString === "" ? attributeValues : filterArrayBySearchString({
+        searchString: queryString,
+        array: attributeValues,
+        keyNames: ["name", "details"]
+    }), [queryString])
     return (
         <Menu>
 

@@ -27,7 +27,7 @@ function AxisWithBackground({
     
     const leftStart = leftLeft === undefined ? margins.left : leftLeft
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
-    const {data : attributesByTag, isLoading, isFetching, isError} = useGetSubmissionAttributesByTag({},{staleTime : Infinity, enabled : findAttributesForBottomScale})
+    const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
     if (isLoading || isFetching) return null 
     if (isError && findAttributesForBottomScale) return null 
     if (_.isNumber(bandwidth)) bottomTickLabelProps["width"] = bandwidth

@@ -19,7 +19,6 @@ export const useGetDatasetForSelection = (APIParams = {}, useQueryOptions = {}) 
 
 
 
-//data table 
 
 async function getDatasetQC_API({ tokenString, dataset_label }) {
     const res = await axios.get('/api/datasets/'+dataset_label+'/qc',
@@ -33,6 +32,12 @@ export const useGetDataQC = (APIParams = {}, useQueryOptions = {staleTime : Infi
 
 //meta data 
 
+/**
+ * 
+ * @param {Object} API_Params 
+ * @param {string} API_Params.dataset_label - The submission/dataset label.
+ * @returns {import("../../types/submissions").Submission} - The submission metadata.
+ */
 async function getDatasetMetadata_API({ dataset_label }) {
     const res = await axios.get('/api/datasets/'+dataset_label+'/meta'
     )
@@ -44,6 +49,25 @@ export const useGetMetadata = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["getDatasetMeta",APIParams.dataset_label],() => getDatasetMetadata_API({...APIParams}), useQueryOptions)
 }
 
+
+
+//pca data 
+/**
+ * 
+ * @param {Object} props
+ * @param {string} props.dataset_label - The dataset unique label.
+ * @returns {import("../../types/datasets").DatasetPCAResponse} - The API response for a principal component analysis.
+ */
+async function getDatasetPCA_API({ dataset_label }) {
+    const res = await axios.get('/api/datasets/'+dataset_label+'/pca'
+    )
+    return res.data
+
+}
+
+export const useGetDatasetPCA = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["getDatasetPCA",APIParams.dataset_label],() => getDatasetPCA_API({...APIParams}), useQueryOptions)
+}
 
 //// 
 

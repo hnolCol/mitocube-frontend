@@ -104,10 +104,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                             handleNumericFilter,
                             handleStringSearch,
                             hoverProps,
-                            filterProps,
-                            // hoverData,
-                            // hoverPosition,
-                            // rerenderHover,
+                            filterProps
                     }, didx) => {
                             if (didx === 1) return <div><ProfileChart {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/></div>
                             return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/>

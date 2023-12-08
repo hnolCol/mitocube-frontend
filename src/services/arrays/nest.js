@@ -1,13 +1,15 @@
 import _ from "lodash"
 
-export function nestLinearArrayByLink({ array, id = null, link = 'parent_id' }) {
-    
-    return array.filter(i => i[link] === id).
-        map(i => ({ ...i, children: nestLinearArrayByLink({ array, id : i.id, link })}))
-}
 
-
-
+/**
+ * @description Creates a data tree on a specific link (key in an array of objects). Please note that the array size will change.
+ * The function is intended to work by ids. Therefore each item should contain an id. The ```link```keyname should point to a keyName
+ * that references to the parent id. 
+ * @param   {Object}    treeProps - The search parameters.
+ * @param   {Object[]}  treeProps.array The data to create the tree of. 
+ * @param   {string}    treeProps.link The keyName to be used for linking the data. Defaults to ```'parent_id'```
+ * @return  {Object[]} - Returns the tree data. Children can be found by the keyName childNodes.
+ */
 export function createDataTree({ array, link = 'parent_id' }){
     const hashTable = Object.create(null);
     array.forEach(aData => hashTable[aData.id] = {...aData, childNodes: []});

@@ -1,3 +1,10 @@
+
+/**
+ * Checks if a hex color is light. Can be used to determine if the font color should
+ * rather be black or white.  
+ * @param   {string}    color   The hexcolor
+ * @return   {Boolean}    If the color is light.
+ */
 export function isHexColorLight(color) {
     const hex = color.replace('#', '');
     const c_r = parseInt(hex.substr(0, 2), 16);

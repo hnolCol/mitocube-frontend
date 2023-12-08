@@ -33,7 +33,7 @@ export function OmnibarSearch(props) {
         let filteredItems = filterArrayBySearchString({
             searchString: debounceSearchString,
             array: data.features.slice(),
-            searchColumns: Object.keys(data.features[0])
+            keyNames: Object.keys(data.features[0])
         })
         
         if (filteredItems.length > 200) {

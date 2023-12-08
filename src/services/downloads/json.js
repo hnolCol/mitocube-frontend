@@ -1,4 +1,11 @@
 
+
+
+/**
+ * Download a json file using a Blob.  Data must be stringiable. 
+ * @param   {Object.<Array>}    data   - The data to stringify.
+ * @param   {string}    fileName  - The filename of the exported jsonify data.
+ */
 export function downloadJSONFile(data, fileName = "file.json") {
    
     // create file in browser
@@ -17,4 +24,4 @@ export function downloadJSONFile(data, fileName = "file.json") {
     // clean up "a" element & remove ObjectURL
     document.body.removeChild(link);
     URL.revokeObjectURL(href);
-  }
+}

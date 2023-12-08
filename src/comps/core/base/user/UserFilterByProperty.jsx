@@ -1,6 +1,5 @@
 import { getCountsByGroups, getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../../services/arrays/groupby"
 import _ from "lodash"
-import { createDataTree, nestLinearArrayByLink } from "../../../../services/arrays/nest"
 import { AttributeFilterButton } from "../../../submission/view/SubmissionContainer"
 import { Icon, InputGroup } from "@blueprintjs/core"
 import { useState } from "react"

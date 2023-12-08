@@ -14,7 +14,7 @@ function DatasetHeader({authenticationStatus}) {
     const [tabHeader, setTabHeader] = useState("")
     
     // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
-    const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching} = useGetMetadata({dataset_label})
+    const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching, refetch : refetchMetaData} = useGetMetadata({dataset_label})
     const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     
@@ -34,7 +34,7 @@ function DatasetHeader({authenticationStatus}) {
             {/* context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}} */}
             {metadataIsFetching || metadataIsLoading || attrIsLoading || attrIsFetching || submissionStatesLoading? <Loading /> : null}
             <div className="no-scroll div--expand">
-            <Outlet context={{dataset_label, metadata, tabHeader, setTabHeader,attributesByTag,submissionStates}}/>
+            <Outlet context={{dataset_label, metadata,refetchMetaData, tabHeader, setTabHeader,attributesByTag,submissionStates}}/>
             </div>
             
         </div>

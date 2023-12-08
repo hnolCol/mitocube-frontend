@@ -1,20 +1,41 @@
 import _ from "lodash";
 import { array } from "prop-types";
 
-export function filterArrayBySearchString({searchString = "", array = [], searchColumns = []}) {
+
+
+
+/**
+ * @description Iterates over an array of objects and finds the indices that match and returns as well data filtered data. 
+ * Allows for multiple keyNames
+ * @param   {Object}    searchParams - The search parameters.
+ * @param   {Object[]}      searchParams.array - The data to filter.
+ * @param   {string[]}      searchParams.keyNames The keyName to look for the search string.
+ * @param   {string}        searchParams.searchString - The search string. 
+ * @return  {Object[]} Returns an array containing matching items(objects)
+ */
+export function filterArrayBySearchString({array, keyNames, searchString}) {
     // Filter array of objects using a search string, specify the search columns to limit the search to
     // certain keys of the objects. 
-    if (!_.isArray(searchColumns)) return []
+    if (!_.isArray(keyNames)) return []
     if (!_.isArray(array)) return []
     if (!_.isObject(array[0])) return []
-    const columnsToSearch = searchColumns.length === 0 ? Object.keys(array[0]) : searchColumns
+    const keyNamesToSearch = keyNames.length === 0 ? Object.keys(array[0]) : keyNames
     const re = new RegExp(_.escapeRegExp(searchString), 'i')
-    const isMatch = arrayItem => _.filter(columnsToSearch.map(v => re.test(arrayItem[v]))).length > 0
+    const isMatch = arrayItem => _.some(_.map(keyNamesToSearch.map(v => re.test(arrayItem[v]))))
     return _.filter(array, isMatch)
 }
 
 
-export function filterArrayBySearchStringBySingleKey({array = [], keyName = "", searchString = ""}){
+/**
+ * @description Iterates over an array of objects and finds the indices that match and returns as well data filtered data. 
+ * Allows only for a single keyName. Use the function filterArrayBySearchString for multiple keyNames.
+ * @param   {Object}    searchParams - The search parameters.
+ * @param   {Object[]}  searchParams.array - The data to filter.
+ * @param   {string}    searchParams.keyName The keyName to look for the search string.
+ * @param   {string}    searchParams.searchString - The search string. 
+ * @return  {Object} - Returns an object with keys idcs (indicies) and data (the filtered data.)
+ */
+export function filterArrayBySearchStringBySingleKey({array, keyName, searchString}){
     //Returns the data and index which match
     const re = new RegExp(_.escapeRegExp(searchString), 'i')
     const isMatch = i => re.test(i)
@@ -27,14 +48,32 @@ export function filterArrayBySearchStringBySingleKey({array = [], keyName = "", 
     }, {idcs : new Set(), data : []})
 }
 
-export function filterArrayOfObjects({ array = [], keyName = "", keyValue = "" }) {
+
+/**
+ * @description Filters an array ob objects using a specific keyName (key) and keyValue.
+ * @param   {Object}    searchParams - The search parameters.
+ * @param   {Object[]}  searchParams.array - The data to filter.
+ * @param   {string}    searchParams.keyName The keyName to look for the search string.
+ * @param   {string|number}    searchParams.keyValue - The value to look for.
+ * @return  {Object[]} - Returns the filtered object.
+ */
+export function filterArrayOfObjects({ array, keyName, keyValue}) {
     return _.filter(array, v => v[keyName] === keyValue)
 }
 
-export function removeKeyInArrayOfObjects({ array = [], keyName = ""}){
-    
-    return array.map(o => _.omit(o,keyName))
 
+
+
+
+/**
+ * @description Remove a specific key of each object in an array.
+ * @param   {Object}    searchParams - The search parameters.
+ * @param   {Object[]}  searchParams.array - The data to filter.
+ * @param   {string}    searchParams.keyName The keyName to look for the search string.
+ * @return  {Object[]} - Returns the filtered object.
+ */
+export function removeKeyInArrayOfObjects({ array = [], keyName = ""}){
+    return array.map(o => _.omit(o,keyName))
 }
 
 

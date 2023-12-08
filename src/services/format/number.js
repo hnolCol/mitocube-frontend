@@ -1,6 +1,12 @@
 
 var SI_SYMBOL = ["", "k", "M", "G", "T", "P", "E"];
 
+
+/**
+ * Returns a number into SI_Symbol abbreviations. 5000 is converted to 5k. Only works for high numbers at the moment. (e.g. k, M, G, T, P, E)
+ * @param   {number}    number  - The number to transform to string.
+ * @return  {string}     The abbreviated number as a string. 
+ */
 export function abbreviateNumber(number){
 
     // what tier? (determines SI symbol)

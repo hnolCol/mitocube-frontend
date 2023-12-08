@@ -24,15 +24,17 @@ export function binDataByDate(data = [], unixName = "created_on", ) {
         p[timeFormat].values.push(c)
         return p
     }, {})
-
-    
-    
-
-
 }
 
 
-export function getUniqueValuesFromArrayOfObjectsByKey(data = []) {
+
+
+/**
+ * @description Finds the unique values from an array of objects for all keys and returns them by keyName. 
+ * @param   {Object[]}    data - The search parameters.
+ * @return  {Object.<string, string[]>} - The object with keyNames as in the input data, values are unique values in an array. 
+ */
+export function getUniqueValuesFromArrayOfObjectsByKey(data) {
     
     return data.reduce((p, c) => {
         let keyNames = Object.keys(c)
@@ -108,6 +110,11 @@ export function getCountsByGroups(
     const maxNumber = _.maxBy(groupedAggratedData,"N")["N"]
     const minMaxYDomain = {min : 0, max : maxNumber+maxNumber*0.05}
     return ({ groupedAggratedData, minMaxYDomain})
+}
+
+
+export function getAverageAndErrorForKeysInArrayOfObject(data = [], keyNames = []) {
+    return _.fromPairs(_.map(keyNames, keyName => [keyName, getStandardDeviationAndAverage(data.map(d => d[keyName]),keyName)]))
 }
 
 
