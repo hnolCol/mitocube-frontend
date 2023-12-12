@@ -37,7 +37,6 @@ function ScatterPoints({
             {data.filter((d,idx) => valid[idx]).map((d,idx) => {
                 //filter data first and then map over it 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
-                
                 return <circle 
                     //dont use opacity, very very slow on safari 
                     key={`${idx}-${d[xaxisName]}`}

@@ -2,6 +2,24 @@ import _ from "lodash";
 import { array } from "prop-types";
 
 
+/**
+ * 
+ * @param {Object} props 
+ * @param {Object[]} props.data - The array of objects to iterate over 
+ * @param {String} props.keyName - The key to look for the keyValue 
+ * @param {String | Number} props.keyValue - The value the keyName must have.
+ * @returns {Set} - The set of indicies that match.
+ */
+export function getSetOfMatchingIndcsInArrayOfObject({ data, keyName, keyValue }) {
+    return data.reduce((acc, curr, idx) => {
+        if (curr[keyName] === keyValue) {
+            acc.add(idx)
+        }
+        return acc 
+    }, new Set())
+}
+
+
 
 
 /**
@@ -24,7 +42,6 @@ export function filterArrayBySearchString({array, keyNames, searchString}) {
     const isMatch = arrayItem => _.some(_.map(keyNamesToSearch.map(v => re.test(arrayItem[v]))))
     return _.filter(array, isMatch)
 }
-
 
 /**
  * @description Iterates over an array of objects and finds the indices that match and returns as well data filtered data. 

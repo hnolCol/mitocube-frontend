@@ -18,10 +18,6 @@ function DatasetQC() {
         if (_.isObject(metadata) && _.has(metadata, "title")) {
             setTabHeader(metadata.title)
         }
-        else {
-            refetchMetaData()
-        }
-       
     }, [metadata.title])
 
     if (isError) return <APIError error={error}/>

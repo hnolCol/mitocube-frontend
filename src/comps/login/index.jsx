@@ -19,15 +19,21 @@ import { ProfileChart } from "../core/charts/profiles/ProfileChart"
 
 
 Login.propTypes = {
-    setAuthenticationStatus : PropTypes.func.isRequired,
+    setAuthenticationStatus: PropTypes.func.isRequired,
+    redirectedFrom : PropTypes.string,
     inputProps: PropTypes.object
 }
-
+/**
+ * @description Login JSX Component. 
+ * @param {Object} props 
+ * @param {Function} props.setAuthenticationStatus - Function to set the authentication status. 
+ * @param {string} props.redirectedFrom - If the user is redirected from a specific website, then this url can be used to redirect them back after login.
+ * @returns 
+ */
 function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fill: true } }) {
     const redirect = useNavigate()
     const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
     const [userLoginResponse, setUserLoginResponse] = useState({success : false, token : "", msg : ""})
-    console.log(redirectedFrom)
     const {
         isError: loginIsError,
         error: loginError,
@@ -88,33 +94,6 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                     <Header text="User Login" />
                 </div>
 
-                {/* <InteractiveChart >
-
-                    {(categoricalData) => categoricalData.map(({
-                            data,
-                            chartIdx,
-                            xaxisName,
-                            yaxisName,
-                            valid,
-                            limits,
-                            handleItemSelection,
-                            findIndexInRectangle,
-                            findDataInRectangle,
-                            setHoverDataInRectangle,
-                            handleNumericFilter,
-                            handleStringSearch,
-                            hoverProps,
-                            filterProps
-                    }, didx) => {
-                            if (didx === 1) return <div><ProfileChart {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/></div>
-                            return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/>
-                            {didx===0?<div>
-                                <RangeSlider min={0} max={100} value={filterProps.filterRange} stepSize={5} onChange={range => handleNumericFilter(0,"x",range[0],range[1])}/><Button onClick={() => handleNumericFilter(0,"x",0.2,0.5)}/>
-                                <InputGroup onChange={(e) => handleStringSearch("label",e.target.value)}/>
-                                </div>:null}</div>)})}
-
-                </InteractiveChart> */}
-
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     
@@ -171,10 +150,10 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                             {/* handleLoginAttempt */}
                     </div>}
             
-            <div className="flex">
+            {/* <div className="flex">
                 <p>No account yet?</p>
                 <Link className="router-link" to="/register">Please create an account.</Link>
-                </div>
+            </div> */}
             
                 {loginIsError || verifyTokenIsError? <APIError error={verifyTokenIsError?verfiyTokenError:loginError} />:null}
             </div>

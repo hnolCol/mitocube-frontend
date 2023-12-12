@@ -32,6 +32,14 @@ import { UseQueryResult } from "react-query";
 */
 
 /**
+ * @typedef MappedAttributeValueTag
+ * @type {Object}
+ * @property {AttributeValue[]} attrValues - The mapped attribute values.
+ * @property {String} asString - The name of the mapped attribute values. By default joined via a '+' sign.
+ * @property {Boolean} isAttrValue - If the input was mapped to an attrValue.
+*/
+
+/**
  * @typedef AttributesAPIResponse
  * @type {Object}
  * @property {Attribute[]} attributes 
@@ -44,6 +52,9 @@ import { UseQueryResult } from "react-query";
  * @property {Object.<string, Attribute[]>} attributes 
  * @property {Object.<string, AttributeValue[]>} attribute_values
  */
+
+
+
 
 
 export default {}

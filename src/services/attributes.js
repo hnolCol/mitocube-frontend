@@ -17,6 +17,42 @@ export function createFakeAttributeValue({ attribute, numericInput }) {
     }
 }
 
+/**
+ * 
+ * @param {Object} props
+ * @param {Object[]} props.data
+ * @param {import("../types/submissions").Submission} props.metadata
+ * @param {string} props.keyName - The keyname of the objects in the data array where to find the sample name. 
+ * @param {Boolean} props.includeReplicates - If relicate ids should be added. 
+ * @returns {Object[]} 
+ */
+export function mapSampleAttributesToSampleNamesinArray({ data, metadata, keyName, includeReplicates = true }) {
+    
+    const sampleNames = metadata.sample_names 
+    const sampleAttributes = metadata.samples_attributes
+    const replicates = metadata.replicates 
+
+    return data.map(d => {
+        const sampleIdx = sampleNames.indexOf(d[keyName])
+        const sampleReplicate = replicates.at(sampleIdx)
+        return {...d, "Replicate" : sampleReplicate}
+    })
+}
+
+
+function inverseSamplesAttributes(sampleAttributes) {
+    
+}
+
+function mapSampleNamesToSamplesAttributes({ sampleNames, samplesAttributes }) {
+    const attributeNames = _.values()
+    return sampleNames.map(sampleName => {
+
+    })
+}
+
+
+
 
 
 export function mapAttributeTagsToAttributes({tagAttributes, attributesByTag}) {
@@ -46,7 +82,13 @@ export function mapAttributeValueTagsToAttributeValues({ attributeTags = [], att
 }
 
 
-
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.attrValueTag - The attribute value tag. If multiple tags are present, they are expected to be devided by a space. (' ')
+ * @param {Object.<string, import("../types/attributes").Attribute | import("../types/attributes").AttributeValue>} props.attrValuesByTag - The attribute value tag. If multiple tags are present, they are expected to be devided by a space. (' ')
+ * @returns {import("../types/attributes").MappedAttributeValueTag} - Mapped attribute value.
+ */
 export function mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag, joinString = " + " }) {
     let attrValues = undefined
     if (_.isString(attrValueTag) && attrValueTag.startsWith("att_")) {

@@ -19,10 +19,14 @@ function makeid(length) {
 
 let dataTest = _.range(5000).map(idx => {return {x : Math.random() * 1000, y : Math.random() * 5000, label : makeid(5)}})
 
-
+/**
+ * 
+ * @param {Object} param0 
+ * @returns {Array.<import("../../../../types/charts").InteractiveChartResponse>} Returns the interactive response including function to identify points below the mouse using KDBush. 
+ */
 function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "idx", yaxisName  : ["x","y"]}], isPointChart = [true,false], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
 
-    const [hoverData, setHoverData] = useState({data : [], idcs : [], rerender : [Math.random()], rect : []})
+    const [hoverData, setHoverData] = useState({data : [], idcs : [], rerender : [Math.random()], rect : [], hoverChart : -1})
     //const [selectedItems, setSelectedItems]  = useState()
     const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set()})
     const numberCharts = keyNames.length
@@ -67,7 +71,7 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         
         if (idcs.length == hoverData.idcs.length && _.every(idcs, idx => hoverData.idcs.includes(idx))) return
 
-        setHoverData({data : arr, rerender : [Math.random()], rect : screenPosition, idcs})
+        setHoverData({data : arr, rerender : [Math.random()], rect : screenPosition, idcs, hoverChart : chartIdx})
     }
 
     const handleItemSelection = (itemIndex = undefined) => {
@@ -92,10 +96,19 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : idcs}})
     }
 
+    const handleSearchByDataIndex = (chartIdx, idcs) => {
+        setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : idcs}})
+    }
+
+    const resetSearchIdcs = (chartIdx) => {
+        setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : new Set()}})
+    }
+
+
     const findClosestPoint = (xaxisName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
         //find closest point 
     }
-
+    
     const chartProps = _.range(numberCharts).map(chartIdx => {
         const {xaxisName, yaxisName } = keyNames[chartIdx]
         return{
@@ -111,17 +124,15 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
             setHoverDataInRectangle,
             handleNumericFilter,
             handleStringSearch,
-            hoverProps : {hoverData : hoverData.data,rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect},
-            filterProps : {rerenderBackground : backgroundScatter.rerender, filterIndices : backgroundScatter.filterIndices,filterRange : backgroundScatter.filterRange, searchIndices : backgroundScatter.searchIndices}
-            
+            handleSearchByDataIndex,
+            hoverProps : {hoverData : hoverData.data,rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart},
+            filterProps : {rerenderBackground : backgroundScatter.rerender, filterIndices : backgroundScatter.filterIndices,filterRange : backgroundScatter.filterRange, searchIndices : backgroundScatter.searchIndices, resetSearchIdcs}
         }
     })  
     
-
+    
     return(
-        <div>
         <>{children(chartProps)}</>
-        </div>
     )
 
 }

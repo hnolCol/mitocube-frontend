@@ -20,19 +20,9 @@ function ProteinOverview({
     orderData = true
 }) {
     
-    // const [columnSelection, setColumnSelection] = useState({ colorName, sizeName, yaxisName, subplotName })
-    // const orderedData = orderData ? _.orderBy(data, [colorName, yaxisName, sizeName], ["desc", "desc", "desc"]) : data.slice()
-    // const defaultColors = getColorPalette()
-    // const yAxisDomain = getDomainWithBoundaries({ data, keyName: yaxisName })
-    // const keyNames = Object.keys(data[0])
-    // const numericKeys = _.filter(keyNames,keyName => _.isNumber(data[0][keyName]))
-    // const categoricalKeys = _.filter(keyNames, keyNames => !numericKeys.includes(keyNames))
-    // const svgIDs = useMemo(() => Object.fromEntries(getUniqueValuesInArrayOfObjects({data, keyName : subplotName}).map(subplotCategory => [subplotCategory,`Chart-${subplotCategory}.svg`])),[subplotName])
-    // const debouncedSearchString = useDebounce(searchDetails.searchString, 200)
     const { featureID } = useOutletContext()
 
     const { data: featureData, isError , error } = useGetDataByFeatureID({ tokenString: authenticationStatus.token, featureID }, {})
-    console.log(featureData)
     if (isError) return <APIError error={error} />
     return (
         <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>

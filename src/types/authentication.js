@@ -10,5 +10,29 @@
    */
 
 
+/**
+ * @typedef TokenResponse
+ * @type {Object}
+ * @property {Boolean} success - Indicates if the token is valid. 
+ * @property {Boolean} verified - Is the token verified. 
+ * @property {Number} role - The defined user role. 
+ * @property {string} firstname - The user's firstname 
+ * @property {string} lastname - The user's lastname
+ * @property {string} label - The user's label. 
+ * @property {string} msg - Message from the API.
+ */
+
+  /**
+   * @typedef TokenVaidResponse 
+   * @type {Object}
+   * @property {Boolean} success - Indicates if the token is valid. 
+   * @property {Boolean} verified - Is the token verified. 
+   * @property {Number} role - The defined user role. 
+   * @property {string} firstname - The user's firstname 
+   * @property {string} lastname - The user's lastname
+   * @property {string} label - The user's label. 
+   */
+
+
 
   export default { }
