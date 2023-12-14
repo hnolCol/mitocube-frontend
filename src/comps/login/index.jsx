@@ -10,7 +10,7 @@ import APIError from "../core/error/APIerror"
 import axios from "axios"
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
-import { storeTokenInLocalStorage } from "../../services/localstorage"
+import { saveInLocalStorage } from "../../services/localstorage"
 
 import DescriptionButton from "../core/base/buttons/DescriptionButton"
 import InteractiveChart from "../core/charts/interactive"
@@ -63,7 +63,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                 lastname: verifiedToken.lastname,
                 label: verifiedToken.label
             })
-            storeTokenInLocalStorage(verifiedToken.token)
+            saveInLocalStorage({itemName : "token", itemValue : verifiedToken.token})
             axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
             if (redirectedFrom === "/") {
                 redirect("/index")

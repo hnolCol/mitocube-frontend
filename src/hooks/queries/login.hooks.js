@@ -3,7 +3,7 @@ import axios from "axios"
 
 
 async function loginUser(userInput) {
-    //user login attempt, returns a token.
+    //user login attempt, returns a token. TO DO: Should useMutation be used? 
     var bodyFromData = new FormData()
     bodyFromData.append('username' , userInput.username)
     bodyFromData.append('password',  userInput.password)
@@ -16,7 +16,6 @@ async function loginUser(userInput) {
 }
 
 export const useLoginUser = (userInput = {}, queryOptions = {}) => {
-    
     return useQuery(["loginUser",userInput], () => loginUser(userInput), queryOptions)
 }
 

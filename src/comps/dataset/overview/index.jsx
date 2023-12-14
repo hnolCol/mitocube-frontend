@@ -237,10 +237,12 @@ function DatasetOverview({authenticationStatus}) {
             
             <h2>Sample Attributes</h2>
             <h2>Dataset Attributes</h2>
+            <div style={{maxWidth : "33vw"}}>
             <DatasetAttributeHierarchy {...{
                 selectedDasetAttributeValues: datasetAttributeValues,
                 selectedAttributes: dataAttributes
-            }} />
+                }} />
+            </div>
             <div className="intent-margin-right ">
                 <h2>Metatext</h2>
             <div className="flex flex--wrap" style={{gap:"2rem"}}>

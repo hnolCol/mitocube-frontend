@@ -36,9 +36,7 @@ function AttributeInput({ attribute,
     const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
         const queryLength = query.length
         const justNumbersString = query.replace(/[^\d.]/g, "")
-        console.log(attribute,handleFeatureSelection)
         if (attribute.allow_features_as_values && attributeValues.length === 0) {
-            console.log("yeah")
             return <Menu>
                 <MenuItem text="Select protein feature..."
                     onClick={() => {

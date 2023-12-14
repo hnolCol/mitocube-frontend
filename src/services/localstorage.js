@@ -2,49 +2,36 @@
 import _ from "lodash"
 
 
-export const storeTokenInLocalStorage = (tokenString) => {
-    localStorage.setItem("mitocube-token",tokenString)
+/**
+ * @description Saves an item in local storage.
+ * @param {Object} props
+ * @param {string} props.itemName - The item name in the local storage
+ * @param {*} props.itemValue - The item value.
+ */
+export const saveInLocalStorage = ({itemName,itemValue}) => {
+    localStorage.setItem(itemName,itemValue)
 }
 
-export const checkForTokenInLocalStorage = () => {
-    //checks if there is a mitocube-token in the local storage
-    const tokenString = localStorage.getItem("mitocube-token")
-    return { tokenFound: _.isString(tokenString), tokenString: tokenString }
-}
 
-export const removeTokenFromLocalStorage = () => {
+/**
+ * @description Checks for an item in the local storage.
+ * @param {Object} props
+ * @param {String} itemName - The itemName to look for in the local storage. Returns null if not present.
+ * @param {Booealn} parseJson - If True, ```JSON.parse()```will be called prior returning the item from the local storage.
+ * @returns 
+ */
+export function getItemFromLocalStorage ({ itemName, parseJson = false }){
+    const itemValue = localStorage.getItem(itemName)
+    const itemFound = _.isString(itemValue)
+    return { itemFound, itemValue: parseJson && itemFound?JSON.parse(itemValue):itemValue }
+}
+/**
+ * @description Removes an item by its name from the loca storage
+ * @param {String} itemName - The item name in the local storage that should be deleted. 
+ */
+export const removeItemFromLocalStorage = (itemName) => {
     // token removed from local storage.
-    if (localStorage.getItem("mitocube-token") !== null){
-        localStorage.removeItem("mitocube-token")
-    }
-}
-
-export function saveSubmissionInLocalStorage(submissionState) {
-    // save a submission state to local storage 
-    if (submissionState===null) {
-        localStorage.removeItem("mitocube-submission")
-    }
-    else 
-    {
-        const overwritten = localStorage.getItem("mitocube-submission") !== null 
-        localStorage.setItem("mitocube-submission",JSON.stringify(submissionState))
-       
-        return overwritten?"Saved. A previous submission was overwritten":"Submission saved in local storage."
-    }
-}
-
-export function loadSavedSubmissionFromLocalStorage() {
-    //return the saved submission.
-    const submission = localStorage.getItem("mitocube-submission")
-    if (submission !== null && _.isString(submission))
-        return JSON.parse(localStorage.getItem("mitocube-submission"))
-
-}
-
-
-export const removeSubmissionFromLocalStorage = () => {
-    // submission removed from local storage.
-    if (localStorage.getItem("mitocube-submission") !== null){
-        localStorage.removeItem("mitocube-submission")
+    if (localStorage.getItem(itemName) !== null){
+        localStorage.removeItem(itemName)
     }
 }

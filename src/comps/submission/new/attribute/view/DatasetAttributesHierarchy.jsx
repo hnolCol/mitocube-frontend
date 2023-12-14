@@ -29,7 +29,7 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                     key={`${attributeValue.name}-${attributeValue.id}`}
                     intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
                     style={{ marginRight: "0.4rem" }}
-                    onRemove={e => handleAttributeRemove(attributeValue)}
+                    onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
                     minimal={true}
                     large={false}>
                         {attributeValue.name}

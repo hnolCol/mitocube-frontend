@@ -17,7 +17,7 @@ import TextInput from "../../core/input/Text"
 import { Alert, Button } from "@blueprintjs/core"
 
 import MetaText from "./MetaText"
-import { loadSavedSubmissionFromLocalStorage, removeSubmissionFromLocalStorage, saveSubmissionInLocalStorage } from "../../../services/localstorage"
+import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage} from "../../../services/localstorage"
 import DatasetLinks from "./Links"
 import { getRandomID } from "../../../services/random"
 import GenotypeGenerator, { PositionSelection } from "./Genotype"
@@ -260,7 +260,8 @@ function InitialSubmission({
 
     const saveSubmission = () => {
         //save the submission to local store and inform the user
-        const msg = saveSubmissionInLocalStorage(submission)
+        saveInLocalStorage({itemName : "submission", itemValue : JSON.stringify(submission)})
+       // saveSubmissionInLocalStorage(submission)
         setAlertProps({
             isOpen: true, children: <div><h3>Saved Submission</h3>
                 <p>Submission has been saved. Please note that closing the browser will also remove the saved submission.</p>
@@ -271,13 +272,13 @@ function InitialSubmission({
 
     const resetSubmission = () => {
         // deletes the submission in the local storage.
-        removeSubmissionFromLocalStorage()
+        removeItemFromLocalStorage("submissiom")
         setSubmission(initSubmissionState)
     }
 
     const loadSubmission = () => {
         // load a submission from the submission.
-        const submission = loadSavedSubmissionFromLocalStorage()
+        const {itemFound, itemValue : submission} = getItemFromLocalStorage({itemName : "submission", parseJson : true})
         if (_.isObject(submission)) {
 
             setSubmission(prevValues => {return {...prevValues, ...submission}})

@@ -24,14 +24,9 @@ export function useGetFeatures (useQueryOptions = {}, APIParams = {}) {
  * @returns {import("../../types/feature").FeatureDataResponse} The feature data object. Contains all the datasets in which the feature_id was found.
  */
 async function getDataByFeatureID_API({ featureID }) {
-    //fet the data for a feature ID
-   // const res = await axios.get("/api/features/data", { params: { token, featureID } })
-    
     const res = await axios.get(`/api/features/${featureID}/data`)
-    
     return res.data
     }
-
 
 export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
     return useQuery(["getDataByFeautreID",APIParams.featureID],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
@@ -39,20 +34,14 @@ export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
 
 
 
-
-
-// get feature annotation
-
-async function getAnnotationsByFeatureID_API({ tokenString, featureID }) {
-    //TO DO add filter to select annotation 
-    const res = await axios.get(`/api/features/${featureID}/annotation`,
-        {
-            headers: {
-                "Authorization": `Bearer ${tokenString}`,
-                'Content-Type': 'application/json'
-            }
-        })
-    
+/**
+ * @description - Returns the annotatio present in the database for a particular feature.
+ * @param {object} props
+ * @param {string} props.featureID - The featureID. For proteins likely the uniprot id. 
+ * @returns {} The feature annotation data object.
+ */
+async function getAnnotationsByFeatureID_API({ featureID }) {
+    const res = await axios.get(`/api/features/${featureID}/annotation`)
     return res.data
 }
 

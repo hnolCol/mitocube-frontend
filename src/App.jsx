@@ -12,7 +12,7 @@ import { Route, Routes, useLocation, useNavigate } from 'react-router'
 import Leftbar from './comps/core/navigation/dashboard/Leftbar'
 import { ProtectedAdminRoute, ProtectedRoute } from './comps/core/routes/ProtectedRoute'
 import { useEffect, useState } from 'react'
-import { checkForTokenInLocalStorage, removeTokenFromLocalStorage } from './services/localstorage'
+import { getItemFromLocalStorage, removeItemFromLocalStorage } from './services/localstorage'
 import Login from './comps/login';
 import SubmissionHeader from './comps/submission';
 import SubmissionView from './comps/submission/view';
@@ -85,9 +85,9 @@ function App() {
   
   useEffect(() => {
     //check for token in local storage and validate if present
-    const { tokenFound, tokenString } = checkForTokenInLocalStorage()
-    if (tokenFound) {
-      setTokenFromStorage({ token: tokenString, locationPathName: location.pathname })
+    const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "token" })
+    if (itemFound) {
+      setTokenFromStorage({ token: itemValue, locationPathName: location.pathname })
     }
     setTokenFromStorage(prevValues => { return { ...prevValues, locationPathName: location.pathname }})
   }, [])
@@ -118,7 +118,7 @@ function App() {
 
   const logout = () => {
     //logs the user out, deletes the token from local storage. 
-    removeTokenFromLocalStorage()
+    removeItemFromLocalStorage("token")
     setAuthenticationStatus(initAuthenticationStatus)
     setTokenFromStorage({ token: undefined, locationPathName: "/" })
     axios.defaults.headers.common['Authorization'] = `Bearer`;
