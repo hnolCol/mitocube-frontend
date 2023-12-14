@@ -6,7 +6,7 @@ import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
-function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, handleFeatureSelection = undefined, searchColumns = ["details", "name", "tag", "attribute_id_tag", "attribute_id_name"] }) {
+function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, handleFeatureSelection = undefined, keyNamesForFilter = ["description", "text", "tag", "attribute_id_tag", "attribute_id_name"] }) {
     //handles the selection of a dataset attribute 
     
     const handleItemSelect = (attribute, attributeValue) => {
@@ -22,6 +22,7 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
 
     const renderItems = ({ activeItem, filteredItems, query }) => {
         const filteredAttributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
+
         // render items 
         return (
             <AttributeValueSelectionMenu {...{
@@ -38,10 +39,9 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
     }
 
     const filterItems = (searchString, items) => {
-        const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns, searchString })
+        const filteredAttributeValues = filterArrayBySearchString({array: items, keyNames : keyNamesForFilter, searchString})
         return filteredAttributeValues
     }
-
     return (
         <Suggest
             resetOnSelect={true}

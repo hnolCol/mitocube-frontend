@@ -24,21 +24,21 @@ function UserAttributes({ attributes, attributeValues, userProps, updateUserProp
                     const valueSaved = _.has(userProps, attr.tag)
                     // this happens when the user is beeing editen and userProps is not an attributeValue but a string.
                     // this should not be done, and we have to think about how to store the user. 
-                    const selectedItem = valueSaved && hasValues && !_.isObject(userProps[attr.tag]) ? attributeValuesByID[attr.id].filter(attrValue => attrValue.name === _.toString(userProps[attr.tag]))[0] : userProps[attr.tag]
+                    const selectedItem = valueSaved && hasValues && !_.isObject(userProps[attr.tag]) ? attributeValuesByID[attr.id].filter(attrValue => attrValue.text === _.toString(userProps[attr.tag]))[0] : userProps[attr.tag]
                     if (hasValues) return <Combobox
                         key={attr.tag}
-                        hint={attr.name}
+                        hint={attr.text}
                         items={attributeValuesByID[attr.id]}
                         callbackKey={attr.tag}
-                        placeholder={valueSaved && _.isObject(selectedItem) ? selectedItem.name : "Select value.."}
-                        textKey="name"
+                        placeholder={valueSaved && _.isObject(selectedItem) ? selectedItem.text : "Select value.."}
+                        textKey="text"
                         labelKey={"details"}
                         onChange={(attributeTag, attributeValue) => updateUserProps(attributeTag, attributeValue)} />
                 
                     return <TextInput
                         key={attr.tag}
                         callbackKey={attr.tag}
-                        hint={attr.name}
+                        hint={attr.text}
                         placeholder=""
                         value={valueSaved ? userProps[attr.tag] : ""}
                         onChange={(attributeTag, valueString) => updateUserProps(attributeTag, valueString)} />

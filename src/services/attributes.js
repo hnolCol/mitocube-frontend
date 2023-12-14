@@ -13,7 +13,7 @@ export function createFakeAttributeValue({ attribute, numericInput }) {
         id: -1,
         attribute_id: attribute.id,
         tag: `${attribute.tag}:${numericInput}`,
-        name: `${numericInput}`
+        text: `${numericInput}`
     }
 }
 
@@ -100,9 +100,9 @@ export function mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTa
         }
 
         else {
-            attrValues = [{tag : attrValueTag, name : attrValueTag.split(":").at(-1)}]
+            attrValues = [{tag : attrValueTag, text : attrValueTag.split(":").at(-1)}]
         }
-        return {attrValues, asString : _.join(attrValues.map(attr => attr.name),joinString), isAttrValue : true}
+        return {attrValues, asString : _.join(attrValues.map(attr => attr.text),joinString), isAttrValue : true}
     }
     else {
         return {attrValues, asString : attrValueTag, isAttrValue : false}

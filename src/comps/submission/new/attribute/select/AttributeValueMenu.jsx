@@ -12,13 +12,13 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
     const attributesMatch = !_.isEmpty(attributeValuesByID)
     const attributeIDsMatchingQuery = useMemo(() => {
         if (query === "") return Object.fromEntries(attributes.map(attr => [attr.id,attr.id]))
-        return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, keyNames: ["tag", "name"]}).map(attr => [attr.id,attr.tag]))
+        return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, keyNames: ["tag", "text"]}).map(attr => [attr.id,attr.tag]))
     }, [query])
 
     const attributeMatch = !_.isEmpty(attributeIDsMatchingQuery)
 
     const handleNumericInput = (numericInput, attrValues, attribute) => {
-        const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.name === _.toString(numericInput))
+        const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.text === _.toString(numericInput))
         if (attributeAlreadyPresent.length > 0) {
             const attrValueMatches = attributeAlreadyPresent[0]
             handleItemSelect(attribute, attrValueMatches)
@@ -32,24 +32,26 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
         <Menu small={true}>
             {!attributesMatch && !attributeMatch? <MenuItem text="No attributes found ..." disabled={true} /> :
                 attributes.map(attribute => {
-                    const attributeID = attribute.allow_features_as_values? -1 : attribute.id
+                    const attributeID = attribute.has_features_value? -1 : attribute.id
                     const attrValues = _.has(filteredAttributeValuesByID, attribute.id) ? filteredAttributeValuesByID[attributeID] : []
                     const attributeMatchesQuery = objectHasKey({ object: attributeIDsMatchingQuery, keyName: attribute.id })
                     const hasAttrValues = attrValues.length > 0
-                    if (attribute.allow_numeric_input && attributeMatchesQuery)  return <div>
-                        <MenuItem text={`Enter numeric value for ${attribute.name}`} disabled={true} />
+                    if (hasAttrValues) console.log(attrValues,"VALUES",hasAttrValues)
+                    
+                    if (attribute.has_numeric_input && attributeMatchesQuery)  return <div>
+                        <MenuItem text={`Enter numeric value for ${attribute.text}`} disabled={true} />
                         <MenuDivider />
                         {hasAttrValues ? 
                             attrValues.map((attributeValue, index) => <MenuItem
                                 key={`${attribute.tag}-${attributeValue.tag}`}
-                                text={attributeValue.name}
+                                text={attributeValue.text}
                                 onClick={() => handleItemSelect(attribute, attributeValue)}
-                                labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.details}</div>}/>) : 
+                                labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.description}</div>}/>) : 
                             null}
                         {hasAttrValues ? <MenuDivider /> : null}
                         <NumericValueInput
                             key={`${attribute.tag}-numeric-input`}
-                            placeholder={`${attribute.name}`}
+                            placeholder={`${attribute.text}`}
                             fill={false}
                             callbackKey={attribute.tag}
                             submitButton={true}
@@ -60,16 +62,16 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                             onButtonClick={(attributeTag, numericInput) => handleNumericInput(numericInput,attrValues,attribute)} //create fake attribute value for numeric inputs
                     />
                         </div>
-                    if (!hasAttrValues && !attribute.allow_features_as_values) return null
+                    if (!hasAttrValues && !attribute.has_features_value) return null
                     //hide attribute values that are not featureu and were not found.
-                    if (attribute.allow_features_as_values && !attributeMatchesQuery) return null
+                    if (attribute.has_features_value && !attributeMatchesQuery) return null
                     return (
                         <div key={`${attribute.tag}`}>
-                            <MenuItem text={attribute.name} disabled={true} />
+                            <MenuItem text={attribute.text} disabled={true} />
                             <MenuDivider />
                             
-                            {attribute.allow_features_as_values && attributeMatchesQuery?
-                                <MenuItem text={`Select feature for ${attribute.name}`} onClick={() => handleFeatureSelection({attribute})} /> :
+                            {attribute.has_features_value && attributeMatchesQuery?
+                                <MenuItem text={`Select feature for ${attribute.text}`} onClick={() => handleFeatureSelection({attribute})} /> :
                                 
                                 <div style={{ overflowY: "visible" }}>
                                 {attrValues.map((attributeValue, index) =>
@@ -79,9 +81,9 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                                         disabled={true} /> : index > maxItems + 1 ? null :
                                         <MenuItem
                                             active={activeItem.id === attributeValue.id}
-                                            key={`${attributeValue.name}-${attributeValue.tag}`}
-                                            text={attributeValue.name}
-                                            labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.details}</div>}
+                                            key={`${attributeValue.text}-${attributeValue.tag}`}
+                                            text={attributeValue.text}
+                                            labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.description}</div>}
                                             onClick={() => handleItemSelect(attribute, attributeValue)} />)
                                 }
                             </div>}

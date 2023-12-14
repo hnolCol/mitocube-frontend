@@ -13,6 +13,7 @@ import _ from "lodash"
 import { isHexColorLight } from "../../../services/colors";
 import { titleFormat } from "../../../services/format/string";
 import { motion } from "framer-motion";
+import { copyTextToClipboard } from "../../../services/clipboard";
 
 
 
@@ -78,7 +79,7 @@ export function SubmissionItem({
         <ContextMenu
             
             content={<Menu small={true}>
-                <MenuItem text={submission.label}/>
+                <MenuItem text={submission.label} onClick={() => copyTextToClipboard(submission.label)}/>
                 <MenuDivider />
                 {/* <MenuItem text={"Users"}>
                     {usersPartInSubmission.map(userLabe => )}
@@ -115,14 +116,14 @@ export function SubmissionItem({
                 <div className="flex flex--wrap center-items">
                     <div>
                         <AttributeTagWithTooltip {...{
-                            attribute: { name: "Replicates", tag: "reps" },
-                            attributeValue: { tag: "numb-reps", name: _.uniq(submission.replicates).length }
+                            attribute: { text: "Replicates", tag: "reps" },
+                            attributeValue: { tag: "numb-reps", text: _.uniq(submission.replicates).length }
                         }} />
                     </div>  
                     <div>
                     <AttributeTagWithTooltip {...{
-                            attribute: { name: "Number samples", tag: "samples" },
-                            attributeValue: { tag: "numb-samps", name: submission.sample_names.length}
+                            attribute: { text: "Number samples", tag: "samples" },
+                            attributeValue: { tag: "numb-samps", text: submission.sample_names.length}
                         }} />
                     </div> 
                     <div>
@@ -143,7 +144,7 @@ export function SubmissionItem({
                 <div className="flex flex--wrap intent-margin-top--little">
                     {Object.keys(submission.dataset_attributes).map(attributeTag => {
                         const attrValueTags = submission.dataset_attributes[attributeTag]
-                        const attribute = _.has(attributesByTag, attributeTag) ? attributesByTag[attributeTag] : { name: attributeTag }
+                        const attribute = _.has(attributesByTag, attributeTag) ? attributesByTag[attributeTag] : { text: attributeTag }
                         {
                             return <div className="flex"
                                 key={`${attributeTag}-subission-item-${submission.label}`}>

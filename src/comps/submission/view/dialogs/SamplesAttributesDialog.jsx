@@ -37,12 +37,15 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             _.fromPairs(sampleAttributeTags.map(attrTag =>
                 [attrTag, []])))
             
-        let samplesAttributes = sampleAttributeTags.map(attrTag => {return { name : submission.samples_attributes[attrTag].name, attribute : attributesByTag.attributes[attrTag]}})
+        let samplesAttributes = sampleAttributeTags.map(attrTag => {return { name : submission.samples_attributes[attrTag].text, attribute : attributesByTag.attributes[attrTag]}})
         _.forEach(sampleAttributeTags, attrTag => {
+            //map over each sample attribute tags (e.g. groupings)
             let sampleAttributeValues = submission.samples_attributes[attrTag].values
             const mappedAttributeValuesByTag = _.fromPairs(mapAttributeValueTagsToAttributeValues({ attributeTags: _.keys(sampleAttributeValues), attributesByTag }).filter(attributeValue => _.isObject(attributeValue) && !_.isEmpty(attributeValue)).map(attributeValue => [attributeValue.tag, attributeValue]))
             _.forEach(_.keys(sampleAttributeValues), attrValueTag =>
+                //map each sample attribute value tag 
                 _.forEach(sampleAttributeValues[attrValueTag], sampleIdx => {
+                    //map sample attribute values(!) to attribute table.
                     if (_.has(mappedAttributeValuesByTag,attrValueTag)) attributeTable[sampleIdx][attrTag].push(mappedAttributeValuesByTag[attrValueTag])
                 }))
         })
@@ -94,7 +97,6 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
         //handle sample attribute submit 
        
     }
-
 
     return (
         <Dialog style={{ minWidth: "95vw", height: "80vh" }} {...{ isOpen }} title="Edit Samples Attributes" onClose={onClose}>

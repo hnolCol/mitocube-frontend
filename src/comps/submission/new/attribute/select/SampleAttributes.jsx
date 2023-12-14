@@ -39,7 +39,7 @@ function AttributeSelectionHeader({
                 onChange={groupingNameEdit => onSampleAttributeRename(sampleAttrIndex,groupingNameEdit)}
                 onConfirm={() => onSampleAttributeSelect(sampleAttrIndex, groupingName, undefined)}/></h4>
             <Combobox
-                items={_.sortBy(attributes.filter(a => !attributesTagsInUse.includes(a.tag)),"name")}
+                items={_.sortBy(attributes.filter(a => !attributesTagsInUse.includes(a.tag)),"text")}
                 value={attributeName}
                // disabled={groupingName.length < 2}
                 buttonProps={{ minimal: true, fill: false, disabled}}
@@ -96,7 +96,7 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
     let attributeValueBySearchQuery = useMemo(() => queryString === "" ? attributeValues : filterArrayBySearchString({
         searchString: queryString,
         array: attributeValues,
-        keyNames: ["name", "details"]
+        keyNames: ["text", "details"]
     }), [queryString])
     return (
         <Menu>
@@ -110,12 +110,12 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
                 />
                 <Menu style={{ overflowY: "scroll", maxHeight: "280px" }}> 
                 {attributeValueBySearchQuery.map((attributeValue, index) =>
-                    index === 25 ? <MenuItem key={attributeValue.name} text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 25 ? null :
+                    index === 25 ? <MenuItem key={attributeValue.text} text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 25 ? null :
                     <MenuItem
                         onClick={(e) => onAttributeSelect(attributeTag, attributeValue,rowIdces)}
-                        key={attributeValue.name}
-                        text={attributeValue.name}
-                        labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.details}</div>}
+                        key={attributeValue.text}
+                        text={attributeValue.text}
+                        labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.description}</div>}
                         role="listoption" />)}
             </Menu>
             <MenuDivider />
@@ -173,7 +173,7 @@ function SamplesAttributes({
 
 
     const handleNumericInput = (numericInput, attrValues, attribute, selectedRows) => {
-        const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.name === _.toString(numericInput))
+        const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.text === _.toString(numericInput))
         console.log(attributeAlreadyPresent)
         if (attributeAlreadyPresent.length > 0) {
             const attrValueMatches = attributeAlreadyPresent[0]
@@ -199,30 +199,30 @@ function SamplesAttributes({
 
         if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
         //find row indices from the selected region
-        //attribute.allow_features_as_values ? attributeValuesByID[-1] : 
+        //attribute.has_features_value ? attributeValuesByID[-1] : 
         let attributeValues = groupingInfo === undefined || !_.has(attributeValuesByID, groupingInfo.attribute.id)? [] : attributeValuesByID[groupingInfo.attribute.id]
-        const valuesAlreadyUsed = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag].map(attrValue => attrValue.name))))
+        const valuesAlreadyUsed = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag].map(attrValue => attrValue.text))))
         // if there is no attribute values, then a numeric value can be inserted by the user
-        if (attribute.allow_features_as_values) {
+        if (attribute.has_features_value) {
             return <Menu><MenuItem
                 text="Select protein sequence..."
                 onClick={() => handleFeatureSelection({ attribute, isSampleAttribute: true, rowIdces: selectedRows })} />
             </Menu>
         }
-        else if (attribute.allow_numeric_input) return (<Menu>
+        else if (attribute.has_numeric_input) return (<Menu>
             
             <MenuItem text="Enter numeric value." disabled={true} />
             <MenuDivider />
             {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
             {attributeValues.map(attrValue => <MenuItem
                 key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
-                text={attrValue.name}
-                labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.details}</div>}
+                text={attrValue.text}
+                labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>}
                 onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
             }
             
             <NumericValueInput
-                placeholder={`${groupingInfo.attribute.name}`}
+                placeholder={`${groupingInfo.attribute.text}`}
                 callbackKey={groupingInfo.attribute.tag}
                 submitButton={true}
                 buttonProps={{
@@ -276,7 +276,7 @@ function SamplesAttributes({
                     const cellDataIsAttr = _.isObject(attributeValue)
                     return <div key={`${rowIndex}-${columnIndex}-${cellDataIsAttr ? attributeValue.tag : attributeValue}`} className="padding--little">
                         <Tag minimal={true} onRemove={() => onTagRemove(rowIndex, attribute, attributeValue)}>
-                            {cellDataIsAttr?attributeValue.name:attributeValue}
+                            {cellDataIsAttr?attributeValue.text:attributeValue}
                         </Tag>
                     </div>})}
             </div>
@@ -289,12 +289,12 @@ function SamplesAttributes({
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute.tag])?rowData[attribute.tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
-        const nameDefined = _.isString(groupingInfo.name) && groupingInfo.name.length > 0
+        const nameDefined = _.isString(groupingInfo.text) && groupingInfo.text.length > 0
         return (
             <Menu small={true}>
                 <MenuItem text="Sample Attribute" disabled={true} />
                 <MenuDivider />
-                <MenuItem text={nameDefined ? `Name : ${groupingInfo.name}` : "Name missing."} intent={nameDefined?"none":"danger"} />
+                <MenuItem text={nameDefined ? `Name : ${groupingInfo.text}` : "Name missing."} intent={nameDefined?"none":"danger"} />
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
                 <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(attribute.tag)} disabled={!attributeDefined} />
@@ -320,8 +320,8 @@ function SamplesAttributes({
                             attributesTagsInUse,
                             onSampleAttributeRename,
                             disabled : sampleNames.length === 0,
-                            groupingName : groupingDefined && _.isString(groupingInfo.name)? groupingInfo.name : undefined,
-                            attributeName: groupingDefined && _.isObject(groupingInfo.attribute) ? groupingInfo.attribute.name : undefined
+                            groupingName : groupingDefined && _.isString(groupingInfo.text)? groupingInfo.text : undefined,
+                            attributeName: groupingDefined && _.isObject(groupingInfo.attribute) ? groupingInfo.attribute.text : undefined
                         }} />
                 </div>
             </ColumnHeaderCell>)
@@ -401,7 +401,7 @@ function SamplesAttributes({
                         cellRenderer={renderCell}
                         columnHeaderCellRenderer={() => renderDefaultHeader("Genotype")} />
                     {groupings.map((groupInfo,groupIdx) =>
-                        <Column key={`${groupInfo.name}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
+                        <Column key={`${groupInfo.text}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
                     <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">
                         <Button icon="plus" onClick={addSampleAttr} /></div></ColumnHeaderCell>} />
             </Table2>

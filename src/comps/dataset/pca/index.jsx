@@ -23,7 +23,10 @@ function DatasetPCA({ }) {
             setTabHeader(metadata.title)
         }
     }, [_.isObject(metadata)])
-    console.log(_.values(metadata.samples_attributes).map(v => v.name))
+    console.log(pcaresults)
+
+    const sampleAttributeNames = _.isObject(metadata) && _.isObject(metadata.samples_attributes) ? _.values(metadata.samples_attributes).map(v => v.name) : []
+
     return (
         <div style={{ overflowY: "scroll", height: "80vh " }}>
             <h2>Principal Component Analysis</h2>
@@ -41,7 +44,7 @@ function DatasetPCA({ }) {
                                 </div>:null} */}
                         {isSuccess ? <div>
                             <GroupingSelection
-                                groupings={_.values(metadata.samples_attributes).map(v => v.name)}
+                                groupings={sampleAttributeNames}
                                 keyNames={["colorName", "splitName", "subplotName"]}
                                 handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(pcaresults.projection[0],value)?value:undefined}})}
                                 selectedItems={selectedGroupings} />
@@ -81,7 +84,7 @@ function DatasetPCA({ }) {
                                         yaxisName,
                                         limits,
                                         tooltipSmall : false,
-                                        tooltipNames : _.concat(["index"],Object.keys(pcaresults.samples_attributes)),
+                                        tooltipNames : _.concat(["index"],sampleAttributeNames),
                                         ...hoverProps,
                                         ...filterProps,
                                         attributesByTag,

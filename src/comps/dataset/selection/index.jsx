@@ -54,10 +54,6 @@ function DatasetSelection({ authenticationStatus, logout, submissionFilter, setS
         <div>
             
            <h2>Dataset Selection</h2>
-            <Link to="/dataset/KUbPyK1ASG">Dataset1</Link>
-            <Link to="/dataset/BuXOSlIl6G">dataset2</Link>
-            <Link to="/dataset/rfP4nAAmgA">D3</Link>
-            <Link to="/dataset/3QAisvOBk6xz">Test OLD</Link>
             <div className="div--expand flex">
             <div className="flex flex-column submission__side__filter__container ">
             

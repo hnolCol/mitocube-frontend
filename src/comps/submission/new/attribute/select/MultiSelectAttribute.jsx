@@ -22,7 +22,7 @@ function AttributeInput({ attribute,
     onItemCreate = undefined,
     helperText = "",
     matchTargetWidth = true,
-    searchColumns = ["name", "details"],
+    searchColumns = ["text", "details"],
     maxItemsShown = 30,
     minimumSearchStringLength = 0,
     handleFeatureSelection = undefined,
@@ -36,7 +36,7 @@ function AttributeInput({ attribute,
     const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
         const queryLength = query.length
         const justNumbersString = query.replace(/[^\d.]/g, "")
-        if (attribute.allow_features_as_values && attributeValues.length === 0) {
+        if (attribute.has_features_value && attributeValues.length === 0) {
             return <Menu>
                 <MenuItem text="Select protein feature..."
                     onClick={() => {
@@ -45,21 +45,21 @@ function AttributeInput({ attribute,
             </Menu>
         }
         return <Menu>
-            {filteredItems.length === 0 && attribute.allow_numeric_input ? <MenuItem
+            {filteredItems.length === 0 && attribute.has_numeric_input ? <MenuItem
                 icon={queryLength ? "add" : "blank"}
                 text={queryLength === 0 ? "Enter numeric value to create item" : `Create: ${justNumbersString}`}
                 disabled={!queryLength || !_.isFinite(_.toNumber(justNumbersString))}
                 onClick={() => onItemCreate(attribute,justNumbersString)}/> : null}
-            {filteredItems.length === 0 && !attribute.allow_numeric_input? <MenuItem text="No attribute values found." disabled={true} />: null}
+            {filteredItems.length === 0 && !attribute.has_numeric_input? <MenuItem text="No attribute values found." disabled={true} />: null}
             {filteredItems.map((attrValue, attrIdx) => {
                 if (attrIdx < maxItemsShown) return <MenuItem
                     key={`${attrValue.id}-${attribute.tag}`}
                     icon={selectedItemsIDs.includes(attrValue.id)?"tick":"blank"}
                     selected={selectedItemsIDs.includes(attrValue.id)}
                     active={activeItem.id === attrValue.id}
-                    text={attrValue.name}
+                    text={attrValue.text}
                     onClick={() => onItemSelect(attribute, attrValue)}
-                    labelElement={<div style={{ maxWidth: "24rem", textAlign : "right" }}>{attrValue.details}</div>} />
+                    labelElement={<div style={{ maxWidth: "24rem", textAlign : "right" }}>{attrValue.description}</div>} />
                 
                 if (attrIdx === maxItemsShown) return <MenuItem key={`items-not-show${attribute.id}`} text="Not all items shown ..." disabled={true} /> 
 
@@ -73,13 +73,13 @@ function AttributeInput({ attribute,
 
     const renderSelectedItemAsTag = (item) => {
         //render selected item as a tag 
-        return item.name
+        return item.text
     }
 
     // const selectableItems = useMemo(() => {
     //     if (!_.isArray(attributeValues)) return []
     //     if (query === "") return attributeValues
-    //     return filterArrayBySearchString({searchString:[query],keyNames:["name","details"],array:attributeValues})
+    //     return filterArrayBySearchString({searchString:[query],keyNames:["text","details"],array:attributeValues})
     // }, [query])
 
     const filterItems = (searchString, items) => {
@@ -91,7 +91,7 @@ function AttributeInput({ attribute,
     return (
         <FormGroup
             style={{margin : "0.1rem"}}
-            label={showLabel?attribute.name:""}
+            label={showLabel?attribute.text:""}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={inline}
             disabled={disabled}

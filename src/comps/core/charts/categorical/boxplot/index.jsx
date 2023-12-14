@@ -19,24 +19,23 @@ import { getSetOfMatchingIndcsInArrayOfObject } from "../../../../../services/ar
 export function Legend({ x, y, width, height, colorScale, colorName, attrValuesByTag, handleMouseOver, data, onLegendGroupLeave }) {
     if (!_.isFunction(colorScale) || !_.isFunction(colorScale.domain) || !_.isArray(colorScale.domain())) return null 
     const colorCategories = useMemo(() => colorScale.domain().map(attrValueTag => mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag })), [colorScale])
-    const tooltipInfo = useMemo(() => colorCategories.map(mappedAttrValues => _.flatten(_.concat(mappedAttrValues.attrValues.map(attrValue => { return [{ name: "Name", value: attrValue.name }, {name: "Details", value: attrValue.details }] })))),[colorScale])
+    const tooltipInfo = useMemo(() => colorCategories.map(mappedAttrValues => _.flatten(_.concat(mappedAttrValues.attrValues.map(attrValue => { return [{ text: "Name", value: attrValue.text }, { text: "Details", value: attrValue.description }] })))), [colorScale])
     const colors = colorScale.range() 
 
     /**
-     * 
+     * @description Handles the mouse over legend group event.
      * @param {MouseEvent} e - The mouse event when the mouse leaves the group in the legend.
      * @param {Number} idx - The index of all color categories 
      * @param {import("../../../../../types/attributes").MappedAttributeValueTag} colorCategory - The color category mapped to attribute values
      */
     const handleMouseOverGroup = (e, idx, colorCategory) => {
-        const colorCats = colorScale.domain()
-    
+        if (!_.isFunction(handleMouseOver)) return 
+        
         let idcs = new Set()
         if (colorCategory.isAttrValue && _.isArray(data)) {
             const colorCategoryInData = _.join(colorCategory.attrValues.map(attrValue => attrValue.tag), " ")
             idcs = getSetOfMatchingIndcsInArrayOfObject({data, keyName : colorName, keyValue : colorCategoryInData})
         }
-
         handleMouseOver(e, tooltipInfo[idx], idcs)
     }
 
@@ -47,7 +46,7 @@ export function Legend({ x, y, width, height, colorScale, colorName, attrValuesB
             <Text x={x} y={y} verticalAnchor="start" textAnchor="start">{colorName}</Text>
             {colorCategories.map((colorCategory,idx) => {
                 return <Group left={x} top={y + 15 + idx * 35} onMouseLeave={onLegendGroupLeave } onMouseEnter={e => handleMouseOverGroup(e,idx,colorCategory)}>
-                    <rect x={0} y={0} {...{width, height : 11}} fill="transparent"/>
+                    <rect x={0} y={0} {...{width, height : 11}} fill="#ffffff" opacity={0.0}/>
                     <rect x={1} y={1} width={11} height={11} fill={colors[idx]} stroke="black" strokeWidth={0.2}/>
                     <Text x={17} y={6} width={width} verticalAnchor="middle" fontSize={"0.7rem"} cursor={"default"}>{colorCategory.asString}</Text>
                 </Group>

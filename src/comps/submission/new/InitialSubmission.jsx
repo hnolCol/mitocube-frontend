@@ -70,7 +70,7 @@ function InitialSubmission({
     //filter attributes that are not for dataset
     const { attributeValuesByAtrributeID, attributeValuesWithParentInfo }  = useMemo(() => {
         if (!attributesIsSuccess) return {}
-        let attrById = Object.fromEntries(submissionAttributes.attributes.map(attrs => [attrs.id,[attrs.tag,attrs.name]]))
+        let attrById = Object.fromEntries(submissionAttributes.attributes.map(attrs => [attrs.id,[attrs.tag,attrs.text]]))
         let attrsValues = submissionAttributes.attribute_values
         let attrs = attrsValues.map(attrValue => { return { ...attrValue, attribute_id_tag: attrById[attrValue.attribute_id][0], attribute_id_name: attrById[attrValue.attribute_id][1]} })
 
@@ -86,8 +86,9 @@ function InitialSubmission({
     
     const attributesAllowedForDataset = useMemo((
         ) => {
-            if (!attributesIsSuccess) return []
-            return submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"])
+        if (!attributesIsSuccess) return []
+        
+            return _.sortBy(submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"]),"priority")
 
         },[attributesIsSuccess])
 
@@ -98,6 +99,8 @@ function InitialSubmission({
 
         },[attributesIsSuccess])
     
+    console.log(attributesAllowedForDataset)
+        
     
     useEffect(() => {
         loadSubmission()
@@ -171,7 +174,7 @@ function InitialSubmission({
         
 
         if (requiredAttributeNotSubmitted.length > 0) {
-            errMsgs.push("Mandatory Dataset Attributes Missing: "+_.join(requiredAttributeNotSubmitted.map(attr => attr.name), ", "))
+            errMsgs.push("Mandatory Dataset Attributes Missing: "+_.join(requiredAttributeNotSubmitted.map(attr => attr.text), ", "))
         }
 
         // check if sample attributes table is complete 
@@ -336,7 +339,7 @@ function InitialSubmission({
     const constructGenotypeName = (genotypeAttributes) => {
         console.log(genotypeAttributes)
         const genotypeName =  _.join(genotypeAttributes.map(entryAttributes => {
-            return _.join(Object.keys(entryAttributes).map(attributeValue => entryAttributes[attributeValue][0].name)," ")
+            return _.join(Object.keys(entryAttributes).map(attributeValue => entryAttributes[attributeValue][0].text)," ")
         }), " ")
         console.log(genotypeName)
         return genotypeName
@@ -349,7 +352,7 @@ function InitialSubmission({
         let genotypeEntry = genotypes[genotypeLabel].attributes[entryIdx]
         genotypeEntry[attributeTag] = [attributeValue] //overwrite - just one possible
         genotypes[genotypeLabel].attributes[entryIdx] = genotypeEntry
-        genotypes[genotypeLabel].name = constructGenotypeName(genotypes[genotypeLabel].attributes)
+        genotypes[genotypeLabel].text = constructGenotypeName(genotypes[genotypeLabel].attributes)
         setSubmission(prevValues => {return{...prevValues,genotypes}})
     }
 
@@ -562,13 +565,13 @@ function InitialSubmission({
                 
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
                     const samplesAttributesPresent = submission.samplesAttributes.length > 0
-                    if (objectHasKey({ object: attributeValuesByAtrributeID, keyName: attribute.id }) || attribute.allow_features_as_values) {
-                        const attributeValues = attribute.allow_features_as_values ? [] : attributeValuesByAtrributeID[attribute.id]
+                    if (objectHasKey({ object: attributeValuesByAtrributeID, keyName: attribute.id }) || attribute.has_features_value) {
+                        const attributeValues = attribute.has_features_value ? [] : attributeValuesByAtrributeID[attribute.id]
                         // if features are allow as values, then just submit an empty list, it will be handled by the attrobute input
                         const isDefinedAsSamplesAttributes = samplesAttributesPresent ? submission.samplesAttributes.map(sampleAttr => sampleAttr.attribute).includes(attribute) : false
                         const attributeInputDisabled = samplesAttributesPresent && isDefinedAsSamplesAttributes
                         return <AttributeInput {...{ attributeValues, attribute, handleFeatureSelection }}
-                            key={`${attribute.name}-${attribute.id}-mandatory`}
+                            key={`${attribute.text}-${attribute.id}-mandatory`}
                             helperText={attributeInputDisabled?"Defined as a sample attribute below.":""}
                             disabled={attributeInputDisabled}
                             selectedItems={objectHasKey({ object: submission.datasetAttributeValues, keyName: attribute.tag }) ? submission.datasetAttributeValues[attribute.tag] : []}

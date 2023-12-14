@@ -8,6 +8,9 @@ import _ from "lodash"
 import ResultChart from "../../protein/charts/resultCard/chart";
 import { useEffect } from "react";
 
+
+
+
 function DatasetQC() {
     
     const { dataset_label, metadata, refetchMetaData, setTabHeader } = useOutletContext()   
@@ -18,7 +21,7 @@ function DatasetQC() {
         if (_.isObject(metadata) && _.has(metadata, "title")) {
             setTabHeader(metadata.title)
         }
-    }, [metadata.title])
+    }, [_.isObject(metadata)])
 
     if (isError) return <APIError error={error}/>
     if (isLoading || isFetching) return <Loading />

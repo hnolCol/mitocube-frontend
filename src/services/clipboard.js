@@ -11,7 +11,7 @@ export function copyTextToClipboardFromArrayOfObjects({ data = [{}], lineSplit =
 }
 
 
-export function copyTextToClipboard({ text }) {
+export function copyTextToClipboard(text) {
     //navigator.clipboard.write(new ClipboardItem([text]))
     setTimeout(async () => await navigator.clipboard.writeText(text))
 }

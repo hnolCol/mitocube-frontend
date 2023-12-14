@@ -1,12 +1,12 @@
-import { Menu, MenuDivider } from "@blueprintjs/core"
+import { Menu, MenuDivider, Popover, MenuItem } from "@blueprintjs/core"
 import { SVG } from "../../../charts/SVGHeader"
 import { getColorPalette } from "../../../colors/colorPalette"
 import AnimatedText from "../../AniamtedText"
-import { Popover2, MenuItem2 } from "@blueprintjs/popover2"
 import _ from "lodash"
 import { motion } from "framer-motion"
 import { useState } from "react"
 import { Group } from "@visx/group"
+import { Text } from "@visx/text"
 
 function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined, callbackValueOnly = false, children }) {
     const [mouseOver, setMouseOver] = useState(false)
@@ -22,16 +22,15 @@ function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Men
             }
         }
     }
-
     return (
         <div> 
-            <Popover2 position="bottom-left" content={<Menu>
+            <Popover position="bottom-left" content={<Menu>
                 {checkedItems.map((itemProps, itemIdx) => {
                     if (itemProps.text === "DIVIDER") return <MenuDivider key={`${itemIdx}-comboMenuDiv`} />
                 const itemSelected = _.has(itemProps,"selected")?itemProps.selected:itemProps.text === placeholder
                     return (
                     
-                    <MenuItem2
+                    <MenuItem
                     key={`dash-menu-${itemIdx}`}
                     icon={itemSelected ? "tick" : "none"}
                     intent={itemSelected ? "primary" : "none"}
@@ -44,15 +43,15 @@ function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Men
                 
                 <Group cursor={"pointer"} onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
                     <motion.rect x={0} y={0} {...{ width, height }} fill={mouseOver ? "#fafafa" : "#e5e5e5"} rx={4} ry={4} />
-                    <Group  left={2} top={4} >
-                                {children}
+                    <Group  left={2} top={2} >
+                            {children}
                     
-                    <AnimatedText x={25} y={10} text={placeholder} />
+                    <Text x={25} y={height/2+2} verticalAnchor="center" textAnchor="center">{placeholder}</Text>
                     </Group>
             </Group>
                     </SVG>
                     </div>
-                </Popover2>
+                </Popover>
                 </div>
        
     )

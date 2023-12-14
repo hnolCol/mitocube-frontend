@@ -113,7 +113,7 @@ export function AttributeFilterButton({
         >
         <div className="flex  justify-space-between">
         <div className="padding--little" style={{marginRight : "1.5rem", display:"inline-block"}}>
-            {titleFormat(attributeValue.name)}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
+            {titleFormat(attributeValue.text)}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
         </div>
         <motion.div style={{opacity : 0, width : "0rem"}} onAnimationComplete={() => {
             setIsAnimationPlaying(false)
@@ -187,7 +187,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
             //first check attributes match the query
             let attributeTagsMatchingFilterString = filterArrayBySearchString({
                 array: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter).map(attributeTag => attribtesByTag[attributeTag]),
-                keyNames: ["tag", "name"], searchString: attributeSearchQuery
+                keyNames: ["tag", "text"], searchString: attributeSearchQuery
             })
             //then find the attribute Values that match the query.
             // optiona TO DO: one could add the tag and name of the attribute to the values to iteratte only through a single array
@@ -195,7 +195,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
                 return [attrTag, filterArrayBySearchString({
                     array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => _.has(attribteValuesByTag,attrValueTag)?attribteValuesByTag[attrValueTag]:{tag:attrValueTag}),
                     searchString: attributeSearchQuery,
-                    keyNames: ["tag", "name", "details"]
+                    keyNames: ["tag", "text", "details"]
                 })]
             }).filter(attrValues => attrValues[1].length > 0))
             
@@ -218,7 +218,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
                 if (values.size === 0) return null 
 
                 return (<div key={`${attrTag}-attr-filter`} className="flex flex-column">
-                    <div><h5>{attribtesByTag[attrTag].name}</h5></div>
+                    <div><h5>{attribtesByTag[attrTag].text}</h5></div>
                     {[...values].map(attribteValueTag => {
                     let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: {name : attribteValueTag, tag : attribteValueTag}
                     return <AttributeFilterButton key={`${attrTag}-${attribteValueTag}`} {...{

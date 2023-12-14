@@ -70,7 +70,7 @@ function SubmissionHeader({ paramsFile,
             if (_.has(paramsFile, "Experimental Info") && _.isArray(paramsFile["Experimental Info"])) {
                 let researchAim = _.filter(paramsFile["Experimental Info"], expInfo => expInfo.title === "Research Aim")
                 if (researchAim.length > 0) {
-                    return researchAim[0].details
+                    return researchAim[0].description
                 }
                 return ""
             }

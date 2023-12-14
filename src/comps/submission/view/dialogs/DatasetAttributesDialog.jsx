@@ -26,7 +26,7 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
         attirubtesMandatoryForActiveByTag } = useMemo(() => {
                 if (!isSuccessAttr) return {}
                 const attributes = _.values(attributesByTag.attributes)
-                const attrById = Object.fromEntries(attributes.map(attrs => [attrs.id,[attrs.tag,attrs.name]]))
+                const attrById = Object.fromEntries(attributes.map(attrs => [attrs.id,[attrs.tag,attrs.text]]))
                 const attrsValues = _.values(attributesByTag.attribute_values)
                 const attrs = attrsValues.map(attrValue => { return { ...attrValue, attribute_id_tag: attrById[attrValue.attribute_id][0], attribute_id_name: attrById[attrValue.attribute_id][1]} })
                 const attrsForDataset = attributes.filter(attribute => attribute["allow_for_dataset"])
@@ -159,7 +159,7 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
                     <p>Alter the dataset attributes and submit changes for project <strong>{submission.title}</strong> ({submission.label})</p>
                     <div class="margin--medium">
                         <Callout intent={missingMandatoryAttributes.length > 0 ? "warning" : "primary"}>
-                            {missingMandatoryAttributes.length > 0 ? <div><TagWithTooltip tagText={missingMandatoryAttributes.length} tooltipText={_.join(missingMandatoryAttributes.map(attrTag => attributesByTag.attributes[attrTag].name), "\n")} /> attributes not defined that are required for an active dataset. </div> : <div>All attributes defined to publish the dataset.</div>}
+                            {missingMandatoryAttributes.length > 0 ? <div><TagWithTooltip tagText={missingMandatoryAttributes.length} tooltipText={_.join(missingMandatoryAttributes.map(attrTag => attributesByTag.attributes[attrTag].text), "\n")} /> attributes not defined that are required for an active dataset. </div> : <div>All attributes defined to publish the dataset.</div>}
                         </Callout>
                     </div>
                 </div>

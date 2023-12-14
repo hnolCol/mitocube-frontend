@@ -14,7 +14,7 @@ import APIError from "../core/error/APIerror"
 
 function AdminAttributes({ authenticationStatus, maxShown = 10}) {
     const [query, setQuery] = useState("")
-    const debounceSearchString = useDebounce(query, 400)
+    const debounceSearchString = useDebounce(query, 300)
 
     const { data: attributes,
         isLoading: attributesLoading,
@@ -31,7 +31,7 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
         let attrValues = attributes.attribute_values
         if (debounceSearchString === "" || !_.isString(debounceSearchString)) return groupListByProperty(attributes.attribute_values, "attribute_id")
         else {
-            const attrValueMatchQuery = filterArrayBySearchString({ searchString: debounceSearchString, keyNames: ["name", "tag", "details"], array: attrValues })
+            const attrValueMatchQuery = filterArrayBySearchString({ searchString: debounceSearchString, keyNames: ["text", "tag", "description"], array: attrValues })
             return groupListByProperty(attrValueMatchQuery, "attribute_id")
         }
     }, [debounceSearchString,attributesIsSuccess]) 

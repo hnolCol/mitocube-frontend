@@ -2,6 +2,14 @@ import { Header } from "../Header"
 import { motion } from "framer-motion"
 
 
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.headerText - The main text of the button with descriptiion 
+ * @param {String[]} props.descriptionItems - The descriptions that should be displayed on the right side. 
+ * @returns {Element} - The JSX Element DescriptionButton.
+ */
 function DescriptionButton({headerText = "Header" , descriptionItems = ["Sasdasdada","asdadaasd"]}) {
     //a button that allows for a descirption such as When you shoudl
     // click this button. There can be mutliple ones 

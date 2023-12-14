@@ -35,9 +35,9 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}}) 
         
         <Popover content={<div className="padding--little">
             <Menu small={true}>
-                <MenuItem text={attribute.name} disabled={true} />
+                <MenuItem text={attribute.text} disabled={true} />
                 <MenuDivider />
-                <MenuItem text={attributeValue.details} />
+                <MenuItem text={attributeValue.description} />
             </Menu>
         </div>}
             minimal={false}
@@ -51,7 +51,7 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}}) 
                 style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :
                 className="padding--little cursor--default div--round intent-margin-right--tiny"
                 whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
-                            {attributeValue.name}</motion.div>
+                            {attributeValue.text}</motion.div>
             </Popover>
     )
 }
@@ -67,7 +67,7 @@ export function SampleAttributeTagWithTooltip({ name, values, sampleNames, attrV
                 <MenuDivider />
                 {_.keys(values).map(attrValueTag => {
                     const mappedAttributeValue = mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTag })
-                    const label = mappedAttributeValue.isAttrValue ? mappedAttributeValue.attrValues.map(attrValue => attrValue.details) : ""
+                    const label = mappedAttributeValue.isAttrValue ? mappedAttributeValue.attrValues.map(attrValue => attrValue.description) : ""
                     return <MenuItem
                         key={attrValueTag}
                         text={`${mappedAttributeValue.asString} (${values[attrValueTag].length})`}

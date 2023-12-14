@@ -32,7 +32,7 @@ function SingleAttributeInput({ attribute,
     onRemove = undefined,
     helperText = "",
     matchTargetWidth = true,
-    searchColumns = ["name", "details"],
+    searchColumns = ["text", "details"],
     maxItemsShown = 30,
     minimumSearchStringLength = 2,
     handleFeatureSelection,
@@ -42,7 +42,7 @@ function SingleAttributeInput({ attribute,
     const selectedItemsIDs = selectedItems.map(item => item.id)
     const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
         
-        if (attribute.allow_features_as_values && attributeValues.length === 0) { //useful to check attributeValues?
+        if (attribute.has_features_value && attributeValues.length === 0) { //useful to check attributeValues?
             return <Menu>
                 <MenuItem text="Select protein feature..." onClick={() => handleFeatureSelection({attribute, ...featureSelectionProps})}/>
             </Menu>
@@ -56,9 +56,9 @@ function SingleAttributeInput({ attribute,
                     selected={selectedItemsIDs.includes(attrValue.id)}
                     active={activeItem.id === attrValue.id}
                     multiline={true}
-                    text={attrValue.name}
+                    text={attrValue.text}
                     onClick={() => onItemSelect(attribute, attrValue)}
-                    labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.details}</div>} />
+                    labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>} />
                 
                 if (attrIdx === maxItemsShown) return <MenuItem key={`items-not-show${attribute.id}`} text="Not all items shown ..." disabled={true} /> 
 
@@ -71,7 +71,7 @@ function SingleAttributeInput({ attribute,
 
     const renderSelectedItemAsTag = (item) => {
         //render selected item as a tag 
-        return item.name
+        return item.text
     }
 
     const filterItems = (searchString, items) => {
@@ -84,7 +84,7 @@ function SingleAttributeInput({ attribute,
             
             <Select
                 disabled={disabled}
-                filterable={!attribute.allow_features_as_values}
+                filterable={!attribute.has_features_value}
                 popoverProps={{ matchTargetWidth, minimal: true }}
                 resetOnQuery={true}
                 resetOnSelect={true}
@@ -96,7 +96,7 @@ function SingleAttributeInput({ attribute,
                 onItemSelect={(item) => onItemSelect(attribute, item)}
                 onRemove = {(item,index) => onItemSelect(attribute,item)}
         >
-            <SimpleTag text={_.isObject(selectedItems[0])?selectedItems[0].name:attribute.name}/>
+            <SimpleTag text={_.isObject(selectedItems[0])?selectedItems[0].text:attribute.text}/>
                </Select>
     )
 }

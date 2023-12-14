@@ -228,7 +228,7 @@ export function ScatterPlot({
                         rerenderDependency: rerenderHover
                     }} />
             </g>
-                <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} fill="transparent"/>
+                <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} fill="#ffffff" opacity={0.0}/>
                 {legend ? <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top}
                     {...{data,colorScale, colorName, attrValuesByTag: attributesByTag.attribute_values, handleMouseOver : handleLegendMouseOver, onLegendGroupLeave}} /> : null}
                 {/* //attributesByTag */}

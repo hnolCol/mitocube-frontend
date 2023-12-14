@@ -24,7 +24,7 @@ export function Combobox(
         isRequired = true,
         hint = "",
         callbackKey,
-        textKey = "name",
+        textKey = "text",
         labelKey = undefined,
         disabled = false,
         buttonProps = {
@@ -38,10 +38,10 @@ export function Combobox(
     const renderItems = (item, { handleClick, modifiers, query }) => {
         //render items as a Menu item. 
 
-        const selected = placeholder === item.name
+        const selected = placeholder === item[textKey]
         return(
             <MenuItem 
-                key = {item.name} 
+                key = {item[textKey]} 
                 text={item[textKey]} 
                 labelElement={<div style={{ maxWidth: "10rem", fontSize : "0.75rem"}}>{_.isString(labelKey)?item[labelKey]:""}</div>}
                 onClick={handleClick} 
@@ -73,12 +73,14 @@ export function Combobox(
         <Select
             fill={fill}
             noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
-            filterable={items.length > 5 ? true : false }
+            filterable={items.length > 5 ? true : false}
+            
             items={items}
             resetOnSelect={true}
             itemListPredicate={filterItems}
             itemRenderer={renderItems}
             onItemSelect={onItemSelection}
+            popoverProps={{ matchTargetWidth : true, minimal: true}}
             disabled={disabled}>
             <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
             </Select>

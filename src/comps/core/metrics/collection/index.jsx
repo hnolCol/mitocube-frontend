@@ -23,13 +23,13 @@ function MultipleMetrices({ metrices = [
                 <Numeric
                     key={`${metricIdx}-${metricProps.label}`}
                     spanClassName={`h${metricIdx % 4}-span`}
-                    callbackOnClick={() => copyTextToClipboard({ text: `${metricProps.label}: ${metricProps.metric}` })}
+                    callbackOnClick={() => copyTextToClipboard(`${metricProps.label}: ${metricProps.metric}`)}
                     {...metricProps}
                     /> :
                 <Categorical
                     key={`${metricIdx}-${metricProps.label}`}
                     spanClassName={`h${metricIdx % 4}-span`}
-                    callbackOnClick={() => copyTextToClipboard({ text: `${metricProps.label}: ${metricProps.metric}` })}
+                    callbackOnClick={() => copyTextToClipboard(`${metricProps.label}: ${metricProps.metric}`)}
                     {   ...metricProps}/>)}
         </div>
         )

@@ -89,10 +89,10 @@ export default Leftbar
 //           return (
            
 //               <MenuItem
-//                 key={`${fItemIdx}${firstLevelItem.name}`}
+//                 key={`${fItemIdx}${firstLevelItem.text}`}
 //                 isOpened={isOpened}
 //                 i={fItemIdx}
-//                 item={{ text: firstLevelItem.name, iconName : firstLevelItem.iconName}} />
+//                 item={{ text: firstLevelItem.text, iconName : firstLevelItem.iconName}} />
            
             
 //           )

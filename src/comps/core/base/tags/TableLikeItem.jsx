@@ -47,7 +47,7 @@ export function TableLikeItem(props) {
                         return (
                             <div key={attrDetails.title} className="hor-aligned-center-flex-start little-m">
                                 <div className="dataset-attr-name">{attrDetails.title} :</div>
-                                <div>{attrDetails.details}</div>
+                                <div>{attrDetails.description}</div>
                             </div>
                         )
                     })}

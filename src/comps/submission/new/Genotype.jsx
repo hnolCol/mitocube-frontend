@@ -42,7 +42,7 @@ function GenotypeAttributeSelection({
           }) {
     
     const hasChildNodes = attribute.childNodes.length > 0
-    const allowFeatures = attribute.allow_features_as_values && !_.has(attributeValuesByID,attribute.id)
+    const allowFeatures = attribute.has_features_value && !_.has(attributeValuesByID,attribute.id)
     const hasAttibuteData = _.isEmpty(prevAttribute) ? false : objectHasKey({ object: genotypeProps.attributes[entryIdx], keyName: attribute.tag }) 
     const hasSlectionValue = _.isObject(genotypeProps.attributes[entryIdx]) && _.has(genotypeProps.attributes[entryIdx],attribute.tag) && genotypeProps.attributes[entryIdx][attribute.tag].length > 0
     const childNode = attribute.childNodes[0]
@@ -99,7 +99,6 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
 
     return (
         <div>
-            {/* <div>Genotype Name : {genotypeProps.name}</div> */}
         {_.range(genotypeEntries).map(entryIdx => {
                 return (
                     <div className="flex bg--white padding--little" key={`genotype-row${entryIdx}`} style={{width : "100%"}}>

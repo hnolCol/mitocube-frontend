@@ -8,10 +8,18 @@ import { objectHasKey } from "../../../../../services/objects/checks"
 import { useMemo } from "react"
 
 
-
-function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, level = 0, highlightAttributeValuesByTag = [],warnAtTwoAttrValues = false}) {
+/**
+ * 
+ * @param {Object} props
+ * @param {import("../../../../../types/attributes").Attribute} props.attribute - The actual attribute to visualize. 
+ * @param {Object} props.attributeValuesByTag - The attribute values in an object where they key equals the tag. 
+ * @param {Function} props.onDatasetAttributeRemove - Handles the removal of a tag (e.g. dataset attribute). If not provided, removal button is omitted. 
+ * @param {Boolean} props.warnAtTwoAttrValues - If enabled, the user is warned if more than two attribute values are selected for an attribute. Since dataset attributes are not accessible to statistical evaluation.
+ * @param {String[]} props.highlightAttributeValuesByTag - Tags that should be highlighted. This is useful to indicated changes made by the user. 
+* @returns {Element} 
+ */
+function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, level = 0, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false}) {
     // displaying hierarchical dataset attributes.
-
     const handleAttributeRemove = (attributeValue) => {
         //on attribute remove, we have to remove the child nodes otherwise 
         //a different attribute object is returned than provided 
@@ -22,20 +30,20 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
     }
     return (
         <div style={{marginLeft:`${level+0.5}rem`, marginBottom : level===0?"0.5rem":"0rem"}}>
-            <h5>{attribute.name}</h5>
+            <h5>{attribute.text}</h5>
             <div className="flex" style={{ paddingBottom: "0.2rem" }}>
                 
                 {attributeValuesByTag[attribute.tag].map(attributeValue => <Tag
-                    key={`${attributeValue.name}-${attributeValue.id}`}
+                    key={`${attributeValue.text}-${attributeValue.id}`}
                     intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
                     style={{ marginRight: "0.4rem" }}
                     onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
                     minimal={true}
                     large={false}>
-                        {attributeValue.name}
+                        {attributeValue.text}
                 </Tag>)}
                 {attributeValuesByTag[attribute.tag].length > 1 && warnAtTwoAttrValues? <TooltipButton
-                    content={<div><div>You defined two dataset attribute values for an attribute ({attribute.name}).</div><div>Consider adding them as sample attributes, otherwise they are not accessible to statistical tests.</div></div>}
+                    content={<div><div>You defined two dataset attribute values for an attribute ({attribute.text}).</div><div>Consider adding them as sample attributes, otherwise they are not accessible to statistical tests.</div></div>}
                     icon="issue" small={false} intent="danger"/> : null}
                 
                 </div>

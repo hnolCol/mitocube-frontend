@@ -10,9 +10,6 @@ import { TagWithTooltip } from "../tags/TagWithTooltip";
 import _ from "lodash"
 
 
-
-
-
 export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false }) {
     if (!_.has(usersByLabel, userLabel)) return null 
     const { firstname, lastname, email, label, institute, research_group } = usersByLabel[userLabel][0]

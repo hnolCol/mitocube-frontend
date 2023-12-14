@@ -38,7 +38,7 @@ function MethodEditingDialog({
     useEffect(() => {
         if (methodsHeader in paramsFile){
             let experimentalInfo = paramsFile[methodsHeader]
-            const textDetailsExtracted = Object.fromEntries(experimentalInfo.map(v => [v.title,v.details])) //curcial to have title, and details here
+            const textDetailsExtracted = Object.fromEntries(experimentalInfo.map(v => [v.title,v.description])) //curcial to have title, and details here
             setText(prevValues => {return {...prevValues, "sections":textDetailsExtracted}})
         }
     },[paramsFile])

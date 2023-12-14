@@ -57,7 +57,7 @@ function Register({ }) {
                     
                 {/* <PasswordInput callbackKey={"password"} onChange={handleChange} />
                 <TextFieldInput callbackKey="Research Name" onChange={handleChange} hint="Research Name" value={userDetails["Research Name"]} />
-                <TextInput callbackKey="Name" hint="Provide your name" minLength={12} onChange={handleChange}/>
+                <TextInput callbackKey="text" hint="Provide your name" minLength={12} onChange={handleChange}/>
                 <Combobox value={_.has(userDetails,"Institute")?userDetails["Institute"].text:undefined} items={[{ text: "Hendrik Nolte", label: "MPI AGE" }]} onChange={handleChange} callbackKey={"Institute"}/>
                 <NumericValueInput /> */}
                     

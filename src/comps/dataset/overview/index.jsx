@@ -31,7 +31,7 @@ function Metatext({ metatextTag, metadata, metatext }) {
                     icon="clipboard"
                     small={true}
                     minimal={true}
-                    onClick={() => copyTextToClipboard({ text: metadata.metatext[metatextTag] })}/></div>
+                    onClick={() => copyTextToClipboard(metadata.metatext[metatextTag])}/></div>
         </div>
         <motion.div
             className="margin--little intent-margin-left intent-padding-right--little container--scroll-y-hide-x"
@@ -85,7 +85,7 @@ function ExperimentalInfo({ title = "", details = "" }) {
             <div className="flex">
                 <Button icon={isOpen ? "chevron-down" : "chevron-right"} small={true} minimal={true} onClick={() => setIsOpen(!isOpen)}/>
                 <Header text={title} letterSpacing="0.05rem" />
-                {isOpen ? <Button icon={"clipboard"} small={true} minimal={true} onClick={() => copyTextToClipboard({text : details})}/> : null}
+                {isOpen ? <Button icon={"clipboard"} small={true} minimal={true} onClick={() => copyTextToClipboard(details)}/> : null}
             </div>
             <motion.div className={`flex ${isOpen ? "container--scroll-y-hide-x" : "no-scroll"}`} animate={isOpen ? { opacity: 1 } : { opacity: 0.2 }} transition={{ duration: 1.4, delay: 0.2 }} opacity={0.2}>
                 <div className="padding--medium intent-margin-left--little">
