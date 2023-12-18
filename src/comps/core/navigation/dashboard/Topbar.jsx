@@ -1,10 +1,8 @@
 import { Code, Dialog, DialogBody, DialogFooter, Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase"
 import UserDashboardIcon from "../../svg/icons/dashboard/User"
-import MenuDashboardIcon from "../../svg/icons/dashboard/Menu"
 import BasicMenu from "../../menu"
 import { openInNewTab } from "../../../../services/tabs/newtab"
-import { getGithubLink } from "../../links/github"
 import { Header } from "../../base/Header"
 import { useGetBackendInfo } from "../../../../hooks/queries/welcome.hooks"
 import { useGetUserRoles } from "../../../../hooks/queries/user.hooks"
@@ -24,7 +22,7 @@ import { EditUser } from "../../base/user/EditUser"
 function Topbar({authenticationStatus,logout}) {
     
     const [dialogProps, setDialogProps] = useState({isOpen : false})
-    const { data: userRoles } = useGetUserRoles({}, { enabled: authenticationStatus.isAuth, staleTime: 3000000 })
+    const { data: userRoles } = useGetUserRoles({}, { enabled: authenticationStatus.isAuth, staleTime: Infinity })
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({},{enabled: authenticationStatus.isAuth, staleTime : Infinity})
 
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
