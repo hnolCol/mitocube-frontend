@@ -23,30 +23,6 @@ import { UseQueryResult } from "react-query";
  * @property {Boolean} allow_for_dataset -If True the attribute can be define a dataset.
 */
 
-
-
-// id : int
-//     tag : str 
-//     text : str 
-//     priority : int = 500 #attributes will be sorted by priority in descending order
-//     parent_id : Optional[int] = None #parent attribute shoudl be Attribute type
-//     parent_tag : Optional[str] = None #parent tag 
-//     group_tag : str # attrbiute grouping
-//     mandatory_for_submission : bool = False #must be defined by an attribute value for a submission
-//     mandatory_for_active : bool = False #must be defined by an attribute value for an active (published) state 
-//     has_features_value : bool = False #if true, features (e.g. proteins) can be selected for this attribute 
-//     has_numeric_input : bool = False #if true, attribute can be defined by the user (numeric input)
-//     min_state : int = 0 #The minimal state the submission must have in order to define the attribute. 
-//     allow_as_qc : bool = True #attributes that are required for qc runs 
-//     allow_as_filter : bool = True #attributes allow to filter datasets
-//     allow_for_measurement : bool = True #atributes that are required when state of projekt changes to measuring
-//     allow_for_genotype : bool = False #attributes that are allowed for specifiying a genotype.
-//     allow_for_dataset : bool = False #allow to use this attribute to define a dataset. 
-//     allow_for_user : bool = False
-
-//     @field_validator('parent_id', mode="before")
-
-
 /**
  * @typedef AttributeValue 
  * @type {Object}
@@ -55,6 +31,24 @@ import { UseQueryResult } from "react-query";
  * @property {string} description - The attribute details which are usually shown in a tooltip.
  * @property {Number} attribute_id - The attribute id the value belongs to.  
 */
+
+/**
+ * @typedef SampleAttributes
+ * @type {Object.<string, SamplesAttribute>} The key value represents the *attribute tag* and the values contains multiple ```SampleAttribute```that hold information about each sample and the *attribute value*.
+ * @description 
+ */
+
+
+/**
+ * @typedef SamplesAttribute
+ * @type {Object}
+ * @property {String} name - The name of the sample attributes 
+ * @property {Object.<string, Number[]} values - The values of the sample attributes (e.g). Key is an attribute value tag and the values are the sample indices. 
+ * @description The samples attribute object. Do not confuse with ```SampleAttributes``` plural which holds multiple ```SampleAttribute``` as values. 
+ */
+
+
+
 
 /**
  * @typedef MappedAttributeValueTag

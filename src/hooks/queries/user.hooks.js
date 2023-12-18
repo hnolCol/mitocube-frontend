@@ -19,21 +19,17 @@ export const useGetUsers = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["getUsers"],() =>  getUsers_API({...APIParams}), useQueryOptions)
 }
 
-
-async function getPublicUsers_API({ tokenString }) {
-    
-    const res = await axios.get('/api/users/public',
-      {
-          headers: {
-              "Authorization": `Bearer ${tokenString}`,
-              'Content-Type': 'application/json'
-          }
-        })
+/**
+ * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
+ * @returns {Object[]} - The public information about the users in the database. 
+ */
+async function getPublicUsers_API() {
+    const res = await axios.get('/api/users/public')
     return res.data.users
 }
 
-export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getCollaboratorsPublic"],() =>  getPublicUsers_API({...APIParams}), useQueryOptions)
+export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
+    return useQuery(["getPublicUserInfo"],() =>  getPublicUsers_API({...APIParams}), useQueryOptions)
 }
 
 

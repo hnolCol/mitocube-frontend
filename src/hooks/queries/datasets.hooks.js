@@ -20,7 +20,7 @@ export const useGetDatasetForSelection = (APIParams = {}, useQueryOptions = {}) 
 
 
 
-async function getDatasetQC_API({ tokenString, dataset_label }) {
+async function getDatasetQC_API({ dataset_label }) {
     const res = await axios.get('/api/datasets/'+dataset_label+'/qc',
     )
     return res.data

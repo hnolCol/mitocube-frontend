@@ -13,7 +13,8 @@ function GroupingHeader({ groupingName }) {
 
 function GroupingItem({itemName, color}) {
     return (
-        <div className="intent-marign-left-little margin-top-bottom--smallest div--round" style={{ backgroundColor: color, textAlign: "center", color: "white" }}>
+        <div className="intent-marign-left-little margin-top-bottom--smallest div--round" 
+        style={{ backgroundColor: color, textAlign: "center", color: "white" }}>
             <div>
                 {itemName}
             </div>

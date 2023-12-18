@@ -72,7 +72,7 @@ function MultiCategoricalChart({
     children
 }) {
     
-    const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
+    const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const colorCategoryFound = _.has(data[0], colorName)
     const subplotCategoryFound = _.has(data[0], subplotName)
     const splitCategoryFound = _.has(data[0], splitName)

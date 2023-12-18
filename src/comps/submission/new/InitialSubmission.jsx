@@ -19,7 +19,7 @@ import { Alert, Button } from "@blueprintjs/core"
 import MetaText from "./MetaText"
 import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage} from "../../../services/localstorage"
 import DatasetLinks from "./Links"
-import { getRandomID } from "../../../services/random"
+import { getRandomString } from "../../../services/random"
 import GenotypeGenerator, { PositionSelection } from "./Genotype"
 import FeatureSelection from "./FeatureSelection"
 import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
@@ -29,7 +29,7 @@ import { constructSampleNames } from "../../../services/samples"
 
 
 
-const randomInitLinkID = getRandomID({n : 5})
+const randomInitLinkID = getRandomString()
 const initSubmissionState = {
             label : "",
             replicates : [],
@@ -301,7 +301,7 @@ function InitialSubmission({
    
     const addGenotype = () => {
         let genotypes = submission.genotypes
-        const genotypeLabel = getRandomID({ n : 5})
+        const genotypeLabel = ({ n : 5})
         let genotypeProps = {
             name: "",
             label : genotypeLabel,
@@ -469,7 +469,7 @@ function InitialSubmission({
 
     const addLink = () => {
         // add a new link
-        const linkID = getRandomID({n : 5})
+        const linkID = getRandomString()
         setSubmission(prevValues => {return {...prevValues,links : _.concat(submission.links, [{link : "", comment : "", id : linkID }])}})
     }
 

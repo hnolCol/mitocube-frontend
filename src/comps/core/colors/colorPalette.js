@@ -1,6 +1,8 @@
+
+// move this to services!! 
+
 const STD_CHART_COLOR_PALETTE = [
     "#466688",
-    
     "#79c29e",
     "#e7ad00",
     "#b62444",
@@ -20,7 +22,10 @@ export function getRedBlueColorScale() {
 
 export const STROKE_COLOR = "#000000" 
 
-
+/**
+ * @description Function to be used to get the axis color. Currently does not implement any checks when it should change, but it is intended to be used for example in darkmode conditions. 
+ * @returns {String} The hex color code for the stroke color of an axis. 
+ */
 export function getAxisStrokeColor(){
     return "#000000"
 }

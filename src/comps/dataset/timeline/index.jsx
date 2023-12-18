@@ -19,7 +19,7 @@ function Timeline({ authenticationStatus }) {
 
     const { dataset_label, metadata, submissionStates} = useOutletContext()   
     
-    const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+    const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo()
     const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
     if (!_.isObject(metadata) || !_.isObject(submissionStates) || !_.isObject(users)) return null 
     const groupedUsers = groupListByProperty(users, "label")

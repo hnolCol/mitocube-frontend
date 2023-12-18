@@ -32,7 +32,22 @@ ScatterPlot.propTypes = {
     findDataInRectangle : PropTypes.func
 }
 
-
+/**
+ * 
+ * @param {Object} props 
+ * @param {Number} props.chartIdx - An index of the chart. 
+ * @param {Number} props.width - The total width of the SVG 
+ * @param {Number} props.height - The total height of the SVG. 
+ * @param {import("../../../../types/charts").ChartMargins} props.margins - The margins  
+ * @param {Object[]} props.data - The data array 
+ * @param {Boolean[]} props.valid - An array of Booleans indicating if the data row is valid. 
+ * @param {String} props.xaxisName - The keyName of the x-axis value. Must be present in all items of data. 
+ * @param {String} props.yaxisName - The keyName of y-axis value. Must be present in all items if the data. 
+ * @param {String} props.colorName - The keyName to be used to access the color. ```data[idx][colorName]``` will be send to the colorScale function to get the color for each point. 
+ * @param {String} props.sizeName - The keyName to be used to acces the size /radius of the scatter points. ```data[idx][sizeName]```will be used to call the sizeScale for each item in the data array. 
+ * @param {Boolean} props.tooltipSmall - If true simply the values will be shown. If False, the tooltip will be grouped by the datapoints (e.g. if multiple are under the hover event) by their color (if provided). 
+ * @returns 
+ */
 export function ScatterPlot({
     chartIdx,
     width = 500,
@@ -95,7 +110,7 @@ export function ScatterPlot({
     
 
     
-    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins(width, height, margins)
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({width, height, margins})
     
     const yScale = useMemo(() => {
         // y scale for the scatter

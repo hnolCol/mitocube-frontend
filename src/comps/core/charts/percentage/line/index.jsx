@@ -23,7 +23,7 @@ function PercentageLine({
     strokeWidth = 5,
     label = "Sample Submission"
 }) {
-    const { chartHeight, chartWidth } = getChartWidthAndHeightWithMargins(width, height, margins)
+    const { chartHeight, chartWidth } = getChartWidthAndHeightWithMargins({width, height, margins})
     const y = margins.top + chartHeight/2
     const valueScale = useMemo(() => scaleLinear({
         domain: [0, 1],

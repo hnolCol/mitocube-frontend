@@ -1,14 +1,15 @@
-import { MultiSelect, Select } from "@blueprintjs/select"
+import { MultiSelect } from "@blueprintjs/select"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import _ from "lodash"
-import { Button, FormGroup, Menu, MenuItem } from "@blueprintjs/core"
-import { useState } from "react"
+import { FormGroup, MenuItem } from "@blueprintjs/core"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import Loading from "../base/loading"
 
-function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, formGroupProps = {label : "Collaborators"}}) {
 
-    const { isLoading, isFetching, isSuccess, data : users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
+
+
+function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, formGroupProps = {label : "Collaborators"}}) {
+    const { isLoading, isFetching, isSuccess, data : users } = useGetPublicUserInfo()
     const renderUser = (item, props) => {
         const itemText = `${item.firstname} ${item.lastname}`
         return <MenuItem

@@ -37,7 +37,7 @@ export function ProfileChart({
    
 
     const svgRef = useRef(null);
-    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins(width, height, margins)
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({width, height, margins})
     
     const yScale = useMemo(() => {
         // y scale for the profile

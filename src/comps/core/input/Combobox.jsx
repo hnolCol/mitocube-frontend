@@ -15,23 +15,37 @@ Combobox.propTypes = {
     onChange : PropTypes.func.isRequired
     
 }
-
-export function Combobox(
-        {items,
-        onChange,
-        value,
-        placeholder = "Plase select",
-        isRequired = true,
-        hint = "",
-        callbackKey,
-        textKey = "text",
-        labelKey = undefined,
-        disabled = false,
-        buttonProps = {
-            minimal : false,
-            small : true
-        },
-        fill = true}) {
+/**
+ * @description - A combobox that allow for the selection of a single item out of multiple options
+ * @param {Object} props 
+ * @param {Object[]} props.items - The items to be displayed. The combobox display each item and represents it by accessing the ```textKey``` and the ```labelKey```. The text is the main name, while the label can display additional info.
+ * @param {String} props.value - The selected value which is the string of the text. To find the selected item the ```item[textKey]``` is compared to ```value```.
+ * @param {String} props.callbackKey - Optional key that is returned upon selection to help to store the selection by its ```callbackKey```. Please see onChange for more info. 
+ * @param {Function} props.onChange - Function to be called when a selection is made. If the ```callbackKey``` is undefined simply the selected item of the ``onChange(item)``` is returned, otherwise ```onChange(callbackKey,item)```. 
+ * @param {String} props.placeholder - The place holder string that is displayed to the user if value is undefined. 
+ * @param {Boolean} props.isRequired - If true, the user is notified that this field is required. The combobox itself does not perform any checking if it is selected. 
+ * @param {String} props.hint - The hint text to be displayed to the user for additional information.  
+ * @param {Boolean} props.disabled - If true, the combobox is disabled. 
+ * @param {String} props.textKey - The ```keyName``` used to display the item in items to the user. 
+ * @param {String} props.labelKey - The ```keyName``` that is used to display in the label MenuItem
+ * @returns {Element} The JSX element for a combobox. 
+ */
+export function Combobox({
+    items,
+    onChange,
+    value,
+    placeholder = "Plase select",
+    isRequired = true,
+    hint = "",
+    callbackKey,
+    textKey = "text",
+    labelKey = undefined,
+    disabled = false,
+    buttonProps = {
+        minimal : false,
+        small : true
+    },
+    fill = true}) {
 
     const keyNames = [textKey,labelKey].filter(keyName => _.isString(keyName))
     
