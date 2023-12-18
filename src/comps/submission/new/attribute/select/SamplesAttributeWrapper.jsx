@@ -18,15 +18,15 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
     const { data: attributesByTag, isSuccess, isLoading, isFetching } = useGetSubmissionAttributesByTag()
 
     const { attributeValuesByAtrributeID, attributesAllowedForDataset } = useMemo((
-        ) => {
-        if (!isSuccess) return []
-        let attributeValues = _.flatten(_.values(attributesByTag.attribute_values))
-        let attributes = _.flatten(_.values(attributesByTag.attributes))
-        return ({
-            attributeValuesByAtrributeID: groupListByProperty(attributeValues, "attribute_id"),
-            attributesAllowedForDataset : attributes.filter(attribute => attribute["allow_for_dataset"])
-        })
-    }, [isSuccess])
+                ) => {
+                if (!isSuccess) return []
+                let attributeValues = _.flatten(_.values(attributesByTag.attribute_values))
+                let attributes = _.flatten(_.values(attributesByTag.attributes))
+                return ({
+                    attributeValuesByAtrributeID: groupListByProperty(attributeValues, "attribute_id"),
+                    attributesAllowedForDataset : attributes.filter(attribute => attribute["allow_for_dataset"])
+                })
+            }, [isSuccess])
     if (isLoading || isFetching) return <Loading />
     
     const addSampleAttr = () => {

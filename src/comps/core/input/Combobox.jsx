@@ -37,8 +37,7 @@ export function Combobox(
     
     const renderItems = (item, { handleClick, modifiers, query }) => {
         //render items as a Menu item. 
-
-        const selected = placeholder === item[textKey]
+        const selected = value === item[textKey]
         return(
             <MenuItem 
                 key = {item[textKey]} 
@@ -70,20 +69,19 @@ export function Combobox(
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
             helperText={""}>
-        <Select
-            fill={fill}
-            noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
-            filterable={items.length > 5 ? true : false}
-            
-            items={items}
-            resetOnSelect={true}
-            itemListPredicate={filterItems}
-            itemRenderer={renderItems}
-            onItemSelect={onItemSelection}
-            popoverProps={{ matchTargetWidth : true, minimal: true}}
-            disabled={disabled}>
-            <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
+            <Select
+                fill={fill}
+                noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
+                filterable={items.length > 5 ? true : false}
+                items={items}
+                resetOnSelect={true}
+                itemListPredicate={filterItems}
+                itemRenderer={renderItems}
+                onItemSelect={onItemSelection}
+                popoverProps={{ matchTargetWidth : true, minimal: true}}
+                disabled={disabled}>
+                <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
             </Select>
-            </FormGroup>
+        </FormGroup>
     )
 }

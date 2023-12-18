@@ -29,10 +29,10 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
         onDatasetAttributeRemove(attribute,attributeValue)
     }
     return (
-        <div style={{marginLeft:`${level+0.5}rem`, marginBottom : level===0?"0.5rem":"0rem"}}>
-            <h5>{attribute.text}</h5>
-            <div className="flex" style={{ paddingBottom: "0.2rem" }}>
-                
+        <div style={{marginLeft:`${level+0.5}rem`, marginBottom : level===0?"0.3rem":"0rem"}}>
+            
+            <div className="flex center-items" style={{ paddingBottom: "0.1rem" }}>
+            <div style={{paddingRight : "0.1rem"}}>{attribute.text}:</div>
                 {attributeValuesByTag[attribute.tag].map(attributeValue => <Tag
                     key={`${attributeValue.text}-${attributeValue.id}`}
                     intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}

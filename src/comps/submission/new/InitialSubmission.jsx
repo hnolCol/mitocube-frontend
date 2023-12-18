@@ -43,23 +43,22 @@ const initSubmissionState = {
             attributes: {sampleNumber : 0, replicates : 0},
             datasetAttributeValues: {},
             datasetAttributes: [],
-            rerenderTableDependency: 0}
-
-
-
-
+            rerenderTableDependency: 0
+}
+            
 function InitialSubmission({
     authenticationStatus,
-    logout
+    logout,
+    sampleNames = []
 }
 ) {
-    const [submission, setSubmission] = useState(initSubmissionState)
+    const preDefinedSampleNames = sampleNames.length > 0 
+    const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
-    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
+    const { data: metatext } = useGetSubmissionMetatext({}, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
-
 
     const { data: submissionAttributes,
         isLoading: attributesLoading,
@@ -98,9 +97,7 @@ function InitialSubmission({
             return submissionAttributes.attributes.filter(attribute => attribute["allow_for_genotype"])
 
         },[attributesIsSuccess])
-    
-    console.log(attributesAllowedForDataset)
-        
+
     
     useEffect(() => {
         loadSubmission()
@@ -123,9 +120,9 @@ function InitialSubmission({
                 attributeTable.push(Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
         }
-        const sampleNames = constructSampleNames(submissionID.id, sampleNumber, attributeTable)
+        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames(submissionID.id, sampleNumber, attributeTable) : sampleNames
 
-        setSubmission(prevValues => {return {...prevValues, sampleNames, attributeTable, label : submissionID.id, rerenderTableDependency : [Math.random()]}})
+        setSubmission(prevValues => {return {...prevValues, sampleNames : constructedSampleNames, attributeTable, label : submissionID.id, rerenderTableDependency : [Math.random()]}})
 
     }, [submission.attributes.sampleNumber, submissionID])
     
@@ -629,7 +626,9 @@ function InitialSubmission({
                         placeholder="Number of replicates"
                         callbackKey={"replicates"}
                         value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
-                    <NumericValueInput
+                            <NumericValueInput
+                            disabled={preDefinedSampleNames}
+                            hint={preDefinedSampleNames ? "Number of samples" : ""}
                         placeholder="Number of samples"
                         callbackKey={"sampleNumber"}
                         value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />

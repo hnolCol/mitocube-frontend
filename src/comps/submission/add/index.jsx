@@ -6,6 +6,8 @@ import { readLinesAndColumnNamesFromTxtFile } from "../../../services/file/readt
 import { arraysInArrayHaveSameLength } from "../../../services/arrays/checks"
 import { Combobox } from "../../core/input/Combobox"
 import _ from "lodash"
+import { ItemTable } from "./Table"
+import InitialSubmission from "../new/InitialSubmission"
 
 
 
@@ -22,7 +24,15 @@ import _ from "lodash"
 //         let { columnNames, dataArray } = readLinesAndColumnNamesFromTxtFile(readEvent)
         
 
-
+const initState = {
+    isLoading: false,
+    columnNames: [],
+    dataArray: [],
+    columnNamesForSelection: [],
+    keyColumnName: "",
+    sampleColumnsIdx: [],
+    columnSelectionConfirmed: false
+}
 
 /**
  * 
@@ -33,7 +43,7 @@ import _ from "lodash"
  */
 function AddExistingSubmission({authenticationStatus, logout}) {
     const [submission, setSubmission] = useState({})
-    const [loadingFileProps, setLoadingFileProps] = useState({isLoading : false, columnNames : [], dataArray : [], columnNamesForSelection : []})
+    const [loadingFileProps, setLoadingFileProps] = useState(initState)
 
 
     const handleFileInput = (e) => {
@@ -50,7 +60,7 @@ function AddExistingSubmission({authenticationStatus, logout}) {
                 if (arraysInArrayHaveSameLength(dataArray)) return 
 
                 const columnNamesWithValues = columnNames.map((columnName, idx) => {
-                    return { text: columnName, description: _.join(_.range(3).map(rowIdx => dataArray[rowIdx][idx]), ", ") }
+                    return { text: columnName, firstValues : _.truncate(_.join(_.range(3).map(rowIdx => dataArray[rowIdx][idx]), ", "), {length : 24, omission : " ..."}) }
                 })
 
                 setLoadingFileProps(prevValues => {return {...prevValues,isLoading : false, columnNames, dataArray, columnNamesForSelection : columnNamesWithValues}})
@@ -63,7 +73,7 @@ function AddExistingSubmission({authenticationStatus, logout}) {
 
     return (
         <div>
-            <Button icon="reset" onClick={() => setLoadingFileProps(prevValues => { return { ...prevValues, columnNames: [] } })} minimal={true} intent="danger"/>
+            <Button icon="reset" onClick={() => setLoadingFileProps(initState)} minimal={true} intent="danger"/>
         
             {loadingFileProps.columnNames.length === 0 ?
                 <div>
@@ -90,18 +100,39 @@ function AddExistingSubmission({authenticationStatus, logout}) {
                     <h4>File Input</h4>
                     <p>Please select a tab-delimited txt file. The file must have exactly one header. Allowed extension are .txt and .tsv.</p>
                     <FileInput text="Choose file..." small={true} buttonText="..." onInputChange={handleFileInput} disabled={loadingFileProps.isLoading}/>
-                    {loadingFileProps.isLoading ? <p>Reading file..</p> : null}</div>
+                    {loadingFileProps.isLoading ? <p>Reading file..</p> : null}
+                </div>
                 // if text file is loadded 
-                :
-                
+                : !loadingFileProps.columnSelectionConfirmed  ?
                 <div>
                     <p>File successfully uploaded</p>
                     <h4>Select the feature key column (Uniprot ID).</h4>
-                    <Combobox items={loadingFileProps.columnNamesForSelection} labelKey={"description"} placeholder="Select key column." />
-                    
-
-                    <p>Please select the colum(s) that specify the samples.</p>
-                </div>}
+                    <Combobox
+                        items={loadingFileProps.columnNamesForSelection}
+                        value={loadingFileProps.keyColumnName}
+                        labelKey={"firstValues"}
+                        placeholder="Select key column."
+                        callbackKey={"keyColumnName"}
+                        onChange={(keyName, item) => setLoadingFileProps(prevValues => { return { ...prevValues, [keyName]: item.text } })}/>
+                    <p>Please select the colum(s) that specify the samples (e.g. the intensity values). If you selected the long format, only a single column should be selected.</p>
+                    <div>
+                        <ItemTable
+                            items={loadingFileProps.columnNames}
+                            selectedItems={loadingFileProps.sampleColumnsIdx}
+                            onSelection={(rowIdcs) => setLoadingFileProps(prevValues => { return { ...prevValues, sampleColumnsIdx : rowIdcs } })} />
+                    </div>
+                        <Button
+                            intent="primary"
+                            icon="step-forward"
+                            text="Next"
+                            disabled={!(loadingFileProps.sampleColumnsIdx.length && loadingFileProps.keyColumnName !== "")}
+                            onClick={() => setLoadingFileProps(prevValues => { return { ...prevValues, columnSelectionConfirmed: true } })} />
+                    </div> : <div>
+                        <h4></h4>
+                        <InitialSubmission sampleNames={loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx])} {...{authenticationStatus}} />
+                        </div>
+            
+            }
             
 
 

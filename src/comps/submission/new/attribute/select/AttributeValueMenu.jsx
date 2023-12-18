@@ -35,9 +35,7 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                     const attributeID = attribute.has_features_value? -1 : attribute.id
                     const attrValues = _.has(filteredAttributeValuesByID, attribute.id) ? filteredAttributeValuesByID[attributeID] : []
                     const attributeMatchesQuery = objectHasKey({ object: attributeIDsMatchingQuery, keyName: attribute.id })
-                    const hasAttrValues = attrValues.length > 0
-                    if (hasAttrValues) console.log(attrValues,"VALUES",hasAttrValues)
-                    
+                    const hasAttrValues = attrValues.length > 0                    
                     if (attribute.has_numeric_input && attributeMatchesQuery)  return <div>
                         <MenuItem text={`Enter numeric value for ${attribute.text}`} disabled={true} />
                         <MenuDivider />

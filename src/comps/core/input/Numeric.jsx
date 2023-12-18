@@ -33,7 +33,7 @@ function NumericValueInput({ callbackKey, value, onChange, minValue = -Infinity,
         <FormGroup
             
             label={hint}
-            labelInfo={isRequired ? "(required)" : "(optional)"}
+            labelInfo={isRequired ? "(required)" : ""}
             inline={false}
             helperText={""}>
             <div className="flex center-items">
