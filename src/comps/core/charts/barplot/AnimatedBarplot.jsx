@@ -78,7 +78,7 @@ export function AnimatedBarplot({
     
 
 
-    const {chartWidth, chartHeight} = getChartWidthAndHeightWithMargins(width,height,margins)
+    const {chartWidth, chartHeight} = getChartWidthAndHeightWithMargins({width,height,margins})
     
     const xScale = useMemo(() => {
 

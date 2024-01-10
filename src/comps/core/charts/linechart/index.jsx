@@ -72,7 +72,7 @@ function LineChart({
         scroll: true,
     })
     
-    const {chartHeight, chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
+    const {chartHeight, chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const lineHighlighted = highlightedYAxisName !== undefined && yaxisNames.includes(highlightedYAxisName)
     const sortedyaxisNames = lineHighlighted ? _.concat(yaxisNames.filter(yaxisName => yaxisName !== highlightedYAxisName), [highlightedYAxisName]) : yaxisNames //resort names to have highlighted line on top (e.g. last)
     const sortedData = useMemo(() => _.isArray(data) ? _.orderBy(data, xaxisName) : [], [xAxisIsTime, xaxisName])

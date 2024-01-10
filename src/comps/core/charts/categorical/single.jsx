@@ -47,7 +47,7 @@ function SingleCategoricalChart({
     yScaleStartsAtZero = true,
     children
 }) {
-    const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
+    const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
     const splitColorScale = useMemo(() => {
         // color scale taking care of the position of the color (e.g horizontal)

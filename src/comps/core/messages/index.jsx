@@ -21,6 +21,7 @@ function Message({ title, date, message }) {
 }
 
 
+
 function Messages({ messages = [{title : "New Dataset online.",date : "02.02.2023",message : "This is an example message", link : "/dataset/asda"}]}) {
     // component to display news and messages 
     // requires an array of objects containg the keys : title, date, message

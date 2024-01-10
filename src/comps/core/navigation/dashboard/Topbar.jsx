@@ -1,10 +1,8 @@
 import { Code, Dialog, DialogBody, DialogFooter, Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase"
 import UserDashboardIcon from "../../svg/icons/dashboard/User"
-import MenuDashboardIcon from "../../svg/icons/dashboard/Menu"
 import BasicMenu from "../../menu"
 import { openInNewTab } from "../../../../services/tabs/newtab"
-import { getGithubLink } from "../../links/github"
 import { Header } from "../../base/Header"
 import { useGetBackendInfo } from "../../../../hooks/queries/welcome.hooks"
 import { useGetUserRoles } from "../../../../hooks/queries/user.hooks"
@@ -13,19 +11,19 @@ import { BaseDialog } from "../dialogs/BaseDialog"
 import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
 
-function Topbar({
-    authenticationStatus,
-    logout,
-    applicationInfo,
-    basePathName }) {
+
+/**
+ * 
+ * @param {Object} props 
+ * @param {import("../../../../types/authentication").AuthenticationStatus} props.authenticationStatus 
+ * @param {Function} props.logout - A function to log the user out. 
+ * @returns 
+ */
+function Topbar({authenticationStatus,logout}) {
     
     const [dialogProps, setDialogProps] = useState({isOpen : false})
-    const { data: userRoles } = useGetUserRoles({}, { enabled: authenticationStatus.isAuth, staleTime: 3000000 })
-    const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token },
-        {
-            enabled: authenticationStatus.isAuth,
-            
-        })
+    const { data: userRoles } = useGetUserRoles({}, { enabled: authenticationStatus.isAuth, staleTime: Infinity })
+    const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({},{enabled: authenticationStatus.isAuth, staleTime : Infinity})
 
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
     
@@ -67,8 +65,8 @@ function Topbar({
                 </div>
                 <div className="bg--grey margin--little">
                     <BasicMenu items={[
-                        { text: "Report an issue", icon: "issue-new", onClick: () => openInNewTab(getGithubLink() + "/issues"), intent  :"danger"},
-                        { text: "GitHub", icon: "git-branch", onClick: () => openInNewTab(getGithubLink()) },
+                        { text: "Report an issue", icon: "issue-new", onClick: () => openInNewTab(backendInfo.issue_url), intent  :"danger"},
+                        { text: "GitHub", icon: "git-branch", onClick: () => openInNewTab(backendInfo.github_url) },
                         { text: "Impressum", icon: "small-info-sign", href: "/impressum" },
                         { text: "Contact", href: "/contact", icon: "envelope" },
                         { text: `v.  ${backendInfoIsSucces?backendInfo.version:null}`, icon : "blank", disabled : true}

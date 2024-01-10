@@ -1,11 +1,9 @@
 import _ from "lodash"
 
 function getAverage(data, key = undefined) {
-
     if (key !== undefined) {
         return (data.map(d => d[key]).reduce((acc, val) => acc + val, 0) / data.length)
     }
-    
     return (data.reduce((acc, val) => acc + val, 0) / data.length)
 }
     

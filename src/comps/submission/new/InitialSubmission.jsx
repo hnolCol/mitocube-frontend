@@ -19,7 +19,7 @@ import { Alert, Button } from "@blueprintjs/core"
 import MetaText from "./MetaText"
 import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage} from "../../../services/localstorage"
 import DatasetLinks from "./Links"
-import { getRandomID } from "../../../services/random"
+import { getRandomString } from "../../../services/random"
 import GenotypeGenerator, { PositionSelection } from "./Genotype"
 import FeatureSelection from "./FeatureSelection"
 import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
@@ -301,6 +301,7 @@ function InitialSubmission({
    
     const addGenotype = () => {
         let genotypes = submission.genotypes
+
         const genotypeLabel = getRandomID(5)
         let genotypeProps = {
             name: "",

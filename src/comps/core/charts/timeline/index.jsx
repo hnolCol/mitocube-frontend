@@ -58,7 +58,7 @@ function TimelineChart({
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
       })
-    const {chartHeight, chartWidth} = getChartWidthAndHeightWithMargins(width,height,margins)
+    const {chartHeight, chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const sortedData = useMemo(() => _.orderBy(data, dateName), [data, dateName])
     const xCenter = margins.left + chartWidth / 2 
 

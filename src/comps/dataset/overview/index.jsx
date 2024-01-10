@@ -46,7 +46,7 @@ function Metatext({ metatextTag, metadata, metatext }) {
 
 function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
     
-    const { data: users } = useGetPublicUserInfo({ tokenString: authenticationStatus.token })
+    const { data: users } = useGetPublicUserInfo()
     if (!_.isObject(users)) return null 
     const userByLabel = groupListByProperty(users, "label")
     const datasetUserLabels = _.concat(user, collaborators).filter(userLabel => _.has(userByLabel,userLabel))

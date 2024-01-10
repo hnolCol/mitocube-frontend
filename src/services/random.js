@@ -1,6 +1,11 @@
 
 
-export function getRandomID(n = 5){
+/**
+ * @description Generates a pseudo random string and uses lower and upper characters and numbers.
+ * @param {Number} n - Length of the random string
+ * @returns {String} - The length of random string
+ */
+ export function getRandomID(n = 5){
         let idString = '';
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         const charactersLength = characters.length;

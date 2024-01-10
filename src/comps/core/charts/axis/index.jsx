@@ -46,7 +46,7 @@ function AxisWithBackground({
                 left={leftStart}
                 scale={leftScale}
                 hideTicks={leftHideTicks}
-                numTicks={getNumberTicks({ space: chartHeight })}
+                numTicks={getNumberTicks(chartHeight)}
                 stroke={getAxisStrokeColor()}
                 tickLength={3} />
         
@@ -58,7 +58,7 @@ function AxisWithBackground({
                 hideTicks={bottomHideTicks}
                 tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps }}
                 labelOffset={1}
-                numTicks={getNumberTicks({ space: chartWidth })}
+                numTicks={getNumberTicks(chartWidth)}
                 scale={bottomScale}
                 stroke={getAxisStrokeColor()}
                 tickLength={3} />

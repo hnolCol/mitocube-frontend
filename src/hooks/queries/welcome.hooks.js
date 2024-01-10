@@ -3,15 +3,14 @@ import { useQuery } from "react-query";
 
 
 
-// get app info
 
-async function getBackendInfo_API({tokenString}) {
-    const res = await axios.get('/api/info/app', {
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${tokenString}`
-        }
-    })
+/**
+ * @description API Call to get the informationa bout the backend including its name and the description. 
+ * @param {Object} props - Placeholder for future props and the keep the queries consistent. Ignored at the moment. 
+ * @returns {import("../../types/info").AppInfoAPIResponse} The API response for the information about the backend. 
+ */
+async function getBackendInfo_API({}) {
+    const res = await axios.get('/api/info/app')
     return res.data 
 }
 

@@ -1,6 +1,7 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
+
 ScatterPoints.propTypes = {
     data : PropTypes.array.isRequired,
     valid : PropTypes.arrayOf(PropTypes.bool).isRequired, // boolean
@@ -11,12 +12,35 @@ ScatterPoints.propTypes = {
     rerenderDependency : PropTypes.array.isRequired
 }
 
-
+/**
+ * 
+ * @param {Object} props The properties of the JSX Component. The Component only rerenders if the the rerenderDependency array changes and is intended to be used
+ * for big datasets. Hence, you have to make sure to alter the rerenderDepency values to obtain a proper rerender. This is also the case if any of the scales is updated.
+ * @param {Object[]} props.data - The data array 
+ * @param {Boolean[]} props.valid - An array of Booleans indicating if the data row is valid. 
+ * @param {String} props.xaxisName - The keyName of the x-axis value. Must be present in all items of data. 
+ * @param {String} props.yaxisName - The keyName of y-axis value. Must be present in all items if the data. 
+ * @param {String} props.colorName - The keyName to be used to access the color. ```data[idx][colorName]``` will be send to the colorScale function to get the color for each point. 
+ * @param {String} props.sizeName - The keyName to be used to acces the size /radius of the scatter points. ```data[idx][sizeName]```will be used to call the sizeScale for each item in the data array. 
+ * @param {Function} props.xScale - The scale for the x axis, a function that returns the pixel by the data value 
+ * @param {Function} props.yScale - The scale for the y-axis, a function that returns the pixel by the data value
+ * @param {Function} props.sizeScale 
+ * @param {Function} props.colorScale - The scale that returns a number for the radius of scatter points by value in data array accessed by the colorName 
+ * @param {String} props.fill - The hex color to fill the scatter points. Is ignored if ```colorName``` is not undefined and ```colorScale```is a function
+ * @param {String} props.stroke - The hex color code for the stroke of the scatter points.  
+ * @param {Number} props.strokeWidth - The strokewidth of the scatter points.   
+ * @param {Array} props.rerenderDependency - An array with value that is checked and if it changed, the component will rerender, otherwise not. 
+ * @param {Set} props.searchIndices - A set of indices. The indices that match will be displayed at opacity 1 and non matching will be using 0.2 
+ * @param {Set} props.filterIndices - A set of indices. The indices that match will be shown, others will be omitted. 
+ * @returns The JSX Component as a SVG group. 
+ */
 function ScatterPoints({
     data = [], 
     valid = [], 
     xaxisName, 
-    yaxisName, sizeName, colorName, 
+    yaxisName, 
+    sizeName, 
+    colorName, 
     xScale, 
     yScale, 
     sizeScale, 
@@ -27,10 +51,10 @@ function ScatterPoints({
     rerenderDependency = [], 
     searchIndices = new Set() ,
     filterIndices =  new Set()}){
-    // Scatter points that have a rerenderDependcy and are only rerendered if the dependency changes
-    // Hence, it requires to be checked outside if the scatter point should rerender 
+ 
     const filterByIdx = filterIndices.size !== 0
     const oapcityBySearch = searchIndices.size !== 0
+    const colorScaleDefined = colorName !== undefined && _.has(data[0],colorName) && _.isFunction(colorScale)
     return(
         <g>
 
@@ -45,8 +69,10 @@ function ScatterPoints({
                     r={sizeScale(d[sizeName])} 
                     fillOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
                     strokeOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
-                    {...{fill : colorName===undefined?fill:colorScale(d[colorName]),
-                        stroke,strokeWidth}}/>
+                    {...{
+                        fill : colorScaleDefined ? colorScale(d[colorName]) : fill,
+                        stroke,
+                        strokeWidth}}/>
             })}
 
         </g>
