@@ -42,11 +42,17 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             //map over each sample attribute tags (e.g. groupings)
             let sampleAttributeValues = submission.samples_attributes[attrTag].values
             const mappedAttributeValuesByTag = _.fromPairs(mapAttributeValueTagsToAttributeValues({ attributeTags: _.keys(sampleAttributeValues), attributesByTag }).filter(attributeValue => _.isObject(attributeValue) && !_.isEmpty(attributeValue)).map(attributeValue => [attributeValue.tag, attributeValue]))
+            console.log(mappedAttributeValuesByTag)
             _.forEach(_.keys(sampleAttributeValues), attrValueTag =>
                 //map each sample attribute value tag 
                 _.forEach(sampleAttributeValues[attrValueTag], sampleIdx => {
                     //map sample attribute values(!) to attribute table.
-                    if (_.has(mappedAttributeValuesByTag,attrValueTag)) attributeTable[sampleIdx][attrTag].push(mappedAttributeValuesByTag[attrValueTag])
+                    if (_.has(mappedAttributeValuesByTag, attrValueTag)) {
+                        
+                        let attrValuesInTable = attributeTable[sampleIdx][attrTag]
+                        let concAttrValues = _.concat(attrValuesInTable,[mappedAttributeValuesByTag[attrValueTag]])
+                        attributeTable[sampleIdx][attrTag] = concAttrValues
+                    }
                 }))
         })
 
@@ -78,14 +84,14 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 
             const existingAttributeTags = attributeTable.length > 0?Object.keys(attributeTable[0]):samplesAttributesProps.samplesAttributes.filter(sampleAttr => _.isObject(sampleAttr.attribute)).map(sampleAttr => sampleAttr.attribute.tag)
             _.forEach(_.range(diff), () => {
-                attributeTable.push(Object.fromEntries(_.map(existingAttributeTags, samplesAttributesTag => [[samplesAttributesTag],[]])))
+                attributeTable.push(_.fromPairs(_.map(existingAttributeTags, samplesAttributesTag => [[samplesAttributesTag],[]])))
             })
         }
 
         setSamplesAttributesProps(prevValues => {
             return {
                 ...prevValues,
-                attributeTable,
+               // attributeTable,
                 sampleNames: constructSampleNames(submission.label, samplesAttributesProps.n_samples, attributeTable),
                 rerenderTableDependency: [Math.random()]
             }
@@ -101,7 +107,8 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
     return (
         <Dialog style={{ minWidth: "95vw", height: "80vh" }} {...{ isOpen }} title="Edit Samples Attributes" onClose={onClose}>
             
-            {isSuccess ? <p>Success. Sample attributes updated.</p>: isLoading || isFetching || patchingIsLoading ? <Loading /> : patchingIsError ? <APIError error={patchingSumissionError} /> : <div className="padding--medium" style={{ height: "auto", overflowY: "visible" }}>
+            {isSuccess ? <p>Success. Sample attributes updated.</p> : isLoading || isFetching || patchingIsLoading ? <Loading /> : patchingIsError ? <APIError error={patchingSumissionError} /> :
+                <div className="padding--medium" style={{ height: "auto", overflowY: "visible" }}>
                 <NumericValueInput
                     placeholder="Number of samples.."
                     hint="Sample number"

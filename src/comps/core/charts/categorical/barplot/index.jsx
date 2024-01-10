@@ -93,9 +93,9 @@ function CategoricalBarplot({
         const tooltipInfo = _.map(tooltipNames, tooltipName => {
             let tooltipValue = barData[tooltipName]
             const { attrValues, asString, isAttrValue } = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
-            return { name : tooltipName, value : asString }
+            return { text: tooltipName, value : asString }
         })
-        const barInfo = [{name : yaxisName, value : _.round(value,2)}, {name : "Error", value : _.isNaN(errorValue)?"NaN":_.round(errorValue,2)}]
+        const barInfo = [{text: yaxisName, value : _.round(value,2)}, {text: "Error", value : _.isNaN(errorValue)?"NaN":_.round(errorValue,2)}]
         return _.concat(barInfo,tooltipInfo)
     }
     

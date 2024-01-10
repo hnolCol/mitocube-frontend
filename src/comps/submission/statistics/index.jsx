@@ -49,7 +49,6 @@ function SubmissionStatistics({authenticationStatus, submissionsQuery, setSubmis
     
     const binnedSubmission = binDataByDate(filteredSubmissions)
     const countBinnedSubmissions = _.sortBy(_.keys(binnedSubmission).map(d => {return {n : binnedSubmission[d].values.length, ...binnedSubmission[d].dates}}),"dateStart")
-    console.log(filteredSubmissions)
     // console.log(dataForLineChart)
     // console.log(getCountsByGroups(submissions, ["state"],undefined))
     return (

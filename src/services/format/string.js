@@ -17,7 +17,7 @@ export function splitStringByNCharacters(string, n = 10) {
  * @param   {string}    text   - The text to transform.
  * @return  {string}     The text in Title format.  
  */
-export function titleFormat(text = "asda4") {
+export function titleFormat(text = "title") {
     return text.charAt(0).toUpperCase() + text.substring(1).toLowerCase()
 }
 

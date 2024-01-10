@@ -7,7 +7,7 @@ import { arrayOfObjectsToObjectByProperty} from "../../services/arrays/groupby";
 
 
 /**
- * @description Returns the submission from the API.
+ * @description Tries to get the submission from the backend.
  * @author Hendrik Nolte 
  * @since 0.1.0
  * @returns {import("../../types/submissions").Submission[]} - Array of submissions.
@@ -35,8 +35,6 @@ export const useGetSubmissionsID = (useQueryOptions = {}, APIParams = {}) => {
 
 
 // update submission samplesAttributes
-
-
 async function patchSubmissionSampleAttrs_API({label,data}) {
 
     const res = await axios.patch('/api/submission/' + label + 'samplesAttributes', data)
@@ -139,17 +137,10 @@ export const usePostSubmission = (useMutationOptions = {}) => {
 
 //update submission
 
-async function patchSubmission_API({ label, tokenString, data }) {
+async function patchSubmission_API({ label, data }) {
    
     const res = await axios.patch('/api/submissions/' + label + "/datasetattributes",
-    data,
-        {
-            headers : {
-                "Authorization": `Bearer ${tokenString}`,
-                'Content-Type': 'application/json'
-            }
-        }
-        )
+    data)
 }
 
 export const usePatchSubmission = (useMutationOptions = {}) => {
@@ -169,4 +160,25 @@ async function getSubmissionStates_API() {
 
 export const useGetSubmissionStates = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["submissionStates"], () => getSubmissionStates_API({...APIParams}), useQueryOptions)
+}
+
+
+
+/**
+ * @description Creates a run list for the dataset 
+ * @author Hendrik Nolte
+ * @since 0.1.0 
+ * @param {String} submission_label - The label of the submission/dataset 
+ * @param {Objet} runlist_props - The runlist properties. 
+ * @returns {Object} The created runlist, if success. Otherwise an empty object.
+ */
+async function postRunlist_API({submission_label, runlist_props}) {
+    console.log(runlist_props)
+    console.log(submission_label)
+    const res = await axios.post(`/api/submissions/${submission_label}/runlist`,runlist_props)
+    return res.data
+}
+
+export const usePostRunlist = (useMutationOptions = {}) => {
+    return useMutation((APIParams) => postRunlist_API({...APIParams}), useMutationOptions)
 }

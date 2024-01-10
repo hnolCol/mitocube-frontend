@@ -87,7 +87,7 @@ function CollapsableScatter({
     
     const getToolTipData = (data) => {
         //return data for tooltip (array of objects )
-        return _.map(tooltipNames, tooltipName => { return { name : tooltipName, value : data[tooltipName]} }).filter(v => v.value !== undefined)
+        return _.map(tooltipNames, tooltipName => { return { text: tooltipName, value : data[tooltipName]} }).filter(v => v.value !== undefined)
 
     }
     

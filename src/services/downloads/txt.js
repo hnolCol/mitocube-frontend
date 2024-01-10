@@ -13,6 +13,39 @@ export function downloadTxtFile(txtData, fileName) {
   
 
 
+/**
+ * @description Creates a string from an object key - value to be exported to a text file.
+ * @param {Object} props
+ * @param {Object} props.obj - The object to create a string from
+ * @param {String} props.cellSep - The cell separator string, defaults to tab "\t"
+ * @param {String} props.lineSep - Line separator string, defaults to "\n"
+ * @param {string[]} props.ignoreKeys - List of keys to be ignored. 
+ * @returns {String} Join string, usually to be exported to a tab delimited file. 
+ */
+export function objectToKeyValueString({ obj, cellSep = "\t", lineSep = "\n", ignoreKeys = []}) {
+    return _.toPairs(obj)
+        .filter(keyValuePair => !ignoreKeys.includes(keyValuePair[0])) //file ignored key
+        .map(keyValuePair => keyValuePair.join(cellSep)).join(lineSep) // join cells and lines 
+}
+
+/**
+ * 
+ * @param {Object} props
+ * @param {Object[]} props.array - The array ob objects to be exported. Assumes that all keys are the same for each item in the array. 
+ * @param {String} props.cellSep - The cell separator string, defaults to tab "\t"
+ * @param {String} props.lineSep - Line separator string, defaults to "\n"
+ */
+export function arrayObjectsToString({ array = [], cellSep = "\t", lineSep = "\n" }) {
+    //find headers 
+    const keyNames = _.keys(array[0])
+    const headerString = keyNames.join(cellSep)
+    const dataString = _.map(array, item => _.map(keyNames, keyName => item[keyName]).join(cellSep)).join(lineSep)
+    return `${headerString}\n${dataString}`
+}   
+
+
+
+
 export function arrayOfObjectsToTabDel(data = [], headers = [], groupingMapper = {}){
     // options to transform an array ob objects to a tab delimted file 
     // allow to export groupings as well using a groupingMapper

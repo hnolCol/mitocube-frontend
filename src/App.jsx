@@ -73,7 +73,7 @@ function App() {
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
   //const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
-  const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : ""})
+  const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : "", minimalView : false})
 
   const [submissionFilter, setSubmissionFilter] = useState({})
   // check if token is valid, if a token is found in storage.
@@ -168,21 +168,21 @@ function App() {
               <PTM />
             </ProtectedRoute>} />
 
-        <Route path="/dataset/:dataID" element={
+        <Route path="/datasets/:dataID" element={
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <DatasetHeader {...{authenticationStatus, logout}}/>
             </ProtectedRoute>}>
-            <Route path="/dataset/:dataID" element={<DatasetOverview {...{authenticationStatus, logout}}/>} />
-            <Route path="/dataset/:dataID/volcano" element={<DatasetVolcanoPlot {...{authenticationStatus, logout}}/>} />
-            <Route path="/dataset/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
-            <Route path="/dataset/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
-            <Route path="/dataset/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
-            <Route path="/dataset/:dataID/mitomap" element={<h3>MitoMap</h3>} />
-            <Route path="/dataset/:dataID/timeline" element={<Timeline {...{authenticationStatus, logout}}/>} />
-            <Route path="/dataset/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
+            <Route path="/datasets/:dataID" element={<DatasetOverview {...{authenticationStatus, logout}}/>} />
+            <Route path="/datasets/:dataID/volcano" element={<DatasetVolcanoPlot {...{authenticationStatus, logout}}/>} />
+            <Route path="/datasets/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
+            <Route path="/datasets/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
+            <Route path="/datasets/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
+            <Route path="/datasets/:dataID/mitomap" element={<h3>MitoMap</h3>} />
+            <Route path="/datasets/:dataID/timeline" element={<Timeline {...{authenticationStatus, logout}}/>} />
+            <Route path="/datasets/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
           </Route>
 
-      <Route path="/dataset" element={
+      <Route path="/datasets" element={
             <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <DatasetSelection {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>
               {/* <div>

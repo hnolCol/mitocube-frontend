@@ -30,7 +30,8 @@ function MetricTable({
             {showClipboard ? <Button icon="clipboard" small="true" minimal="true" onClick={() => copyTextToClipboardFromArrayOfObjects({ data })} /> : null}
             <table>
                 <tbody>
-                {data.map((d,idx) => {
+                    {data.map((d, idx) => {
+                    console.log(d)
                     return (
                         <tr key={`${idx}-metric-table-row`} >
                             <td className="table__item table__item--align-right">

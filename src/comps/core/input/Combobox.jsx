@@ -6,6 +6,7 @@ import _ from "lodash"
 import { Select } from "@blueprintjs/select";
 import { filterArrayBySearchString } from "../../../services/arrays/filter";
 
+
 Combobox.propTypes = {
     items: PropTypes.array.isRequired,
     buttonText: PropTypes.string, 
@@ -15,6 +16,7 @@ Combobox.propTypes = {
     onChange : PropTypes.func.isRequired
     
 }
+
 /**
  * @description - A combobox that allow for the selection of a single item out of multiple options
  * @param {Object} props 
@@ -79,10 +81,11 @@ export function Combobox({
 
     return (
         <FormGroup
+            style={formGroupMargin ? {} : {marginBottom : "0px"}}
             label={hint}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
-            helperText={""}>
+            helperText={undefined}>
             <Select
                 fill={fill}
                 noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
@@ -92,7 +95,7 @@ export function Combobox({
                 itemListPredicate={filterItems}
                 itemRenderer={renderItems}
                 onItemSelect={onItemSelection}
-                popoverProps={{ matchTargetWidth : true, minimal: true}}
+                popoverProps={{ matchTargetWidth, minimal: true}}
                 disabled={disabled}>
                 <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
             </Select>

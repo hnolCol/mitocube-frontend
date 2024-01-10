@@ -15,6 +15,7 @@ import { filterArrayBySearchString, filterArrayOfObjects } from "../../../servic
 import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
 import { SubmissionBaseFilter } from "../filter"
 import { StateSelection } from "../filter/StateSelection"
+import { createFakeAttributeValue } from "../../../services/attributes"
 
 
 
@@ -35,7 +36,7 @@ AttributeFilterButton.propTypes = {
  * Selecting the filter button leads to a filter by the given attribute tag, which is defined
  * as the attributeValue
  * @param {Object} props - The props
- * @param {import("../../../types/attributes").AttributeValue} props.attributeValue 
+ * @param {import("../../../types/attributes").AttributeValue} props.attributeValue Attribute value used to display the filter button.
  * @param {string} props.submissionKey - The submissionKey to be used for filtering by the Attribute Value.
  * @param {Function} props.setSubmissionFilter - The function be called when the button is clicked. Returns the prevValues and [submissionKey] : Set() using the attribute tag.
  * @param {Object} props.backgroundColors - The background color to be used for the button. Must contain the the submissionKey
@@ -50,9 +51,7 @@ export function AttributeFilterButton({
     backgroundColors = {},
     numberSubmissionWithTag
 }) {
-    // Attribute Filter Button
-    // submssion Key === attribute.tag
-    // <
+    
 
     const isFilterKeyActive = _.has(submissionFilter, submissionKey) && submissionFilter[submissionKey].size > 0
     const attrValueTag = attributeValue.tag
@@ -93,7 +92,7 @@ export function AttributeFilterButton({
         }
         
     }
-    const bgColor = _.has(backgroundColors,submissionKey)?backgroundColors[submissionKey]:isFilterActive?"#b91d17":"#dedede"
+    const bgColor = _.has(backgroundColors, submissionKey) ? backgroundColors[submissionKey] : isFilterActive ? "#b91d17" : "#dedede"
     return (<motion.button
         onClick={handleClick}
         className = "submssion__filter__button margin--little"
@@ -110,10 +109,11 @@ export function AttributeFilterButton({
         onHoverEnd={() => {
             divAnimationControls.start(divAnimationVariants.init)
         }}
-        >
+    >
+    
         <div className="flex  justify-space-between">
         <div className="padding--little" style={{marginRight : "1.5rem", display:"inline-block"}}>
-            {titleFormat(attributeValue.text)}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
+            {attributeValue.text}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
         </div>
         <motion.div style={{opacity : 0, width : "0rem"}} onAnimationComplete={() => {
             setIsAnimationPlaying(false)
@@ -220,7 +220,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
                 return (<div key={`${attrTag}-attr-filter`} className="flex flex-column">
                     <div><h5>{attribtesByTag[attrTag].text}</h5></div>
                     {[...values].map(attribteValueTag => {
-                    let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: {name : attribteValueTag, tag : attribteValueTag}
+                    let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: createFakeAttributeValue({attribute : attribtesByTag[attrTag], numericInput : attribteValueTag})
                     return <AttributeFilterButton key={`${attrTag}-${attribteValueTag}`} {...{
                         attributeValue: attrValue,
                         submissionKey: attrTag,
@@ -238,7 +238,6 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
 
 
 export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter,  }) {
-    
     const allFilterKeysFound = _.every(datasetAttributeFilter.map(filterKey => _.has(submissionDatasetAttributes, filterKey)))
     if (!allFilterKeysFound) return false
     const datasetAttributeMatch = _.every(datasetAttributeFilter.map(filterKey => _.some(submissionDatasetAttributes[filterKey].map(attrValueTags => submissionFilter[filterKey].has(attrValueTags)))))
@@ -261,7 +260,7 @@ export function extractSubmissionDetails({ submissions }) {
 export function filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel, ignoreState = false }) {
 
     const stateFilterIsActive = _.has(submissionFilter, "states") && submissionFilter.states.size > 0
-    const datasetAttributeFilter = _.keys(submissionFilter).filter(filterKey => filterKey !== "states" && filterKey !== "users") //exclude statefilter
+    const datasetAttributeFilter = _.keys(submissionFilter).filter(filterKey => filterKey !== "states" && filterKey !== "users") //exclude statefilter and user filter
     const userSearchActive = _.has(submissionFilter, "users") && submissionFilter.users.size > 0 
     
     // should be combined in a single iteration...
@@ -299,7 +298,7 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 
 
 
-export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setSamplesAttributesDialog}) {
+export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog}) {
 
     
     
@@ -312,10 +311,11 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
     const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
 
     return (
+        <div><h2>Submissions ({filteredSubmission.length}/{submissions.length})</h2>
         <div className="flex" style={{ width: "100%" }}>
             
             <div className="flex flex-column submission__side__filter__container ">
-                <p>Submissions : {submissions.length}</p>
+                
                 <SubmissionBaseFilter {...{
                     submissionFilter,
                     submissionsQuery,
@@ -355,7 +355,9 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                                     setAttributeSelectionDialog,
                                     attributesByTag : attributesByTag.attributes,
                                     attributeValuesByTag: attributesByTag.attribute_values,
-                                    setSamplesAttributesDialog
+                                    setAttributesDialog,
+                                    setRunlistDialog,
+                                    minimalView : submissionsQuery.minimalView
                                     
                                 }} borderColor={states.colors_inv[state]} />
                             )
@@ -364,6 +366,7 @@ export function SubmissionContainer({ states, submissions, attributesByTag, user
                 )
             })}
 
+            </div>
             </div>
             </div>
     )

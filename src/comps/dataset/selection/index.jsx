@@ -25,40 +25,29 @@ function DatasetSelection({ authenticationStatus, logout, submissionFilter, setS
     
     if (attrIsFetching || userIsLoading || userIsFetching || isLoading || isFetching || !_.isArray(submissions) || submissionStatesLoading || attrIsLoading) return <Loading />
 
-
-    const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions})
+    const activeSubmissions = submissions.filter(submission => submission.state === _.max(_.values(states.states)))
+    const {uniqueAtributesInSubmissions,usersByDataLabel} = extractSubmissionDetails({submissions : activeSubmissions})
     const usersByLabel = groupListByProperty(users, "label")
-    const filteredSubmission = filterSubmissions({ submissions, submissionFilter, submissionsQuery, usersByDataLabel, ignoreState : true})   
+    const filteredSubmission = filterSubmissions({ submissions : activeSubmissions, submissionFilter, submissionsQuery, usersByDataLabel, ignoreState : true})   
     const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
 
-
-   
-
-    // if (isError) return <APIError error={error} />
-    // if (isLoading) return <div>Loading...</div>
-{/* <SubmissionItem
-                                    key={submission.label}
-                                    {...{
-                                    stateName : states.states_inv[state], 
-                                    states,
-                                    usersByLabel,
-                                    submission,
-                                    setAttributeSelectionDialog,
-                                    mouseIsOver: mouseOverLabel === submission.label,
-                                    handleMouseOver: setMouseOverLabel,
-                                    attributesByTag : attributesByTag.attributes,
-                                    attributeValuesByTag: attributesByTag.attribute_values
-                                    
-                                }} stateColor={states.colors_inv[state]} /> */}
     return (
         <div>
             
            <h2>Dataset Selection</h2>
             <div className="div--expand flex">
             <div className="flex flex-column submission__side__filter__container ">
-            
-            
-            <SubmissionBaseFilter {...{submissionFilter,submissionsQuery,setSubmissionFilter,setSubmissionQuery,attributesByTag,userLabelsInSubmission, uniqueAtributesInSubmissions, users, enableStteSelection : false}} />
+                    <SubmissionBaseFilter {...{
+                        submissionFilter,
+                        submissionsQuery,
+                        setSubmissionFilter,
+                        setSubmissionQuery,
+                        attributesByTag,
+                        userLabelsInSubmission,
+                        uniqueAtributesInSubmissions,
+                        users,
+                        enableStateSelection: false
+                    }} />
         
             </div>
                 <div className="submission__items__container">
@@ -69,9 +58,11 @@ function DatasetSelection({ authenticationStatus, logout, submissionFilter, setS
                                     states,
                                     usersByLabel,
                                     submission,
+                                    contextMenuEnabled : false,
                                     //setAttributeSelectionDialog,
                                     attributesByTag : attributesByTag.attributes,
-                                    attributeValuesByTag: attributesByTag.attribute_values
+                            attributeValuesByTag: attributesByTag.attribute_values,
+                                    minimalView : submissionsQuery.minimalView
                                     
                                 }} borderColor={states.colors_inv[submission.state]} />)}
                 
