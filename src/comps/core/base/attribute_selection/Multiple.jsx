@@ -1,7 +1,7 @@
 import { useState } from "react"
 import _ from "lodash"
 import { Button } from "@blueprintjs/core"
-import { getRandomString } from "../../../../services/random"
+import { getRandomID } from "../../../../services/random"
 import { Combobox } from "../../input/Combobox"
 
 
@@ -14,7 +14,7 @@ import { Combobox } from "../../input/Combobox"
  * @returns A JSX Element for the selection of n sample attributes.  
  */
 export function MultipleSampleAttributeSelection({samplesAttributes, onSelection}) {
-    const [selectionLabels, setSelectionLabel] = useState([getRandomString()])
+    const [selectionLabels, setSelectionLabel] = useState([getRandomID()])
     const [sampleAttributeSelection, setSampleAttributeSelection] = useState({})
 
     const samplesAttributesNames = _.values(samplesAttributes).map(item => { return {
@@ -44,7 +44,7 @@ export function MultipleSampleAttributeSelection({samplesAttributes, onSelection
             icon="add" 
             small={true} 
             minimal={true} 
-            onClick={() => setSelectionLabel(prevValues => [...prevValues,getRandomString()])}/>
+            onClick={() => setSelectionLabel(prevValues => [...prevValues,getRandomID()])}/>
 
 
         </div>

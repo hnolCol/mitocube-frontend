@@ -56,8 +56,7 @@ export function AttributeSelectionDialog({
     }, [submission.label])
     
     const resetDialog = () => {
-        setComment("")
-        setMetatext({})
+        setSubmissionText({comment : "", metatext : {}})
     }
 
     const onClose = () => {
@@ -102,7 +101,7 @@ export function AttributeSelectionDialog({
             <h3>Meta text</h3>
             <div>
                 <MetaText
-                    metatextValues={metatext}
+                    metatextValues={submissionText.metatext}
                     onMetaTextChange={(metatextTag, value) => setSubmissionText(prevValues => { return { ...prevValues, metatext: { ...prevValues.metatext, [metatextTag]: value } } })}
                     index=""
                     allowTextForState={newSubmissionState} />

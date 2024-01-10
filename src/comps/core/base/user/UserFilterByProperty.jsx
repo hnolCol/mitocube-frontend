@@ -133,6 +133,7 @@ export function HierarchicalUserView({ users, userLabelsInSubmission, submission
                             }} />
 
                             {researchGroupGroupedUser[instituteName][research_group].map(user => <AttributeFilterButton
+                                key={`${user.label}-attribute-filterbutton`}
                                 submissionKey={"users"}
                                 submissionFilter={submissionFilter}
                                 setSubmissionFilter={setSubmissionFilter}

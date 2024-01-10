@@ -43,6 +43,8 @@ export function Combobox({
     textKey = "text",
     labelKey = undefined,
     disabled = false,
+    formGroupMargin = true,
+    matchTargetWidth = false,
     buttonProps = {
         minimal : false,
         small : true

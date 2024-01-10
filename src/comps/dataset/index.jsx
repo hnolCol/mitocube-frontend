@@ -10,7 +10,7 @@ import { useGetSubmissionAttributesByTag, useGetSubmissionStates } from "../../h
 function DatasetHeader({authenticationStatus}) {
     const params = useParams()
     const dataset_label = params.dataID
-    const urlStart = `/dataset/${dataset_label}`
+    const urlStart = `/datasets/${dataset_label}`
     const [tabHeader, setTabHeader] = useState("")
     
     // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
