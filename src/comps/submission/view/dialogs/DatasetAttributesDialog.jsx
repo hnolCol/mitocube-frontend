@@ -23,7 +23,7 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
         attributeValuesByAtrributeID,
         attributesAllowedForDataset,
         attributeValuesWithParentInfo,
-        attirubtesMandatoryForActiveByTag } = useMemo(() => {
+        attributesMandatoryForActiveByTag } = useMemo(() => {
                 if (!isSuccessAttr) return {}
                 const attributes = _.values(attributesByTag.attributes)
                 const attrById = Object.fromEntries(attributes.map(attrs => [attrs.id,[attrs.tag,attrs.text]]))
@@ -34,40 +34,23 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
                     attributeValuesByAtrributeID: groupListByProperty(attrs, "attribute_id"),
                     attributeValuesWithParentInfo: attrs,
                     attributesAllowedForDataset: attrsForDataset,
-                    attirubtesMandatoryForActiveByTag : groupListByProperty(attrsForDataset.filter(attr => attr.mandatory_for_active),"tag")
+                    attributesMandatoryForActiveByTag : groupListByProperty(attrsForDataset.filter(attr => attr.mandatory_for_active),"tag")
                 }
     }, [isSuccessAttr])
-
-
-    const missingMandatoryAttributes = _.isObject(attirubtesMandatoryForActiveByTag) ? _.keys(attirubtesMandatoryForActiveByTag).filter(attrTag => !_.has(datasetAttributes.selection,attrTag)) : []
-
     
-    if (isLoadingAttrs || isFetchingAttrs) return <Loading />
-
-
     useEffect(() => {
         if (!_.isObject(submission.dataset_attributes) || !_.isObject(attributesByTag)) return 
         const matchedPrevSelectedAttributes = mapAttributeTagsToAttributes({ tagAttributes: submission.dataset_attributes, attributesByTag })
         
         setDatasetAttributes(prevValues => { return { ...prevValues, selection: matchedPrevSelectedAttributes, highlight : [] } })
     }, [submission.label, _.isObject(attributesByTag)])
+    
 
+    if (isLoadingAttrs || isFetchingAttrs) return <Loading />
 
+    //find attributes that are missing  but are required to be active to show to the user.
+    const missingMandatoryAttributes = _.isObject(attributesMandatoryForActiveByTag) ? _.keys(attributesMandatoryForActiveByTag).filter(attrTag => !_.has(datasetAttributes.selection,attrTag)) : []
 
-    // useEffect(() => {
-    //     if (!_.isObject(attributesByTag)) return 
-    //     if (_.isEmpty(submission)) return 
-        
-    //     //transform dataset attribute value tags to attributes
-    //     setDatasetAttributes(prevValues => {
-    //         return {
-    //             ...prevValues,
-    //             datasetAttributes :  _.keys(submission.dataset_attributes).map(attrTag => attributesByTag.attributes[attrTag]),
-    //             datasetAttributeValues: _.fromPairs(_.keys(submission.dataset_attributes).map(attrTag =>
-    //                 [attrTag, mapAttributeValueTagsToAttributeValues({ attributeTags: submission.dataset_attributes[attrTag], attributesByTag }).filter(v => _.isObject(v) && !_.isEmpty(v))]))
-    //         }
-    //     })
-    // }, [submission.label, _.isObject(attributesByTag)])
 
     const handleDatasetAttributeSelection = (attribute, attributeValue) => {
         const attrValue = _.omit(attributeValue,["attribute_id_name","attribute_id_tag"]) //remove the attribute info that were added for seraching
@@ -148,8 +131,6 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
         )
     }
 
-    console.log(isLoading, success)
-    console.log(datasetAttributes)
     return (
         <Dialog style={{ minWidth: "min(80vw,900px)", height: "80vh" }} {...{ isOpen }} title="Edit Dataset Attributes" onClose={onClose}>
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}

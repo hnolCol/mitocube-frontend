@@ -184,7 +184,7 @@ function LineChart({
                                         fill={yaxisColor}
                                         strokeWidth={circleStrokeWidth}
                                         onMouseLeave={hideTooltip}
-                                        onMouseOver={(e) => handleMouseOver(e, _.map(tooltipCircleNames, keyName => { return { name : keyName, value : point[keyName]} }))}
+                                        onMouseOver={(e) => handleMouseOver(e, _.map(tooltipCircleNames, keyName => { return { text : keyName, value : point[keyName]} }))}
                                         stroke="black" />) : null}
                                 {showMean ? <g>
                                     <line

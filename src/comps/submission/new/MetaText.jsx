@@ -8,9 +8,7 @@ import Loading from "../../core/base/loading"
 
 MetaText.propTypes = {
     onMetaTextChange: PropTypes.func.isRequired,
-    metatextValues: PropTypes.object,
-    authenticationStatus : PropTypes.object.isRequired
-}
+    metatextValues: PropTypes.object}
 
 
 function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0}){

@@ -1,7 +1,7 @@
 import _ from "lodash"
 import PropTypes from "prop-types"
 import { createDataTree } from "../../../../../services/arrays/nest"
-import { Code, H5, Tag } from "@blueprintjs/core"
+import { Code, Divider, H5, Tag } from "@blueprintjs/core"
 import { Header } from "../../../../core/base/Header"
 import TooltipButton from "../../../../core/base/buttons/TooltipButton"
 import { objectHasKey } from "../../../../../services/objects/checks"
@@ -49,7 +49,7 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                 </div>
             {_.has(attribute,"childNodes") && attribute.childNodes.length > 0 ? attribute.childNodes.map(child =>
                 <DisplayDatasetAttribute key={`${child.id}-${child.attribute_id}`} attribute={child} {...{ attributeValuesByTag, onDatasetAttributeRemove}} level={level + 1} />) : null}
-        {level===0?<hr/>:null}
+        {level===0?<Divider />:null}
         </div>
     )
 }

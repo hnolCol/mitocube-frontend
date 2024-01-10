@@ -38,6 +38,7 @@
 /* Paragraphs & headings */
 p{
     font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
+    font-size: 0.75rem;
 }
 
 h1 {

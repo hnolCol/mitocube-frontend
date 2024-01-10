@@ -174,7 +174,6 @@ function SamplesAttributes({
 
     const handleNumericInput = (numericInput, attrValues, attribute, selectedRows) => {
         const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.text === _.toString(numericInput))
-        console.log(attributeAlreadyPresent)
         if (attributeAlreadyPresent.length > 0) {
             const attrValueMatches = attributeAlreadyPresent[0]
             onAttributeSelect(attribute.tag, attrValueMatches, selectedRows)
@@ -374,6 +373,7 @@ function SamplesAttributes({
             rows: e.rows
         }
     }
+
 
     return (
     

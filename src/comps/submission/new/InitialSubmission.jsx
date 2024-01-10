@@ -29,7 +29,7 @@ import { constructSampleNames } from "../../../services/samples"
 
 
 
-const randomInitLinkID = getRandomID({n : 5})
+const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
             label : "",
             replicates : [],
@@ -301,7 +301,7 @@ function InitialSubmission({
    
     const addGenotype = () => {
         let genotypes = submission.genotypes
-        const genotypeLabel = getRandomID({ n : 5})
+        const genotypeLabel = getRandomID(5)
         let genotypeProps = {
             name: "",
             label : genotypeLabel,
@@ -469,7 +469,7 @@ function InitialSubmission({
 
     const addLink = () => {
         // add a new link
-        const linkID = getRandomID({n : 5})
+        const linkID = getRandomID(5)
         setSubmission(prevValues => {return {...prevValues,links : _.concat(submission.links, [{link : "", comment : "", id : linkID }])}})
     }
 

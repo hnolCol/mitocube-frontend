@@ -3,6 +3,7 @@ import { AttributeFilterSelection} from "../view/SubmissionContainer"
 import _ from "lodash"
 import { StateSelection } from "./StateSelection"
 import { HierarchicalUserView } from "../../core/base/user/UserFilterByProperty"
+import TooltipButton from "../../core/base/buttons/TooltipButton"
 
 export function SubmissionBaseFilter({
     submissionsQuery,
@@ -15,13 +16,18 @@ export function SubmissionBaseFilter({
     submissionsByState,
     attributesByTag,
     uniqueAtributesInSubmissions,
-    enableStteSelection = true}) {
+    enableStateSelection = true}) {
     
     return (
         <div>
-            <InputGroup value={submissionsQuery.plain} placeholder="Search..." small={true} onValueChange={value => setSubmissionQuery(prevValues => { return { ...prevValues, plain: value } })}/>
+            <div className="flex">
+                <InputGroup value={submissionsQuery.plain} placeholder="Search..." small={true} onValueChange={value => setSubmissionQuery(prevValues => { return { ...prevValues, plain: value } })} fill={true} />
+                <TooltipButton content="Clear selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
+                <TooltipButton content="Condensed view." icon={submissionsQuery.minimalView ? "eye-on" : "eye-off"} small={true} onClick={() => setSubmissionQuery(prevValues => { return{...prevValues, minimalView : !prevValues.minimalView}})} />
+                
+            </div>
             <hr />
-            {enableStteSelection ? <div><StateSelection {...{ setSubmissionFilter, states, submissionFilter, submissionsByState }} /><hr/></div> : null}
+            {enableStateSelection ? <div><StateSelection {...{ setSubmissionFilter, states, submissionFilter, submissionsByState }} /><hr/></div> : null}
         
                 <HierarchicalUserView users={users} {...{userLabelsInSubmission, setSubmissionFilter, submissionFilter}} />
                 <hr/>
@@ -32,9 +38,7 @@ export function SubmissionBaseFilter({
                     setSubmissionFilter,
                     attributeSearchQuery: submissionsQuery.attributes,
                     setAttributeSearchQuery: (value) => setSubmissionQuery(prevValues => { return { ...prevValues, attributes: value } })}} />
-                <hr/>    
-                <h3>Options</h3>
-                <Button minimal={true} text="Clear Filter" onClick={() => setSubmissionFilter({})}/>
+                
    
         </div>
     )

@@ -139,7 +139,7 @@ export function AnimatedBarplot({
                     x={xScale(d[xaxisName])}
                     height={yScale(0) - yScale(d[yaxisName])}
                     width={width}
-                    tooltipData={[{name : yaxisName,value : d[yaxisName]},{name : "Date",value : dateString}]}
+                    tooltipData={[{text : yaxisName,value : d[yaxisName]},{text : "Date",value : dateString}]}
                     baselineBar={chartHeight + margins.top}
                     y={yScale(d[yaxisName])}
                     fill={"#fff"}

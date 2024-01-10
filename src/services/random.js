@@ -1,6 +1,6 @@
 
 
-export function getRandomID({ n = 5 }){
+export function getRandomID(n = 5){
         let idString = '';
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
         const charactersLength = characters.length;

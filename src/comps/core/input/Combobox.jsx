@@ -27,6 +27,8 @@ export function Combobox(
         textKey = "text",
         labelKey = undefined,
         disabled = false,
+        matchTargetWidth = true,
+        formGroupMargin = true,
         buttonProps = {
             minimal : false,
             small : true
@@ -65,10 +67,11 @@ export function Combobox(
 
     return (
         <FormGroup
+            style={formGroupMargin ? {} : {marginBottom : "0px"}}
             label={hint}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
-            helperText={""}>
+            helperText={undefined}>
             <Select
                 fill={fill}
                 noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
@@ -78,7 +81,7 @@ export function Combobox(
                 itemListPredicate={filterItems}
                 itemRenderer={renderItems}
                 onItemSelect={onItemSelection}
-                popoverProps={{ matchTargetWidth : true, minimal: true}}
+                popoverProps={{ matchTargetWidth, minimal: true}}
                 disabled={disabled}>
                 <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
             </Select>

@@ -40,6 +40,13 @@
 */
 
 
+/**
+ * @typedef WellPosition
+ * @type {Object}
+ * @property {Number} row - The row index
+ * @property {Number} column - The column index.
+ */
+
 export default {}
 // created_on : float
 // modified_on : Optional[float] = None
