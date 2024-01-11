@@ -9,7 +9,7 @@ import { UseQueryResult } from "react-query";
  * @property {number} id - The id of the attribute
  * @property {number} parent_id - The id of the attribute that is the parent of the attribute.
  * @property {string} parent_tag
- * @property {Number}  priority - Number defining the priority, defaults to ```500```
+ * @property {Number}  priority - Number defining the priority, defaults to ``500``
  * @property {string} tag - The tag of the attribute value 
  * @property {string} text - The name of the attribute value
  * @property {number} min_state - This attribute is allowed to be defined at a given state. See states types
@@ -35,7 +35,7 @@ import { UseQueryResult } from "react-query";
 
 /**
  * @typedef SampleAttributes
- * @type {Object.<string, SamplesAttribute>} The key value represents the *attribute tag* and the values contains multiple ```SampleAttribute```that hold information about each sample and the *attribute value*.
+ * @type {Object.<string, SamplesAttribute>} The key value represents the *attribute tag* and the values contains multiple ``SampleAttribute``that hold information about each sample and the *attribute value*.
  * @description 
  */
 
@@ -45,10 +45,8 @@ import { UseQueryResult } from "react-query";
  * @type {Object}
  * @property {String} name - The name of the sample attributes 
  * @property {Object.<string, Number[]} values - The values of the sample attributes (e.g). Key is an attribute value tag and the values are the sample indices. 
- * @description The samples attribute object. Do not confuse with ```SampleAttributes``` plural which holds multiple ```SampleAttribute``` as values. 
+ * @description The samples attribute object. Do not confuse with ``SampleAttributes`` plural which holds multiple ``SampleAttribute`` as values. 
  */
-
-
 
 
 /**
@@ -72,8 +70,6 @@ import { UseQueryResult } from "react-query";
  * @property {Object.<string, Attribute[]>} attributes 
  * @property {Object.<string, AttributeValue[]>} attribute_values
  */
-
-
 
 
 

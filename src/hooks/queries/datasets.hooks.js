@@ -2,24 +2,6 @@ import { useQuery } from "react-query";
 import axios from "axios"
 
 
-async function getDatasetForSelection_API({ tokenString }) {
-    const res = axios.get('/api/datasets',
-    {
-        headers: {
-            "Authorization": `Bearer ${tokenString}`,
-            'Content-Type': 'application/json'
-        }
-      })
-    return res.data
-}
-
-export const useGetDatasetForSelection = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getDatasetForSelection"],() =>  getDatasetForSelection_API({...APIParams}), useQueryOptions)
-}
-
-
-
-
 async function getDatasetQC_API({ dataset_label }) {
     const res = await axios.get('/api/datasets/'+dataset_label+'/qc',
     )
@@ -39,10 +21,8 @@ export const useGetDataQC = (APIParams = {}, useQueryOptions = {staleTime : Infi
  * @returns {import("../../types/submissions").Submission} - The submission metadata.
  */
 async function getDatasetMetadata_API({ dataset_label }) {
-    const res = await axios.get('/api/datasets/'+dataset_label+'/meta'
-    )
+    const res = await axios.get('/api/datasets/'+dataset_label+'/meta')
     return res.data
-
 }
 
 export const useGetMetadata = (APIParams = {}, useQueryOptions = {}) => {
@@ -50,8 +30,6 @@ export const useGetMetadata = (APIParams = {}, useQueryOptions = {}) => {
 }
 
 
-
-//pca data 
 /**
  * 
  * @param {Object} props

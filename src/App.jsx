@@ -73,11 +73,21 @@ function App() {
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
   //const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
-  const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : "", minimalView : false})
 
+  // set up filter for datasets/submissions 
+  const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : "", minimalView : false})
   const [submissionFilter, setSubmissionFilter] = useState({})
+
   // check if token is valid, if a token is found in storage.
-  const { data: isTokenValid, isSuccess : tokenValidSuccess , isLoading : tokenValidIsLoading, isFetching : tokenValidIsFetching, isFetched : tokenValidIsFetched, isError : tokenValidIsError, error : tokenValidError, } = useTokenValid({tokenString : tokenFromStorage.token}, {enabled : _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth})
+  const { data: isTokenValid, 
+    isSuccess : tokenValidSuccess , 
+    isLoading : tokenValidIsLoading, 
+    isFetching : tokenValidIsFetching, 
+    isError : tokenValidIsError, 
+    error : tokenValidError, } = useTokenValid({tokenString : tokenFromStorage.token}, {
+      // if a token is found in local storage, then check if but only if the authenticationStatus.isAuth is not yet true.
+      enabled : _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth
+    })
 
   const location = useLocation()
   const redirect = useNavigate()
@@ -85,11 +95,16 @@ function App() {
   
   useEffect(() => {
     //check for token in local storage and validate if present
+    // store the location.pathname as this useEffect will be called on initial render. 
+    // Therfore we have to store this to redirect the user. 
     const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "token" })
     if (itemFound) {
       setTokenFromStorage({ token: itemValue, locationPathName: location.pathname })
     }
-    setTokenFromStorage(prevValues => { return { ...prevValues, locationPathName: location.pathname }})
+    else {
+      setTokenFromStorage(prevValues => { return { ...prevValues, locationPathName: location.pathname }})
+    }
+    
   }, [])
 
 
@@ -116,8 +131,11 @@ function App() {
       }
   }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidIsError])
 
+  /**
+   * @description Logs the user out by deleting the token from local storage and removing the axios default
+   * Authorization header. It will also redirect the user to '/' 
+   */
   const logout = () => {
-    //logs the user out, deletes the token from local storage. 
     removeItemFromLocalStorage("token")
     setAuthenticationStatus(initAuthenticationStatus)
     setTokenFromStorage({ token: undefined, locationPathName: "/" })
@@ -125,7 +143,6 @@ function App() {
     redirect("/")
   }
 
-  //console.log(tokenValidIsFetching || tokenValidIsLoading)
   return (
     <div className='dashboard__grid no-scroll'>
 
@@ -184,14 +201,7 @@ function App() {
 
       <Route path="/datasets" element={
             <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-              <DatasetSelection {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>
-              {/* <div>
-                <h3>Datasets Selection</h3>
-                <p>Pleaase select a dataset to explore. Tag based search supported.</p>
-                <p>Previous selected datasets ...</p>
-                <Link to="/dataset/8dlTWpi5MMhF">Dataset1</Link>
-                <ScatterPlot width={400} height={300} data={[{"x":2,"y":3},{"x":4,"y":5}]} xaxisName={"x"} yaxisName={"y"} />
-              </div> */}
+              <DatasetSelection {...{logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>
               
           </ProtectedRoute>} />
         {/* Performance Routes */}

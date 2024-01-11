@@ -13,9 +13,9 @@ import { useMemo } from "react";
 import { filterArrayBySearchString } from "../../../services/arrays/filter";
 import { SubmissionBaseFilter } from "../../submission/filter";
 
-function DatasetSelection({ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
+function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
-    const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+    const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch: refetchSubmissions } = useGetSubmissions()    
     
     const { data: users, isLoading: userIsLoading, isFetching: userIsFetching } = useGetPublicUserInfo()

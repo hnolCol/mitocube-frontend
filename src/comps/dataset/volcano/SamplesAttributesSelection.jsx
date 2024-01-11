@@ -8,12 +8,24 @@ import { Combobox } from "../../core/input/Combobox"
 import { Header } from "../../core/base/Header"
 import findControl from "../../../services/groupings/findControl"
 
-function GroupingSelection(props) {
-    const {
-        groupAttributeValues = {},
-        attributes= [],
-        confirmButtonText = "Show Volcano plot.",
-        callback } = props
+
+SamplesAttributesSelection.propTypes = {
+    groupAttributeValues: PropTypes.object,
+    attributes: PropTypes.arrayOf(PropTypes.string),
+    confirmButtonText: PropTypes.string,
+    callback : PropTypes.func // function to handle the callback (e.g. sends the grouping selection back.)
+}
+
+/**
+ * @description JSX Element that allows the user to select samples attributes for a pairwise comparison. 
+ * @param {Object} props 
+ * @param {import("../../../types/attributes").Attribute[]} props.attributes - The list of attributes
+ * @param {Object<string, import("../../../types/attributes").AttributeValue[]>} props.groupAttributeValues - AttributeTag as key and list of attribute values in values. 
+ * @param {Function} props.callback - Function to be called when selection is done. 
+ * @param {String} props.confirmButtonText - The text displayed for the confirm button when selection is made. 
+ * @returns {import("react").ReactElement} - The JSX React Element
+ */
+export function SamplesAttributesSelection({attributes, groupAttributeValues = {}, callback, confirmButtonText = "Show Volcano plot."}) {
     
     const [grouping, setGrouping] = useState({
         main: undefined,
@@ -203,12 +215,5 @@ function GroupingSelection(props) {
     )
 }
 
-GroupingSelection.propTypes = {
-    groupAttributeValues: PropTypes.object,
-    attributes: PropTypes.arrayOf(PropTypes.string),
-    confirmButtonText: PropTypes.string,
-    callback : PropTypes.func // function to handle the callback (e.g. sends the grouping selection back.)
-}
 
-export default GroupingSelection
 
