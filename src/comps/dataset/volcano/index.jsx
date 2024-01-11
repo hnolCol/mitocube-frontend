@@ -27,7 +27,7 @@ function DatasetVolcanoPlot(logout) {
     return (
         <div>
             <div className="flex center-items justify-center div--expand">
-                <SamplesAttributesSelection attributes={sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag])} groupAttributeValues={sampleAttributeValues}/>
+                <SamplesAttributesSelection attributes={sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag])} groupAttributeValues={sampleAttributeValues} {...{metadata}} />
             </div>
         </div>
     )

@@ -11,7 +11,7 @@ import findControl from "../../../services/groupings/findControl"
 
 SamplesAttributesSelection.propTypes = {
     groupAttributeValues: PropTypes.object,
-    attributes: PropTypes.arrayOf(PropTypes.string),
+    attributes: PropTypes.arrayOf(PropTypes.object),
     confirmButtonText: PropTypes.string,
     callback : PropTypes.func // function to handle the callback (e.g. sends the grouping selection back.)
 }
@@ -23,9 +23,10 @@ SamplesAttributesSelection.propTypes = {
  * @param {Object<string, import("../../../types/attributes").AttributeValue[]>} props.groupAttributeValues - AttributeTag as key and list of attribute values in values. 
  * @param {Function} props.callback - Function to be called when selection is done. 
  * @param {String} props.confirmButtonText - The text displayed for the confirm button when selection is made. 
+ * @param {import("../../../types/submissions").Submission} metadata
  * @returns {import("react").ReactElement} - The JSX React Element
  */
-export function SamplesAttributesSelection({attributes, groupAttributeValues = {}, callback, confirmButtonText = "Show Volcano plot."}) {
+export function SamplesAttributesSelection({attributes, groupAttributeValues = {}, callback, confirmButtonText = "Show Volcano plot.", metadata}) {
     
     const [grouping, setGrouping] = useState({
         main: undefined,
@@ -39,6 +40,11 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
         preimputationfilter: undefined
         
     })
+    console.log(grouping)
+    console.log(metadata)
+    console.log(groupAttributeValues)
+
+
                    
     const withinGrouping = grouping.withinGroupings.length > 1
     const handleMainGroupingSelection = (groupingName) => {
@@ -89,7 +95,7 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
             <Combobox
                 onChange={handleMainGroupingSelection}
                 items={attributes}
-                placeholder={_.isObject(grouping.main)?grouping.main.name:""} />
+                placeholder={_.isObject(grouping.main)?grouping.main.text:""} />
             
             {_.isObject(grouping.main)?grouping.main.tag in groupAttributeValues ?
                 <div className="flex justify-space-around center-items margin-top-bottom--medium ">
@@ -99,8 +105,9 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                     
                     <Combobox 
                         items = {grouping.mainItems} 
-                        onChange = {handleGroupingChange} 
-                                placeholder={grouping.group1.name} 
+                                onChange={handleGroupingChange} 
+                                formGroupMargin = {false}
+                                placeholder={grouping.group1.text} 
                         callbackKey = "group1"
                         buttonProps ={{minimal : false,
                                         small : true,
@@ -115,9 +122,10 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                         
                         
                     <Combobox 
-                            items = {grouping.mainItems} 
+                                items={grouping.mainItems} 
+                                formGroupMargin = {false}
                             onChange = {handleGroupingChange} 
-                            placeholder = {grouping.group2.name} 
+                            placeholder = {grouping.group2.text} 
                             callbackKey = "group2"
                             buttonProps ={{minimal : false,
                                         small : true,
@@ -137,8 +145,9 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                 <div className="flex center-items justify-space-around ">
                     <Combobox 
                         items = {grouping.withinGroupings} 
-                        placeholder={grouping.withinGrouping.name}
-                        onChange = {handleGroupingChange} 
+                        placeholder={grouping.withinGrouping.text}
+                                onChange={handleGroupingChange} 
+                                formGroupMargin = {false}
                         callbackKey="withinGrouping"
                         fill={false}
                         buttonProps={{
@@ -148,9 +157,10 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                         
                     <Combobox     
                         disabled = {grouping.withinGrouping === "None"}
-                        items = {grouping.withinItems} 
-                        onChange = {handleGroupingChange} 
-                        placeholder = {grouping.withinGroup.name} 
+                                items={grouping.withinItems} 
+                                formGroupMargin = {false}
+                        onChange={handleGroupingChange}
+                        placeholder = {grouping.withinGroup.text} 
                         callbackKey="withinGroup"
                         fill={false}
                         buttonProps ={{minimal : false,

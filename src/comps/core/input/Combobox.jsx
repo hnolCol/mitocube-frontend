@@ -30,7 +30,7 @@ Combobox.propTypes = {
  * @param {Boolean} props.disabled - If true, the combobox is disabled. 
  * @param {String} props.textKey - The ```keyName``` used to display the item in items to the user. 
  * @param {String} props.labelKey - The ```keyName``` that is used to display in the label MenuItem
- * @returns {Element} The JSX element for a combobox. 
+ * @returns {import("react").ReactElement} The JSX element for a combobox. 
  */
 export function Combobox({
     items,

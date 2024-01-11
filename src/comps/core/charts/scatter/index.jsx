@@ -85,6 +85,7 @@ export function ScatterPlot({
     legend = false }) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
+    console.log(tooltipNames)
     const tooltipOpen = hoverPosition.length === 2 && hoverData.length > 0
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
@@ -146,8 +147,9 @@ export function ScatterPlot({
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
         if (_.isNumber(data[0][colorName])) {
+            const colorDomain = limits[colorName]
             return scaleLinear({
-                domain: [0, 100],
+                domain: [colorDomain.min, colorDomain.max],
                 range: ['#75fcfc', '#3236b8']
             })
         }
@@ -162,7 +164,22 @@ export function ScatterPlot({
     }, [colorName])
 
     const sizeScale = useMemo(() => {
-        return () => defaultRadius
+        if (sizeName === undefined || !_.has(data[0], sizeName)) return () => defaultRadius
+        if (_.isNumber(data[0][sizeName])) {
+            const sizeDomain = limits[sizeName]
+            return scaleLinear({
+                domain: [sizeDomain.min,sizeDomain.max],
+                range: [3, 10],
+                nice : true
+            })
+        }
+        else {
+            const uniqueValues = getUniqueValuesInArrayOfObjects({ data, keyName: sizeName })
+            return scaleOrdinal({
+                domain: uniqueValues,
+                range: _.range(3,10,(10-3)/uniqueValues.length)
+            })
+        }
     }, [sizeName])
 
     const handleMouseHover = (event) => {
@@ -195,7 +212,6 @@ export function ScatterPlot({
         resetSearchIdcs()
     }
     
-
     return (
         <div>
         <SVG {...{ width, height, svgID, svgRef : containerRef}}>
@@ -244,8 +260,8 @@ export function ScatterPlot({
                     }} />
             </g>
                 <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} fill="#ffffff" opacity={0.0}/>
-                {legend ? <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top}
-                    {...{data,colorScale, colorName, attrValuesByTag: attributesByTag.attribute_values, handleMouseOver : handleLegendMouseOver, onLegendGroupLeave}} /> : null}
+                {/* {legend ? <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top}
+                    {...{data,colorScale, colorName, attrValuesByTag: attributesByTag.attribute_values, handleMouseOver : handleLegendMouseOver, onLegendGroupLeave}} /> : null} */}
                 {/* //attributesByTag */}
 
             </SVG >
@@ -253,10 +269,10 @@ export function ScatterPlot({
             {tooltipOpen && hoverChart === chartIdx && (
                 <TooltipInPortal
                 // set this to random so it correctly updates with parent bounds this tooltip is for the points of the scatter. 
-                key={Math.random()}
-                top={hoverPosition[1]}
-                left={hoverPosition[0]}
-                >   
+                    key={Math.random()}
+                    left={hoverPosition[0]}
+                    top={hoverPosition[1]}>
+                    
                     <div className="flex flex-column justify-start">
                         {hoverData.map((v, idx) => idx < 10 ? <div key={`${idx}-hover`}>
                             {tooltipSmall ? <div>
@@ -277,7 +293,6 @@ export function ScatterPlot({
                     </div>
                 </TooltipInPortal>
             )}
-
             {legendTooltipOpen && (
                 <TooltipInPortal top={legendTooltipTop} left={legendTooltipLeft} key={Math.random()}>
                     <MetricTable data={legendTooltipData} />

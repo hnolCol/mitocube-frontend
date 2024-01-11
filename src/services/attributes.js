@@ -41,18 +41,22 @@ export function mapSampleAttributesToSampleNamesinArray({ data, metadata, keyNam
     })
 }
 
-
-function inverseSamplesAttributes(sampleAttributes) {
-    
+/**
+ * @description The samples attributes as a list of samples and their attributes. 
+ * @param {Object} props
+ * @param {import("../types/attributes").SampleAttributes} props.sampleAttributes - The samples attributes 
+ * @param {String[]} props.sampleNames - The samples names. 
+ * @returns {Object[]} Samples attribute in an array of length samplesNames.length. Each item is an object with keys of attributeTags and values as a list
+ * of AttributeValueTags. If a sample is annotated with multiple attribute values of the same attribute. 
+ */
+export function inverseSamplesAttributes({ sampleAttributes, sampleNames }) {
+    const result = _.range(sampleNames.length).map(idx => _.fromPairs(_.keys(sampleAttributes).map(attributeTag => [attributeTag, []])))
+    return _.reduce(_.keys(sampleAttributes), (p, attributeTag, idx) => {
+        const { name, values } = sampleAttributes[attributeTag]
+        _.keys(values).map(attributeValueTag => _.forEach(values[attributeValueTag], sampleIdx => p[sampleIdx][attributeTag].push(attributeValueTag)))
+        return p 
+    }, result)   
 }
-
-function mapSampleNamesToSamplesAttributes({ sampleNames, samplesAttributes }) {
-    const attributeNames = _.values()
-    return sampleNames.map(sampleName => {
-
-    })
-}
-
 
 
 

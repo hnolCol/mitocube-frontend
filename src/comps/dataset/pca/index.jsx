@@ -10,23 +10,84 @@ import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks";
 import GroupingSelection from "../../core/base/attribute_selection/Selection";
+import ComboboxIconBase from "../../core/svg/icons/chartSelection/ComboboxBase";
+import { InputGroup } from "@blueprintjs/core";
+import { XAxisName, YAxisName } from "../../core/svg/icons/chartSelection/ChartAxisNames";
+import { inverseSamplesAttributes } from "../../../services/attributes";
+import SizeIconWithName from "../../core/svg/icons/chartSelection/Size";
+import ColorIconWithName from "../../core/svg/icons/chartSelection/Color";
+import { TooltipIconWithName } from "../../core/svg/icons/chartSelection/Text";
+
+function ChartMarksSelection({keyNames, selection, onSelectionChange}) {
+    
+    return (
+        <div className="flex">
+            <ColorIconWithName
+                items={keyNames}
+                placeholder={selection.colorName}
+                callbackKey="colorName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+            <SizeIconWithName
+                items={keyNames}
+                placeholder={selection.sizeName}
+                callbackKey="sizeName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+        </div>
+    )
+}
+
+
+function TextSelection({ keyNames, selection, onSelectionChange }) {
+    return (
+        <div className="flex">
+            <TooltipIconWithName 
+                items={keyNames}
+                placeholder={selection.tooltipName}
+                callbackKey="tooltipName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+        </div>
+    )
+}
+
+
+function ChartAxisSelection({ keyNames, selection, onSelectionChange }) {
+    return (
+        <div className="flex">
+            <XAxisName
+                items={keyNames} placeholder={selection.xaxisName} callbackKey="xaxisName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+            <YAxisName items={keyNames} placeholder={selection.yaxisName}  callbackKey="yaxisName" callback={(key,value) => onSelectionChange(prevValues => {return{...prevValues,[key] : value}})} />
+                        
+                        
+        </div>
+    )
+}
+
+
 
 function DatasetPCA({ }) {
+    /**
+     * @typedef ContextOutlet
+     * @property {import("../../../types/submissions").Submission} metadata
+    */
     
+    /**
+     * @type {ContextOutlet}
+     */
     const { dataset_label, metadata, setTabHeader } = useOutletContext()   
+
     const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ dataset_label })
     const { data: attributesByTag, isLoading: attrByTagIsLoading, isFetching: attrByTagIsFetching, isSuccess: attrByTagIsSuccess } = useGetSubmissionAttributesByTag()
-    const [selectedGroupings, setSelectedGroupings] = useState({colorName : undefined, splitName : undefined, subplotName : undefined})
-
+    const [selectedGroupings, setSelectedGroupings] = useState({colorName : undefined, tooltipName : undefined})
+    const [axisNames, setAxisNames] = useState({xaxisName : undefined, yaxisName : undefined})
     useEffect(() => {
         if (_.isObject(metadata) && _.has(metadata, "title")) {
             setTabHeader(metadata.title)
         }
     }, [_.isObject(metadata)])
-    console.log(pcaresults)
 
     const sampleAttributeNames = _.isObject(metadata) && _.isObject(metadata.samples_attributes) ? _.values(metadata.samples_attributes).map(v => v.name) : []
+    const numericKeyNames = _.isObject(pcaresults) ? _.filter(_.keys(pcaresults.projection[0]), keyName => _.isNumber(pcaresults.projection[0][keyName])) : []
+    const notNumericKeyNames  = _.isObject(pcaresults) ? _.keys(pcaresults.drivers[0]).filter(keyName => !numericKeyNames.includes(keyName)) : []
+    //console.log(inverseSamplesAttributes({ sampleNames: metadata.sample_names, sampleAttributes: metadata.samples_attributes }))
 
+    console.log(selectedGroupings, numericKeyNames)
     return (
         <div style={{ overflowY: "scroll", height: "80vh " }}>
             <h2>Principal Component Analysis</h2>
@@ -35,6 +96,8 @@ function DatasetPCA({ }) {
                 <div>
                     <p>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained)*10000)/100}% of the total variance.</p>
                     <div>
+                        
+
                         <h3>Projection</h3>
                         {/* if (didx === 1) return <div><ProfileChart {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/></div>
                             return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/>
@@ -42,16 +105,30 @@ function DatasetPCA({ }) {
                                 <RangeSlider min={0} max={100} value={filterProps.filterRange} stepSize={5} onChange={range => handleNumericFilter(0,"x",range[0],range[1])}/><Button onClick={() => handleNumericFilter(0,"x",0.2,0.5)}/>
                                 <InputGroup onChange={(e) => handleStringSearch("label",e.target.value)}/>
                                 </div>:null} */}
-                        {isSuccess ? <div>
-                            <GroupingSelection
+                        <div className="flex">
+                            {isSuccess ? <div>
+                            {/* <GroupingSelection
                                 groupings={sampleAttributeNames}
                                 keyNames={["colorName", "splitName", "subplotName"]}
                                 handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(pcaresults.projection[0],value)?value:undefined}})}
-                                selectedItems={selectedGroupings} />
-                            <InteractiveChart data={pcaresults.projection} keyNames={[
+                                    selectedItems={selectedGroupings} /> */}
+                                <div className="flex">
+                                <ChartAxisSelection keyNames={numericKeyNames}
+                                    selection={axisNames}
+                                    onSelectionChange={setAxisNames} />
+                                <ChartMarksSelection keyNames={_.keys(pcaresults.projection[0]).map(text => { return { text } })}
+                                    selection={selectedGroupings}
+                                        onSelectionChange={setSelectedGroupings} />
+                                    <TextSelection 
+                                        keyNames={notNumericKeyNames}
+                                        selection={selectedGroupings}
+                                        onSelectionChange={setSelectedGroupings} />
+                                </div>
+                                <InteractiveChart
+                                    data={pcaresults.projection} extraLimitNames={[selectedGroupings.colorName,selectedGroupings.sizeName].filter(keyName => _.isString(keyName))} keyNames={[
                             {
-                                xaxisName: _.keys(pcaresults.projection[0])[1],
-                                yaxisName: _.keys(pcaresults.projection[0])[2]
+                                xaxisName: axisNames.xaxisName,
+                                yaxisName: axisNames.yaxisName
                             }]}
                             isPointChart={[true]}>
                             {(chartData) => chartData.map(({
@@ -75,7 +152,9 @@ function DatasetPCA({ }) {
                                     <div>
                                     <ScatterPlot key={`${chartIdx}`}{...{
                                         chartIdx,
-                                        colorName : selectedGroupings.colorName,
+                                        colorName: selectedGroupings.colorName,
+                                            sizeName: selectedGroupings.sizeName,
+                                        tooltipNames : [selectedGroupings.tooltipName],
                                         data,
                                         valid,
                                         findDataInRectangle,
@@ -97,12 +176,11 @@ function DatasetPCA({ }) {
                         </InteractiveChart> </div>: null}
 
                             {/* {Object.keys(data.samples_attributes)} */}
-                        {isSuccess ? <InteractiveChart data={pcaresults.drivers} keyNames={
+                            {isSuccess ? <InteractiveChart data={pcaresults.drivers} extraLimitNames={numericKeyNames} keyNames={
                             [
-                                { xaxisName: _.keys(pcaresults.drivers[0])[1], yaxisName: _.keys(pcaresults.drivers[0])[2] },
-                                { xaxisName: _.keys(pcaresults.drivers[0])[3], yaxisName: _.keys(pcaresults.drivers[0])[2] }
+                                { xaxisName: axisNames.xaxisName, yaxisName: axisNames.yaxisName }
                             ]}
-                            isPointChart={[true, true]}>
+                                isPointChart={[true]}>
                             {(chartData) => chartData.map(({
                                 data,
                                 chartIdx,
@@ -120,18 +198,19 @@ function DatasetPCA({ }) {
                                 filterProps
                             }, didx) => {
                                 return (<div>
-                                    
+                                    <InputGroup onChange={(event) => handleStringSearch("index",event.target.value)}/>
                                     <ScatterPlot key={`${chartIdx}-drivers-${dataset_label}`}{...{
                                         chartIdx,
                                         data,
                                         valid,
-                                        
+                                        sizeName: selectedGroupings.sizeName,
+                                        tooltipNames : [selectedGroupings.tooltipName],
                                         findDataInRectangle,
                                         setHoverDataInRectangle,
                                         xaxisName,
                                         yaxisName,
                                         limits,
-                                        tooltipNames : ["index"],
+                                        //tooltipNames : ["index"],
                                         ...hoverProps,
                                         ...filterProps,
                                         attributesByTag
@@ -139,7 +218,8 @@ function DatasetPCA({ }) {
                                 </div>)
                             })}
 
-                        </InteractiveChart> : null}
+                            </InteractiveChart> : null}
+                        </div>
 
                     </div>
                 

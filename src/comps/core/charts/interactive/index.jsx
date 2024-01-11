@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { addItemToArrayIfNotPresent } from "../../../../services/arrays/transforms"
 import _ from "lodash"
 import KDBush from 'kdbush';
@@ -24,14 +24,14 @@ let dataTest = _.range(5000).map(idx => {return {x : Math.random() * 1000, y : M
  * @param {Object} param0 
  * @returns {Array.<import("../../../../types/charts").InteractiveChartResponse>} Returns the interactive response including function to identify points below the mouse using KDBush. 
  */
-function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "idx", yaxisName  : ["x","y"]}], isPointChart = [true,false], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
+function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "idx", yaxisName  : ["x","y"]}], isPointChart = [true,false], extraLimitNames = [], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
 
     const [hoverData, setHoverData] = useState({data : [], idcs : [], rerender : [Math.random()], rect : [], hoverChart : -1})
     //const [selectedItems, setSelectedItems]  = useState()
     const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set()})
     const numberCharts = keyNames.length
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
-    const limits  = getMinMaxForMultipleKeyNames({data,keyNames : keyNamesFlatten})
+    const limits  = getMinMaxForMultipleKeyNames({data,keyNames : _.concat(keyNamesFlatten,extraLimitNames)})
     
     
     const validIndices = useMemo(() => {
@@ -54,6 +54,10 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     },[_.join(keyNamesFlatten),numberCharts])
 
 
+    useEffect(() => {
+        setRerender(prevValues => { return { rerender: [Math.random()]}})
+    },[_.join(keyNamesFlatten),numberCharts])
+
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         // finds the index in a rectangle
         return searchTrees[chartIdx].tree.range(minX,minY,maxX,maxY)
@@ -68,7 +72,6 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     const setHoverDataInRectangle = (chartIdx,minX,minY,maxX,maxY, screenPosition) => {
         //finds data in an rectangle of coordinates and changes the state of hoverData
         const {arr, idcs} = findDataInRectangle(chartIdx,minX,minY,maxX,maxY)
-        
         if (idcs.length == hoverData.idcs.length && _.every(idcs, idx => hoverData.idcs.includes(idx))) return
 
         setHoverData({data : arr, rerender : [Math.random()], rect : screenPosition, idcs, hoverChart : chartIdx})

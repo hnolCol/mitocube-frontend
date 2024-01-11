@@ -7,10 +7,19 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { Group } from "@visx/group"
 import { Text } from "@visx/text"
-
-function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined, callbackValueOnly = false, children }) {
-    const [mouseOver, setMouseOver] = useState(false)
-    const width = 33 + placeholder.length * 9
+import "./style.css"
+/**
+ * 
+ * @param {Object} props 
+ * @param {Number} props.height - The SVG height 
+ * @param {String[]} props.items - The list of selectable items
+ * @param {String} props.callbackKey - The callbackkey to be included in the callback function upon selection change. 
+ * @param {Function} props.callback - The callback function by default a change in the selection callback(callbackkey,value)
+ * @param {Boolean} props.callbackValueOnly - If true only the callbackValue will be included not the callbackKey. 
+ * @param {SVGAElement} props.children - The children to be displayed in the SVG
+ * @returns 
+ */
+function ComboboxIconBase({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined, callbackValueOnly = false, children }) {
     const checkedItems = _.isString(items[0])?items.map(v => {return {text : v}}):items
 
     const handleSelection = (item) => {
@@ -22,6 +31,7 @@ function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Men
             }
         }
     }
+
     return (
         <div> 
             <Popover position="bottom-left" content={<Menu>
@@ -31,25 +41,22 @@ function ComboboxIconBase({ height = 25, placeholder = "", items = [{ text: "Men
                     return (
                     
                     <MenuItem
-                    key={`dash-menu-${itemIdx}`}
-                    icon={itemSelected ? "tick" : "none"}
-                    intent={itemSelected ? "primary" : "none"}
-                    {...itemProps}
-                    onClick={() => handleSelection(itemProps)} />)
+                        key={`dash-menu-${itemIdx}`}     
+                        icon={itemSelected ? "tick" : "blank"}
+                        intent={itemSelected ? "primary" : "blank"}
+                        {...itemProps}
+                        onClick={() => handleSelection(itemProps)} />)
             })}
         </Menu>}>
-                <div className="flex flex-columns margin--very-little">
+                <div className="flex margin--very-little icon__container center-items">
+                    <div style={{height,width}}>
                 <SVG {...{ width, height }}>
-                
-                <Group cursor={"pointer"} onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
-                    <motion.rect x={0} y={0} {...{ width, height }} fill={mouseOver ? "#fafafa" : "#e5e5e5"} rx={4} ry={4} />
-                    <Group  left={2} top={2} >
+                    <Group  left={2} top={0} >
                             {children}
-                    
-                    <Text x={25} y={height/2+2} verticalAnchor="center" textAnchor="center">{placeholder}</Text>
                     </Group>
-            </Group>
-                    </SVG>
+                        </SVG>
+                        </div>
+                    <div className="flex icon__container__text">{placeholder}</div>
                     </div>
                 </Popover>
                 </div>
