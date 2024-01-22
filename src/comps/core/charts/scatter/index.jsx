@@ -17,17 +17,22 @@ import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/uni
 import { getColorPalette } from "../../colors/colorPalette"
 import { Legend } from "../categorical/boxplot"
 import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
+import { Divider, H4 } from "@blueprintjs/core"
+import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
+import { roundNumber } from "../../../../services/format/number"
+import { ScatterLegend } from "./Legend"
+
 
 ScatterPlot.propTypes = {
 
     points : PropTypes.arrayOf(Object),
     defaultRadius: PropTypes.number,
-    limits : PropTypes.object.isRequired,
-    xaxisName: PropTypes.string.isRequired,
-    yaxisName: PropTypes.string.isRequired,
+    limits : PropTypes.object,
+    xaxisName: PropTypes.string,
+    yaxisName: PropTypes.string,
     colorName: PropTypes.string,
     sizeName: PropTypes.string,
-    data: PropTypes.arrayOf(PropTypes.object).isRequired,
+    data: PropTypes.arrayOf(PropTypes.object),
     centerXAxisAtZero : PropTypes.bool,
     findDataInRectangle : PropTypes.func
 }
@@ -53,10 +58,10 @@ export function ScatterPlot({
     width = 500,
     height = 500,
     margins = {
-        left: 40,
-        top: 25,
-        right: 90,
-        bottom: 40
+        left: 45,
+        top: 10,
+        right: 15,
+        bottom: 50
     },
     data,
     valid,
@@ -70,6 +75,7 @@ export function ScatterPlot({
     tooltipNames = ["label"],
     findDataInRectangle,
     handleSearchByDataIndex,
+    filterDataInKeyByValue,
     resetSearchIdcs,
     setHoverDataInRectangle,
     centerXAxisAtZero = false,
@@ -85,22 +91,15 @@ export function ScatterPlot({
     legend = false }) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
-    console.log(tooltipNames)
+    const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverData.length > 0
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.007
         return [keyName, dist]
     }))
-    const {
-        tooltipData: legendTooltipData,
-        tooltipLeft: legendTooltipLeft,
-        tooltipTop: legendTooltipTop,
-        tooltipOpen: legendTooltipOpen,
-        showTooltip: showLegendTooltip,
-        hideTooltip: hideLegendTooltip,
     
-    } = useTooltip();
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({width, height, margins})
 
     const { containerRef, TooltipInPortal } = useTooltipInPortal({
         // use TooltipWithBounds
@@ -108,11 +107,6 @@ export function ScatterPlot({
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
     })
-    
-
-    
-    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({width, height, margins})
-    
     const yScale = useMemo(() => {
         // y scale for the scatter
     
@@ -133,7 +127,7 @@ export function ScatterPlot({
         // y scale for the scatter
         const xDomain = limits[xaxisName]
         const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
-        const maxValue = getMaxAbsoluteValue({ data: [xDomainWithMargin.max, xDomainWithMargin.min] })
+        const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
         
         return scaleLinear(
             {
@@ -146,7 +140,8 @@ export function ScatterPlot({
 
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
-        if (_.isNumber(data[0][colorName])) {
+  
+        if (_.isNumber(data[0][colorName]) && _.has(limits,colorName)) {
             const colorDomain = limits[colorName]
             return scaleLinear({
                 domain: [colorDomain.min, colorDomain.max],
@@ -165,7 +160,7 @@ export function ScatterPlot({
 
     const sizeScale = useMemo(() => {
         if (sizeName === undefined || !_.has(data[0], sizeName)) return () => defaultRadius
-        if (_.isNumber(data[0][sizeName])) {
+        if (_.isNumber(data[0][sizeName]) && _.has(limits,sizeName)) {
             const sizeDomain = limits[sizeName]
             return scaleLinear({
                 domain: [sizeDomain.min,sizeDomain.max],
@@ -194,24 +189,8 @@ export function ScatterPlot({
             x + rectDist[xaxisName],
             y + rectDist[yaxisName], [coords.x, coords.y])
         //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
-
     }
 
-    const handleLegendMouseOver = (event, tooltipData, idcs) => {
-        const coords = localPoint(event.target.ownerSVGElement, event);
-        handleSearchByDataIndex(chartIdx, idcs)
-        showLegendTooltip({
-            tooltipLeft: coords.x,
-            tooltipTop: coords.y,
-            tooltipData: tooltipData
-        })
-    }
-
-    const onLegendGroupLeave = () => {
-        hideLegendTooltip()
-        resetSearchIdcs()
-    }
-    
     return (
         <div>
         <SVG {...{ width, height, svgID, svgRef : containerRef}}>
@@ -227,7 +206,7 @@ export function ScatterPlot({
                 {...{ chartHeight, chartWidth }} />
             <g >
             {/* Render data points */}
-                    <ScatterPoints {...{
+                    {validDataInput ? <ScatterPoints {...{
                         data,
                         valid,
                         xScale,
@@ -238,14 +217,14 @@ export function ScatterPlot({
                         sizeName,
                         colorName,
                         colorScale,
-                        rerenderDependency: _.concat(rerenderBackground,[colorName,sizeName]),
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
                         filterIndices,
                         searchIndices
-                    }} />
+                    }} /> : null}
             </g>
             <g>
             {/* Rerender hover points */}
-                    <ScatterPoints {...{
+                    {validDataInput ? <ScatterPoints {...{
                         data: hoverData,
                         valid,
                         xScale,
@@ -257,7 +236,7 @@ export function ScatterPlot({
                         colorName: undefined,
                         fill: "red",
                         rerenderDependency: rerenderHover
-                    }} />
+                    }} /> : null}
             </g>
                 <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} fill="#ffffff" opacity={0.0}/>
                 {/* {legend ? <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top}
@@ -266,9 +245,9 @@ export function ScatterPlot({
 
             </SVG >
             
-            {tooltipOpen && hoverChart === chartIdx && (
+            {tooltipOpen && tooltipNames.length > 0 && hoverChart === chartIdx ?
                 <TooltipInPortal
-                // set this to random so it correctly updates with parent bounds this tooltip is for the points of the scatter. 
+                    // set this to random so it correctly updates with parent bounds this tooltip is for the points of the scatter. 
                     key={Math.random()}
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
@@ -277,8 +256,11 @@ export function ScatterPlot({
                         {hoverData.map((v, idx) => idx < 10 ? <div key={`${idx}-hover`}>
                             {tooltipSmall ? <div>
                                 {
-                                    tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`}>{v[tooltipName]}</div>)
+                                    tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{v[tooltipName]}</div>)
+                                    
                                 }
+                                
+                                {tooltipNames.length > 1 && hoverData.length > 1 ? <Divider /> : null}
                             </div> :
                                 <div className="flex flex-column bg--lightgrey padding--medium margin--little" style={{ borderLeft: "3px solid " + colorScale(v[colorName]) }}>
                                     {
@@ -288,18 +270,43 @@ export function ScatterPlot({
                                             
                                     }
                                 </div>}
-                        </div> : null )}
+                        </div> : null)}
                         
                     </div>
-                </TooltipInPortal>
-            )}
-            {legendTooltipOpen && (
-                <TooltipInPortal top={legendTooltipTop} left={legendTooltipLeft} key={Math.random()}>
-                    <MetricTable data={legendTooltipData} />
-                </TooltipInPortal>)}
+                </TooltipInPortal> : null} 
             
+            <div>
+                <ScatterLegend {...{
+                    chartIdx,
+                    sizeName,
+                    sizeScale,
+                    colorScale,
+                    colorName,
+                    data,
+                    filterDataInKeyByValue,
+                    resetSearchIdcs,
+                    sizeLimit: limits[sizeName],
+                    colorLimit: limits[colorName],
+                    attributesByTag
+                }} />
+                {/* <h3>Legend</h3>
+                {_.isString(colorName) && _.isString(data[0][colorName]) ? 
+                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)}>
+                    <LegendOrdinal scale={colorScale}>
+                        {(labels) => labels.map(label => {   
+                            return (
+                                <LegendItem onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
+                                    <svg width={25} height={25} ><rect width={25} height={25} fill={label.value} stroke="#000" strokeWidth={0.5}/></svg>
+                                    <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
+                                </LegendItem>
+                            )
+                        })}
+                </LegendOrdinal></div>: null} */}
+        </div>
         </div>
         
 
     )
 }
+
+

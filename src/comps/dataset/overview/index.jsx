@@ -5,7 +5,7 @@ import { Header } from "../../core/base/Header";
 import _ from "lodash"
 import GroupingTable from "../../core/base/attribute_selection/AttributeTable";
 import { motion } from "framer-motion";
-import { Button } from "@blueprintjs/core";
+import { Button, Divider } from "@blueprintjs/core";
 import APIError from "../../core/error/APIerror";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import HelpOverlay from "../../core/overlay/Helpoverlay";
@@ -98,77 +98,6 @@ function ExperimentalInfo({ title = "", details = "" }) {
 
 
 
-function DatasetInfoContainer({datasetInfo,dataID, isFetched, setTabHeader}) {
-
-    const experimentInfoName = "Experimental Info"
-    const headerRef = useRef(null)
-    const isVisible = useOnScreen(headerRef)
-
-    const keyfigureMetrices = useMemo(() => {
-        if (!_.isObject(datasetInfo)) return []
-        return datasetInfo.keyFigureNames.map(figureName => {return {label : figureName, metric : datasetInfo.info[figureName]}})
-    }, [dataID,isFetched])
-
-
-    useEffect(() => {
-        if (_.isObject(datasetInfo) && _.has(datasetInfo, ["info","Title"]) && !isVisible) {
-            setTabHeader(datasetInfo.info.Title)
-        }
-        else {
-            setTabHeader("")
-    }}, [isVisible])
-    return (
-        <div className="container--scroll-y-hide-x div--expand intent-margin-top">
-            
-            <div id="top" className="flex flex-column center-items">
-                <div ref={headerRef} className="intent-margin-top">
-                <Header text={datasetInfo.info.Title} fontSize="2.5rem" hexColor={"#000000"} fontWeight={300}/>
-                </div>
-                <AuthorList emailSubject={`Related to dataset '${datasetInfo.info.Title}'`} />
-                <div className="font-size--small intent-margin-top--little">
-                    {readDateFromStringAndReturnDateAndDistToNow({dateString : datasetInfo.info["Creation Date"]} )}
-                </div>
-           
-                <div id="keyfigures" className="intent-margin-top">
-                <MultipleMetrices metrices={keyfigureMetrices}/>
-                </div >
-                
-            <div id = "groupings" className="flex justify-space-around intent-margin-top">
-                <GroupingTable grouping={datasetInfo.info.groupings} />
-            </div>
-            
-            </div>
-            
-            <div id="expinfo" className="intent-margin-left intent-margin-right--little">
-            <div> Experimental Information</div>
-            {_.has(datasetInfo.info, experimentInfoName) ?
-                datasetInfo.info[experimentInfoName].map((expInfoProps, expInfoIdx) => {
-                    if (!(_.has(expInfoProps,"title") && _.has(expInfoProps,"details"))) return null 
-                    return (
-                        <ExperimentalInfo key={`${expInfoIdx}-${expInfoProps.title}`} {...expInfoProps}/>
-                    )
-                })
-            : null}
-            </div>
-
-            <div id="rawfiles" className="intent-margin-left intent-margin-right--little">
-                
-            </div>
-
-            <HelpOverlay header="Content">
-                <div className="flex flex-column">
-                <a href="#top">Top</a>
-                <a href="#expinfo">Experimental Information</a>
-                <a href="#rawfiles">Raw files</a>
-                </div>
-                
-            </HelpOverlay>
-           
-        </div>
-    )
-}
-
-
 function DatasetOverview({authenticationStatus}) {
 
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
@@ -229,10 +158,17 @@ function DatasetOverview({authenticationStatus}) {
                     <StateIndicator state={metadata.state} {...{authenticationStatus}} />
                 </div>
 
-                <div>
+                <div className="intent-margin-top--little">
                 <MultipleMetrices metrices={datasetMetrices} />
                 </div>
-
+                <div style={{ maxWidth: "min(45vw,800px)", textAlign: "justify" }} className="intent-margin-top--little">
+                    <div className="intent-margin-left--little"><h3>Abstract</h3></div>
+                    <Divider />
+                    <div className="margin--little padding--little">
+                        {metadata.metatext["metatext:research_aim"]}
+                    </div>
+                    <Divider/>
+                </div>
             </div>
             
             <h2>Sample Attributes</h2>

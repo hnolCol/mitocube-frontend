@@ -16,6 +16,7 @@ import DescriptionButton from "../core/base/buttons/DescriptionButton"
 import InteractiveChart from "../core/charts/interactive"
 import { ScatterPlot } from "../core/charts/scatter"
 import { ProfileChart } from "../core/charts/profiles/ProfileChart"
+import Heatmap from "../core/charts/heatmap"
 
 
 Login.propTypes = {
@@ -93,7 +94,6 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                 <div className="intent-margin-bottom--little">
                     <Header text="User Login" />
                 </div>
-
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     

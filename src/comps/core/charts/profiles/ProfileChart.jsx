@@ -1,4 +1,4 @@
-import { addMarginToBoundaries, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries";
+import { addMarginToBoundaries, getQuantilesInArrayByKeyNames } from "../../../../services/arrays/boundaries";
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size";
 import { SVG } from "../SVGHeader";
 import AxisWithBackground from "../axis";
@@ -8,16 +8,42 @@ import { scaleBand, scaleLinear } from "@visx/scale";
 
 import ProfileLine from "./Line"
 import ProfileBars from "./Bars"
+import { getQuantiles } from "../../../../services/statistics/quantiles";
+import { getQuantilesByGroups } from "../../../../services/arrays/groupby";
+import { QuantileBackground } from "./QuantileBackground";
+import FilterIcon, { FilterSVG } from "../../svg/icons/chartSelection/Filter";
+import { Group } from "@visx/group";
+import { Text } from "@visx/text";
 
 
+
+export function FilterIndicator({width,margins,searchIndices,iconSize=20, textOffset = -1}){
+
+
+    return (
+        <Group left={width - margins.right - 25} top={margins.top}>
+            <Text x={0} y={10} dx={textOffset} verticalAnchor="middle" textAnchor="end">{searchIndices.size}</Text>
+                <FilterSVG {...{ width: iconSize, height: iconSize, strokeColor: "#000" }} />
+        </Group> 
+    )
+}
+
+
+export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14}) {
+    return (<Group left={margins.left} top={margins.top + totalYOffset}>
+        {labelTexts.map((text, textIdx) => <Text key={`${text}-${textIdx}`} x={0} dx={textOffset} fontSize={fontSize} y={fontSize * textIdx} verticalAnchor="start" textAnchor="start">
+            {text}
+        </Text>)}
+    </Group>) 
+}
 
 export function ProfileChart({
     chartIdx,
-    width = 500,
-    height = 500,
+    width = 300,
+    height = 300,
     margins = {
         left: 40,
-        top: 25,
+        top: 5,
         right: 5,
         bottom: 40
     },
@@ -25,23 +51,25 @@ export function ProfileChart({
     valid,
     yaxisName = [],
     xaxisName,
+    labelNames = [],
     limits,
     svgID,
     rerenderHover,
+    rerenderBackground,
     hoverData,
     profileAsLine = true,
     profileAsBar = false,
+    searchIndices = new Set(),
+    hoverIndices = new Set(),
+    setHoverDataByDataIndex
     
 }) {
 
-   
-
     const svgRef = useRef(null);
-    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({width, height, margins})
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins })
     
+    const q = getQuantilesInArrayByKeyNames({data, keyNames : yaxisName})
     const yScale = useMemo(() => {
-        // y scale for the profile
-
     
         const yDomain = { min: 0, max: 5000 }//limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
@@ -55,36 +83,17 @@ export function ProfileChart({
     }, [yaxisName, chartHeight])
 
     const xScale = useMemo(() => {
-        // y scale for the scatter
-        const xDomain = {min : 0, max : yaxisName.length-1}
-        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
-        console.log(xDomain)
+        // y scale for the scatter by yaxisNames
         return scaleBand(
             {
                 domain: yaxisName,
                 range: [margins.left, margins.left + chartWidth],
                 nice: true,
                 paddingInner: 0.2,
-                paddingOuter : 0.2
+                paddingOuter : 0.1
             }
         )
     }, [xaxisName, chartWidth, yaxisName.length])
-
-
-    const handeMouseHover = (e) => {
-        const mouseCoord = localPoint(svgRef.current,e)
-        
-        const x = xScale.invert(mouseCoord.x)
-        const y = yScale.invert(mouseCoord.y)
-       
-        // setHoverDataInRectangle(chartIdx,
-        //     x - rectDist[xaxisName],
-        //     y - rectDist[yaxisName],
-        //     x + rectDist[xaxisName],
-        //     y + rectDist[yaxisName], [e.clientX, e.clientY])
-        //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
-
-    }
 
     return (
         
@@ -99,13 +108,27 @@ export function ProfileChart({
                 moveBottomToLeft={false}
                 findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
+        
+            <QuantileBackground {...{xScale, yScale, data : q, keyNames : yaxisName, rerenderDependency: rerenderBackground}} />
             {profileAsLine ? <g >
-                <ProfileLine {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
+                <ProfileLine {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames }} />
             </g> : null}
             {profileAsBar ? <g>
                 <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
             </g> : null}
-            <rect x={0} y={0} width={width} height={height} onMouseMove={handeMouseHover} fill="transparent"/>
+
+
+            {/* Indicate Searches */}
+            
+            {searchIndices.size > 0 ? <FilterIndicator {...{ searchIndices, width, margins }} /> : null}
+            
+            {<ChartTopLeftLabel {...{ margins, labelTexts: [`Cluster 8`,`n=${data.length}`], textOffset: 2 }} />}
+            
+            {/* {
+                searchIndices.size > 0 ? <ProfileLine {...{ valid, data: searchData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderBackground, stroke : "blue" }} /> : null} */}
+
+
+            {/* <rect x={0} y={0} width={width} height={height} onMouseMove={handeMouseHover} fill="transparent"/> */}
         </SVG >
     )
 }

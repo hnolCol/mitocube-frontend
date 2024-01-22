@@ -1,7 +1,7 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
-import { LinePath } from "@visx/shape"
+import { Text } from "@visx/text"
 
 ProfileLine.propTypes = {
     data : PropTypes.array.isRequired,
@@ -21,6 +21,7 @@ function ProfileLine({
     yaxisName,
     sizeName,
     colorName, 
+    labelNames = [],
     xScale, 
     yScale, 
     sizeScale, 
@@ -30,7 +31,8 @@ function ProfileLine({
     strokeWidth = 1.5, 
     rerenderDependency = [], 
     searchIndices = new Set() ,
-    filterIndices =  new Set()}){
+    filterIndices = new Set(),
+    showPoints = true}) {
     // Scatter points that have a rerenderDependcy and are only rerendered if the dependency changes
     // Hence, it requires to be checked outside if the scatter point should rerender 
     const filterByIdx = filterIndices.size !== 0
@@ -39,9 +41,28 @@ function ProfileLine({
     const halfBandWidth = xScale.bandwidth()/2
     return(
         <g>
-            {data.map(d => <polyline
-                points={_.join(_.map(yaxisName, yName => `${xScale(yName)+halfBandWidth},${yScale(d[yName])}`), ", ")}
-                {...{ stroke, strokeWidth, fill  }} />)}
+            {data.map((d, idx) => <g key={`${idx}-profile-line`}>
+                <polyline
+                    points={_.join(_.map(yaxisName, yName => `${xScale(yName)+halfBandWidth},${yScale(d[yName])}`), ", ")}
+                    {...{ stroke, strokeWidth, fill }} />
+                {showPoints ? _.map(yaxisName, yName => <circle {...{
+                    cx: xScale(yName) + halfBandWidth,
+                    cy: yScale(d[yName]),
+                    r: 5,
+                    fill: "#fff",
+                    stroke
+                }} />) : null
+                }
+                {labelNames.length > 0 && yaxisName.length > 0 ?
+                    <Text
+                        x={xScale(yaxisName.at(-1)) + halfBandWidth}
+                        y={yScale(d[yaxisName.at(-1)])}
+                        dx={5+2}
+                        textAnchor="start"
+                        verticalAnchor="middle">
+                        {_.join(_.map(labelNames, labelName => d[labelName]), ", ")}
+                    </Text> : null}
+            </g>)}
 
             {/* {data.filter((d,idx) => valid[idx]).map((d,idx) => {
                 //filter data first and then map over it 

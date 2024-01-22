@@ -38,6 +38,7 @@ function Timeline({ authenticationStatus }) {
     
     return (
         <div>
+            <h2>Project Timeline</h2>
             <p>Project started: <strong>{m.fromNow()}</strong></p>
             <div className="flex center-items">The current state of the project is : <StateIndicator state={metadata.state} padding="tiny"/></div>
             <div className="flex center-items">The next state of your project will be :<StateIndicator state={metadata.state + 1} padding="tiny"/> </div>

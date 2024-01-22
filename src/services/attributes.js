@@ -52,7 +52,7 @@ export function mapSampleAttributesToSampleNamesinArray({ data, metadata, keyNam
 export function inverseSamplesAttributes({ sampleAttributes, sampleNames }) {
     const result = _.range(sampleNames.length).map(idx => _.fromPairs(_.keys(sampleAttributes).map(attributeTag => [attributeTag, []])))
     return _.reduce(_.keys(sampleAttributes), (p, attributeTag, idx) => {
-        const { name, values } = sampleAttributes[attributeTag]
+        const { values } = sampleAttributes[attributeTag]
         _.keys(values).map(attributeValueTag => _.forEach(values[attributeValueTag], sampleIdx => p[sampleIdx][attributeTag].push(attributeValueTag)))
         return p 
     }, result)   

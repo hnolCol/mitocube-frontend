@@ -30,7 +30,7 @@ export function addItemToArrayIfNotPresent({ array, item }) {
 
 
 
-export function arrayOfObjectsToString(data = [{}],keyNames = [], cellSplit = "\t", lineSplit = "\n"){
+export function arrayOfObjectsToString({ data = [{}], keyNames = [], cellSplit = "\t", lineSplit = "\n" }){
 
     const csvDataFromArray = data.map(v => {
         return(

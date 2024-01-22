@@ -168,17 +168,31 @@ export const useGetSubmissionStates = (APIParams = {}, useQueryOptions = {staleT
  * @description Creates a run list for the dataset 
  * @author Hendrik Nolte
  * @since 0.1.0 
- * @param {String} submission_label - The label of the submission/dataset 
- * @param {Objet} runlist_props - The runlist properties. 
+ * @param {Object} props 
+ * @param {String} props.submission_label - The label of the submission/dataset 
+ * @param {Objet} props.runlist_props - The runlist properties. 
  * @returns {Object} The created runlist, if success. Otherwise an empty object.
  */
 async function postRunlist_API({submission_label, runlist_props}) {
-    console.log(runlist_props)
-    console.log(submission_label)
     const res = await axios.post(`/api/submissions/${submission_label}/runlist`,runlist_props)
     return res.data
 }
 
 export const usePostRunlist = (useMutationOptions = {}) => {
     return useMutation((APIParams) => postRunlist_API({...APIParams}), useMutationOptions)
+}
+
+
+
+/**
+ * @param {Object} props 
+ * @param {String} props.submission_label 
+ * @returns {import("../../types/submissions").Runlist} 
+ */
+async function getRunlist_API({submission_label}) {
+    const res = await axios.get(`/api/submissions/${submission_label}/runlist`)
+    return res.data
+}
+export const useGetRunlist = (APIParams = {}, useQueryOptions = {staleTime : 3000000}) => {
+    return useQuery(["submissionStates",APIParams.submission_label], () => getRunlist_API({...APIParams}), useQueryOptions)
 }

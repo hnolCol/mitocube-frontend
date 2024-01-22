@@ -116,13 +116,11 @@ export function SubmissionItem({
         </Menu>}>
         <div
             className="submission__item__container bg--white padding--little"
-                style={{ borderLeft: `3px solid ${borderColor}`, position: "relative" }}
+                style={{ borderLeft: `3px solid ${borderColor}`}}
                 onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
-            <div className="bg--grey margin--little padding--little" style={{width : "100%"}}>
+            <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" > 
             <div className="flex flex--wrap center-items">
-                
-                {/* {usersPartInSubmission.map(user => <UserIcon />)} */}
                 
                 <div>{m.fromNow()} ({formatedTime})</div>
                 
@@ -144,10 +142,8 @@ export function SubmissionItem({
                     </div> 
                     <div>
                         <UserIconWithTooltip userLabel={usersPartInSubmission[0]} usersByLabel={usersByLabel} />
-                            </div>      
-                        {/* <div>
-                                {mouseOver ? <Button text="Explore" /> : null}
-                        </div>         */}
+                    </div>      
+
             </div>
                     </div>
                     {minimalView ? <div>

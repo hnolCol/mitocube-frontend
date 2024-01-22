@@ -3,6 +3,9 @@ import APIError from "../../core/error/APIerror";
 import { useGetDatasetHeatmap } from "../../../hooks/queries/datasets.hooks";
 import Heatmap from "../../core/charts/heatmap";
 import MultipleMetrices from "../../core/metrics/collection";
+import InteractiveChart from "../../core/charts/interactive";
+import { ProfileChart } from "../../core/charts/profiles/ProfileChart";
+import { InputGroup } from "@blueprintjs/core";
 
 function DatasetHeatmap({}) {
     
@@ -22,20 +25,74 @@ function DatasetHeatmap({}) {
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
+
             
-            {/* <MultipleMetrices metrices={[
-                { label: "Number Features", metric: heatmapData.params.heatmap.values.length },
-                { label: "Clusters", metric: 8 },
-                { label: "p-value", metric: anovaDetails.pvalue },
-                { label: "Anova Type", metric: anovaDetails.anovaType },
-                { label: "Grouping", metric: anovaDetails.grouping1}]} /> */}
-            
-            {/* <Heatmap
-                data={heatmapData.params.heatmap.values}
-                colorNames={heatmapData.params.heatmap.colorNames}
-                valueNames={heatmapData.params.heatmap.valueNames}
-                labelNames={heatmapData.params.heatmap.labelNames}
-                clusterName={heatmapData.params.heatmap.clusterName} /> */}
+            <InteractiveChart
+                        keyNames={[
+                        {
+                            xaxisName: undefined,
+                            yaxisName: ["x","y","z","x","y","z"],
+                        }]}
+                        isPointChart={[false]}>
+                        {
+                    /**
+                     * 
+                     * @param {import("../../../types/charts").InteractiveChartResponse[]} chartData 
+                     * @returns 
+                     */
+                        (chartData) => chartData.map(({
+                    data,
+                    chartIdx,
+                    xaxisName,
+                    yaxisName,
+                    valid,
+                    limits,
+                    handleItemSelection,
+                    findIndexInRectangle,
+                    findDataInRectangle,
+                    setHoverDataInRectangle,
+                    handleNumericFilter,
+                    handleStringSearch,
+                    handleSearchByDataIndex,
+                    filterDataInKeyByValue,
+                    setHoverDataByDataIndex,
+                    hoverProps,
+                    filterProps
+                        }, didx) => {
+                    return (
+                        <div>
+                            <InputGroup onValueChange={(value,e) => handleStringSearch(["label"],value)}/>
+                            <ProfileChart {...{ chartIdx, data, ...hoverProps, ...filterProps, limits, xaxisName, yaxisName, valid, labelNames : ["label"]}} />
+                            
+                        {/* <ScatterPlot key={`${chartIdx}`}{...{
+                            chartIdx,
+                            colorName: selection.colorName,
+                            sizeName: selection.sizeName,
+                            tooltipNames : selection.tooltipNames,
+                            data,
+                            valid,
+                            findDataInRectangle,
+                            setHoverDataInRectangle,
+                            xaxisName,
+                            yaxisName,
+                            limits,
+                            tooltipSmall : false,
+                            tooltipNames : _.concat(["index"],sampleAttributeNames),
+                            ...hoverProps,
+                            ...filterProps,
+                            attributesByTag,
+                            legend: true,
+                                handleSearchByDataIndex,
+                                filterDataInKeyByValue,
+                            svgID : "scatter_plot-pca-projection"
+                        
+                            }} /> */}
+                            <Heatmap {...{ data, valueNames: yaxisName, colorNames: ["z"], labelNames: ["label"], handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps}} />
+                    </div>)
+                })}
+
+            </InteractiveChart> 
+
 
         </div>
     )

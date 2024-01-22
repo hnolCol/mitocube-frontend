@@ -66,6 +66,21 @@ export function filterArrayBySearchStringBySingleKey({array, keyName, searchStri
 }
 
 
+export function filterArrayBySearchStringByMultipleKeys({array, keyNames, searchString}){
+    //Returns the data and index which match
+    const re = new RegExp(_.escapeRegExp(searchString), 'i')
+    const isMatch = i => re.test(i)
+    return array.reduce((acc, i, idx) => {
+        if (_.some(keyNames, keyName => isMatch(i[keyName]))) {
+            acc.idcs.add(idx)
+            acc.data.push(i)
+        }
+                 
+        return acc 
+    }, {idcs : new Set(), data : []})
+}
+
+
 /**
  * @description Filters an array ob objects using a specific keyName (key) and keyValue.
  * @param   {Object}    searchParams - The search parameters.

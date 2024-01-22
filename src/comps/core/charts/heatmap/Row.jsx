@@ -1,17 +1,18 @@
 import PropTypes from 'prop-types';
-import React from "react"
+import React, { useRef } from "react"
 import _ from "lodash"
 import { Text } from "@visx/text"
+import { useInView } from 'framer-motion';
 
 
 function Rect({x,y,width,height,fill,stroke = "#000000", strokeWidth = 0.5, opacity = 1}) {
     return (
         <rect 
-            {...{x,y,width,height,stroke,fill,strokeWidth,opacity}}/>
+            {...{x,y,width,height,stroke,fill,strokeWidth,fillOpacity:opacity, strokeOpacity : opacity}}/>
     )
 }
 
-function RowLabel({ x, y, text, dx = 5, fontSize = 12, verticalAnchor = "middle", textAnchor = "start" }) {
+function RowLabel({ x, y, text, dx = 5, fontSize = 14, verticalAnchor = "middle", textAnchor = "start" }) {
 
     return (
         <Text {...{x,y,dx,textAnchor, verticalAnchor, fontSize}}>{text}</Text>
@@ -35,6 +36,8 @@ function HeatmapRow({
     valueScale,
     extraColorScale,
     xValuesEnd,
+    rowNumber,
+    index,
     y,
     data,
     valueNames,
@@ -45,7 +48,11 @@ function HeatmapRow({
     binHeight,
     marginBetweenValuesAndColors,
     marginBetweenValuesAndLabels,
-    labelString = ""
+    labelString = "",
+    handleMouseEnter,
+    handleMouseLeave,
+    maxIdx,
+    minIdx
     // index,
     // data,
     // size,
@@ -59,23 +66,23 @@ function HeatmapRow({
     // strokeWidth = 0.4,
     // annotationColor = "#bf3525" 
 }) {
-    
     // const {
-    //     binHeight, 
-    //     data, 
-    //     rowIndex, 
+    //     binHeight,
+    //     data,
+    //     rowIndex,
     //     nColumns, // column numbers of expression columns - next is key
     //     nExtraColumns,
     //     clusterColors,
     //     handleHighlightedItems,
     //     focusView,
     //     colorScale,
-    //     opacity } = props 
-    
+    //     opacity } = props
+
+    if (!_.inRange(rowNumber,minIdx,maxIdx)) return null 
     return(
         
-        <g 
-            opacity={opacity} >
+        <g onMouseEnter={_.isFunction(handleMouseEnter) ? (e) => handleMouseEnter(e, index) : undefined}
+            onMouseLeave={_.isFunction(handleMouseLeave) ? handleMouseLeave : undefined}>
             {/* onMouseEnter = {focusView?() => handleHighlightedItems(rowData[nColumns]):undefined}> */}
         {/* Add cluster color rectangle */}
             {/* <rect 
@@ -89,13 +96,13 @@ function HeatmapRow({
                 strokeWidth={strokeWidth} /> */}
             
             {valueNames.map((valueName, valueIdx) =>
-               
                 <Rect
-                        x={valueIdx * binHeight}
-                        y={y}
-                        width={binHeight}
-                        height={binHeight}
-                        fill={data[valueName]===undefined ? "#fafafa" : valueScale(data[valueName])}
+                    x={valueIdx * binHeight}
+                    y={y}
+                    opacity={opacity}
+                    width={binHeight}
+                    height={binHeight}
+                    fill={data[valueName]===undefined ? "#fafafa" : valueScale(data[valueName])}
                     />)}
                     {colorValuesExist ?
                         colorNames.map((colorName, colorIdx) => {
@@ -124,7 +131,14 @@ function HeatmapRow({
     the same result as passing prevProps to render,
     otherwise return false
     */
+    
+    const prevInView = _.range(prevProps.rowNumber, prevProps.minIdx,prevProps.maxIdx)
+    const nextInView = _.range(nextProps.rowNumber, nextProps.minIdx, nextProps.maxIdx)
       
+    if (prevInView !== nextInView) return false 
+    if (prevProps.labelString !== nextProps.labelString) {
+        return false 
+    }
     if (prevProps.opacity !== nextProps.opacity) {
         return false
     }
@@ -137,9 +151,6 @@ function HeatmapRow({
     if (prevProps.binHeight !== prevProps.binHeight) {
         return false
     }
-   
-   // check opacity change
-  
       
    return true
 

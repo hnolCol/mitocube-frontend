@@ -56,6 +56,7 @@
  * @property {String} submission_label - The label for which the runlist has been created.   
  * @property {Number} n_plates - The number of plates. 
  * @property {Number} n_fractions - The number of fractions. 
+ * @property {Number} n_runs - The total number of runs.
  * @property {Boolean} fractionate - If fracationation has been enabled. 
  * @property {String} aggregate_on - If samples are pooled, the name of the samples attributes that was used to aggregate the samples. 
  * @property {Number} created_on - The unix time stamp. 

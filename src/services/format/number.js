@@ -3,12 +3,12 @@ var SI_SYMBOL = ["", "k", "M", "G", "T", "P", "E"];
 
 
 /**
- * Returns a number into SI_Symbol abbreviations. 5000 is converted to 5k. Only works for high numbers at the moment. (e.g. k, M, G, T, P, E)
+ * Returns a number into SI_Symbol abbreviations. 5000 is converted to 5k. Only works for high numbers at the moment. (e.g. k, M, G, T, P, E) Only works for values above 1. TO DO: Implement µ etc 
  * @param   {number}    number  - The number to transform to string.
  * @return  {string}     The abbreviated number as a string. 
  */
 export function abbreviateNumber(number){
-
+    if (number < 1) return number 
     // what tier? (determines SI symbol)
     var tier = Math.log10(Math.abs(number)) / 3 | 0;
 
@@ -24,4 +24,24 @@ export function abbreviateNumber(number){
 
     // format number and add suffix
     return scaled.toFixed(1) + suffix;
+}
+
+
+/**
+ * @param {Object} props
+ * @param {Number} props.number
+ * @param {import("../../types/calculations").MinMaxResult} props.limit
+ */
+export function roundNumber({ number = 1e-6, limit}) {
+
+    let diff = limit.max - limit.min
+    let diffTier = Math.round(Math.log10(diff)) * (-1) + 2
+    let tier = Math.log10(Math.abs(number)) | 0;
+    if (Math.abs(tier) >= 3) return number.toExponential(1)
+    if (diffTier < 0) diffTier = 0
+    return number.toFixed(diffTier)
+
+
+
+
 }

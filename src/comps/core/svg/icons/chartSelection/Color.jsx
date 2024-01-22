@@ -2,11 +2,11 @@ import { getColorPalette } from "../../../colors/colorPalette"
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
-function ColorIconWithName({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
+function ColorIconWithName({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], selectedItems = [], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = false}) {
     
     const colorPalette = getColorPalette(3)
     return (
-        <ComboboxIconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly}}>
+        <ComboboxIconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly,selectedItems, minimal}}>
             {[
             { cx: width/3, cy: height/2, fill: colorPalette[0]},
             { cx: width/2, cy: height/3, fill: colorPalette[1]},

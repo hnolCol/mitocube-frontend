@@ -48,6 +48,7 @@ import Loading from "./comps/core/base/loading";
 import DatasetSelection from "./comps/dataset/selection";
 import axios from "axios";
 import AddExistingSubmission from "./comps/submission/add";
+import Runlist from "./comps/dataset/runlist";
 
 //axios defaults
 
@@ -195,7 +196,8 @@ function App() {
             <Route path="/datasets/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
             <Route path="/datasets/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
             <Route path="/datasets/:dataID/mitomap" element={<h3>MitoMap</h3>} />
-            <Route path="/datasets/:dataID/timeline" element={<Timeline {...{authenticationStatus, logout}}/>} />
+            <Route path="/datasets/:dataID/timeline" element={<Timeline {...{ authenticationStatus, logout }} />} />
+            <Route path="/datasets/:dataID/runlist" element={<Runlist />} />
             <Route path="/datasets/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
           </Route>
 

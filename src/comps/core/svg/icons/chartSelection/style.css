@@ -11,5 +11,10 @@
 
 .icon__container__text {
     padding-left : 0.2rem;
-    padding-right : 0.2rem
+    padding-right : 0.2rem;
+    /* max-width: 8rem;
+    max-height: 1rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden; */
 }
