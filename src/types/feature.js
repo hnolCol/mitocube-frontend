@@ -9,4 +9,16 @@
 
 */
 
+
+/**
+ * @typedef Feature 
+ * @type {Object}
+ * @property {String} uniprot_id 
+ * @property {String} gene_name
+ * @property {String} organism 
+ * @property {String} protein_name 
+ * @property {Number} length 
+ */
+
+
 export default {}

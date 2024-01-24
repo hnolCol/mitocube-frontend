@@ -375,6 +375,15 @@ function InitialSubmission({
         
     }
 
+    /**
+     * 
+     * @param {*} attribute 
+     * @param {import("../../../types/feature").Feature[]} selectedFeatures 
+     * @param {*} isSampleAttribute 
+     * @param {*} rowIdces 
+     * @param {*} genotypeLabel 
+     * @param {*} entryIdx 
+     */
     const onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
         //console.log(attribute)
         if (attribute.allow_for_genotype) {
@@ -400,7 +409,7 @@ function InitialSubmission({
     }
 
     const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
-        console.log(attribute)
+
         if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
             || submission.datasetAttributeValues["att_organism"].length === 0) {
             //if organism has not been selected

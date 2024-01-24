@@ -99,8 +99,7 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
         keyNames: ["text", "details"]
     }), [queryString])
     return (
-        <Menu>
-
+        <Menu style={{zIndex:10}} onWheelCapture={e => e.stopPropagation()}>
                 <TextInput
                     value={queryString}
                     callbackKey={"a"}
@@ -108,7 +107,7 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
                     onChange={(key,value,type) => setQuery(value)}
                     
                 />
-                <Menu style={{ overflowY: "scroll", maxHeight: "280px" }}> 
+                <Menu style={{ overflowY: "scroll", maxHeight: "280px" }} onWheelCapture={e => e.stopPropagation()}> 
                 {attributeValueBySearchQuery.map((attributeValue, index) =>
                     index === 25 ? <MenuItem key={attributeValue.text} text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 25 ? null :
                     <MenuItem
@@ -141,6 +140,7 @@ function SamplesAttributes({
     clearSampleAttrByIndex = undefined,
     clearAttributeTableByRowIndex = undefined,
     handleFeatureSelection = undefined,
+    onFeatureSelection,
     rerenderTableDependency = 0,
     onReplicateChange = undefined,
     replicates = [],
@@ -149,6 +149,11 @@ function SamplesAttributes({
 
     const [selectedRows, setSelectedRows] = useState([])
 
+    /**
+     * 
+     * @param {Number} columnIndex 
+     * @returns 
+     */
     const isGroupingAttributeDefined = (columnIndex) => {
         const groupingAttribute = getGroupingAttributeByColumnIndex(columnIndex)
         if (!_.isObject(groupingAttribute)) return [false, undefined]
@@ -200,12 +205,21 @@ function SamplesAttributes({
         //find row indices from the selected region
         //attribute.has_features_value ? attributeValuesByID[-1] : 
         let attributeValues = groupingInfo === undefined || !_.has(attributeValuesByID, groupingInfo.attribute.id)? [] : attributeValuesByID[groupingInfo.attribute.id]
-        const valuesAlreadyUsed = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag].map(attrValue => attrValue.text))))
+        const attributeValuesSelected = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])))
         // if there is no attribute values, then a numeric value can be inserted by the user
+        console.log(attributeValuesSelected)
+        const selectedAttributeValuesFound = attributeValuesSelected.length
+        // onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
         if (attribute.has_features_value) {
-            return <Menu><MenuItem
-                text="Select protein sequence..."
-                onClick={() => handleFeatureSelection({ attribute, isSampleAttribute: true, rowIdces: selectedRows })} />
+            return <Menu>
+                <MenuItem
+                    text="Select protein sequence..."
+                    onClick={() => handleFeatureSelection({ attribute, isSampleAttribute: true, rowIdces: selectedRows })} />
+                {selectedAttributeValuesFound? <MenuDivider/>:null}
+                {selectedAttributeValuesFound ? attributeValuesSelected.map(value => <MenuItem
+                    key={value.uniprot_id}
+                    text={value.gene_name}
+                    onClick={() => onFeatureSelection(attribute,[value],true,selectedRows,undefined,undefined)}/>) : null}
             </Menu>
         }
         else if (attribute.has_numeric_input) return (<Menu>
@@ -267,6 +281,7 @@ function SamplesAttributes({
        // const attribute = getGroupingAttributeByColumnIndex(columnIndex)
         if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
         const attributeTag = attribute.tag
+        const attributeHasFeatures = attribute.has_features_value
         let cellData = attributeTable[rowIndex][attributeTag]
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
@@ -275,7 +290,7 @@ function SamplesAttributes({
                     const cellDataIsAttr = _.isObject(attributeValue)
                     return <div key={`${rowIndex}-${columnIndex}-${cellDataIsAttr ? attributeValue.tag : attributeValue}`} className="padding--little">
                         <Tag minimal={true} onRemove={() => onTagRemove(rowIndex, attribute, attributeValue)}>
-                            {cellDataIsAttr?attributeValue.text:attributeValue}
+                            {cellDataIsAttr?attributeHasFeatures?attributeValue.gene_name: attributeValue.text:attributeValue}
                         </Tag>
                     </div>})}
             </div>

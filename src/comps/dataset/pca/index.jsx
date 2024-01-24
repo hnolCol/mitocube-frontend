@@ -367,7 +367,9 @@ function DatasetPCA({ }) {
                                 handleStringSearch,
                                 filterDataInKeyByValue,
                                 hoverProps,
-                                filterProps
+                                filterProps,
+                                labelProps,
+                                findClosestPoint
                             }, didx) => {
                                 return (<div>
                                     <ScatterDataSelection keyNames={_.keys(pcaresults.drivers[0])}
@@ -387,10 +389,13 @@ function DatasetPCA({ }) {
                                         svgID : "scatter_plot-pca-drivers",
                                         sizeName: selection.sizeName,
                                         colorName : selection.colorName,
-                                        tooltipNames : selection.tooltipNames,
+                                        tooltipNames: selection.tooltipNames,
+                                        labelNames : ["genes"],
                                         findDataInRectangle,
                                         setHoverDataInRectangle,
                                         filterDataInKeyByValue,
+                                        findClosestPoint,
+                                        ...labelProps,
                                         xaxisName,
                                         yaxisName,
                                         limits,

@@ -103,7 +103,7 @@ const ScatterLegend = React.memo(
         <div>
             <div className="flex" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data[0][colorName]) ? 
-                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)}>
+                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
                         <h4>{colorName}</h4>
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
@@ -119,7 +119,7 @@ const ScatterLegend = React.memo(
                             })}
                         </LegendOrdinal></div> :
                 
-                    <div>
+                    <div className="intent-margin-left--little">
                         <h4>{colorName}</h4>
                         <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                             {(labels) => labels.map((label, idx) => {
@@ -146,13 +146,10 @@ const ScatterLegend = React.memo(
                                             {label.text}
                                                 </LegendLabel>
                                                 </LegendItem>
-                                            
-                                        
-                                   
                                 )
                             })}
                         </LegendOrdinal></div> :
-                        <div>
+                        <div className="intent-margin-left--little">
                         <h4>{sizeName}</h4>
                         <LegendSize scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {

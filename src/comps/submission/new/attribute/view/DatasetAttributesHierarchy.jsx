@@ -1,11 +1,32 @@
 import _ from "lodash"
 import PropTypes from "prop-types"
 import { createDataTree } from "../../../../../services/arrays/nest"
-import { Code, Divider, H5, Tag } from "@blueprintjs/core"
+import { Code, Divider, H5, Tag, Tooltip } from "@blueprintjs/core"
 import { Header } from "../../../../core/base/Header"
 import TooltipButton from "../../../../core/base/buttons/TooltipButton"
 import { objectHasKey } from "../../../../../services/objects/checks"
 import { useMemo } from "react"
+import { AttributeTagWithTooltip, FeatureTagWithTooltip } from "../../../../core/base/tags/TagWithTooltip"
+
+
+export function AttributeFeatureTag({ attribute, value, valueIsFeature = false, onRemove = undefined}) {
+    
+    return (
+        valueIsFeature ? <FeatureTagWithTooltip {...{attribute,feature : value, onRemove}} /> : <AttributeTagWithTooltip {...{attribute, attributeValue : value, onRemove}}/>
+        // <
+        // <Tooltip content={}>
+        // <Tag
+        //     key={valueIsFeature?`${attributeValue.uniprot_id}`: `${attributeValue.text}-${attributeValue.id}`}
+        //     intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
+        //     style={{ marginRight: "0.4rem" }}
+        //     onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
+        //     minimal={true}
+        //     large={false}>
+        //         {valueIsFeature?attributeValue.gene_name:attributeValue.text}
+        //     </Tag>
+        // </Tooltip>
+    )
+}
 
 
 /**
@@ -20,6 +41,8 @@ import { useMemo } from "react"
  */
 function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, level = 0, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false}) {
     // displaying hierarchical dataset attributes.
+    const attributeHasFeatures = attribute.has_features_value
+
     const handleAttributeRemove = (attributeValue) => {
         //on attribute remove, we have to remove the child nodes otherwise 
         //a different attribute object is returned than provided 
@@ -33,15 +56,24 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
             
             <div className="flex center-items" style={{ paddingBottom: "0.1rem" }}>
             <div style={{paddingRight : "0.1rem"}}>{attribute.text}:</div>
-                {attributeValuesByTag[attribute.tag].map(attributeValue => <Tag
-                    key={`${attributeValue.text}-${attributeValue.id}`}
-                    intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
-                    style={{ marginRight: "0.4rem" }}
-                    onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
-                    minimal={true}
-                    large={false}>
-                        {attributeValue.text}
-                </Tag>)}
+                {attributeValuesByTag[attribute.tag].map(attributeValue => <AttributeFeatureTag
+                    key={`${attribute.tag}-${attributeHasFeatures?attributeValue.uniprot_id:attributeValue.tag}`}
+                    {...{
+                        attribute,
+                        value: attributeValue,
+                        valueIsFeature: attributeHasFeatures,
+                        onRemove : _.isFunction(onDatasetAttributeRemove)?handleAttributeRemove:undefined
+                    }} />
+                    // <Tag
+                    // key={attribute.has_features_value?`${attributeValue.uniprot_id}`: `${attributeValue.text}-${attributeValue.id}`}
+                    // intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
+                    // style={{ marginRight: "0.4rem" }}
+                    // onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
+                    // minimal={true}
+                    // large={false}>
+                    //     {attribute.has_features_value?attributeValue.gene_name:attributeValue.text}
+                    // </Tag>
+                )}
                 {attributeValuesByTag[attribute.tag].length > 1 && warnAtTwoAttrValues? <TooltipButton
                     content={<div><div>You defined two dataset attribute values for an attribute ({attribute.text}).</div><div>Consider adding them as sample attributes, otherwise they are not accessible to statistical tests.</div></div>}
                     icon="issue" small={false} intent="danger"/> : null}

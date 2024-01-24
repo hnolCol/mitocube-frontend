@@ -270,6 +270,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 removeSampleAttrByIndex,
                 groupings: submission.samplesAttributes,
                 handleFeatureSelection,
+                onFeatureSelection,
                 numberReplicates: numberReplicates !==undefined?numberReplicates :_.uniq(submission.replicates).length,
                 replicates: submission.replicates,
                 onReplicateChange

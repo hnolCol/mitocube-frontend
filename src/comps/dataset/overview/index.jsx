@@ -14,10 +14,11 @@ import { getFormatDateFromTimestamp } from "../../../services/date/format";
 import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks";
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
-import { groupListByProperty } from "../../../services/arrays/groupby";
+import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../services/arrays/groupby";
 import DatasetAttributeHierarchy from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
 import { getAttributeForUserNumericInput } from "../../../services/attributes";
 import { getUserFullName } from "../../../services/format/user";
+import { useGetAnnotationFeatures } from "../../../hooks/queries/annotation.hooks";
 
 function Metatext({ metatextTag, metadata, metatext }) {
     
@@ -102,6 +103,10 @@ function DatasetOverview({authenticationStatus}) {
 
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
     const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+    const { data: features } = useGetAnnotationFeatures({ organisms: _.isObject(metadata) && _.isObject(attributesByTag) ? metadata.dataset_attributes["att_organism"].map(attributeValue => attributesByTag.attribute_values[attributeValue]) : [] },
+        { staleTime: Infinity, enabled: _.isObject(metadata)})    
+    
+    const featuresByUniprotID = _.isArray(features) ? arrayOfObjectsToObjectByProperty(features, "uniprot_id") : undefined
     
     useEffect(() => {
         if (tabHeader !== "") setTabHeader("")
@@ -120,13 +125,15 @@ function DatasetOverview({authenticationStatus}) {
         //add others / optional 
         return basicMetrices 
     }, [dataset_label,_.isObject(metadata)])
-
+    console.log(featuresByUniprotID)
     if (!_.isObject(metadata)) return null
     if (!_.isObject(attributesByTag)) return null 
+    if (!_.isObject(featuresByUniprotID)) return null 
 
     const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
     
     let sampleAttributesKey = Object.keys(metadata.samples_attributes)
+
     let sampleAttributeValues = Object.fromEntries(sampleAttributesKey.map(attributeTag =>
         [attributeTag, Object.keys(metadata.samples_attributes[attributeTag].values).map(attributeValueTag => _.has(attributesByTag.attribute_values, attributeValueTag) ?
             attributesByTag.attribute_values[attributeValueTag] : getAttributeForUserNumericInput({attributesByTag,attributeTag,attributeValueTag}))]))
@@ -135,10 +142,10 @@ function DatasetOverview({authenticationStatus}) {
     let dataAttributes = datasetAttributeTags.map(attrTag => attributesByTag.attributes[attrTag])
     let datasetAttributeValues = Object.fromEntries(datasetAttributeTags.map(attributeTag =>
         [attributeTag, metadata.dataset_attributes[attributeTag].map(attrValueTag =>
+            attributesByTag.attributes[attributeTag].has_features_value ? featuresByUniprotID[attrValueTag.split(":").at(1).toUpperCase()]: 
             _.has(attributesByTag.attribute_values, attrValueTag) ? attributesByTag.attribute_values[attrValueTag] :
                 getAttributeForUserNumericInput({ attributesByTag, attributeTag, attributeValueTag : attrValueTag }))]))
      
-
     return (
         <div style={{overflowY:"scroll", height : "90vh "}}>
              <div id="top" className="flex flex-column center-items">

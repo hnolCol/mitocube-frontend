@@ -28,7 +28,8 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
 
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1})
     //const [selectedItems, setSelectedItems]  = useState()
-    const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set()})
+    const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1 })
+    const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set(), searchString : ""})
     const numberCharts = keyNames.length
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
     const limits  = getMinMaxForMultipleKeyNames({data,keyNames : _.concat(keyNamesFlatten,extraLimitNames)})
@@ -54,7 +55,7 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
 
 
     useEffect(() => {
-        setRerender(prevValues => { return { rerender: [Math.random()]}})
+        setRerender(prevValues => { return {...prevValues, rerender: [Math.random()]}})
     },[_.join(keyNamesFlatten),numberCharts])
 
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
@@ -62,17 +63,22 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         return searchTrees[chartIdx].tree.range(minX,minY,maxX,maxY)
     }
 
-    const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
+    const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY, ignoreFilterAndSearchIdcs = false) => {
         // returns the data that are in a rectangle. 
-        const idcs = searchTrees[chartIdx].tree.range(minX,minY,maxX,maxY)
-        return {arr : _.map(idcs, idx => data[idx]), idcs : new Set(idcs)}
+        const searchIdx = searchTrees[chartIdx].tree.range(minX, minY, maxX, maxY)
+        const idcs = new Set(searchIdx)
+        if (!ignoreFilterAndSearchIdcs && (backgroundScatter.searchIndices.size > 0 || backgroundScatter.filterIndices.size > 0)) {
+            _.forEach(Array.from(idcs), idx => !backgroundScatter.searchIndices.has(idx) || backgroundScatter.filterIndices.has(idx)? idcs.delete(idx) : null)
+        }
+        return idcs
     }
 
     const setHoverDataInRectangle = (chartIdx,minX,minY,maxX,maxY, screenPosition) => {
         //finds data in an rectangle of coordinates and changes the state of hoverData
-        const {arr, idcs} = findDataInRectangle(chartIdx,minX,minY,maxX,maxY)
+        const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
+        //check if the size changed and if hoverData idcs have not changed.
         if (idcs.size == hoverData.idcs.size && _.every(Array.from(idcs), idx => hoverData.idcs.has(idx))) return
-        setHoverData({data : arr, rerender : [Math.random()], rect : screenPosition, idcs, hoverChart : chartIdx})
+        setHoverData({data : Array.from(idcs).map(idx => data[idx]), rerender : [Math.random()], rect : screenPosition, idcs, hoverChart : chartIdx})
     }
     
     const setHoverDataByDataIndex = (chartIdx, idcs) => {
@@ -111,7 +117,7 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
             let keyName = keyNames[0]
             filterResults = filterArrayBySearchStringBySingleKey({array : data, keyName, searchString})
         }
-        setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : filterResults.idcs}})
+        setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : filterResults.idcs, searchString}})
     }
 
     const filterDataInKeyByValue = (chartIdx, keyName, value) => {
@@ -127,7 +133,17 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : new Set()}})
     }
 
-    const findClosestPoint = (xaxisName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
+    const findClosestPoint = (chartIdx, minX, minY, maxX, maxY, point) => {
+
+        const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
+        let labelIdcs = labelData.idcs
+        _.forEach(Array.from(idcs), idx => labelIdcs.has(idx) ? labelIdcs.delete(idx) : labelIdcs.add(idx))
+
+        setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()]})
+        
+    }
+
+    const findClosestPoint2 = (xaxisName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
         //find closest point 
     }
 
@@ -150,8 +166,10 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
             handleSearchByDataIndex,
             filterDataInKeyByValue,
             setHoverDataByDataIndex,
+            findClosestPoint,
             hoverProps : {hoverData : hoverData.data,rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
-            filterProps : {rerenderBackground : backgroundScatter.rerender, filterIndices : backgroundScatter.filterIndices,filterRange : backgroundScatter.filterRange, searchIndices : backgroundScatter.searchIndices, resetSearchIdcs}
+            filterProps: { rerenderBackground: backgroundScatter.rerender, filterIndices: backgroundScatter.filterIndices, filterRange: backgroundScatter.filterRange, searchIndices: backgroundScatter.searchIndices, resetSearchIdcs, searchString : backgroundScatter.searchString },
+            labelProps : {labelData : labelData.data, labelIndices : labelData.idcs, labelRerender : labelData.rerender, labelChart : labelData.labelChart}
         }
     })  
     

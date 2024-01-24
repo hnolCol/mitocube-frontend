@@ -21,6 +21,8 @@ import { Divider, H4 } from "@blueprintjs/core"
 import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
 import { roundNumber } from "../../../../services/format/number"
 import { ScatterLegend } from "./Legend"
+import { ScatterLabel } from "./Label"
+import { SearchIndicator } from "../annotations/Search"
 
 
 ScatterPlot.propTypes = {
@@ -73,6 +75,7 @@ export function ScatterPlot({
     sizeName = undefined,
     svgID = "scatterplot",
     tooltipNames = ["label"],
+    labelNames = [],
     findDataInRectangle,
     handleSearchByDataIndex,
     filterDataInKeyByValue,
@@ -88,7 +91,14 @@ export function ScatterPlot({
     searchIndices,
     tooltipSmall = true,
     attributesByTag,
-    legend = false }) {
+    findClosestPoint,
+    legend = false,
+    labelData = [],
+    labelIndices = new Set(),
+    labelRerender = [],
+    labelChart = -1,
+    searchString = ""
+}) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
@@ -177,6 +187,18 @@ export function ScatterPlot({
         }
     }, [sizeName])
 
+
+
+    const handleMouseUp = (event) => {
+        const coords = localPoint(event.target.ownerSVGElement, event);
+        const x = xScale.invert(coords.x)
+        const y = yScale.invert(coords.y)
+        findClosestPoint(chartIdx,
+            x - rectDist[xaxisName],
+            y - rectDist[yaxisName],
+            x + rectDist[xaxisName],
+            y + rectDist[yaxisName])
+    }    
     const handleMouseHover = (event) => {
 
         const coords = localPoint(event.target.ownerSVGElement, event);
@@ -190,7 +212,6 @@ export function ScatterPlot({
             y + rectDist[yaxisName], [coords.x, coords.y])
         //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
     }
-
     return (
         <div>
         <SVG {...{ width, height, svgID, svgRef : containerRef}}>
@@ -237,8 +258,15 @@ export function ScatterPlot({
                         fill: "red",
                         rerenderDependency: rerenderHover
                     }} /> : null}
-            </g>
-                <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} fill="#ffffff" opacity={0.0}/>
+                </g>
+                <g>
+                    {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
+                        data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
+                        opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5}} />) : null}
+                </g>
+
+                {searchIndices.size > 0 ? <SearchIndicator {...{margins,width,searchIndices,searchString}} /> : null}
+                <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} onMouseUp = {handleMouseUp} fill="#ffffff" opacity={0.0}/>
                 {/* {legend ? <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top}
                     {...{data,colorScale, colorName, attrValuesByTag: attributesByTag.attribute_values, handleMouseOver : handleLegendMouseOver, onLegendGroupLeave}} /> : null} */}
                 {/* //attributesByTag */}
@@ -251,7 +279,6 @@ export function ScatterPlot({
                     key={Math.random()}
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
-                    
                     <div className="flex flex-column justify-start">
                         {hoverData.map((v, idx) => idx < 10 ? <div key={`${idx}-hover`}>
                             {tooltipSmall ? <div>

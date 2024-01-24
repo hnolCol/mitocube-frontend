@@ -53,22 +53,31 @@ function ScatterPoints({
     filterIndices =  new Set()}){
  
     const filterByIdx = filterIndices.size !== 0
-    const oapcityBySearch = searchIndices.size !== 0
-    const colorScaleDefined = colorName !== undefined && _.has(data[0],colorName) && _.isFunction(colorScale)
+    const opacityBySearch = searchIndices.size !== 0
+    const colorScaleDefined = colorName !== undefined && _.has(data[0], colorName) && _.isFunction(colorScale)
+    let validIdcs = _.range(data.length).filter(idx => !opacityBySearch ? valid[idx] : valid[idx] && !searchIndices.has(idx))
+    if (opacityBySearch) {
+        // add the search idcs last to plot them last on top of each other. 
+        validIdcs = _.concat(validIdcs,Array.from(searchIndices))
+    }
+
+    const idcs = opacityBySearch ? _.concat(_.range(data.length).filter(idx => searchIndices.has(idx)),Array.from(searchIndices)) : _.range(data.length)
+
     return(
         <g>
 
-            {data.filter((d,idx) => valid[idx]).map((d,idx) => {
+            {validIdcs.map(idx => {
+                const d = data[idx]
                 //filter data first and then map over it 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
                 return <circle 
-                    //dont use opacity, very very slow on safari 
+                    //dont use opacity, very very slow on safari, instead fill and strokeOpacity 
                     key={`${idx}-${d[xaxisName]}`}
                     cx={xScale(d[xaxisName])} 
                     cy={yScale(d[yaxisName])} 
                     r={sizeScale(d[sizeName])} 
-                    fillOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
-                    strokeOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
+                    fillOpacity={opacityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
+                    strokeOpacity={opacityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
                     {...{
                         fill : colorScaleDefined ? colorScale(d[colorName]) : fill,
                         stroke,

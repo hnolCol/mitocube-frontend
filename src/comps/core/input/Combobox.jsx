@@ -97,7 +97,10 @@ export function Combobox({
                 itemListPredicate={filterItems}
                 itemRenderer={renderItems}
                 onItemSelect={onItemSelection}
-                popoverProps={{ matchTargetWidth, minimal: true}}
+                popoverProps={{ matchTargetWidth, minimal: true }}
+                popoverContentProps={{
+                    onWheelCapture: (event) => event.stopPropagation()
+                }}
                 disabled={disabled}>
                 <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
             </Select>

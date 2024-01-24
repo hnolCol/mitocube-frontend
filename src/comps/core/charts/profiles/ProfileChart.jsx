@@ -14,19 +14,9 @@ import { QuantileBackground } from "./QuantileBackground";
 import FilterIcon, { FilterSVG } from "../../svg/icons/chartSelection/Filter";
 import { Group } from "@visx/group";
 import { Text } from "@visx/text";
+import { FilterIndicator } from "../annotations/Filter";
 
 
-
-export function FilterIndicator({width,margins,searchIndices,iconSize=20, textOffset = -1}){
-
-
-    return (
-        <Group left={width - margins.right - 25} top={margins.top}>
-            <Text x={0} y={10} dx={textOffset} verticalAnchor="middle" textAnchor="end">{searchIndices.size}</Text>
-                <FilterSVG {...{ width: iconSize, height: iconSize, strokeColor: "#000" }} />
-        </Group> 
-    )
-}
 
 
 export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14}) {
@@ -116,7 +106,6 @@ export function ProfileChart({
             {profileAsBar ? <g>
                 <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
             </g> : null}
-
 
             {/* Indicate Searches */}
             
