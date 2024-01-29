@@ -13,11 +13,11 @@
 /**
  * @typedef Feature 
  * @type {Object}
- * @property {String} uniprot_id 
- * @property {String} gene_name
+ * @property {String} key
+ * @property {String} genes
  * @property {String} organism 
- * @property {String} protein_name 
- * @property {Number} length 
+ * @property {String} proteins
+ * @property {Number} aa_length 
  */
 
 

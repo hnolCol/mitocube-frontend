@@ -30,7 +30,7 @@
  * @property {Number} state - The state the submission is in. 
  * @property {String} user_label - The user_label which owns the submission. 
  * @property {string[]} collaborators - Array of user_labels that collaborate on this project with each other. Does not include the user_label
- * @property {Object.<String, String[]>} dataset_attributes - Object/Dict of attribute_tag - atributeValues_tags in an array 
+ * @property {Object.<string, import("./attributes").AttributeValue[] | import("./feature").Feature[]>} dataset_attributes - Object/Dict of attribute_tag - atributeValues_tags in an array 
  * @property {import("./attributes").SampleAttributes} samples_attributes - Sample attriutes which assing each sample to a group.
  * @property {string[]} sample_names - The sample names of the submission. The sample attributes link to the index of the sample names in the value array.
  * @property {Number} n_samples - The number of samples in the submission.
@@ -75,7 +75,10 @@
 * @property {String} position_label - The position label (e.g. A1, D12)
 * @property {String} label - Pseudo random label of a run  
 * @property {Number} index
-
+* @property {Number} measurement_index
+* @property {Number[]} aggregated_samples 
+* @property {Number} measured_at
+* @property {Number} plate_index
 */
 
 export default {}

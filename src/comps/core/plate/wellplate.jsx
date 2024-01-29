@@ -14,6 +14,20 @@ const wellPlates = [
     { text: "96 wells", description: "8 rows x 12 columns", rows: 8, columns: 12 },
     { text: "384 wells", description: "16 rows x 24 columns", rows : 16, columns : 24}]
 
+
+export function WellPosition({positionLabel}) {
+
+    return (<div className="well-border prevent-select">
+    <div className={`well__base bg--grey}`}>
+        <div>
+            {positionLabel}
+        </div>
+        </div>  
+        </div>
+    )
+}
+
+
     /**
      * 
      * @param {Object} props
@@ -28,7 +42,7 @@ const wellPlates = [
      * @param {Boolean} props.inCurrentRectangleSelection Is the well in the current rectangle selection. If in rectangle selection the well is colored and overwrite the selected coloring of the well.  
      * @returns {import("react").ReactElement} The JSX React Element of a well plate Well. 
      */
-function Well({ row, column, handleMouseDown, handleMouseUp, handleMouseEnter, handleMouseLeave, rowLabel, selected = false, inCurrentRectangleSelection = false }) {
+export function Well({ row, column, handleMouseDown, handleMouseUp, handleMouseEnter, handleMouseLeave, rowLabel, selected = false, inCurrentRectangleSelection = false }) {
     return <div className="well-border prevent-select"
         onMouseUp={e => handleMouseUp(e, row, column)}
         onMouseDown={e => handleMouseDown(e, row, column)}

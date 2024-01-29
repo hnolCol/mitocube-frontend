@@ -36,7 +36,8 @@ AttributeFilterButton.propTypes = {
  * Selecting the filter button leads to a filter by the given attribute tag, which is defined
  * as the attributeValue
  * @param {Object} props - The props
- * @param {import("../../../types/attributes").AttributeValue} props.attributeValue Attribute value used to display the filter button.
+ * @param {import("../../../types/attributes").Attribute} props.attribute
+ * @param {import("../../../types/attributes").AttributeValue | import("../../../types/feature").Feature} props.attributeValue Attribute value used to display the filter button.
  * @param {string} props.submissionKey - The submissionKey to be used for filtering by the Attribute Value.
  * @param {Function} props.setSubmissionFilter - The function be called when the button is clicked. Returns the prevValues and [submissionKey] : Set() using the attribute tag.
  * @param {Object} props.backgroundColors - The background color to be used for the button. Must contain the the submissionKey
@@ -44,6 +45,7 @@ AttributeFilterButton.propTypes = {
  * @returns The JSX Element :: AttributeFilter Button
  */
 export function AttributeFilterButton({
+    attribute,
     attributeValue,
     submissionKey,
     setSubmissionFilter,
@@ -52,7 +54,7 @@ export function AttributeFilterButton({
     numberSubmissionWithTag
 }) {
     
-
+    if (!_.isObject(attribute)) return null 
     const isFilterKeyActive = _.has(submissionFilter, submissionKey) && submissionFilter[submissionKey].size > 0
     const attrValueTag = attributeValue.tag
     const isFilterActive = isFilterKeyActive ? submissionFilter[submissionKey].has(attrValueTag ) : false 
@@ -75,7 +77,7 @@ export function AttributeFilterButton({
     }
     const handleClick = () => {
         
-        let itemsForFiltering = isFilterKeyActive?submissionFilter[submissionKey]: new Set()
+        let itemsForFiltering = isFilterKeyActive ? submissionFilter[submissionKey] : new Set()
         if (!isFilterActive) {
             itemsForFiltering.add(attrValueTag)
         }
@@ -93,6 +95,7 @@ export function AttributeFilterButton({
         
     }
     const bgColor = _.has(backgroundColors, submissionKey) ? backgroundColors[submissionKey] : isFilterActive ? "#b91d17" : "#dedede"
+    
     return (<motion.button
         onClick={handleClick}
         className = "submssion__filter__button margin--little"
@@ -113,7 +116,7 @@ export function AttributeFilterButton({
     
         <div className="flex  justify-space-between">
         <div className="padding--little" style={{marginRight : "1.5rem", display:"inline-block"}}>
-            {attributeValue.text}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
+            {attribute.has_features_value? attributeValue.genes : attributeValue.text}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
         </div>
         <motion.div style={{opacity : 0, width : "0rem"}} onAnimationComplete={() => {
             setIsAnimationPlaying(false)
@@ -170,9 +173,7 @@ export function AttributeFilter({ attributesInSubmission: { } }) {
 }
 
 export function AttributeFilterSelection({uniqueAtributesInSubmissions, attributesByTag, setSubmissionFilter, submissionFilter,attributeSearchQuery, setAttributeSearchQuery}) {
-
     //const attributeTags = Object.keys(uniqueAtributesInSubmissions)
-    
     const attribteValuesByTag = attributesByTag.attribute_values
     const attribtesByTag = attributesByTag.attributes
     //{Object.keys(uniqueAtributesInSubmissions).map(attributeTag => <AttributeFilterButton {...{attributeValue : attributeTag, submissionKey : attributeTag, submissionFilter, setSubmissionFilter}}/>)}
@@ -180,7 +181,7 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
         //use memo to filter based on a query.
         let attributeTags = Object.keys(uniqueAtributesInSubmissions)
         if (attributeSearchQuery.length < 2) return {
-            filteredAtributes: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter),
+            filteredAtributes: attributeTags.filter(attributeTag => uniqueAtributesInSubmissions[attributeTag].attribute.allow_as_filter),
             filteredAttributeTags: new Set()
         }
         else {
@@ -214,19 +215,21 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
             <InputGroup placeholder="Search attribute.." small={true} value={attributeSearchQuery} onValueChange={(query) => setAttributeSearchQuery(query)}/>
         <div className="flex flex-column" style={{height : "33vh", overflowY : "scroll", overflowX: "hidden", paddingTop : "0.2rem", marginTop : "0.3rem"}}>
             {filteredAtributes.map(attrTag => {
-                const { values, counts } = uniqueAtributesInSubmissions[attrTag]
+                const { values, counts, attributeValues, attribute } = uniqueAtributesInSubmissions[attrTag]
                 if (values.size === 0) return null 
-
+                if (!_.isObject(attribute)) return null 
                 return (<div key={`${attrTag}-attr-filter`} className="flex flex-column">
                     <div><h5>{attribtesByTag[attrTag].text}</h5></div>
-                    {[...values].map(attribteValueTag => {
-                    let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: createFakeAttributeValue({attribute : attribtesByTag[attrTag], numericInput : attribteValueTag})
-                    return <AttributeFilterButton key={`${attrTag}-${attribteValueTag}`} {...{
+                    {[...values].map(attributeValueTag => {
+                        const attrValue = attributeValues[attributeValueTag]
+                    // let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: createFakeAttributeValue({attribute : attribtesByTag[attrTag], numericInput : attribteValueTag})
+                        return <AttributeFilterButton key={`${attrTag}-${attributeValueTag}`} {...{
+                        attribute,
                         attributeValue: attrValue,
                         submissionKey: attrTag,
                         setSubmissionFilter,
                         submissionFilter,
-                        numberSubmissionWithTag : counts[attribteValueTag]
+                        numberSubmissionWithTag : counts[attributeValueTag]
                     }} />
                 })}</div>)
             })}
@@ -240,19 +243,16 @@ export function AttributeFilterSelection({uniqueAtributesInSubmissions, attribut
 export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter,  }) {
     const allFilterKeysFound = _.every(datasetAttributeFilter.map(filterKey => _.has(submissionDatasetAttributes, filterKey)))
     if (!allFilterKeysFound) return false
-    const datasetAttributeMatch = _.every(datasetAttributeFilter.map(filterKey => _.some(submissionDatasetAttributes[filterKey].map(attrValueTags => submissionFilter[filterKey].has(attrValueTags)))))
+    const datasetAttributeMatch = _.every(datasetAttributeFilter.map(filterKey => _.some(submissionDatasetAttributes[filterKey].map(attributeValue => submissionFilter[filterKey].has(attributeValue.tag)))))
     return datasetAttributeMatch
 }
 
 export function extractSubmissionDetails({ submissions }) {
     
     
-    const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes))
+    const uniqueAtributesInSubmissions = getUniqueSetsOfAllValuesinArrayOfObjects(submissions.map(s => s.dataset_attributes),submissions.map(s => s.attributes))
     const usersByDataLabel = Object.fromEntries(submissions.map(submission => [submission.label,_.concat(submission.collaborators, submission.user_label)]))
     return { uniqueAtributesInSubmissions, usersByDataLabel}
-    
-    
-    
     
 }
 
@@ -291,16 +291,10 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
     }
 
     return filteredSubmission
-
-
 }
 
 
-
-
 export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog}) {
-
-    
     
     let labelsCombined = _.join(submissions.map(submission => submission.label))
     const { uniqueAtributesInSubmissions, usersByDataLabel } = useMemo(() => extractSubmissionDetails({ submissions }), [labelsCombined])

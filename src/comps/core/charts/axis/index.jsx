@@ -16,6 +16,7 @@ function AxisWithBackground({
     leftLabel,
     leftHideTicks = false,
     bottomHideTicks = false,
+    bottomHideTickLabels = true,
     leftTickLabelsVisible = true,
     moveBottomToLeft = true,
     leftTickLabelProps,
@@ -53,13 +54,13 @@ function AxisWithBackground({
         
             <AxisBottom
                 left={moveBottomToLeft ? leftStart : 0}
-                tickFormat={findAttributesForBottomScale ? (tickLabel) => mapAttributeValueTagsToAttributes({attrValueTag : tickLabel, attrValuesByTag : attributesByTag.attribute_values}).asString : null}
+                tickFormat={bottomHideTickLabels ? () => "" : findAttributesForBottomScale ? (tickLabel) => mapAttributeValueTagsToAttributes({attrValueTag : tickLabel, attrValuesByTag : attributesByTag.attribute_values}).asString : null}
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}
                 labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle"}}
-                tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps }}
-                labelOffset={30}
+                tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps}}
+                labelOffset={10}
                 numTicks={getNumberTicks(chartWidth)}
                 scale={bottomScale}
                 stroke={getAxisStrokeColor()}

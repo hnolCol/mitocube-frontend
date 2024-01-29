@@ -4,12 +4,14 @@ import Loading from "../../core/base/loading"
 import AttributeInput from "./attribute/select/MultiSelectAttribute"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { Button } from "@blueprintjs/core"
-import FeatureInput from "./features/Selection"
+import { FeatureInput } from "./features/FeatureInput"
 
 
 
 function FeatureSelection({selectedItems = [], attribute, organisms = [], isSampleAttribute, onSave = undefined, rowIdces = [], genotypeLabel = undefined, entryIdx = 0}) {
     // feature selection for attributes
+    console.log(organisms)
+    const proteome_id = organisms[0].value
     const [selectedFeatures, setSelectedFeatures] = useState(selectedItems)
     const { data: features, isLoading, isFetching } = useGetAnnotationFeatures({ organisms })
     /**
@@ -23,21 +25,21 @@ function FeatureSelection({selectedItems = [], attribute, organisms = [], isSamp
         setSelectedFeatures(addItemToArrayOrRemoveItIfPresent({ array: selectedFeatures, item}))
     }
     return (
-        <div >
+        <div className="flex flex-column">
         <h3>Feature Selection</h3>
             {isLoading || isFetching ? <Loading /> : <div>
                 <p>Features are loaded for {organisms.length} organism. If you are looking for a different one, please specify the organism first in the sample submission sheet.</p>
                 <p>{features.length} features loaded.</p>
-            
-                <FeatureInput attribute={attribute}
-                    features={features}
+                <div>
+                <FeatureInput
+                    attribute={attribute}
                     onItemSelect={handleFeatureSelection}
                     selectedItems={selectedFeatures}
-                    onRemove={handleFeatureSelection} />
+                    proteome_id={proteome_id} />
+                </div>
                 <div>
-                    
                     <Button text="Save" intent="primary" onClick={() => onSave(attribute,selectedFeatures,isSampleAttribute,rowIdces,genotypeLabel,entryIdx)}/>
-                    </div>
+                </div>
             </div>}
         </div>
     )

@@ -4,7 +4,7 @@ import Loading from "../../../../core/base/loading"
 import { useGetSubmissionAttributesByTag } from "../../../../../hooks/queries/submission.hooks"
 import { groupListByProperty } from "../../../../../services/arrays/groupby"
 import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
-import { addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
+import { addItemToArrayOrRemoveItIfPresent, addItemsToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useMemo, useState } from "react"
 import FeatureSelection from "../../FeatureSelection"
@@ -12,7 +12,7 @@ import { Alert } from "@blueprintjs/core"
 import { constructSampleNames } from "../../../../../services/samples"
 
 
-export function SampleAttributeTableWrapper({ submission, attributes, updateSubmission, numberReplicates }) {
+export function SampleAttributeTableWrapper({ submission, attributes, updateSubmission, numberReplicates, genotypes }) {
     // wrapper to the sample attributes table 
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     const { data: attributesByTag, isSuccess, isLoading, isFetching } = useGetSubmissionAttributesByTag()
@@ -57,35 +57,50 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             }
         })
     }
-
-
-    const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
-        //handle feature selection of a samples attribute
-        if (!_.has(submission.datasetAttributeValues, "att_organism")
-            || submission.datasetAttributeValues["att_organism"].length === 0) {
-            //if organism has not been selected prompt a warning.
-            setAlertProps({ isOpen: true, children: <div><h3>Error</h3><p>Please select one or multiple organisms first.</p></div> })
-            return 
-        }
-        let sampleAttributeTable = submission.attributeTable 
-        let featuresSelectedInSampleAttributeTable = rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length && _.has(sampleAttributeTable[rowIndex],attribute.tag)).map(rowIndex => sampleAttributeTable[rowIndex][attribute.tag])
-        let selectedItems = isSampleAttribute ?  _.uniq(_.flatten(featuresSelectedInSampleAttributeTable)) : _.has(submission.datasetAttributeValues,attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []
-
-        setAlertProps({
-            isOpen: true,
-            confirmButtonText: "Cancel",
-            children: <FeatureSelection {...{
-                selectedItems,
-                attribute,
-                rowIdces,
-                entryIdx,
-                genotypeLabel,
-                organisms: submission.datasetAttributeValues["att_organism"],
-                isSampleAttribute,
-                onSave : onFeatureSelection
-            }} />
+    /**
+     * 
+     * @param {*} rowIdcs 
+     * @param {*} genotype 
+     */
+    const handleGenotypeSelection = (rowIdcs, genotype) => {
+        let genotypeAttributes = submission.genotypeAttributes
+        _.forEach(rowIdcs, rowIdx => {
+            genotypeAttributes[rowIdx] = addItemToArrayOrRemoveItIfPresent({ array: genotypeAttributes[rowIdx], item: genotype })
+        })
+        updateSubmission(prevValues => {
+            return {
+                ...prevValues, genotypeAttributes, rerenderTableDependency: [Math.random()]
+            }
         })
     }
+
+    // const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
+    //     //handle feature selection of a samples attribute
+    //     if (!_.has(submission.datasetAttributeValues, "att_organism")
+    //         || submission.datasetAttributeValues["att_organism"].length === 0) {
+    //         //if organism has not been selected prompt a warning.
+    //         setAlertProps({ isOpen: true, children: <div><h3>Error</h3><p>Please select one or multiple organisms first.</p></div> })
+    //         return 
+    //     }
+    //     let sampleAttributeTable = submission.attributeTable 
+    //     let featuresSelectedInSampleAttributeTable = rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length && _.has(sampleAttributeTable[rowIndex],attribute.tag)).map(rowIndex => sampleAttributeTable[rowIndex][attribute.tag])
+    //     let selectedItems = isSampleAttribute ?  _.uniq(_.flatten(featuresSelectedInSampleAttributeTable)) : _.has(submission.datasetAttributeValues,attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []
+
+    //     setAlertProps({
+    //         isOpen: true,
+    //         confirmButtonText: "Cancel",
+    //         children: <FeatureSelection {...{
+    //             selectedItems,
+    //             attribute,
+    //             rowIdces,
+    //             entryIdx,
+    //             genotypeLabel,
+    //             organisms: submission.datasetAttributeValues["att_organism"],
+    //             isSampleAttribute,
+    //             onSave : onFeatureSelection
+    //         }} />
+    //     })
+    // }
 
     const onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
         if (attribute.allow_for_genotype) {
@@ -96,8 +111,12 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             if (!_.has(d[0],attribute.tag)) {
                 d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
             }
+            console.log("h",selectedFeatures)
             //save feature selection
-            rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attribute.tag] = selectedFeatures )
+            
+            rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length)
+                .forEach(rowIndex =>
+                    d[rowIndex][attribute.tag] = addItemsToArrayOrRemoveItIfPresent({ array: d[rowIndex][attribute.tag], items: selectedFeatures }))
             //update table
             updateSubmission(prevValues => { return { ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()] } })
             }
@@ -261,7 +280,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             onAttributeSelect={onSampleAttributeValueSelect}
             onTagRemove={onSampleAttrRemove}
             {...{
-                attributes : attributesAllowedForDataset,
+                attributes: attributesAllowedForDataset,
+                genotypes,
                 addSampleAttr,
                 clearSampleAttrByIndex,
                 clearAttributeTableByRowIndex,
@@ -269,11 +289,12 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 onSampleAttributeRename,
                 removeSampleAttrByIndex,
                 groupings: submission.samplesAttributes,
-                handleFeatureSelection,
+                genotypeAttributes : submission.genotypeAttributes,
                 onFeatureSelection,
                 numberReplicates: numberReplicates !==undefined?numberReplicates :_.uniq(submission.replicates).length,
                 replicates: submission.replicates,
-                onReplicateChange
+                    onReplicateChange,
+                    handleGenotypeSelection
                 }} />
             </div>
     )

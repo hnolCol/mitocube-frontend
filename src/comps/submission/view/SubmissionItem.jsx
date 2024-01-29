@@ -15,6 +15,7 @@ import { titleFormat } from "../../../services/format/string";
 import { motion } from "framer-motion";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import { useNavigate } from "react-router";
+import { AttributeFeatureTag } from "../new/attribute/view/DatasetAttributesHierarchy";
 
 
 
@@ -157,16 +158,16 @@ export function SubmissionItem({
                      </div>
                     <div className="flex flex--wrap intent-margin-top--little">
                         {Object.keys(submission.dataset_attributes).map(attributeTag => {
-                            const attrValueTags = submission.dataset_attributes[attributeTag]
-                            const attribute = _.has(attributesByTag, attributeTag) ? attributesByTag[attributeTag] : { text: attributeTag }
+                            const attributeValues = submission.dataset_attributes[attributeTag]
+                            const attribute = submission.attributes[attributeTag]
+                           // const attribute = _.has(attributesByTag, attributeTag) ? attributesByTag[attributeTag] : { text: attributeTag }
                             {
                                 return <div className="flex"
                                     key={`${attributeTag}-subission-item-${submission.label}`}>
-                                    {attrValueTags.map(attrValueTag => {
-                                    const attrValueFound = _.has(attributeValuesByTag, attrValueTag)
-                                    const attributeValue = attrValueFound ? attributeValuesByTag[attrValueTag] : { text: attrValueTag }
-                                    return <div key={`${attributeTag}-${attrValueTag}`} className="intent-margin-right--little intent-margin-top--tiny">
-                                        <AttributeTagWithTooltip {...{ attribute, attributeValue }} />
+                                    {attributeValues.map(attributeValue => {
+                                    return <div key={`${attributeTag}-${attributeValue.tag}`} className="intent-margin-right--little intent-margin-top--tiny">
+                                        <AttributeFeatureTag {...{attribute,value : attributeValue, valueIsFeature : attribute.has_features_value}} />
+                                        {/* <AttributeTagWithTooltip {...{ attribute, attributeValue }} /> */}
                                     </div>
                                 })}</div>
                             }

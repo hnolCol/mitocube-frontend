@@ -99,7 +99,6 @@ function AttributeInput({ attribute,
             
             <MultiSelect
                 disabled={disabled}
-                
                 popoverProps={{ matchTargetWidth, minimal: true }}
                 resetOnQuery={true}
                 resetOnSelect={true}

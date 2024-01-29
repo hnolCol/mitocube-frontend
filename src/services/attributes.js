@@ -58,11 +58,58 @@ export function inverseSamplesAttributes({ sampleAttributes, sampleNames }) {
     }, result)   
 }
 
+/**
+ * 
+ * @param {Object} props
+ * @param {import("../types/attributes").Attribute} props.attribute
+ */
+function matchTagToAttributesValuesAndFeatures({ attribute, valueTag, attributesByTag, featuresByKey }) {
+    
+    if (attribute.has_features_value) {
+        const feature_key = valueTag.split(":").at(1)
+        return featuresByKey[feature_key]
+    }
+    else if (_.has(attributesByTag.attribute_values, valueTag)) {
+        return attributesByTag.attribute_values[valueTag]
+    }
+    else if (attribute.has_numeric_input) {
+        const numericValue = valueTag.split(":").at(1)
+        return createFakeAttributeValue({attribute,numericInput : numericValue})
+    }
+    
+}
+
+/**
+ * @description Takes the dataset attributes that are coming from the API which contains only attribute tags 
+ * and matches them to attributes and features (where possible). If numeric input is allowed for an attribute
+ * then it create a fake attribute.
+ * @param {Object} props
+ * @param {import("../types/attributes").AttributesByTagAPIResponse} props.attributesByTag
+ * @param {Object.<string, String[]>} props.datasetAttributes
+ * @param {Object.<string, import("../types/feature").Feature>} props.featuresByKey
+ */
+export function mapDatasetAttributeTagsToAttributes({ datasetAttributes, attributesByTag, featuresByKey }) {
+    
+    return _.fromPairs(_.keys(datasetAttributes)
+        .filter(attributeTag => _.has(attributesByTag.attributes, attributeTag))
+            .map(attributeTag => {
+                const attribute = attributesByTag.attributes[attributeTag]
+                if (_.isArray(datasetAttributes[attributeTag])) {
+                    return [attributeTag, datasetAttributes[attributeTag].map(valueTag => matchTagToAttributesValuesAndFeatures({attribute,valueTag,attributesByTag,featuresByKey}))]
+                }
+                else if (_.isString(datasetAttributes[attributeTag])) {
+                    return [attributeTag, matchTagToAttributesValuesAndFeatures({attribute,valueTag : datasetAttributes[attributeTag],attributesByTag,featuresByKey})]
+                }
+                return [undefined,undefined]
+                
+        }).filter(pair => _.isObject(pair[1])))
+
+}
 
 
 
 export function mapAttributeTagsToAttributes({tagAttributes, attributesByTag}) {
-    return Object.fromEntries(Object.keys(tagAttributes)
+    return Object.fromEntries(_.keys(tagAttributes)
         .filter(attributeTag => _.has(attributesByTag.attributes, attributeTag) && _.isArray(tagAttributes[attributeTag])).map(attributeTag => {
         return [attributeTag, _.map(tagAttributes[attributeTag], (attributeValueTag) =>
             _.isObject(attributeValueTag) ? attributeValueTag : _.has(attributesByTag.attribute_values, attributeValueTag) ?

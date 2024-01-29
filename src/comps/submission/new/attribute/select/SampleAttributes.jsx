@@ -10,6 +10,8 @@ import { filterArrayBySearchString } from "../../../../../services/arrays/filter
 import _ from "lodash"
 import NumericValueInput from "../../../../core/input/Numeric"
 import { createFakeAttributeValue } from "../../../../../services/attributes"
+import { FeatureInput } from "../../features/FeatureInput"
+import { addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
 
 SamplesAttributes.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
@@ -18,6 +20,21 @@ SamplesAttributes.propTypes = {
 }
 
 
+function FeatureSelectionInMenu({ onSave, proteome_id, attribute, selectedRows }) {
+    const [selectedItems, setSelectedItems] = useState([])
+    const collectItems = (attribute, feature) => {
+        const updatedFeatures = addItemToArrayOrRemoveItIfPresent({ array: selectedItems, item: feature })
+        setSelectedItems(updatedFeatures)
+    }
+    return (
+        <div>
+        <FeatureInput {...{ attribute, proteome_id, onItemSelect : collectItems, selectedItems }} />
+        <MenuItem text="Save" onClick={() => onSave(attribute,selectedItems,true,selectedRows)} intent="primary" icon="selection"/>
+        </div>
+    )
+}
+
+// tion(attribute,[value],true,selectedRows,undefined,undefined)}/>) : null}
 
 
 function AttributeSelectionHeader({
@@ -49,12 +66,13 @@ function AttributeSelectionHeader({
     )
 }
 
-function GenotypeContextMenu({ }) {
+function GenotypeContextMenu({genotypes, selectedRows, handleGenotypeSelection}) {
     
     return (
-        <Menu>
+        <Menu onWheelCapture={e => e.stopPropagation()}>
             <MenuItem text="Genotypes" disabled={true} />
-            <MenuDivider/>
+            <MenuDivider />
+            {_.isArray(genotypes)?genotypes.map(genotype => <MenuItem text={genotype.text} onClick={() => handleGenotypeSelection(selectedRows,genotype)}/>):null}
         </Menu>
     )
 }
@@ -139,14 +157,15 @@ function SamplesAttributes({
     removeSampleAttrByIndex = undefined,
     clearSampleAttrByIndex = undefined,
     clearAttributeTableByRowIndex = undefined,
-    handleFeatureSelection = undefined,
     onFeatureSelection,
     rerenderTableDependency = 0,
     onReplicateChange = undefined,
     replicates = [],
-    numberReplicates = 0
+    numberReplicates = 0,
+    genotypes,
+    genotypeAttributes,
+    handleGenotypeSelection
     }) {
-
     const [selectedRows, setSelectedRows] = useState([])
 
     /**
@@ -197,7 +216,7 @@ function SamplesAttributes({
 
         //replicates menu 
         if (columnIndex === 1) return <ReplicateContextMenu {...{ numberReplicates, onReplicateChange, selectedRows }} />
-        if (columnIndex === 2) return <GenotypeContextMenu {...{}}/>
+        if (columnIndex === 2) return <GenotypeContextMenu {...{genotypes, selectedRows, handleGenotypeSelection}}/>
         let groupingInfo = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
 
@@ -207,18 +226,16 @@ function SamplesAttributes({
         let attributeValues = groupingInfo === undefined || !_.has(attributeValuesByID, groupingInfo.attribute.id)? [] : attributeValuesByID[groupingInfo.attribute.id]
         const attributeValuesSelected = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])))
         // if there is no attribute values, then a numeric value can be inserted by the user
-        console.log(attributeValuesSelected)
         const selectedAttributeValuesFound = attributeValuesSelected.length
         // onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
-        if (attribute.has_features_value) {
-            return <Menu>
-                <MenuItem
-                    text="Select protein sequence..."
-                    onClick={() => handleFeatureSelection({ attribute, isSampleAttribute: true, rowIdces: selectedRows })} />
-                {selectedAttributeValuesFound? <MenuDivider/>:null}
+        if (attribute.has_features_value) {            return <Menu style={{minWidth:"min(40vw,700px)"}}>
+                <FeatureSelectionInMenu {...{attribute,onSave : onFeatureSelection, proteome_id :"UP000000589",selectedRows}}/>
+            {selectedAttributeValuesFound? <MenuItem disabled text="Previous selections"/>:null}
+            {selectedAttributeValuesFound ? <MenuDivider /> : null}
+            
                 {selectedAttributeValuesFound ? attributeValuesSelected.map(value => <MenuItem
-                    key={value.uniprot_id}
-                    text={value.gene_name}
+                    key={value.key}
+                    text={value.genes}
                     onClick={() => onFeatureSelection(attribute,[value],true,selectedRows,undefined,undefined)}/>) : null}
             </Menu>
         }
@@ -260,6 +277,20 @@ function SamplesAttributes({
         )
     }
 
+    const renderGenotype = (rowIndex, columnIndex) => {
+        const cellKey = `${rowIndex}-${columnIndex}-genotype`
+        if (!_.isArray(genotypeAttributes) || genotypeAttributes[rowIndex] === undefined) return <Cell key={cellKey}></Cell>
+        let selectedGenotypes = genotypeAttributes[rowIndex]
+        if (!_.isArray(selectedGenotypes)) return null
+        return <Cell key={cellKey}>{selectedGenotypes.map(genotype => {
+            return <div><Tag minimal={true} onRemove={() => handleGenotypeSelection([rowIndex], genotype)}>
+                {genotype.text}
+            </Tag></div>
+        })}
+        </Cell>
+
+    }
+
     const renderCell = (rowIndex, columnIndex) => {
         const cellKey = `${rowIndex}-${columnIndex}`
         //checks
@@ -288,9 +319,9 @@ function SamplesAttributes({
             <div className="flex flex--wrap center-items">
                 {_.isArray(cellData) && cellData.length === 0 ? "" : cellData.map(attributeValue => {
                     const cellDataIsAttr = _.isObject(attributeValue)
-                    return <div key={`${rowIndex}-${columnIndex}-${cellDataIsAttr ? attributeValue.tag : attributeValue}`} className="padding--little">
+                    return <div key={`${rowIndex}-${columnIndex}-${attributeHasFeatures ? attributeValue.key : cellDataIsAttr ? attributeValue.tag : attributeValue}`} className="padding--little">
                         <Tag minimal={true} onRemove={() => onTagRemove(rowIndex, attribute, attributeValue)}>
-                            {cellDataIsAttr?attributeHasFeatures?attributeValue.gene_name: attributeValue.text:attributeValue}
+                            {cellDataIsAttr?attributeHasFeatures?attributeValue.genes: attributeValue.text:attributeValue}
                         </Tag>
                     </div>})}
             </div>
@@ -413,7 +444,7 @@ function SamplesAttributes({
                         cellRenderer={renderCell}
                         columnHeaderCellRenderer={() => renderDefaultHeader("Replicates")} />
                     <Column
-                        cellRenderer={renderCell}
+                        cellRenderer={renderGenotype}
                         columnHeaderCellRenderer={() => renderDefaultHeader("Genotype")} />
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.text}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}

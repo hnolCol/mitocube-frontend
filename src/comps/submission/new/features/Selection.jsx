@@ -13,7 +13,7 @@ function FeatureInput({
     onRemove = undefined,
     helperText = "",
     matchTargetWidth = true,
-    searchNames = ["text", "details"],
+    searchNames = ["gene_name", "protein_name","uniprot_id"],
     maxItemsShown = 30,
     minimumSearchStringLength = 0,
     handleFeatureSelection = undefined,
@@ -71,8 +71,8 @@ function FeatureInput({
      * @param {*} param1 
      */
     const renderFeature = (item, {handleClick, handleFocus, index, modifiers, query}) => {
-        return <MenuItem key={item.uniprot_id} text={item.gene_name} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-        labelElement={<div style={{ maxWidth: "24rem", textAlign : "right" }}>{`${item.uniprot_id} ${item.protein_name}`}</div>}/>
+        return <MenuItem key={item.key} text={item.genes} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+        labelElement={<div style={{ maxWidth: "24rem", textAlign : "right" }}>{`${item.key} ${item.protein_name}`}</div>}/>
     }
     /**
      * @description Render selected feature as a tag using the gene name.
@@ -81,14 +81,14 @@ function FeatureInput({
      */
     const renderSelectedItemAsTag = (item) => {
         //render selected item as a tag 
-        return item.gene_name
+        return item.genes
     }
 
     /**
      * 
-     * @param {String} searchString 
-     * @param {import("../../../../types/feature").Feature[]} items 
-     * @returns 
+     * @param {String} searchString - The search string provided by the user.
+     * @param {import("../../../../types/feature").Feature[]} items  - The items to filter/search by the search string.
+     * @returns {Object[]}
      */
     const filterItems = (searchString, items) => {
         if (searchString === "" || searchString.length < minimumSearchStringLength) {
@@ -97,9 +97,9 @@ function FeatureInput({
             }
             else return items 
         }
-        filterArrayBySearchStringByMultipleKeys({arra})
-        const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns : searchNames, searchString })
-        return filteredAttributeValues
+        const { data : filteredItems } = filterArrayBySearchStringByMultipleKeys({ array: items, keyNames: searchNames, searchString })
+        if (filteredItems.length > maxItemsShown) return filteredItems.slice(0,maxItemsShown+1)
+        return filteredItems
     }
     return (
         <FormGroup

@@ -15,7 +15,7 @@ import FilterIcon, { FilterSVG } from "../../svg/icons/chartSelection/Filter";
 import { Group } from "@visx/group";
 import { Text } from "@visx/text";
 import { FilterIndicator } from "../annotations/Filter";
-
+import _ from "lodash"
 
 
 
@@ -29,12 +29,12 @@ export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYO
 
 export function ProfileChart({
     chartIdx,
-    width = 300,
-    height = 300,
+    width = 320,
+    height = 240,
     margins = {
-        left: 40,
+        left: 45,
         top: 5,
-        right: 5,
+        right: 45,
         bottom: 40
     },
     data,
@@ -42,6 +42,8 @@ export function ProfileChart({
     yaxisName = [],
     xaxisName,
     labelNames = [],
+    yaxisLabel,
+    xaxisLabel,
     limits,
     svgID,
     rerenderHover,
@@ -49,19 +51,20 @@ export function ProfileChart({
     hoverData,
     profileAsLine = true,
     profileAsBar = false,
+    subsetIndices = new Set(), // subset the data to only plot those 
     searchIndices = new Set(),
-    hoverIndices = new Set(),
-    setHoverDataByDataIndex
-    
 }) {
 
     const svgRef = useRef(null);
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins })
     
-    const q = getQuantilesInArrayByKeyNames({data, keyNames : yaxisName})
-    const yScale = useMemo(() => {
+    const q = useMemo(() => getQuantilesInArrayByKeyNames({ data, keyNames: yaxisName }), [yaxisName])
     
-        const yDomain = { min: 0, max: 5000 }//limits[yaxisName]
+    const yScale = useMemo(() => {
+        const limitValues = yaxisName.map(yName => limits[yName])
+        const minLimit = _.minBy(limitValues, "min")
+        const maxLimit = _.minBy(limitValues, "max")
+        const yDomain = { min : minLimit.min, max : maxLimit.max }//limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
         return scaleLinear(
             {
@@ -92,16 +95,16 @@ export function ProfileChart({
                 margins={margins}
                 leftScale={yScale}
                 bottomScale={xScale}
-                bottomLabel={xaxisName}
+                bottomLabel={_.isString(xaxisLabel)?xaxisLabel:xaxisName}
                 leftHideTicks={false}
-                leftLabel={yaxisName}
+                leftLabel={_.isString(yaxisLabel)? yaxisLabel : yaxisName}
                 moveBottomToLeft={false}
                 findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
         
             <QuantileBackground {...{xScale, yScale, data : q, keyNames : yaxisName, rerenderDependency: rerenderBackground}} />
             {profileAsLine ? <g >
-                <ProfileLine {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames }} />
+                <ProfileLine {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames, showPoints : !yaxisName.length > 30}} />
             </g> : null}
             {profileAsBar ? <g>
                 <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />

@@ -48,3 +48,40 @@ async function getAnnotationsByFeatureID_API({ featureID }) {
 export function useGetAnnotationsByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
     return useQuery(["getDataByFeautreID",APIParams.featureID],() =>  getAnnotationsByFeatureID_API({...APIParams}), useQueryOptions)
 }
+
+
+/**
+ * 
+ * @param {Object} props
+ * @param {import("../../types/feature").Feature} props.feature
+ * @returns 
+ */
+async function getSequenceByFeatureKey_API({ feature }) {
+    const res = await axios.get(`/api/features/${feature.key}/sequence`)
+    return res.data
+}
+
+export function useGetSequenceByFeatureKey(APIParams = {}, useQueryOptions = {staleTime : Infinity}, ) {
+    return useQuery(["getFeatureSequence",APIParams.feature.key],() =>  getSequenceByFeatureKey_API({...APIParams}), useQueryOptions)
+}
+
+
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.query
+ * @returns 
+ */
+async function findFeatureByQuery_API({ query, proteome_id }) {
+    const res = await axios.get("/api/features", { params: { query, proteome_id } })
+    return res.data
+}
+
+export function useGetFeatureByQuery(APIParams = {}, useQueryOptions = {staleTime : Infinity}, ) {
+    return useQuery(["findFeature",APIParams.query],() =>  findFeatureByQuery_API({...APIParams}), useQueryOptions)
+}
+
+
+
+

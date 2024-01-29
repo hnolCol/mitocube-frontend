@@ -6,6 +6,7 @@ import _ from "lodash"
 
 import SimpleTag from "../../../../core/base/tags/SimpleTag"
 import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
+import { AttributeFeatureTag } from "../view/DatasetAttributesHierarchy"
 
 
 
@@ -15,8 +16,8 @@ SingleAttributeInput.propTypes = {
     searchColumns : PropTypes.array.isRequired,
     disabled: PropTypes.bool,
     matchTargetWidth: PropTypes.bool,
-    maxItemsShown: PropTypes.int,
-    minimumSearchStringLength: PropTypes.int,
+    maxItemsShown: PropTypes.number,
+    minimumSearchStringLength: PropTypes.number,
     handleFeatureSelection: PropTypes.func.isRequired,
     featureSelectionProps : PropTypes.object,
     onItemSelect: PropTypes.func.isRequired,
@@ -96,7 +97,7 @@ function SingleAttributeInput({ attribute,
                 onItemSelect={(item) => onItemSelect(attribute, item)}
                 onRemove = {(item,index) => onItemSelect(attribute,item)}
         >
-            <SimpleTag text={_.isObject(selectedItems[0])?selectedItems[0].text:attribute.text}/>
+            {selectedItems.length === 0 ? <SimpleTag text={attribute.text} />: <AttributeFeatureTag {...{ attribute, value: selectedItems[0] }} />}
                </Select>
     )
 }

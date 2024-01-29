@@ -16,13 +16,13 @@ export function AttributeFeatureTag({ attribute, value, valueIsFeature = false, 
         // <
         // <Tooltip content={}>
         // <Tag
-        //     key={valueIsFeature?`${attributeValue.uniprot_id}`: `${attributeValue.text}-${attributeValue.id}`}
+        //     key={valueIsFeature?`${attributeValue.key}`: `${attributeValue.text}-${attributeValue.id}`}
         //     intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
         //     style={{ marginRight: "0.4rem" }}
         //     onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
         //     minimal={true}
         //     large={false}>
-        //         {valueIsFeature?attributeValue.gene_name:attributeValue.text}
+        //         {valueIsFeature?attributeValue.genes:attributeValue.text}
         //     </Tag>
         // </Tooltip>
     )
@@ -57,7 +57,7 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
             <div className="flex center-items" style={{ paddingBottom: "0.1rem" }}>
             <div style={{paddingRight : "0.1rem"}}>{attribute.text}:</div>
                 {attributeValuesByTag[attribute.tag].map(attributeValue => <AttributeFeatureTag
-                    key={`${attribute.tag}-${attributeHasFeatures?attributeValue.uniprot_id:attributeValue.tag}`}
+                    key={`${attribute.tag}-${attributeHasFeatures?attributeValue.key:attributeValue.tag}`}
                     {...{
                         attribute,
                         value: attributeValue,
@@ -65,13 +65,13 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                         onRemove : _.isFunction(onDatasetAttributeRemove)?handleAttributeRemove:undefined
                     }} />
                     // <Tag
-                    // key={attribute.has_features_value?`${attributeValue.uniprot_id}`: `${attributeValue.text}-${attributeValue.id}`}
+                    // key={attribute.has_features_value?`${attributeValue.key}`: `${attributeValue.text}-${attributeValue.id}`}
                     // intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
                     // style={{ marginRight: "0.4rem" }}
                     // onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
                     // minimal={true}
                     // large={false}>
-                    //     {attribute.has_features_value?attributeValue.gene_name:attributeValue.text}
+                    //     {attribute.has_features_value?attributeValue.genes:attributeValue.text}
                     // </Tag>
                 )}
                 {attributeValuesByTag[attribute.tag].length > 1 && warnAtTwoAttrValues? <TooltipButton
@@ -96,7 +96,7 @@ DatasetAttributeHierarchy.propTpyes = {
 
 function DatasetAttributeHierarchy({ selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false }) {
     //show dataet attributes
-    const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes.filter(attr => selectedDasetAttributeValues[attr.tag].length > 0), link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
+    const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes.filter(attr =>  _.has(selectedDasetAttributeValues,attr.tag) && selectedDasetAttributeValues[attr.tag].length > 0), link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
     return (
         <div className="padding--little div--round bg--lightgrey intent-margin-top--little">
             

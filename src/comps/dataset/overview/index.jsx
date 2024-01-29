@@ -5,7 +5,7 @@ import { Header } from "../../core/base/Header";
 import _ from "lodash"
 import GroupingTable from "../../core/base/attribute_selection/AttributeTable";
 import { motion } from "framer-motion";
-import { Button, Divider } from "@blueprintjs/core";
+import { Button, Divider, Icon } from "@blueprintjs/core";
 import APIError from "../../core/error/APIerror";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import HelpOverlay from "../../core/overlay/Helpoverlay";
@@ -61,8 +61,9 @@ function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
                             <a
                                 href={`mailto:${user.email}?subject=${emailSubject}`} //cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}
                                 className="router-link">
-                            <div style={{color : "black"}}>
+                            <div className="flex" style={{color : "black"}}>
                                 <strong>{getUserFullName(user)}</strong>
+                                <div className="intent-margin-left--little"><Icon icon="envelope"/></div>
                             </div>
                         </a>
                         {datasetUserLabels.length > 1?
@@ -103,11 +104,6 @@ function DatasetOverview({authenticationStatus}) {
 
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
     const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
-    const { data: features } = useGetAnnotationFeatures({ organisms: _.isObject(metadata) && _.isObject(attributesByTag) ? metadata.dataset_attributes["att_organism"].map(attributeValue => attributesByTag.attribute_values[attributeValue]) : [] },
-        { staleTime: Infinity, enabled: _.isObject(metadata)})    
-    
-    const featuresByUniprotID = _.isArray(features) ? arrayOfObjectsToObjectByProperty(features, "uniprot_id") : undefined
-    
     useEffect(() => {
         if (tabHeader !== "") setTabHeader("")
         
@@ -125,27 +121,13 @@ function DatasetOverview({authenticationStatus}) {
         //add others / optional 
         return basicMetrices 
     }, [dataset_label,_.isObject(metadata)])
-    console.log(featuresByUniprotID)
     if (!_.isObject(metadata)) return null
-    if (!_.isObject(attributesByTag)) return null 
-    if (!_.isObject(featuresByUniprotID)) return null 
 
     const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
     
-    let sampleAttributesKey = Object.keys(metadata.samples_attributes)
-
-    let sampleAttributeValues = Object.fromEntries(sampleAttributesKey.map(attributeTag =>
-        [attributeTag, Object.keys(metadata.samples_attributes[attributeTag].values).map(attributeValueTag => _.has(attributesByTag.attribute_values, attributeValueTag) ?
-            attributesByTag.attribute_values[attributeValueTag] : getAttributeForUserNumericInput({attributesByTag,attributeTag,attributeValueTag}))]))
-    
-    let datasetAttributeTags = Object.keys(metadata.dataset_attributes)
-    let dataAttributes = datasetAttributeTags.map(attrTag => attributesByTag.attributes[attrTag])
-    let datasetAttributeValues = Object.fromEntries(datasetAttributeTags.map(attributeTag =>
-        [attributeTag, metadata.dataset_attributes[attributeTag].map(attrValueTag =>
-            attributesByTag.attributes[attributeTag].has_features_value ? featuresByUniprotID[attrValueTag.split(":").at(1).toUpperCase()]: 
-            _.has(attributesByTag.attribute_values, attrValueTag) ? attributesByTag.attribute_values[attrValueTag] :
-                getAttributeForUserNumericInput({ attributesByTag, attributeTag, attributeValueTag : attrValueTag }))]))
-     
+    let dataAttributes = _.values(metadata.attributes)
+    let datasetAttributeValues = metadata.dataset_attributes
+    console.log(datasetAttributeValues)
     return (
         <div style={{overflowY:"scroll", height : "90vh "}}>
              <div id="top" className="flex flex-column center-items">

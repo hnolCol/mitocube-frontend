@@ -8,4 +8,10 @@
  */
 
 
+/**
+     * @typedef DatasetContextOutlet
+     * @property {import("./submissions").Submission} metadata
+     * @property {import("./attributes").AttributesByTagAPIResponse} attributesByTag
+    */
+
 export default {}

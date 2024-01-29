@@ -45,6 +45,7 @@ import { UseQueryResult } from "react-query";
  * @type {Object}
  * @property {String} name - The name of the sample attributes 
  * @property {Object.<string, Number[]} values - The values of the sample attributes (e.g). Key is an attribute value tag and the values are the sample indices. 
+ * @property {Object.<string, AttributeValue>} attribute_values - Attribute values by tag that are used in this sample attribute description.
  * @description The samples attribute object. Do not confuse with ``SampleAttributes`` plural which holds multiple ``SampleAttribute`` as values. 
  */
 

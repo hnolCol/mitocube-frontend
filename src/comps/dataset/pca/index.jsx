@@ -214,13 +214,9 @@ function ScatterDataSelection({ keyNames, title = "", numericKeyNames = [], sele
 
 
 function DatasetPCA({ }) {
+
     /**
-     * @typedef ContextOutlet
-     * @property {import("../../../types/submissions").Submission} metadata
-    */
-    
-    /**
-     * @type {ContextOutlet}
+     * @type {import("../../../types/datasets").DatasetContextOutlet}
      */
     const { dataset_label, metadata, setTabHeader } = useOutletContext()   
 

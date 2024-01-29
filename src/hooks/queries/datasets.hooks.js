@@ -13,7 +13,6 @@ export const useGetDataQC = (APIParams = {}, useQueryOptions = {staleTime : Infi
 }
 
 //meta data 
-
 /**
  * 
  * @param {Object} API_Params 
@@ -76,15 +75,13 @@ export const useGetDatasetInfo = (datasetInfo = {}, useQueryOptions = {}) => {
 
 // Heatmap for dataset
 
-async function getDatasetHeatmap_API({ token, dataID, anovaDetails }) {
-    console.log(anovaDetails, dataID, token)
-    const res = await axios.get('/api/data/heatmap', { params: { token, dataID, ...anovaDetails }})
+async function getDatasetHeatmap_API({ dataset_label }) {
+    const res = await axios.get(`/api/datasets/${dataset_label}/heatmap`, { params: { }})
     return res.data 
 }
 
-export const useGetDatasetHeatmap = (datasetInfo = {}, useQueryOptions = {}) => {
-    console.log(datasetInfo)
-    return useQuery(["getHeatmap",datasetInfo.dataID],() => getDatasetHeatmap_API(datasetInfo), useQueryOptions)
+export const useGetDatasetHeatmap = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["getHeatmap", APIParams.dataset_label], () => getDatasetHeatmap_API({ ...APIParams }), useQueryOptions)
 }
 
 

@@ -59,18 +59,29 @@ export function arrayOfObjectsToObjectByProperty(data = [], propertyName) {
     return Object.fromEntries(data.map(item => [item[propertyName],item]))
 }
 
-
-export function getUniqueSetsOfAllValuesinArrayOfObjects(data = []) {
-
-    return data.reduce((acc, item) => {
-        Object.keys(item).forEach(keyName => acc[keyName] ??= { values: new Set(), counts: {} })
-        Object.keys(item).forEach(keyName => {
-            item[keyName].forEach(attrValueTag => {
-                acc[keyName].counts[attrValueTag] ??= 0
-            if (!acc[keyName].values.has(attrValueTag)) {
-                acc[keyName].values.add(attrValueTag)
+/**
+ * 
+ * @param {Object.<string, import("../../types/feature").Feature[] | import("../../types/attributes").AttributeValue[]>[]} data 
+ * @param {Object.<string, import("../../types/attributes").Attribute>[]} attributes
+ * @returns 
+ */
+export function getUniqueSetsOfAllValuesinArrayOfObjects(data, attributes) {
+    
+    return data.reduce((acc, item, idx) => {
+        Object.keys(item).forEach(attributeTag => acc[attributeTag] ??= { values: new Set(), counts: {}, attributeValues : {}})
+        Object.keys(item).forEach(attributeTag => {
+            item[attributeTag].forEach(value => {
+                const attribute = attributes[idx][attributeTag]
+                const tag = value.tag  
+                acc[attributeTag].attribute ??= attribute
+                acc[attributeTag].counts[tag] ??= 0
+            if (!acc[attributeTag].values.has(tag)) {
+                acc[attributeTag].values.add(tag)
                 } 
-                acc[keyName].counts[attrValueTag] += 1
+                acc[attributeTag].counts[tag] += 1
+                if (!_.has(acc[attributeTag].attributeValues, tag)) {
+                    acc[attributeTag].attributeValues[tag] = value
+            }
             })
         })
         return acc 

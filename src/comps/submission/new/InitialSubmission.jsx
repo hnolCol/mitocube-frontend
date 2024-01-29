@@ -4,7 +4,7 @@ import APIError from "../../core/error/APIerror"
 import AttributeInput from "./attribute/select/MultiSelectAttribute"
 import { useMemo, useState, useEffect } from "react"
 import { getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../services/arrays/groupby"
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
+import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { objectHasKey } from "../../../services/objects/checks"
 import _ from "lodash"
 import NumericValueInput from "../../core/input/Numeric"
@@ -24,8 +24,13 @@ import GenotypeGenerator, { PositionSelection } from "./Genotype"
 import FeatureSelection from "./FeatureSelection"
 import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
 import { constructSampleNames } from "../../../services/samples"
+import { FeatureInput } from "./features/FeatureInput"
+import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 
+function get_proteome_id(datasetAttributeValues) {
+    return _.has(datasetAttributeValues,"att_organism") && datasetAttributeValues["att_organism"].length > 0? datasetAttributeValues["att_organism"][0].value : undefined
 
+}
 
 
 
@@ -43,6 +48,7 @@ const initSubmissionState = {
             attributes: {sampleNumber : 0, replicates : 0},
             datasetAttributeValues: {},
             datasetAttributes: [],
+            genotypeAttributes : [],
             rerenderTableDependency: 0
 }
             
@@ -53,12 +59,17 @@ function InitialSubmission({
 }
 ) {
     const preDefinedSampleNames = sampleNames.length > 0 
+    
+
     const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
+    const proteome_id = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : undefined 
+    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_id},{enabled : _.isString(proteome_id)})
+    //console.log(genotypes)
 
     const { data: submissionAttributes,
         isLoading: attributesLoading,
@@ -87,7 +98,7 @@ function InitialSubmission({
         ) => {
         if (!attributesIsSuccess) return []
         
-            return _.sortBy(submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"]),"priority")
+            return submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"] && attribute.min_state === 0)
 
         },[attributesIsSuccess])
 
@@ -97,7 +108,8 @@ function InitialSubmission({
             return submissionAttributes.attributes.filter(attribute => attribute["allow_for_genotype"])
 
         },[attributesIsSuccess])
-
+    
+    
     
     useEffect(() => {
         loadSubmission()
@@ -111,6 +123,11 @@ function InitialSubmission({
         if (!_.isObject(submissionID) || !_.isString(submissionID.id)) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
+        let genotypeAttributes = submission.genotypeAttributes
+        if (sampleNumber > genotypeAttributes.length) {
+            const diffLength = sampleNumber - attributeTable.length
+            _.forEach(_.range(diffLength), () => genotypeAttributes.push([]))
+        }
         if (sampleNumber > attributeTable.length) {
             //add rows 
             const diff = sampleNumber - attributeTable.length
@@ -122,7 +139,7 @@ function InitialSubmission({
         }
         const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames(submissionID.id, sampleNumber, attributeTable) : sampleNames
 
-        setSubmission(prevValues => {return {...prevValues, sampleNames : constructedSampleNames, attributeTable, label : submissionID.id, rerenderTableDependency : [Math.random()]}})
+        setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, label : submissionID.id, rerenderTableDependency : [Math.random()]}})
 
     }, [submission.attributes.sampleNumber, submissionID])
     
@@ -136,8 +153,10 @@ function InitialSubmission({
         const maxReplicateID = _.toInteger(submission.attributes.replicates)
         const validReplicates = submission.replicates.filter((rep, idx) => _.isNumber(rep) && idx < numberSamples && rep <= maxReplicateID)
         const numberReplicates = validReplicates.length
-        const attributeTable = submission.attributeTable.slice(0,numberSamples)
-
+        const attributeTable = submission.attributeTable.slice(0, numberSamples)
+        const genotypeAttributes = submission.genotypeAttributes.slice(0,numberSamples)
+        const allEmptyGenoypes = _.every(genotypeAttributes.map(attrs => attrs.length === 0))
+        const someEmptyGenotypes = _.some(genotypeAttributes.map(attrs => attrs.length === 0))
         if (!_.isString(submission.attributes.title) || submission.attributes.title.length < 10) {
             errMsgs.push("Title not defined or to short (<10 characters).")
         }
@@ -158,6 +177,15 @@ function InitialSubmission({
         if (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0) {
             errMsgs.push("No samples attributes provided. Require at least one.")
         }
+        
+        if (!allEmptyGenoypes && genotypeAttributes.length !== attributeTable.length) {
+            errMsgs.push("Attribute table and genotype have different length indicating that you forgot to define the genotype for a sample.")
+        }
+
+        if (someEmptyGenotypes) {
+            errMsgs.push("Some sample genotypes are empty.")
+        }
+
 
         //check for all mandatory attributes
         let requiredAttributeNotSubmitted = _.filter(attributesRequiredForSubmission, attrRequired => !(objectHasKey({
@@ -181,11 +209,11 @@ function InitialSubmission({
             errMsgs.push("Missing sample attributes for samples in rows : " + _.join(indices.map(v => v+1),", "))
         }
 
+
         //check metatext details 
         const requiredMetaText = metatext["required"]
         const minLengthMetaText = metatext["min_text_length"]
-        const missingMetaText = Object.keys(requiredMetaText).filter(metatextTag => requiredMetaText[metatextTag] && !objectHasKey({ object: submission.metatext, keyName: metatextTag }))
-        
+        const missingMetaText = Object.keys(requiredMetaText).filter(metatextTag => requiredMetaText[metatextTag] && !objectHasKey({ object: submission.metatext, keyName: metatextTag }) && metatext.allowed_for_state === 0)
         if (missingMetaText.length > 0) {
             errMsgs.push("Required metatext missing for: " + _.join(missingMetaText,", "))
         }
@@ -216,17 +244,26 @@ function InitialSubmission({
             const flexAttributes = submissionDetails["attributes"]
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
+            if (allEmptyGenoypes) {
+                delete submissionDetails["genotypes"]
+            }
+            submissionDetails["genotypes"] = genotypeAttributes
+            
             submissionDetails["attributeTable"] = attributeTable
             submissionDetails["label"] = submissionID.id
             submissionDetails["title"] = flexAttributes.title 
             submissionDetails["replicates"] = validReplicates
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
+           
+            
             postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
                         isOpen: true,
-                        children: <div><h3>Submission Successfull</h3>
-                            <p>The submission was successfull. An email was sent to your email account and your collaborators. You will be redirected to the submission overview.</p>
+                        children: <div><h3>Submission Successful</h3>
+                            <p>The submission was successful.
+                                An email was sent to your email account and your collaborators.
+                                You will be redirected to the submission overview.</p>
                         </div>,
                         intent : "success"
                     }),
@@ -298,62 +335,6 @@ function InitialSubmission({
         })
     }
 
-   
-    const addGenotype = () => {
-        let genotypes = submission.genotypes
-
-        const genotypeLabel = getRandomID(5)
-        let genotypeProps = {
-            name: "",
-            label : genotypeLabel,
-            attributes: [{}]
-        }
-        genotypes[genotypeLabel] = genotypeProps
-        setSubmission(prevValues => {return{...prevValues,genotypes}})
-
-    }
-
-    const removeGenotypeEntry = (genotypeLabel, entryIdx) => {
-        let genotypes = submission.genotypes
-        let genotypeAttrs = genotypes[genotypeLabel].attributes
-        console.log(genotypeAttrs)
-        if (genotypeAttrs.length === 1) {
-            genotypeAttrs = [{}]
-        }
-        else {
-            genotypeAttrs = genotypeAttrs.filter((attrs,idx) => idx !== entryIdx)
-        }
-        genotypes[genotypeLabel].attributes = genotypeAttrs
-        setSubmission(prevValues => {return{...prevValues,genotypes}})
-    }
-
-    const addGenotypeEntry = (genotypeLabel) => {
-        let genotypes = submission.genotypes
-        let genotypeAttrs = _.concat(genotypes[genotypeLabel].attributes, [{}])
-        genotypes[genotypeLabel].attributes = genotypeAttrs
-        setSubmission(prevValues => {return{...prevValues,genotypes}})
-    }
-
-    const constructGenotypeName = (genotypeAttributes) => {
-        console.log(genotypeAttributes)
-        const genotypeName =  _.join(genotypeAttributes.map(entryAttributes => {
-            return _.join(Object.keys(entryAttributes).map(attributeValue => entryAttributes[attributeValue][0].text)," ")
-        }), " ")
-        console.log(genotypeName)
-        return genotypeName
-    }
-
-    const genotypeSelection = (genotypeLabel, attributeTag, attributeValue, entryIdx = 0) => {
-        let genotypes = submission.genotypes 
-        console.log(genotypes)
-
-        let genotypeEntry = genotypes[genotypeLabel].attributes[entryIdx]
-        genotypeEntry[attributeTag] = [attributeValue] //overwrite - just one possible
-        genotypes[genotypeLabel].attributes[entryIdx] = genotypeEntry
-        genotypes[genotypeLabel].text = constructGenotypeName(genotypes[genotypeLabel].attributes)
-        setSubmission(prevValues => {return{...prevValues,genotypes}})
-    }
-
     const warnForMandatoryAttr = (addedAttribute) => {
         // warns if a mandatory attribute (dataset) was selected
         if (_.isObject(addedAttribute) && _.isObject(addedAttribute.attribute) && attributesRequiredForSubmission.includes(addedAttribute.attribute)) {
@@ -363,9 +344,6 @@ function InitialSubmission({
             })
         }
     }
-
-    
-
 
     const onMetaTextChange = (tag, text) => {
         //handles changes in the metatext 
@@ -395,7 +373,7 @@ function InitialSubmission({
                 d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
             }
             //save feature selection
-            rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attribute.tag] = selectedFeatures )
+            rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attribute.tag] =  _.concat(d[rowIndex][attribute.tag],selectedFeatures) )
             //update table
             setSubmission(prevValues => { return { ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()] } })
             }
@@ -413,7 +391,7 @@ function InitialSubmission({
         if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
             || submission.datasetAttributeValues["att_organism"].length === 0) {
             //if organism has not been selected
-            setAlertProps({ isOpen: true, children: <div><h3>Error</h3><p>Please select one or multiple organisms first.</p></div> })
+            setAlertProps({ isOpen: true, children: <div><h3>Warning</h3><p>Please select one or multiple organisms first.</p></div> })
             return 
         }
         let sampleAttributeTable = submission.attributeTable 
@@ -436,12 +414,15 @@ function InitialSubmission({
             }} />
         })
     }
-
-    const handlePositionSelection = (featureID) => {
+    /**
+     * 
+     * @param {import("../../../types/feature").Feature} feature 
+     */
+    const handlePositionSelection = (feature, singlePosition = true, aaSubstitution = false) => {
         setAlertProps({
             isOpen: true,
             confirmButtonText : "Cancel",
-            children : <PositionSelection {...{authenticationStatus,featureID, onClose : () => setAlertProps({isOpen : false})}}/>
+            children : <PositionSelection {...{feature, singlePosition, aaSubstitution, onClose : () => setAlertProps({isOpen : false})}}/>
         })
         
     }
@@ -449,7 +430,8 @@ function InitialSubmission({
     const handleDatasetAttributeSelection = (attribute, attributeValue) => {
         // handles dataset attribute selection (adding and removing) Dataset values are stored in a list. 
         //check if attributes has nodeChilds
-
+        
+        
         let filteredDatasetAttr = addItemToArrayIfNotPresent({ array: submission.datasetAttributes, item: attribute })
         let datasetAttrValues = submission.datasetAttributeValues
         if (_.has(datasetAttrValues, attribute.tag)) {
@@ -494,37 +476,37 @@ function InitialSubmission({
         setSubmission(prevValues => {return {...prevValues,links}})
     }
 
-    const handleReplicateChange = (rowIdcs, replicate, patternIndex) => {
-        let reps = submission.replicates
-        let numberSamples = submission.sampleNames.length
-        if (reps.length === 0) {
-            reps = Array(numberSamples).fill(undefined)
-        }
-        if (reps.length < numberSamples) {
-            reps = _.concat(reps,Array(numberSamples - reps.length).fill(undefined))
-        }
+    // const handleReplicateChange = (rowIdcs, replicate, patternIndex) => {
+    //     let reps = submission.replicates
+    //     let numberSamples = submission.sampleNames.length
+    //     if (reps.length === 0) {
+    //         reps = Array(numberSamples).fill(undefined)
+    //     }
+    //     if (reps.length < numberSamples) {
+    //         reps = _.concat(reps,Array(numberSamples - reps.length).fill(undefined))
+    //     }
 
-        if (_.isNumber(replicate)) {
+    //     if (_.isNumber(replicate)) {
             
-            rowIdcs.filter(rowIndex => rowIndex < numberSamples).forEach(rowIndex => reps[rowIndex] = replicate)
-        }
-        else {
+    //         rowIdcs.filter(rowIndex => rowIndex < numberSamples).forEach(rowIndex => reps[rowIndex] = replicate)
+    //     }
+    //     else {
             
-            if (patternIndex === 0) {
+    //         if (patternIndex === 0) {
 
-                let repsByPattern = _.range(submission.attributes.replicates).map(rep => rep + 1)
-                reps = reps.map((value, idx) => repsByPattern[idx % repsByPattern.length])   
+    //             let repsByPattern = _.range(submission.attributes.replicates).map(rep => rep + 1)
+    //             reps = reps.map((value, idx) => repsByPattern[idx % repsByPattern.length])   
 
-            }
+    //         }
 
-            else if (patternIndex === 1) {
-                const repetitions = _.toInteger(numberSamples / submission.attributes.replicates+0.5)
-                reps = _.flatten(_.range(submission.attributes.replicates).map(repIdx => Array(repetitions).fill(repIdx+1)))
-            }
-        }
+    //         else if (patternIndex === 1) {
+    //             const repetitions = _.toInteger(numberSamples / submission.attributes.replicates+0.5)
+    //             reps = _.flatten(_.range(submission.attributes.replicates).map(repIdx => Array(repetitions).fill(repIdx+1)))
+    //         }
+    //     }
 
-        setSubmission(prevValues => {return{...prevValues,replicates : reps, rerenderTableDependency : Math.random()}})
-    }
+    //     setSubmission(prevValues => {return{...prevValues,replicates : reps, rerenderTableDependency : Math.random()}})
+    // }
     const resetAlert = () => {
         // close the alert 
         setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
@@ -535,7 +517,7 @@ function InitialSubmission({
 
     return (
         <div className="flex flex-column">
-            <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
+            <Alert style={{ }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
         <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
@@ -572,11 +554,20 @@ function InitialSubmission({
                 
                 {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
                     const samplesAttributesPresent = submission.samplesAttributes.length > 0
-                    if (objectHasKey({ object: attributeValuesByAtrributeID, keyName: attribute.id }) || attribute.has_features_value) {
+                    const hasFeatureValue = attribute.has_features_value
+                    if (objectHasKey({ object: attributeValuesByAtrributeID, keyName: attribute.id }) || hasFeatureValue) {
                         const attributeValues = attribute.has_features_value ? [] : attributeValuesByAtrributeID[attribute.id]
                         // if features are allow as values, then just submit an empty list, it will be handled by the attrobute input
                         const isDefinedAsSamplesAttributes = samplesAttributesPresent ? submission.samplesAttributes.map(sampleAttr => sampleAttr.attribute).includes(attribute) : false
                         const attributeInputDisabled = samplesAttributesPresent && isDefinedAsSamplesAttributes
+                        if (hasFeatureValue) {
+                            
+                            return <FeatureInput onItemSelect={handleDatasetAttributeSelection}
+                                attribute={attribute}
+                                proteome_id={proteome_id}
+                                selectedItems={_.has(submission.datasetAttributeValues, attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []} />
+                        }
+
                         return <AttributeInput {...{ attributeValues, attribute, handleFeatureSelection }}
                             key={`${attribute.text}-${attribute.id}-mandatory`}
                             helperText={attributeInputDisabled?"Defined as a sample attribute below.":""}
@@ -614,12 +605,13 @@ function InitialSubmission({
                 </div>
                     
                 {/* <Button onClick={handleGenotypeCreation} /> */}
-                <GenotypeGenerator
+                        <GenotypeGenerator
+                    proteome_id={proteome_id}
                     attributes={attributesForGenotype}
                     attributeValuesByID={attributeValuesByAtrributeID}
-                    onSelection={genotypeSelection}
+                    //onSelection={genotypeSelection}
                     genotypes={submission.genotypes} 
-                    {...{addGenotype,addGenotypeEntry,removeGenotypeEntry,authenticationStatus,handleFeatureSelection,handlePositionSelection }}/>
+                    {...{handlePositionSelection, refetchGenotypes }}/>
                             
                         
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
@@ -636,15 +628,16 @@ function InitialSubmission({
                         placeholder="Number of replicates"
                         callbackKey={"replicates"}
                         value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
-                            <NumericValueInput
+                    <NumericValueInput
                             disabled={preDefinedSampleNames}
                             hint={preDefinedSampleNames ? "Number of samples" : ""}
-                        placeholder="Number of samples"
-                        callbackKey={"sampleNumber"}
-                        value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
+                            placeholder="Number of samples"
+                            callbackKey={"sampleNumber"}
+                            value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     
-                            <SampleAttributeTableWrapper {...{
+                        <SampleAttributeTableWrapper {...{
                                 submission,
+                                genotypes,
                                 updateSubmission: setSubmission,
                                 attributes: attributesAllowedForDataset,
                                 numberReplicates: submission.attributes.replicates,

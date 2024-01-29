@@ -44,7 +44,8 @@ function Heatmap({
     resetSearchIdcs,
     searchIndices = new Set(),
     hoverIndices = new Set(),
-    setHoverDataByDataIndex
+    setHoverDataByDataIndex,
+    minMax = [-6,6]
 }) {
  
     //updates only on datalength. can be dangerous
@@ -52,7 +53,7 @@ function Heatmap({
     const uniqueColorValues = useMemo(() => colorNames.length > 0 ? getUniqueValuesInArrayOfObjects({data, keyName : colorNames}) : [], [_.join(colorNames),data.length])
     const uniqueClusterValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, clusterName }), [clusterName])
     const heatmapValues = useMemo(() => _.map(data, d => _.map(valueNames, valueName => d[valueName])), [_.join(valueNames),data.length])
-    const minMax = useMemo(() => getQuantiles(_.flatten(heatmapValues), [0, 1], 1.5, false, "valueRange", ["min", "max"]).valueRange, [heatmapValues])
+    //const minMax = useMemo(() => getQuantiles(_.flatten(heatmapValues), [0, 1], 1.5, false, "valueRange", ["min", "max"]).valueRange, [heatmapValues])
     const labels = useMemo(() => { return labelNames.length > 0?_.map(data, d => _.join(_.map(labelNames, labelName => d[labelName])," | ")) : undefined}, [_.join(labelNames),data.length])
     const labelsExist = _.isArray(labels)
     const colorValuesExist = uniqueColorValues.length > 0
@@ -63,7 +64,6 @@ function Heatmap({
     const refScrollContainer = useRef(null)
     let minIdx = 0
     let maxIdx = 20
-    useDebounce()
 
     const { containerRef, TooltipInPortal } = useTooltipInPortal({
         // use TooltipWithBounds

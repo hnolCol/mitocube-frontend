@@ -33,7 +33,6 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     const numberCharts = keyNames.length
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
     const limits  = getMinMaxForMultipleKeyNames({data,keyNames : _.concat(keyNamesFlatten,extraLimitNames)})
-    
     const validIndices = useMemo(() => {
         const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
         return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {

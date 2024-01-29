@@ -7,16 +7,23 @@ import Loading from "../../core/base/loading";
 import _ from "lodash"
 import ResultChart from "../../protein/charts/resultCard/chart";
 import { useEffect } from "react";
+import MetricTable from "../../core/base/metrictable";
+import DatasetAttributeHierarchy from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
+import { mapDatasetAttributeTagsToAttributes } from "../../../services/attributes";
+
 
 
 
 
 function DatasetQC() {
-    
-    const { dataset_label, metadata, refetchMetaData, setTabHeader } = useOutletContext()   
+
+    /**
+     * @type {import("../../../types/datasets").DatasetContextOutlet}
+     */
+    const { dataset_label, metadata, refetchMetaData, setTabHeader, attributesByTag } = useOutletContext()   
 
     const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_label })
-    
+    console.log(datatable)
     useEffect(() => {
         if (_.isObject(metadata) && _.has(metadata, "title")) {
             setTabHeader(metadata.title)
@@ -25,37 +32,52 @@ function DatasetQC() {
 
     if (isError) return <APIError error={error}/>
     if (isLoading || isFetching) return <Loading />
-
+    if (!_.isObject(metadata)) return <Loading />
     const featureCounts = _.keys(datatable.stats).map((sampleName, idx) => {
         return {
-            "#valid": datatable.stats[sampleName].count, idx, sampleName,
+            "#valid": datatable.stats[sampleName].count,
+            idx,
+            sampleName,
             "#valid (%)": _.toString(_.round(datatable.stats[sampleName].count / datatable.stats[sampleName].total * 1000) / 10)+" %"
         }
     })
-
+    console.log(datatable)
+    
+    const datasetAttributeValues = metadata.dataset_attributes
+    const dataAttributes = _.values(metadata.attributes)
+    
     return (
         <div style={{ overflowY: "scroll", height: "80vh " }}>
             <h2>Quality Control</h2>
+            <DatasetAttributeHierarchy {...{
+                selectedDasetAttributeValues: datasetAttributeValues,
+                selectedAttributes: dataAttributes
+                }} />
             <h2>Basic metrices</h2>
+            
             {/* <CategoricalBoxplot/> */}
             {/* <CategoricalBoxplot data={datatable} /> */}
-            <h3>Number of valid values</h3>
+            <h3>Number of valid values in each sample</h3>
             <LineChart
                 data={featureCounts}
                 xaxisName="idx"
                 yaxisNames={["#valid"]}
                 tooltipCircleNames={["#valid", "#valid (%)", "sampleName"]}
                 yaxisStartsAtZero={true} />
+            <h2>Intensity Distributions</h2>
+
             <h2>Protein of interest</h2>
-            {_.map(datatable.poi_data, ({ data, samples_attributes, annotations }, idx) => {
+            <div className="flex">
+            {_.map(datatable.poi_data, ({ data, samples_attributes, annotations, feature_key, feature_annotations }, idx) => {
                 return (
-                    <div>
-                        <h4>{annotations.protein_name}</h4>
+                    <div style={{maxWidth : "500px"}}>
+                        <h4>{feature_annotations.genes}</h4>
+                        <h5>{feature_annotations.protein_name}</h5>
                         <ResultChart data={data} groupings={samples_attributes} yaxisName="value" />
                     </div>
                 )
             })}
-
+            </div>
             {/* <CategoricalBoxplot data={datatable.poi_data[0]} colorName={"Treatment"} yaxisName="value" splitName={"Gene Knock-down"}/> */}
         </div>
     )

@@ -9,9 +9,8 @@ import axios from "axios"
  * @param {import("../../types/attributes").AttributeValue[]} props.organisms - The organism selected - rename to proteome? 
  * @returns {import("../../types/feature").Feature[]} - The list of features in the database. 
  */
-async function getAnnotationFeatures_API({ organisms }) {
-    console.log(organisms)
-    const res = await axios.get('/api/annotations/features', { params: { proteome_id: organisms.map(organism => organism.value).join(" ") } })
+async function getAnnotationFeatures_API({ proteome_id }) {
+    const res = await axios.get('/api/annotations/features', { params: { proteome_id } })
     return res.data 
 }
 

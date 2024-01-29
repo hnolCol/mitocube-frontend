@@ -61,7 +61,7 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, d
             position="top">
             <motion.div
                 style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :
-                className="padding--tiny cursor--default div--round intent-margin-right--tiny"
+                className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
                 whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
                 <div>{attributeValue.text}</div>
                 {_.isFunction(onRemove) ? <button
@@ -93,7 +93,7 @@ export function FeatureTagWithTooltip({ feature = {}, attribute = {}, disableToo
             <Menu small={true}>
                 <MenuItem text={attribute.text} disabled={true} />
                 <MenuDivider />
-                    <MenuItem text={feature.gene_name} label={feature.uniprot_id} />
+                    <MenuItem text={feature.genes} label={feature.key} />
                     <MenuItem text={feature.protein_name} multiline={true} />
             </Menu>
         </div>}
@@ -107,9 +107,9 @@ export function FeatureTagWithTooltip({ feature = {}, attribute = {}, disableToo
             position="top">
             <motion.div
                 style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :
-                className="padding--tiny cursor--default div--round intent-margin-right--tiny"
+                className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
                 whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
-            <div>{_.isString(feature.gene_name)?feature.gene_name.split(" ").at(0):null}</div>
+            <div>{_.isString(feature.genes)?feature.genes.split(" ").at(0):null}</div>
             {_.isFunction(onRemove) ? <button
                 onClick={(e) => onRemove(attributeValue)}
                 style={{ margin: "0px", padding: "0px", border: "none", background: "transparent", outline: "none" }}>

@@ -6,32 +6,33 @@ import MultipleMetrices from "../../core/metrics/collection";
 import InteractiveChart from "../../core/charts/interactive";
 import { ProfileChart } from "../../core/charts/profiles/ProfileChart";
 import { InputGroup } from "@blueprintjs/core";
-
+import _ from "lodash"
 function DatasetHeatmap({}) {
     
     const { dataset_label, metadata } = useOutletContext()   
   
-    const anovaDetails = {pvalue : 0.05, anovaType : "1-way ANOVA",grouping1 : "Genotype"}
+    const anovaDetails = { pvalue: 0.05, anovaType: "1-way ANOVA", grouping1: "Genotype" }
+    
+    const { data : heatmapData, isLoading, isFetching, isError, error } = useGetDatasetHeatmap({dataset_label})
    // const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})
 
     // console.log(heatmapData)
 
-    // if (isError) return <APIError error={error} />
-    // if (isLoading) return <div>Loading...</div>
-
-
-    // if (heatmapIsLoading) return <div>Calculating ANOVA, clusters, and color values. Loading...</div>
-
+     if (isError) return <APIError error={error} />
+     if (isLoading || isFetching) return <div>Loading...</div>
+     
+ 
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
 
             
             <InteractiveChart
+                        data = {heatmapData.data}
                         keyNames={[
                         {
                             xaxisName: undefined,
-                            yaxisName: ["x","y","z","x","y","z"],
+                            yaxisName: heatmapData.value_names,
                         }]}
                         isPointChart={[false]}>
                         {
@@ -61,8 +62,14 @@ function DatasetHeatmap({}) {
                         }, didx) => {
                     return (
                         <div>
-                            <InputGroup onValueChange={(value,e) => handleStringSearch(["label"],value)}/>
-                            <ProfileChart {...{ chartIdx, data, ...hoverProps, ...filterProps, limits, xaxisName, yaxisName, valid, labelNames : ["label"]}} />
+                            <InputGroup onValueChange={(value,e) => handleStringSearch(heatmapData.label_names,value)}/>
+                            <ProfileChart {...{
+                                chartIdx, data,
+                                yaxisLabel: "Z-Score",
+                                xaxisLabel: "Samples",
+                                ...hoverProps, ...filterProps,
+                                limits, xaxisName, yaxisName, valid, labelNames: heatmapData.label_names,
+                            }} />
                             
                         {/* <ScatterPlot key={`${chartIdx}`}{...{
                             chartIdx,
@@ -87,7 +94,7 @@ function DatasetHeatmap({}) {
                             svgID : "scatter_plot-pca-projection"
                         
                             }} /> */}
-                            <Heatmap {...{ data, valueNames: yaxisName, colorNames: ["z"], labelNames: ["label"], handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps}} />
+                            <Heatmap {...{ data, valueNames: yaxisName, colorNames: heatmapData.color_names, labelNames: heatmapData.label_names, handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps}} />
                     </div>)
                 })}
 
