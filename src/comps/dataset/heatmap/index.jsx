@@ -25,7 +25,7 @@ function DatasetHeatmap({}) {
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
-
+            <p>Analysis of Variance was performed on. The FDR cutoff was to 5%.</p>
             
             <InteractiveChart
                         data = {heatmapData.data}

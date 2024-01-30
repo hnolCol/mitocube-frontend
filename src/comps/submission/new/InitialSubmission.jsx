@@ -26,6 +26,7 @@ import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttribute
 import { constructSampleNames } from "../../../services/samples"
 import { FeatureInput } from "./features/FeatureInput"
 import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
+import { useNavigate } from "react-router"
 
 function get_proteome_id(datasetAttributeValues) {
     return _.has(datasetAttributeValues,"att_organism") && datasetAttributeValues["att_organism"].length > 0? datasetAttributeValues["att_organism"][0].value : undefined
@@ -59,14 +60,14 @@ function InitialSubmission({
 }
 ) {
     const preDefinedSampleNames = sampleNames.length > 0 
-    
+    const redirect = useNavigate()
 
     const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
-    const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError } = useGetSubmissionsID()
+    const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID()
     const proteome_id = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : undefined 
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_id},{enabled : _.isString(proteome_id)})
     //console.log(genotypes)
@@ -182,7 +183,8 @@ function InitialSubmission({
             errMsgs.push("Attribute table and genotype have different length indicating that you forgot to define the genotype for a sample.")
         }
 
-        if (someEmptyGenotypes) {
+        if (!allEmptyGenoypes && someEmptyGenotypes) {
+            //only if not all genotypes are empty 
             errMsgs.push("Some sample genotypes are empty.")
         }
 
@@ -265,7 +267,11 @@ function InitialSubmission({
                                 An email was sent to your email account and your collaborators.
                                 You will be redirected to the submission overview.</p>
                         </div>,
-                        intent : "success"
+                        intent: "success",
+                        onClose: () => {
+                            setAlertProps({ isOpen: false })
+                            redirect("/submission/view")
+                        }
                     }),
                     onError: (error) => setAlertProps({
                         isOpen: true,
@@ -310,6 +316,7 @@ function InitialSubmission({
     const resetSubmission = () => {
         // deletes the submission in the local storage.
         removeItemFromLocalStorage("submissiom")
+        refetchSubmissionID()
         setSubmission(initSubmissionState)
     }
 
