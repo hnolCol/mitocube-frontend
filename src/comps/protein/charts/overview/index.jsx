@@ -20,19 +20,20 @@ function ProteinOverview({
     orderData = true
 }) {
     
-    const { featureID } = useOutletContext()
+    const { featureKey } = useOutletContext()
 
-    const { data: featureData, isError , error } = useGetDataByFeatureID({ tokenString: authenticationStatus.token, featureID }, {})
+    const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_key: featureKey }, {})
+    console.log(featureData)
     if (isError) return <APIError error={error} />
     return (
         <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
             
             {_.isObject(featureData) ? featureData["dataset_labels"].map(dataID => {
                 const data = featureData["data"][dataID] //get data for dataset
-                console.log(data)
-                console.log(featureData["attributes_samples"])
                 return (
-                    <ResultChart key={`${featureID}-${dataID}`} groupings={featureData["attributes_samples"][dataID]} data={data} {...{dataID, featureID}} yaxisName="value"/>
+                    <ResultChart key={`${featureKey}-${dataID}`} groupings={featureData["samples_attributes"][dataID]} data={data} {...{ dataID, featureID: featureKey }} yaxisName="value"
+                        attributesByTag={featureData.attributes}
+                        attributeValuesByTag={featureData.attribute_values_by_tag} />
                 )
             }): null}
             

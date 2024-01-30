@@ -62,7 +62,8 @@ function CategoricalLineplot({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
-    attributesByTag = {}
+    attributesByTag,
+    attributeValuesByTag
     }) {
 
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
@@ -207,7 +208,9 @@ function CategoricalLineplot({
                     colorPalette: legendColors,
                     yScaleStartsAtZero : false,
                     minMaxYDomain,
-                    svgRef : containerRef
+                    svgRef: containerRef,
+                    attributesByTag,
+                    attributeValuesByTag
                 }}>
             {(categoricalData) => categoricalData.map((
                 {

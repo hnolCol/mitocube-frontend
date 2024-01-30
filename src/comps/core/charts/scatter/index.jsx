@@ -90,14 +90,15 @@ export function ScatterPlot({
     filterIndices,
     searchIndices,
     tooltipSmall = true,
-    attributesByTag,
     findClosestPoint,
     legend = false,
     labelData = [],
     labelIndices = new Set(),
     labelRerender = [],
     labelChart = -1,
-    searchString = ""
+    searchString = "",
+    attributeValuesByTag = {},
+    attributesByTag = {}
 }) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
@@ -108,12 +109,13 @@ export function ScatterPlot({
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.007
         return [keyName, dist]
     }))
-    
-    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({width, height, margins})
+
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins })
 
     const { containerRef, TooltipInPortal } = useTooltipInPortal({
         // use TooltipWithBounds
         detectBounds: true,
+        debounce : 200,
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
     })
@@ -187,8 +189,6 @@ export function ScatterPlot({
         }
     }, [sizeName])
 
-
-
     const handleMouseUp = (event) => {
         const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
@@ -201,7 +201,7 @@ export function ScatterPlot({
     }    
     const handleMouseHover = (event) => {
 
-        const coords = localPoint(event.target.ownerSVGElement, event);
+        const coords = localPoint(event);
         const x = xScale.invert(coords.x)
         const y = yScale.invert(coords.y)
 
@@ -213,8 +213,8 @@ export function ScatterPlot({
         //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
     }
     return (
-        <div>
-        <SVG {...{ width, height, svgID, svgRef : containerRef}}>
+        <div className="flex" ref={containerRef}>
+        <SVG {...{ width, height, svgID}}>
             <AxisWithBackground
                 margins={margins}
                 leftScale={yScale}
@@ -314,7 +314,8 @@ export function ScatterPlot({
                     resetSearchIdcs,
                     sizeLimit: limits[sizeName],
                     colorLimit: limits[colorName],
-                    attributesByTag
+                    attributesByTag,
+                    attributeValuesByTag
                 }} />
                 {/* <h3>Legend</h3>
                 {_.isString(colorName) && _.isString(data[0][colorName]) ? 

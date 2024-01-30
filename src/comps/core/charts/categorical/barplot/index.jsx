@@ -65,7 +65,8 @@ function CategoricalBarplot({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
-    attributesByTag
+    attributesByTag,
+    attributeValuesByTag
     }) {
     
    // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
@@ -112,8 +113,6 @@ function CategoricalBarplot({
     return (
         <div className="flex flex-column">
             {/* {colorName !== undefined ? <ChartLegend groupings={{ [colorName]: legendColors }} title={colorName} /> : null} */}
-            {colorName !== undefined ? <div className="intent-margin-bottom--middle">
-                <ChartLegend  {...{ width}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left} /></div> : null}
             {colorName && splitName === undefined && subplotName === undefined?
                 <SingleCategoricalChart
                 {...{data,
@@ -207,7 +206,9 @@ function CategoricalBarplot({
                     outerSubplotPadding,
                     colorPalette: legendColors,
                     minMaxYDomain,
-                    svgRef : containerRef
+                    svgRef: containerRef,
+                    attributesByTag,
+                    attributeValuesByTag
                 }}>
             {(categoricalData) => categoricalData.map((
                 {

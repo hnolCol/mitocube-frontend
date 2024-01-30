@@ -2,7 +2,7 @@ import { getColorPalette } from "../../../colors/colorPalette"
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
-function ColorIconWithName({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], selectedItems = [], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = false}) {
+function ColorIconWithName({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], selectedItems = [], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true}) {
     
     const colorPalette = getColorPalette(3)
     return (

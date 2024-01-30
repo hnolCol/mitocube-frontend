@@ -113,11 +113,11 @@ export function AttributeSelectionDialog({
                             fill={true}
                             value={submissionText.comment}
                             placeholder="Enter a comment here which will be visible in the timeline."
-                            onChange={() => setSubmissionText(prevValues => { return { ...prevValues, comment: e.target.value } })} />
+                            onChange={(e) => setSubmissionText(prevValues => { return { ...prevValues, comment: e.target.value } })} />
             </div>
         </div>}
             </div>
         </DialogBody>
-        <DialogFooter actions={[<div className="flex"><Button text="Submit" onClick={() => onSubmit(submission.label, selectedAttributes,newSubmissionState, submission.state, comment)}/> <Button text="Cancel" intent="danger"  onClick={onClose}/></div>]} />
+        <DialogFooter actions={[<div className="flex"><Button text="Submit" onClick={() => onSubmit(submission.label, selectedAttributes, newSubmissionState, submission.state, submissionText.comment)}/> <Button text="Cancel" intent="danger"  onClick={onClose}/></div>]} />
 </Dialog>
 }

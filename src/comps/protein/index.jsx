@@ -6,15 +6,15 @@ import _ from "lodash"
 function ProteinHeader({}) {
     const [featureList, setFeatureList] = useState({ items: [{ text: "+", to: "/protein/selection" }] })
     const params = useParams()
-    const featureID = params.ID
+    const featureKey = params.ID
 
     useEffect(() => {
         //handle the case if someone sends a link around to another person
-        const itemFromUrl = { text: featureID, to: `/protein/${featureID}` }
-        if (_.isString(featureID) && _.every(featureList.items, item => item.to != itemFromUrl.to)) {
+        const itemFromUrl = { text: featureKey, to: `/protein/${featureKey}` }
+        if (_.isString(featureKey) && _.every(featureList.items, item => item.to != itemFromUrl.to)) {
             handleFeatureList(itemFromUrl)
         }
-    },[featureID])
+    },[featureKey])
 
     const handleFeatureList = (item) => {
         if (!_.isObject(item)) return 
@@ -28,7 +28,7 @@ function ProteinHeader({}) {
         <div className="no-scroll div--expand">
             <Tabs tabs={_.uniqBy(featureList.items,"to")} />
             <div >
-                <Outlet context={{handleFeatureList,featureID}} />
+                <Outlet context={{handleFeatureList,featureKey}} />
             </div>
             
         </div>

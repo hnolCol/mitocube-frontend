@@ -1,21 +1,48 @@
 import { Button, ButtonGroup, Tab, Tabs } from "@blueprintjs/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PasswordInput from "../../input/Password";
-import { useGetUserAttributes, usePatchUser } from "../../../../hooks/queries/user.hooks";
+import { useGetUserAttributes, usePatchUser, usePostPasswordChange } from "../../../../hooks/queries/user.hooks";
 import APIError from "../../error/APIerror";
 import _ from "lodash"
 import { UserAttributeSelection } from "./UserAttributeSelection";
 
 
 function PWChangeUser({ }) {
-    
+    const [password, setPassword] = useState(undefined)
+    const [infoText, setInfoText] = useState("")
+    const { mutate, isLoading, isError, error } = usePostPasswordChange()
+
+ 
+    const handlePasswordChange = () => {
+        if (_.isString(password)) {
+            const updated_pw = { password }
+            mutate({ updated_pw }, {
+                onSuccess: (data) => {
+                    setInfoText("Password successfully changed.")
+                }
+            })
+            setPassword(undefined)
+        }
+    }
+
+    const handleStringChange = (key,pwString) => {
+        if (pwString !== password) setPassword(pwString)
+        if (infoText !== "") setInfoText("")
+    }
+
     return (
         <div>
             <h4>Change password</h4>
             <p>Please enter the old and new password.</p>
-            <PasswordInput onChange={console.log} hint="New password" />
+            <p>A minimum length of 8 characters is required.</p>
+            <div className="padding--little intent-margin-bottom--little">
+                <PasswordInput onChange={handleStringChange} hint="New password" disabled={isLoading} />
+            </div>
+            {infoText.length > 0 ? <h4>{infoText}</h4>: null}
+            {isError ? <APIError error={error} /> : null}
+
             <ButtonGroup>
-                <Button text="Submit" />
+                <Button icon="changes" text="Save" disabled={!_.isString(password)} intent="primary" loading={isLoading} onClick={handlePasswordChange}/>
             </ButtonGroup>
         </div>
     )

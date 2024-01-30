@@ -23,6 +23,12 @@ import Loading from "../../../core/base/loading";
 // datasetAttributes: [],
 // rerenderTableDependency: 0}
 
+/**
+ * 
+ * @param {Object} props 
+ * @param {import("../../../../types/submissions").Submission} props.submission
+ * @returns 
+ */
 export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubmit }) {
 
     const {mutate : updateSubmissionAttrSamples, isLoading : patchingIsLoading ,isSuccess, isError : patchingIsError, error : patchingSumissionError} = usePathSubmissionSampleAttributes()
@@ -37,25 +43,29 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             _.fromPairs(sampleAttributeTags.map(attrTag =>
                 [attrTag, []])))
             
-        let samplesAttributes = sampleAttributeTags.map(attrTag => {return { name : submission.samples_attributes[attrTag].text, attribute : attributesByTag.attributes[attrTag]}})
-        _.forEach(sampleAttributeTags, attrTag => {
-            //map over each sample attribute tags (e.g. groupings)
-            let sampleAttributeValues = submission.samples_attributes[attrTag].values
-            const mappedAttributeValuesByTag = _.fromPairs(mapAttributeValueTagsToAttributeValues({ attributeTags: _.keys(sampleAttributeValues), attributesByTag }).filter(attributeValue => _.isObject(attributeValue) && !_.isEmpty(attributeValue)).map(attributeValue => [attributeValue.tag, attributeValue]))
-            console.log(mappedAttributeValuesByTag)
-            _.forEach(_.keys(sampleAttributeValues), attrValueTag =>
-                //map each sample attribute value tag 
-                _.forEach(sampleAttributeValues[attrValueTag], sampleIdx => {
-                    //map sample attribute values(!) to attribute table.
-                    if (_.has(mappedAttributeValuesByTag, attrValueTag)) {
-                        
-                        let attrValuesInTable = attributeTable[sampleIdx][attrTag]
-                        let concAttrValues = _.concat(attrValuesInTable,[mappedAttributeValuesByTag[attrValueTag]])
-                        attributeTable[sampleIdx][attrTag] = concAttrValues
-                    }
-                }))
+        
+        console.log(submission)
+        
+        let samplesAttributes = _.keys(submission.samples_attributes).map(attributeTag => {
+            return {
+                name: submission.samples_attributes[attributeTag].name,
+                attribute : attributesByTag.attributes[attributeTag]
+            }
         })
 
+        _.forEach(_.keys(submission.samples_attributes), attributeTag => {
+            const { name, attribute_values, values } = submission.samples_attributes[attributeTag]
+            _.forEach(_.keys(values), attributeValueTag => {
+                let sampleIdcs = values[attributeValueTag]
+                let attributeValue = attribute_values[attributeValueTag]
+                _.forEach(sampleIdcs, sampleIdx => {
+                    attributeTable[sampleIdx][attributeTag].push(attributeValue)
+                })
+            })
+
+            
+        })
+        
         setSamplesAttributesProps({
             label : submission.label,
             n_samples: submission.sample_names.length,
@@ -65,8 +75,7 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             replicates: submission.replicates,
             rerenderTableDependency: [Math.random()],
             samplesAttributes,
-            datasetAttributeValues: _.fromPairs(_.keys(submission.dataset_attributes).map(attrTag =>
-                [attrTag, mapAttributeValueTagsToAttributeValues({ attributeTags: submission.dataset_attributes[attrTag], attributesByTag }).filter(v => _.isObject(v) && !_.isEmpty(v))]))
+            datasetAttributeValues: submission.dataset_attributes
         })
     },
         [submission.label, _.isObject(attributesByTag)])

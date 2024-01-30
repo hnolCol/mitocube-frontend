@@ -14,6 +14,8 @@ import MetricTable from "../../../base/metrictable"
 import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
 import { useMemo } from "react"
 import { getSetOfMatchingIndcsInArrayOfObject } from "../../../../../services/arrays/filter"
+import { CategoricalLegend } from "../Legend"
+import { scaleOrdinal } from "@visx/scale"
 
 
 export function Legend({ x, y, width, height, colorScale, colorName, attrValuesByTag, handleMouseOver, data, onLegendGroupLeave }) {
@@ -86,7 +88,7 @@ function CategoricalBoxplot({
     
     margins = {
         left: 35,
-        right: 70,
+        right: 5,
         bottom: 35,
         top: 5
     },
@@ -105,11 +107,15 @@ function CategoricalBoxplot({
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
     svgID = undefined,
-    attributesByTag = {}
+    attributesByTag,
+    attributeValuesByTag
     }) {
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
 
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
+    const colorCategoryFound = _.has(data[0], colorName)
+    const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
+
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
     const {
@@ -126,8 +132,42 @@ function CategoricalBoxplot({
         detectBounds: true,
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
-      })
+    })
     
+    const colorScale = useMemo(() => {
+        // scale taking care of the fill color.
+        if (!colorCategoryFound) return () => getColorPalette(1)[0] //return a function that color the by in the default color if no colorName given
+        
+        var colorRange = []
+        if (colorPalette === undefined){
+            colorRange = getColorPalette(uniqueColorValues.length)
+        }
+        else if (_.isArray(colorPalette)) {
+            //check if colorPalette is same length? 
+            colorRange = colorPalette.slice()
+        }
+        else if (_.isObject(colorPalette)) {
+            // if an object is provided each colorValue must be in the color Palette
+            if (uniqueColorValues.filter(uniqueColorValue => !_.has(colorPalette, uniqueColorValue)).length !== 0) {
+                colorRange  = getColorPalette(uniqueColorValues.length)
+            }
+            else {
+                colorRange = uniqueColorValues.map(uniqueColorValue => colorPalette[uniqueColorValue])
+            }
+        }
+        else {
+            colorRange = getColorPalette(uniqueColorValues.length)
+        }
+
+        return (
+            scaleOrdinal({
+                domain: uniqueColorValues, 
+                range : colorRange
+            })
+        )
+    }, [colorName, uniqueColorValues])
+    
+
     const getTooltipData = (boxData) => {
         const attrValuesByTag = attributesByTag.attribute_values
         const quantileData = extractQuantileData(boxData,undefined,false,true)
@@ -145,7 +185,7 @@ function CategoricalBoxplot({
 
     const extractQuantileData = (array, yScale, scale = true, forTooltip = false) => {
         if (forTooltip) {
-            return _.map(array[yaxisName], (q,idx) => {return { name :  array.labels[idx],value :  scale ? yScale(q) : _.round(q,2)}})
+            return _.map(array[yaxisName], (q,idx) => {return { text :  array.labels[idx],value :  scale ? yScale(q) : _.round(q,2)}})
         }
         return Object.assign(...array[yaxisName].map((q, idx) => { return ({ [array.labels[idx]]: scale ? yScale(q) : _.round(q,2)}) }))
     }
@@ -250,7 +290,9 @@ function CategoricalBoxplot({
                     colorPalette: legendColors,
                     yScaleStartsAtZero : false,
                     minMaxYDomain,
-                    svgRef : containerRef
+                    svgRef: containerRef,
+                    attributesByTag,
+                    attributeValuesByTag
                 }}>
             {(categoricalData) => categoricalData.map((
                 {
@@ -371,7 +413,6 @@ function CategoricalBoxplot({
                                     <Group key={`${colorIdx}-${subplotCategory}-${colorCategory}`}
                                         onMouseEnter={e => handleMouseOver(e, getTooltipData(colorCatData))}
                                         onMouseLeave={hideTooltip}>
-                                        
                                         <Box {...boxQuantiles} fill={color} x={xBar+colorBandwidth/2} width={colorBandwidth}/>
                                         
                                     </Group>
@@ -380,10 +421,10 @@ function CategoricalBoxplot({
                             </Group>
                         )
                         })}
-                          <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top} {...{ colorScale, colorName, attrValuesByTag : attributesByTag.attribute_values, handleMouseOver, hideTooltip }} />
+                          {/* <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top} {...{ colorScale, colorName, attrValuesByTag : attributesByTag.attribute_values, handleMouseOver, hideTooltip }} /> */}
                     </g>)
             })}
-            
+                
                 </MultiCategoricalChart>}
             
             
@@ -404,6 +445,8 @@ function CategoricalBoxplot({
 
                 </TooltipInPortal>
             )}
+            {console.log(colorName)}
+            
             </div>
     )
 }

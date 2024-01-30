@@ -229,7 +229,9 @@ function DatasetPCA({ }) {
     const numericKeyNames = _.isObject(pcaresults) ? _.filter(_.keys(pcaresults.drivers[0]), keyName => _.isNumber(pcaresults.drivers[0][keyName])) : []
     const nonNumericKeyNames = _.isObject(pcaresults) ? _.keys(pcaresults.drivers[0]).filter(keyName => !numericKeyNames.includes(keyName)) : []
     useEffect(() => {
+
         if (_.isObject(metadata) && _.has(metadata, "title")) {
+            console.log(metadata)
             setTabHeader(metadata.title)
         }
     }, [_.isObject(metadata)])
@@ -250,7 +252,7 @@ function DatasetPCA({ }) {
 
 
     return (
-        <div style={{ overflowY: "scroll", height: "80vh " }}>
+        <div className="div--expand" style={{ overflowY: "scroll", height: "80vh " }}>
             <h2>Principal Component Analysis</h2>
             <p>Please select the desired components showing the projection (left) as well the drivers (right). Selecting a point in the right point displays the feature's profile in the bottom.</p>
             {isLoading || isFetching ||  attrByTagIsLoading || attrByTagIsFetching ? <Loading /> : isError ? <APIError error={error} /> : isSuccess && attrByTagIsSuccess? 
@@ -267,7 +269,7 @@ function DatasetPCA({ }) {
                                 <InputGroup onChange={(e) => handleStringSearch("label",e.target.value)}/>
                                 </div>:null} */}
                         
-                        <div className="flex">
+                        <div className="flex justify-space-around">
                             {isSuccess ? <div>
                                 <ScatterDataSelection keyNames={_.keys(pcaresults.projection[0])} {...{
                                     title : "Projection",
@@ -331,7 +333,8 @@ function DatasetPCA({ }) {
                                         tooltipNames : _.concat(["index"],sampleAttributeNames),
                                         ...hoverProps,
                                         ...filterProps,
-                                        attributesByTag,
+                                        attributeValuesByTag: metadata.attribute_values_by_tag,
+                                        attributesByTag : metadata.attributes,
                                         legend: true,
                                             handleSearchByDataIndex,
                                             filterDataInKeyByValue,
@@ -371,11 +374,14 @@ function DatasetPCA({ }) {
                                     <ScatterDataSelection keyNames={_.keys(pcaresults.drivers[0])}
                                         {...{
                                             title : "Drivers",
-                                            numericKeyNames, selection, setSelection, handleStringSearch,
-                                            downloadElements: ["scatter_plot-pca-drivers", pcaresults.drivers],
-                                            elementNames: ["SVG","DIVIDER",`Data (${pcaresults.drivers.length} x ${_.keys(pcaresults.drivers[0]).length})`],
-                                            fileNames: [`${metadata.label}-PCA-drivers.svg`,`${metadata.label}-PCA-Drivers.txt`],
-                                            elementTypes: ["svg", "data"]
+                                        numericKeyNames,
+                                        selection,
+                                        setSelection,
+                                        handleStringSearch,
+                                        downloadElements: ["scatter_plot-pca-drivers", pcaresults.drivers],
+                                        elementNames: ["SVG","DIVIDER",`Data (${pcaresults.drivers.length} x ${_.keys(pcaresults.drivers[0]).length})`],
+                                        fileNames: [`${metadata.label}-PCA-drivers.svg`,`${metadata.label}-PCA-Drivers.txt`],
+                                        elementTypes: ["svg", "data"]
                                         }} />
                                     
                                     <ScatterPlot key={`${chartIdx}-drivers-${dataset_label}`}{...{
@@ -395,9 +401,10 @@ function DatasetPCA({ }) {
                                         xaxisName,
                                         yaxisName,
                                         limits,
+                                        attributeValuesByTag: metadata.attribute_values_by_tag,
+                                        attributesByTag : metadata.attributes,
                                         ...hoverProps,
                                         ...filterProps,
-                                        attributesByTag
                                     }} />
                                 </div>)
                             })}

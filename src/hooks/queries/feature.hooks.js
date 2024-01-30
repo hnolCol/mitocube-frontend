@@ -20,16 +20,16 @@ export function useGetFeatures (useQueryOptions = {}, APIParams = {}) {
 /**
  * @description - Returns the data for a specific feature (e.g. all dataset in which the feature id was found). The feature id is organism specific. 
  * @param {object} props
- * @param {string} props.featureID - The featureID. For proteins likely the uniprot id. 
+ * @param {string} props.feature_key - The featureID. For proteins likely the uniprot id. 
  * @returns {import("../../types/feature").FeatureDataResponse} The feature data object. Contains all the datasets in which the feature_id was found.
  */
-async function getDataByFeatureID_API({ featureID }) {
-    const res = await axios.get(`/api/features/${featureID}/data`)
+async function getDataByFeatureID_API({ feature_key }) {
+    const res = await axios.get(`/api/features/${feature_key}/data`)
     return res.data
     }
 
-export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {}, ) {
-    return useQuery(["getDataByFeautreID",APIParams.featureID],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
+export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {staleTime : 600000}, ) {
+    return useQuery(["getDataByFeautreID",APIParams.feature_key],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
 }
 
 

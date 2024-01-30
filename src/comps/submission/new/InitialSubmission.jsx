@@ -174,7 +174,7 @@ function InitialSubmission({
         }
 
 
-        if (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0) {
+        if (allEmptyGenoypes && (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0)) {
             errMsgs.push("No samples attributes provided. Require at least one.")
         }
         
@@ -271,7 +271,7 @@ function InitialSubmission({
                         isOpen: true,
                         children: <div><h3>Error</h3>
                             <p>There was an error in the submission.</p>
-                            <p>If your token experied you will be re-direct to the login. 
+                            <p>If your token expired you will be re-direct to the login. 
                                 Otherwise please contact the system administrator and/or the check the help. 
                             </p>
                             <APIError error={error} />

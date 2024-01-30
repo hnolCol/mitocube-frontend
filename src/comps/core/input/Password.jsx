@@ -15,7 +15,7 @@ PasswordInput.propTypes = {
     
 }
 
-function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange, minLength = 8, ...rest }) {
+function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange, minLength = 8, disabled = false, ...rest }) {
 
     //Default password manager to handle passwords and check that they are equal
     const [pws, setPasswords] = useState({"1" : "", "2" : ""})
@@ -78,6 +78,7 @@ function PasswordInput({ callbackKey = "pw", hint = "User's password", onChange,
                 return (
                     <div style={{ fontSize: "0px", paddingTop: pwKey === "2" ? "0.2rem" : "0rem" }}>
                         <InputGroup
+                            disabled={disabled}
                             placeholder={pwKey === "2" ? "Please repeat password." : "Enter password."}
                             type="password"
                             {...rest}

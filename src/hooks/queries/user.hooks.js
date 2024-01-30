@@ -57,15 +57,9 @@ export const useGetUserAttributes = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["getUserAttributes"], () => getUserAttributes_API({...APIParams}), useQueryOptions)
 }
 
-async function postUser_API({ tokenString, userProps }) {
-    const res = await axios.post('/api/users/user',
-    userProps,
-        {
-            headers : {
-                "Authorization": `Bearer ${tokenString}`,
-                'Content-Type': 'application/json'
-            }
-        }
+async function postUser_API({ userProps }) {
+    const res = await axios.post('/api/users',
+    userProps
         )
 }
 
@@ -74,7 +68,20 @@ export const usePostUser = (useMutationOptions = {}) => {
 }
 
 // block user
-async function postBlockUser_API({ tokenString, userProps }) {
+async function postChangePasswordUser_API({ updated_pw }) {
+    const res = await axios.post('/api/users/pw',
+    updated_pw,
+        )
+}
+
+export const usePostPasswordChange = (useMutationOptions = {}) => {
+    return useMutation((APIParams) => postChangePasswordUser_API({...APIParams}), useMutationOptions)
+}
+
+
+
+// block user
+async function postBlockUser_API({ userProps }) {
     const res = await axios.post('/api/users/user/block',
     userProps,
         )

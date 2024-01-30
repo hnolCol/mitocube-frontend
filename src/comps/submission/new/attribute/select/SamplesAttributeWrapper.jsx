@@ -59,8 +59,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
     }
     /**
      * 
-     * @param {*} rowIdcs 
-     * @param {*} genotype 
+     * @param {Number[]} rowIdcs The selected table rowIndex
+     * @param {Object} genotype - The selected genotype.
      */
     const handleGenotypeSelection = (rowIdcs, genotype) => {
         let genotypeAttributes = submission.genotypeAttributes
@@ -177,7 +177,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
     const onSampleAttributeRename = (sampleAttrIdx, sampleAttributeName) => {
         //rename the samples attribute ("Grouping")
         let sampleAttrs = submission.samplesAttributes
-        sampleAttrs[sampleAttrIdx].text = sampleAttributeName
+        sampleAttrs[sampleAttrIdx].name = sampleAttributeName
         updateSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs} })
     }
     const onSampleAttributeValueSelect = (attributeTag, attributeValueTag, rowIdces) => {
@@ -207,7 +207,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 const prevGroupingAttributeTag = sampleAttr.attribute.tag
                 //requires cleaning up the old ag
                 let updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: prevGroupingAttributeTag })
-                sampleAttrs[sampleAttrIdx] = {name : sampleAttrName === ""? attribute.text : sampleAttrName, attribute}
+                sampleAttrs[sampleAttrIdx] = {name : !_.isString(sampleAttrName) || sampleAttrName.length === 0? attribute.text : sampleAttrName, attribute}
                 updateSubmission(prevValues => {
                     return {
                         ...prevValues,
@@ -221,7 +221,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 return 
             }
             sampleAttrs[sampleAttrIdx] = {
-                name: sampleAttrName === "" ? attribute.text : sampleAttrName,
+                name: !_.isString(sampleAttrName) || sampleAttrName.length === 0? attribute.text : sampleAttrName,
                 attribute
             }
         }

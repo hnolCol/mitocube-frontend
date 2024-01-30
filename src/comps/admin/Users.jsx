@@ -72,11 +72,11 @@ function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUse
 function AddUserDialog({ authenticationStatus, isOpen = false, refetchUsers, onClose, ...rest }) {
     const [userProps, setUserProps] = useState({})
     //put this in a common dialog? 
-    const { data, isLoading, isFetching, isSuccess, isFetched, isError, error} = useGetUserAttributes({ tokenString: authenticationStatus.token })
+    const { data, isLoading, isFetching, isSuccess, isFetched, isError, error} = useGetUserAttributes({ })
     const { mutate: postUser, isLoading: postUserIsLoading, isError: postUserIsError, error: postUserError } = usePostUser()
     
     const handleSubmit = () => {
-        postUser({ tokenString: authenticationStatus.token, userProps }, {
+        postUser({ userProps }, {
             onSuccess: (data) => {
                 setUserProps({})
                 refetchUsers()
@@ -120,7 +120,7 @@ function AdminUsers({ authenticationStatus }) {
     const [isUserDialogOpen, setIsUserDialogOpen] = useState(false)
     const [editUserDialog, setEditUserDialog] = useState({isOpen : false, user : {}})
     const { mutate: blockUserByLabel } = usePostBlockUser()
-    const { mutate : deleteUserByLabel} = useDeleteUser()
+    const { mutate : deleteUserByLabel, isLoading : deleteUserIsLoading, isFetching : deleteUserIsFetching} = useDeleteUser()
     const {
         data,
         isError,
@@ -152,11 +152,20 @@ function AdminUsers({ authenticationStatus }) {
         setConfirmAlertProps(prevValues => {
             return {
                 isOpen: true,
-                text : `Please confirm delete the user (${user_label})`,
+                text: `Please confirm delete the user (${user_label})`,
                 onClose: closeAlert,
                 onCancel: closeAlert,
-                onConfirm: () =>  deleteUserByLabel({ userProps: { label: user_label } }, { onSuccess: () => refetchUsers() })
-            }})}
+                onConfirm: () => {
+                    deleteUserByLabel({ userProps: { label: user_label } }, {
+                        onSuccess: () => {
+                            closeAlert()
+                            refetchUsers()
+                        }
+                    })
+                }
+            }
+        })
+    }
 
     const userMatchingQuery = useMemo(() => {
         if (!_.isObject(data) || !objectHasKey({object : data, keyName : "users"})) return []
@@ -170,7 +179,7 @@ function AdminUsers({ authenticationStatus }) {
     if (isLoading || isFetching) return <Loading />
     return (
         <div className="intent-margin-top--little padding--medium" >
-            <ConfirmAlert {...confirmAlertProps} />
+            <ConfirmAlert {...confirmAlertProps} isLoading={deleteUserIsLoading || deleteUserIsFetching } />
             {isError ? <APIError error={error} /> : isLoading || isFetching ? <Loading /> :
                 <div>
                     <AddUserDialog isOpen={isUserDialogOpen} {...{ authenticationStatus, refetchUsers }} onClose={() => setIsUserDialogOpen(false)} />

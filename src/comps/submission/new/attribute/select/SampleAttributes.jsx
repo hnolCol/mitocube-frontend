@@ -41,7 +41,7 @@ function AttributeSelectionHeader({
     columnIndex,
     sampleAttrIndex,
     attributes = [],
-    groupingName = "",
+    sampleAttributeName = "",
     attributeName = "attribute type ...",
     attributesTagsInUse = [],
     onSampleAttributeSelect = undefined,
@@ -52,16 +52,16 @@ function AttributeSelectionHeader({
         <div>
             <h4><EditableText
                 defaultValue=""
-                value={groupingName}
+                value={sampleAttributeName}
                 onChange={groupingNameEdit => onSampleAttributeRename(sampleAttrIndex,groupingNameEdit)}
-                onConfirm={() => onSampleAttributeSelect(sampleAttrIndex, groupingName, undefined)}/></h4>
+                onConfirm={() => onSampleAttributeSelect(sampleAttrIndex, sampleAttributeName, undefined)}/></h4>
             <Combobox
                 items={_.sortBy(attributes.filter(a => !attributesTagsInUse.includes(a.tag)),"text")}
                 value={attributeName}
                // disabled={groupingName.length < 2}
                 buttonProps={{ minimal: true, fill: false, disabled}}
-                callbackKey={groupingName}
-                onChange={(callbackKey, attribute) => onSampleAttributeSelect(sampleAttrIndex, groupingName, attribute, true)} />
+                callbackKey={sampleAttributeName}
+                onChange={(callbackKey, attribute) => onSampleAttributeSelect(sampleAttrIndex, sampleAttributeName, attribute, true)} />
         </div>
     )
 }
@@ -365,7 +365,7 @@ function SamplesAttributes({
                             attributesTagsInUse,
                             onSampleAttributeRename,
                             disabled : sampleNames.length === 0,
-                            groupingName : groupingDefined && _.isString(groupingInfo.text)? groupingInfo.text : undefined,
+                            sampleAttributeName : groupingDefined && _.isString(groupingInfo.name)? groupingInfo.name : undefined,
                             attributeName: groupingDefined && _.isObject(groupingInfo.attribute) ? groupingInfo.attribute.text : undefined
                         }} />
                 </div>

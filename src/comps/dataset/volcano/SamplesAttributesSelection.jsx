@@ -40,19 +40,19 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
         preimputationfilter: undefined
         
     })
-    console.log(grouping)
-    console.log(metadata)
-    console.log(groupAttributeValues)
 
 
+    const attributesByTag = metadata.attributes
                    
     const withinGrouping = grouping.withinGroupings.length > 1
+
     const handleMainGroupingSelection = (groupingName) => {
         const itemsForSelection = groupAttributeValues[groupingName.tag]
         const withinGroupings = _.filter(attributes, o => o.tag !== groupingName.tag)
         const detectedControl = undefined //findControl({groupNames : itemsForSelection})
         const autoSelectControl = itemsForSelection.length > 1 && detectedControl !== undefined
-        console.log(attributes,withinGroupings, itemsForSelection)
+        console.log(attributes, withinGroupings, itemsForSelection)
+        
         setGrouping(prevValues => {
             return {
                 ...prevValues,
@@ -60,8 +60,8 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                 group1: itemsForSelection[0],
                 group2: itemsForSelection[1],
                 mainItems: itemsForSelection.sort(),
-                withinGroupings: _.concat([{ name: "None", tag: "none" }], withinGroupings),
-                withinGrouping: { name: "None", tag: "none" },
+                withinGroupings: _.concat([{ text: "None", tag: "none" }], withinGroupings),
+                withinGrouping: {text: "None", tag: "none" },
                 withinItems: withinGroupings[0] !== undefined ? groupAttributeValues[withinGroupings[0].tag] : [],
                 withinGroup: withinGroupings[0] !== undefined ? groupAttributeValues[withinGroupings[0].tag][0].tag : { name: "None", tag: "none" }
             }
@@ -84,11 +84,12 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
         }
     }
 
+
     return(
         <div className="flex flex-column bg--lightgrey div--round padding--medium" style={{ maxWidth: "30rem" }}>
             <div className="bg--grey padding--medium div--round intent-margin-top--little">
             <h3>Groupings for volcano plot</h3>
-            <p>Select groups to perform pariwise t-test. If the dataset contains more than one grouping (for example Genotype and Treatment) you should probably select a 'within grouping'. Otherwise the second grouping will be ignored.</p>
+            <p>Select groups to perform pairwise t-test. If the dataset contains more than one grouping (for example Genotype and Treatment) you should probably select a 'within grouping'. Otherwise the second grouping will be ignored.</p>
             </div>
             <div className="bg--grey padding--medium div--round intent-margin-top--little">
             <h4>Grouping</h4>
@@ -101,14 +102,14 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                 <div className="flex justify-space-around center-items margin-top-bottom--medium ">
                     <div className="flex center-items" >
                     <div className="center-items" style={{minWidth:"4rem"}}>Group 1:</div>
-                        
-                    
                     <Combobox 
                         items = {grouping.mainItems} 
                                 onChange={handleGroupingChange} 
                                 formGroupMargin = {false}
-                                placeholder={grouping.group1.text} 
-                        callbackKey = "group1"
+                                placeholder={grouping.main.has_features_value ? grouping.group1.key : grouping.group1.text} 
+                                textKey={grouping.main.has_features_value ? "key" : "text"}
+                                callbackKey="group1"
+                                labelKey={grouping.main.has_features_value ? "genes" :"description"}
                         buttonProps ={{minimal : false,
                                         small : true,
                                         intent : "primary"
@@ -122,11 +123,13 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                         
                         
                     <Combobox 
-                                items={grouping.mainItems} 
-                                formGroupMargin = {false}
+                            items={grouping.mainItems} 
+                            formGroupMargin = {false}
                             onChange = {handleGroupingChange} 
-                            placeholder = {grouping.group2.text} 
-                            callbackKey = "group2"
+                            placeholder={grouping.main.has_features_value ? grouping.group2.key : grouping.group2.text}
+                            callbackKey="group2"
+                            textKey={grouping.main.has_features_value ? "key" : "text"}
+                            labelKey={grouping.main.has_features_value ? "genes" :"description"}
                             buttonProps ={{minimal : false,
                                         small : true,
                                         intent : "success"
@@ -146,9 +149,10 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                     <Combobox 
                         items = {grouping.withinGroupings} 
                         placeholder={grouping.withinGrouping.text}
-                                onChange={handleGroupingChange} 
-                                formGroupMargin = {false}
+                        onChange={handleGroupingChange} 
+                        formGroupMargin = {false}
                         callbackKey="withinGrouping"
+                        
                         fill={false}
                         buttonProps={{
                             minimal: false,
@@ -160,8 +164,10 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                                 items={grouping.withinItems} 
                                 formGroupMargin = {false}
                         onChange={handleGroupingChange}
-                        placeholder = {grouping.withinGroup.text} 
+                        placeholder={grouping.withinGrouping.has_features_value ? grouping.withinGroup.key : grouping.withinGroup.text}
                         callbackKey="withinGroup"
+                        textKey={grouping.withinGrouping.has_features_value ? "key" : "text"}
+                        labelKey={grouping.withinGrouping.has_features_value ? "genes" :"description"}
                         fill={false}
                         buttonProps ={{minimal : false,
                             small : true,

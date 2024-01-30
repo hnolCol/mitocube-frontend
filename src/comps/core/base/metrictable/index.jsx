@@ -31,7 +31,6 @@ function MetricTable({
             <table>
                 <tbody>
                     {data.map((d, idx) => {
-                    console.log(d)
                     return (
                         <tr key={`${idx}-metric-table-row`} >
                             <td className="table__item table__item--align-right">

@@ -9,7 +9,8 @@ import { OmnibarItem } from "./OmnibarItem";
 import _ from "lodash"
 
 import "./OmnibarStyles.css"
-import { useGetFeatures } from "../../../hooks/queries/feature.hooks";
+import { useGetFeatureByQuery, useGetFeatures } from "../../../hooks/queries/feature.hooks";
+import Loading from "../../core/base/loading";
 
 export function OmnibarSearch(props) {
     // handle search for proteins in the protein centric view.
@@ -17,42 +18,19 @@ export function OmnibarSearch(props) {
     const [featureDeatails, setFeatureDetails] = useState({items : [], featureLabels : {}, itemsToShow : [], searchString : "", sortBy : ""})
     const debounceSearchString = useDebounce(featureDeatails.searchString, 400)
 
-    const {data, isLoading, isSuccess, isError, isFetching} = useGetFeatures()
+    const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString, proteome_id : "UP000005640"},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
 
-
-    useEffect(() => { 
-        if (isLoading) return 
-        if (isFetching) return
-        if (isError) return 
-        if (data === undefined) return 
-        //search in all entries of an item object
-        if (!_.isArray(data.features)) return 
-        if (data.features.length === 0) return 
-        // search for string in all available columns, search is debounced (e.g. runs only if unchanged for some ms)
-
-        let filteredItems = filterArrayBySearchString({
-            searchString: debounceSearchString,
-            array: data.features.slice(),
-            keyNames: Object.keys(data.features[0])
-        })
-        
-        if (filteredItems.length > 200) {
-            // if too many items, just show the first 50.
-            filteredItems = filteredItems.slice(1,50)
-        }
-        if (Object.keys(data.features[0]).includes(data.sortBy)) {
-            filteredItems = _.sortBy(filteredItems, data.sortBy)
-        }
-        
-        setFeatureDetails(prevValues => {
-            return {
-                ...prevValues,
-                "itemsToShow": filteredItems,
-            }
-        })
-    },
-        [debounceSearchString,data, isSuccess, isLoading])
+    // useEffect(() => { 
+    //     if (isLoading) return
+    //     if (isFetching) return
+    //     if (isError) return
+    //     if (data === undefined) return
+       
+    // },
+    //     [debounceSearchString,data, isSuccess, isLoading])
     
+    console.log(isError)
+
     useEffect(() => {setSearchString("")},[isOpen])
     
     const setSearchString = (searchString) => {
@@ -64,18 +42,28 @@ export function OmnibarSearch(props) {
             }
         })
     }
-
-    const renderItem = (item, { handleClick, modifiers, query }) => {
+    /**
+     * 
+     * @param {import("../../../types/feature").Feature} item 
+     * @param {Object} params 
+     * @param {Function} params.handleClick  
+     * @param {String} params.query 
+     * @returns 
+     */
+    const renderItem = (item, { handleClick, modifiers, query, index }) => {
             if (!modifiers.matchesPredicate) {
               return null;
             }
+        if ((isLoading || isFetching) && index === 0) {
+            return <div><Loading/></div>
+        }
         return (
             <OmnibarItem
-                key={item.Entry}
+                key={item.key}
                 item={item}
                 handleClose={onClose}
                 onSelect={onSelect}
-                featureLabels={data.featureLabels} />
+                />
                
             );
           }
@@ -83,13 +71,11 @@ export function OmnibarSearch(props) {
 
         <Omnibar
             itemRenderer={renderItem}
-            // itemListPredicate={filterItems}
-            
             query={featureDeatails.searchString}
             resetOnSelect={true}
             onQueryChange={setSearchString}
-            inputProps={{ placeholder: isFetching || isLoading ? "Fetching ..." :isError ? 'An error occured fetching the feature list.' : _.isArray(data.features) && data.features.length===0?'No feature items available. API is loading or filtering excluded all features.':`Search in ${data.features.length} items.. (example: Yme1l1, Uniprot ID) `}}
-            {...{ isOpen, onClose, items : featureDeatails.itemsToShow}} />
+            inputProps={{ placeholder: isFetching || isLoading ? "Fetching ..." :isError ? 'An error occured fetching the feature list.' : _.isArray(features) && features.length===0?'No feature items available. API is loading or filtering excluded all features.':`Search in for protein name, gene name or uniprot id.`}}
+            {...{ isOpen, onClose, items: isLoading || isFetching ? [{}] : _.isArray(features) ? features : []}} />
     )
 
 }

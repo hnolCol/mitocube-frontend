@@ -87,7 +87,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     
     const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "", alertUpdateFn) => {
         // handle patching the submission.
-        
+        console.log(label)
         let datasetAttributes = Object.keys(datasetAttributeValues).map(attributeTag => attributesByTag.attributes[attributeTag])
         let updatedSubmission = {datasetAttributes, datasetAttributeValues}
         const data = {

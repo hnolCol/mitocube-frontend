@@ -42,7 +42,8 @@ const ScatterLegend = React.memo(
         size = 25,
         colorLimit = {},
         sizeLimit = {},
-        attributesByTag }) {
+        attributeValuesByTag = {},
+        attributesByTag = {} }) {
     
         const {
         tooltipData,
@@ -54,18 +55,15 @@ const ScatterLegend = React.memo(
     
     } = useTooltip();
 
-
     const findAttributeValues = (attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
         const attributeValueTags = _.split(attributeValueTagsString, " ")
-        return _.map(attributeValueTags.map(attributeValueTag => _.has(attributesByTag.attribute_values, attributeValueTag) ?
-            attributesByTag.attribute_values[attributeValueTag] :
-            { text: attributeValueTag, description: "" }))
-
+        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag])
     }
     
 
-    const getLegendLabelFromAttributeValues = (attributeValues) => {
+        const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
+        if (attribute.has_features_value) return attributeValues.length === 1?attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
         return attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
     }
 
@@ -74,12 +72,12 @@ const ScatterLegend = React.memo(
      * @param {MouseEvent} e 
      * @param {import("../../../../types/attributes").AttributeValue[]} props.attributeValues
      */
-    const handleTooltip = (e,attributeValues) => {
+    const handleTooltip = (e,attributeValues,attribute) => {
 
         showTooltip({
             tooltipTop : e.clientY,
             tooltipLeft: e.clientX,
-            tooltipData : attributeValues
+            tooltipData: { attributeValues, attribute, has_features_value : attribute.has_features_value }
         })
     }
 
@@ -98,29 +96,32 @@ const ScatterLegend = React.memo(
                 strokeWidth={0.5} />
             </svg>
     } 
-
+    const colorAttribute = _.isString(colorName) && _.has(attributesByTag,colorName) ? attributesByTag[colorName] : ""
+    const sizeAttribute = _.isString(sizeName) && _.has(attributesByTag, sizeName)? attributesByTag[sizeName] : ""
     return (
         <div>
-            <div className="flex" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
+            <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data[0][colorName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
-                        <h4>{colorName}</h4>
+                        <h4>{colorAttribute.text}</h4>
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
+                                console.log(label.text)
                                 const attributeValues = findAttributeValues(label.text)
-                                const labelString = getLegendLabelFromAttributeValues(attributeValues)
+                                const labelString = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
+                                
                                 return (
                                     <LegendItem key={`${idx}-${label}`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
                                         {renderLegendCircle(size,label.value,size/3)}
-                                        <LegendLabel align="left" margin={"0 4px"} onMouseEnter={(e) => handleTooltip(e,attributeValues)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
+                                        <LegendLabel align="left" margin={"0 4px"} onMouseEnter={(e) => handleTooltip(e,attributeValues,colorAttribute)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
                                     </LegendItem>
                                 )
                             })}
                         </LegendOrdinal></div> :
                 
                     <div className="intent-margin-left--little">
-                        <h4>{colorName}</h4>
+                        <h4>{colorAttribute.text}</h4>
                         <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                             {(labels) => labels.map((label, idx) => {
                             if (idx > 25) return null 
@@ -135,22 +136,26 @@ const ScatterLegend = React.memo(
                 
                 {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
-                        <h4>{sizeName}</h4>
+                        <h4>{sizeAttribute.text}</h4>
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
+                                console.log(label.text)
+                                const attributeValues = findAttributeValues(label.text)
+                                const labelString = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
+                                console.log(labelString)
                                 if (idx > 25) return null 
                                 return (
                                         <LegendItem onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
                                         {renderLegendCircle(size,"#fff",label.value)}
                                         <LegendLabel align="left" margin={"0 4px"}>
-                                            {label.text}
+                                            {labelString}
                                                 </LegendLabel>
                                                 </LegendItem>
                                 )
                             })}
                         </LegendOrdinal></div> :
                         <div className="intent-margin-left--little">
-                        <h4>{sizeName}</h4>
+                        <h4>{sizeAttribute.text}</h4>
                         <LegendSize scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null 
@@ -164,13 +169,14 @@ const ScatterLegend = React.memo(
                     </LegendSize></div>: null}
 
             </div>
-            {tooltipOpen && _.isArray(tooltipData) ?
+            
+            {tooltipOpen && _.isObject(tooltipData) ?
                 <Tooltip top={tooltipTop} left={tooltipLeft} key={Math.random()}>
-
-                    <div>{tooltipData.map(attributeValue => <div>
-                        <h4>{attributeValue.text}</h4>
-                            <div style={{ maxWidth: "min(33vw,400px)" }}>
-                            {attributeValue.description}
+                    <div>{tooltipData.attributeValues.map(attributeValue => <div>
+                        <h4>{tooltipData.has_features_value ? attributeValue.genes : attributeValue.text }</h4>
+                        <div style={{ maxWidth: "min(33vw,400px)" }}>
+                            <p>{tooltipData.has_features_value ? attributeValue.key: null}</p>
+                            {tooltipData.has_features_value ? attributeValue.proteins : attributeValue.description}
                         </div>
                     </div>)}
                     </div>

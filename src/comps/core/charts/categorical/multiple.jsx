@@ -6,6 +6,7 @@ import _ from "lodash"
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries"
 import PropTypes from "prop-types"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
+import { CategoricalLegend } from "./Legend"
 
 
 MultiCategoricalChart.propTypes = {
@@ -69,6 +70,8 @@ function MultiCategoricalChart({
     colorPalette = [],
     minMaxYDomain = undefined,
     yScaleStartsAtZero = true,
+    attributesByTag = {},
+    attributeValuesByTag = {},
     children
 }) {
     
@@ -199,10 +202,19 @@ function MultiCategoricalChart({
     })
 
     return (
-        
+        <div className="flex">
+        <div>
         <SVG {...{width,height,svgID,svgRef}}>
             <>{children(categoricalSplit)}</>
-            </SVG>
+                </SVG>
+            </div>
+            <div>{_.isFunction(colorScale) && _.has(colorScale, "domain") ? <CategoricalLegend {...{
+                colorName,
+                colorScale,
+                attributesByTag,
+                attributeValuesByTag}} /> : null }</div>
+            
+            </div>
        
     )   
 }
