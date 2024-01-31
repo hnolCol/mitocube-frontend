@@ -41,13 +41,12 @@ function DatasetQC() {
             "#valid (%)": _.toString(_.round(datatable.stats[sampleName].count / datatable.stats[sampleName].total * 1000) / 10)+" %"
         }
     })
-    console.log(datatable)
     
     const datasetAttributeValues = metadata.dataset_attributes
     const dataAttributes = _.values(metadata.attributes)
     
     return (
-        <div style={{ overflowY: "scroll", height: "80vh " }}>
+        <div className="div--expand padding--medium" style={{ overflowY: "scroll"}}>
             <h2>Quality Control</h2>
             <DatasetAttributeHierarchy {...{
                 selectedDasetAttributeValues: datasetAttributeValues,
@@ -64,16 +63,16 @@ function DatasetQC() {
                 yaxisNames={["#valid"]}
                 tooltipCircleNames={["#valid", "#valid (%)", "sampleName"]}
                 yaxisStartsAtZero={true} />
-            <h2>Intensity Distributions</h2>
+            {/* <h2>Intensity Distributions</h2> */}
 
             <h2>Protein of interest</h2>
-            <div className="flex">
+            <div className="flex flex-wrap intent-margin-bottom--large">
             {_.map(datatable.poi_data, ({ data, samples_attributes, annotations, feature_key, feature_annotations }, idx) => {
                 return (
                     <div style={{maxWidth : "500px"}}>
                         <h4>{feature_annotations.genes}</h4>
                         <h5>{feature_annotations.protein_name}</h5>
-                        <ResultChart data={data} groupings={samples_attributes} yaxisName="value" />
+                        <ResultChart data={data} groupings={samples_attributes} yaxisName="value" attributesByTag={metadata.attributes} attributeValuesByTag={metadata.attribute_values_by_tag}  />
                     </div>
                 )
             })}

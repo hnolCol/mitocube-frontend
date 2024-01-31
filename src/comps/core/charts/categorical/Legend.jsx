@@ -38,7 +38,7 @@ const CategoricalLegend = React.memo(
         size = 25,
         attributesByTag,
         attributeValuesByTag}) {
-            console.log(attributeValuesByTag)
+
         const {
         tooltipData,
         tooltipLeft,
@@ -90,27 +90,25 @@ const CategoricalLegend = React.memo(
                 strokeWidth={0.5} />
             </svg>
         } 
-        
-        console.log(colorName)
-        console.log(attributesByTag)
+
     
         const colorAttribute = _.has(attributesByTag, colorName) ? attributesByTag[colorName] : undefined
-        console.log(colorAttribute)
 
     return (
         <div>
             <div className="flex" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale, "domain") ? _.isObject(colorAttribute) ?
-                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                    <div className="intent-margin-left--little">
+                    {/* //onMouseLeave={() => resetSearchIdcs(chartIdx)} */}
                         <h4>{colorAttribute.text}</h4>
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null
                                 const attributeValues = findAttributeValues(label.text)
-                                console.log(attributeValues)
                                 const labelString = getLegendLabelFromAttributeValues(colorAttribute,attributeValues)
                                 return (
-                                    <LegendItem key={`${idx}-${label}`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}>
+                                    <LegendItem key={`${idx}-${label}`} >
+                                    {/* //onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)} */}
                                         {renderLegendRectangle(size, label.value, size / 3)}
                                         <LegendLabel align="left" margin={"0 4px"} onMouseEnter={(e) => handleTooltip(e, attributeValues, colorAttribute)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
                                     </LegendItem>

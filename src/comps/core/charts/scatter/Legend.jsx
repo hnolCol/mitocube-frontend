@@ -58,13 +58,19 @@ const ScatterLegend = React.memo(
     const findAttributeValues = (attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
         const attributeValueTags = _.split(attributeValueTagsString, " ")
-        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag])
+        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
     }
     
 
         const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
-        if (attribute.has_features_value) return attributeValues.length === 1?attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
-        return attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
+        let attributeValueText = ""
+        if (attribute.has_features_value) {
+            attributeValueText = attributeValues.length === 1 ? attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
+        }
+        else {
+            attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
+        }
+        return attributeValueText
     }
 
     /**
@@ -107,12 +113,12 @@ const ScatterLegend = React.memo(
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
-                                console.log(label.text)
                                 const attributeValues = findAttributeValues(label.text)
+                                if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
                                 
                                 return (
-                                    <LegendItem key={`${idx}-${label}`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
+                                    <LegendItem key={`${idx}-${label}-colorcat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
                                         {renderLegendCircle(size,label.value,size/3)}
                                         <LegendLabel align="left" margin={"0 4px"} onMouseEnter={(e) => handleTooltip(e,attributeValues,colorAttribute)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
                                     </LegendItem>
@@ -126,7 +132,7 @@ const ScatterLegend = React.memo(
                             {(labels) => labels.map((label, idx) => {
                             if (idx > 25) return null 
                                 return (
-                                <LegendItem>
+                                <LegendItem key={`${idx}-${label}-colornum`}>
                                     {renderLegendCircle(size,label.value,size/3)}
                                     <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
                                 </LegendItem>
@@ -139,13 +145,13 @@ const ScatterLegend = React.memo(
                         <h4>{sizeAttribute.text}</h4>
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
-                                console.log(label.text)
                                 const attributeValues = findAttributeValues(label.text)
+                                console.log(attributeValues)
+                                if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
-                                console.log(labelString)
                                 if (idx > 25) return null 
                                 return (
-                                        <LegendItem onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
+                                        <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
                                         {renderLegendCircle(size,"#fff",label.value)}
                                         <LegendLabel align="left" margin={"0 4px"}>
                                             {labelString}
@@ -160,7 +166,7 @@ const ScatterLegend = React.memo(
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null 
                             return (
-                                <LegendItem>
+                                <LegendItem key={`${idx}-${label}-sizenum`}>
                                     {renderLegendCircle(size,"#fff",label.value)}
                                     <LegendLabel align="left" margin={"0 4px"}>{roundNumber({ number: label.datum, limit: sizeLimit })}</LegendLabel>
                                 </LegendItem>

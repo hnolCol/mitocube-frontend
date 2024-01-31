@@ -16,7 +16,7 @@ function AxisWithBackground({
     leftLabel,
     leftHideTicks = false,
     bottomHideTicks = false,
-    bottomHideTickLabels = true,
+    bottomHideTickLabels = false,
     leftTickLabelsVisible = true,
     moveBottomToLeft = true,
     leftTickLabelProps,
@@ -24,14 +24,25 @@ function AxisWithBackground({
     findAttributesForBottomScale = true,
     bandwidth,
     chartHeight,
-    chartWidth }) {
+    chartWidth,
+    attributeValuesByTag = {},
+    valueIsFeature = false}) {
     
     const leftStart = leftLeft === undefined ? margins.left : leftLeft
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
-    const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
-    if (isLoading || isFetching) return null 
-    if (isError && findAttributesForBottomScale) return null 
+    //const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
     if (_.isNumber(bandwidth)) bottomTickLabelProps["width"] = bandwidth
+    
+    const getLabelString = (attributeValue) => {
+        const attributeValuesTagSplit = attributeValue.split(" ")
+        return _.join(_.map(attributeValuesTagSplit, attributeValueTag => {
+            
+            const attributeValue = attributeValuesByTag[attributeValueTag]
+            if (valueIsFeature ) return attributeValue.genes.split(" ").at(0)
+            return attributeValue.text
+        })," + ")
+    }
+
     return (
         <g>
             <AxisBackground
@@ -54,11 +65,11 @@ function AxisWithBackground({
         
             <AxisBottom
                 left={moveBottomToLeft ? leftStart : 0}
-                tickFormat={bottomHideTickLabels ? () => "" : findAttributesForBottomScale ? (tickLabel) => mapAttributeValueTagsToAttributes({attrValueTag : tickLabel, attrValuesByTag : attributesByTag.attribute_values}).asString : null}
+                tickFormat={bottomHideTickLabels ? () => "" : findAttributesForBottomScale ? (tickLabel) =>  getLabelString(tickLabel): null}
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}
-                labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle"}}
+                labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle",dy:10}}
                 tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps}}
                 labelOffset={10}
                 numTicks={getNumberTicks(chartWidth)}

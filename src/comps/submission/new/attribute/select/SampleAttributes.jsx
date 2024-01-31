@@ -20,7 +20,7 @@ SamplesAttributes.propTypes = {
 }
 
 
-function FeatureSelectionInMenu({ onSave, proteome_id, attribute, selectedRows }) {
+function FeatureSelectionInMenu({ onSave, proteome_ids, attribute, selectedRows }) {
     const [selectedItems, setSelectedItems] = useState([])
     const collectItems = (attribute, feature) => {
         const updatedFeatures = addItemToArrayOrRemoveItIfPresent({ array: selectedItems, item: feature })
@@ -28,7 +28,7 @@ function FeatureSelectionInMenu({ onSave, proteome_id, attribute, selectedRows }
     }
     return (
         <div>
-        <FeatureInput {...{ attribute, proteome_id, onItemSelect : collectItems, selectedItems }} />
+        <FeatureInput {...{ attribute, proteome_ids, onItemSelect : collectItems, selectedItems }} />
         <MenuItem text="Save" onClick={() => onSave(attribute,selectedItems,true,selectedRows)} intent="primary" icon="selection"/>
         </div>
     )
@@ -164,7 +164,8 @@ function SamplesAttributes({
     numberReplicates = 0,
     genotypes,
     genotypeAttributes,
-    handleGenotypeSelection
+    handleGenotypeSelection,
+    proteome_ids
     }) {
     const [selectedRows, setSelectedRows] = useState([])
 
@@ -224,12 +225,12 @@ function SamplesAttributes({
         //find row indices from the selected region
         //attribute.has_features_value ? attributeValuesByID[-1] : 
         let attributeValues = groupingInfo === undefined || !_.has(attributeValuesByID, groupingInfo.attribute.id)? [] : attributeValuesByID[groupingInfo.attribute.id]
-        const attributeValuesSelected = _.uniq(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])))
+        const attributeValuesSelected = _.uniqBy(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])),"tag")
         // if there is no attribute values, then a numeric value can be inserted by the user
         const selectedAttributeValuesFound = attributeValuesSelected.length
         // onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
         if (attribute.has_features_value) {            return <Menu style={{minWidth:"min(40vw,700px)"}}>
-                <FeatureSelectionInMenu {...{attribute,onSave : onFeatureSelection, proteome_id :"UP000000589",selectedRows}}/>
+                <FeatureSelectionInMenu {...{attribute,onSave : onFeatureSelection, proteome_ids,selectedRows}}/>
             {selectedAttributeValuesFound? <MenuItem disabled text="Previous selections"/>:null}
             {selectedAttributeValuesFound ? <MenuDivider /> : null}
             

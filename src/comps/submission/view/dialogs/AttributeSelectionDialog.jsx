@@ -118,6 +118,8 @@ export function AttributeSelectionDialog({
         </div>}
             </div>
         </DialogBody>
-        <DialogFooter actions={[<div className="flex"><Button text="Submit" onClick={() => onSubmit(submission.label, selectedAttributes, newSubmissionState, submission.state, submissionText.comment)}/> <Button text="Cancel" intent="danger"  onClick={onClose}/></div>]} />
+        <DialogFooter actions={[<div className="flex">
+            <Button text="Submit" disabled={success} onClick={() => onSubmit(submission.label, selectedAttributes, newSubmissionState, submission.state, submissionText.comment)} />
+            <Button text={success?"Done":"Cancel"} intent={success?"primary":"danger"} onClick={onClose} /></div>]} />
 </Dialog>
 }

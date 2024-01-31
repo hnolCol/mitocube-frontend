@@ -10,12 +10,14 @@ import { useMemo, useState } from "react"
 import FeatureSelection from "../../FeatureSelection"
 import { Alert } from "@blueprintjs/core"
 import { constructSampleNames } from "../../../../../services/samples"
+import { get_proteome_id } from "../../InitialSubmission"
 
 
 export function SampleAttributeTableWrapper({ submission, attributes, updateSubmission, numberReplicates, genotypes }) {
     // wrapper to the sample attributes table 
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     const { data: attributesByTag, isSuccess, isLoading, isFetching } = useGetSubmissionAttributesByTag()
+    const proteome_ids = get_proteome_id(submission.datasetAttributeValues)
 
     const { attributeValuesByAtrributeID, attributesAllowedForDataset } = useMemo((
                 ) => {
@@ -111,7 +113,6 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
             if (!_.has(d[0],attribute.tag)) {
                 d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
             }
-            console.log("h",selectedFeatures)
             //save feature selection
             
             rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length)
@@ -291,6 +292,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 groupings: submission.samplesAttributes,
                 genotypeAttributes : submission.genotypeAttributes,
                 onFeatureSelection,
+                proteome_ids,
                 numberReplicates: numberReplicates !==undefined?numberReplicates :_.uniq(submission.replicates).length,
                 replicates: submission.replicates,
                     onReplicateChange,

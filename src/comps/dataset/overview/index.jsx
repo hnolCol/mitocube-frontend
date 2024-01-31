@@ -5,7 +5,7 @@ import { Header } from "../../core/base/Header";
 import _ from "lodash"
 import GroupingTable from "../../core/base/attribute_selection/AttributeTable";
 import { motion } from "framer-motion";
-import { Button, Divider, Icon } from "@blueprintjs/core";
+import { Button, Collapse, Divider, Icon } from "@blueprintjs/core";
 import APIError from "../../core/error/APIerror";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import HelpOverlay from "../../core/overlay/Helpoverlay";
@@ -15,10 +15,9 @@ import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hook
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../services/arrays/groupby";
-import DatasetAttributeHierarchy from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
+import DatasetAttributeHierarchy, { AttributeFeatureTag } from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
 import { getAttributeForUserNumericInput } from "../../../services/attributes";
 import { getUserFullName } from "../../../services/format/user";
-import { useGetAnnotationFeatures } from "../../../hooks/queries/annotation.hooks";
 
 function Metatext({ metatextTag, metadata, metatext }) {
     
@@ -99,6 +98,59 @@ function ExperimentalInfo({ title = "", details = "" }) {
 }
 
 
+function SampleAttributeSamples({sampleAttr, sampleAttributeValueTag, metadata, attribute}) {
+
+    return (
+        <div className="padding--tiny"><AttributeFeatureTag {...{attribute,value : metadata.attribute_values_by_tag[sampleAttributeValueTag], valueIsFeature : attribute.has_features_value, popoverPosition : "right"}} /></div>
+    )
+}
+
+/**
+ * 
+ * @param {Object} props 
+ * @param {import("../../../types/submissions").Submission} props.metadata 
+ */
+function SamplesAttributes({ metadata }) {
+    const [open, setOpen] = useState({})
+    const sampleAttributes = metadata.samples_attributes 
+    const samplesNames = metadata.sample_names
+    const sampleAttributesTags = _.keys(sampleAttributes)
+    
+    return (<div className="padding--medium">
+        <p>{_.keys(sampleAttributes).length} samples attributes defined.</p>
+        {sampleAttributesTags.map(sampleAttributeTag => {
+            const isOpen = _.has(open, sampleAttributeTag) && open[sampleAttributeTag]
+            const attribute = metadata.attributes[sampleAttributeTag]
+            return (
+                <div>
+                    <Button
+                        minimal={true}
+                        fill={true}
+                        alignText="left"
+                        small={true}
+                        text={attribute.text}
+                        icon={isOpen ? "chevron-down" : "chevron-right"}
+                        onClick={() => setOpen(prevValues => { return { ...prevValues, [sampleAttributeTag]: _.has(prevValues, sampleAttributeTag) ? !prevValues[sampleAttributeTag] : true } })} />
+                    <Collapse isOpen={isOpen}>
+                        {_.keys(sampleAttributes[sampleAttributeTag].values).map(sampleAttributeValueTag => {
+                            return <SampleAttributeSamples
+                                sampleAttr={sampleAttributes[sampleAttributeTag].values[sampleAttributeValueTag]}
+                                {...{
+                                    sampleAttributeValueTag,
+                                    metadata,
+                                    attribute: metadata.attributes[sampleAttributeTag]
+                                }} />
+                        })}
+                    </Collapse>
+                    <Divider />
+                </div>
+            )
+        })}
+        
+    </div>)
+}
+
+
 
 function DatasetOverview({authenticationStatus}) {
 
@@ -108,26 +160,30 @@ function DatasetOverview({authenticationStatus}) {
         if (tabHeader !== "") setTabHeader("")
         
     }, [])
-
+    console.log(metadata)
+ 
     const datasetMetrices = useMemo(() => {
         if (!_.isObject(metadata)) return []
         //get metrices available at any state of the project
         let basicMetrices = [
             { label : "Label", metric : metadata.label},
             { label: "Samples", metric: metadata.sample_names.length },
-            { label: "Replicates", metric: _.uniq(metadata.replicates).length },
+            { label: "Replicates", metric: _.isObject(metadata.samples_genotypes)?_.keys(metadata.samples_genotypes).length : 0},
+            { label: "Genotypes", metric : 2},
             { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
         ]
         //add others / optional 
         return basicMetrices 
-    }, [dataset_label,_.isObject(metadata)])
+    }, [dataset_label, _.isObject(metadata)])
+    
     if (!_.isObject(metadata)) return null
 
     const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
     
+    const hasGenotypes = _.isObject(metadata.samples_genotypes)
     let dataAttributes = _.values(metadata.attributes)
     let datasetAttributeValues = metadata.dataset_attributes
-    console.log(datasetAttributeValues)
+ 
     return (
         <div style={{overflowY:"scroll", height : "90vh "}}>
              <div id="top" className="flex flex-column center-items">
@@ -159,14 +215,18 @@ function DatasetOverview({authenticationStatus}) {
                     <Divider/>
                 </div>
             </div>
-            
-            <h2>Sample Attributes</h2>
-            <h2>Dataset Attributes</h2>
-            <div style={{maxWidth : "33vw"}}>
-            <DatasetAttributeHierarchy {...{
-                selectedDasetAttributeValues: datasetAttributeValues,
-                selectedAttributes: dataAttributes
-                }} />
+            <div className="flex flex--wrap">
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw"}}>
+                    <h2>Sample Attributes</h2>
+                    <SamplesAttributes {...{metadata}} />
+                </div>
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw"}}>
+                    <h2>Dataset Attributes</h2>
+                <DatasetAttributeHierarchy {...{
+                    selectedDasetAttributeValues: datasetAttributeValues,
+                    selectedAttributes: dataAttributes
+                    }} />
+                </div>
             </div>
             <div className="intent-margin-right ">
                 <h2>Metatext</h2>

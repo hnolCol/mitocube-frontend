@@ -39,7 +39,7 @@ export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false
  * @param {Function} prop.onRemove 
  * @returns 
  */
-export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, disableTooltip  = false, onRemove = undefined}) {
+export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, disableTooltip  = false, onRemove = undefined, popoverPosition = "top"}) {
     
     return (
         
@@ -58,7 +58,7 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, d
             inheritDarkTheme={false}
             hoverOpenDelay={400}
             hoverCloseDelay={100}
-            position="top">
+            position={popoverPosition}>
             <motion.div
                 style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :
                 className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
@@ -85,7 +85,7 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, d
  * @param {Function} prop.onRemove 
  * @returns 
  */
-export function FeatureTagWithTooltip({ feature = {}, attribute = {}, disableTooltip = false, onRemove = undefined}) {
+export function FeatureTagWithTooltip({ feature = {}, attribute = {}, disableTooltip = false, onRemove = undefined,  popoverPosition = "top"}) {
     
     return (
         <Popover disabled={disableTooltip}
@@ -104,14 +104,14 @@ export function FeatureTagWithTooltip({ feature = {}, attribute = {}, disableToo
             inheritDarkTheme={false}
             hoverOpenDelay={400}
             hoverCloseDelay={200}
-            position="top">
+            position={popoverPosition}>
             <motion.div
                 style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :
                 className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
                 whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
             <div>{_.isString(feature.genes)?feature.genes.split(" ").at(0):null}</div>
             {_.isFunction(onRemove) ? <button
-                onClick={(e) => onRemove(attributeValue)}
+                onClick={(e) => onRemove(feature)}
                 style={{ margin: "0px", padding: "0px", border: "none", background: "transparent", outline: "none" }}>
                 <div className="close-div" />
                     

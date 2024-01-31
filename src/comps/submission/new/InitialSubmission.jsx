@@ -27,10 +27,10 @@ import { constructSampleNames } from "../../../services/samples"
 import { FeatureInput } from "./features/FeatureInput"
 import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 import { useNavigate } from "react-router"
-
-function get_proteome_id(datasetAttributeValues) {
-    return _.has(datasetAttributeValues,"att_organism") && datasetAttributeValues["att_organism"].length > 0? datasetAttributeValues["att_organism"][0].value : undefined
-
+//move to service
+export function get_proteome_id(datasetAttributeValues) {
+    return _.has(datasetAttributeValues,"att_organism") && datasetAttributeValues["att_organism"].length > 0? datasetAttributeValues["att_organism"].map(attributeValue => attributeValue.value) : []
+    
 }
 
 
@@ -68,8 +68,8 @@ function InitialSubmission({
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
     const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID()
-    const proteome_id = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : undefined 
-    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_id},{enabled : _.isString(proteome_id)})
+    const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
+    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_ids : proteome_ids},{enabled : proteome_ids.length > 0})
     //console.log(genotypes)
 
     const { data: submissionAttributes,
@@ -394,7 +394,8 @@ function InitialSubmission({
     }
 
     const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
-
+        console.log("used??")
+        return 
         if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
             || submission.datasetAttributeValues["att_organism"].length === 0) {
             //if organism has not been selected
@@ -571,7 +572,7 @@ function InitialSubmission({
                             
                             return <FeatureInput onItemSelect={handleDatasetAttributeSelection}
                                 attribute={attribute}
-                                proteome_id={proteome_id}
+                                proteome_ids={proteome_ids}
                                 selectedItems={_.has(submission.datasetAttributeValues, attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []} />
                         }
 
@@ -613,7 +614,7 @@ function InitialSubmission({
                     
                 {/* <Button onClick={handleGenotypeCreation} /> */}
                         <GenotypeGenerator
-                    proteome_id={proteome_id}
+                    proteome_ids={proteome_ids}
                     attributes={attributesForGenotype}
                     attributeValuesByID={attributeValuesByAtrributeID}
                     //onSelection={genotypeSelection}

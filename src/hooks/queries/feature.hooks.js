@@ -1,5 +1,6 @@
 import { useQuery } from "react-query"
 import axios from "axios"
+import _ from "lodash"
 
 async function getFeatureDetails_API({filter = {}, token}){
     //fetch availabe features from the API. Reconsider /details 
@@ -28,8 +29,8 @@ async function getDataByFeatureID_API({ feature_key }) {
     return res.data
     }
 
-export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {staleTime : 600000}, ) {
-    return useQuery(["getDataByFeautreID",APIParams.feature_key],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
+export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {staleTime : Infinity}, ) {
+    return useQuery(["getDataByFeautreKey",APIParams.feature_key],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -73,8 +74,8 @@ export function useGetSequenceByFeatureKey(APIParams = {}, useQueryOptions = {st
  * @param {String} props.query
  * @returns 
  */
-async function findFeatureByQuery_API({ query, proteome_id }) {
-    const res = await axios.get("/api/features", { params: { query, proteome_id } })
+async function findFeatureByQuery_API({ query, proteome_ids }) {
+    const res = await axios.get("/api/features", { params: { query, proteome_ids : _.join(proteome_ids,";") } })
     return res.data
 }
 

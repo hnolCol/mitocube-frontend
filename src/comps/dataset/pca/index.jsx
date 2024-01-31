@@ -31,13 +31,13 @@ function ChartMarksSelection({keyNames, selection, onSelectionChange, minimal}) 
                 placeholder={selection.colorName}
                 selectedItems={[{ text: selection.colorName }]}
                 minimal={minimal}
-                callbackKey="colorName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+                callbackKey="colorName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: prevValues[key] === value ? undefined : value } })} />
             <SizeIconWithName
                 items={keyNames}
                 placeholder={selection.sizeName}
                 selectedItems={[{ text: selection.sizeName }]}
                 minimal={minimal}
-                callbackKey="sizeName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+                callbackKey="sizeName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: prevValues[key] === value ? undefined : value } })} />
         </div>
     )
 }
@@ -142,7 +142,6 @@ function DownloadData({ elements = [], elementNames = [], elementTypes = [], fil
         else if (elementTypes[idx] === "data") {
             if (_.isArray(elements[idx]) && _.isObject(elements[idx][0])) {
                 const txtData = arrayOfObjectsToString({ data: elements[idx], keyNames : _.keys(elements[idx][0]) })
-                console.log(txtData)
                 downloadTxtFile(txtData,fileNames[idx])
             }
             
@@ -165,7 +164,7 @@ function DownloadData({ elements = [], elementNames = [], elementTypes = [], fil
 
  * @returns 
  */
-function ScatterDataSelection({ keyNames, title = "", numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = []}) {
+export function ScatterDataSelection({ keyNames, title = "", numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = []}) {
     // const [searchString, setSearchString] = useState("")
     // const debounceString = useDebounce(searchString, 200)
 

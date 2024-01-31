@@ -68,9 +68,7 @@ export function getDomainWithBoundaries({ data, keyName, frac = 0.08}) {
  */
 export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], keyName = "x"}) {
     
-    if (_.isArray(keyName)) {
-        console.log("h`?", keyName)
-     
+    if (_.isArray(keyName)) {     
         return (
             {
                 min: _.min(data.map(d => _.min(_.filter(keyName, key => _.isNumber(d[key])).map(key => d[key])))),
@@ -79,7 +77,6 @@ export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], k
     )   
     }
     const filteredData = data.filter(d => _.isNumber(d[keyName]))
-    console.log(_.maxBy(filteredData, keyName)[keyName])
     return ({
             min: _.minBy(filteredData, keyName)[keyName],
             max: _.maxBy(filteredData, keyName)[keyName]

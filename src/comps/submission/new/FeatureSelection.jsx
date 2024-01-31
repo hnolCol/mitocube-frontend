@@ -6,12 +6,12 @@ import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/tran
 import { Button } from "@blueprintjs/core"
 import { FeatureInput } from "./features/FeatureInput"
 
-
+// i gues this is not used anymore
 
 function FeatureSelection({selectedItems = [], attribute, organisms = [], isSampleAttribute, onSave = undefined, rowIdces = [], genotypeLabel = undefined, entryIdx = 0}) {
     // feature selection for attributes
     console.log(organisms)
-    const proteome_id = organisms[0].value
+    const proteome_ids = organisms.map(organism => organism.value)
     const [selectedFeatures, setSelectedFeatures] = useState(selectedItems)
     const { data: features, isLoading, isFetching } = useGetAnnotationFeatures({ organisms })
     /**
@@ -35,7 +35,7 @@ function FeatureSelection({selectedItems = [], attribute, organisms = [], isSamp
                     attribute={attribute}
                     onItemSelect={handleFeatureSelection}
                     selectedItems={selectedFeatures}
-                    proteome_id={proteome_id} />
+                    proteome_ids={proteome_ids} />
                 </div>
                 <div>
                     <Button text="Save" intent="primary" onClick={() => onSave(attribute,selectedFeatures,isSampleAttribute,rowIdces,genotypeLabel,entryIdx)}/>

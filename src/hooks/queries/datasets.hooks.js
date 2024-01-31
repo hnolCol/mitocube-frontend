@@ -87,14 +87,18 @@ export const useGetDatasetHeatmap = (APIParams = {}, useQueryOptions = {}) => {
 
 // Volcano for dataset
 
-async function getDatasetVolcano_API({ dataset_label, testParams = {} }) {
-
+async function getDatasetVolcano_API({ dataset_label, testParams }) {
     const res = await axios.get(`/api/datasets/${dataset_label}/volcano`, { params: testParams })
     return res.data 
 }
 
 export const useGetDatasetVolcano = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getVolcano",APIParams.dataset_label],() => getDatasetVolcano_API(...APIParams), useQueryOptions)
+    console.log(APIParams)
+    return useQuery(["getVolcano",
+        APIParams.dataset_label,
+        APIParams.attribute_left_tag,
+        APIParams.attribute_right_tag,
+        APIParams.sample_attribute_tag], () => getDatasetVolcano_API({ ...APIParams }), useQueryOptions)
 }
 
 

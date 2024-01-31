@@ -23,7 +23,7 @@ function ProteinOverview({
     const { featureKey } = useOutletContext()
 
     const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_key: featureKey }, {})
-    console.log(featureData)
+    console.log()
     if (isError) return <APIError error={error} />
     return (
         <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>

@@ -7,7 +7,7 @@ export function XAxisName({ height = 25,width = 25, placeholder = "", items = [{
     return (
         <ComboboxIconBase {...{height,width,placeholder,items,callback,callbackKey,callbackValueOnly,selectedItems,minimal}}>
             {[{ x1: margin, x2: iconHeight , y1: margin, y2: iconHeight  },
-            { x1: margin, x2: iconHeight , y1: iconHeight , y2: margin }].map(lineProps => <line {...lineProps} stroke="black" strokeWidth={1} />)}
+            { x1: margin, x2: iconHeight , y1: iconHeight , y2: margin }].map((lineProps,lineIdx) => <line key={`X-axisLine${lineIdx}`} {...lineProps} stroke="black" strokeWidth={1} />)}
         </ComboboxIconBase>
     )
 }
@@ -32,7 +32,7 @@ export function YAxisName({ height = 25, width = 25, placeholder = "", items = [
                 { x1: middleX, x2: middleX, y1: iconHeight, y2: splitCenter },
                 { x1: middleX, x2: middleX - middleX / 2, y1: splitCenter, y2: margin },
                 { x1: middleX, x2: middleX + middleX / 2, y1: splitCenter, y2: margin }
-            ].map(lineProps => <line {...lineProps} stroke="black" strokeWidth={1} />)}
+            ].map((lineProps,lineIdx) => <line key={`Y-axisLine${lineIdx}`} {...lineProps} stroke="black" strokeWidth={1} />)}
 
         </ComboboxIconBase>
     )

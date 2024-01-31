@@ -5,12 +5,10 @@ import NumericValueInput from "../../core/input/Numeric"
 import { useMemo, useState } from "react"
 import { createDataTree } from "../../../services/arrays/nest"
 import { objectHasKey } from "../../../services/objects/checks"
-import { useGetAnnotationsByFeatureID, useGetFeatureByQuery, useGetSequenceByFeatureKey } from "../../../hooks/queries/feature.hooks"
+import { useGetSequenceByFeatureKey } from "../../../hooks/queries/feature.hooks"
 import { splitStringByNCharacters } from "../../../services/format/string"
 import {motion} from "framer-motion"
 import SingleAttributeInput from "./attribute/select/SelectAttribute"
-import { Select, Suggest } from "@blueprintjs/select"
-import useDebounce from "../../../hooks/useDebounce"
 import { FeatureInput } from "./features/FeatureInput"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { getRandomID } from "../../../services/random"
@@ -99,7 +97,7 @@ function GenotypeAttributeSelection({
                 })}
             </div> :
                 allowFeatures ?
-                    <FeatureInput {...{ attribute, proteome_id, onItemSelect: handleSelection, selectedItems: genotypeProps.attributes[entryIdx][attribute.tag] }} /> :
+                    <FeatureInput {...{ attribute, proteome_ids : [proteome_id], onItemSelect: handleSelection, selectedItems: genotypeProps.attributes[entryIdx][attribute.tag] }} /> :
                 <SingleAttributeInput {...{
                 attribute,
                 attributeValues: attributeValues,
@@ -279,7 +277,7 @@ function GenotypeGenerator({ index = 6,
     //removeGenotypeEntry,
     handleFeatureSelection,
     handlePositionSelection,
-    proteome_id,
+    proteome_ids,
     refetchGenotypes}) {    
     const [genotype, setGenotype] = useState({})
    
@@ -293,7 +291,7 @@ function GenotypeGenerator({ index = 6,
         const genotypeLabel = getRandomID(5)
         let genotypeProps = {
             name: "",
-            proteome_id,
+            proteome_id : proteome_ids[0],
             label : genotypeLabel,
             attributes: [{}]
         }
@@ -324,7 +322,6 @@ function GenotypeGenerator({ index = 6,
             }
 
             if (_.has(genotypeEntryAttributes, "att_protein_mutation") && genotypeEntryAttributes["att_protein_mutation"].length > 0) {
-                console.log(genotypeEntryAttributes["att_protein_mutation"])
                 const proteinMutationAttribute = genotypeEntryAttributes["att_protein_mutation"][0]
                 if (proteinMutationAttribute.text.endsWith("tag")) {
                     const tagName = proteinMutationAttribute.value.toUpperCase()
@@ -438,7 +435,7 @@ function GenotypeGenerator({ index = 6,
                         removeGenotypeEntry,
                         handleFeatureSelection,
                         handlePositionSelection,
-                        proteome_id
+                        proteome_id : proteome_ids[0]
                     }} /> : null}
             
             </div>    

@@ -256,6 +256,9 @@ h5 {
 .intent-margin-bottom--medium {
     margin-bottom: 1rem;
 }
+.intent-margin-bottom--large {
+    margin-bottom: 3rem;
+}
 
 
 /* Containers */

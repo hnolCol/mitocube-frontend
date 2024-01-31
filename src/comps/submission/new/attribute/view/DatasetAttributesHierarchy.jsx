@@ -9,10 +9,10 @@ import { useMemo } from "react"
 import { AttributeTagWithTooltip, FeatureTagWithTooltip } from "../../../../core/base/tags/TagWithTooltip"
 
 
-export function AttributeFeatureTag({ attribute, value, valueIsFeature = false, onRemove = undefined}) {
+export function AttributeFeatureTag({ attribute, value, valueIsFeature = false, onRemove = undefined, popoverPosition = "top"}) {
     
     return (
-        valueIsFeature ? <FeatureTagWithTooltip {...{attribute,feature : value, onRemove}} /> : <AttributeTagWithTooltip {...{attribute, attributeValue : value, onRemove}}/>
+        valueIsFeature ? <FeatureTagWithTooltip {...{attribute,feature : value, onRemove, popoverPosition}} /> : <AttributeTagWithTooltip {...{attribute, attributeValue : value, onRemove, popoverPosition}}/>
         // <
         // <Tooltip content={}>
         // <Tag

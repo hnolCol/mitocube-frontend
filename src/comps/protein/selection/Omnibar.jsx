@@ -18,18 +18,8 @@ export function OmnibarSearch(props) {
     const [featureDeatails, setFeatureDetails] = useState({items : [], featureLabels : {}, itemsToShow : [], searchString : "", sortBy : ""})
     const debounceSearchString = useDebounce(featureDeatails.searchString, 400)
 
-    const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString, proteome_id : "UP000005640"},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
-
-    // useEffect(() => { 
-    //     if (isLoading) return
-    //     if (isFetching) return
-    //     if (isError) return
-    //     if (data === undefined) return
-       
-    // },
-    //     [debounceSearchString,data, isSuccess, isLoading])
-    
-    console.log(isError)
+    const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString, proteome_ids : ["UP000005640"]},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
+ 
 
     useEffect(() => {setSearchString("")},[isOpen])
     

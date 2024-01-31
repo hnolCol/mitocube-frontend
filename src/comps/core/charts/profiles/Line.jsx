@@ -55,10 +55,10 @@ function ProfileLine({
                 }
                 {labelNames.length > 0 && yaxisName.length > 0 ?
                     <Text
-                        x={xScale(yaxisName.at(-1)) + halfBandWidth}
-                        y={yScale(d[yaxisName.at(-1)])}
-                        dx={5+2}
-                        textAnchor="start"
+                        x={xScale(yaxisName.at(-1))}
+                        y={yScale(yScale.domain().at(-1))}
+                        dy={-8}
+                        textAnchor="end"
                         verticalAnchor="middle">
                         {_.join(_.map(labelNames, labelName => d[labelName]), ", ")}
                     </Text> : null}

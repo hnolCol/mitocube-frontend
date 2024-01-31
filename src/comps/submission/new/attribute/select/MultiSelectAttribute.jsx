@@ -38,6 +38,7 @@ function AttributeInput({ attribute,
         const justNumbersString = query.replace(/[^\d.]/g, "")
         if (attribute.has_features_value && attributeValues.length === 0) {
             return <Menu>
+                {/* TODO: CHANGE THIS TO FeatureInput */}
                 <MenuItem text="Select protein feature..."
                     onClick={() => {
                         handleFeatureSelection({ attribute })
@@ -85,7 +86,7 @@ function AttributeInput({ attribute,
     const filterItems = (searchString, items) => {
         if (searchString === "") return items 
         if (searchString.length < minimumSearchStringLength) return items
-        const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns, searchString })
+        const filteredAttributeValues = filterArrayBySearchString({ array: items, keyNames : searchColumns, searchString })
         return filteredAttributeValues
     }
     return (

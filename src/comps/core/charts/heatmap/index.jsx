@@ -50,6 +50,7 @@ function Heatmap({
  
     //updates only on datalength. can be dangerous
     const [scrollPos, setScrollPos] = useState(0)
+    //const debouncedScrollPos = useDebounce(scrollPos,20)
     const uniqueColorValues = useMemo(() => colorNames.length > 0 ? getUniqueValuesInArrayOfObjects({data, keyName : colorNames}) : [], [_.join(colorNames),data.length])
     const uniqueClusterValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, clusterName }), [clusterName])
     const heatmapValues = useMemo(() => _.map(data, d => _.map(valueNames, valueName => d[valueName])), [_.join(valueNames),data.length])
@@ -133,8 +134,8 @@ function Heatmap({
     if (refScrollContainer.current !== null){
     //console.log(refScrollContainer.current.clientHeight)
       //  console.log(scrollPos)
-        minIdx = scrollPos / binHeight
-        maxIdx = minIdx + refScrollContainer.current.clientHeight / binHeight
+        minIdx = _.toInteger(scrollPos / binHeight)
+        maxIdx = _.toInteger(minIdx + refScrollContainer.current.clientHeight / binHeight)
 
     }
     return (

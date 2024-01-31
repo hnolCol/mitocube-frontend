@@ -49,16 +49,20 @@ export function ProfileChart({
     rerenderHover,
     rerenderBackground,
     hoverData,
+    hoverIndices,
     profileAsLine = true,
     profileAsBar = false,
     subsetIndices = new Set(), // subset the data to only plot those 
     searchIndices = new Set(),
 }) {
-
+    //console.log(subsetIndices,hoverIndices)
+    let hoverIdcsInSubset = hoverIndices.size > 0 ? Array.from([...hoverIndices].filter(idx => subsetIndices.size > 0 && subsetIndices.has(idx))) : []
+    let searchIndicesInSubset = searchIndices.size > 0 ? new Set(Array.from([...searchIndices]).filter(idx => subsetIndices.has(idx))) : new Set()
+    const hoverDataInSubset = hoverIdcsInSubset.map(idx => data[idx])
     const svgRef = useRef(null);
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins })
     
-    const q = useMemo(() => getQuantilesInArrayByKeyNames({ data, keyNames: yaxisName }), [yaxisName])
+    const q = useMemo(() => getQuantilesInArrayByKeyNames({ data : data.filter((_,idx) => subsetIndices.has(idx)), keyNames: yaxisName }), [yaxisName])
     
     const yScale = useMemo(() => {
         const limitValues = yaxisName.map(yName => limits[yName])
@@ -68,7 +72,7 @@ export function ProfileChart({
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
         return scaleLinear(
             {
-                domain: [yDomainWithMargin.max, yDomainWithMargin.min],
+                domain: [yDomain.max, yDomain.min],
                 range: [margins.top, margins.top + chartHeight],
                 nice: true
             }
@@ -97,14 +101,15 @@ export function ProfileChart({
                 bottomScale={xScale}
                 bottomLabel={_.isString(xaxisLabel)?xaxisLabel:xaxisName}
                 leftHideTicks={false}
-                leftLabel={_.isString(yaxisLabel)? yaxisLabel : yaxisName}
+                leftLabel={""} //_.isString(yaxisLabel)? yaxisLabel : yaxisName
                 moveBottomToLeft={false}
+                bottomHideTickLabels={true}
                 findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
         
             <QuantileBackground {...{xScale, yScale, data : q, keyNames : yaxisName, rerenderDependency: rerenderBackground}} />
             {profileAsLine ? <g >
-                <ProfileLine {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames, showPoints : !yaxisName.length > 30}} />
+                <ProfileLine {...{ valid, data: hoverDataInSubset, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames, showPoints : !yaxisName.length > 30}} />
             </g> : null}
             {profileAsBar ? <g>
                 <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
@@ -112,9 +117,9 @@ export function ProfileChart({
 
             {/* Indicate Searches */}
             
-            {searchIndices.size > 0 ? <FilterIndicator {...{ searchIndices, width, margins }} /> : null}
+            {searchIndices.size > 0 ? <FilterIndicator {...{ searchIndices : searchIndicesInSubset, width, margins }} /> : null}
             
-            {<ChartTopLeftLabel {...{ margins, labelTexts: [`Cluster 8`,`n=${data.length}`], textOffset: 2 }} />}
+            {<ChartTopLeftLabel {...{ margins, labelTexts: [`C${chartIdx}`,`n=${subsetIndices.size}`], textOffset: 3 }} />}
             
             {/* {
                 searchIndices.size > 0 ? <ProfileLine {...{ valid, data: searchData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderBackground, stroke : "blue" }} /> : null} */}

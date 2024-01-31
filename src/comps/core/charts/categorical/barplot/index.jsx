@@ -45,7 +45,7 @@ function CategoricalBarplot({
     ],
     
     margins = {
-        left: 35,
+        left: 45,
         right: 0,
         bottom: 35,
         top: 5
@@ -149,7 +149,9 @@ function CategoricalBarplot({
                                     leftScale={yScale}
                                     bottomScale={splitColorScale}
                                     bottomLabel={""}
-                                    leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
+                                    leftLabel={_.isString(yaxisLabel) ? yaxisLabel : yaxisName}
+                                    attributeValuesByTag={attributeValuesByTag}
+                                    valueIsFeature={attributesByTag[colorName].has_features_value}
                                     {...{ chartHeight, chartWidth }} />
                                 {/* x axis label */}
                                 <Text
@@ -242,10 +244,12 @@ function CategoricalBarplot({
                                 topBottom={margins.top + chartHeight}
                                 margins={margins}
                                 leftScale={yScale}
-                              bottomScale={splitScale}
-                              bandwidth={colorBandwidth * 1.1}
+                                bottomScale={splitScale}
+                                bandwidth={colorBandwidth * 1.1}
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
-                                bottomLabel={""}
+                                 bottomLabel={""}
+                                attributeValuesByTag={attributeValuesByTag}
+                                valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
                                 {...{ chartHeight, chartWidth :  subplotWidth}} />
                         

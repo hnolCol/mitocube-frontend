@@ -7,6 +7,7 @@ import InteractiveChart from "../../core/charts/interactive";
 import { ProfileChart } from "../../core/charts/profiles/ProfileChart";
 import { InputGroup } from "@blueprintjs/core";
 import _ from "lodash"
+import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 function DatasetHeatmap({}) {
     
     const { dataset_label, metadata } = useOutletContext()   
@@ -17,7 +18,6 @@ function DatasetHeatmap({}) {
    // const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})
 
     // console.log(heatmapData)
-
      if (isError) return <APIError error={error} />
      if (isLoading || isFetching) return <div>Loading...</div>
      
@@ -25,7 +25,8 @@ function DatasetHeatmap({}) {
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
-            <p>Analysis of Variance was performed on. The FDR cutoff was to 5%.</p>
+            <p>Analysis of Variance was performed on. The FDR cutoff was to 1% and <strong>{heatmapData.data.length}</strong> features were found significantly different.</p>
+            <p>The data are divided into a total number of <strong>{heatmapData.n_clusters}</strong> clusters.</p>
             
             <InteractiveChart
                         data = {heatmapData.data}
@@ -62,14 +63,24 @@ function DatasetHeatmap({}) {
                         }, didx) => {
                     return (
                         <div>
-                            <InputGroup onValueChange={(value,e) => handleStringSearch(heatmapData.label_names,value)}/>
-                            <ProfileChart {...{
+                            <InputGroup onValueChange={(value, e) => handleStringSearch(heatmapData.label_names, value)} />
+                            <div className="flex">
+                            <MultiProfiles {...{
                                 chartIdx, data,
+                                subsetIndices : heatmapData.cluster_indices,
                                 yaxisLabel: "Z-Score",
                                 xaxisLabel: "Samples",
                                 ...hoverProps, ...filterProps,
                                 limits, xaxisName, yaxisName, valid, labelNames: heatmapData.label_names,
                             }} />
+
+                            {/* <ProfileChart {...{
+                                chartIdx, data,
+                                yaxisLabel: "Z-Score",
+                                xaxisLabel: "Samples",
+                                ...hoverProps, ...filterProps,
+                                limits, xaxisName, yaxisName, valid, labelNames: heatmapData.label_names,
+                            }} /> */}
                             
                         {/* <ScatterPlot key={`${chartIdx}`}{...{
                             chartIdx,
@@ -93,9 +104,17 @@ function DatasetHeatmap({}) {
                                 filterDataInKeyByValue,
                             svgID : "scatter_plot-pca-projection"
                         
+                        
                             }} /> */}
-                            <Heatmap {...{ data, valueNames: yaxisName, colorNames: heatmapData.color_names, labelNames: heatmapData.label_names, handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps}} />
-                    </div>)
+                                <div>
+                                    <Heatmap {...{
+                                        data,
+                                        clusterName : "cluster",
+                                        valueNames: yaxisName, colorNames: heatmapData.color_names, labelNames: heatmapData.label_names, handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps
+                                    }} />
+                            </div>
+                                </div>
+                            </div>)
                 })}
 
             </InteractiveChart> 

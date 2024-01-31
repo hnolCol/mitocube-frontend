@@ -87,7 +87,7 @@ function CategoricalBoxplot({
     ],
     
     margins = {
-        left: 35,
+        left: 45,
         right: 5,
         bottom: 35,
         top: 5
@@ -173,11 +173,17 @@ function CategoricalBoxplot({
         const quantileData = extractQuantileData(boxData,undefined,false,true)
         const tooltipInfo = _.map(tooltipNames, tooltipName => {
             let tooltipValue = boxData[tooltipName]
-            const { attrValues, asString, isAttrValue } = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
+            let attributeValueText = tooltipValue
+            let isAttribute = _.has(attributesByTag, tooltipName) 
+            let isFeature = isAttribute ? attributesByTag[tooltipName].has_features_value: false
+            if (_.has(attributeValuesByTag, tooltipValue)) {
+                attributeValueText = isFeature ? attributeValuesByTag[tooltipValue].genes : attributeValuesByTag[tooltipValue].text
+            }
+            //const { attrValues, asString, isAttrValue } = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
           
             return {
-                name: tooltipName,
-                value: asString
+                text:_.has(attributesByTag,tooltipName) ? attributesByTag[tooltipName].text : tooltipName,
+                value: attributeValueText
             }
         })
         return _.concat(tooltipInfo,quantileData) 
@@ -240,6 +246,8 @@ function CategoricalBoxplot({
                                     bottomScale={splitColorScale}
                                     bandwidth={colorBandwidth}
                                     bottomLabel={""}
+                                    attributeValuesByTag={attributeValuesByTag}
+                                    valueIsFeature={attributesByTag[colorName].has_features_value}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
                                 {/* x axis label */}
@@ -328,6 +336,8 @@ function CategoricalBoxplot({
                                 leftTickLabelsVisible={didx === 0}
                                 bottomScale={splitScale}
                                 bottomLabel={""}
+                                attributeValuesByTag={attributeValuesByTag}
+                                valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
                                 bandwidth={colorBandwidth * 1.1}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
                                 {...{ chartHeight, chartWidth :  subplotWidth}} />
@@ -444,9 +454,7 @@ function CategoricalBoxplot({
                          */}
 
                 </TooltipInPortal>
-            )}
-            {console.log(colorName)}
-            
+            )}            
             </div>
     )
 }

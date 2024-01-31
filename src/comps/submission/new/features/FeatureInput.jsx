@@ -5,17 +5,16 @@ import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 
-export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_id, isRequired = true, helperText = "", inline = false, showLabel = true}) {
-    
+export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
-    const { data: items, isLoading, isFetching } = useGetFeatureByQuery({ query: debouncedString, proteome_id},
+    const { data: items, isLoading, isFetching } = useGetFeatureByQuery({ query: debouncedString, proteome_ids},
         { enabled: debouncedString.length > 0 })
-    const disabled = !_.isString(proteome_id)
+    const disabled = !(_.isArray(proteome_ids) &&  proteome_ids.length > 0)
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <MenuItem key={item.key} text={item.genes} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-        labelElement={<div style={{ maxWidth: "24rem", textAlign : "right", float : "right", textWrap : "wrap", marginRight : "1rem"}}>{`${item.key} ${item.proteins}`}</div>}/>
+            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{item.key}</h4><p>{item.proteins}</p></div><div>{item.organism}</div></div>}/>
     }
     /**
      * @description Handles the item selection 
@@ -44,7 +43,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
     disabled={disabled}
     helperText={helperText}>
             <MultiSelect
-            disabled={!_.isString(proteome_id)}
+            disabled={disabled}
             itemRenderer={renderFeature}
             items={_.isArray(items) ? items : []}
             tagRenderer={renderValue}

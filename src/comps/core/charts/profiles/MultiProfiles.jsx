@@ -2,13 +2,13 @@ import { ProfileChart } from "./ProfileChart";
 import _ from "lodash"
 
 export function MultiProfiles({chartIdx,
-    width = 320,
-    height = 240,
+    width = 220,
+    height = 180,
     margins = {
         left: 45,
         top: 5,
-        right: 45,
-        bottom: 40
+        right: 5,
+        bottom: 5
     },
     data,
     valid,
@@ -28,9 +28,10 @@ export function MultiProfiles({chartIdx,
     searchIndices = new Set(),
     hoverIndices = new Set()}) {
     
-    return (<div className="flex flex--wrap">
-        {_.keys(subsetIndices, subsetKey => <ProfileChart {...{
+    return (<div className="flex flex-column flex--wrap" style={{flexFlow:"column wrap", maxHeight:"90vh", width : "33vw"}}>
+        {_.keys(subsetIndices).map(subsetKey => <ProfileChart {...{
             key: `${subsetKey}-profile-chart`,
+            chartIdx : subsetKey,
             width,
             height,
             margins,
@@ -48,7 +49,7 @@ export function MultiProfiles({chartIdx,
             hoverData,
             profileAsLine,
             profileAsBar,
-            subsetIndices: subsetIndices[subsetKey], // subset the data to only plot those chartIdx / indices
+            subsetIndices: new Set(subsetIndices[subsetKey]), // subset the data to only plot those chartIdx / indices
             searchIndices,
             hoverIndices
         }}

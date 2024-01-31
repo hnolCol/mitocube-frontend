@@ -162,9 +162,16 @@ export function ScatterPlot({
         }
         else {
             const uniqueValues = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
+            let colorValues = getColorPalette(uniqueValues.length)
+            //TODO create function get this straight.
+            _.forEach(uniqueValues, (value, index) => {
+                if (value === "-" || (_.isBoolean(value) && !value)) {
+                    colorValues[index] = "#efefef"
+                }
+            })
             return scaleOrdinal({
                 domain: uniqueValues,
-                range: getColorPalette(uniqueValues.length)
+                range: colorValues
             })
         }
         
@@ -201,7 +208,7 @@ export function ScatterPlot({
     }    
     const handleMouseHover = (event) => {
 
-        const coords = localPoint(event);
+        const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
         const y = yScale.invert(coords.y)
 
@@ -303,7 +310,7 @@ export function ScatterPlot({
                 </TooltipInPortal> : null} 
             
             <div>
-                <ScatterLegend {...{
+                {legend ? <ScatterLegend {...{
                     chartIdx,
                     sizeName,
                     sizeScale,
@@ -316,7 +323,7 @@ export function ScatterPlot({
                     colorLimit: limits[colorName],
                     attributesByTag,
                     attributeValuesByTag
-                }} />
+                }} /> : null}
                 {/* <h3>Legend</h3>
                 {_.isString(colorName) && _.isString(data[0][colorName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)}>
