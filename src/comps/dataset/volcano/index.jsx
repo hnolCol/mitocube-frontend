@@ -10,6 +10,7 @@ import { useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { ScatterDataSelection } from "../pca";
+import { Card } from "@blueprintjs/core";
 
 
 function VolcanoPlot({dataset_label}) {
@@ -60,25 +61,27 @@ function DatasetVolcanoPlot(logout) {
     
     if (!_.isObject(metadata) || !_.isObject(attributesByTag)) return null
     let sampleAttributesKey = Object.keys(metadata.samples_attributes)
-    let sampleAttributeValues = _.fromPairs(_.keys(metadata.samples_attributes).map(sampleAttributeTag => [sampleAttributeTag, _.values(metadata.samples_attributes[sampleAttributeTag].attribute_values)]))
-
+    let sampleAttributeValues = _.fromPairs(_.keys(metadata.samples_attributes).map(sampleAttributeTag => [sampleAttributeTag, _.keys(metadata.samples_attributes[sampleAttributeTag]).map(attribute_value_tag => metadata.attribute_values_by_tag[attribute_value_tag])]))
     //console.log(sampleAttributeValues)
     //console.log(metadata)
-    const numericKeyNames = _.isArray(volcanoData) ? _.filter(_.keys(volcanoData[0]), keyName => _.isNumber(volcanoData[0][keyName])) : []
-
+    const numericKeyNames = _.isObject(volcanoData) && _.has(volcanoData, "stats") && _.isArray(volcanoData.stats) ?
+        _.filter(_.keys(volcanoData.stats[0]), keyName => _.isNumber(volcanoData.stats[0][keyName])) : []
     return (
-        <div>
-            {_.isEmpty(testParams) ? <div className="flex center-items justify-center div--expand">
+        <div >
+            {_.isEmpty(testParams) ? <div className="flex center-items">
                 <SamplesAttributesSelection
                     attributes={sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag])}
                     groupAttributeValues={sampleAttributeValues} {...{ metadata, callback: handleVolcano }} />
             </div>   : isVolcanoLoading || isVolcanoFetching ? <Loading /> : isVolcanoSuccess ? 
-                <div>
+                <div className="flex">
                 <InteractiveChart
-                        data={volcanoData}
-                        extraLimitNames={[]}
+                        data={volcanoData.stats}
+                        extraLimitNames={[_.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))]}
                     keyNames={[
                         {
+                            xaxisName: selection.xaxisName,
+                            yaxisName: selection.yaxisName
+                        },{
                             xaxisName: selection.xaxisName,
                             yaxisName: selection.yaxisName
                         }]}
@@ -110,20 +113,20 @@ function DatasetVolcanoPlot(logout) {
                             labelProps
                         }, didx) => {
                             return (
-                                <div>
-                                    <ScatterDataSelection keyNames={_.keys(volcanoData[0])}
+                                <Card className="margin--little" compact={true}>
+                                    <ScatterDataSelection keyNames={_.keys(volcanoData.stats[0])}
                                         {...{
                                             title : "Volcano Plot",
                                         numericKeyNames,
                                         selection,
                                         setSelection,
                                         handleStringSearch,
-                                        downloadElements: ["volcanoplottly", volcanoData],
+                                        downloadElements: [`volcano-${didx}`, volcanoData.stats],
                                         elementNames: ["SVG","DIVIDER",`Data (${volcanoData.length} x ${_.keys(volcanoData[0]).length})`],
                                         fileNames: [`${metadata.label}-PCA-drivers.svg`,`${metadata.label}-PCA-Drivers.txt`],
                                         elementTypes: ["svg", "data"]
                                         }} />
-                                    <ScatterPlot key={`${chartIdx}`}{...{
+                                    <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
                                         colorName: selection.colorName,
                                         sizeName: selection.sizeName,
@@ -143,13 +146,14 @@ function DatasetVolcanoPlot(logout) {
                                         ...labelProps,
                                         attributeValuesByTag: metadata.attribute_values_by_tag,
                                         attributesByTag: metadata.attributes,
-                                        legend: false,
+                                        legend: true,
+                                        legendWithAttributes: false,
                                         handleSearchByDataIndex,
                                         filterDataInKeyByValue,
-                                        svgID: "volcanoplottly"
-                
+                                        svgID: `volcano-${didx}`,
+                                        suffix : volcanoData.suffix
                                     }} />
-                                </div>)
+                                </Card>)
                         })}
 
                 </InteractiveChart> </div> : null }

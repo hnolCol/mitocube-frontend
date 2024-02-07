@@ -1,7 +1,6 @@
 
 import _ from "lodash"
-import { Button, InputGroup, MenuItem } from "@blueprintjs/core"
-import NumericValueInput from "../../core/input/Numeric"
+import { Button, InputGroup } from "@blueprintjs/core"
 import { useMemo, useState } from "react"
 import { createDataTree } from "../../../services/arrays/nest"
 import { objectHasKey } from "../../../services/objects/checks"
@@ -9,28 +8,14 @@ import { useGetSequenceByFeatureKey } from "../../../hooks/queries/feature.hooks
 import { splitStringByNCharacters } from "../../../services/format/string"
 import {motion} from "framer-motion"
 import SingleAttributeInput from "./attribute/select/SelectAttribute"
-import { FeatureInput } from "./features/FeatureInput"
+
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { getRandomID } from "../../../services/random"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { usePostGenotype } from "../../../hooks/queries/genotype.hooks"
+import { FeatureInput } from "../../core/input/api/FeatureInput"
 
-
-
-function AASequencePositionMutation({ }) {
-    return (<div className="flex center-items">
-        <AttributeSelection
-            attribute={{ name: "wt AA", tag: "att_aa" }}
-            attributeValues={[{ name: "Leucine", tag: "att_aa: L" }, { name: "Isoleucine", tag: "att_aa: I" }, { name: "Serine", tag: "att_aa: S" }]}
-        />
-        <NumericValueInput placeholder="Enter AA position ..."/>
-        <AttributeSelection
-            attribute={{ name: "mutant AA", tag: "att_aa" }}
-            attributeValues={[{ name: "Leucine", tag: "att_aa: L" }, { name: "Isoleucine", tag: "att_aa: I" }, { name: "Serine", tag: "att_aa: S" }]}
-        />
-        </div>
-    )
-}
+const AMINO_ACIDS = new Set(["A","G","C","T","S","W","Y","N","D","E","I","L","M","V","P","F","H","K","R"])
 
 
 
@@ -46,7 +31,8 @@ function GenotypeAttributeSelection({
     entryIdx,
     handleFeatureSelection,
     handlePositionSelection,
-    proteome_id
+    proteome_id,
+    handleGenotypePositionSelection
           }) {
     
     const hasChildNodes = attribute.childNodes.length > 0
@@ -60,40 +46,53 @@ function GenotypeAttributeSelection({
      * @param {import("../../../types/attributes").Attribute} attribute 
      * @param {import("../../../types/attributes").AttributeValue} attrValue 
      */
-    const handleSelection = (attribute, attrValue, attrMutationValue) => {
-        
-        // change this.
-        if (attrValue.tag === "att_protein_position:aa" || attrValue.tag === "att_protein_position:region") {
+    const handleSelection = (attribute, attrValue, attrMutationValue,attrIdx) => {
+        // change this. //handleGenotypePositionSelection
+        const positionSelectionAttributeValue = attrValue.tag === "att_protein_position:aa" || attrValue.tag === "att_protein_position:region"
+        if (positionSelectionAttributeValue) {
             handlePositionSelection(
                 genotypeProps.attributes[entryIdx]["att_protein_coding_sequence"][0],
-                !attrValue.tag === "att_protein_position:region",
-                genotypeProps.attributes[entryIdx]["att_protein_mutation"][0].value === "substitution" // if a substitution should be available to the user 
+                attrValue.tag !== "att_protein_position:region",
+                genotypeProps.attributes[entryIdx]["att_protein_mutation"][attrIdx].value === "substitution" || genotypeProps.attributes[entryIdx]["att_protein_mutation"][attrIdx].value === "insertion",
+                handleGenotypePositionSelection,
+                {genotypeLabel,entryIdx,attribute,attrValue,attrMutationValue} // if a substitution should be available to the user
                 )
-            onSelection(genotypeLabel,attribute.tag, attrValue, entryIdx, attrMutationValue)
+            onSelection(genotypeLabel,attribute.tag, attrValue, entryIdx, attrMutationValue, positionSelectionAttributeValue)
         }
         else {
-            onSelection(genotypeLabel,attribute.tag, attrValue, entryIdx, attrMutationValue)
+            onSelection(genotypeLabel,attribute.tag, attrValue, entryIdx, attrMutationValue, positionSelectionAttributeValue)
         }
         
        
     }
     return (
         <div className="flex flex-column div--expand">
-            {prevAttribute.tag === "att_protein_mutation" && genotypeProps.attributes[entryIdx]["att_protein_mutation"].length > 1 ? <div>
-                {genotypeProps.attributes[entryIdx]["att_protein_mutation"].map(attributeValue => {
-                    return <div className="flex" style={{width : "15rem"}}><div>{attributeValue.text}</div><SingleAttributeInput {...{
-                        attribute,
-                        attributeValues: attributeValues,
-                        onItemSelect: (attribute, attrValue) => handleSelection(attribute, attrValue, attributeValue),
-                        //genotypeLabel, attributeTag, attributeValue, entryIdx = 0
-                        handleFeatureSelection,
-                        featureSelectionProps: { genotypeLabel, entryIdx },
-                        selectedItems: hasSlectionValue ? genotypeProps.attributes[entryIdx][attribute.tag][attributeValue.tag] : [],
-                        //label : genotypeLabel,
-                        //entryIdx,
-                        matchTargetWidth: false,
-                        selectedAttributeValue: hasSlectionValue ? genotypeProps.attributes[entryIdx][attribute.tag][0] : null
-                    }} /></div>
+{/* genotypeProps.attributes[entryIdx]["att_protein_mutation"].length > 1 */}
+            {prevAttribute.tag === "att_protein_mutation" ? <div>
+                {genotypeProps.attributes[entryIdx]["att_protein_mutation"].map((attributeValue, attrIdx) => {
+
+                    let selectedAttributeValues = []
+                    const hasSelection = _.has(genotypeProps.attributes[entryIdx], [attribute.tag, attributeValue.tag])
+                    if (hasSelection && attribute.tag !== "att_protein_position") {
+                        selectedAttributeValues = genotypeProps.attributes[entryIdx][attribute.tag][0]
+                    }
+                    else if (hasSelection) {
+                        selectedAttributeValues = [genotypeProps.attributes[entryIdx][attribute.tag][attributeValue.tag].attribute_value]
+                    }
+                    return <div key={`${attribute.tag}-${entryIdx}-${attributeValue.tag}`}
+                        className="flex" style={{ width: "15rem" }}>
+                        <div>{attributeValue.text}</div>
+                            <SingleAttributeInput {...{
+                            attribute,
+                            attributeValues: attributeValues,
+                            onItemSelect: (attribute, attrValue) => handleSelection(attribute, attrValue, attributeValue,attrIdx),
+                            handleFeatureSelection,
+                            featureSelectionProps: { genotypeLabel, entryIdx },
+                            selectedItems: selectedAttributeValues,
+                            matchTargetWidth: false,
+                            selectedAttributeValue: selectedAttributeValues[0]
+                        }} />
+                    </div>
                 })}
             </div> :
                 allowFeatures ?
@@ -121,7 +120,7 @@ function GenotypeAttributeSelection({
                         handlePositionSelection,
                         genotypeLabel,
                         onSelection,
-                        genotypeProps, entryIdx
+                        genotypeProps, entryIdx, handleGenotypePositionSelection
                     }} prevAttribute={attribute} attrIdx={attrIdx + 1} /> : null}
             </div>
         </div>
@@ -132,24 +131,25 @@ function GenotypeAttributeSelection({
 
 
 
-export function PositionSelection({feature, singlePosition  = true, aaSubstitution = true, onSelection, onClose}) {
+export function PositionSelection({feature, singlePosition  = true, aaSubstitution = true, onSave, onSaveProps, onClose}) {
     // Select a position in 
     const { data: featureSequence, isSuccess: featureIsSuccess } = useGetSequenceByFeatureKey({feature})
     const [isMouseDown, setMouseDown] = useState(false)
-    const [selectedAA, setSelectedAA] = useState([])
+    const [selectedAAPos, setselectedAAPos] = useState([])
+    const [substitutionAA, setSubstitutionAA] = useState("")
     
     const splitSequence = useMemo(() => featureIsSuccess  ? splitStringByNCharacters(featureSequence.sequence) : [],[featureIsSuccess])
-    const isRegionSelected = selectedAA.length == 2
-    const isSingleAASelected = selectedAA.length == 1
+    const isRegionSelected = selectedAAPos.length == 2
+    const isSingleAASelected = selectedAAPos.length == 1
 
     const handleClick = (e, aaPosition) => {
         // handle click on a amino acid 
         if (e.shiftKey) {
-            let aaIndcs = _.sortedUniq([selectedAA[0], aaPosition])
-            setSelectedAA(aaIndcs)
+            let aaIndcs = _.sortedUniq([selectedAAPos[0], aaPosition])
+            setselectedAAPos(aaIndcs)
         }
         else {
-            setSelectedAA([aaPosition])
+            setselectedAAPos([aaPosition])
         }
     }
 
@@ -157,7 +157,7 @@ export function PositionSelection({feature, singlePosition  = true, aaSubstituti
         //handle a mouse down 
         if (e.shiftKey) return
         if (!isMouseDown) {
-            setSelectedAA([aaPosition])
+            setselectedAAPos([aaPosition])
         }
         setMouseDown(true)
     }
@@ -170,28 +170,43 @@ export function PositionSelection({feature, singlePosition  = true, aaSubstituti
         if (!isMouseDown) return 
         let aaIndcs = []
         if (isRegionSelected || isSingleAASelected) {
-            aaIndcs = [selectedAA[0], aaPosition]
+            aaIndcs = [selectedAAPos[0], aaPosition]
         }
         else {
             aaIndcs = [aaPosition]
         }
-        setSelectedAA(aaIndcs)
+        setselectedAAPos(aaIndcs)
+    }
+    const handleSubAAEntry = (value) => {
+        
+        if (value.length === 0) setSubstitutionAA("")
+
+        let v = value.toUpperCase()
+        
+        if (singlePosition && AMINO_ACIDS.has(v[0])) setSubstitutionAA(v[0])
+        else if (!singlePosition) {
+            //split and check for valid AAs then join again.
+            setSubstitutionAA(_.join(v.split("").filter(c => AMINO_ACIDS.has(c)),""))
+        }
+        else setSubstitutionAA("")
     }
 
     const handleSelection = () => {
+        let selectedAA = singlePosition ?  [featureSequence.sequence[minAAIndex]] : [featureSequence.sequence[minAAIndex],featureSequence.sequence[maxAAIndex]]
+        onSave(selectedAAPos,selectedAA,substitutionAA,onSaveProps)
         onClose()
     }
 
-    const minAAIndex = _.min(selectedAA)
-    const maxAAIndex = _.max(selectedAA)
+    const minAAIndex = _.min(selectedAAPos)
+    const maxAAIndex = _.max(selectedAAPos)
     return (
-        <div>
+        <div >
             <h3>Amino acid sequence {feature.genes} ({feature.length} aa)</h3>
             {singlePosition ? <p>Select the exact amino acid position.</p> : <p> Select an amino acid region.</p>}
             <div className="flex flex--wrap prevent-select" style={{ fontFamily: "monospace", fontSize : "0.8rem", height : "50vh", overflowY : "scroll"}} onMouseLeave={handleMouseUp} onMouseUp={handleMouseUp}>
                 
                     {featureIsSuccess ? splitSequence.map((splitSeq, idx) => {
-                        return <div key={`${splitSeq}-${idx}`} className="bg--white" style={{ margin: "0.4rem" }}>
+                        return <div key={`${splitSeq}-${idx}`} className="bg--white" style={{ margin: "0.2rem", height : "2.2rem" }}>
                             <div className="flex justify-end" style={{fontSize:"0.7rem"}}><div>{(idx) * 10 + splitSeq.length}</div></div>
                             <div className="flex justify-end" style={{fontSize:"0.5rem"}}><div>|</div></div>
                             <div className="flex" style={{ cursor: "crosshair" }}>{splitSeq.split("").map((aa, aaIdx) =>{
@@ -212,13 +227,13 @@ export function PositionSelection({feature, singlePosition  = true, aaSubstituti
             </div>
             <h4>{featureIsSuccess ? isRegionSelected ? `Selected region: ${minAAIndex + 1} (${featureSequence.sequence[minAAIndex]}) .... ${maxAAIndex} (${featureSequence.sequence[maxAAIndex]})` :
                 `Selected AA: ${minAAIndex + 1} (${featureSequence.sequence[minAAIndex]})` : null}</h4>
-            {aaSubstitution ? <InputGroup placeholder="Amino acid" /> : null}
-            <Button text="Save" intent="primary" onClick={handleSelection} disabled={!(featureIsSuccess && selectedAA.length > 0)} />
+            {aaSubstitution ? <InputGroup placeholder="Amino acid" onValueChange={handleSubAAEntry} value={substitutionAA} /> : null}
+            <Button text="Save" intent="primary" onClick={handleSelection} disabled={!(featureIsSuccess && selectedAAPos.length > 0) || aaSubstitution && substitutionAA.length === 0} />
         </div>
     )
 }
 
-function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps, addGenotypeEntry, removeGenotypeEntry, handleFeatureSelection,handlePositionSelection, proteome_id }) {
+function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSelection, genotypeLabel, genotypeProps, addGenotypeEntry, removeGenotypeEntry, handleFeatureSelection,handlePositionSelection, proteome_id, handleGenotypePositionSelection }) {
     const genotypeEntries = genotypeProps.attributes.length 
 
     return (
@@ -248,7 +263,8 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
                                     entryIdx: entryIdx,
                                     prevAttribute: attribute,
                                     handlePositionSelection,
-                                    proteome_id
+                                    proteome_id,
+                                    handleGenotypePositionSelection
                                 }} />)}
                         
                         </div>
@@ -290,14 +306,34 @@ function GenotypeGenerator({ index = 6,
 
         const genotypeLabel = getRandomID(5)
         let genotypeProps = {
-            name: "",
+            text: "",
             proteome_id : proteome_ids[0],
             label : genotypeLabel,
-            attributes: [{}]
+            attributes: [{}],
         }
         setGenotype(genotypeProps)
     }
 
+
+    const handleGenotypePositionSelection = (selectedPosition,selectedAA, substitutionAA, saveProps) => {
+
+    
+        const { genotypeLabel, entryIdx, attribute, attrValue, attrMutationValue } = saveProps
+        const feature = genotype.attributes[entryIdx]["att_protein_coding_sequence"][0]
+        let genotypeToModify = { ...genotype }
+        let genotypeEntry = genotypeToModify.attributes[entryIdx]
+   
+
+        genotypeEntry[attribute.tag][attrMutationValue.tag].aa_position = selectedPosition
+        if (substitutionAA.length > 0) {
+            genotypeEntry[attribute.tag][attrMutationValue.tag].substitution = substitutionAA
+            genotypeEntry[attribute.tag][attrMutationValue.tag].aa = selectedAA
+        }
+        
+        substitutionAA
+        genotypeToModify.attributes[entryIdx] = genotypeEntry
+        setGenotype(genotypeToModify)
+    }
     /**
      * 
      * @param {Object.<string, import("../../../types/feature").Feature | import("../../../types/attributes").AttributeValue>[]} genotypeAttributes 
@@ -327,13 +363,13 @@ function GenotypeGenerator({ index = 6,
                     const tagName = proteinMutationAttribute.value.toUpperCase()
                     if (_.has(genotypeEntryAttributes, "att_protein_position")) {
                         //if position is know, add it in front or after.
-                        const positionAttribute = genotypeEntryAttributes["att_protein_position"][0]
-                        if (positionAttribute.text === "N-term") {
-                            entryName = tagName + "-" + entryName
-                        }
-                        else if (positionAttribute.text === "C-term") {
-                            entryName = entryName += "-" + tagName
-                        }
+                        // const positionAttribute = genotypeEntryAttributes["att_protein_position"][0]
+                        // if (positionAttribute.text === "N-term") {
+                        //     entryName = tagName + "-" + entryName
+                        // }
+                        // else if (positionAttribute.text === "C-term") {
+                        //     entryName = entryName += "-" + tagName
+                        // }
                     }
                     else {
                         entryName += "-" + tagName
@@ -343,7 +379,7 @@ function GenotypeGenerator({ index = 6,
                     entryName += "\u0394"
                 }
             }
-            console.log(genotypeEntryAttributes["att_gene_zygosity"])
+            //console.log(genotypeEntryAttributes["att_gene_zygosity"])
             if (_.has(genotypeEntryAttributes, "att_gene_zygosity") && genotypeEntryAttributes["att_gene_zygosity"][0].value !== "unknown") {
                 entryName += genotypeEntryAttributes["att_gene_zygosity"][0].value
             }
@@ -360,21 +396,37 @@ function GenotypeGenerator({ index = 6,
         return baseName
     }
 
-    const onAttibuteSelection = (genotypeLabel, attributeTag, attributeValue, entryIdx = 0, attrMutationValue = undefined) => {
+    const onAttibuteSelection = (genotypeLabel, attributeTag, attributeValue, entryIdx = 0, attrMutationValue = undefined, positionSelectionAttributeValue = false) => {
         
         let genotypeToModify = {...genotype} 
         let genotypeEntry = genotypeToModify.attributes[entryIdx]
         if (attributeTag === "att_protein_mutation") {
+            //mutation can have multiple entries (e.g. a deletion and a flag tag)
             genotypeEntry[attributeTag] ??= []
-            genotypeEntry[attributeTag] = addItemToArrayOrRemoveItIfPresent({array : genotypeEntry[attributeTag], item : attributeValue})
+            const attributeFound = genotypeEntry[attributeTag].includes(attributeValue)
+            genotypeEntry[attributeTag] = addItemToArrayOrRemoveItIfPresent({ array: genotypeEntry[attributeTag], item: attributeValue })
+            const proteinPosition = genotypeEntry["att_protein_position"]
+            if (_.isObject(proteinPosition) && attributeFound) {
+                delete genotypeEntry["att_protein_position"][attributeValue.tag]
+                if (_.isEmpty(genotypeEntry["att_protein_position"])) {
+                    delete genotypeEntry["att_protein_position"]
+                }
+            }
+            
+
         }
-        else if (_.isObject(attrMutationValue) && _.isObject(attributeValue)) {
+        else if (attributeTag === "att_protein_position") {
             genotypeEntry[attributeTag] ??= {}
-            genotypeEntry[attributeTag][attrMutationValue.tag] = [attributeValue]
+            console.log("he?")
+            genotypeEntry[attributeTag][attrMutationValue.tag] = { attribute_value: attributeValue, aa_position : undefined, substitution : undefined, aa : undefined}
+            
         }
+
         else {
             genotypeEntry[attributeTag] = [attributeValue]
         }
+
+
         
         genotypeToModify.attributes[entryIdx] = genotypeEntry
         genotypeToModify.text = constructGenotypeName(genotypeToModify.attributes)
@@ -388,8 +440,9 @@ function GenotypeGenerator({ index = 6,
             genotypeAttrs = [{}]
         }
         else {
-            genotypeAttrs = genotypeAttrs.filter((attrs,idx) => idx !== entryIdx)
+            genotypeAttrs = genotypeAttrs.filter((attrs,idx) => idx !== entryIdx && _.isEmpty(attrs))
         }
+        console.log(genotypeAttrs)
         genotypeToModify.attributes = genotypeAttrs
         genotypeToModify.text = constructGenotypeName(genotypeAttrs)
         setGenotype(genotypeToModify)
@@ -415,7 +468,7 @@ function GenotypeGenerator({ index = 6,
             }
         })
     }
-
+    //console.log(genotype)
     return (
         
         <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
@@ -435,14 +488,14 @@ function GenotypeGenerator({ index = 6,
                         removeGenotypeEntry,
                         handleFeatureSelection,
                         handlePositionSelection,
-                        proteome_id : proteome_ids[0]
+                        proteome_id: proteome_ids[0],
+                        handleGenotypePositionSelection
                     }} /> : null}
             
             </div>    
 
-            <Button icon="plus" onClick={addGenotype} small={true} />
+            <Button icon={!_.has(genotype,"attributes") ? "plus" : "reset"} onClick={addGenotype} small={true} />
             <Button small={true} text="Save" onClick={submitGenotype} disabled={submitDisabled} loading={isLoading || isFetching} />
-            {/* <PositionSelection {...{authenticationStatus,featureID : "Q96E52"}} /> */}
         </div>
     )
 }

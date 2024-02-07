@@ -103,7 +103,8 @@ const ScatterLegend = React.memo(
             </svg>
     } 
     const colorAttribute = _.isString(colorName) && _.has(attributesByTag,colorName) ? attributesByTag[colorName] : ""
-    const sizeAttribute = _.isString(sizeName) && _.has(attributesByTag, sizeName)? attributesByTag[sizeName] : ""
+    const sizeAttribute = _.isString(sizeName) && _.has(attributesByTag, sizeName) ? attributesByTag[sizeName] : ""
+     
     return (
         <div>
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
@@ -114,6 +115,7 @@ const ScatterLegend = React.memo(
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
                                 const attributeValues = findAttributeValues(label.text)
+                                console.log(attributeValues)
                                 if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
                                 
@@ -190,7 +192,121 @@ const ScatterLegend = React.memo(
 
         </div>
     )
-    }, areEqual )
+    }, areEqual)
+    
 
-export { ScatterLegend }
+
+
+    const TextScatterLegend = React.memo(
+        /**
+         * 
+         * @param {Object} props 
+         * @param {Object[]} props.data 
+         * @param {Function} props.colorScale 
+         * @param {Function} props.sizeScale 
+         * @param {String} props.colorName 
+         * @param {String} props.sizeName 
+         * @returns 
+         */
+        function TextScatterLegend({
+            chartIdx,
+            data,
+            maxWidth,
+            colorScale,
+            sizeScale,
+            colorName,
+            sizeName,
+            filterDataInKeyByValue,
+            resetSearchIdcs,
+            size = 25,
+            colorLimit = {},
+            sizeLimit = {},
+            }) {
+        
+    
+        /**
+         * 
+         * @param {Number} size - The size of the SVG 
+         * @param {String} fill - The hex color fill of the circle.
+         * @param {Number} r - The radius of the circle.
+         * @returns 
+         */
+        const renderLegendCircle = (size, fill, r) => {
+            return <svg width={size} height={size} ><circle cx={size / 2} cy={size / 2}
+                    fill={fill}
+                    r={r}
+                    stroke="#000"
+                    strokeWidth={0.5} />
+                </svg>
+        } 
+        return (
+            <div>
+                <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
+                    {_.has(colorScale,"domain") ? _.has(data[0],colorName) && _.isEmpty(colorLimit)? 
+                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                            <h4>{colorName}</h4>
+                            <LegendOrdinal scale={colorScale}>
+                                {(labels) => labels.map((label, idx) => {   
+                                    
+                                    return (
+                                        <LegendItem key={`${idx}-${label}-colorcat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
+                                            {renderLegendCircle(size,label.value,size/3)}
+                                            <LegendLabel align="left" margin={"0 4px"} >
+                                                {label.text}</LegendLabel>
+                                        </LegendItem>
+                                    )
+                                })}
+                            </LegendOrdinal></div> :
+                    
+                        <div className="intent-margin-left--little">
+                            <h4>{colorName}as</h4>
+                            <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
+                                {(labels) => labels.map((label, idx) => {
+                                    console.log(label)
+                                    return (
+                                    <LegendItem key={`${idx}-${label}-colornum`}>
+                                        {renderLegendCircle(size,label.value,size/3)}
+                                        <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
+                                    </LegendItem>
+                                )
+                            })}
+                        </LegendLinear></div> : null}
+                    
+                    {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
+                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                            <h4>Size Legend</h4>
+                            <LegendOrdinal scale={sizeScale}>
+                                {(labels) => labels.map((label, idx) => {  
+                                    
+                                    return (
+                                            <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
+                                            {renderLegendCircle(size,"#fff",label.value)}
+                                            <LegendLabel align="left" margin={"0 4px"}>
+                                                {label}
+                                                    </LegendLabel>
+                                                    </LegendItem>
+                                    )
+                                })}
+                            </LegendOrdinal></div> :
+                            <div className="intent-margin-left--little">
+                            <h4>Size legend</h4>
+                            <LegendSize scale={sizeScale}>
+                                {(labels) => labels.map((label, idx) => {
+                                    if (idx > 25) return null 
+                                return (
+                                    <LegendItem key={`${idx}-${label}-sizenum`}>
+                                        {renderLegendCircle(size,"#fff",label.value)}
+                                        <LegendLabel align="left" margin={"0 4px"}>{roundNumber({ number: label.datum, limit: sizeLimit })}</LegendLabel>
+                                    </LegendItem>
+                                )
+                            })}
+                        </LegendSize></div>: null}
+    
+                </div>
+    
+            </div>
+        )
+        }, areEqual )
+
+export { ScatterLegend, TextScatterLegend }
 

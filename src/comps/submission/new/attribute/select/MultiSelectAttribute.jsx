@@ -25,7 +25,6 @@ function AttributeInput({ attribute,
     searchColumns = ["text", "details"],
     maxItemsShown = 30,
     minimumSearchStringLength = 0,
-    handleFeatureSelection = undefined,
     showLabel = true,
     inline = false,
     placeholder = "Search..",
@@ -36,15 +35,15 @@ function AttributeInput({ attribute,
     const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
         const queryLength = query.length
         const justNumbersString = query.replace(/[^\d.]/g, "")
-        if (attribute.has_features_value && attributeValues.length === 0) {
-            return <Menu>
-                {/* TODO: CHANGE THIS TO FeatureInput */}
-                <MenuItem text="Select protein feature..."
-                    onClick={() => {
-                        handleFeatureSelection({ attribute })
-                    }} />
-            </Menu>
-        }
+        // if (attribute.has_features_value && attributeValues.length === 0) {
+        //     return <Menu>
+        //         {/* TODO: CHANGE THIS TO FeatureInput */}
+        //         <MenuItem text="Select protein feature..."
+        //             onClick={() => {
+        //                 handleFeatureSelection({ attribute })
+        //             }} />
+        //     </Menu>
+        // }
         return <Menu>
             {filteredItems.length === 0 && attribute.has_numeric_input ? <MenuItem
                 icon={queryLength ? "add" : "blank"}

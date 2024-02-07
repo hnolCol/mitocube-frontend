@@ -170,7 +170,6 @@ export function ScatterDataSelection({ keyNames, title = "", numericKeyNames = [
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
 
-
     return (
         <div><h3>{title}</h3>
         <div className="flex center-items">
@@ -320,7 +319,7 @@ function DatasetPCA({ }) {
                                         chartIdx,
                                         colorName: selection.colorName,
                                         sizeName: selection.sizeName,
-                                        tooltipNames : selection.tooltipNames,
+                                       // tooltipNames : selection.tooltipNames,
                                         data,
                                         valid,
                                         findDataInRectangle,

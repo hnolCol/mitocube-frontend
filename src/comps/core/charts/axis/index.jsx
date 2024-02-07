@@ -5,6 +5,7 @@ import AxisBackground from "../background"
 import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
 import _ from "lodash"
 import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
+import React from "react"
 
 function AxisWithBackground({
     leftLeft,
@@ -83,4 +84,21 @@ function AxisWithBackground({
 }
 
 
-export default AxisWithBackground
+function areEqual(prevProps, nextProps) {
+    /*
+    return true if passing nextProps to render would return
+    the same result as passing prevProps to render,
+    otherwise return false
+    */
+    if (prevProps.bottomScale !== nextProps.bottomScale) return false 
+    if (prevProps.leftScale !== nextProps.leftScale) return false 
+
+    if (prevProps.chartHeight !== nextProps.chartHeight) return false 
+    if (prevProps.chartWidth !== nextProps.chartWidth) return false
+    //if (!_.isEqual(prevProps.p,nextProps.p)) return false 
+    // if (!_.isEqual(prevProps.xscale.domain,nextProps.xscale.domain)) return false 
+    return true
+}
+
+
+export default React.memo(AxisWithBackground, areEqual)

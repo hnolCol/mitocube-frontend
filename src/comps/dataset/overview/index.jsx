@@ -132,9 +132,9 @@ function SamplesAttributes({ metadata }) {
                         icon={isOpen ? "chevron-down" : "chevron-right"}
                         onClick={() => setOpen(prevValues => { return { ...prevValues, [sampleAttributeTag]: _.has(prevValues, sampleAttributeTag) ? !prevValues[sampleAttributeTag] : true } })} />
                     <Collapse isOpen={isOpen}>
-                        {_.keys(sampleAttributes[sampleAttributeTag].values).map(sampleAttributeValueTag => {
+                        {_.keys(sampleAttributes[sampleAttributeTag]).map(sampleAttributeValueTag => {
                             return <SampleAttributeSamples
-                                sampleAttr={sampleAttributes[sampleAttributeTag].values[sampleAttributeValueTag]}
+                                sampleAttr={sampleAttributes[sampleAttributeTag][sampleAttributeValueTag]}
                                 {...{
                                     sampleAttributeValueTag,
                                     metadata,

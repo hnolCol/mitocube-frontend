@@ -5,9 +5,11 @@ import { useMemo } from "react";
 import { objectHasKey } from "../../../../../services/objects/checks";
 import NumericValueInput from "../../../../core/input/Numeric";
 import { createFakeAttributeValue } from "../../../../../services/attributes";
+import { FeatureInput } from "../../../../core/input/api/FeatureInput";
 
 
-function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeValuesByID, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", handleFeatureSelection = undefined}) {
+function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeValuesByID, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", proteome_ids = [],selectedDatasetAttribute,
+selectedDatasetAttributeValues}) {
     
     const attributesMatch = !_.isEmpty(attributeValuesByID)
     const attributeIDsMatchingQuery = useMemo(() => {
@@ -35,7 +37,8 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                     const attributeID = attribute.has_features_value? -1 : attribute.id
                     const attrValues = _.has(filteredAttributeValuesByID, attribute.id) ? filteredAttributeValuesByID[attributeID] : []
                     const attributeMatchesQuery = objectHasKey({ object: attributeIDsMatchingQuery, keyName: attribute.id })
-                    const hasAttrValues = attrValues.length > 0                    
+                    const hasAttrValues = attrValues.length > 0    
+                    const selectedValues = selectedDatasetAttributeValues[attribute.tag]
                     if (attribute.has_numeric_input && attributeMatchesQuery)  return <div key={attribute.tag}>
                         <MenuItem text={`Enter numeric value for ${attribute.text}`} disabled={true} />
                         <MenuDivider />
@@ -68,10 +71,12 @@ function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeV
                             <MenuItem text={attribute.text} disabled={true} />
                             <MenuDivider />
                             
-                            {attribute.has_features_value && attributeMatchesQuery?
-                                <MenuItem text={`Select feature for ${attribute.text}`} onClick={() => handleFeatureSelection({attribute})} /> :
+                            {attribute.has_features_value && attributeMatchesQuery ?
                                 
-                                <div style={{ overflowY: "visible" }}>
+                                <FeatureInput {...{attribute,proteome_ids,onItemSelect : handleItemSelect, selectedItems : _.isArray(selectedValues)?selectedValues:[], helperText : "Select the features. Just close the menu by clicking outside of it. No extra saving required."}} /> : 
+
+                                
+                            <div style={{ overflowY: "visible" }}>
                                 {attrValues.map((attributeValue, index) =>
                                     index === maxItems + 1 ? <MenuItem
                                         key={`${attribute.tag}-${attributeValue.tag}`}

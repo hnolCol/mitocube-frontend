@@ -40,7 +40,7 @@ function SingleAttributeInput({ attribute,
     featureSelectionProps = {},
     disabled = false, ...rest }) {
     //Atribute Input
-    const selectedItemsIDs = selectedItems.map(item => item.id)
+    const selectedItemsIDs = selectedItems.filter(item => _.isObject(item) && _.has(item,"id")).map(item => item.id)
     const renderItems = ({ activeItem, filteredItems, query, ...rest}) => {
         
         if (attribute.has_features_value && attributeValues.length === 0) { //useful to check attributeValues?

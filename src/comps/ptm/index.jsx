@@ -24,7 +24,7 @@ function PTM({}) {
     // )
 
 
-   return(<h2>Post translational modifications</h2>)
+   return(<div><h2>Post translational modifications</h2>Under construction.</div>)
 }
 
 export default PTM

@@ -9,8 +9,8 @@ import DatasetAttributeSelect from "../../new/attribute/select/DatasetAttributes
 import { groupListByProperty } from "../../../../services/arrays/groupby";
 import { addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/transforms";
 import DatasetAttributeHierarchy from "../../new/attribute/view/DatasetAttributesHierarchy";
-import FeatureSelection from "../../new/FeatureSelection";
 import { TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
+import { get_proteome_id } from "../../new/InitialSubmission";
 
 
 export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitted, submission, onClose, onSubmit, error = undefined }) {
@@ -73,47 +73,47 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
         }
     }
 
-    const onFeatureSelection = (attribute, selectedFeatures, ...rest) => {
+    // const onFeatureSelection = (attribute, selectedFeatures, ...rest) => {
 
-        if (selectedFeatures.length === 0 && _.has(datasetAttributes, attribute.tag)) {
-            setDatasetAttributes(prevValues => { return { ...prevValues, selection: _.omit(prevValues.selection, attribute.tag) } })
-        }
-        else {
-            // setDatasetAttributes(prevValues => { return { ...prevValues, [attribute.tag]: selectedFeatures } })
-            setDatasetAttributes(prevValues => {
-                return {
-                    ...prevValues,
-                    selection: _.assign(prevValues.selection, { [attribute.tag]: selectedFeatures }),
-                    highlight : _.uniq(_.concat(prevValues.highlight, selectedFeatures.map(feature => feature.tag)))
-                }
-            })
-        }
+    //     if (selectedFeatures.length === 0 && _.has(datasetAttributes, attribute.tag)) {
+    //         setDatasetAttributes(prevValues => { return { ...prevValues, selection: _.omit(prevValues.selection, attribute.tag) } })
+    //     }
+    //     else {
+    //         // setDatasetAttributes(prevValues => { return { ...prevValues, [attribute.tag]: selectedFeatures } })
+    //         setDatasetAttributes(prevValues => {
+    //             return {
+    //                 ...prevValues,
+    //                 selection: _.assign(prevValues.selection, { [attribute.tag]: selectedFeatures }),
+    //                 highlight : _.uniq(_.concat(prevValues.highlight, selectedFeatures.map(feature => feature.tag)))
+    //             }
+    //         })
+    //     }
 
-        resetAlert()
-    }
+    //     resetAlert()
+    // }
     
-    const handleFeatureSelection = ({attribute, isSampleAttribute = false}) => {
-        //handle feature selection of a samples attribute
-        if (!_.has(datasetAttributes.selection, "att_organism")
-            || datasetAttributes.selection["att_organism"].length === 0) {
-            //if organism has not been selected prompt a warning.
-            setAlertProps({ isOpen: true, children: <div><h3>Error</h3><p>Please select one or multiple organisms first.</p></div> })
-            return 
-        }
-        let selectedItems = _.has(datasetAttributes.selection,attribute.tag) ? datasetAttributes.selection[attribute.tag] : []
+    // const handleFeatureSelection = ({attribute, isSampleAttribute = false}) => {
+    //     //handle feature selection of a samples attribute
+    //     if (!_.has(datasetAttributes.selection, "att_organism")
+    //         || datasetAttributes.selection["att_organism"].length === 0) {
+    //         //if organism has not been selected prompt a warning.
+    //         setAlertProps({ isOpen: true, children: <div><h3>Error</h3><p>Please select one or multiple organisms first.</p></div> })
+    //         return 
+    //     }
+    //     let selectedItems = _.has(datasetAttributes.selection,attribute.tag) ? datasetAttributes.selection[attribute.tag] : []
         
-        setAlertProps({
-            isOpen: true,
-            confirmButtonText: "Cancel",
-            children: <FeatureSelection {...{
-                selectedItems,
-                attribute,
-                organisms: datasetAttributes.selection["att_organism"],
-                isSampleAttribute,
-                onSave : onFeatureSelection
-            }} />
-        })
-    }
+    //     setAlertProps({
+    //         isOpen: true,
+    //         confirmButtonText: "Cancel",
+    //         children: <FeatureSelection {...{
+    //             selectedItems,
+    //             attribute,
+    //             organisms: datasetAttributes.selection["att_organism"],
+    //             isSampleAttribute,
+    //             onSave : onFeatureSelection
+    //         }} />
+    //     })
+    // }
 
     const resetAlert = () => {
         // close the alert 
@@ -130,7 +130,8 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
             "Updated dataset attributes."
         )
     }
-
+    const selectedDatasetAttributes = _.keys(datasetAttributes.selection).map(attrTag => attributesByTag.attributes[attrTag])
+    const proteome_ids = get_proteome_id(datasetAttributes.selection)
     return (
         <Dialog style={{ minWidth: "min(80vw,900px)", height: "80vh" }} {...{ isOpen }} title="Edit Dataset Attributes" onClose={onClose}>
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
@@ -146,9 +147,11 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
                 </div>
                 <DatasetAttributeSelect
                     attributes={attributesAllowedForDataset}
+                    selectedDatasetAttribute={selectedDatasetAttributes}
+                    selectedDatasetAttributeValues={datasetAttributes.selection}
                     attributeValues={attributeValuesWithParentInfo}
                     attributeValuesByID={attributeValuesByAtrributeID}
-                    {...{ handleDatasetAttributeSelection, handleFeatureSelection }} />
+                    {...{ handleDatasetAttributeSelection, proteome_ids }} />
                 <div>
                     <div style={{ overflowY: "scroll", maxHeight: "50vh" }}>
                         <DatasetAttributeHierarchy

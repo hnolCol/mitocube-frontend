@@ -177,7 +177,6 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                     <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") && _.isArray(submissions) ? 
                         <SubmissionContainer states={submissionStates}
                             {...{
-                            submissions,
                             attributesByTag,
                             users: users,
                             submissionFilter,

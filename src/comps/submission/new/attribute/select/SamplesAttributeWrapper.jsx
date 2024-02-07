@@ -7,7 +7,6 @@ import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../.
 import { addItemToArrayOrRemoveItIfPresent, addItemsToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useMemo, useState } from "react"
-import FeatureSelection from "../../FeatureSelection"
 import { Alert } from "@blueprintjs/core"
 import { constructSampleNames } from "../../../../../services/samples"
 import { get_proteome_id } from "../../InitialSubmission"
@@ -175,12 +174,6 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         }
     }
 
-    const onSampleAttributeRename = (sampleAttrIdx, sampleAttributeName) => {
-        //rename the samples attribute ("Grouping")
-        let sampleAttrs = submission.samplesAttributes
-        sampleAttrs[sampleAttrIdx].name = sampleAttributeName
-        updateSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs} })
-    }
     const onSampleAttributeValueSelect = (attributeTag, attributeValueTag, rowIdces) => {
         //on selection of a sample attribute value
         let d = submission.attributeTable
@@ -192,23 +185,20 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
     }
 
     const onSampleAttributeSelect = (sampleAttrIdx, sampleAttrName, attribute, attributeChanged = false) => {
-        // To DO: Rename to sample attribute
+        
         let sampleAttrs = submission.samplesAttributes.slice()
         let sampleAttr = sampleAttrs[sampleAttrIdx]
         if (!_.isObject(attribute)) {
-            sampleAttrs[sampleAttrIdx] = {
-                name: sampleAttrName,
-                attribute: _.isObject(sampleAttr) ? sampleAttr.attribute : undefined
+            sampleAttrs[sampleAttrIdx] = _.isObject(sampleAttr) ? sampleAttr : undefined
             }
-        }
         else {
             
-            if (_.isObject(sampleAttr.attribute) && sampleAttr.attribute.tag !== attribute.tag) {
+            if (_.isObject(sampleAttr) && sampleAttr.tag !== attribute.tag) {
                 //different tag selected 
-                const prevGroupingAttributeTag = sampleAttr.attribute.tag
+                const prevGroupingAttributeTag = sampleAttr.tag
                 //requires cleaning up the old ag
                 let updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: prevGroupingAttributeTag })
-                sampleAttrs[sampleAttrIdx] = {name : !_.isString(sampleAttrName) || sampleAttrName.length === 0? attribute.text : sampleAttrName, attribute}
+                sampleAttrs[sampleAttrIdx] =  attribute
                 updateSubmission(prevValues => {
                     return {
                         ...prevValues,
@@ -221,15 +211,10 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 // warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
                 return 
             }
-            sampleAttrs[sampleAttrIdx] = {
-                name: !_.isString(sampleAttrName) || sampleAttrName.length === 0? attribute.text : sampleAttrName,
-                attribute
-            }
+            //save sample attribute
+            sampleAttrs[sampleAttrIdx] = attribute
         }
-        // if (attributeChanged) {
-        //     // only warn again if changed.
-        //     warnForMandatoryAttr(sampleAttrs[sampleAttrIdx])
-        // }
+        
         updateSubmission(prevValues => {return {...prevValues, samplesAttributes : sampleAttrs, rerenderTableDependency : [Math.random()],sampleNames: constructSampleNames(submission.label, submission.sampleNames.length, submission.attributeTable)} })
     }
 
@@ -237,7 +222,7 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         //remove grouping by groupingIdx
         let sampleAttrs = submission.samplesAttributes
         //remove attribute from attribibuteTable
-        let samplAttribute = sampleAttrs[sampleAttrIdx].attribute
+        let samplAttribute = sampleAttrs[sampleAttrIdx]
         if (_.has(samplAttribute, "tag")) {
             let groupingAttributeTag = samplAttribute.tag 
             const updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: groupingAttributeTag })
@@ -287,7 +272,6 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 clearSampleAttrByIndex,
                 clearAttributeTableByRowIndex,
                 onSampleAttributeSelect,
-                onSampleAttributeRename,
                 removeSampleAttrByIndex,
                 groupings: submission.samplesAttributes,
                 genotypeAttributes : submission.genotypeAttributes,

@@ -1,21 +1,24 @@
-import PropTpyes from "prop-types"
-import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby"
+import PropTpyes, { array } from "prop-types"
+import { getUniqueSetsOfAllValuesinArrayOfObjects, groupListByProperty } from "../../../services/arrays/groupby"
 import _ from "lodash"
 import { SubmissionItem } from "./SubmissionItem"
 import { useMemo, useState } from "react"
 import { isHexColorLight } from "../../../services/colors"
 import { titleFormat } from "../../../services/format/string"
 import {motion, useAnimation} from "framer-motion"
-import ColorIconWithName from "../../core/svg/icons/chartSelection/Color"
 import { Button, Icon, InputGroup } from "@blueprintjs/core"
-import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
-import { User, UserIcon, UserIconWithTooltip } from "../../core/base/user"
 import TextInput from "../../core/input/Text"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../services/arrays/filter"
-import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionStates, useGetSubmissionByQuery } from "../../../hooks/queries/submission.hooks"
 import { SubmissionBaseFilter } from "../filter"
 import { StateSelection } from "../filter/StateSelection"
-import { createFakeAttributeValue } from "../../../services/attributes"
+import { TextButtonIcon } from "../../core/svg/icons/filter/TextIcon"
+import Loading from "../../core/base/loading"
+import useDebounce from "../../../hooks/useDebounce"
+import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms"
+import TooltipButton from "../../core/base/buttons/TooltipButton"
+import { AttributeSelection } from "../filter/AttributeSelection"
+import { UserSelection } from "../filter/UserSelection"
 
 
 
@@ -165,79 +168,79 @@ SubmissionContainer.propTypes = {
 }
 
 
-export function AttributeFilter({ attributesInSubmission: { } }) {
+// export function AttributeFilter({ attributesInSubmission: { } }) {
     
-    return (<div className="flex flex-column">
+//     return (<div className="flex flex-column">
         
-    </div>)
-}
+//     </div>)
+// }
 
-export function AttributeFilterSelection({uniqueAtributesInSubmissions, attributesByTag, setSubmissionFilter, submissionFilter,attributeSearchQuery, setAttributeSearchQuery}) {
-    //const attributeTags = Object.keys(uniqueAtributesInSubmissions)
-    const attribteValuesByTag = attributesByTag.attribute_values
-    const attribtesByTag = attributesByTag.attributes
-    //{Object.keys(uniqueAtributesInSubmissions).map(attributeTag => <AttributeFilterButton {...{attributeValue : attributeTag, submissionKey : attributeTag, submissionFilter, setSubmissionFilter}}/>)}
-    const { filteredAtributes } = useMemo(() => {
-        //use memo to filter based on a query.
-        let attributeTags = Object.keys(uniqueAtributesInSubmissions)
-        if (attributeSearchQuery.length < 2) return {
-            filteredAtributes: attributeTags.filter(attributeTag => uniqueAtributesInSubmissions[attributeTag].attribute.allow_as_filter),
-            filteredAttributeTags: new Set()
-        }
-        else {
-            //first check attributes match the query
-            let attributeTagsMatchingFilterString = filterArrayBySearchString({
-                array: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter).map(attributeTag => attribtesByTag[attributeTag]),
-                keyNames: ["tag", "text"], searchString: attributeSearchQuery
-            })
-            //then find the attribute Values that match the query.
-            // optiona TO DO: one could add the tag and name of the attribute to the values to iteratte only through a single array
-            let filteredAttributeValuesByTag = Object.fromEntries(attributeTags.map(attrTag => {
-                return [attrTag, filterArrayBySearchString({
-                    array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => _.has(attribteValuesByTag,attrValueTag)?attribteValuesByTag[attrValueTag]:{tag:attrValueTag}),
-                    searchString: attributeSearchQuery,
-                    keyNames: ["tag", "text", "details"]
-                })]
-            }).filter(attrValues => attrValues[1].length > 0))
+// export function AttributeFilterSelection({uniqueAtributesInSubmissions, attributesByTag, setSubmissionFilter, submissionFilter,attributeSearchQuery, setAttributeSearchQuery}) {
+//     //const attributeTags = Object.keys(uniqueAtributesInSubmissions)
+//     const attribteValuesByTag = attributesByTag.attribute_values
+//     const attribtesByTag = attributesByTag.attributes
+//     //{Object.keys(uniqueAtributesInSubmissions).map(attributeTag => <AttributeFilterButton {...{attributeValue : attributeTag, submissionKey : attributeTag, submissionFilter, setSubmissionFilter}}/>)}
+//     const { filteredAtributes } = useMemo(() => {
+//         //use memo to filter based on a query.
+//         let attributeTags = Object.keys(uniqueAtributesInSubmissions)
+//         if (attributeSearchQuery.length < 2) return {
+//             filteredAtributes: attributeTags.filter(attributeTag => _.has(uniqueAtributesInSubmissions[attributeTag],"attribute.allow_as_filter") && uniqueAtributesInSubmissions[attributeTag].attribute.allow_as_filter),
+//             filteredAttributeTags: new Set()
+//         }
+//         else {
+//             //first check attributes match the query
+//             let attributeTagsMatchingFilterString = filterArrayBySearchString({
+//                 array: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter).map(attributeTag => attribtesByTag[attributeTag]),
+//                 keyNames: ["tag", "text"], searchString: attributeSearchQuery
+//             })
+//             //then find the attribute Values that match the query.
+//             // optiona TO DO: one could add the tag and name of the attribute to the values to iteratte only through a single array
+//             let filteredAttributeValuesByTag = Object.fromEntries(attributeTags.map(attrTag => {
+//                 return [attrTag, filterArrayBySearchString({
+//                     array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => _.has(attribteValuesByTag,attrValueTag)?attribteValuesByTag[attrValueTag]:{tag:attrValueTag}),
+//                     searchString: attributeSearchQuery,
+//                     keyNames: ["tag", "text", "details"]
+//                 })]
+//             }).filter(attrValues => attrValues[1].length > 0))
             
-            return {
-                filteredAtributes: _.uniq(_.concat(
-                    attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter && _.has(filteredAttributeValuesByTag, attributeTag)),
-                    attributeTagsMatchingFilterString.map(attribute => attribute.tag)
-                ))
-            }
-        }
-    }, [attributeSearchQuery])
+//             return {
+//                 filteredAtributes: _.uniq(_.concat(
+//                     attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter && _.has(filteredAttributeValuesByTag, attributeTag)),
+//                     attributeTagsMatchingFilterString.map(attribute => attribute.tag)
+//                 ))
+//             }
+//         }
+//     }, [attributeSearchQuery])
 
-    return (
-        <div>
-            <h3>Attributes</h3>
-            <InputGroup placeholder="Search attribute.." small={true} value={attributeSearchQuery} onValueChange={(query) => setAttributeSearchQuery(query)}/>
-        <div className="flex flex-column" style={{height : "33vh", overflowY : "scroll", overflowX: "hidden", paddingTop : "0.2rem", marginTop : "0.3rem"}}>
-            {filteredAtributes.map(attrTag => {
-                const { values, counts, attributeValues, attribute } = uniqueAtributesInSubmissions[attrTag]
-                if (values.size === 0) return null 
-                if (!_.isObject(attribute)) return null 
-                return (<div key={`${attrTag}-attr-filter`} className="flex flex-column">
-                    <div><h5>{attribtesByTag[attrTag].text}</h5></div>
-                    {[...values].map(attributeValueTag => {
-                        const attrValue = attributeValues[attributeValueTag]
-                    // let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: createFakeAttributeValue({attribute : attribtesByTag[attrTag], numericInput : attribteValueTag})
-                        return <AttributeFilterButton key={`${attrTag}-${attributeValueTag}`} {...{
-                        attribute,
-                        attributeValue: attrValue,
-                        submissionKey: attrTag,
-                        setSubmissionFilter,
-                        submissionFilter,
-                        numberSubmissionWithTag : counts[attributeValueTag]
-                    }} />
-                })}</div>)
-            })}
-            </div>
-            </div>
+//     return (
+//         <div>
+//             <h3>Attributes</h3>
+//             <InputGroup placeholder="Search attribute.." small={true} value={attributeSearchQuery} onValueChange={(query) => setAttributeSearchQuery(query)}/>
+//         <div className="flex flex-column" style={{height : "33vh", overflowY : "scroll", overflowX: "hidden", paddingTop : "0.2rem", marginTop : "0.3rem"}}>
+//             {filteredAtributes.map(attrTag => {
+//                 const { values, counts, attributeValues, attribute } = uniqueAtributesInSubmissions[attrTag]
+//                 if (values.size === 0) return null 
+//                 if (!_.isObject(attribute)) return null 
+//                 return (<div key={`${attrTag}-attr-filter`} className="flex flex-column">
+//                     <div><h5>{attribtesByTag[attrTag].text}</h5></div>
+//                     {[...values].map(attributeValueTag => {
+//                         const attrValue = attributeValues[attributeValueTag]
+//                     // let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: createFakeAttributeValue({attribute : attribtesByTag[attrTag], numericInput : attribteValueTag})
+//                         return <AttributeFilterButton key={`${attrTag}-${attributeValueTag}`} {...{
+//                         attribute,
+//                         attributeValue: attrValue,
+//                         submissionKey: attrTag,
+//                         setSubmissionFilter,
+//                         submissionFilter,
+//                         numberSubmissionWithTag : counts[attributeValueTag]
+//                     }} />
+//                 })}</div>)
+//             })}
+//             </div>
+//             </div>
         
-    )
-}
+//     )
+// }
 
 
 export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter,  }) {
@@ -294,49 +297,74 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 }
 
 
-export function SubmissionContainer({ states, submissions, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog}) {
+export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog}) {
     
-    let labelsCombined = _.join(submissions.map(submission => submission.label))
-    const { uniqueAtributesInSubmissions, usersByDataLabel } = useMemo(() => extractSubmissionDetails({ submissions }), [labelsCombined])
-    
-    const usersByLabel = groupListByProperty(users, "label")
-    const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
-    const submissionsByState = groupListByProperty(filteredSubmission, "state")
-    const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+    const [searchString, setSearchString] = useState("")
+    const debouncedString = useDebounce(searchString, 200)
+    const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
 
+    const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
+        query: debouncedString.length === 0 ? null : debouncedString,
+        state: stateFilter,
+        attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
+        attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
+        //attribute_tag : 
+    })
+    
+    //const {submissions, query_count, total_count, labels} = submissionQuery
+   // let labelsCombined = _.isArray(submissions) ? _.join(submissions.map(submission => submission.label)) : ""
+    //const { uniqueAtributesInSubmissions, usersByDataLabel } = extractSubmissionDetails({ submissions })
+    //console.log(uniqueAtributesInSubmissions)
+    const usersByLabel = groupListByProperty(users, "label")
+    //const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
+    const submissionsByState = isSuccess ? groupListByProperty(submissionQuery.submissions, "state") : {}
+    //const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
+    console.log(attributesByTag.attributes)
+   
     return (
-        <div><h2>Submissions ({filteredSubmission.length}/{submissions.length})</h2>
+        <div><h2>Submissions ({isSuccess? submissionQuery.query_count:null}/{isSuccess? submissionQuery.total_count:null})</h2>
+            {/* <TextButtonIcon /> */}
         <div className="flex" style={{ width: "100%" }}>
-            
-            <div className="flex flex-column submission__side__filter__container ">
-                
-                <SubmissionBaseFilter {...{
+        
+                <div className="flex flex-column submission__side__filter__container ">
+                    <div className="flex" style={{minWidth: "100%"}}>
+                    <InputGroup value={searchString} fill = {true} placeholder="Search..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
+                    <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
+                    
+                    </div>
+
+                    <StateSelection {...{ states, submissionsByState, submissionFilter, setSubmissionFilter }} /> 
+                    <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter }} />
+                    <UserSelection {...{submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : []}} />
+                    {/* <SubmissionBaseFilter {...{
                     submissionFilter,
                     submissionsQuery,
                     setSubmissionFilter,
                     setSubmissionQuery,
                     attributesByTag,
                     userLabelsInSubmission,
-                    uniqueAtributesInSubmissions,
+                    //uniqueAtributesInSubmissions,
                     users,
                     states,
                     submissionsByState
-                }} />
+                }} /> */}
             </div>
 
         <div className="submission__items__container">
-                {_.isEmpty(submissionsByState) ? <p>No submission found that match the filter.</p> : null}
+                    {_.isEmpty(submissionsByState) ? <p>No submission found that match the filter.</p> : null}
+                    {isError?<p>An error was returned when searching.</p>:null}
             {Object.values(states.states).map((state,stateIdx) => {
                 const submissionsAreInState = _.has(submissionsByState, state)
                 if (!submissionsAreInState) return null 
                 
                 return (
                     <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
+                        
                         <StateHeader {...{
                             stateName: states.states_inv[state],
                             stateColor: states.colors_inv[state]
                         }} />
-                        {submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
+                        {isLoading || isFetching ? <Loading /> : submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
                             //key are always strings .... 
                             return (
                                 <SubmissionItem

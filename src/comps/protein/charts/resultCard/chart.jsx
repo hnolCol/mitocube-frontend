@@ -17,6 +17,8 @@ import CategoricalLineplot from "../../../core/charts/categorical/lineplot"
 import { downloadSVG } from "../../../../services/downloads/svg"
 import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
 import Loading from "../../../core/base/loading"
+import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
+import { CategoricalFeaturePlotSelection } from "./chartselection/CategoricalChartSelection"
 
 
 function ResultChart({
@@ -29,18 +31,18 @@ function ResultChart({
     attributeValuesByTag
 }) {
     //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
-    
-    const groupingNames = useMemo(() => Object.keys(groupings), [groupings])
+    const attributes = useMemo(() => Object.keys(groupings).map(attributeTag => attributesByTag[attributeTag]), [groupings])
+
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
-    const [selectedGroupings, setSelectedGroupings] = useState({colorName : groupingNames[0], splitName : groupingNames[1], subplotName : groupingNames[2]})
+    const [selection, setSelection] = useState({colorName : attributes[0], splitName : attributes[1], subplotName : attributes[2]})
 
-    const keyNamesForSplitting = _.uniq(Object.values(selectedGroupings).filter(v => v !== undefined && _.has(data[0], v)))
+    const keyNamesForSplitting = _.uniq(Object.values(selection).filter(v => _.isObject(v)).map(v => v.tag))
+    const selectionTags = _.fromPairs(_.keys(selection).filter(selectionKey => _.isObject(selection[selectionKey])).map(selectionKey => [selectionKey ,selection[selectionKey].tag]))
     //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
-    const numberGroupings = groupingNames.length 
     const svgID = `${featureID}-svg-id${dataID}`
 
     
@@ -91,9 +93,10 @@ function ResultChart({
     
     const getPlot = (plotType, groupedAggratedData) => { 
         if (keyNamesForSplitting.length === 0) return <div>Please select grouping names ...</div>
+
         if (plotType === "barplot") {
             return <CategoricalBarplot {...{
-                ...selectedGroupings,
+                ...selectionTags,
                 data: groupedAggratedData,
                 errorName: "e",
                 yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
@@ -109,7 +112,7 @@ function ResultChart({
         }
         else if (plotType === "lineplot") {
             return <CategoricalLineplot {...{
-                ...selectedGroupings,
+                ...selectionTags,
                 data: groupedAggratedData,
                 yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
                 errorName: "e",
@@ -124,7 +127,7 @@ function ResultChart({
         }
         else if (plotType === "boxplot") {
             return <CategoricalBoxplot {...{
-                ...selectedGroupings,
+                ...selectionTags,
                 data: groupedAggratedData,
                 yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
                 errorName: "e",
@@ -142,7 +145,7 @@ function ResultChart({
     return (
 
         <div className="margin--medium" style={{maxWidth: "450px"}}>
-            <SelectionDialog
+            {/* <SelectionDialog
                 title="Normalization Group Selection"
                 applyButtonDisabled={!checkNormalizeToSelection()}
                 isOpen={normalizeDialog.isOpen}
@@ -151,7 +154,7 @@ function ResultChart({
                 <div className="margin--medium">
                 <p>Please select the groups that should be used for normalization.</p>
                 <div className="flex justify-space-around margin--medium">
-                {_.isObject(selectedGroupings)?Object.keys(selectedGroupings).map(selectedGrouping => {
+                {_.isObject(selection)?Object.keys(selection).map(selectedGrouping => {
                     const Icon = getIcon(selectedGrouping)
                     const groupingName = selectedGroupings[selectedGrouping]
                     if  (!_.has(groupings,groupingName)) return null 
@@ -169,17 +172,19 @@ function ResultChart({
                 }):null}
                     </div>
                     </div>
-            </SelectionDialog>
+            </SelectionDialog> */}
 
             <div className="flex justify-flex-start flex--wrap">
-            <h4></h4>
-            <div>
+                <h4></h4>
+                <CategoricalFeaturePlotSelection {...{keyNames : attributes , selection, onSelectionChange : setSelection, minimal : true} }/>
+            {/* <div>
                 <GroupingSelection
                     groupings={groupings}
                     keyNames={["colorName", "splitName", "subplotName"]}
                     handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(data[0],value)?value:undefined}})}
                     selectedItems={selectedGroupings} />
-            </div>
+            </div> */}
+                
                 <div>
                     <NormalizeIcon
                         placeholder=""
@@ -190,10 +195,18 @@ function ResultChart({
                         />
                 </div>
                 <PlottypeIcon callback={cyclePlotTypes} {...{ plotType }} />
+                <InfoIcon />
+
             
                 <DownloadIcon items={["Raw", "Aggregated", "Normalized","DIVIDER","PNG","SVG"].map(dataType => {
                     return ({ text: dataType, disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0 ): false})
                 })} placeholder="" callback={handleDataDownload} callbackValueOnly={true} />
+
+                <div className="flex center-items">
+                    
+                        <h3>TItle</h3>
+                    
+                </div>
             </div>
             
                 {getPlot(plotType, groupedAggratedData)}

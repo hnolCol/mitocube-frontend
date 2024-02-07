@@ -1,9 +1,10 @@
 import { Button, InputGroup } from "@blueprintjs/core"
-import { AttributeFilterSelection} from "../view/SubmissionContainer"
 import _ from "lodash"
 import { StateSelection } from "./StateSelection"
 import { HierarchicalUserView } from "../../core/base/user/UserFilterByProperty"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
+import useDebounce from "../../../hooks/useDebounce"
+import { useEffect, useState } from "react"
 
 export function SubmissionBaseFilter({
     submissionsQuery,
@@ -21,7 +22,7 @@ export function SubmissionBaseFilter({
     return (
         <div>
             <div className="flex">
-                <InputGroup value={submissionsQuery.plain} placeholder="Search..." small={true} onValueChange={value => setSubmissionQuery(prevValues => { return { ...prevValues, plain: value } })} fill={true} />
+                {/* <InputGroup value={searchString} placeholder="Search..." small={true} onValueChange={value => setSearchString(value)} fill={true} /> */}
                 <TooltipButton content="Clear selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
                 <TooltipButton content="Condensed view." icon={submissionsQuery.minimalView ? "eye-on" : "eye-off"} small={true} onClick={() => setSubmissionQuery(prevValues => { return{...prevValues, minimalView : !prevValues.minimalView}})} />
                 
@@ -31,13 +32,13 @@ export function SubmissionBaseFilter({
         
                 <HierarchicalUserView users={users} {...{userLabelsInSubmission, setSubmissionFilter, submissionFilter}} />
                 <hr/>
-                <AttributeFilterSelection {...{
+                {/* <AttributeFilterSelection {...{
                     uniqueAtributesInSubmissions,
                     attributesByTag,
                     submissionFilter,
                     setSubmissionFilter,
                     attributeSearchQuery: submissionsQuery.attributes,
-                    setAttributeSearchQuery: (value) => setSubmissionQuery(prevValues => { return { ...prevValues, attributes: value } })}} />
+                    setAttributeSearchQuery: (value) => setSubmissionQuery(prevValues => { return { ...prevValues, attributes: value } })}} /> */}
                 
    
         </div>

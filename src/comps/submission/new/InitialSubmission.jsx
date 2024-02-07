@@ -21,12 +21,13 @@ import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage
 import DatasetLinks from "./Links"
 import { getRandomID } from "../../../services/random"
 import GenotypeGenerator, { PositionSelection } from "./Genotype"
-import FeatureSelection from "./FeatureSelection"
 import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
 import { constructSampleNames } from "../../../services/samples"
-import { FeatureInput } from "./features/FeatureInput"
+
 import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 import { useNavigate } from "react-router"
+import { FeatureInput } from "../../core/input/api/FeatureInput"
+import { UserInput } from "../../core/input/api/UserInput"
 //move to service
 export function get_proteome_id(datasetAttributeValues) {
     return _.has(datasetAttributeValues,"att_organism") && datasetAttributeValues["att_organism"].length > 0? datasetAttributeValues["att_organism"].map(attributeValue => attributeValue.value) : []
@@ -393,44 +394,16 @@ function InitialSubmission({
         setAlertProps({isOpen : false})
     }
 
-    const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
-        console.log("used??")
-        return 
-        if (!objectHasKey({ object: submission.datasetAttributeValues, keyName: "att_organism" })
-            || submission.datasetAttributeValues["att_organism"].length === 0) {
-            //if organism has not been selected
-            setAlertProps({ isOpen: true, children: <div><h3>Warning</h3><p>Please select one or multiple organisms first.</p></div> })
-            return 
-        }
-        let sampleAttributeTable = submission.attributeTable 
-        let featuresSelectedInSampleAttributeTable = rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length && _.has(sampleAttributeTable[rowIndex],attribute.tag)).map(rowIndex => sampleAttributeTable[rowIndex][attribute.tag])
-        let selectedItems = isSampleAttribute ?  _.uniq(_.flatten(featuresSelectedInSampleAttributeTable)) : _.has(submission.datasetAttributeValues,attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []
 
-        setAlertProps({
-            isOpen: true,
-            confirmButtonText: "Cancel",
-            children: <FeatureSelection {...{
-                authenticationStatus,
-                selectedItems,
-                attribute,
-                rowIdces,
-                entryIdx,
-                genotypeLabel,
-                organisms: submission.datasetAttributeValues["att_organism"],
-                isSampleAttribute,
-                onSave : onFeatureSelection
-            }} />
-        })
-    }
     /**
      * 
      * @param {import("../../../types/feature").Feature} feature 
      */
-    const handlePositionSelection = (feature, singlePosition = true, aaSubstitution = false) => {
+    const handlePositionSelection = (feature, singlePosition = true, aaSubstitution = false, onSave, onSaveProps) => {
         setAlertProps({
             isOpen: true,
             confirmButtonText : "Cancel",
-            children : <PositionSelection {...{feature, singlePosition, aaSubstitution, onClose : () => setAlertProps({isOpen : false})}}/>
+            children : <PositionSelection {...{feature, singlePosition, aaSubstitution, onSave, onSaveProps, onClose : () => setAlertProps({isOpen : false})}}/>
         })
         
     }
@@ -462,9 +435,9 @@ function InitialSubmission({
         setSubmission(prevValues => { return {...prevValues, datasetAttributes : filteredDatasetAttr, datasetAttributeValues : datasetAttrValues}})
     }
 
-    const handleCollaboratorSelection = (selectedUser) => {
+    const handleCollaboratorSelection = (callback, selectedUser) => {
         //save collaborations that are seleted
-        setSubmission(prevValues => {return{...prevValues, collaborators : selectedUser}})
+        setSubmission(prevValues => {return{...prevValues, collaborators : addItemToArrayOrRemoveItIfPresent({array : prevValues.collaborators, item : selectedUser})}})
     }
 
     const addLink = () => {
@@ -525,7 +498,7 @@ function InitialSubmission({
 
     return (
         <div className="flex flex-column">
-            <Alert style={{ }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
+            <Alert style={{minWidth:"min(60vw,600px)"}} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
         <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
@@ -544,12 +517,10 @@ function InitialSubmission({
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
-                <div><span>Unique identifier: </span> <span className="h0-span">{submissionID.id}</span></div>
-
-                    <UserSelection
-                        onUserSelection={handleCollaboratorSelection}
-                        selectedUsers={submission.collaborators}  {
-                        ...{ authenticationStatus }} />
+                    <div><span>Unique identifier: </span> <span className="h0-span">{submissionID.id}</span></div>
+                    
+                    <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
+                  
             </div>
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>2. Mandatory Attributes</h3>
@@ -576,7 +547,7 @@ function InitialSubmission({
                                 selectedItems={_.has(submission.datasetAttributeValues, attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []} />
                         }
 
-                        return <AttributeInput {...{ attributeValues, attribute, handleFeatureSelection }}
+                        return <AttributeInput {...{ attributeValues, attribute }}
                             key={`${attribute.text}-${attribute.id}-mandatory`}
                             helperText={attributeInputDisabled?"Defined as a sample attribute below.":""}
                             disabled={attributeInputDisabled}
@@ -603,9 +574,12 @@ function InitialSubmission({
                         <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
                         <DatasetAttributeSelect
                             attributes={attributesAllowedForDataset}
-                            attributeValues={attributeValuesWithParentInfo}
-                            attributeValuesByID={attributeValuesByAtrributeID}
-                            {...{ handleDatasetAttributeSelection, handleFeatureSelection}} />
+                                attributeValues={attributeValuesWithParentInfo}
+                                selectedDatasetAttribute={submission.datasetAttributes}
+                                selectedDatasetAttributeValues={submission.datasetAttributeValues}
+                                attributeValuesByID={attributeValuesByAtrributeID}
+                                proteome_ids={proteome_ids}
+                            {...{ handleDatasetAttributeSelection}} />
                         <DatasetAttributeHierarchy
                             selectedAttributes={submission.datasetAttributes}
                             selectedDasetAttributeValues={submission.datasetAttributeValues}
@@ -633,12 +607,13 @@ function InitialSubmission({
                     <p>An attribute can only be assigned to a <span className="h0-span">single sample attribute</span> and the attribute values must have at least <span className="h0-span">two unique values</span>.
                                 Otherwise they should be specified as dataset attributes above.</p>
                     <NumericValueInput
-                        placeholder="Number of replicates"
-                        callbackKey={"replicates"}
-                        value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
+                            hint="Number of replicates"
+                            placeholder="Number of replicates"
+                            callbackKey={"replicates"}
+                            value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     <NumericValueInput
                             disabled={preDefinedSampleNames}
-                            hint={preDefinedSampleNames ? "Number of samples" : ""}
+                            hint={"Number of samples"}
                             placeholder="Number of samples"
                             callbackKey={"sampleNumber"}
                             value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
@@ -649,7 +624,6 @@ function InitialSubmission({
                                 updateSubmission: setSubmission,
                                 attributes: attributesAllowedForDataset,
                                 numberReplicates: submission.attributes.replicates,
-                                handleFeatureSelection
                             }} />
                     </div>
                     

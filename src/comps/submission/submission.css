@@ -18,13 +18,16 @@
 
 
 .submission__side__filter__container {
-  max-width: 14rem;
-  min-width: 14rem;
+  max-width: min(20vw,16rem,200px);
+  min-width: min(20vw,16rem,200px);
   overflow-y: scroll;
-  overflow-x:hidden;
-  height: 90vh;
+  overflow-x: hidden;
+  min-height: 100%;
   padding-bottom: 3rem;
-  padding-right: 1rem;
+  padding-right: 0rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+
 }
 
 .submission__state_container {
@@ -95,6 +98,41 @@
   }
 
 
+  .state__filter__button {
+    height : 25px;
+    width : 25px;
+    padding : 0px;
+    border : 0px;
+    border-radius: 0.2rem;
+    font-size: 1rem;
+  }
+
+  .attribute__filter__button {
+    padding : 3px;
+    border : 0px;
+    width : 100%;
+    text-align: left;
+    border-radius: 0.2rem;
+    font-size: 0.8rem;
+    background-color: transparent;
+  }
+  
+.attribute__filter_button--selected{
+  background-color: #eb6a47;
+}
+
+.attribute__expand__button {
+  color : #466688;
+  font-size: 0.8rem;
+  font-weight: bold;
+  background-color: transparent;
+  padding : 0px;
+  border : 0px;
+  width: 25px;
+}
+.attribute__expand__button:hover {
+  color : #eb6a47;
+}
   .submission__state__menuitem {
     margin : 0.2rem;
     opacity: 0.85;

@@ -28,7 +28,8 @@ export function MultiProfiles({chartIdx,
     searchIndices = new Set(),
     hoverIndices = new Set()}) {
     
-    return (<div className="flex flex-column flex--wrap" style={{flexFlow:"column wrap", maxHeight:"90vh", width : "33vw"}}>
+    return (<div style={{display:"grid", gridAutoColumns:"min-content", gridTemplateColumns:"1fr 1fr"}}>
+    {/* //className="flex flex-column flex--wrap div--expand" style={{flexFlow:"column row", maxHeight:"90vh", overflowY : "scroll", alignContent : "flex-start"}} */}
         {_.keys(subsetIndices).map(subsetKey => <ProfileChart {...{
             key: `${subsetKey}-profile-chart`,
             chartIdx : subsetKey,

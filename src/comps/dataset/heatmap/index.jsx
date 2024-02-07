@@ -64,7 +64,9 @@ function DatasetHeatmap({}) {
                     return (
                         <div>
                             <InputGroup onValueChange={(value, e) => handleStringSearch(heatmapData.label_names, value)} />
-                            <div className="flex">
+                            <div className="flex" style={{display:"grid", gridTemplateColumns : "1fr 3fr", gridTemplateRows: "1fr"}}>
+
+                            <div style={{overflowY:"scroll", gridColumn:1,gridRow:1, height:"1fr"}}>
                             <MultiProfiles {...{
                                 chartIdx, data,
                                 subsetIndices : heatmapData.cluster_indices,
@@ -72,7 +74,8 @@ function DatasetHeatmap({}) {
                                 xaxisLabel: "Samples",
                                 ...hoverProps, ...filterProps,
                                 limits, xaxisName, yaxisName, valid, labelNames: heatmapData.label_names,
-                            }} />
+                                    }} />
+                            </div>
 
                             {/* <ProfileChart {...{
                                 chartIdx, data,

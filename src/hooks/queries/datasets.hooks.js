@@ -80,7 +80,7 @@ async function getDatasetHeatmap_API({ dataset_label }) {
     return res.data 
 }
 
-export const useGetDatasetHeatmap = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetDatasetHeatmap = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["getHeatmap", APIParams.dataset_label], () => getDatasetHeatmap_API({ ...APIParams }), useQueryOptions)
 }
 
@@ -93,7 +93,7 @@ async function getDatasetVolcano_API({ dataset_label, testParams }) {
 }
 
 export const useGetDatasetVolcano = (APIParams = {}, useQueryOptions = {}) => {
-    console.log(APIParams)
+
     return useQuery(["getVolcano",
         APIParams.dataset_label,
         APIParams.attribute_left_tag,

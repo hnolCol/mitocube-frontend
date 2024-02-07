@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { SubmissionItem } from "../../submission/view/SubmissionItem";
 import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions } from "../../../hooks/queries/submission.hooks";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
-import { AttributeFilterSelection, extractSubmissionDetails, filterSubmissionByDatasetAttribute, filterSubmissions } from "../../submission/view/SubmissionContainer";
+import { extractSubmissionDetails, filterSubmissionByDatasetAttribute, filterSubmissions } from "../../submission/view/SubmissionContainer";
 import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby";
 import _ from "lodash"
 import { InputGroup } from "@blueprintjs/core";
@@ -12,6 +12,7 @@ import Loading from "../../core/base/loading";
 import { useMemo } from "react";
 import { filterArrayBySearchString } from "../../../services/arrays/filter";
 import { SubmissionBaseFilter } from "../../submission/filter";
+import { FeatureDatasetFilter } from "../../submission/filter/FeatureSelection";
 
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
@@ -48,6 +49,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
                         users,
                         enableStateSelection: false
                     }} />
+                    <FeatureDatasetFilter />
         
             </div>
                 <div className="submission__items__container">

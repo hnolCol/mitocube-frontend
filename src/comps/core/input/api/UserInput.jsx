@@ -1,0 +1,73 @@
+import { useState } from "react"
+import useDebounce from "../../../../hooks/useDebounce"
+import { useGetPublicUserByQuery } from "../../../../hooks/queries/user.hooks"
+import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
+import { getUserFullName } from "../../../../services/format/user"
+import { MultiSelect } from "@blueprintjs/select"
+import _ from "lodash"
+
+
+export function UserInput({selectedUsers = [], onUserSelect, isRequired = true, helperText = "", inline = false, showLabel = true, callbackKey = "", disabled = false, label = "Collaborators", showIsRequired = false, matchTargetWidth = true}) {
+    const [queryString,setQueryString] = useState("")
+    const debouncedString = useDebounce(queryString, 200)
+    const {data : data, isLoading, isFetching, isSuccess} = useGetPublicUserByQuery({query : debouncedString},{enabled : debouncedString.length > 0})
+    
+    /**
+     * 
+     * @param {} user 
+     * @param {*} param1 
+     * @returns 
+     */
+    const renderUser = (user, { handleClick, handleFocus, index, modifiers, query }) => {
+        return <MenuItem key={user.label} text={getUserFullName(user)} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{user.research_group}</h4><p>{user.institute}</p></div></div>}/>
+    }
+    /**
+     * @description Handles the item selection 
+     * @param {import("../../../types/feature").Feature} item 
+     */
+    const handleUserSelection = (user, e) => {
+        if (_.isFunction(e.stopPropagation)) {
+            e.stopPropagation()
+        }
+       
+        onUserSelect(callbackKey, user)
+        // e.stopPropagation()
+    }
+
+    const renderValue = (item) => {
+        return item.firstname
+    }
+    return <FormGroup
+    style={{margin : "0.1rem"}}
+    label={showLabel ? label :undefined}
+    labelInfo={showIsRequired ? isRequired ? "(required)" : "(optional)" : undefined}
+    inline={inline}
+    fill={true}
+    disabled={disabled}
+        helperText={helperText}>
+        
+        <MultiSelect
+            disabled={disabled}
+            itemRenderer={renderUser}
+            items={isSuccess ? _.isArray(data.users) ? data.users : [] : []}
+            tagRenderer={renderValue}
+            selectedItems={selectedUsers}
+            onItemSelect={handleUserSelection}
+            onRemove={handleUserSelection}
+            resetOnSelect={true}
+            query={queryString}
+            fill = {true}
+            onQueryChange={(query) => setQueryString(query)}
+            popoverProps={{ minimal: true, matchTargetWidth }}
+            menuProps={{style : {minWidth:"700px"}}}
+            tagInputProps={{
+                rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
+                inputProps : {intent : "primary"},
+                tagProps: { minimal: true },
+                placeholder : "User search starts on typing ..."
+            }}
+            initialContent={null}
+            />
+        </FormGroup>
+}

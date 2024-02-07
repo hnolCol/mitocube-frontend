@@ -2,7 +2,17 @@ import _ from "lodash"
 import moment from "moment"
 
 
+export function getValueByKeyAndMergeToString({ array, keyName, joinString = ";" }) {
+    if (!_.isArray(array)) return null 
+    const extractedData = getValueFromArrayOfObjectsByKey({ data: array, keyName })
+    if (extractedData.length > 0) {
+        return _.join(extractedData,joinString)
+    }
+}
+
+
 export function getValueFromArrayOfObjectsByKey({ data, keyName }) {
+
     return data.map(d => d[keyName])
 }
 

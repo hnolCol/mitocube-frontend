@@ -5,7 +5,7 @@ import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 
-export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true}) {
+export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true, small = false}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
     const { data: items, isLoading, isFetching } = useGetFeatureByQuery({ query: debouncedString, proteome_ids},
@@ -21,8 +21,13 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
      * @param {import("../../../types/feature").Feature} item 
      */
     const handleItemSelection = (item, e) => {
+        if (_.isFunction(e.stopPropagation)) {
+            e.stopPropagation()
+        }
+       
+        
         onItemSelect(attribute, item)
-        e.stopPropagation()
+        // e.stopPropagation()
     }
 
     /**
@@ -42,7 +47,8 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
     fill={true}
     disabled={disabled}
     helperText={helperText}>
-            <MultiSelect
+        <MultiSelect
+            
             disabled={disabled}
             itemRenderer={renderFeature}
             items={_.isArray(items) ? items : []}
@@ -54,7 +60,8 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
             query={queryString}
             fill = {true}
             onQueryChange={(query) => setQueryString(query)}
-            popoverProps={{ minimal: true, matchTargetWidth: true }}
+            popoverProps={{ minimal: true, matchTargetWidth: false }}
+            menuProps={{style : {minWidth:"700px"}}}
             tagInputProps={{
                 rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
                 inputProps : {intent : "primary"},

@@ -20,9 +20,10 @@ import { mapAttributeValueTagsToAttributes } from "../../../../services/attribut
 import { Divider, H4 } from "@blueprintjs/core"
 import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
 import { roundNumber } from "../../../../services/format/number"
-import { ScatterLegend } from "./Legend"
+import { ScatterLegend, TextScatterLegend } from "./Legend"
 import { ScatterLabel } from "./Label"
 import { SearchIndicator } from "../annotations/Search"
+import { ChartTopLeftLabel } from "../profiles/ProfileChart"
 
 
 ScatterPlot.propTypes = {
@@ -98,7 +99,10 @@ export function ScatterPlot({
     labelChart = -1,
     searchString = "",
     attributeValuesByTag = {},
-    attributesByTag = {}
+    attributesByTag = {},
+    suffix = "",
+    indicateDataSize = true,
+    legendWithAttributes = true
 }) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
@@ -226,9 +230,9 @@ export function ScatterPlot({
                 margins={margins}
                 leftScale={yScale}
                 bottomScale={xScale}
-                bottomLabel={xaxisName}
+                bottomLabel={`${xaxisName} ${suffix}`}
                 leftHideTicks={false}
-                leftLabel={yaxisName}
+                leftLabel={`${yaxisName} ${suffix}`}
                 moveBottomToLeft={false}
                 findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
@@ -266,6 +270,7 @@ export function ScatterPlot({
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
+                {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${data.length}`], textOffset: 3 }} /> : null}
                 <g>
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
                         data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
@@ -274,9 +279,6 @@ export function ScatterPlot({
 
                 {searchIndices.size > 0 ? <SearchIndicator {...{margins,width,searchIndices,searchString}} /> : null}
                 <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} onMouseUp = {handleMouseUp} fill="#ffffff" opacity={0.0}/>
-                {/* {legend ? <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top}
-                    {...{data,colorScale, colorName, attrValuesByTag: attributesByTag.attribute_values, handleMouseOver : handleLegendMouseOver, onLegendGroupLeave}} /> : null} */}
-                {/* //attributesByTag */}
 
             </SVG >
             
@@ -310,7 +312,8 @@ export function ScatterPlot({
                 </TooltipInPortal> : null} 
             
             <div>
-                {legend ? <ScatterLegend {...{
+                {console.log(legend)}
+                {legend ? legendWithAttributes ? <ScatterLegend {...{
                     chartIdx,
                     sizeName,
                     sizeScale,
@@ -323,7 +326,18 @@ export function ScatterPlot({
                     colorLimit: limits[colorName],
                     attributesByTag,
                     attributeValuesByTag
-                }} /> : null}
+                }} /> : <TextScatterLegend
+                    {...{
+                        chartIdx,
+                        sizeName,
+                        sizeScale,
+                        colorScale,
+                        colorName,
+                        data,
+                        filterDataInKeyByValue,
+                        resetSearchIdcs,
+                        sizeLimit: limits[sizeName],
+                        colorLimit: limits[colorName]}}/> : null}
                 {/* <h3>Legend</h3>
                 {_.isString(colorName) && _.isString(data[0][colorName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)}>

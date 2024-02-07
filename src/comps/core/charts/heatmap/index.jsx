@@ -152,7 +152,7 @@ function Heatmap({
                 </LegendLinear>
             </div>
             {/* The actual heatmap with values */}
-            <div style={{ overflowY: "scroll", maxHeight: "70vh" }} onScroll={(e) => setScrollPos(e.target.scrollTop)} ref={refScrollContainer}>
+            <div style={{ overflowY: "scroll", maxHeight: "80vh" }} onScroll={(e) => setScrollPos(e.target.scrollTop)} ref={refScrollContainer}>
             <SVG {...{ width: heatmapSVGWidth, height: heatmapSVGHeight, svgRef: containerRef }}>
                 
                 {dataIdcs.map((index,rowNumber) => {

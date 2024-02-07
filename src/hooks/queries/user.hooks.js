@@ -33,6 +33,26 @@ export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {staleTim
 }
 
 
+
+
+//query user
+
+
+/**
+ * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
+ * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
+ */
+async function getPublicUsersByQuery_API({ query }) {
+    const res = await axios.get('/api/users/q', {params : {query}})
+    return res.data
+}
+
+export const useGetPublicUserByQuery = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
+    return useQuery(["getPublicUserInfoQuery",APIParams.query],() =>   getPublicUsersByQuery_API({...APIParams}), useQueryOptions)
+}
+
+
+
 // get user roles
 
 
@@ -77,6 +97,7 @@ async function postChangePasswordUser_API({ updated_pw }) {
 export const usePostPasswordChange = (useMutationOptions = {}) => {
     return useMutation((APIParams) => postChangePasswordUser_API({...APIParams}), useMutationOptions)
 }
+
 
 
 

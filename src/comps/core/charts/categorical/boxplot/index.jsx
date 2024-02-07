@@ -111,7 +111,7 @@ function CategoricalBoxplot({
     attributeValuesByTag
     }) {
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
-
+    //console.log(data,colorName,splitName)
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorCategoryFound = _.has(data[0], colorName)
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])

@@ -27,6 +27,7 @@ function ComboboxIconBase({
     width = 25,
     placeholder = "",
     items = [{ text: "Menu1" }],
+    textKey = "text",
     selectedItems = [],
     callbackKey = undefined,
     callback = undefined,
@@ -35,14 +36,16 @@ function ComboboxIconBase({
     filterable = true,
     children }) {
     
-    const checkedItems = _.isString(items[0])?items.map(v => {return {text : v}}):items
+    const itemsAreObjects = _.isObject(items[0])
+    const checkedItems = _.isString(items[0])?items.map(v => {return {[textKey] : v}}):items
 
-    const handleSelection = (item,e) => {
+    const handleSelection = (item, e) => {
+        const returnItem = itemsAreObjects ? item : item.text
         if (_.isFunction(callback)) {
             if (callbackValueOnly) 
-                callback(item.text)
+                callback(returnItem )
             else {
-                callback(callbackKey, item.text)
+                callback(callbackKey, returnItem )
             }
         }
     }
@@ -53,7 +56,7 @@ function ComboboxIconBase({
      * @returns {Object[]} Filtered array using the query string and the text object.
      */
     const filterItems = (query, items) => {
-        return filterArrayBySearchStringBySingleKey({array : items, keyName : "text", searchString : query}).data
+        return filterArrayBySearchStringBySingleKey({array : items, keyName : textKey, searchString : query}).data
     }
     /**
      * @description Renders the MenuItem to show individual items. 

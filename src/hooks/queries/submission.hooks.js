@@ -7,7 +7,8 @@ import { arrayOfObjectsToObjectByProperty} from "../../services/arrays/groupby";
 
 
 /**
- * @description Tries to get the submission from the backend.
+ * @description Tries to get the submission from the backend. Returns submission in the database. Should not be 
+ * used if a large number of submission are present. 
  * @author Hendrik Nolte 
  * @since 0.1.0
  * @returns {import("../../types/submissions").Submission[]} - Array of submissions.
@@ -20,6 +21,63 @@ async function getSubmissions_API({}) {
 export const useGetSubmissions = (APIParams = {},useQueryOptions = {}) => {
     return useQuery(["getSubmissions"],() =>  getSubmissions_API({...APIParams}), useQueryOptions)
 }
+
+
+
+
+/**
+ * @description Gets submissions by a query. Filtering is allowed by attribute_tag, attribute_value_tag, feature_key, genotype_label and state.
+ * @returns {import("../../types/submissions").Submission[]} - Array of submissions.
+ */
+async function getSubmissionsByQuery_API({query,attribute_tag,attribute_value_tag, feature_key, genotype_label,state}) {
+    const res = await axios.get('/api/submissions/q',{ params : {query, attribute_tag,attribute_value_tag,feature_key,genotype_label,state}})
+    return res.data 
+}
+
+export const useGetSubmissionByQuery = (APIParams = {},useQueryOptions = {}) => {
+    return useQuery(["getSubmissions",
+        APIParams.query,
+        APIParams.attribute_tag,
+        APIParams.genotype_label,
+        APIParams.feature_key,
+        APIParams.state,
+        APIParams.attribute_value_tag],
+        () => getSubmissionsByQuery_API({ ...APIParams }), useQueryOptions)
+}
+
+
+async function getSubmissionsCount_API({group, labels}) {
+    const res = await axios.get('/api/submissions/count',{params : {group, labels}})
+    return res.data 
+}
+
+export const useGetSubmissionsCount = (APIParams = {group : "state", labels : null},useQueryOptions = {}) => {
+    return useQuery(["getSubmissionsCount",APIParams.group,APIParams.labels],
+        () => getSubmissionsCount_API({ ...APIParams }), useQueryOptions)
+}
+
+
+
+
+
+// change_owner of submission
+async function postSubmissionOwner_API({ submission_label, user_label }) {
+    const res = await axios.post(`/api/submissions/${submission_label}/owner`, {}, {params : {user_label}}
+        )
+}
+
+export const usePostSubmissionOwner = (useMutationOptions = {}) => {
+    return useMutation((APIParams) => postSubmissionOwner_API({...APIParams}), useMutationOptions)
+}
+
+
+
+
+
+
+
+
+
 
 
 // sumbission ID
