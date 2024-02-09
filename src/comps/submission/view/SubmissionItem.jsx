@@ -114,7 +114,6 @@ export function SubmissionItem({
                         onClick={() => { setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) }} />
                     <MenuDivider />
                     <MenuItem text = "Owner" />
-                
                 </MenuItem>
                 
         </Menu>}>

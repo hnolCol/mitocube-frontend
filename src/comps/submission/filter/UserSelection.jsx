@@ -24,6 +24,7 @@ export function UserSelection({ submissionFilter, setSubmissionFilter, labels })
     const { data, isLoading, isFetching, isSuccess, isError, error } = useGetPublicUserInfo()
     
     const groupedUsers = isSuccess && _.isArray(data) && data.length > 0 ? groupListByProperty(data,"research_group"): {}
+    
     return (
         <div>
             <h4>Users</h4>

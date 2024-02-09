@@ -319,7 +319,7 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
     //const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
     const submissionsByState = isSuccess ? groupListByProperty(submissionQuery.submissions, "state") : {}
     //const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
-    console.log(attributesByTag.attributes)
+    //console.log(attributesByTag.attributes)
    
     return (
         <div><h2>Submissions ({isSuccess? submissionQuery.query_count:null}/{isSuccess? submissionQuery.total_count:null})</h2>

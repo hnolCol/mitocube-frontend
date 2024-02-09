@@ -120,8 +120,10 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     }
 
     const filterDataInKeyByValue = (chartIdx, keyName, value) => {
-        let idcs = data.reduce((s, d, idx) => (d[keyName] === value ? s.add(idx) : null, s), new Set())
-        setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : idcs}})
+        console.log("abc")
+        let idcs = new Set(data.map((d,idx) => d[keyName] === value ? idx : null).filter(idx => idx !== null)) //reduce((s, d, idx) => (d[keyName] === value ? s.add(idx) : null, s), new Set())
+        console.log("abc" ,idcs)
+        setRerender(prevValues => { return { ...prevValues, rerender: [Math.random()], searchIndices: idcs } })
     }
 
     const handleSearchByDataIndex = (chartIdx, idcs) => {

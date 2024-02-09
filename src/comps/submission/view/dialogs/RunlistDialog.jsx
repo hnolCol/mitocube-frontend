@@ -17,8 +17,9 @@ import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile } from ".
  * @returns {Number} The number of runs.
  */
 function getNumberOfSamples(submission, aggregate_on = undefined, n_fractions = 1) {
-    const samplesAttributesToAggregate = _.filter(_.values(submission.samples_attributes), sampleAttr => sampleAttr.name === aggregate_on)
-    const numberAggregatedSamples = samplesAttributesToAggregate.length > 0 ? _.keys(samplesAttributesToAggregate[0].values).length : 0
+    const samplesAttributesToAggregate= _.has(aggregate_on,"tag") ? _.filter(_.keys(submission.samples_attributes), sampleAttr => sampleAttr === aggregate_on.tag) : []
+    //const samplesAttributesToAggregate = _.filter(_.keys(submission.samples_attributes), sampleAttr => _.isObject(aggregate_on) && sampleAttr.tag === aggregate_on.tag)
+    const numberAggregatedSamples = samplesAttributesToAggregate.length > 0 ? _.values(submission.samples_attributes[aggregate_on.tag]).length : 0
     if (samplesAttributesToAggregate.length === 0 && n_fractions === 1) return submission.n_samples
     if (samplesAttributesToAggregate.length === 0) return submission.n_samples * n_fractions
     return numberAggregatedSamples * n_fractions
@@ -60,10 +61,10 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     
     const [runlistProps, setRunlistProps] = useState(init_runprops)
     const [plates, setPlates] = useState(initPlates)
-    
-    const sampleAttributeNames = _.values(submission.samples_attributes).map(sampleAttr => { return { text: sampleAttr.name, description: `${_.join(_.keys(sampleAttr.values), ", ")}` } })
+    console.log(submission)
+    const sampleAttributeNames = _.keys(submission.samples_attributes).map(sampleAttrTag => submission.attributes[sampleAttrTag]).map(sampleAttr => { return { text: sampleAttr.text, tag : sampleAttr.tag,  description: `${_.join(_.keys(submission.samples_attributes[sampleAttr.tag]).map(attrValueTag => submission.attribute_values_by_tag[attrValueTag].text), ", ")}` } })
     const runlistLoading = runlistSubmitIsLoading || runlistSubmitIsFetching
-    
+    console.log(sampleAttributeNames)
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
     }
@@ -111,7 +112,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
          */
         const runlist_props = {
             rows_first: runlistProps.rows_first,
-            aggregate_on: runlistProps.aggregate_on,
+            aggregate_on: _.has(runlistProps,"aggregate_on.tag") ? runlistProps.aggregate_on.tag : undefined,
             fractionate : runlistProps.fractionate,
             scramble: runlistProps.scramble,
             scramble_across_plates: runlistProps.scramble_across_plates,
@@ -153,11 +154,12 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                             <Combobox
                                 items={sampleAttributeNames}
                                 placeholder="Aggregate samples on..."
-                                callbackKey={"aggregate_on"}
+                                    callbackKey={"aggregate_on"}
+                                textKey="text"
                                 labelKey={"description"}
                                 matchTargetWidth={false}
-                                onChange={(key, item) => handleItemChange(key, item.text)}
-                                value={runlistProps.aggregate_on} />
+                                onChange={(key, item) => handleItemChange(key, item)}
+                                value={_.isObject(runlistProps.aggregate_on) ? runlistProps.aggregate_on.text : null} />
                             </div>
                         <div style={{ maxWidth: "min(600px,70vw)", marginLeft: "2rem" }}>
                         <Callout className="">

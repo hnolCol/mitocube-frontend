@@ -65,7 +65,6 @@ function DatasetHeatmap({}) {
                         <div>
                             <InputGroup onValueChange={(value, e) => handleStringSearch(heatmapData.label_names, value)} />
                             <div className="flex" style={{display:"grid", gridTemplateColumns : "1fr 3fr", gridTemplateRows: "1fr"}}>
-
                             <div style={{overflowY:"scroll", gridColumn:1,gridRow:1, height:"1fr"}}>
                             <MultiProfiles {...{
                                 chartIdx, data,

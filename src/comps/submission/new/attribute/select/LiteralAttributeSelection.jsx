@@ -19,7 +19,7 @@ function HierarchicalAttributeSelection({attribute, attributeValues, onItemSelec
     const mandatoryForActive = attribute.mandatory_for_active
     const headerText = mandatoryForActive ? `${attribute.text} (required)` : attribute.text
     return (
-        <div className="" style={{paddingLeft : `${level*0.8}rem`,  paddingLeft : "1rem"}}> 
+        <div className="" style={{paddingLeft : `${level*0.8}rem`}}> 
             {level == 0 ? <h4>{headerText}</h4> : <h5>{headerText}</h5>}
             {/* borderLeft : `3px solid #${blockColor}`, */}
             <AttributeInput {...{

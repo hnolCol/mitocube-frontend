@@ -312,7 +312,6 @@ export function ScatterPlot({
                 </TooltipInPortal> : null} 
             
             <div>
-                {console.log(legend)}
                 {legend ? legendWithAttributes ? <ScatterLegend {...{
                     chartIdx,
                     sizeName,
