@@ -75,6 +75,22 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         })
     }
 
+    const repeatSelection = (rowIdcs, attributeTag) => {
+        let attributeTable = submission.attributeTable
+        const n_samples = attributeTable.length
+        const selection = rowIdcs.map(rowIdx => attributeTable[rowIdx][attributeTag])
+        const lastIdx = rowIdcs.at(-1)
+        const diff = (n_samples+1) - lastIdx
+        const n_repeat = _.toInteger((diff) / rowIdcs.length+0.5)
+        const values = Array(n_repeat).fill(selection).flat();
+        _.forEach(_.range(diff), idx => _.isObject(attributeTable[lastIdx + 1 + idx]) ? attributeTable[lastIdx + 1 + idx][attributeTag] = values.at(idx % rowIdcs.length): null)
+        updateSubmission(prevValues => {
+            return {
+                ...prevValues, attributeTable, rerenderTableDependency: [Math.random()]
+            }
+        })
+    }
+
     // const handleFeatureSelection = ({attribute, isSampleAttribute=false, rowIdces = [], genotypeLabel = undefined, entryIdx=0}) => {
     //     //handle feature selection of a samples attribute
     //     if (!_.has(submission.datasetAttributeValues, "att_organism")
@@ -280,7 +296,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 numberReplicates: numberReplicates !==undefined?numberReplicates :_.uniq(submission.replicates).length,
                 replicates: submission.replicates,
                     onReplicateChange,
-                    handleGenotypeSelection
+                    handleGenotypeSelection,
+                    repeatSelection
                 }} />
             </div>
     )

@@ -104,7 +104,7 @@ function ReplicateContextMenu({numberReplicates, onReplicateChange, selectedRows
 
 
 
-export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined}) {
+export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined, repeatSelection}) {
     const [queryString, setQuery] = useState("")
     let attributeValueBySearchQuery = useMemo(() => queryString === "" ? attributeValues : filterArrayBySearchString({
         searchString: queryString,
@@ -131,7 +131,8 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
                         role="listoption" />)}
             </Menu>
             <MenuDivider />
-            <MenuItem text={`Clear Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces,attributeTag)}/>
+            <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces,attributeTag)}/>
+            <MenuItem text={`Clear Selection (${rowIdces.length} row(s))`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces,attributeTag)}/>
             </Menu>
     )
 }
@@ -159,7 +160,8 @@ function SamplesAttributes({
     genotypes,
     genotypeAttributes,
     handleGenotypeSelection,
-    proteome_ids
+    proteome_ids,
+    repeatSelection
     }) {
     const [selectedRows, setSelectedRows] = useState([])
 
@@ -265,7 +267,7 @@ function SamplesAttributes({
         
         return (
             <AttributeContextMenuSearch
-                {...{ onAttributeSelect, rowIdces : selectedRows, clearAttributeTableByRowIndex }}
+                {...{ onAttributeSelect, rowIdces : selectedRows, clearAttributeTableByRowIndex, repeatSelection }}
                 attributeValues={attributeValues}
                 attributeTag={sampleAttribute.tag}
                />
