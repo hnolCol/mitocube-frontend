@@ -20,14 +20,13 @@ function VolcanoPlot({dataset_label}) {
     
 }
 
-function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata }) {
+function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIsFetching }) {
     const [volcanoData, setVolcanoData] = useState({data : [], testParams : [], selection : [], suffixes : []})
     console.log(selectedTestParams,volcanoData.testParams)
 
     const handleSuccess = (data) => {
         //merge data to get super fast split
-        console.log(volcanoData)
-        console.log(data)
+       
         let updatedData = []
         let prevData = volcanoData.data
         if (prevData.length > 1) {
@@ -57,17 +56,20 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata }) {
         !_.isEmpty(selectedTestParams) &&
         !isItemInArrayDeepComp({ array: volcanoData.testParams, item: selectedTestParams })
     
-    const {  refetch} = useGetDatasetVolcano({ dataset_label, testParams: selectedTestParams }, {
+    const { isLoading, isRefetching, isSuccess, refetch} = useGetDatasetVolcano({ dataset_label, testParams: selectedTestParams }, {
             enabled: false,
         onSuccess: handleSuccess
         })
     
     useEffect(() => {
         if (testParamsUpdate) {
+            setIsFetching(true)
             refetch()
-    }},[testParamsUpdate])
+        }
+    }, [testParamsUpdate])
     
-    console.log(volcanoData)
+    useEffect(() => {setIsFetching(false)},[isSuccess])
+    
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
     console.log(volcanoData.suffixes.map(suffix => {return {xaxisName : `log2 FC ${suffix}`,yaxisName : `-log10 p-value ${suffix}`}}))
     return (<div>
@@ -77,11 +79,6 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata }) {
             // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
             keyNames={
                     volcanoData.suffixes.map(suffix => {return {xaxisName : `log2 FC ${suffix}`,yaxisName : `-log10 p-value ${suffix}`}})
-                // [
-                //         {
-                //             xaxisName: selection.xaxisName,
-                //             yaxisName: selection.yaxisName
-                //     }]
             }
                     isPointChart={[true,true]}>
                     {
@@ -161,7 +158,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata }) {
 function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValues}) {
 
     const [testParams, setTestParams] = useState({})
-    
+    const [isFetching, setIsFetching] = useState(false)
 
     const handleVolcano = (props) => {
         const params = {
@@ -173,10 +170,10 @@ function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValue
     }
     return (
         <div className="div--expand flex">
-            <VolcanoDataHandler {...{ dataset_label, selectedTestParams : testParams, metadata }} />
+            <VolcanoDataHandler {...{ dataset_label, selectedTestParams : testParams, metadata, setIsFetching }} />
            <SamplesAttributesSelection
                 attributes={attributes}
-                groupAttributeValues={attributeValues} {...{ metadata, callback: handleVolcano }} />
+                groupAttributeValues={attributeValues} {...{ metadata, callback: handleVolcano, isLoading : isFetching }} />
         </div>
         
     )

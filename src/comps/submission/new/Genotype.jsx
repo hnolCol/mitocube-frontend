@@ -96,7 +96,12 @@ function GenotypeAttributeSelection({
                 })}
             </div> :
                 allowFeatures ?
-                    <FeatureInput {...{ attribute, proteome_ids : [proteome_id], onItemSelect: handleSelection, selectedItems: genotypeProps.attributes[entryIdx][attribute.tag] }} /> :
+                    <FeatureInput {...{
+                        attribute,
+                        proteome_ids: [proteome_id],
+                        onItemSelect: handleSelection,
+                        selectedItems: genotypeProps.attributes[entryIdx][attribute.tag]
+                    }} /> :
                 <SingleAttributeInput {...{
                 attribute,
                 attributeValues: attributeValues,
@@ -298,7 +303,7 @@ function GenotypeGenerator({ index = 6,
     const [genotype, setGenotype] = useState({})
    
     const nestedAttributes = createDataTree({ array: attributes, link: "parent_id" })
-    const submitDisabled = _.isEmpty(genotype) || genotype.attributes.length === 0 || !_.isString(genotype.text) || !_.isString(genotype.proteome_id) || _.some(_.map(genotype.attributes,  attrs => _.isEmpty(attrs)))
+    const submitDisabled = _.isEmpty(genotype) || genotype.attributes.length === 0 || !_.isString(genotype.text) || !_.isString(genotype.proteome_id) // || _.some(_.map(genotype.attributes,  attrs => !_.isEmpty(attrs)))
     const {mutate, error, isError, isLoading, isFetching}  = usePostGenotype({enabled : !submitDisabled})
 
 
@@ -442,7 +447,6 @@ function GenotypeGenerator({ index = 6,
         else {
             genotypeAttrs = genotypeAttrs.filter((attrs,idx) => idx !== entryIdx && _.isEmpty(attrs))
         }
-        console.log(genotypeAttrs)
         genotypeToModify.attributes = genotypeAttrs
         genotypeToModify.text = constructGenotypeName(genotypeAttrs)
         setGenotype(genotypeToModify)

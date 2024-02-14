@@ -160,7 +160,6 @@ function DatasetOverview({authenticationStatus}) {
         if (tabHeader !== "") setTabHeader("")
         
     }, [])
-    console.log(metadata)
  
     const datasetMetrices = useMemo(() => {
         if (!_.isObject(metadata)) return []

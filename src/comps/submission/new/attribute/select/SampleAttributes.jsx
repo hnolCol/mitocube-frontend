@@ -4,7 +4,7 @@ import { Combobox } from "../../../../core/input/Combobox"
 import TextInput from "../../../../core/input/Text"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider} from "@blueprintjs/core"
+import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider} from "@blueprintjs/core"
 import { useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
 import _ from "lodash"
@@ -61,13 +61,61 @@ function AttributeSelectionHeader({
     )
 }
 
-function GenotypeContextMenu({genotypes, selectedRows, handleGenotypeSelection}) {
+
+function getPositionString(positionAttrValue) {
+
+    if (_.isString(positionAttrValue.aa)) {
+        return positionAttrValue.aa
+    }
+    else if (_.isArray(positionAttrValue.aa_position) && positionAttrValue.aa_position.length > 1)
+        return _.join(positionAttrValue.aa_position, "-")
+    else if (positionAttrValue.aa_position === null && positionAttrValue.aa === null) {
+        return positionAttrValue.attribute_value.text
+    }
+}
+
+function extractGenotypeRepresentation(genotype) {
     
+    return <div>{genotype.attributes.map((attribute,attrIdx) => {
+        const hasProteinMutation = _.has(attribute, "att_protein_position")
+        const mutations = hasProteinMutation && _.has(attribute, "att_protein_mutation") ? attribute["att_protein_mutation"] : []
+        const positions = attribute["att_protein_position"]
+        return <div style={{fontSize : "0.7rem"}}><ul style={{listStyleType: "none",margin:"0px",padding:"0px"}}>
+            <li>{genotype.proteome_id}</li>
+            <li>{attribute["att_gene_editing_method"][0].text}</li>
+            <li>{attribute["att_gene_engineering"][0].text}</li>
+            <li>{attribute["att_gene_zygosity"][0].text}</li>
+            <li>{hasProteinMutation ? mutations.map(mutationAttrValue => {
+                if (_.has(positions, mutationAttrValue.tag)) {
+                    const positionAttrValue = positions[mutationAttrValue.tag]
+                    return <li>{mutationAttrValue.text} : {getPositionString(positionAttrValue)}</li>
+                }
+            }) : null}</li></ul>
+         {attrIdx > 0 ? <Divider /> : null}
+        </div>
+           
+    })}
+        
+        </div>
+
+}
+
+
+function GenotypeContextMenu({genotypes, selectedRows, handleGenotypeSelection, proteome_ids}) {
+    console.log(genotypes)
     return (
-        <Menu onWheelCapture={e => e.stopPropagation()}>
+        <Menu style={{minWidth : "500px"}} onWheelCapture={e => e.stopPropagation()}>
             <MenuItem text="Genotypes" disabled={true} />
             <MenuDivider />
-            {_.isArray(genotypes)?genotypes.map(genotype => <MenuItem text={genotype.text} onClick={() => handleGenotypeSelection(selectedRows,genotype)}/>):null}
+            <Menu style={{ overflowY: "scroll", maxHeight: "280px" }} onWheelCapture={e => e.stopPropagation()}> 
+            {!_.isArray(proteome_ids) || proteome_ids.length === 0 ? <MenuItem text="Select an organism/proteome first." disabled={true} /> : null}
+            {_.isArray(genotypes) && genotypes.length > 0 ?
+                genotypes.map(genotype =>
+                    <MenuItem text={genotype.text} onClick={() => handleGenotypeSelection(selectedRows, genotype)}
+                        labelElement={<div className="labelelement-wrap--fixed-width" style={{textAlign:"right"}}>{extractGenotypeRepresentation(genotype)}</div>} />)
+                    : null}
+            </Menu>
+            <MenuDivider />
         </Menu>
     )
 }
@@ -213,14 +261,15 @@ function SamplesAttributes({
 
         //replicates menu 
         if (columnIndex === 1) return <ReplicateContextMenu {...{ numberReplicates, onReplicateChange, selectedRows }} />
-        if (columnIndex === 2) return <GenotypeContextMenu {...{genotypes, selectedRows, handleGenotypeSelection}}/>
+        if (columnIndex === 2) return <GenotypeContextMenu {...{genotypes, selectedRows, handleGenotypeSelection, proteome_ids}}/>
         let sampleAttribute = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
 
         if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
         //find row indices from the selected region
         //attribute.has_features_value ? attributeValuesByID[-1] : 
-        let attributeValues = sampleAttribute=== undefined || !_.has(attributeValuesByID, sampleAttribute.id)? [] : attributeValuesByID[sampleAttribute.id]
+        let attributeValues = sampleAttribute === undefined || !_.has(attributeValuesByID, sampleAttribute.id) ? [] : attributeValuesByID[sampleAttribute.id]
+        console.log(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])))
         const attributeValuesSelected = _.uniqBy(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])),"tag")
         // if there is no attribute values, then a numeric value can be inserted by the user
         const selectedAttributeValuesFound = attributeValuesSelected.length
@@ -260,8 +309,9 @@ function SamplesAttributes({
                 />
             {selectedRows.length > 0 ?
                 <Menu>
-                <MenuDivider />
-                    <MenuItem text={`Clear Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(selectedRows, groupingInfo.attribute.tag)}/> 
+                    <MenuDivider />
+                    <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => repeatSelection(selectedRows,sampleAttribute.tag)}/>
+                    <MenuItem text={`Clear Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(selectedRows, sampleAttribute.tag)}/> 
                 </Menu>: null}
             </Menu>)
         
@@ -326,7 +376,6 @@ function SamplesAttributes({
     }
 
     const renderGroupingHeaderMenu = (columnIndex) => {
-        const groupingInfo = getGroupingInfoByColumnIndex(columnIndex)
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute.tag])?rowData[attribute.tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0

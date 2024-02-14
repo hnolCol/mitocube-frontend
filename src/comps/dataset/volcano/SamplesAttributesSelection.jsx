@@ -26,7 +26,7 @@ SamplesAttributesSelection.propTypes = {
  * @param {import("../../../types/submissions").Submission} metadata
  * @returns {import("react").ReactElement} - The JSX React Element
  */
-export function SamplesAttributesSelection({attributes, groupAttributeValues = {}, callback, confirmButtonText = "Show Volcano plot.", metadata}) {
+export function SamplesAttributesSelection({attributes, groupAttributeValues = {}, callback, confirmButtonText = "Show Volcano plot.", metadata, isLoading}) {
     
     const [grouping, setGrouping] = useState({
         main: undefined,
@@ -221,7 +221,8 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
             </div>
         <div className="flex justify-space-around">
             <Button 
-                disabled = {grouping.group1 === grouping.group2} 
+                    disabled={grouping.group1 === grouping.group2} 
+                    loading={isLoading}
                 text={confirmButtonText} 
                 small={true}
                 fill={false}

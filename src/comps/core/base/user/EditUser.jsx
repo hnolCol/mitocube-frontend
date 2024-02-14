@@ -71,7 +71,6 @@ function EditAffiliation({ }) {
 
 export function EditUser({userLabel}) {
     const [tabID,setTabID] = useState("change_pw")
-    console.log(userLabel)
     return (
         <Tabs selectedTabId={tabID} onChange={(newTabID, oldTabID) => setTabID(newTabID)}>
             <Tab id="change_pw" title="Change password" panel={<PWChangeUser />} />
