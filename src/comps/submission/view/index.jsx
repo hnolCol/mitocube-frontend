@@ -11,6 +11,7 @@ import { AttributeSelectionDialog } from "./dialogs/AttributeSelectionDialog"
 import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
 import { EditDatasetAttributeDialog } from "./dialogs/DatasetAttributesDialog"
 import { RunlistCreatorDialog } from "./dialogs/RunlistDialog"
+import { ChangeSubmissionUserDialog } from "./dialogs/ChangeSubmissionUserDialog"
 
 
 
@@ -33,6 +34,15 @@ const initExperimental = {
 
 function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
+    const [changeOwnerDialog, setChangeOwnerDialog] = useState({
+        isOpen: false,
+        submission: {},
+        error : undefined,
+        isLoading: false,
+        success: false,
+        submitted : false
+    })
+
     const [attributeSelectionDialog, setAttributeSelectionDialog] = useState({
         isOpen: false,
         attributeFilter: {},
@@ -128,24 +138,9 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
             alertUpdateFn(prevValues => {return {...prevValues,isLoading : patchSubmissionIsLoading}})
     }
     
-
-    // const downloadProjectSummary = (event, notThisState = undefined) => {
-    //     //download the projects summary as a txt file.
-    //     let submissions = submissionDetails.submissions
-    //     if (submissions.length > 0) {
-    //         let summaryColumns = submissionDetails.submissionSummaryParams
-    //         if (_.isArray(summaryColumns) && summaryColumns.length > 0){ 
-    //             let filteredSubmission = notThisState!==undefined?_.filter(submissions, v => v.paramsFile.State !== notThisState):submissions.slice()
-    //             let submissionSummary = filteredSubmission.map(submission => Object.fromEntries(summaryColumns.map(sumColumn => [sumColumn, submission.paramsFile[sumColumn]])))
-    //             downloadTxtFile(arrayOfObjectsToTabDel(submissionSummary,summaryColumns),`ProjectSummary(${notThisState===undefined?"allStates":"allStatesBut"+notThisState}).txt`)
-    //         }
-    //     }
-    // }
-
-
     return (
         <div className="no-scroll">
-             
+            <ChangeSubmissionUserDialog {...changeOwnerDialog} {...{setChangeOwnerDialog}} />
             <AttributeSelectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
                 onSubmit={handleStateChangeAttributeUpdate} />
             {_.isArray(submissions) ? <EditSamplesAttributeDialog {...samplesAttributesDialog}
@@ -186,7 +181,8 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                             submissionsQuery,
                             setSubmissionQuery,
                             setAttributesDialog,
-                            setRunlistDialog
+                            setRunlistDialog,
+                            setChangeOwnerDialog
                             }} /> : null}
             
         </div>

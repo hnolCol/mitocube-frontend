@@ -23,8 +23,9 @@ export function UserInput({selectedUsers = [], onUserSelect, isRequired = true, 
             labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{user.research_group}</h4><p>{user.institute}</p></div></div>}/>
     }
     /**
-     * @description Handles the item selection 
-     * @param {import("../../../types/feature").Feature} item 
+     * @description Handles the user selection,prevents propagation by default.Calls the callback onUserSelection.
+     * @param {Object} user
+     * @param {MouseEvent} e
      */
     const handleUserSelection = (user, e) => {
         if (_.isFunction(e.stopPropagation)) {
@@ -32,7 +33,6 @@ export function UserInput({selectedUsers = [], onUserSelect, isRequired = true, 
         }
        
         onUserSelect(callbackKey, user)
-        // e.stopPropagation()
     }
 
     const renderValue = (item) => {

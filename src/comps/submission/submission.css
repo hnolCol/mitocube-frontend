@@ -1,5 +1,13 @@
 
 
+.submission__wrapper {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 250px 1fr;
+  grid-template-rows: 90vh;
+  padding-top: 1rem;
+}
+
 
 .submission__items__container {
     max-height :  100%;
@@ -7,27 +15,26 @@
     overflow-y: scroll;
     padding-bottom: 3rem;
     padding-right: 2rem;
-    padding-left  : 2rem;
-    margin-left : 1rem;
+    padding-left  : 0.75rem;
     border-left: 1px darkgrey solid;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    height : 90vh;
+   
   }
 
 
 .submission__side__filter__container {
-  max-width: min(20vw,16rem,200px);
-  min-width: min(20vw,16rem,200px);
+  width: 100%;
+  display: flex;
   overflow-y: scroll;
   overflow-x: hidden;
-  min-height: 100%;
-  padding-bottom: 3rem;
-  padding-right: 0rem;
-  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
   justify-content: flex-start;
-
+  max-height: 1fr;
+  padding-bottom: 3rem;
+  padding-right: 0.75rem;
 }
 
 .submission__state_container {
@@ -108,6 +115,7 @@
   }
 
   .attribute__filter__button {
+    outline: none;
     padding : 3px;
     border : 0px;
     width : 100%;
@@ -122,6 +130,7 @@
 }
 
 .attribute__expand__button {
+  outline: none;
   color : #466688;
   font-size: 0.8rem;
   font-weight: bold;

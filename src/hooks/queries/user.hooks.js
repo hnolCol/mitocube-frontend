@@ -33,8 +33,23 @@ export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {staleTim
 }
 
 
+/**
+ * @description Returns the public information about a user by its label. Still requires a valid token string. Public indicates here that it is available to all registered users. 
+ * @returns {import("../../types/users").PublicUser} The public information about the users in the database as an array.
+ */
+async function getPublicUsersByLabel_API({label}) {
+    const res = await axios.get('/api/users/'+label)
+    return res.data
+}
+
+export const useGetPublicUserByLabel = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
+    return useQuery(["getPublicUserByLabel",APIParams.label],() =>  getPublicUsersByLabel_API({...APIParams}), useQueryOptions)
+}
 
 
+
+
+ 
 //query user
 
 
@@ -42,7 +57,7 @@ export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {staleTim
  * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
  * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
  */
-async function getPublicUsersByQuery_API({ query }) {
+async function getPublicUsersByQuery_API({ query, }) {
     const res = await axios.get('/api/users/q', {params : {query}})
     return res.data
 }

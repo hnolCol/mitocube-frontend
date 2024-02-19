@@ -30,6 +30,7 @@ import { UseQueryResult } from "react-query";
  * @property {string} text - The name of the attribute value
  * @property {string} description - The attribute details which are usually shown in a tooltip.
  * @property {Number} attribute_id - The attribute id the value belongs to.  
+ * @property {String} attribute_tag - The tag of the attribute the value is part of.
  * @property {String} value The actual value of the attribute value. 
 */
 

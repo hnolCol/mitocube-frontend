@@ -75,7 +75,8 @@ export function StateSelection({states, setSubmissionFilter, submissionFilter}) 
                         {...{ submissionFilter, setSubmissionFilter, stateName, states }} />
             })}
                 <div className="flex center-items intent-margin-left--little">
-                    <div>{isSuccess && hoverState ? `${titleFormat(states.states_inv[hoverState])} ${_.has(data, hoverState) ? `(${data[hoverState].submission_count})` : ""}` : null}</div></div>
+                    <div>{isSuccess && hoverState ? `${titleFormat(states.states_inv[hoverState])} ${_.has(data, hoverState) ? `(${data[hoverState].submission_count})` : ""}` : null}</div>
+                </div>
             </div>
             
             <Divider />

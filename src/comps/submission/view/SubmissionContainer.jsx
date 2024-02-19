@@ -297,15 +297,17 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 }
 
 
-export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog}) {
+export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog}) {
     
     const [searchString, setSearchString] = useState("")
     const debouncedString = useDebounce(searchString, 200)
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
-
+    // console.log(submissionFilter)
+    // console.log(getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }))
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
         query: debouncedString.length === 0 ? null : debouncedString,
         state: stateFilter,
+        user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
         //attribute_tag : 
@@ -317,25 +319,27 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
     //console.log(uniqueAtributesInSubmissions)
     const usersByLabel = groupListByProperty(users, "label")
     //const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
-    const submissionsByState = isSuccess ? groupListByProperty(submissionQuery.submissions, "state") : {}
+    const submissionsByState = _.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? groupListByProperty(submissionQuery.submissions, "state") : {}
     //const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
     //console.log(attributesByTag.attributes)
-   
+    // console.log(attributesByTag.attribute_values)
+    const attributeValuesByAttributeTag = groupListByProperty(_.values(attributesByTag.attribute_values), "attribute_tag")
+    // console.log(attributeValuesByAttributeTag)
     return (
-        <div><h2>Submissions ({isSuccess? submissionQuery.query_count:null}/{isSuccess? submissionQuery.total_count:null})</h2>
+        <div>
             {/* <TextButtonIcon /> */}
-        <div className="flex" style={{ width: "100%" }}>
+        <div className="submission__wrapper">
         
-                <div className="flex flex-column submission__side__filter__container ">
-                    <div className="flex" style={{minWidth: "100%"}}>
-                    <InputGroup value={searchString} fill = {true} placeholder="Search..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
+                <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
+                    <h3>Submissions ({isSuccess? submissionQuery.query_count:"0"}/{isSuccess? submissionQuery.total_count:"0"})</h3>
+                    <div className="flex" style={{width: "100%"}}>
+                    <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
                     <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
-                    
                     </div>
-
                     <StateSelection {...{ states, submissionsByState, submissionFilter, setSubmissionFilter }} /> 
-                    <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter }} />
+                    <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} />
                     <UserSelection {...{submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : []}} />
+                    
                     {/* <SubmissionBaseFilter {...{
                     submissionFilter,
                     submissionsQuery,
@@ -350,8 +354,8 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
                 }} /> */}
             </div>
 
-        <div className="submission__items__container">
-                    {_.isEmpty(submissionsByState) ? <p>No submission found that match the filter.</p> : null}
+        <div className="submission__items__container" style={{gridRow : 1, gridColumn : 2}}>
+                    {_.isEmpty(submissionsByState) && !(isLoading || isFetching) ? <p>No submission found that match the filter.</p> : null}
                     {isError?<p>An error was returned when searching.</p>:null}
             {Object.values(states.states).map((state,stateIdx) => {
                 const submissionsAreInState = _.has(submissionsByState, state)
@@ -364,7 +368,7 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
                             stateName: states.states_inv[state],
                             stateColor: states.colors_inv[state]
                         }} />
-                        {isLoading || isFetching ? <Loading /> : submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
+                        {_.isArray(submissionsByState[_.toString(state)]) ? submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
                             //key are always strings .... 
                             return (
                                 <SubmissionItem
@@ -379,11 +383,12 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
                                     attributeValuesByTag: attributesByTag.attribute_values,
                                     setAttributesDialog,
                                     setRunlistDialog,
+                                    setChangeOwnerDialog,
                                     minimalView : submissionsQuery.minimalView
                                     
                                 }} borderColor={states.colors_inv[state]} />
                             )
-                        })}
+                        }): null}
                     </div>
                 )
             })}

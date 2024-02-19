@@ -31,7 +31,6 @@ AttributeSelectionDialog.propTypes = {
  * @returns {React.ReactElement} 
  */
 export function AttributeSelectionDialog({
-    authenticationStatus,
     attributesByTag,
     attributeFilter,
     submission,
@@ -73,7 +72,7 @@ export function AttributeSelectionDialog({
         })
     }
     
-    return <Dialog isOpen={isOpen} title="State Change" style={{ width: "min(80vw, 900px)" }} onClose={onClose}>
+    return <Dialog isOpen={isOpen} title="State Change" style={{ width: "min(70vw, 900px)" }} onClose={onClose}>
         <DialogBody>
         <div className="flex flex-column padding--medium">
         
@@ -84,7 +83,6 @@ export function AttributeSelectionDialog({
                         <h3>Attribute Selection</h3>
                             <p>Please select the required dataset attributes.</p>
                             <LiteralAttributeSelection {...{
-                                        authenticationStatus,
                                         attributesByTag,
                                         selectedAttributes,
                                         setSelectedAttributes,

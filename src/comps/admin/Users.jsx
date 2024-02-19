@@ -34,7 +34,6 @@ function EditUserDialog({ authenticationStatus, user, isOpen = false, refetchUse
 
     const handleEdit = () => {
         let userPropsToUpdate = { ...userProps, label: user.label }
-        console.log(userPropsToUpdate)
         patchUser({ tokenString: authenticationStatus.token, userProps : userPropsToUpdate }, {
             onSuccess: (data) => {
                 refetchUsers()

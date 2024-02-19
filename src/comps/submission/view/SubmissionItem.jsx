@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import { useNavigate } from "react-router";
 import { AttributeFeatureTag } from "../new/attribute/view/DatasetAttributesHierarchy";
+import { UserInput } from "../../core/input/api/UserInput";
 
 
 
@@ -67,6 +68,7 @@ export function SubmissionItem({
     setRunlistDialog,
     contextMenuEnabled = true,
     minimalView = false,
+    setChangeOwnerDialog
 }) {
     const redirect = useNavigate()
     const [mouseOver, setMouseOver] = useState(false)
@@ -97,9 +99,6 @@ export function SubmissionItem({
                 <MenuDivider />
                 <MenuItem text="Dataset View" onClick={ () => redirect("/datasets/"+submission.label)}/>
                 <MenuDivider />
-                {/* <MenuItem text={"Users"}>
-                    {usersPartInSubmission.map(userLabe => )}
-                </MenuItem> */}
                 <MenuItem text="State">
                     <StateSubMenu {...{stateName,states,onStateChange : handleStateChange}} />
                 </MenuItem>
@@ -109,15 +108,22 @@ export function SubmissionItem({
                 </MenuItem>
                 <MenuItem text="Edit">
                     <MenuItem text="Samples Attributes"
-                        onClick={() => { setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: true } }) }} />
+                        onClick={() => setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: true } }) } />
                     <MenuItem text="Dataset Attributes"
-                        onClick={() => { setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) }} />
+                        onClick={() => setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) } />
                     <MenuDivider />
-                    <MenuItem text = "Owner" />
+
+                    <MenuItem text="Owner" onClick={() => setChangeOwnerDialog(prevValues => {return {...prevValues,isOpen :true, submission}})}>
+                        
+                    </MenuItem>
                 </MenuItem>
                 
         </Menu>}>
-        <div
+            <button
+                onClick={(e) => {
+                    e.stopPropagation()
+                    redirect(`/datasets/${submission.label}`)
+                }}
             className="submission__item__container bg--white padding--little"
                 style={{ borderLeft: `3px solid ${borderColor}`}}
                 onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
@@ -162,7 +168,6 @@ export function SubmissionItem({
                         {Object.keys(submission.dataset_attributes).map(attributeTag => {
                             const attributeValues = submission.dataset_attributes[attributeTag]
                             const attribute = submission.attributes[attributeTag]
-                           // const attribute = _.has(attributesByTag, attributeTag) ? attributesByTag[attributeTag] : { text: attributeTag }
                             {
                                 return <div className="flex"
                                     key={`${attributeTag}-subission-item-${submission.label}`}>
@@ -177,12 +182,9 @@ export function SubmissionItem({
                     </div>   
 
                         </div> : null}
-                <div>
-                    {mouseOver ? <button style={{border : "none", backgroundColor : "transparent"}} onClick={() => redirect(`/datasets/${submission.label}`)}><h3 style={{ color: borderColor }}>Dataset Page</h3></button>: null}
-                    </div>
                 </div> 
                 
-            </div>
+            </button>
             </ContextMenu>
 )
 }

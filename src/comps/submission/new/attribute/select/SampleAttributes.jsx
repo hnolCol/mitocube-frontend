@@ -82,9 +82,8 @@ function extractGenotypeRepresentation(genotype) {
         const positions = attribute["att_protein_position"]
         return <div style={{fontSize : "0.7rem"}}><ul style={{listStyleType: "none",margin:"0px",padding:"0px"}}>
             <li>{genotype.proteome_id}</li>
-            <li>{attribute["att_gene_editing_method"][0].text}</li>
-            <li>{attribute["att_gene_engineering"][0].text}</li>
-            <li>{attribute["att_gene_zygosity"][0].text}</li>
+            <li>{attribute["att_gene_editing_method"][0].text} <strong>{attribute["att_gene_engineering"][0].text}</strong></li>
+            <li><strong>{attribute["att_gene_zygosity"][0].text}</strong></li>
             <li>{hasProteinMutation ? mutations.map(mutationAttrValue => {
                 if (_.has(positions, mutationAttrValue.tag)) {
                     const positionAttrValue = positions[mutationAttrValue.tag]
@@ -101,16 +100,32 @@ function extractGenotypeRepresentation(genotype) {
 }
 
 
-function GenotypeContextMenu({genotypes, selectedRows, handleGenotypeSelection, proteome_ids}) {
-    console.log(genotypes)
+function GenotypeContextMenu({ genotypes, selectedRows, handleGenotypeSelection, proteome_ids }) {
+    
+    const [queryString, setQuery] = useState("")
+
+    let genotpesBySearchQuery = useMemo(() => queryString === "" ? genotypes : filterArrayBySearchString({
+        searchString: queryString,
+        array: genotypes,
+        keyNames: ["text"]
+    }), [queryString])
+
     return (
         <Menu style={{minWidth : "500px"}} onWheelCapture={e => e.stopPropagation()}>
             <MenuItem text="Genotypes" disabled={true} />
+            <TextInput
+                    value={queryString}
+                    callbackKey={"a"}
+                    placeholder="Search genotype..."
+                    onChange={(key,value,type) => setQuery(value)}
+                    
+                />
             <MenuDivider />
             <Menu style={{ overflowY: "scroll", maxHeight: "280px" }} onWheelCapture={e => e.stopPropagation()}> 
-            {!_.isArray(proteome_ids) || proteome_ids.length === 0 ? <MenuItem text="Select an organism/proteome first." disabled={true} /> : null}
-            {_.isArray(genotypes) && genotypes.length > 0 ?
-                genotypes.map(genotype =>
+            {!_.isArray(proteome_ids) || proteome_ids.length === 0 ? <MenuItem text="Select an organism/proteome first." disabled={true} /> : 
+                _.isArray(genotpesBySearchQuery) && genotpesBySearchQuery.length === 0 ? <MenuItem text="No results..."/>: 
+            _.isArray(genotypes) && genotypes.length > 0 ?
+                genotpesBySearchQuery .map(genotype =>
                     <MenuItem text={genotype.text} onClick={() => handleGenotypeSelection(selectedRows, genotype)}
                         labelElement={<div className="labelelement-wrap--fixed-width" style={{textAlign:"right"}}>{extractGenotypeRepresentation(genotype)}</div>} />)
                     : null}
