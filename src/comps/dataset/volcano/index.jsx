@@ -118,7 +118,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                                         handleStringSearch,
                                         downloadElements: [`volcano-${didx}`, volcanoData.data],
                                         elementNames: ["SVG","DIVIDER",`Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
-                                        fileNames: [`${metadata.label}-PCA-drivers.svg`,`${metadata.label}-PCA-Drivers.txt`],
+                                        fileNames: [`${metadata.label}-VolcanoPlot.svg`,`${metadata.label}-VolcanoPlot-Data.txt`],
                                         elementTypes: ["svg", "data"]
                                         }} />
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{

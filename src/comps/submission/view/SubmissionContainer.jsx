@@ -101,7 +101,7 @@ export function AttributeFilterButton({
     
     return (<motion.button
         onClick={handleClick}
-        className = "submssion__filter__button margin--little"
+        className = "submission__filter__button margin--little"
         style={{
             backgroundColor: bgColor,
             opacity : !isFilterActive && isFilterKeyActive ? 0.3 : 1.0,

@@ -28,7 +28,8 @@ function ResultChart({
     dataID = "",
     featureID = "",
     attributesByTag,
-    attributeValuesByTag
+    attributeValuesByTag,
+    title
 }) {
     //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     const attributes = useMemo(() => Object.keys(groupings).map(attributeTag => attributesByTag[attributeTag]), [groupings])
@@ -204,7 +205,7 @@ function ResultChart({
 
                 <div className="flex center-items">
                     
-                        <h3>TItle</h3>
+                    <h3>{title}</h3>
                     
                 </div>
             </div>

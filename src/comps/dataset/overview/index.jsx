@@ -215,11 +215,15 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
             </div>
             <div className="flex flex--wrap">
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw"}}>
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "50vh", overflowY:"scroll"}}>
+                    <h2>Genotypes</h2>
+                    <p>To be added...</p>
+            </div>
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "50vh", overflowY:"scroll"}}>
                     <h2>Sample Attributes</h2>
                     <SamplesAttributes {...{metadata}} />
-                </div>
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw"}}>
+            </div>
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "50vh", overflowY:"scroll"}}>
                     <h2>Dataset Attributes</h2>
                 <DatasetAttributeHierarchy {...{
                     selectedDasetAttributeValues: datasetAttributeValues,

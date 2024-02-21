@@ -63,7 +63,7 @@ export function UserLevelFilterButton({submissionKey = "users", userLabels, leve
     const bgColor = _.has(backgroundColors,submissionKey)?backgroundColors[submissionKey]:isFilterActive?"#b91d17":"#dedede"
     return (<motion.button
         onClick={handleClick}
-        className = "submssion__filter__button margin--little"
+        className = "submission__filter__button margin--little"
         style={{
             backgroundColor: bgColor,
             color: isHexColorLight(bgColor) ? "black" : "white"

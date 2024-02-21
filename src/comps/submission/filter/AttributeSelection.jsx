@@ -82,9 +82,9 @@ export function AttributeButton({ attribute, submissionFilter, setSubmissionFilt
 
 
 export function ExpandableButton({isOpen = false, text = "" , count = 0,showCount  = true, handleOpen, handleClick, highlight = false, inactive = false}) {
-    
+    console.log(inactive)
     return <motion.div className="flex bg--grey center-items"
-        style={{width:"100%"}}
+        style={{width:"100%",color : inactive? "#474746": "#466688"}}
         whileHover={{ color: "#000", backgroundColor: "#fafafa" }}>
         <motion.button className="attribute__expand__button"
             disabled={inactive}
@@ -96,7 +96,7 @@ export function ExpandableButton({isOpen = false, text = "" , count = 0,showCoun
             onClick={handleClick}
             disabled={inactive}
             className={`attribute__filter__button ${highlight ?"attribute__filter_button--selected":""}`}
-            
+            style={{color : "#000"}}
             transition={{ duration: 0.1 }}>
             {showCount ? `${text} (${ count })` : `${ text }`}
     </motion.button></motion.div>

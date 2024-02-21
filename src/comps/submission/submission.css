@@ -97,7 +97,7 @@
 
 
 
-  .submssion__filter__button {
+  .submission__filter__button {
     padding : 0px;
     border : 0px;
     border-radius: 0.2rem;
@@ -126,12 +126,11 @@
   }
   
 .attribute__filter_button--selected{
-  background-color: #eb6a47;
+  background-color: #98908d;
 }
 
 .attribute__expand__button {
   outline: none;
-  color : #466688;
   font-size: 0.8rem;
   font-weight: bold;
   background-color: transparent;

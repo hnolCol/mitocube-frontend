@@ -229,7 +229,6 @@ function DatasetPCA({ }) {
     useEffect(() => {
 
         if (_.isObject(metadata) && _.has(metadata, "title")) {
-            console.log(metadata)
             setTabHeader(metadata.title)
         }
     }, [_.isObject(metadata)])

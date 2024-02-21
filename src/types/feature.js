@@ -6,8 +6,8 @@
  * @property {string[]} dataset_labels - The labels of the datasets in which the feature id was found. 
  * @property {Object<string, Object[]>} data - The actual data, object with keys (dataset_labels) and values (data as arrays of objects). They also contain the annotated sample attributes
  * @property {Object<string, Object>} attribute_samples - Samples attributes object with keys as dataset_labels and values (samples attributes)
-
-*/
+ * @property {Object<string, string} title_by_label - The title of the dataset by its dataset_label
+ */
 
 
 /**

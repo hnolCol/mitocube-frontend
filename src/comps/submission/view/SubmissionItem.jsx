@@ -125,7 +125,7 @@ export function SubmissionItem({
                     redirect(`/datasets/${submission.label}`)
                 }}
             className="submission__item__container bg--white padding--little"
-                style={{ borderLeft: `3px solid ${borderColor}`}}
+                style={{ borderLeft: `3px solid ${borderColor}`, color : "#000"}}
                 onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
             <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" > 

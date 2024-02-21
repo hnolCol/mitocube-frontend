@@ -23,15 +23,15 @@ function ProteinOverview({
     const { featureKey } = useOutletContext()
 
     const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_key: featureKey }, {})
-    console.log()
     if (isError) return <APIError error={error} />
     return (
         <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
             
             {_.isObject(featureData) ? featureData["dataset_labels"].map(dataID => {
                 const data = featureData["data"][dataID] //get data for dataset
+                console.log(data, featureData)
                 return (
-                    <ResultChart key={`${featureKey}-${dataID}`} groupings={featureData["samples_attributes"][dataID]} data={data} {...{ dataID, featureID: featureKey }} yaxisName="value"
+                    <ResultChart key={`${featureKey}-${dataID}`} groupings={featureData["samples_attributes"][dataID]} data={data} {...{ dataID, featureID: featureKey, title : featureData.title_by_label[dataID] }} yaxisName="value"
                         attributesByTag={featureData.attributes}
                         attributeValuesByTag={featureData.attribute_values_by_tag} />
                 )

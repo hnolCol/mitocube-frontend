@@ -72,7 +72,13 @@ function DatasetQC() {
                     <div style={{maxWidth : "500px"}}>
                         <h4>{feature_annotations.genes}</h4>
                         <h5>{feature_annotations.protein_name}</h5>
-                        <ResultChart data={data} groupings={samples_attributes} yaxisName="value" attributesByTag={metadata.attributes} attributeValuesByTag={metadata.attribute_values_by_tag}  />
+                        <ResultChart
+                            data={data}
+                            groupings={samples_attributes}
+                            yaxisName="value"
+                            title={metadata.title}
+                            attributesByTag={metadata.attributes}
+                            attributeValuesByTag={metadata.attribute_values_by_tag} />
                     </div>
                 )
             })}
