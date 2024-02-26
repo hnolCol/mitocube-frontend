@@ -479,7 +479,7 @@ function GenotypeGenerator({ index = 6,
             <h3>{`${index}. Genotypes`}</h3>
             <p>Please specify your genotypes. This section requires you to provide an organism before to select specific target protein. You are able to specify amino acid mutations and truncations as well as tags. If you are just using wild types, for example knock-down of a gene expression in just wild type cells does not require the definition of a genotype. </p>
             <p>Note that in case of a knockout and a reexpression of a protein, you need to define first the knockout and then the reexpression. Once you have defined your genotypes, you will have to assign them to each sample below in the sample attributes. Once you defined your genotypes, they are available from the drop-down menu for future submission.</p>
-            <div>
+            <div style={{overflowX:"scroll"}}>
                 {_.has(genotype ,"label") ? <GenotypeRow key={genotype.label}
                     {...{
                         attributes,

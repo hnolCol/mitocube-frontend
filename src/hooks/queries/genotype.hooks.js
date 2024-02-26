@@ -6,16 +6,15 @@ import _ from "lodash"
 /**
  * 
  * @param {Object} props
- * @returns 
+ * @returns {import("../../types/genotypes").GenotypeResponse[]} - The list of genotypes
  */
-async function getGenotypes_API({ proteome_ids }) {
-    const res = await axios.get(`/api/genotypes`, {params : { proteome_ids }})
+async function getGenotypes_API({ proteome_ids, feature_key}) {
+    const res = await axios.get(`/api/genotypes`, {params : { proteome_ids, feature_key }})
     return res.data
 }
 
 export function useGetGenotypes(APIParams = {}, useQueryOptions = { staleTime: 30000 },) {
-    const joinedProteomeIds = _.join(APIParams.proteome_ids, ";")
-    //console.log(joinedProteomeIds)
+    const joinedProteomeIds = _.isArray(APIParams.proteome_ids)?_.join(APIParams.proteome_ids, ";"):_.isString(APIParams.proteome_ids)?APIParams.proteome_ids:undefined
     APIParams.proteome_ids = joinedProteomeIds
     return useQuery(["getGenotypes",joinedProteomeIds],() =>  getGenotypes_API({...APIParams}), useQueryOptions)
 }
@@ -31,3 +30,18 @@ async function postGenotype_API({ genotype }) {
 export const usePostGenotype = (useMutationOptions = {}) => {
     return useMutation((APIParams) => postGenotype_API({...APIParams}), useMutationOptions)
 }
+
+
+//delete genotype
+async function deleteGenotype_API({ genotype_label }) {
+    //console.log(genotype)
+    const res = await axios.delete(`/api/genotypes/${genotype_label}`)
+    return res
+}
+
+export const useDeleteGenotype = (useMutationOptions = {}) => {
+    return useMutation((APIParams) => deleteGenotype_API({...APIParams}), useMutationOptions)
+}
+
+
+

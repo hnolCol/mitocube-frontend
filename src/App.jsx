@@ -46,6 +46,7 @@ import DatasetSelection from "./comps/dataset/selection";
 import axios from "axios";
 import AddExistingSubmission from "./comps/submission/add";
 import Runlist from "./comps/dataset/runlist";
+import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
 
 //axios defaults
 
@@ -243,7 +244,8 @@ function App() {
             <Route index element={<div>Admin Settings</div>} />
             <Route path="/admin/users" element={<AdminUsers {...{authenticationStatus}}/>}/>
             <Route path="/admin/sharetoken" element={<ShareToken {...{authenticationStatus}}/>}/>
-            <Route path="/admin/attributes" element={<AdminAttributes {...{authenticationStatus}}/>}/>
+            <Route path="/admin/attributes" element={<AdminAttributes {...{ authenticationStatus }} />} />
+            <Route path="/admin/genotypes" element={<AdminGenotypes />}/>
             </Route>
           
 
