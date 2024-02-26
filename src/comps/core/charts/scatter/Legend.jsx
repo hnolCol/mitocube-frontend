@@ -115,7 +115,6 @@ const ScatterLegend = React.memo(
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
                                 const attributeValues = findAttributeValues(label.text)
-                                console.log(attributeValues)
                                 if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
                                 
@@ -148,7 +147,6 @@ const ScatterLegend = React.memo(
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
                                 const attributeValues = findAttributeValues(label.text)
-                                console.log(attributeValues)
                                 if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
                                 if (idx > 25) return null 
@@ -262,7 +260,6 @@ const ScatterLegend = React.memo(
                             <h4>{colorName}as</h4>
                             <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                                 {(labels) => labels.map((label, idx) => {
-                                    console.log(label)
                                     return (
                                     <LegendItem key={`${idx}-${label}-colornum`}>
                                         {renderLegendCircle(size,label.value,size/3)}

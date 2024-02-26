@@ -29,7 +29,6 @@ export function ProtectedAdminRoute({
   isAdmin,
   redirectPath = '/',
   children }) {
-  console.log(redirectPath)
   if (!isAuthenticated || !isAdmin) {
     return <Navigate to={redirectPath} replace />;
   }

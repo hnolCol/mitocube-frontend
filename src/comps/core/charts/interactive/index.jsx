@@ -43,12 +43,15 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     const searchTrees = useMemo(() => {
         //create search trees for fast point finding in the array
         return Object.fromEntries(_.range(numberCharts).filter(chartIdx => isPointChart[chartIdx]).map(chartIdx => {
-            const nPoints = data.length 
+            let data_index = _.range(data.length).filter(idx => validIndices[chartIdx][idx])
+            let tree_data = data.filter((d,idx) => validIndices[chartIdx][idx])
+            console.log(tree_data.length, data.length)
+            const nPoints = tree_data.length 
             const index = new KDBush(nPoints);
-            const {xaxisName, yaxisName } = keyNames[chartIdx]
-            _.forEach(data, d => index.add(d[xaxisName],d[yaxisName ]))
+            const { xaxisName, yaxisName } = keyNames[chartIdx]
+            _.forEach(tree_data, d => index.add(d[xaxisName], d[yaxisName]))
             index.finish()
-            return [chartIdx, {tree : index, xaxisName, yaxisName , limits}]
+            return [chartIdx, {tree : index, xaxisName, yaxisName , limits, data_index}]
         }))
     },[_.join(keyNamesFlatten),numberCharts])
 
@@ -64,8 +67,11 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
 
     const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY, ignoreFilterAndSearchIdcs = false) => {
         // returns the data that are in a rectangle. 
+        
         const searchIdx = searchTrees[chartIdx].tree.range(minX, minY, maxX, maxY)
-        const idcs = new Set(searchIdx)
+        //transfer back to original data index
+        const idcs = new Set(searchIdx.map(idx => searchTrees[chartIdx].data_index[idx]))
+
         if (!ignoreFilterAndSearchIdcs && (backgroundScatter.searchIndices.size > 0 || backgroundScatter.filterIndices.size > 0)) {
             _.forEach(Array.from(idcs), idx => !backgroundScatter.searchIndices.has(idx) || backgroundScatter.filterIndices.has(idx)? idcs.delete(idx) : null)
         }

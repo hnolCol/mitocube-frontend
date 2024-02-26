@@ -31,13 +31,13 @@ function ChartMarksSelection({keyNames, selection, onSelectionChange, minimal}) 
                 placeholder={selection.colorName}
                 selectedItems={[{ text: selection.colorName }]}
                 minimal={minimal}
-                callbackKey="colorName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: prevValues[key] === value ? undefined : value } })} />
+                callbackKey="colorName" callback={(key,value) => onSelectionChange(key,value === selection["colorName"] ? undefined : value)} />
             <SizeIconWithName
                 items={keyNames}
                 placeholder={selection.sizeName}
                 selectedItems={[{ text: selection.sizeName }]}
                 minimal={minimal}
-                callbackKey="sizeName" callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: prevValues[key] === value ? undefined : value } })} />
+                callbackKey="sizeName" callback={(key,value) => onSelectionChange(key,value === selection["sizeName"] ? undefined : value)} />
         </div>
     )
 }
@@ -71,14 +71,14 @@ function ChartAxisSelection({ keyNames, selection, onSelectionChange, minimal })
                 placeholder={selection.xaxisName}
                 callbackKey="xaxisName"
                 minimal={minimal}
-                callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+                callback={onSelectionChange} />
             <YAxisName
                 items={keyNames}
                 placeholder={selection.yaxisName}
                 minimal={minimal}
                 selectedItems={[{text : selection.yaxisName}]}
                 callbackKey="yaxisName"
-                callback={(key, value) => onSelectionChange(prevValues => { return { ...prevValues, [key]: value } })} />
+                callback={onSelectionChange} />
         </div>
     )
 }
@@ -108,17 +108,19 @@ function ChartStringSearch({ keyNames, selection, onSelectionChange, handleStrin
         <div className="flex center-items">
             <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")} />} />
             <FilterIcon
-                    items={keyNames}
-                    callbackKey={"filterNames"}
-                    selectedItems={_.map(selection.filterNames, text => { return { text } })}
-                    minimal={minimal}
-                    callback={(key, item) => onSelectionChange(prevValues =>{
-                    return {
-                        ...prevValues,
-                        [key]: addItemToArrayOrRemoveItIfPresent({ array: prevValues.filterNames, item }),
-                        tooltipNames : addItemToArrayIfNotPresent({array : prevValues.tooltipNames, item})
-                    }
-                })} />
+                items={keyNames}
+                callbackKey={"filterNames"}
+                selectedItems={_.map(selection.filterNames, text => { return { text } })}
+                minimal={minimal}
+                callback={(key, value) => onSelectionChange(key, addItemToArrayOrRemoveItIfPresent({ array: selection.filterNames, item : value }))}
+                    // (key, item) => onSelectionChange(prevValues => {
+                    // return {
+                    //     ...prevValues,
+                    //     [key]: addItemToArrayOrRemoveItIfPresent({ array: selection, item }),
+                    //     //tooltipNames : addItemToArrayIfNotPresent({array : prevValues.tooltipNames, item})
+                    // }
+                    // })}
+            />
         </div>
     )
 }
@@ -164,28 +166,31 @@ function DownloadData({ elements = [], elementNames = [], elementTypes = [], fil
 
  * @returns 
  */
-export function ScatterDataSelection({ keyNames, title = "", numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = []}) {
+export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = []}) {
     // const [searchString, setSearchString] = useState("")
     // const debounceString = useDebounce(searchString, 200)
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
+    const onSelection = (key, value) => {
 
+        setSelection(idx,key,value)
+    }
     return (
         <div><h3>{title}</h3>
         <div className="flex center-items">
             <ChartAxisSelection keyNames={numericKeyNames}
                 selection={selection}
-                onSelectionChange={setSelection}
+                onSelectionChange={onSelection}
                 minimal={minimal} />
             <ChartMarksSelection
                 keyNames={keyNames}
                 selection={selection}
-                onSelectionChange={setSelection}
+                onSelectionChange={onSelection}
                 minimal={minimal}/>
             <TextSelection 
                 keyNames={nonNumericKeyNames}
                 selection={selection}
-                onSelectionChange={setSelection}
+                onSelectionChange={onSelection}
                 minimal={minimal} />
         
             {/* {_.isFunction(handleStringSearch) ?
@@ -194,7 +199,7 @@ export function ScatterDataSelection({ keyNames, title = "", numericKeyNames = [
                 {_.isFunction(handleStringSearch) ? <ChartStringSearch
                     keyNames={nonNumericKeyNames}
                     selection={selection}
-                    onSelectionChange={setSelection}
+                    onSelectionChange={onSelection}
                     minimal={minimal} handleStringSearch={handleStringSearch} /> : null }
                 
      

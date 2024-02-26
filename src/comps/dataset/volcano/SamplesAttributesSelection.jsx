@@ -1,13 +1,18 @@
 import _ from "lodash"
 import PropTypes from "prop-types"
 import { useState } from "react"
-import { Button, Code } from "@blueprintjs/core"
+import { Button, Checkbox, Code, FormGroup } from "@blueprintjs/core"
 
 // internal imports
 import { Combobox } from "../../core/input/Combobox"
 import { Header } from "../../core/base/Header"
 import findControl from "../../../services/groupings/findControl"
 
+
+function getGroupText(group) {
+
+    return _.has(group,"text") ? group.text : _.has(group,"genes") ? _.split(group.genes," ").at(0) : ""
+}
 
 SamplesAttributesSelection.propTypes = {
     groupAttributeValues: PropTypes.object,
@@ -32,6 +37,7 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
         main: undefined,
         group1: undefined,
         group2: undefined,
+        impute : false,
         mainItems: [],
         withinGroupings: [],
         withinGrouping: { name: "None", tag: "none" },
@@ -50,8 +56,8 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
         const itemsForSelection = groupAttributeValues[groupingName.tag]
         const withinGroupings = _.filter(attributes, o => o.tag !== groupingName.tag)
         const detectedControl = undefined //findControl({groupNames : itemsForSelection})
-        const autoSelectControl = itemsForSelection.length > 1 && detectedControl !== undefined
-        console.log(attributes, withinGroupings, itemsForSelection)
+       // const autoSelectControl = itemsForSelection.length > 1 && detectedControl !== undefined
+        //console.log(attributes, withinGroupings, itemsForSelection)
         
         setGrouping(prevValues => {
             return {
@@ -78,7 +84,7 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
 
     const confirmGroupSelection = (e) => {
         // callback
-        const filteredGrouping = _.pick(grouping, ["group1","group2","main","withinGrouping","withinGroup"])
+        const filteredGrouping = _.pick(grouping, ["group1", "group2", "main", "withinGrouping", "withinGroup", "impute"])
         if (_.isFunction(callback)){
             callback(filteredGrouping)
         }
@@ -177,6 +183,16 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                     </div>
                     </div>:
                 null}
+            <div>
+                <FormGroup helperText="Imputation is performed by filtering for proteins that are fully quantified in one group. Then NaNs are replaced by random data taken from a downshifted gaussian distribution. The downshift equals 1.8 x standard deviation of all features in a sample. The width of the gaussian distribution equal 0.3 the original standard deviation.">
+                    <Checkbox
+                        label="Imputation"
+                        checked={grouping.impute}
+                        indeterminate={false}
+                        onChange={() => setGrouping(prevValues => { return { ...prevValues, impute: !prevValues.impute } })}/>
+                </FormGroup>
+                
+            </div>
             {/* <hr width="100%" className="intent-margin-top" /> */}
             {/* <div className="bg--grey div--round padding--medium intent-margin-top--little">
             <Header text="Pre-processing" hexColor={"#000000"} fontSize="0.85rem"/>
@@ -215,7 +231,10 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                
             <div className="intent-margin-top--little intent-margin-bottom--little bg--grey padding--medium div--round">
                 <p>The resulting log2 fold change will be:</p>
-                    <div className="flex center-items justify-space-around">
+                <div className="flex center-items justify-space-around">
+                    
+                    {_.isObject(grouping.group1) && _.isObject(grouping.group2) ? <span>log2 FC(<span>{getGroupText(grouping.group1)}</span>/<span>{getGroupText(grouping.group2)}</span>)</span> : null}
+
                     {/* {_.isObject(grouping.group1) ? <span className="h0-span">log2 FC(<span className="h3-span">{`${grouping.group1.name} / ${grouping.group2.name}`}</span>) <span>{withinGrouping ? `(${grouping.withinGroup.name})` : null}</span></span> : null} */}
                     </div>
             </div>

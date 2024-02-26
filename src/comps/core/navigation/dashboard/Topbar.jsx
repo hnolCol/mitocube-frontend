@@ -10,6 +10,7 @@ import _ from "lodash"
 import { BaseDialog } from "../dialogs/BaseDialog"
 import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
+import { Link } from "react-router-dom"
 
 
 /**
@@ -44,8 +45,9 @@ function Topbar({authenticationStatus,logout}) {
         <div className="flex justify-space-between">
             <BaseDialog {...{...dialogProps}} onClose={() => setDialogProps(prevValues => {return{...prevValues,isOpen : false}})}/>
             {/* <div>{basePathName.toUpperCase()}</div> */}
-            <div className="flex flex-column justify-center">
-                <Header text={backendInfoIsSucces?backendInfo.app_name:null} /></div>
+            <div className="flex flex-column justify-center intent-margin-left--little">
+                <Link to="/index"><Header text={backendInfoIsSucces ? backendInfo.app_name : null} /></Link>
+            </div>
             <div className="flex">
                 <div className="flex flex-column justify-center">
                     <Code>role: {_.isObject(userRoles)?userRoles[authenticationStatus.role]:null}</Code>

@@ -61,10 +61,9 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     
     const [runlistProps, setRunlistProps] = useState(init_runprops)
     const [plates, setPlates] = useState(initPlates)
-    console.log(submission)
     const sampleAttributeNames = _.keys(submission.samples_attributes).map(sampleAttrTag => submission.attributes[sampleAttrTag]).map(sampleAttr => { return { text: sampleAttr.text, tag : sampleAttr.tag,  description: `${_.join(_.keys(submission.samples_attributes[sampleAttr.tag]).map(attrValueTag => submission.attribute_values_by_tag[attrValueTag].text), ", ")}` } })
     const runlistLoading = runlistSubmitIsLoading || runlistSubmitIsFetching
-    console.log(sampleAttributeNames)
+
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
     }

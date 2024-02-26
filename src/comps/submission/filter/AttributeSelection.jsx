@@ -82,7 +82,6 @@ export function AttributeButton({ attribute, submissionFilter, setSubmissionFilt
 
 
 export function ExpandableButton({isOpen = false, text = "" , count = 0,showCount  = true, handleOpen, handleClick, highlight = false, inactive = false}) {
-    console.log(inactive)
     return <motion.div className="flex bg--grey center-items"
         style={{width:"100%",color : inactive? "#474746": "#466688"}}
         whileHover={{ color: "#000", backgroundColor: "#fafafa" }}>

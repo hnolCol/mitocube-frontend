@@ -63,7 +63,7 @@ export function ScatterPlot({
     margins = {
         left: 45,
         top: 10,
-        right: 15,
+        right: 5,
         bottom: 50
     },
     data,
@@ -94,6 +94,7 @@ export function ScatterPlot({
     findClosestPoint,
     legend = false,
     labelData = [],
+    hoverIndices = new Set(),
     labelIndices = new Set(),
     labelRerender = [],
     labelChart = -1,
@@ -107,7 +108,7 @@ export function ScatterPlot({
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
-    const tooltipOpen = hoverPosition.length === 2 && hoverData.length > 0
+    const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.007
@@ -215,7 +216,6 @@ export function ScatterPlot({
         const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
         const y = yScale.invert(coords.y)
-
         setHoverDataInRectangle(chartIdx,
             x - rectDist[xaxisName],
             y - rectDist[yaxisName],
@@ -257,7 +257,8 @@ export function ScatterPlot({
             <g>
             {/* Rerender hover points */}
                     {validDataInput ? <ScatterPoints {...{
-                        data: hoverData,
+                        data: data,
+                        indices : hoverIndices,
                         valid,
                         xScale,
                         yScale,
@@ -273,7 +274,7 @@ export function ScatterPlot({
                 {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${data.length}`], textOffset: 3 }} /> : null}
                 <g>
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
-                        data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
+                        key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
                         opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5}} />) : null}
                 </g>
 

@@ -77,7 +77,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({},{staleTime: Infinity}) //request only once. 
     
     const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions()    
-    const {data : attributesByTag} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
+    const {data : attributesByTag} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo()
        
     const {

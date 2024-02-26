@@ -11,6 +11,20 @@ import axios from "axios"
 import { useGetDendro } from "../../../hooks/queries/heatmap.hooks"
 import Example from "../../core/charts/dendrogram"
 import _ from "lodash"
+import { useGetInstruments } from "../../../hooks/queries/instrument.hooks"
+import { InstrumentCart } from "../../core/instruments/InstrumentCard"
+import APIError from "../../core/error/APIerror"
+
+
+function Instruments({ }) {
+
+    const { data: instruments, isError, error } = useGetInstruments()    
+    return (<div className="flex flex--wrap">
+        {isError?<APIError error={error}/>:null}
+        {_.isArray(instruments) ? instruments.map(instrument => <InstrumentCart key={instrument.tag} {...{instrument}} />):null}
+    </div>)
+}
+
 
 function System({items = [{label : "Liquid Chromatography", metric : "nanoLC 1200 #2323"}, {label : "Column", metric : "Aurora Column"},{label : "Mass spectrometer", metric : "Exploris 480 #1"}]}) {
     
@@ -42,13 +56,19 @@ function PerformanceOverview({ }) {
 
     // const { data, isLoading } = useGetDendro()
     // console.log(data)
+
+
     return (
         <div>
             {/* {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null} */}
+            <h3>Instruments</h3>
+            <Instruments />
+
+{/* 
             <Maintenance />
             <QualityControl />
             <PercentageLine />
-            <System />
+            <System /> */}
         </div>
        
     )

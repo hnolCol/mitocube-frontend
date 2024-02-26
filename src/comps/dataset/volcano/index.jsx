@@ -17,12 +17,11 @@ import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../
 
 function VolcanoPlot({dataset_label}) {
     const { data, isVolcanoLoading, isVolcanoFetching } = useGetDatasetVolcano({ dataset_label, testParams: {} })
-    
 }
 
 function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIsFetching }) {
     const [volcanoData, setVolcanoData] = useState({data : [], testParams : [], selection : [], suffixes : []})
-    console.log(selectedTestParams,volcanoData.testParams)
+    //console.log(selectedTestParams,volcanoData.testParams)
 
     const handleSuccess = (data) => {
         //merge data to get super fast split
@@ -36,6 +35,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
         else {
             updatedData = data.stats
         }
+        setIsFetching(false)
 
 
         setVolcanoData(prevValues => {
@@ -43,13 +43,21 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                 ...prevValues, data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
                 testParams: _.concat(prevValues.testParams, selectedTestParams),
-                selection : _.concat(prevValues.selection,{ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterNames : [] })
+                selection : _.concat(prevValues.selection,{ xaxisName: `log2 FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, filterNames : [] })
             }
         })
     }
 
-    const handleSelection = (sel) => {
-        console.log(sel)
+    const handleSelection = (idx,key,value) => {
+        console.log(idx, key, value)
+        setVolcanoData(prevValues => {
+            let selection = prevValues.selection
+            selection[idx] = {...selection[idx], [key] : value}
+
+            return {
+                ...prevValues,
+                selection,
+        }})
     }
 
     const testParamsUpdate = _.isObject(selectedTestParams) &&
@@ -71,16 +79,20 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
     useEffect(() => {setIsFetching(false)},[isSuccess])
     
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
-    console.log(volcanoData.suffixes.map(suffix => {return {xaxisName : `log2 FC ${suffix}`,yaxisName : `-log10 p-value ${suffix}`}}))
-    return (<div>
+    return (<div className="div--expand" style={{overflowY : "scroll"}}> 
         <InteractiveChart
                         data={volcanoData.data}
                         extraLimitNames={[]} 
             // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
             keyNames={
-                    volcanoData.suffixes.map(suffix => {return {xaxisName : `log2 FC ${suffix}`,yaxisName : `-log10 p-value ${suffix}`}})
+                volcanoData.suffixes.map((suffix, idx) => {
+                    return {
+                        xaxisName: volcanoData.selection[idx].xaxisName,
+                        yaxisName: volcanoData.selection[idx].yaxisName
+                    }
+                })
             }
-                    isPointChart={[true,true]}>
+                    isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}>
                     {
                         /**
                          * 
@@ -108,13 +120,14 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                             labelProps
                         }, didx) => {
                             return (
-                                <Card className="margin--little" compact={true}>
+                                <Card className="margin--little" compact={true} style={{maxWidth: "700px"}}>
                                     <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                         {...{
                                             title : "Volcano Plot",
                                         numericKeyNames : numericKeyNames,
                                         selection : volcanoData.selection[didx],
-                                        setSelection : handleSelection,
+                                        setSelection: handleSelection,
+                                        idx : didx,
                                         handleStringSearch,
                                         downloadElements: [`volcano-${didx}`, volcanoData.data],
                                         elementNames: ["SVG","DIVIDER",`Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
@@ -123,8 +136,8 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                                         }} />
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
-                                        colorName: `significant ${volcanoData.suffixes[didx]}`,
-                                        sizeName: undefined,
+                                        colorName: volcanoData.selection[didx].colorName,
+                                        sizeName: volcanoData.selection[didx].sizeName,
                                         data,
                                         valid,
                                         labelNames : ["genes"],
@@ -164,8 +177,12 @@ function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValue
         const params = {
             attribute_left_tag: props.group1.tag,
             attribute_right_tag: props.group2.tag,
-            sample_attribute_tag: props.main.tag
+            sample_attribute_tag: props.main.tag,
+            within_sample_attribute_tag: props.withinGrouping.tag,
+            within_sample_attribute_value_tag: props.withinGroup.tag,
+            impute : props.impute
         }
+        console.log("AAA",params)
         setTestParams(params)
     }
     return (

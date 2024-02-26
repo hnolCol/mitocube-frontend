@@ -44,7 +44,7 @@ function Metatext({ metatextTag, metadata, metatext }) {
 }
 
 
-function AuthorList({user, collaborators, authenticationStatus, emailSubject}) {
+export function AuthorList({user, collaborators = [], emailSubject = ""}) {
     
     const { data: users } = useGetPublicUserInfo()
     if (!_.isObject(users)) return null 

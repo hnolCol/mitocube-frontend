@@ -32,9 +32,7 @@ import ProteinHeader from "./comps/protein";
 import ProteinSelection from "./comps/protein/selection";
 import DatasetHeatmap from "./comps/dataset/heatmap";
 import DatasetVolcanoPlot from "./comps/dataset/volcano";
-import RadialCategoricalScatter from "./comps/core/charts/radialscatter";
 import PTM from "./comps/ptm";
-import { ScatterPlot } from "./comps/core/charts/scatter";
 import InitialSubmission from "./comps/submission/new/InitialSubmission";
 import DatasetQC from "./comps/dataset/qc";
 import DatasetPCA from "./comps/dataset/pca";
@@ -44,7 +42,6 @@ import AdminUsers from "./comps/admin/Users";
 import AdminAttributes from "./comps/admin/Attributes";
 import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
-import Loading from "./comps/core/base/loading";
 import DatasetSelection from "./comps/dataset/selection";
 import axios from "axios";
 import AddExistingSubmission from "./comps/submission/add";

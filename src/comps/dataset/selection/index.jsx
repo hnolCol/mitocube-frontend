@@ -32,6 +32,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
         query: debouncedString.length === 0 ? null : debouncedString,
         state: "5",
+        feature_key : getValueByKeyAndMergeToString({ array: submissionFilter["feature_key"], keyName: "key" }),
         user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
@@ -60,7 +61,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
             </div>
             <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter }} />
             <UserSelection {...{submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : []}} />
-
+                    <FeatureDatasetFilter  {...{setSubmissionFilter}} />
          </div>
 
                 <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>

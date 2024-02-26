@@ -56,7 +56,6 @@ function AddExistingSubmission({authenticationStatus, logout}) {
             const reader = new FileReader()
             reader.onload = (readEvent) => {
                 let { columnNames, dataArray } = readLinesAndColumnNamesFromTxtFile({ readEvent })
-                console.log(columnNames, dataArray)
                 if (arraysInArrayHaveSameLength(dataArray)) return 
 
                 const columnNamesWithValues = columnNames.map((columnName, idx) => {

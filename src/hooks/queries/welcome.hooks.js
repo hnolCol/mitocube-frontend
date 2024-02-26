@@ -37,12 +37,8 @@ export const useGetNews = (APIParams = {}, useQueryOptions = {}) => {
 // get key figures 
 
 async function getKeyFigures_API({ tokenString }) {
-    return [{"label": "Proteins", "metric" : 7834}, {"label": "Instruments", "metric" : 5}, {"label": "Users", "metric" : 25}, {"label": "Turnaround [d]", "metric" : 23}]
+    // return [{"label": "Proteins", "metric" : 7834}, {"label": "Instruments", "metric" : 5}, {"label": "Users", "metric" : 25}, {"label": "Turnaround [d]", "metric" : 23}]
     const res = await axios.get('/api/info/keyfigures', {
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${tokenString}`
-        }
     })
     return res.data 
 }

@@ -37,6 +37,7 @@ ScatterPoints.propTypes = {
 function ScatterPoints({
     data = [], 
     valid = [], 
+    indices,
     xaxisName, 
     yaxisName, 
     sizeName, 
@@ -55,27 +56,28 @@ function ScatterPoints({
     const filterByIdx = filterIndices.size !== 0
     const opacityBySearch = searchIndices.size !== 0
     const colorScaleDefined = colorName !== undefined && _.has(data[0], colorName) && _.isFunction(colorScale)
-    let validIdcs = _.range(data.length).filter(idx => valid[idx]) //!opacityBySearch ? valid[idx] : valid[idx] && !searchIndices.has(idx))
+    let validIdcs = indices === undefined ?_.range(data.length).filter(idx => valid[idx]) : Array.from(indices).filter(idx => valid[idx]) //!opacityBySearch ? valid[idx] : valid[idx] && !searchIndices.has(idx))
     // if (opacityBySearch) {
     //     // add the search idcs last to plot them last on top of each other. 
     //     validIdcs = _.concat(validIdcs,Array.from(searchIndices))
     // }
 
-    const idcs = opacityBySearch ? _.concat(_.range(data.length).filter(idx => searchIndices.has(idx)),Array.from(searchIndices)) : _.range(data.length)
-
+    //const idcs = opacityBySearch ? _.concat(_.range(data.length).filter(idx => searchIndices.has(idx)),Array.from(searchIndices)) : _.range(data.length)
+    const opacity = opacityBySearch?0.2:1.0
     return(
         <g>
 
             {validIdcs.map(idx => {
                 const d = data[idx]
+                if (!valid[idx]) return null 
+                //const d = data[idx]
                 //filter data first and then map over it 
                 const inSearchIdc = opacityBySearch && searchIndices.has(idx)
-                const opacity = opacityBySearch?0.2:1.0
                 if (inSearchIdc) return null 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
                 return <circle 
-                    //dont use opacity, very very slow on safari, instead fill and strokeOpacity 
-                    key={`${idx}-${d[xaxisName]}`}
+                    //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
+                    key={`${idx}-sc-p`}
                     cx={xScale(d[xaxisName])} 
                     cy={yScale(d[yaxisName])} 
                     r={sizeScale(d[sizeName])} 
@@ -87,6 +89,7 @@ function ScatterPoints({
                         strokeWidth}}/>
             })}
             {opacityBySearch ? Array.from(searchIndices).map(idx => {
+                    if (!valid[idx]) return null 
                     const d = data[idx]
                     //filter data first and then map over it 
                     return <circle 

@@ -45,12 +45,14 @@ const ScatterLabel = React.memo(
         yaxisName,
         labelNames,
         joinString = ",",
+        splitString = " ",
+        splitIndex = 0,
         offset = 5,
         opacity = 1
     }) {
     
     const labelStrings = labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text))
-    const labelText = _.join(labelStrings, joinString)
+    const labelText = _.join(labelStrings.map(labelString => _.split(labelString,splitString).at(splitIndex)), joinString)
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 
     if (labelStrings.length === 0) return null 
     if (!_.isNumber(data[index][xaxisName]) || !_.isNumber(data[index][yaxisName])) return null 
@@ -58,7 +60,6 @@ const ScatterLabel = React.memo(
     const x = xScale(data[index][xaxisName])
         const y = yScale(data[index][yaxisName])
         
-        const moveRight = domainIsAroundZero && data[index][xaxisName] > 0 
         const moveLeft = domainIsAroundZero && data[index][xaxisName] < 0
     return (
         <Text

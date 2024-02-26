@@ -39,7 +39,12 @@
 p{
     font-family: "Linotype Univers W01", Helvetica, Arial, sans-serif;
     font-size: 0.75rem;
+    margin-top : 0.1rem;
+    margin-bottom : 0.1rem;
+    padding : 0rem;
 }
+
+
 
 h1 {
     font-size: 2.5rem;

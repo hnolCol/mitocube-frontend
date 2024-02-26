@@ -77,7 +77,6 @@ function TimelineChart({
         const uniqueColorCategories = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
         let colorValues = []
         if (!_.isEmpty(colorMapper)) {
-            console.log(colorMapper)
             colorValues = uniqueColorCategories.map(category => colorMapper[category])
         }
         else {

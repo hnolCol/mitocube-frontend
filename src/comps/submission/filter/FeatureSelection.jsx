@@ -1,5 +1,5 @@
 import { useGetSubmissionByQuery } from "../../../hooks/queries/submission.hooks"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import _ from "lodash"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { FeatureInput } from "../../core/input/api/FeatureInput"
@@ -21,6 +21,11 @@ export function FeatureDatasetFilter({ setSubmissionFilter }) {
     const onFeatureSelection = (attribute, item) => {
         setFeatureSelection(prevValues => {return {...prevValues, selectedFeatures : addItemToArrayOrRemoveItIfPresent({array : prevValues.selectedFeatures, item})}})
     }
+
+    useEffect(() => {
+        setSubmissionFilter(prevValues => { return { ...prevValues, feature_key :  featureSelection.selectedFeatures}})
+
+    },[_.join(featureSelection.selectedFeatures)])
 
     return (
         <div className="intent-margin-top--little" style={{ width: "100%", paddingRight : "0.1rem"}}>

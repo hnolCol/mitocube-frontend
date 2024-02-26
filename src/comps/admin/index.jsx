@@ -13,6 +13,7 @@ function AdminHeader({ authenticationStatus }) {
             <Tabs tabs={[
                 { text: "Attributes", to: "/admin/attributes" },
                 { text: "Users", to: "/admin/users" },
+                { text: "Genotypes", to: "/admin/genotypes"},
                 { text: "ShareToken", to: "/admin/sharetoken" }]} />
                 
             <div >
