@@ -119,7 +119,7 @@ function AddExistingSubmission({authenticationStatus,logout}) {
                         callbackKey={"keyColumnName"}
                         onChange={(keyName, item) => setLoadingFileProps(prevValues => { return { ...prevValues, [keyName]: item.text } })}/>
                     <p>Please select the colum(s) that specify the samples (e.g. the intensity values).</p>
-                    <div>
+                    <div style={{height: " 50vh",overflowY:"scroll"}}>
                         <ItemTable
                             items={loadingFileProps.columnNames}
                             selectedItems={loadingFileProps.sampleColumnsIdx}
