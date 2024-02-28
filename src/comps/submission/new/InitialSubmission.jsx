@@ -63,6 +63,7 @@ function InitialSubmission({
     }   
 ) {
 
+    console.log(submission_label)
     const preDefinedSampleNames = sampleNames.length > 0 
     //check if submission is from an existing file...
     const submitExistingData = _.isObject(loadingFileProps) && _.has(loadingFileProps,"dataArray") && _.isArray(loadingFileProps.dataArray) && loadingFileProps.dataArray.length > 0 
@@ -76,8 +77,8 @@ function InitialSubmission({
     const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_ids : proteome_ids},{enabled : proteome_ids.length > 0})
 
-    const label = useMemo(() => _.isString(submission_label)  && submission_label > 5 ? submission_label : _.isObject(submissionID) ? submissionID.id : undefined,[_.isObject(submissionID),submission_label])
-
+    const label = useMemo(() => _.isString(submission_label) ? submission_label : _.isObject(submissionID) ? submissionID.id : undefined,[_.isObject(submissionID),submission_label])
+    console.log(label)
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
