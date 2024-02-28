@@ -49,7 +49,6 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
     }
 
     const handleSelection = (idx,key,value) => {
-        console.log(idx, key, value)
         setVolcanoData(prevValues => {
             let selection = prevValues.selection
             selection[idx] = {...selection[idx], [key] : value}
@@ -184,13 +183,12 @@ function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValue
         }
         setTestParams(params)
     }
-   
-    const genotype_defined = _.has(samplesGenotypes, "genotype") && samplesGenotypes["genotype"].length > 0 
+    const genotype_defined = _.has(samplesGenotypes, "att_genotype") && samplesGenotypes["att_genotype"].length > 0 
     return (
         <div className="div--expand flex">
             <VolcanoDataHandler {...{ dataset_label, selectedTestParams : testParams, metadata, setIsFetching }} />
            <SamplesAttributesSelection
-                attributes={genotype_defined ? _.concat([{text:"Genotype",tag:"genotype"}],attributes) : attributes}
+                attributes={attributes}
                 groupAttributeValues={genotype_defined ? { ...samplesGenotypes, ...attributeValues } : attributeValues}
             
                 {...{ metadata, callback: handleVolcano, isLoading: isFetching }} />
@@ -241,12 +239,15 @@ function DatasetVolcanoPlot(logout) {
     if (!_.isObject(metadata) || !_.isObject(attributesByTag)) return null
 
     let sampleAttributesKey = Object.keys(metadata.samples_attributes)
+    let genotypeLabels = _.keys(metadata.samples_genotypes)
+    let genotypeDefined = genotypeLabels.length > 0 
     let sampleAttributeValues = _.fromPairs(_.keys(metadata.samples_attributes).map(sampleAttributeTag => [sampleAttributeTag, _.keys(metadata.samples_attributes[sampleAttributeTag]).map(attribute_value_tag => metadata.attribute_values_by_tag[attribute_value_tag])]))
-    let samplesGenotypes = { genotype: _.keys(metadata.samples_genotypes).map(genotypeLabel => metadata.genotypes[genotypeLabel]) }
-    
+    let samplesGenotypes = { att_genotype: _.keys(metadata.samples_genotypes).map(genotypeLabel => metadata.genotypes[genotypeLabel]) }
+    let sampleAttributes = sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag])
+    let attributes = genotypeDefined ? _.concat([attributesByTag.attributes["att_genotype"]],sampleAttributes) : sampleAttributes
     //console.log(sampleAttributeValues)
 
-    return <VolcanoPlotWrapper {...{ dataset_label, attributes : sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag]), attributeValues :  sampleAttributeValues, metadata, samplesGenotypes}} />
+    return <VolcanoPlotWrapper {...{ dataset_label, attributes, attributeValues :  sampleAttributeValues, metadata, samplesGenotypes}} />
     if (isLoading || isFetching) return <Loading />
     if (isError) return <APIError />
     

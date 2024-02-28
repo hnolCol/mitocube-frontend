@@ -108,7 +108,8 @@ function CategoricalBoxplot({
     innerColorPadding = 0.0,
     svgID = undefined,
     attributesByTag,
-    attributeValuesByTag
+    attributeValuesByTag,
+    genotypesByLabel
     }) {
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
     //console.log(data,colorName,splitName)
@@ -249,13 +250,13 @@ function CategoricalBoxplot({
                                     attributeValuesByTag={attributeValuesByTag}
                                     valueIsFeature={attributesByTag[colorName].has_features_value}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
-                                    {...{ chartHeight, chartWidth }} />
+                                    {...{ chartHeight, chartWidth,genotypesByLabel }} />
                                 {/* x axis label */}
                                 <Text
                                     x={margins.left + chartWidth / 2}
-                                    y={margins.top + chartHeight + 20}
+                                    y={margins.top + chartHeight + 25}
                                     verticalAnchor="start"
-                                    textAnchor="middle">{colorName}
+                                    textAnchor="middle">{_.has(attributesByTag,colorName)?attributesByTag[colorName].text : colorName}
                                 </Text>
                                 
                                 {colorCategories.map(colorCategory => {
@@ -340,7 +341,7 @@ function CategoricalBoxplot({
                                 valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
                                 bandwidth={colorBandwidth * 1.1}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
-                                {...{ chartHeight, chartWidth :  subplotWidth}} />
+                                {...{ chartHeight, chartWidth :  subplotWidth, genotypesByLabel}} />
                         
                           {subplotCategoryFound ?
                               <g>
@@ -356,9 +357,9 @@ function CategoricalBoxplot({
                           
                           {didx === 0 ? <Text
                               x={margins.left + chartWidth / 2}
-                              y={margins.top + chartHeight + 20}
+                              y={margins.top + chartHeight + 25}
                               verticalAnchor="start"
-                              textAnchor="middle">{splitName}</Text> : null}
+                              textAnchor="middle">{_.has(attributesByTag,splitName)?attributesByTag[splitName].text : splitName}</Text> : null}
                         
                           
                         {/* {If there is not split but a subplot} */}

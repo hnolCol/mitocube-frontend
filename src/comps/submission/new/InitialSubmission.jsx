@@ -78,7 +78,6 @@ function InitialSubmission({
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_ids : proteome_ids},{enabled : proteome_ids.length > 0})
 
     const label = useMemo(() => _.isString(submission_label) ? submission_label : _.isObject(submissionID) ? submissionID.id : undefined,[_.isObject(submissionID),submission_label])
-    console.log(label)
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
