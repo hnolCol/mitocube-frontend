@@ -133,7 +133,8 @@ function AddExistingSubmission({authenticationStatus,logout}) {
                             onClick={() => setLoadingFileProps(prevValues => { return { ...prevValues, columnSelectionConfirmed: true } })} />
                     </div> : <div>
                         <h4></h4>
-                        <InitialSubmission sampleNames={loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx])} {...{loadingFileProps,authenticationStatus,submission_label : loadingFileProps.submission_label.length > 8 ? loadingFileProps.submission_label : undefined}} />
+                        <InitialSubmission sampleNames={loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx])}
+                            {...{ loadingFileProps, authenticationStatus, submission_label: loadingFileProps.submission_label.length > 8 ? loadingFileProps.submission_label : undefined }} />
                         </div>
             
             }

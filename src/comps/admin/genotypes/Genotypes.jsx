@@ -51,7 +51,7 @@ export function AdminGenotypes() {
                 isLoading || isFetching ?
                     <Loading /> :
                     _.isArray(genotypes) ?
-                        <div style={{height : "auto", overflowY:"scroll"}}>
+                        <div  className="div--expand" style={{overflowY:"scroll"}}>
                             {genotypes.map(genotype => { return <GenotypeCard {...{ genotype, refetchGenotypes }} /> })} </div>: null}
 
         </div>
