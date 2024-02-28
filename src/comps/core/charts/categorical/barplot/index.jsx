@@ -66,7 +66,8 @@ function CategoricalBarplot({
     innerColorPadding = 0.0,
     svgID = undefined,
     attributesByTag,
-    attributeValuesByTag
+    attributeValuesByTag,
+    genotypesByLabel
     }) {
     
    // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
@@ -152,7 +153,7 @@ function CategoricalBarplot({
                                     leftLabel={_.isString(yaxisLabel) ? yaxisLabel : yaxisName}
                                     attributeValuesByTag={attributeValuesByTag}
                                     valueIsFeature={attributesByTag[colorName].has_features_value}
-                                    {...{ chartHeight, chartWidth }} />
+                                    {...{ chartHeight, chartWidth, genotypesByLabel }} />
                                 {/* x axis label */}
                                 <Text
                                     x={margins.left + chartWidth / 2}
@@ -247,11 +248,11 @@ function CategoricalBarplot({
                                 bottomScale={splitScale}
                                 bandwidth={colorBandwidth * 1.1}
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
-                                 bottomLabel={""}
+                                bottomLabel={""}
                                 attributeValuesByTag={attributeValuesByTag}
                                 valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
-                                {...{ chartHeight, chartWidth :  subplotWidth}} />
+                                {...{ chartHeight, chartWidth :  subplotWidth, genotypesByLabel}} />
                         
                         {subplotCategoryFound ?
                               <g>

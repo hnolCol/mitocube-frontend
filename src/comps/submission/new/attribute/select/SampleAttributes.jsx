@@ -67,8 +67,10 @@ function getPositionString(positionAttrValue) {
     if (_.isString(positionAttrValue.aa)) {
         return positionAttrValue.aa
     }
-    else if (_.isArray(positionAttrValue.aa_position) && positionAttrValue.aa_position.length > 1)
-        return _.join(positionAttrValue.aa_position, "-")
+    else if (_.isArray(positionAttrValue.aa_position)) {
+        if (positionAttrValue.aa_position.length > 1) return _.join(positionAttrValue.aa_position, "-")
+        else return positionAttrValue.aa_position.at(0)
+    }
     else if (positionAttrValue.aa_position === null && positionAttrValue.aa === null) {
         return positionAttrValue.attribute_value.text
     }
@@ -80,10 +82,13 @@ function extractGenotypeRepresentation(genotype) {
         const hasProteinMutation = _.has(attribute, "att_protein_position")
         const mutations = hasProteinMutation && _.has(attribute, "att_protein_mutation") ? attribute["att_protein_mutation"] : []
         const positions = attribute["att_protein_position"]
+        const hasEditingMethod = _.has(attribute, "att_gene_editing_method") && _.isArray(attribute["att_gene_editing_method"]) && attribute["att_gene_editing_method"].length > 0
+        const hasZygosity = _.has(attribute,"att_gene_zygosity") && _.isArray(attribute["att_gene_zygosity"]) && attribute["att_gene_zygosity"].length > 0
+
         return <div style={{fontSize : "0.7rem"}}><ul style={{listStyleType: "none",margin:"0px",padding:"0px"}}>
             <li>{genotype.proteome_id}</li>
-            <li>{attribute["att_gene_editing_method"][0].text} <strong>{attribute["att_gene_engineering"][0].text}</strong></li>
-            <li><strong>{attribute["att_gene_zygosity"][0].text}</strong></li>
+            {hasEditingMethod ? <li>{attribute["att_gene_editing_method"][0].text} <strong>{attribute["att_gene_engineering"][0].text}</strong></li> : null}
+            {hasZygosity ? <li><strong>{attribute["att_gene_zygosity"][0].text}</strong></li> : null}
             <li>{hasProteinMutation ? mutations.map(mutationAttrValue => {
                 if (_.has(positions, mutationAttrValue.tag)) {
                     const positionAttrValue = positions[mutationAttrValue.tag]
@@ -284,8 +289,9 @@ function SamplesAttributes({
         //find row indices from the selected region
         //attribute.has_features_value ? attributeValuesByID[-1] : 
         let attributeValues = sampleAttribute === undefined || !_.has(attributeValuesByID, sampleAttribute.id) ? [] : attributeValuesByID[sampleAttribute.id]
-        console.log(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])))
-        const attributeValuesSelected = _.uniqBy(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])),"tag")
+        console.log(_.flatten(attributeTable.filter(d => _.has(d, attribute.tag)).map(d => d[attribute.tag])))
+        const filterKeyName = attribute.has_features_value ? "key" : "tag"
+        const attributeValuesSelected = _.uniqBy(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])),filterKeyName)
         // if there is no attribute values, then a numeric value can be inserted by the user
         const selectedAttributeValuesFound = attributeValuesSelected.length
         // onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {

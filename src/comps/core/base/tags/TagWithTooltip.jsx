@@ -56,7 +56,7 @@ export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, d
             popoverClassName = ""
             interactionKind="hover"
             inheritDarkTheme={false}
-            hoverOpenDelay={400}
+            hoverOpenDelay={600}
             hoverCloseDelay={100}
             position={popoverPosition}>
             <motion.div
@@ -102,7 +102,7 @@ export function FeatureTagWithTooltip({ feature = {}, attribute = {}, disableToo
             popoverClassName = ""
             interactionKind="hover"
             inheritDarkTheme={false}
-            hoverOpenDelay={400}
+            hoverOpenDelay={600}
             hoverCloseDelay={200}
             position={popoverPosition}>
             <motion.div
@@ -151,7 +151,7 @@ export function SampleAttributeTagWithTooltip({ name, values, sampleNames, attrV
             popoverClassName = ""
             interactionKind="hover"
             inheritDarkTheme={false}
-            hoverOpenDelay={400}
+            hoverOpenDelay={600}
             position="top">
             <motion.div
                 style={{backgroundColor : "#e5e5e5", color:"#000000", fontSize:"0.75rem"}} //lighter ? "#efefef" :

@@ -17,7 +17,7 @@ function DatasetHeader({authenticationStatus}) {
     const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching, refetch : refetchMetaData} = useGetMetadata({dataset_label})
     const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
-    
+    console.log(metadata)
     return (
         <div className="no-scroll div--expand">
             <Tabs

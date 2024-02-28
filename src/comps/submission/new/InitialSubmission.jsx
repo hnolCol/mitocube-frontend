@@ -57,21 +57,26 @@ const initSubmissionState = {
 function InitialSubmission({
     authenticationStatus,
     logout,
-    sampleNames = []
-}
+    sampleNames = [],
+    loadingFileProps,
+    submission_label
+    }   
 ) {
-    const preDefinedSampleNames = sampleNames.length > 0 
-    const redirect = useNavigate()
 
+    const preDefinedSampleNames = sampleNames.length > 0 
+    //check if submission is from an existing file...
+    const submitExistingData = _.isObject(loadingFileProps) && _.has(loadingFileProps,"dataArray") && _.isArray(loadingFileProps.dataArray) && loadingFileProps.dataArray.length > 0 
+    const redirect = useNavigate()
     const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
-    const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID()
+    const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID({},{enabled : !_.isString(submission_label)})
     const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_ids : proteome_ids},{enabled : proteome_ids.length > 0})
-    //console.log(genotypes)
+
+    const label = useMemo(() => _.isString(submission_label)  && submission_label > 5 ? submission_label : _.isObject(submissionID) ? submissionID.id : undefined,[_.isObject(submissionID),submission_label])
 
     const { data: submissionAttributes,
         isLoading: attributesLoading,
@@ -122,7 +127,7 @@ function InitialSubmission({
         //handle changes that effect the samples names 
         const sampleNumber = parseInt(submission.attributes.sampleNumber)
         if (!_.isNumber(sampleNumber)) return 
-        if (!_.isObject(submissionID) || !_.isString(submissionID.id)) return
+        if (!_.isString(label)) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
         let genotypeAttributes = submission.genotypeAttributes
@@ -139,11 +144,11 @@ function InitialSubmission({
                 attributeTable.push(Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
         }
-        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames(submissionID.id, sampleNumber, attributeTable) : sampleNames
+        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames(label, sampleNumber, attributeTable) : sampleNames
 
-        setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, label : submissionID.id, rerenderTableDependency : [Math.random()]}})
+        setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, label, rerenderTableDependency : [Math.random()]}})
 
-    }, [submission.attributes.sampleNumber, submissionID])
+    }, [submission.attributes.sampleNumber, label])
     
 
     const onSubmssionRequest = () => {
@@ -241,7 +246,6 @@ function InitialSubmission({
         }
 
         else {
-
             let submissionDetails = { ...submission }
             // delete rendering float
             const flexAttributes = submissionDetails["attributes"]
@@ -251,14 +255,18 @@ function InitialSubmission({
                 delete submissionDetails["genotypes"]
             }
             submissionDetails["genotypes"] = genotypeAttributes
-            
+            console.log(loadingFileProps)
             submissionDetails["attributeTable"] = attributeTable
-            submissionDetails["label"] = submissionID.id
+            submissionDetails["label"] = label
             submissionDetails["title"] = flexAttributes.title 
             submissionDetails["replicates"] = validReplicates
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
-           
-            
+            submissionDetails["includes_data"] = submitExistingData
+            submissionDetails["data_array"] = submitExistingData ? loadingFileProps.dataArray.map(row_data =>
+                loadingFileProps.sampleColumnsIdx.map(rowIndex => row_data[rowIndex] === "NaN" || row_data[rowIndex] === "" ? NaN : _.toNumber(row_data[rowIndex]))) : undefined
+            submissionDetails["data_sample_names"] = submitExistingData ? loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx]) : []
+            submissionDetails["data_index"] = findFeatures(loadingFileProps)
+            console.log(submissionDetails)
             postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
@@ -292,6 +300,12 @@ function InitialSubmission({
 
     }
 
+    const findFeatures = (loadingFileProps) => {
+        if (!submitExistingData) return undefined 
+        const feature_index = loadingFileProps.columnNames.indexOf(loadingFileProps.keyColumnName)
+        return loadingFileProps.dataArray.map(rowData => rowData[feature_index]) 
+    }
+
     const closeAlertAndLogout = (error) => {
         // function to handle altert closing 
         setAlertProps({ isOpen: false })
@@ -316,7 +330,7 @@ function InitialSubmission({
 
     const resetSubmission = () => {
         // deletes the submission in the local storage.
-        removeItemFromLocalStorage("submissiom")
+        removeItemFromLocalStorage("submission")
         refetchSubmissionID()
         setSubmission(initSubmissionState)
     }
@@ -457,37 +471,6 @@ function InitialSubmission({
         setSubmission(prevValues => {return {...prevValues,links}})
     }
 
-    // const handleReplicateChange = (rowIdcs, replicate, patternIndex) => {
-    //     let reps = submission.replicates
-    //     let numberSamples = submission.sampleNames.length
-    //     if (reps.length === 0) {
-    //         reps = Array(numberSamples).fill(undefined)
-    //     }
-    //     if (reps.length < numberSamples) {
-    //         reps = _.concat(reps,Array(numberSamples - reps.length).fill(undefined))
-    //     }
-
-    //     if (_.isNumber(replicate)) {
-            
-    //         rowIdcs.filter(rowIndex => rowIndex < numberSamples).forEach(rowIndex => reps[rowIndex] = replicate)
-    //     }
-    //     else {
-            
-    //         if (patternIndex === 0) {
-
-    //             let repsByPattern = _.range(submission.attributes.replicates).map(rep => rep + 1)
-    //             reps = reps.map((value, idx) => repsByPattern[idx % repsByPattern.length])   
-
-    //         }
-
-    //         else if (patternIndex === 1) {
-    //             const repetitions = _.toInteger(numberSamples / submission.attributes.replicates+0.5)
-    //             reps = _.flatten(_.range(submission.attributes.replicates).map(repIdx => Array(repetitions).fill(repIdx+1)))
-    //         }
-    //     }
-
-    //     setSubmission(prevValues => {return{...prevValues,replicates : reps, rerenderTableDependency : Math.random()}})
-    // }
     const resetAlert = () => {
         // close the alert 
         setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
@@ -508,7 +491,7 @@ function InitialSubmission({
                 <h3>Information</h3>
             <p>
                 In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
-            <p>The unique datset identifier <span className="h0-span">{submissionID.id}</span> has been created for your submission. Please include this unique identifier in any request about your project.
+            <p>The unique datset identifier <span className="h0-span">{label}</span> has been created for your submission. Please include this unique identifier in any request about your project.
                 All files (such as raw file) will include the identifier. Please note that you and your collaborators will be notified via email when the state of your project changes.
                 The meta data are based on pre-defined attributes/ontologies and hence it might happen that you are missing an attribute for your project. 
                     </p>
@@ -517,7 +500,7 @@ function InitialSubmission({
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
-                    <div><span>Unique identifier: </span> <span className="h0-span">{submissionID.id}</span></div>
+                    <div><span>Unique identifier: </span> <span className="h0-span">{label}</span></div>
                     
                     <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
                   

@@ -50,7 +50,7 @@ function TextSelection({ keyNames, selection, onSelectionChange, minimal }) {
                 items={keyNames}
                 minimal={minimal}
                 selectedItems={_.map(selection.tooltipNames, text => {return {text}})}
-                placeholder={selection.tooltipNames.length === 1?selection.tooltipNames[0]:`${selection.tooltipNames.length} items`}
+                placeholder={_.isArray(selection.tooltipNames) ? selection.tooltipNames.length === 1?selection.tooltipNames[0]:`${selection.tooltipNames.length} items`: "..."}
                 callbackKey="tooltipNames" callback={(key, item) => onSelectionChange(prevValues =>
                 {
                     return {

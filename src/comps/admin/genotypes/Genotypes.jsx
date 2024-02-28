@@ -16,7 +16,7 @@ function GenotypeCard({ genotype, refetchGenotypes }) {
     const {mutate, isLoading, isSuccess} = useDeleteGenotype()
 
     if (!isFetched) return null 
-    return (<Card compact={true} interactive={true} className="margin--little" >
+    return (<Card compact={true} interactive={true} className="margin--little" style={{padding:"0.4rem"}}>
         <h3>{genotype.text}</h3>
         <div className="flex"><h4>Features:</h4>
             {genotype.features.map(feature => <AttributeFeatureTag value={feature} valueIsFeature={true} />)}</div>
@@ -50,8 +50,9 @@ export function AdminGenotypes() {
             {isError ? <APIError error={error} /> :
                 isLoading || isFetching ?
                     <Loading /> :
-                        _.isArray(genotypes) ?
-                        genotypes.map(genotype => { return <GenotypeCard {...{genotype,refetchGenotypes}} />}) : null}
+                    _.isArray(genotypes) ?
+                        <div style={{height : "auto", overflowY:"scroll"}}>
+                            {genotypes.map(genotype => { return <GenotypeCard {...{ genotype, refetchGenotypes }} /> })} </div>: null}
 
         </div>
     )

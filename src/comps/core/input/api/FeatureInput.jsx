@@ -12,7 +12,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
         { enabled: debouncedString.length > 0 })
     const disabled = !_.isArray(proteome_ids) ||  !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <MenuItem key={item.key} text={item.genes} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+        return <MenuItem key={`${item.key}-${index}`} text={item.genes} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
             labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{item.key}</h4><p>{item.proteins}</p></div><div>{item.organism}</div></div>}/>
     }
     /**
@@ -26,7 +26,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
        
         
         onItemSelect(attribute, item)
-        // e.stopPropagation()
+        
     }
 
     /**
@@ -47,7 +47,6 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
     disabled={disabled}
     helperText={helperText}>
         <MultiSelect
-            
             disabled={disabled}
             itemRenderer={renderFeature}
             items={_.isArray(items) ? items : []}

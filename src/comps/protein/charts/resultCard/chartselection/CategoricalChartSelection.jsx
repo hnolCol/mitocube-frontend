@@ -31,6 +31,8 @@ export function CategoricalChartSelection({ keyNames, selection, onSelectionChan
             return { ...prevValues, [key]: _.isObject(prevValues[key]) ? prevValues[key].tag === item.tag ? undefined : item : item }
         })
     }
+    
+    console.log(keyNames)
     return <div className="flex">
         <ColorIconWithName
             callbackKey="colorName"

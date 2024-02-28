@@ -29,11 +29,12 @@ function ResultChart({
     featureID = "",
     attributesByTag,
     attributeValuesByTag,
+    genotypesByLabel,
     title
 }) {
+    console.log(genotypesByLabel)
     //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     const attributes = useMemo(() => Object.keys(groupings).map(attributeTag => attributesByTag[attributeTag]), [groupings])
-
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
@@ -107,7 +108,8 @@ function ResultChart({
                 svgID,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 attributesByTag,
-                attributeValuesByTag
+                attributeValuesByTag,
+                genotypesByLabel
                 
             }} />
         }
@@ -123,7 +125,8 @@ function ResultChart({
                 minMaxYDomain,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 attributesByTag,
-                attributeValuesByTag
+                attributeValuesByTag,
+                genotypesByLabel
             }} />
         }
         else if (plotType === "boxplot") {
@@ -138,7 +141,8 @@ function ResultChart({
                 minMaxYDomain,
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 attributesByTag,
-                attributeValuesByTag
+                attributeValuesByTag,
+                genotypesByLabel
             }} />
         }
     }

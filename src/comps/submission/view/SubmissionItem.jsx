@@ -124,9 +124,10 @@ export function SubmissionItem({
                     e.stopPropagation()
                     redirect(`/datasets/${submission.label}`)
                 }}
-            className="submission__item__container bg--white padding--little"
-                style={{ borderLeft: `3px solid ${borderColor}`, color : "#000"}}
+            className="submission__item__container bg--white"
+                style={{border: "none", color : "#000", padding : "0px"}}
                 onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
+            <div style={{borderLeft : `3px solid ${borderColor}`}} className="padding--little">
             <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" > 
             <div className="flex flex--wrap center-items">
@@ -183,7 +184,7 @@ export function SubmissionItem({
 
                         </div> : null}
                 </div> 
-                
+                </div>
             </button>
             </ContextMenu>
 )

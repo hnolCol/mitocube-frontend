@@ -13,15 +13,14 @@ import { AttributeFeatureTag } from "../view/DatasetAttributesHierarchy"
 SingleAttributeInput.propTypes = {
     attribute : PropTypes.object.isRequired,
     attributes: PropTypes.arrayOf(PropTypes.object),
-    searchColumns : PropTypes.array.isRequired,
+    searchColumns : PropTypes.array,
     disabled: PropTypes.bool,
     matchTargetWidth: PropTypes.bool,
     maxItemsShown: PropTypes.number,
     minimumSearchStringLength: PropTypes.number,
-    handleFeatureSelection: PropTypes.func.isRequired,
+    handleFeatureSelection: PropTypes.func,
     featureSelectionProps : PropTypes.object,
     onItemSelect: PropTypes.func.isRequired,
-    onRemove: PropTypes.func.isRequired,
 }
 
 

@@ -88,7 +88,7 @@ async function getSubmissionID_API(token) {
     return res.data
 }
 
-export const useGetSubmissionsID = (useQueryOptions = {}, APIParams = {}) => {
+export const useGetSubmissionsID = (APIParams = {},useQueryOptions = {}) => {
     return useQuery(["getSubmissionID"], () => getSubmissionID_API({...APIParams}), useQueryOptions)
 }
 

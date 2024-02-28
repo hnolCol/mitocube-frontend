@@ -168,29 +168,32 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
 }
 
 
-function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValues}) {
+function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValues, samplesGenotypes}) {
 
     const [testParams, setTestParams] = useState({})
     const [isFetching, setIsFetching] = useState(false)
 
     const handleVolcano = (props) => {
         const params = {
-            attribute_left_tag: props.group1.tag,
-            attribute_right_tag: props.group2.tag,
+            attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
+            attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
             sample_attribute_tag: props.main.tag,
-            within_sample_attribute_tag: props.withinGrouping.tag,
-            within_sample_attribute_value_tag: props.withinGroup.tag,
+            within_sample_attribute_tag: props.withinGrouping.tag === "none" ? undefined : props.withinGrouping.tag,
+            within_sample_attribute_value_tag: _.has(props.withinGroup,"label") ? props.withinGroup.label : props.withinGroup.tag === "none" ? undefined: props.withinGroup.tag,
             impute : props.impute
         }
-        console.log("AAA",params)
         setTestParams(params)
     }
+   
+    const genotype_defined = _.has(samplesGenotypes, "genotype") && samplesGenotypes["genotype"].length > 0 
     return (
         <div className="div--expand flex">
             <VolcanoDataHandler {...{ dataset_label, selectedTestParams : testParams, metadata, setIsFetching }} />
            <SamplesAttributesSelection
-                attributes={attributes}
-                groupAttributeValues={attributeValues} {...{ metadata, callback: handleVolcano, isLoading : isFetching }} />
+                attributes={genotype_defined ? _.concat([{text:"Genotype",tag:"genotype"}],attributes) : attributes}
+                groupAttributeValues={genotype_defined ? { ...samplesGenotypes, ...attributeValues } : attributeValues}
+            
+                {...{ metadata, callback: handleVolcano, isLoading: isFetching }} />
         </div>
         
     )
@@ -226,9 +229,10 @@ function DatasetVolcanoPlot(logout) {
     }
 
     const handleVolcano = (props) => {
+        console.log(props)
         const params = {
-            attribute_left_tag: props.group1.tag,
-            attribute_right_tag: props.group2.tag,
+            attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
+            attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
             sample_attribute_tag: props.main.tag
         }
         setTestParams(params)
@@ -238,9 +242,11 @@ function DatasetVolcanoPlot(logout) {
 
     let sampleAttributesKey = Object.keys(metadata.samples_attributes)
     let sampleAttributeValues = _.fromPairs(_.keys(metadata.samples_attributes).map(sampleAttributeTag => [sampleAttributeTag, _.keys(metadata.samples_attributes[sampleAttributeTag]).map(attribute_value_tag => metadata.attribute_values_by_tag[attribute_value_tag])]))
+    let samplesGenotypes = { genotype: _.keys(metadata.samples_genotypes).map(genotypeLabel => metadata.genotypes[genotypeLabel]) }
+    
     //console.log(sampleAttributeValues)
 
-    return <VolcanoPlotWrapper {...{ dataset_label, attributes : sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag]), attributeValues :  sampleAttributeValues, metadata}} />
+    return <VolcanoPlotWrapper {...{ dataset_label, attributes : sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag]), attributeValues :  sampleAttributeValues, metadata, samplesGenotypes}} />
     if (isLoading || isFetching) return <Loading />
     if (isError) return <APIError />
     

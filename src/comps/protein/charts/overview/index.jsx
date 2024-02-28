@@ -33,6 +33,7 @@ function ProteinOverview({
                 return (
                     <ResultChart key={`${featureKey}-${dataID}`} groupings={featureData["samples_attributes"][dataID]} data={data} {...{ dataID, featureID: featureKey, title : featureData.title_by_label[dataID] }} yaxisName="value"
                         attributesByTag={featureData.attributes}
+                        genotypesByLabel={featureData["genotypes_by_label"][dataID]}
                         attributeValuesByTag={featureData.attribute_values_by_tag} />
                 )
             }): null}
