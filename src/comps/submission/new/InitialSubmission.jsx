@@ -105,7 +105,7 @@ function InitialSubmission({
         ) => {
         if (!attributesIsSuccess) return []
         
-            return submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"] && (!submitExistingData && attribute.min_state === 0))
+            return submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"] && (submitExistingData || attribute.min_state === 0))
 
         },[attributesIsSuccess])
 

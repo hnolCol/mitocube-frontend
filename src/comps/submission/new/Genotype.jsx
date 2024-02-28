@@ -344,7 +344,7 @@ function GenotypeGenerator({ index = 6,
 
 
     const getMutationAbbr = (entryName, mutation,genotypeEntryAttributes) => {
-        const place_before = mutation.p === -Infinity
+        const n_term = mutation.p === -Infinity
         const mutationAttrValue = mutation.mutation_attribute_value //tag or what ever 
 
         const aa_position = genotypeEntryAttributes["att_protein_position"][mutationAttrValue.tag].aa_position 
@@ -393,12 +393,12 @@ function GenotypeGenerator({ index = 6,
         else {
             //other should be tag
             const mutationValue = mutationAttrValue.text.split(" ").at(0)
-            if (mutation.p === Infinity || place_before) {
-                if (place_before) {
-                    entryName = `${mutationValue}_C.` + entryName
+            if (mutation.p === Infinity || n_term) {
+                if (n_term) {
+                    entryName = `${mutationValue}_N.` + entryName
                 }
                 else {
-                    entryName += `.N_${mutationValue}`
+                    entryName += `.C_${mutationValue}`
                 }
             }
             else {
@@ -439,8 +439,8 @@ function GenotypeGenerator({ index = 6,
                     const mutateAttributeTag = mutationAttribute.tag
                     if (!_.has(genotypeEntryAttributes["att_protein_position"], mutateAttributeTag)) return { p: undefined, mutation_attribute_value: mutationAttribute, attribute_value: undefined }
                     const position = genotypeEntryAttributes["att_protein_position"][mutateAttributeTag]
-                    if (position.attribute_value.text == "C-term") return { p: -Infinity, mutation_attribute_value: mutationAttribute, attribute_value: position.attribute_value }
-                    if (position.attribute_value.text == "N-term") return { p: Infinity, mutation_attribute_value: mutationAttribute, attribute_value: position.attribute_value }
+                    if (position.attribute_value.text == "C-term") return { p: Infinity, mutation_attribute_value: mutationAttribute, attribute_value: position.attribute_value }
+                    if (position.attribute_value.text == "N-term") return { p: -Infinity, mutation_attribute_value: mutationAttribute, attribute_value: position.attribute_value }
                     if (_.isArray(position.aa_position)) return { p: position.aa_position.at(0), mutation_attribute_value: mutationAttribute, attribute_value: position.attribute_value }
                 })
                 const sorted_mutations = _.sortBy(mutations_with_priority.filter(v => _.isObject(v) && v.p !== undefined), "p")
