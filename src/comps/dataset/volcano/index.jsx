@@ -193,7 +193,6 @@ function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValue
             
                 {...{ metadata, callback: handleVolcano, isLoading: isFetching }} />
         </div>
-        
     )
 }
 
@@ -245,7 +244,6 @@ function DatasetVolcanoPlot(logout) {
     let samplesGenotypes = { att_genotype: _.keys(metadata.samples_genotypes).map(genotypeLabel => metadata.genotypes[genotypeLabel]) }
     let sampleAttributes = sampleAttributesKey.map(attrTag => attributesByTag.attributes[attrTag])
     let attributes = genotypeDefined ? _.concat([attributesByTag.attributes["att_genotype"]],sampleAttributes) : sampleAttributes
-    //console.log(sampleAttributeValues)
 
     return <VolcanoPlotWrapper {...{ dataset_label, attributes, attributeValues :  sampleAttributeValues, metadata, samplesGenotypes}} />
     if (isLoading || isFetching) return <Loading />
@@ -254,8 +252,7 @@ function DatasetVolcanoPlot(logout) {
     if (!_.isObject(metadata) || !_.isObject(attributesByTag)) return null
     // let sampleAttributesKey = Object.keys(metadata.samples_attributes)
     // let sampleAttributeValues = _.fromPairs(_.keys(metadata.samples_attributes).map(sampleAttributeTag => [sampleAttributeTag, _.keys(metadata.samples_attributes[sampleAttributeTag]).map(attribute_value_tag => metadata.attribute_values_by_tag[attribute_value_tag])]))
-    // //console.log(sampleAttributeValues)
-    //console.log(metadata)
+
     const numericKeyNames = _.isObject(volcanoData) && _.has(volcanoData, "stats") && _.isArray(volcanoData.stats) ?
         _.filter(_.keys(volcanoData.stats[0]), keyName => _.isNumber(volcanoData.stats[0][keyName])) : []
     return (

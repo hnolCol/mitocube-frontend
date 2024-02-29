@@ -45,7 +45,6 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         return Object.fromEntries(_.range(numberCharts).filter(chartIdx => isPointChart[chartIdx]).map(chartIdx => {
             let data_index = _.range(data.length).filter(idx => validIndices[chartIdx][idx])
             let tree_data = data.filter((d,idx) => validIndices[chartIdx][idx])
-            console.log(tree_data.length, data.length)
             const nPoints = tree_data.length 
             const index = new KDBush(nPoints);
             const { xaxisName, yaxisName } = keyNames[chartIdx]

@@ -34,7 +34,6 @@ function AxisWithBackground({
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
     //const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
     if (_.isNumber(bandwidth)) bottomTickLabelProps["width"] = bandwidth
-    console.log(genotypesByLabel)
     const getLabelString = (attributeValue) => {
         const attributeValuesTagSplit = attributeValue.split(" ")
         return _.join(_.map(attributeValuesTagSplit, attributeValueTag => {
@@ -42,7 +41,6 @@ function AxisWithBackground({
             if (valueIsFeature) return attributeValue.genes.split(" ").at(0)
             if (!_.isObject(attributeValue)) {
                 if (_.has(genotypesByLabel, attributeValueTag)) {
-                    console.log("Genotype found??")
                     return genotypesByLabel[attributeValueTag].text
                 }
                 return ""

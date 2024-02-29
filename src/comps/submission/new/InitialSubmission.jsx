@@ -63,7 +63,6 @@ function InitialSubmission({
     }   
 ) {
 
-    console.log(submission_label)
     const preDefinedSampleNames = sampleNames.length > 0 
     //check if submission is from an existing file...
     const submitExistingData = _.isObject(loadingFileProps) && _.has(loadingFileProps,"dataArray") && _.isArray(loadingFileProps.dataArray) && loadingFileProps.dataArray.length > 0 

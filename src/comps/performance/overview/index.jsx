@@ -55,7 +55,6 @@ PerformanceOverview.propTypes = {
 function PerformanceOverview({ }) {
 
     // const { data, isLoading } = useGetDendro()
-    // console.log(data)
 
 
     return (

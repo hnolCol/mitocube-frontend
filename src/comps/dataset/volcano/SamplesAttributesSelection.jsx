@@ -69,7 +69,7 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                 withinGroupings: _.concat([{ text: "None", tag: "none" }], withinGroupings),
                 withinGrouping: {text: "None", tag: "none" },
                 withinItems: withinGroupings[0] !== undefined ? groupAttributeValues[withinGroupings[0].tag] : [],
-                withinGroup: withinGroupings[0] !== undefined ? groupAttributeValues[withinGroupings[0].tag][0].tag : { name: "None", tag: "none" }
+                withinGroup: withinGroupings[0] !== undefined ? _.has(groupAttributeValues[withinGroupings[0].tag][0],"label") ? groupAttributeValues[withinGroupings[0].tag][0].labelattribute.loc[within_sample_attribute_tag,"has_numeric_value"]: groupAttributeValues[withinGroupings[0].tag][0].tag : { name: "None", tag: "none" }
             }
         })
    
@@ -170,7 +170,7 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                                 items={grouping.withinItems} 
                                 formGroupMargin = {false}
                         onChange={handleGroupingChange}
-                        placeholder={grouping.withinGrouping.has_features_value ? grouping.withinGroup.key : grouping.withinGroup.text}
+                        placeholder={grouping.withinGrouping.tag === "att_genotype" ? grouping.withinGroup.label : grouping.withinGrouping.has_features_value ? grouping.withinGroup.key : grouping.withinGroup.text}
                         callbackKey="withinGroup"
                         textKey={grouping.withinGrouping.has_features_value ? "key" : "text"}
                         labelKey={grouping.withinGrouping.has_features_value ? "genes" :"description"}

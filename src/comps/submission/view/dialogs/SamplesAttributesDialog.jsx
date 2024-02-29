@@ -42,10 +42,7 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
         let attributeTable = submission.sample_names.map(sampleName =>
             _.fromPairs(sampleAttributeTags.map(attrTag =>
                 [attrTag, []])))
-            
-        
-        console.log(submission)
-        
+                    
         let samplesAttributes = _.keys(submission.samples_attributes).map(attributeTag => {
             return {
                 name: submission.samples_attributes[attributeTag].name,

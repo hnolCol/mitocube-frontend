@@ -247,7 +247,8 @@ const ScatterLegend = React.memo(
                                 {(labels) => labels.map((label, idx) => {   
                                     
                                     return (
-                                        <LegendItem key={`${idx}-${label}-colorcat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
+                                        <LegendItem key={`${idx}-${label}-colorcat`} >  
+                                            {/* // onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)} */}
                                             {renderLegendCircle(size,label.value,size/3)}
                                             <LegendLabel align="left" margin={"0 4px"} >
                                                 {label.text}</LegendLabel>
@@ -276,7 +277,8 @@ const ScatterLegend = React.memo(
                                 {(labels) => labels.map((label, idx) => {  
                                     
                                     return (
-                                            <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
+                                        <LegendItem key={`${idx}-${label}-sizecat`} > 
+                                            {/* onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)} */}
                                             {renderLegendCircle(size,"#fff",label.value)}
                                             <LegendLabel align="left" margin={"0 4px"}>
                                                 {label}

@@ -67,7 +67,7 @@ function CategoricalLineplot({
     }) {
 
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
-    
+    PaprikaBirneApfelxPae2004
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
