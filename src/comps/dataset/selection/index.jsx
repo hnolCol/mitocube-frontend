@@ -19,6 +19,7 @@ import TooltipButton from "../../core/base/buttons/TooltipButton";
 import { AttributeSelection } from "../../submission/filter/AttributeSelection";
 import { UserSelection } from "../../submission/filter/UserSelection";
 import "../../submission/submission.css"
+import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeSelection";
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
     const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
@@ -32,6 +33,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
         query: debouncedString.length === 0 ? null : debouncedString,
         state: "5",
+        genotype_label : getValueByKeyAndMergeToString({array : submissionFilter["genotype_label"], keyName : "label"}),
         feature_key : getValueByKeyAndMergeToString({ array: submissionFilter["feature_key"], keyName: "key" }),
         user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
@@ -41,27 +43,27 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
     const usersByLabel = _.isArray(users) ? groupListByProperty(users, "label") : {}
 
 
-
+    console.log(submissionQuery)
     
     if (isError) return <APIError error={error}/>
     
     if (submissionStatesLoading || attrIsLoading || attrIsFetching) return <Loading />
 
     return (
-        <div className="div--expand">
-            
-           <h2>Dataset Selection</h2>
+        <div className="div--expand">            
            <div className="submission__wrapper">
-    
         <div className="submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
-            <h3>Submissions ({isSuccess? submissionQuery.query_count:null}/{isSuccess? submissionQuery.total_count:null})</h3>
+            <h3>Datasets ({isSuccess? submissionQuery.query_count:null}/{isSuccess? submissionQuery.total_count:null})</h3>
             <div className="flex" style={{width: "100%"}}>
             <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
-            </div>
+                    </div>
+            <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
             <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter }} />
-            <UserSelection {...{submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : []}} />
-                    <FeatureDatasetFilter  {...{setSubmissionFilter}} />
+                    <FeatureDatasetFilter  {...{ setSubmissionFilter }} />
+                    <GenotypeDatasetFilter {...{ setSubmissionFilter }}/>
+            <UserSelection {...{ submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : [] }} />
+            </div>       
          </div>
 
                 <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>

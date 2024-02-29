@@ -18,7 +18,15 @@ function GenotypeCard({ genotype, refetchGenotypes }) {
     if (!isFetched) return null 
     return (<Card compact={true} interactive={true} className="margin--little" style={{ padding: "0.4rem", width : "min(350px,80vw)" }}>
         <div className="div--expand bg--grey padding--medium">
-            <h4>{genotype.text}</h4>
+            <div className="flex center-items justify-space-between"><h4>{genotype.text}</h4>
+                <Button
+                icon="trash"
+                small={true}
+                minimal={true}
+                intent="danger"
+                onClick={() => mutate({ genotype_label: genotype.label }, { onSuccess: () => refetchGenotypes() })}
+                loading={isLoading} />
+            </div>
         <Divider />
         <div className="flex">
             {genotype.features.map(feature => <AttributeFeatureTag value={feature} valueIsFeature={true} />)}</div>
@@ -32,13 +40,7 @@ function GenotypeCard({ genotype, refetchGenotypes }) {
             })}
             </div>
         </div>
-        <Button
-            icon="trash"
-            small={true}
-            minimal={true}
-            intent="danger"
-            onClick={() => mutate({ genotype_label: genotype.label }, { onSuccess: () => refetchGenotypes() })}
-            loading={isLoading} />
+        
     </div>
     </Card>)
 }
@@ -48,15 +50,16 @@ export function AdminGenotypes() {
     
     const {data : genotypes, isLoading, isFetching, isError, error, refetch : refetchGenotypes} = useGetGenotypes({})
     return (
-        <div>
+        <div className="div--expand" >
             <h3>Genotypes</h3>
+            <div style={{height : "70vh", overflowY:"scroll", paddingBottom : "2rem"}}>
             {isError ? <APIError error={error} /> :
                 isLoading || isFetching ?
                     <Loading /> :
                     _.isArray(genotypes) ?
-                        <div  className="div--expand flex flex--wrap" style={{overflowY:"scroll"}}>
+                        <div  className="flex flex--wrap">
                             {genotypes.map(genotype => { return <GenotypeCard {...{ genotype, refetchGenotypes }} /> })} </div>: null}
-
+            </div>
         </div>
     )
 }

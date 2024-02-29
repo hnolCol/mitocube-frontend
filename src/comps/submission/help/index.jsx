@@ -7,11 +7,6 @@ function SubmissionHelp({
     authStatus,
 
 }) {
-    
-    const {data : submissionHelp, isLoading} = useGetSubmissionHelp()
-
-
-    if (isLoading) return <div>Loading ...</div>
 
     return (
         

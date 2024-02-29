@@ -32,7 +32,6 @@ export function CategoricalChartSelection({ keyNames, selection, onSelectionChan
         })
     }
     
-    console.log(keyNames)
     return <div className="flex">
         <ColorIconWithName
             callbackKey="colorName"

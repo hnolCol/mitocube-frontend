@@ -27,7 +27,7 @@
 .submission__side__filter__container {
   width: 100%;
   display: flex;
-  overflow-y: scroll;
+  overflow-y: hidden;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;

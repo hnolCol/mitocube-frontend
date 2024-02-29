@@ -4,16 +4,20 @@ import { useGetFeatureByQuery } from "../../../../hooks/queries/feature.hooks"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
+import { useGetGenotypesByQuery } from "../../../../hooks/queries/genotype.hooks"
 
-export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true, small = false, allowUndefinedProteomes = false}) {
+export function GenotypeInput({selectedItems = [], attribute, onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
-    const { data: items, isLoading, isFetching } = useGetFeatureByQuery({ query: debouncedString, proteome_ids},
+    const { data: items, isLoading, isFetching } = useGetGenotypesByQuery({ query: debouncedString },
         { enabled: debouncedString.length > 0 })
-    const disabled = allowUndefinedProteomes ? false : !_.isArray(proteome_ids) ||  !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
+    const disabled =  false //allowUndefinedProteomes ? false : !_.isArray(proteome_ids) ||  !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
+    
+    
+    
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <MenuItem key={`${item.key}-${index}`} text={item.genes} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{item.key}</h4><p>{item.proteins}</p></div><div>{item.organism}</div></div>}/>
+        return <MenuItem key={`${item.label}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}></div>}/>
     }
     /**
      * @description Handles the item selection 
@@ -24,7 +28,6 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
             e.stopPropagation()
         }
        
-        
         onItemSelect(attribute, item)
         
     }
@@ -35,12 +38,12 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
      * @returns 
      */
     const renderValue = (item) => {
-        return item.genes.split(" ").at(0)
+        return item.text
     }
 
     return <FormGroup
     style={{margin : "0.1rem"}}
-    label={showLabel?attribute.text:undefined}
+    label={undefined}
     labelInfo={isRequired ? "(required)" : "(optional)"}
     inline={inline}
     fill={true}

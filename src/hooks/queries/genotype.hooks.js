@@ -3,6 +3,17 @@ import { useQuery, useMutation } from "react-query"
 import axios from "axios"
 import _ from "lodash"
 
+
+async function getGenotypesByQuery_API({ query }) {
+    const res = await axios.get(`/api/genotypes/q`, {params : { query }})
+    return res.data
+}
+
+export function useGetGenotypesByQuery(APIParams = {}, useQueryOptions = { staleTime: 30000 },) {
+    return useQuery(["getGenotypes",APIParams.query],() =>  getGenotypesByQuery_API({...APIParams}), useQueryOptions)
+}
+
+
 /**
  * 
  * @param {Object} props

@@ -32,7 +32,6 @@ function ResultChart({
     genotypesByLabel,
     title
 }) {
-    console.log(genotypesByLabel)
     //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     const attributes = useMemo(() => Object.keys(groupings).map(attributeTag => attributesByTag[attributeTag]), [groupings])
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")

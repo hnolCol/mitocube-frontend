@@ -14,7 +14,7 @@ export function OmnibarItem(props) {
 
     const handleSelectAndClose = (e) => {
         let featureURL = `/protein/${item.key}`
-        onSelect({ text: item.genes.split(" ").at(0), to : featureURL })
+        onSelect({feature : item, text: item.genes.split(" ").at(0), to : featureURL })
         handleClose(e,featureURL)
         }
 

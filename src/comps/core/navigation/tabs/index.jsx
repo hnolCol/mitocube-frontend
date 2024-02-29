@@ -1,9 +1,9 @@
 
 import PropTypes from "prop-types"
-import { Header } from "../../base/Header"
-import { Link, useLocation } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
 import _ from "lodash"
 import "../navigation.css"
+import { motion } from "framer-motion"
 
 Tabs.propTypes = {
     tabs: PropTypes.arrayOf(PropTypes.object).isRequired,
@@ -17,22 +17,32 @@ TabItem.propTypes = {
     active : PropTypes.bool
 }
 
-function TabItem({text,to, active = false}) {
+function TabItem({text,to, active = false, can_close = false, handleClose = undefined}) {
     // React Tab Item Component to visualize a Tab in the Topbar
+    const redirect = useNavigate()
     return (
-        <div className={"bg--lightgrey tabs__item" + `${active ? "" : " tabs__item-inactive"}`}>
-            <Link className="router-link" {...{ to }}>
-                <div className="div--expand tabs__item__inner" >
-                    {/* <Header {...{ text }} hexColor={active ? "#466688" : "#696969"} /> */}
-                    <h3>{text}</h3>
+        <motion.div className={"padding--little tabs__item " + `${active? "tabs__item-active" : "tabs__item-inactive"}`}> 
+           
+                <div style={{display : "grid", gridTemplateColumns : can_close ? "1fr 1rem" : "1fr", height:"1.5rem", gridTemplateRows : "1fr"}}>
+                    <div style={{gridColumn : 1, gridRow : 1, display:"flex"}}>
+                    <motion.button style={{ outline: "none", border: "none", backgroundColor: "transparent" }} onClick={() => redirect(to)}>{text}</motion.button>
+                    </div>
+                       
+                    {can_close && _.isFunction(handleClose) ? <div style={{ gridColumn: 2, gridRow: 1, display: "flex" }}>
+                    <motion.button whileHover={{ color: "#466688" }}
+                        onClick={() => handleClose(to)}
+                        style={{ border: "none", backgroundColor: "transparent", outline: "none", fontWeight: 700, color: "#000" }}>
+                        x
+                    </motion.button>
+                    </div> : null}
                 </div>
-            </Link>
-        </div>
+        
+        </motion.div>
         
     )
 }
 
-function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }) {
+function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true, canClose = undefined, handleClose = undefined }) {
     // Container for Tabs in the Topbar.
     const location = useLocation()
     const locationMatches = tabs.filter(tab => tab.to === location.pathname).length > 0 
@@ -43,7 +53,7 @@ function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true }
             return (
                 <TabItem key={`${tabIdx}-${tab.text}`}
                     active={locationMatches?location.pathname === tab.to:selectFirstTabIfPathNameDoesNotMatch?tabIdx===0:false}
-                    {...{ to: tab.to, text: tab.text }} />
+                    {...{ to: tab.to, text: tab.text, can_close : !_.isArray(canClose)?false:canClose[tabIdx], handleClose}} />
             )
         })}
             {_.isString(rightHeader) && rightHeader.length > 0 ?

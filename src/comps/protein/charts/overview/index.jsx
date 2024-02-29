@@ -29,7 +29,6 @@ function ProteinOverview({
             
             {_.isObject(featureData) ? featureData["dataset_labels"].map(dataID => {
                 const data = featureData["data"][dataID] //get data for dataset
-                console.log(data, featureData)
                 return (
                     <ResultChart key={`${featureKey}-${dataID}`} groupings={featureData["samples_attributes"][dataID]} data={data} {...{ dataID, featureID: featureKey, title : featureData.title_by_label[dataID] }} yaxisName="value"
                         attributesByTag={featureData.attributes}

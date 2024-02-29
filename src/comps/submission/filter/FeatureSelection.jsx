@@ -15,9 +15,7 @@ export function FeatureDatasetFilter({ setSubmissionFilter }) {
         feature_key: _.join(featureSelection.selectedFeatures.map(feature => feature.key), ";"), //join feature keys 
         enabled: featureSelection.selectedFeatures.length > 0 // only search if a feature is selected. 
     })
-   
-    const proteome_ids = ["UP000000589", "UP000005640"]
-    
+       
     const onFeatureSelection = (attribute, item) => {
         setFeatureSelection(prevValues => {return {...prevValues, selectedFeatures : addItemToArrayOrRemoveItIfPresent({array : prevValues.selectedFeatures, item})}})
     }
@@ -31,7 +29,7 @@ export function FeatureDatasetFilter({ setSubmissionFilter }) {
         <div className="intent-margin-top--little" style={{ width: "100%", paddingRight : "0.1rem"}}>
             <h4>Features</h4>
             <div className="flex flex-column" >
-                <FeatureInput selectedItems={featureSelection.selectedFeatures} onItemSelect={onFeatureSelection} showLabel={false} proteome_ids={proteome_ids} />
+                <FeatureInput selectedItems={featureSelection.selectedFeatures} onItemSelect={onFeatureSelection} showLabel={false} allowUndefinedProteomes={true} />
             <div className="font-size--smallest">Datasets in which the feature was found will be displayed.</div>
             </div>
         </div>
