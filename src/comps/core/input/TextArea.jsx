@@ -22,7 +22,7 @@ function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = 
             inline={false}
             helperText={""}>
             <div style={{backgroundColor:"#ffffff"}}>
-            <EditableText onChange={value => onChange(callbackKey, value, "text")} multiline={true} minLines={5} {...{placeholder,value}} />
+            <EditableText onChange={value => onChange(callbackKey, value, "text")} multiline={true} minLines={6} {...{placeholder,value}} />
             </div>
             </FormGroup>
     )

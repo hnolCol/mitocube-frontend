@@ -140,7 +140,6 @@ const ScatterLegend = React.memo(
                             )
                         })}
                     </LegendLinear></div> : null}
-                
                 {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
                         <h4>{sizeAttribute.text}</h4>
@@ -151,7 +150,7 @@ const ScatterLegend = React.memo(
                                 const labelString = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
                                 if (idx > 25) return null 
                                 return (
-                                        <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
+                                        <LegendItem key={`${idx}-${label.text}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
                                         {renderLegendCircle(size,"#fff",label.value)}
                                         <LegendLabel align="left" margin={"0 4px"}>
                                             {labelString}
@@ -166,7 +165,7 @@ const ScatterLegend = React.memo(
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null 
                             return (
-                                <LegendItem key={`${idx}-${label}-sizenum`}>
+                                <LegendItem key={`${idx}-${label.text}-sizenum`}>
                                     {renderLegendCircle(size,"#fff",label.value)}
                                     <LegendLabel align="left" margin={"0 4px"}>{roundNumber({ number: label.datum, limit: sizeLimit })}</LegendLabel>
                                 </LegendItem>
@@ -258,7 +257,7 @@ const ScatterLegend = React.memo(
                             </LegendOrdinal></div> :
                     
                         <div className="intent-margin-left--little">
-                            <h4>{colorName}as</h4>
+                            <h4>{colorName}</h4>
                             <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                                 {(labels) => labels.map((label, idx) => {
                                     return (
@@ -269,19 +268,17 @@ const ScatterLegend = React.memo(
                                 )
                             })}
                         </LegendLinear></div> : null}
-                    
-                    {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
+                    {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isEmpty(sizeLimit) ? 
                         <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
-                            <h4>Size Legend</h4>
+                            <h4>{sizeName}</h4>
                             <LegendOrdinal scale={sizeScale}>
                                 {(labels) => labels.map((label, idx) => {  
-                                    
                                     return (
                                         <LegendItem key={`${idx}-${label}-sizecat`} > 
                                             {/* onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)} */}
                                             {renderLegendCircle(size,"#fff",label.value)}
                                             <LegendLabel align="left" margin={"0 4px"}>
-                                                {label}
+                                                {label.text}
                                                     </LegendLabel>
                                                     </LegendItem>
                                     )

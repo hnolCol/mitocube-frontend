@@ -157,7 +157,7 @@ export function ScatterPlot({
 
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
-  
+        
         if (_.isNumber(data[0][colorName]) && _.has(limits,colorName)) {
             const colorDomain = limits[colorName]
             return scaleLinear({

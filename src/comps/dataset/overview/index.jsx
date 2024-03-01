@@ -19,7 +19,7 @@ import DatasetAttributeHierarchy, { AttributeFeatureTag } from "../../submission
 import { getAttributeForUserNumericInput } from "../../../services/attributes";
 import { getUserFullName } from "../../../services/format/user";
 
-function Metatext({ metatextTag, metadata, metatext }) {
+function MetatextBox({ metatextTag, metadata, metatext }) {
     
     const [mouseIn, setMouseIn] = useState(false)
     return (
@@ -239,7 +239,7 @@ function DatasetOverview({authenticationStatus}) {
                         className="container--shadow padding--little intent-margin-top--little "
                         key = {metatextTag} >
                     
-                        <Metatext {...{metadata,metatextTag,metatext}} />
+                        <MetatextBox {...{metadata,metatextTag,metatext}} />
                 
                     </div>)
                 

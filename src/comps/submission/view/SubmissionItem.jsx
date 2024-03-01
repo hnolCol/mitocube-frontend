@@ -68,7 +68,8 @@ export function SubmissionItem({
     setRunlistDialog,
     contextMenuEnabled = true,
     minimalView = false,
-    setChangeOwnerDialog
+    setChangeOwnerDialog,
+    setMetatextDialog
 }) {
     const redirect = useNavigate()
     const [mouseOver, setMouseOver] = useState(false)
@@ -110,7 +111,10 @@ export function SubmissionItem({
                     <MenuItem text="Samples Attributes"
                         onClick={() => setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: true } }) } />
                     <MenuItem text="Dataset Attributes"
-                        onClick={() => setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) } />
+                        onClick={() => setAttributesDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } })} />
+                    <MenuDivider />
+                    <MenuItem text="Metatext"
+                        onClick={() => setMetatextDialog(prevValues => { return { ...prevValues, isOpen: true, submission, samplesAttributes: false } }) } />
                     <MenuDivider />
 
                     <MenuItem text="Owner" onClick={() => setChangeOwnerDialog(prevValues => {return {...prevValues,isOpen :true, submission}})}>

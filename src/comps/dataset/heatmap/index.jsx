@@ -112,7 +112,8 @@ function DatasetHeatmap({}) {
                                     <Heatmap {...{
                                         data,
                                         clusterName : "cluster",
-                                        valueNames: yaxisName, colorNames: heatmapData.color_names, labelNames: heatmapData.label_names, handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps
+                                        valueNames: yaxisName,
+                                        colorNames: heatmapData.color_names, labelNames: heatmapData.label_names, handleSearchByDataIndex, setHoverDataByDataIndex, ...filterProps, ...hoverProps
                                     }} />
                             </div>
                                 </div>

@@ -47,12 +47,12 @@ function Heatmap({
     setHoverDataByDataIndex,
     minMax = [-6,6]
 }) {
- 
+    console.log(data)
     //updates only on datalength. can be dangerous
     const [scrollPos, setScrollPos] = useState(0)
     //const debouncedScrollPos = useDebounce(scrollPos,20)
     const uniqueColorValues = useMemo(() => colorNames.length > 0 ? getUniqueValuesInArrayOfObjects({data, keyName : colorNames}) : [], [_.join(colorNames),data.length])
-    const uniqueClusterValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, clusterName }), [clusterName])
+    const uniqueClusterValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, keyName : clusterName }).filter(v => v!==undefined), [clusterName])
     const heatmapValues = useMemo(() => _.map(data, d => _.map(valueNames, valueName => d[valueName])), [_.join(valueNames),data.length])
     //const minMax = useMemo(() => getQuantiles(_.flatten(heatmapValues), [0, 1], 1.5, false, "valueRange", ["min", "max"]).valueRange, [heatmapValues])
     const labels = useMemo(() => { return labelNames.length > 0?_.map(data, d => _.join(_.map(labelNames, labelName => d[labelName])," | ")) : undefined}, [_.join(labelNames),data.length])
@@ -91,12 +91,15 @@ function Heatmap({
      * @description The colorScale for the individual clusters. 
      */
     const clusterColorScale = useMemo(() => {
+        
         if (uniqueClusterValues.length === 0) return () => "#fafafa"
+        
         return scaleOrdinal({
             domain: uniqueClusterValues,
             range : getColorPalette(uniqueClusterValues.length)
         })
-    })
+    }, [clusterName])
+
 
     //color that indicates extra values (plotted next to the value heatmap) 
     /**
@@ -163,6 +166,7 @@ function Heatmap({
                     var marginBetweenValuesAndColors = colorValuesExist ? binHeight : 0
                     var marginBetweenValuesAndLabels = colorValuesExist ? colorNames.length * binHeight + marginBetweenValuesAndColors : marginBetweenValuesAndColors 
                     var labelString = labelsExist ? labels[index] : undefined
+                    console.log(clusterColorScale(data[index]["cluster"]),data[index]["cluster"])
                     return (
                         <HeatmapRow {...{
                             key: `${index}-${rowNumber}-${labelString}`,
@@ -183,6 +187,7 @@ function Heatmap({
                             colorNames,
                             labelsExist,
                             labelString,
+                            clusterIndexColor : clusterColorScale(data[index]["cluster"]),
                             opacity : hoverIndices.size === 0 ? 1 : hoverIndices.has(index) ? 1 : 0.4,
                             handleMouseEnter: handleMouseEntersRow,
                             handleMouseLeave : handleMouseLeavesRow

@@ -12,6 +12,7 @@ import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
 import { EditDatasetAttributeDialog } from "./dialogs/DatasetAttributesDialog"
 import { RunlistCreatorDialog } from "./dialogs/RunlistDialog"
 import { ChangeSubmissionUserDialog } from "./dialogs/ChangeSubmissionUserDialog"
+import { EditMetatextDialog } from "./dialogs/EditMetatextDialog"
 
 
 
@@ -37,11 +38,14 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     const [changeOwnerDialog, setChangeOwnerDialog] = useState({
         isOpen: false,
         submission: {},
-        error : undefined,
-        isLoading: false,
-        success: false,
-        submitted : false
+        // error : undefined,
+        // isLoading: false,
+        // success: false,
+        // submitted : false
     })
+
+
+    const[metatextDialog, setMetatextDialog] = useState({isOpen : false, submission : {}})
 
     const [attributeSelectionDialog, setAttributeSelectionDialog] = useState({
         isOpen: false,
@@ -140,6 +144,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     
     return (
         <div className="no-scroll">
+            <EditMetatextDialog {...metatextDialog} {...{setMetatextDialog}} /> 
             <ChangeSubmissionUserDialog {...changeOwnerDialog} {...{setChangeOwnerDialog}} />
             <AttributeSelectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
                 onSubmit={handleStateChangeAttributeUpdate} />
@@ -182,7 +187,8 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                             setSubmissionQuery,
                             setAttributesDialog,
                             setRunlistDialog,
-                            setChangeOwnerDialog
+                            setChangeOwnerDialog,
+                            setMetatextDialog
                             }} /> : null}
             
         </div>

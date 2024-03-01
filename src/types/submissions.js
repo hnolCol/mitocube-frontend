@@ -29,6 +29,7 @@
  * @property {String} title - The title of the submission 
  * @property {Number} state - The state the submission is in. 
  * @property {String} user_label - The user_label which owns the submission. 
+ * @property {Object.<string,string>} metatext - Metatext added to the submission.
  * @property {string[]} collaborators - Array of user_labels that collaborate on this project with each other. Does not include the user_label
  * @property {Object.<string, import("./attributes").AttributeValue[] | import("./feature").Feature[]>} dataset_attributes - Object/Dict of attribute_tag - atributeValues_tags in an array 
  * @property {import("./attributes").SampleAttributes} samples_attributes - Sample attriutes which assing each sample to a group.

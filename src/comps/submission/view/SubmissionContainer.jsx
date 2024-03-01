@@ -163,7 +163,7 @@ export function StateHeader({stateName, stateColor}) {
 
 SubmissionContainer.propTypes = {
     states: PropTpyes.object.isRequired,
-    submissions: PropTpyes.arrayOf(PropTpyes.object).isRequired,
+    submissions: PropTpyes.arrayOf(PropTpyes.object),
     attributesByTag : PropTpyes.object.isRequired
 }
 
@@ -297,7 +297,7 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 }
 
 
-export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog}) {
+export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog, setMetatextDialog}) {
     
     const [searchString, setSearchString] = useState("")
     const debouncedString = useDebounce(searchString, 200)
@@ -383,7 +383,8 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
                                     attributeValuesByTag: attributesByTag.attribute_values,
                                     setAttributesDialog,
                                     setRunlistDialog,
-                                    setChangeOwnerDialog,
+                                        setChangeOwnerDialog,
+                                        setMetatextDialog,
                                     minimalView : submissionsQuery.minimalView
                                     
                                 }} borderColor={states.colors_inv[state]} />

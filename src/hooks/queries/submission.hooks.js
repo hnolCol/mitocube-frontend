@@ -166,9 +166,7 @@ export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions 
 
 
 
-// submission metatexts 
-
-
+// submission metatexts
 async function getSubmissionMetatexts_API({}) {
         
     const res = await axios.get('/api/submissions/metatext')
@@ -179,6 +177,16 @@ async function getSubmissionMetatexts_API({}) {
 export const useGetSubmissionMetatext = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["metatext_for_submission"], () => getSubmissionMetatexts_API({...APIParams}), useQueryOptions)
 }
+//update submission metatexts
+async function postSubmissionMetatext_API({ label, metatext }) {
+    const res = await axios.patch('/api/submissions/' + label + '/metatext',
+        metatext
+        )
+}
+export const usePatchSubmissionMetatext = (useMutationOptions = {}) => {
+    return useMutation((APIParams) => postSubmissionMetatext_API({...APIParams}), useMutationOptions)
+}
+
 
 
 

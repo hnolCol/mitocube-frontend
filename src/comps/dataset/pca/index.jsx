@@ -92,7 +92,7 @@ function ChartAxisSelection({ keyNames, selection, onSelectionChange, minimal })
  * @param {Boolean} props.minimal
  * @returns 
  */
-function ChartStringSearch({ keyNames, selection, onSelectionChange, handleStringSearch, minimal = true}) {
+function ChartStringSearch({ keyNames, idx, selection, onSelectionChange, handleStringSearch, minimal = true}) {
     const [searchString, setSearchString] = useState("")
     const debounceString = useDebounce(searchString, 200)
 
@@ -103,7 +103,7 @@ function ChartStringSearch({ keyNames, selection, onSelectionChange, handleStrin
         handleStringSearch(selection.filterNames,debounceString)
     }, [debounceString, _.join(selection.filterNames)])
 
-
+    console.log(selection.filterNames)
     return (
         <div className="flex center-items">
             <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")} />} />
@@ -197,6 +197,7 @@ export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKey
                 <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")}/>}/> :
                 null} */}
                 {_.isFunction(handleStringSearch) ? <ChartStringSearch
+                    idx = {idx}
                     keyNames={nonNumericKeyNames}
                     selection={selection}
                     onSelectionChange={onSelection}
@@ -228,7 +229,7 @@ function DatasetPCA({ }) {
     
     const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterNames : [] })
     
-    const sampleAttributeNames = _.isObject(metadata) && _.isObject(metadata.samples_attributes) ? _.values(metadata.samples_attributes).map(v => v.name) : []
+    const sampleAttributeNames = _.isObject(metadata) && _.isObject(metadata.samples_attributes) ? _.keys(metadata.samples_attributes).map(v => v) : []
     const numericKeyNames = _.isObject(pcaresults) ? _.filter(_.keys(pcaresults.drivers[0]), keyName => _.isNumber(pcaresults.drivers[0][keyName])) : []
     const nonNumericKeyNames = _.isObject(pcaresults) ? _.keys(pcaresults.drivers[0]).filter(keyName => !numericKeyNames.includes(keyName)) : []
     useEffect(() => {
@@ -248,7 +249,9 @@ function DatasetPCA({ }) {
        })
     }, [_.isObject(pcaresults)])
 
-
+    const handleScatterSelection = (idx, selectionKey, keyName) => {
+        setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
+    }
 
 
 
@@ -274,10 +277,11 @@ function DatasetPCA({ }) {
                         <div className="flex justify-space-around">
                             {isSuccess ? <div>
                                 <ScatterDataSelection keyNames={_.keys(pcaresults.projection[0])} {...{
-                                    title : "Projection",
+                                    title: "Projection",
+                                    idx : 0,
                                     numericKeyNames,
                                     selection,
-                                    setSelection,
+                                    setSelection : handleScatterSelection,
                                     downloadElements: ["scatter_plot-pca-projection",pcaresults.projection],
                                     elementNames: ["SVG","DIVIDER",`Projected Data (${pcaresults.projection.length} x ${_.keys(pcaresults.projection[0]).length})`],
                                     fileNames: [`${metadata.label}-PCA.svg`,`${metadata.label}-PCA-Projection.txt`],
@@ -372,13 +376,14 @@ function DatasetPCA({ }) {
                                 labelProps,
                                 findClosestPoint
                             }, didx) => {
-                                return (<div>
+                                return (<div key={`${didx}-driver-pca-${xaxisName}`}>
                                     <ScatterDataSelection keyNames={_.keys(pcaresults.drivers[0])}
                                         {...{
                                             title : "Drivers",
                                         numericKeyNames,
+                                        idx : 1,
                                         selection,
-                                        setSelection,
+                                        setSelection : handleScatterSelection,
                                         handleStringSearch,
                                         downloadElements: ["scatter_plot-pca-drivers", pcaresults.drivers],
                                         elementNames: ["SVG","DIVIDER",`Data (${pcaresults.drivers.length} x ${_.keys(pcaresults.drivers[0]).length})`],

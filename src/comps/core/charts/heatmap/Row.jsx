@@ -19,7 +19,7 @@ function RowLabel({ x, y, text, dx = 5, fontSize = 14, verticalAnchor = "middle"
     )
 }
 HeatmapRow.propTypes = {
-    data : PropTypes.array,
+    data : PropTypes.object.isRequired,
     size: PropTypes.number, // pixels, rectangle height and witdh
     index: PropTypes.number,
     colorScale: PropTypes.func,
@@ -52,7 +52,8 @@ function HeatmapRow({
     handleMouseEnter,
     handleMouseLeave,
     maxIdx,
-    minIdx
+    minIdx,
+    clusterIndexColor
     // index,
     // data,
     // size,
@@ -85,19 +86,20 @@ function HeatmapRow({
             onMouseLeave={_.isFunction(handleMouseLeave) ? handleMouseLeave : undefined}>
             {/* onMouseEnter = {focusView?() => handleHighlightedItems(rowData[nColumns]):undefined}> */}
         {/* Add cluster color rectangle */}
-            {/* <rect 
+            <Rect 
                 key = {`cluster-${index}`}
                 x = {0} 
-                y={index*size} 
-                width={size} 
-                height = {size} 
+                y={y} 
+                width={binHeight} 
+                opacity={opacity}
+                height = {binHeight} 
                 fill = {clusterIndexColor}
-                stroke={stroke}
-                strokeWidth={strokeWidth} /> */}
+                />
             
             {valueNames.map((valueName, valueIdx) =>
                 <Rect
-                    x={valueIdx * binHeight}
+                    key={`${valueName}-${valueIdx}`}
+                    x={(valueIdx+1) * binHeight + binHeight/4}
                     y={y}
                     opacity={opacity}
                     width={binHeight}

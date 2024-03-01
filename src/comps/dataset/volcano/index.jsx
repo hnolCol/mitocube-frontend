@@ -78,10 +78,12 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
     useEffect(() => {setIsFetching(false)},[isSuccess])
     
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
+
+    const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
     return (<div className="div--expand" style={{overflowY : "scroll"}}> 
         <InteractiveChart
                         data={volcanoData.data}
-                        extraLimitNames={[]} 
+                        extraLimitNames={extraLimits} 
             // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
             keyNames={
                 volcanoData.suffixes.map((suffix, idx) => {
@@ -90,7 +92,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                         yaxisName: volcanoData.selection[idx].yaxisName
                     }
                 })
-            }
+            } 
                     isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}>
                     {
                         /**

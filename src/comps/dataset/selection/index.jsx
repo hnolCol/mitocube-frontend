@@ -41,9 +41,6 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
         //attribute_tag : 
     })
     const usersByLabel = _.isArray(users) ? groupListByProperty(users, "label") : {}
-
-
-    console.log(submissionQuery)
     
     if (isError) return <APIError error={error}/>
     

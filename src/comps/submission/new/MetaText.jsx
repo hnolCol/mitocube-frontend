@@ -11,7 +11,7 @@ MetaText.propTypes = {
     metatextValues: PropTypes.object}
 
 
-function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0}){
+function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0, allowTextBelowState = false }){
     const {data : metatext, isLoading : metatextIsLoading} = useGetSubmissionMetatext()
     
     return (
@@ -19,10 +19,10 @@ function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0}){
             {metatextIsLoading ? <Loading /> : null}
             {_.isObject(metatext) ? metatext.titles.map((metatextTitle, index) => {
                 const metatextTag = metatext.tags[metatextTitle]
-                if (_.has(metatext,"allowed_for_state") && _.has(metatext.allowed_for_state,metatextTag) && metatext.allowed_for_state[metatextTag] !== allowTextForState) return null 
+                if (_.has(metatext,"allowed_for_state") && _.has(metatext.allowed_for_state,metatextTag) && (allowTextBelowState ? metatext.allowed_for_state[metatextTag] > allowTextForState : metatext.allowed_for_state[metatextTag] !== allowTextForState)) return null 
                     return<TextFieldInput
                         key = {`${ metatextTag}-${index}`}
-                        value={_.isString(metatextValues[ metatextTag])?metatextValues[metatextTag]:""}
+                        value={_.isObject(metatextValues)?_.isString(metatextValues[ metatextTag])?metatextValues[metatextTag]:"":""}
                         placeholder={metatext.placeholders[ metatextTag]}
                         minLength={metatext["min_text_length"][ metatextTag]}
                         isRequired={metatext["required"][ metatextTag]}
