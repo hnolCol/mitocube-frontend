@@ -128,8 +128,8 @@ export function ScatterPlot({
         // y scale for the scatter
     
         const yDomain = limits[yaxisName]
+        
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
-
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],

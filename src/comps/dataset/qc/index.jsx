@@ -46,11 +46,7 @@ function DatasetQC() {
     
     return (
         <div className="div--expand padding--medium" style={{ overflowY: "scroll"}}>
-            <h2>Quality Control</h2>
-            <DatasetAttributeHierarchy {...{
-                selectedDasetAttributeValues: datasetAttributeValues,
-                selectedAttributes: dataAttributes
-                }} />
+            
             <h2>Basic metrices</h2>
             
             {/* <CategoricalBoxplot/> */}
@@ -82,6 +78,11 @@ function DatasetQC() {
                 )
             })}
             </div>
+            <h2>Quality Control</h2>
+            <DatasetAttributeHierarchy {...{
+                selectedDasetAttributeValues: datasetAttributeValues,
+                selectedAttributes: dataAttributes
+                }} />
             {/* <CategoricalBoxplot data={datatable.poi_data[0]} colorName={"Treatment"} yaxisName="value" splitName={"Gene Knock-down"}/> */}
         </div>
     )

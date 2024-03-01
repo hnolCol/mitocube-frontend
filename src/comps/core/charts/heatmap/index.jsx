@@ -47,7 +47,7 @@ function Heatmap({
     setHoverDataByDataIndex,
     minMax = [-6,6]
 }) {
-    console.log(data)
+    
     //updates only on datalength. can be dangerous
     const [scrollPos, setScrollPos] = useState(0)
     //const debouncedScrollPos = useDebounce(scrollPos,20)
@@ -162,11 +162,11 @@ function Heatmap({
                    // if (searchIndices.size > 0 && !searchIndices.has(rowNumber)) return null 
                     var rowValues = heatmapValues[index]
                     var y = rowNumber * binHeight
-                    var xValuesEnd = rowValues.length * binHeight
+                    var xValuesEnd = rowValues.length * binHeight + 1 //+1 for cluster label
                     var marginBetweenValuesAndColors = colorValuesExist ? binHeight : 0
                     var marginBetweenValuesAndLabels = colorValuesExist ? colorNames.length * binHeight + marginBetweenValuesAndColors : marginBetweenValuesAndColors 
                     var labelString = labelsExist ? labels[index] : undefined
-                    console.log(clusterColorScale(data[index]["cluster"]),data[index]["cluster"])
+                    //console.log(clusterColorScale(data[index]["cluster"]),data[index]["cluster"])
                     return (
                         <HeatmapRow {...{
                             key: `${index}-${rowNumber}-${labelString}`,

@@ -103,7 +103,6 @@ function ChartStringSearch({ keyNames, idx, selection, onSelectionChange, handle
         handleStringSearch(selection.filterNames,debounceString)
     }, [debounceString, _.join(selection.filterNames)])
 
-    console.log(selection.filterNames)
     return (
         <div className="flex center-items">
             <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")} />} />
@@ -135,13 +134,13 @@ function ChartStringSearch({ keyNames, idx, selection, onSelectionChange, handle
  * @returns 
  */
 function DownloadData({ elements = [], elementNames = [], elementTypes = [], fileNames = [] }) {
-
     const handleDownload = (elementName) => {
-        const idx = elementNames.indexOf(elementName)
+        const idx = elementNames.filter(name => name !== "DIVIDER").indexOf(elementName)
         if (elementTypes[idx] === "svg") {
             downloadSVG(document.getElementById(elements[idx]), fileNames[idx])
         }
         else if (elementTypes[idx] === "data") {
+
             if (_.isArray(elements[idx]) && _.isObject(elements[idx][0])) {
                 const txtData = arrayOfObjectsToString({ data: elements[idx], keyNames : _.keys(elements[idx][0]) })
                 downloadTxtFile(txtData,fileNames[idx])
@@ -282,7 +281,7 @@ function DatasetPCA({ }) {
                                     numericKeyNames,
                                     selection,
                                     setSelection : handleScatterSelection,
-                                    downloadElements: ["scatter_plot-pca-projection",pcaresults.projection],
+                                    downloadElements: ["scatter_plot-pca-projection", pcaresults.projection],
                                     elementNames: ["SVG","DIVIDER",`Projected Data (${pcaresults.projection.length} x ${_.keys(pcaresults.projection[0]).length})`],
                                     fileNames: [`${metadata.label}-PCA.svg`,`${metadata.label}-PCA-Projection.txt`],
                                     elementTypes: ["svg","data"]

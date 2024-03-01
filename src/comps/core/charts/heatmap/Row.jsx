@@ -119,7 +119,7 @@ function HeatmapRow({
                     : null}
                         {labelsExist ?
                             <RowLabel
-                                x={xValuesEnd + marginBetweenValuesAndLabels}
+                                x={xValuesEnd + binHeight/4 + marginBetweenValuesAndLabels}
                                 fontSize={binHeight*0.80}
                                 y={y + binHeight / 2} text={labelString} /> : null}
                     </g>

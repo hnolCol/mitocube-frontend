@@ -43,7 +43,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                 ...prevValues, data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
                 testParams: _.concat(prevValues.testParams, selectedTestParams),
-                selection : _.concat(prevValues.selection,{ xaxisName: `log2 FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, filterNames : [] })
+                selection : _.concat(prevValues.selection,{ xaxisName: `log2 FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `Significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, filterNames : [] })
             }
         })
     }
@@ -214,21 +214,7 @@ function DatasetVolcanoPlot(logout) {
     // groupItems = { "Treatment": ["A", "B","WT"], "Time": ["A1", "B1"] },
     // groupingNames = ["Treatment", "Time"],
 
-    function handleSuccess(){
-        setSelection(prevValues => {
-            //TO DO: Modify
-            return {
-                ...prevValues,
-                xaxisName: "log2 FC",
-                yaxisName: "-log10 p-value",
-                colorName: "significant",
-                tooltipNames: ["genes"]
-            }
-        })
-    }
-
     const handleVolcano = (props) => {
-        console.log(props)
         const params = {
             attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
             attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
