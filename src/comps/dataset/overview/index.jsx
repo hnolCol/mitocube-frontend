@@ -18,6 +18,8 @@ import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../
 import DatasetAttributeHierarchy, { AttributeFeatureTag } from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
 import { getAttributeForUserNumericInput } from "../../../services/attributes";
 import { getUserFullName } from "../../../services/format/user";
+import { GenotypeCard } from "../../admin/genotypes/Genotypes";
+import genotypes from "../../../types/genotypes";
 
 function MetatextBox({ metatextTag, metadata, metatext }) {
     
@@ -215,15 +217,17 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
             </div>
             <div className="flex flex--wrap">
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "50vh", overflowY:"scroll"}}>
-                    <h2>Genotypes</h2>
-                    <p>To be added...</p>
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "min(50vh,500px)", overflowY:"scroll"}}>
+                    <h2>Genotypes ({_.keys(metadata.genotypes).length})</h2>
+                    <div className="flex flex-column div--expand padding--little">
+                        {_.keys(metadata.genotypes).map(genotypeLabel => <GenotypeCard {...{ justDisplay : true, genotype : metadata.genotypes[genotypeLabel], fill : true }} />)}
+                    </div>
             </div>
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "50vh", overflowY:"scroll"}}>
+                {!_.isEmpty(metadata.samples_attributes) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h2>Sample Attributes</h2>
-                    <SamplesAttributes {...{metadata}} />
-            </div>
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "50vh", overflowY:"scroll"}}>
+                    <SamplesAttributes {...{ metadata }} />
+                </div> : null}
+            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "min(50vh,500px)", overflowY:"scroll"}}>
                     <h2>Dataset Attributes</h2>
                 <DatasetAttributeHierarchy {...{
                     selectedDasetAttributeValues: datasetAttributeValues,

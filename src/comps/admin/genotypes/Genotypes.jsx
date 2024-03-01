@@ -11,21 +11,20 @@ import { useGetSubmissionAttributesByTag } from "../../../hooks/queries/submissi
  * @param {import("../../../types/genotypes").GenotypeResponse} props.genotype
  * @returns 
  */
-function GenotypeCard({ genotype, refetchGenotypes }) {
+export function GenotypeCard({ genotype, refetchGenotypes, justDisplay = false, fill = false }) {
     const { data: attributesByTag, isFetched } = useGetSubmissionAttributesByTag()
     const {mutate, isLoading, isSuccess} = useDeleteGenotype()
-
     if (!isFetched) return null 
-    return (<Card compact={true} interactive={true} className="margin--little" style={{ padding: "0.4rem", width : "min(350px,80vw)" }}>
+    return (<Card compact={true} interactive={true} className="margin--little" style={{ padding: "0.4rem", width : fill ? undefined:"min(350px,80vw)" }}>
         <div className="div--expand bg--grey padding--medium">
             <div className="flex center-items justify-space-between"><h4>{genotype.text}</h4>
-                <Button
-                icon="trash"
-                small={true}
-                minimal={true}
-                intent="danger"
-                onClick={() => mutate({ genotype_label: genotype.label }, { onSuccess: () => refetchGenotypes() })}
-                loading={isLoading} />
+                {!justDisplay ? <Button
+                    icon="trash"
+                    small={true}
+                    minimal={true}
+                    intent="danger"
+                    onClick={() => mutate({ genotype_label: genotype.label }, { onSuccess: () => refetchGenotypes() })}
+                    loading={isLoading} /> : null}
             </div>
         <Divider />
         <div className="flex">

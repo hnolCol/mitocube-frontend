@@ -103,7 +103,8 @@ export function ScatterPlot({
     attributesByTag = {},
     suffix = "",
     indicateDataSize = true,
-    legendWithAttributes = true
+    legendWithAttributes = true,
+    genotypesByLabel = {}
 }) {
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
@@ -128,7 +129,6 @@ export function ScatterPlot({
         // y scale for the scatter
     
         const yDomain = limits[yaxisName]
-        
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
         return scaleLinear(
             {
@@ -302,8 +302,13 @@ export function ScatterPlot({
                                 <div className="flex flex-column bg--lightgrey padding--medium margin--little" style={{ borderLeft: "3px solid " + colorScale(v[colorName]) }}>
                                     {
                                         tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`} className="margin--tiny">
-                                            {mapAttributeValueTagsToAttributes({ attrValuesByTag: attributesByTag.attribute_values, attrValueTag: v[tooltipName] }).asString}
+                                            
+                                            {tooltipName.startsWith("att_") && _.has(attributesByTag, tooltipName) ?
+                                                tooltipName !== "att_genotype" && _.has(attributeValuesByTag, v[tooltipName]) ?
+                                                    attributeValuesByTag[v[tooltipName]].text : tooltipName === "att_genotype" ? _.has(genotypesByLabel,v[tooltipName]) ? genotypesByLabel[v[tooltipName]].text : null : null : v[tooltipName]}
+                                            
                                         </div>)
+                                        
                                             
                                     }
                                 </div>}
@@ -325,7 +330,8 @@ export function ScatterPlot({
                     sizeLimit: limits[sizeName],
                     colorLimit: limits[colorName],
                     attributesByTag,
-                    attributeValuesByTag
+                    attributeValuesByTag,
+                    genotypesByLabel
                 }} /> : <TextScatterLegend
                     {...{
                         chartIdx,

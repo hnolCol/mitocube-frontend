@@ -51,12 +51,9 @@ function TextSelection({ keyNames, selection, onSelectionChange, minimal }) {
                 minimal={minimal}
                 selectedItems={_.map(selection.tooltipNames, text => {return {text}})}
                 placeholder={_.isArray(selection.tooltipNames) ? selection.tooltipNames.length === 1?selection.tooltipNames[0]:`${selection.tooltipNames.length} items`: "..."}
-                callbackKey="tooltipNames" callback={(key, item) => onSelectionChange(prevValues =>
-                {
-                    return {
-                        ...prevValues, [key]: addItemToArrayOrRemoveItIfPresent({ array: prevValues.tooltipNames, item})
-                    }
-                })} />
+                callbackKey="tooltipNames"
+                callback={(key, value) => onSelectionChange(key, addItemToArrayOrRemoveItIfPresent({ array: selection.tooltipNames, item : value }))}
+                />
         </div>
     )
 }
@@ -224,19 +221,22 @@ function DatasetPCA({ }) {
     const { dataset_label, metadata, setTabHeader } = useOutletContext()   
 
     const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ dataset_label })
-    const { data: attributesByTag, isLoading: attrByTagIsLoading, isFetching: attrByTagIsFetching, isSuccess: attrByTagIsSuccess } = useGetSubmissionAttributesByTag()
+    // const { data: attributesByTag, isLoading: attrByTagIsLoading, isFetching: attrByTagIsFetching, isSuccess: attrByTagIsSuccess } = useGetSubmissionAttributesByTag()
     
     const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterNames : [] })
-    
-    const sampleAttributeNames = _.isObject(metadata) && _.isObject(metadata.samples_attributes) ? _.keys(metadata.samples_attributes).map(v => v) : []
+    const metaDataFound = _.isObject(metadata) && !_.isEmpty(metadata)
+    const sampleAttributeNames = metaDataFound && _.isObject(metadata.samples_attributes) ? _.keys(metadata.samples_attributes).map(v => v) : []
+    const hasGenotypes = metaDataFound ? !_.isEmpty(metadata.genotypes) : false 
     const numericKeyNames = _.isObject(pcaresults) ? _.filter(_.keys(pcaresults.drivers[0]), keyName => _.isNumber(pcaresults.drivers[0][keyName])) : []
     const nonNumericKeyNames = _.isObject(pcaresults) ? _.keys(pcaresults.drivers[0]).filter(keyName => !numericKeyNames.includes(keyName)) : []
+    const numericKeyNamesProjection = _.isObject(pcaresults) ? _.filter(_.keys(pcaresults.projection[0]), keyName => _.isNumber(pcaresults.projection[0][keyName])) : []
+    
     useEffect(() => {
 
-        if (_.isObject(metadata) && _.has(metadata, "title")) {
+        if (metaDataFound && _.has(metadata, "title")) {
             setTabHeader(metadata.title)
         }
-    }, [_.isObject(metadata)])
+    }, [metaDataFound])
 
     useEffect(() => {
         if (!_.isObject(pcaresults)) return 
@@ -259,7 +259,7 @@ function DatasetPCA({ }) {
         <div className="div--expand" style={{ overflowY: "scroll", height: "80vh " }}>
             <h2>Principal Component Analysis</h2>
             <p>Please select the desired components showing the projection (left) as well the drivers (right). Selecting a point in the right point displays the feature's profile in the bottom.</p>
-            {isLoading || isFetching ||  attrByTagIsLoading || attrByTagIsFetching ? <Loading /> : isError ? <APIError error={error} /> : isSuccess && attrByTagIsSuccess? 
+            {isLoading || isFetching  ? <Loading /> : isError ? <APIError error={error} /> : isSuccess ? 
                 <div>
                     <p>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained)*10000)/100}% of the total variance.</p>
                     <div>
@@ -288,7 +288,8 @@ function DatasetPCA({ }) {
                                 }} />
                                
                                 <InteractiveChart
-                                    data={pcaresults.projection} extraLimitNames={[selection.colorName, selection.sizeName].filter(keyName => _.isString(keyName))}
+                                    data={pcaresults.projection}
+                                    extraLimitNames={[selection.colorName, selection.sizeName].filter(keyName => _.isString(keyName) && numericKeyNamesProjection.includes(keyName))}
                                     keyNames={[
                                     {
                                         xaxisName: selection.xaxisName,
@@ -335,11 +336,12 @@ function DatasetPCA({ }) {
                                         yaxisName,
                                         limits,
                                         tooltipSmall : false,
-                                        tooltipNames : _.concat(["index"],sampleAttributeNames),
+                                        tooltipNames : hasGenotypes? _.concat(["index"],"att_genotype",sampleAttributeNames): _.concat(["index"],sampleAttributeNames),
                                         ...hoverProps,
                                         ...filterProps,
                                         attributeValuesByTag: metadata.attribute_values_by_tag,
-                                        attributesByTag : metadata.attributes,
+                                            attributesByTag: metadata.attributes,
+                                        genotypesByLabel : metadata.genotypes,
                                         legend: true,
                                             handleSearchByDataIndex,
                                             filterDataInKeyByValue,

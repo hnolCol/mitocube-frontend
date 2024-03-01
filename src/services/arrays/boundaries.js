@@ -89,7 +89,6 @@ export function addMarginToBoundaries({ domain = { min: 1, max: 2 }, frac = 0.1 
     //adds some margin to a domain which can be used for plotting.
     var m = Math.sqrt(Math.pow(domain.max-domain.min, 2)) * frac
     if (m === 0) m += 1 // add 1 if boundary is zero. 
-    console.log(m)
     return (
         {
             min: domain.min - m,

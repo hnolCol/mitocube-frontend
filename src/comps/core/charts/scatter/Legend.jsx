@@ -43,7 +43,8 @@ const ScatterLegend = React.memo(
         colorLimit = {},
         sizeLimit = {},
         attributeValuesByTag = {},
-        attributesByTag = {} }) {
+        attributesByTag = {},
+        genotypesByLabel = {}}) {
     
         const {
         tooltipData,
@@ -52,11 +53,14 @@ const ScatterLegend = React.memo(
         tooltipOpen,
         showTooltip,
         hideTooltip,
-    
     } = useTooltip();
 
-    const findAttributeValues = (attributeValueTagsString) => {
+    const findAttributeValues = (attribute, attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
+        if (attribute.tag === "att_genotype") {
+            const genotypeLabels = _.split(attributeValueTagsString, " ")
+            return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
+        }
         const attributeValueTags = _.split(attributeValueTagsString, " ")
         return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
     }
@@ -104,8 +108,8 @@ const ScatterLegend = React.memo(
     } 
     const colorAttribute = _.isString(colorName) && _.has(attributesByTag,colorName) ? attributesByTag[colorName] : ""
     const sizeAttribute = _.isString(sizeName) && _.has(attributesByTag, sizeName) ? attributesByTag[sizeName] : ""
-     
-    return (
+
+        return (
         <div>
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data[0][colorName]) ? 
@@ -114,7 +118,7 @@ const ScatterLegend = React.memo(
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
-                                const attributeValues = findAttributeValues(label.text)
+                                const attributeValues = findAttributeValues(colorAttribute,label.text)
                                 if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
                                 
@@ -145,7 +149,7 @@ const ScatterLegend = React.memo(
                         <h4>{sizeAttribute.text}</h4>
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
-                                const attributeValues = findAttributeValues(label.text)
+                                const attributeValues = findAttributeValues(sizeAttribute,label.text)
                                 if (attributeValues.length === 0) return null 
                                 const labelString = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
                                 if (idx > 25) return null 
