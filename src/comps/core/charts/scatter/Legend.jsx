@@ -66,14 +66,18 @@ const ScatterLegend = React.memo(
     }
     
 
-        const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
+    const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
         let attributeValueText = ""
-        if (attribute.has_features_value) {
+        if (attribute.tag === "att_genotype") {
+            attributeValueText = _.join(_.map(attributeValues, attrValues => attrValues.text), " ")
+        }
+        else if (attribute.has_features_value) {
             attributeValueText = attributeValues.length === 1 ? attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
         }
         else {
             attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
         }
+        console.log(attributeValueText)
         return attributeValueText
     }
 

@@ -37,7 +37,9 @@ const CategoricalLegend = React.memo(
         resetSearchIdcs,
         size = 25,
         attributesByTag,
-        attributeValuesByTag}) {
+        attributeValuesByTag,
+        genotypesByLabel
+        }) {
 
         const {
         tooltipData,
@@ -49,17 +51,31 @@ const CategoricalLegend = React.memo(
     
     } = useTooltip();
 
-    const findAttributeValues = (attributeValueTagsString) => {
+    const findAttributeValues = (attribute, attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
+        if (attribute.tag === "att_genotype") {
+            const genotypeLabels = _.split(attributeValueTagsString, " ")
+            return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
+        }
         const attributeValueTags = _.split(attributeValueTagsString, " ")
-        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag])
+        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
     }
     
 
-        const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
-     
-        if (attribute.has_features_value) return attributeValues.length === 1?attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
-        return attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
+    const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
+        let attributeValueText = ""
+        if (attribute.tag === "att_genotype") {
+
+            attributeValueText = "gene"
+        }
+        else if (attribute.has_features_value) {
+            attributeValueText = attributeValues.length === 1 ? attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
+        }
+        else {
+            attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
+        }
+        console.log(attributeValueText)
+        return attributeValueText
     }
 
     /**

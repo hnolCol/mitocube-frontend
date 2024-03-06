@@ -211,7 +211,8 @@ function CategoricalBarplot({
                     minMaxYDomain,
                     svgRef: containerRef,
                     attributesByTag,
-                    attributeValuesByTag
+                    attributeValuesByTag,
+                    genotypesByLabel
                 }}>
             {(categoricalData) => categoricalData.map((
                 {

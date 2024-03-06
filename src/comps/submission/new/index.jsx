@@ -24,10 +24,5 @@ function NewSubmission({}
     )
     }
 
-NewSubmission.propTypes  = {
-    authStatus: PropTypes.object.isRequired,
-    
-}
-
 
 export default NewSubmission

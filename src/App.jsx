@@ -47,6 +47,7 @@ import axios from "axios";
 import AddExistingSubmission from "./comps/submission/add";
 import Runlist from "./comps/dataset/runlist";
 import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
+import { MitomapNetwork } from "./comps/dataset/mitomap";
 
 //axios defaults
 
@@ -193,7 +194,7 @@ function App() {
             <Route path="/datasets/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
             <Route path="/datasets/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
             <Route path="/datasets/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
-            <Route path="/datasets/:dataID/mitomap" element={<h3>MitoMap</h3>} />
+            <Route path="/datasets/:dataID/mitomap" element={<MitomapNetwork />} />
             <Route path="/datasets/:dataID/timeline" element={<Timeline {...{ authenticationStatus, logout }} />} />
             <Route path="/datasets/:dataID/runlist" element={<Runlist />} />
             <Route path="/datasets/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>

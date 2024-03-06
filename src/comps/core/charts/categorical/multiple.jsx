@@ -72,6 +72,7 @@ function MultiCategoricalChart({
     yScaleStartsAtZero = true,
     attributesByTag = {},
     attributeValuesByTag = {},
+    genotypesByLabel = {},
     children
 }) {
     
@@ -212,7 +213,9 @@ function MultiCategoricalChart({
                 colorName,
                 colorScale,
                 attributesByTag,
-                attributeValuesByTag}} /> : null }</div>
+                attributeValuesByTag,
+                genotypesByLabel
+            }} /> : null}</div>
             
             </div>
        

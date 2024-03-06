@@ -49,6 +49,9 @@ function ScatterPoints({
     fill = "#efefef",
     stroke = "#000000", 
     strokeWidth = 0.5, 
+    checkColorMap = false,
+    colorMap = { "pathway": "#79c29e" },
+    colorMapKeyName = "node_type",
     rerenderDependency = [], 
     searchIndices = new Set() ,
     filterIndices =  new Set()}){
@@ -75,6 +78,7 @@ function ScatterPoints({
                 const inSearchIdc = opacityBySearch && searchIndices.has(idx)
                 if (inSearchIdc) return null 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
+                checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? console.log(colorMap[d[colorMapKeyName]]) : null 
                 return <circle 
                     //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
                     key={`${idx}-sc-p`}
@@ -84,7 +88,7 @@ function ScatterPoints({
                     fillOpacity={opacity}
                     strokeOpacity={opacity}
                     {...{
-                        fill : colorScaleDefined ? colorScale(d[colorName]) : fill,
+                        fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined ? colorScale(d[colorName]) : fill,
                         stroke,
                         strokeWidth}}/>
             })}
@@ -101,7 +105,7 @@ function ScatterPoints({
                         fillOpacity={1.0}
                         strokeOpacity={1.0}
                         {...{
-                            fill : colorScaleDefined ? colorScale(d[colorName]) : fill,
+                            fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined ? colorScale(d[colorName]) : fill,
                             stroke,
                             strokeWidth}}/>
                 }):null}

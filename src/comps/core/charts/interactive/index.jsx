@@ -24,7 +24,7 @@ let dataTest = _.range(2000).map(idx => {return {x : Math.random() * 1000, y : M
  * @param {Object} param0 
  * @returns {Array.<import("../../../../types/charts").InteractiveChartResponse>} Returns the interactive response including function to identify points below the mouse using KDBush. 
  */
-function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "idx", yaxisName  : ["x","y"]}], isPointChart = [true,false], extraLimitNames = [], children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
+function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisName  : "y"},{xaxisName : "idx", yaxisName  : ["x","y"]}], isPointChart = [true,false], extraLimitNames = [],dataName = "",  children}){ //,{xaxisName : "y", yaxisName  : "x"},,{xaxisName : "y", yaxisName  : "x"},{xaxisName : "y", yaxisName  : "x"}
 
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1})
     //const [selectedItems, setSelectedItems]  = useState()
@@ -38,7 +38,7 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
         return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {
             return([chartIdx, _.map(isNumber, d => isPointChart[chartIdx] ? d[xaxisName] && d[yaxisName ] : _.every(yaxisName, yName => d[yName]))])
         }))
-    },[_.join(keyNamesFlatten)])
+    },[_.join(keyNamesFlatten),dataName,data.length])
 
     const searchTrees = useMemo(() => {
         //create search trees for fast point finding in the array
@@ -52,12 +52,12 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
             index.finish()
             return [chartIdx, {tree : index, xaxisName, yaxisName , limits, data_index}]
         }))
-    },[_.join(keyNamesFlatten),numberCharts])
+    },[_.join(keyNamesFlatten),numberCharts,dataName,data.length])
 
 
     useEffect(() => {
         setRerender(prevValues => { return {...prevValues, rerender: [Math.random()]}})
-    },[_.join(keyNamesFlatten),numberCharts])
+    },[_.join(keyNamesFlatten),numberCharts,_.join(extraLimitNames),dataName])
 
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         // finds the index in a rectangle
