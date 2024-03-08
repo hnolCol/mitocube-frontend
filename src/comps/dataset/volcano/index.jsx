@@ -22,7 +22,7 @@ function VolcanoPlot({dataset_label}) {
 function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIsFetching }) {
     const [volcanoData, setVolcanoData] = useState({data : [], testParams : [], selection : [], suffixes : []})
     //console.log(selectedTestParams,volcanoData.testParams)
-
+    console.log(metadata)
     const handleSuccess = (data) => {
         //merge data to get super fast split
        

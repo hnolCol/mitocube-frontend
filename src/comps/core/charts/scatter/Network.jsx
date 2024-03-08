@@ -135,7 +135,6 @@ export function Network({
     
         const yDomain = limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain, frac: 0 })
-        console.log(yDomain)
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],

@@ -78,7 +78,6 @@ function ScatterPoints({
                 const inSearchIdc = opacityBySearch && searchIndices.has(idx)
                 if (inSearchIdc) return null 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
-                checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? console.log(colorMap[d[colorMapKeyName]]) : null 
                 return <circle 
                     //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
                     key={`${idx}-sc-p`}

@@ -58,7 +58,8 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
         const detectedControl = undefined //findControl({groupNames : itemsForSelection})
        // const autoSelectControl = itemsForSelection.length > 1 && detectedControl !== undefined
         //console.log(attributes, withinGroupings, itemsForSelection)
-        
+        console.log(withinGroupings,withinGroupings[0])
+        console.log(groupAttributeValues[withinGroupings[0].tag])
         setGrouping(prevValues => {
             return {
                 ...prevValues,
@@ -69,7 +70,11 @@ export function SamplesAttributesSelection({attributes, groupAttributeValues = {
                 withinGroupings: _.concat([{ text: "None", tag: "none" }], withinGroupings),
                 withinGrouping: {text: "None", tag: "none" },
                 withinItems: withinGroupings[0] !== undefined ? groupAttributeValues[withinGroupings[0].tag] : [],
-                withinGroup: withinGroupings[0] !== undefined ? _.has(groupAttributeValues[withinGroupings[0].tag][0],"label") ? groupAttributeValues[withinGroupings[0].tag][0].labelattribute.loc[within_sample_attribute_tag,"has_numeric_value"]: groupAttributeValues[withinGroupings[0].tag][0].tag : { name: "None", tag: "none" }
+                withinGroup: withinGroupings[0] !== undefined ?
+                    _.has(groupAttributeValues[withinGroupings[0].tag][0], "label") ?
+                        groupAttributeValues[withinGroupings[0].tag][0].label :
+                        groupAttributeValues[withinGroupings[0].tag][0].tag :
+                    { name: "None", tag: "none" }
             }
         })
    

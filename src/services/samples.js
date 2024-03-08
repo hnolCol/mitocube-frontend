@@ -16,7 +16,6 @@ export function constructSampleNames(submission_label, sampleNumber, sampleAttri
             ), "_")
         }).filter(v => v !== ""), "_")
 
-
         let sampleName = `${date}_${submission_label}_${sampleNumber}_${sampleGenotypeString}_${sampleAttributeString}`.replaceAll(" ", "").replaceAll("__", "_")
   
         if (sampleName.endsWith("_"))
