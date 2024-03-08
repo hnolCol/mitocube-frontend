@@ -1,4 +1,4 @@
-import { Alert, Button, Callout, Dialog, DialogFooter, Spinner } from "@blueprintjs/core";
+import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Spinner } from "@blueprintjs/core";
 import { useEffect, useMemo, useState } from "react";
 import { mapAttributeTagsToAttributes } from "../../../../services/attributes";
 import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks";
@@ -136,7 +136,8 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
         <Dialog style={{ minWidth: "min(80vw,900px)", height: "80vh" }} {...{ isOpen }} title="Edit Dataset Attributes" onClose={onClose}>
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
-            {submitted ? null : isLoading ? <Spinner />: <div className="flex flex-column padding--medium justify-space-between">
+            {submitted ? null : isLoading ? <Spinner />: <DialogBody><div className="flex flex-column padding--medium justify-space-between">
+                
                 <div>
                     <p>Alter the dataset attributes and submit changes for project <strong>{submission.title}</strong> ({submission.label})</p>
                     <div class="margin--medium">
@@ -162,13 +163,13 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
                             warnAtTwoAttrValues={false} />
                     </div>
                 </div>
-            </div>}
-            <div style={{ height: "70vh" }}>
+            </div></DialogBody>}
+            <DialogBody>
                     {submitted ? success ? <p>Success</p> : <APIError error={error} /> : isLoading ? <p>Updating submission ...</p> : null}
-                </div>
+            </DialogBody>
             <DialogFooter actions={<div>
                 <Button text="Submit" onClick={handleSubmit} disabled={isLoading || success || submitted} />
-                <Button text="Cancel" onClick={() => onClose()} intent="danger" disabled={isLoading} />
+                <Button text={submitted ? "Done" : "Cancel"} onClick={() => onClose()} intent={submitted ? "danger" : "primary"} disabled={isLoading} />
             </div>} />
         </Dialog>
     )

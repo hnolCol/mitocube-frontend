@@ -98,7 +98,7 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             return {
                 ...prevValues,
                // attributeTable,
-                sampleNames: constructSampleNames(submission.label, samplesAttributesProps.n_samples, attributeTable),
+                sampleNames: constructSampleNames(prevValues.label, samplesAttributesProps.n_samples, attributeTable, prevValues.genotypeAttributes),
                 rerenderTableDependency: [Math.random()]
             }
         })

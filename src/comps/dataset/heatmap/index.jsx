@@ -21,7 +21,7 @@ function DatasetHeatmap({}) {
      if (isError) return <APIError error={error} />
      if (isLoading || isFetching) return <div>Loading...</div>
      
- 
+    
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
@@ -64,11 +64,12 @@ function DatasetHeatmap({}) {
                     return (
                         <div>
                             <InputGroup onValueChange={(value, e) => handleStringSearch(heatmapData.label_names, value)} />
-                            <div className="flex" style={{display:"grid", gridTemplateColumns : "1fr 3fr", gridTemplateRows: "1fr"}}>
+                            <div className="flex" style={{display:"grid", gridTemplateColumns : "500px 1fr", gridTemplateRows: "1fr"}}>
                             <div style={{overflowY:"scroll", gridColumn:1,gridRow:1, height:"1fr"}}>
                             <MultiProfiles {...{
                                 chartIdx, data,
-                                subsetIndices : heatmapData.cluster_indices,
+                                subsetIndices: heatmapData.cluster_indices,
+                                colorName : "cluster",
                                 yaxisLabel: "Z-Score",
                                 xaxisLabel: "Samples",
                                 ...hoverProps, ...filterProps,

@@ -48,7 +48,7 @@ function CategoricalBarplot({
         left: 45,
         right: 0,
         bottom: 35,
-        top: 5
+        top: 8
     },
     yaxisName = "y",
     colorName,
@@ -157,9 +157,9 @@ function CategoricalBarplot({
                                 {/* x axis label */}
                                 <Text
                                     x={margins.left + chartWidth / 2}
-                                    y={margins.top + chartHeight + 20}
+                                    y={margins.top + chartHeight + 25}
                                     verticalAnchor="start"
-                                    textAnchor="middle">{colorName}
+                                    textAnchor="middle">{_.has(attributesByTag,colorName)?attributesByTag[colorName].text : colorName}
                                 </Text>
                                 
                                 {colorCategories.map(colorCategory => {
@@ -267,11 +267,11 @@ function CategoricalBarplot({
                                 </Text>
                               </g> : null}
                           
-                          {didx === 0 ? <Text
+                              {didx === 0 ? <Text
                               x={margins.left + chartWidth / 2}
-                              y={margins.top + chartHeight + 20}
+                              y={margins.top + chartHeight + 25}
                               verticalAnchor="start"
-                              textAnchor="middle">{splitName}</Text> : null}
+                              textAnchor="middle">{_.has(attributesByTag,splitName)?attributesByTag[splitName].text : splitName}</Text> : null}
                         
                           
                         {/* {If there is not split but a subplot} */}

@@ -85,7 +85,7 @@ export function Network({
     resetSearchIdcs,
     setHoverDataInRectangle,
     centerXAxisAtZero = false,
-    defaultRadius = 4,
+    defaultRadius = 5,
     rerenderHover,
     hoverPosition,
     hoverChart,
@@ -112,9 +112,9 @@ export function Network({
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
-    const linkMaps = _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc)]))
-    _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => hoverIndices.add(linkIdc[1])))
-   
+    const linkMaps = _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)]))
+    _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx))))
+    const hoverIndcsArray = Array.from(hoverIndices)
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.007
@@ -134,7 +134,8 @@ export function Network({
         // y scale for the scatter
     
         const yDomain = limits[yaxisName]
-        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
+        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain, frac: 0 })
+        console.log(yDomain)
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],
@@ -142,13 +143,13 @@ export function Network({
                 nice: true
             }
         )
-    }, [yaxisName, chartHeight])
+    }, [yaxisName, chartHeight, svgID])
 
 
     const xScale = useMemo(() => {
         // y scale for the scatter
         const xDomain = limits[xaxisName]
-        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
+        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain, frac : 0 })
         const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
         
         return scaleLinear(
@@ -158,7 +159,7 @@ export function Network({
                 nice: true
             }
         )
-    }, [xaxisName, chartWidth])
+    }, [xaxisName, chartWidth,svgID])
 
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
@@ -186,7 +187,7 @@ export function Network({
             })
         }
         
-    }, [colorName])
+    }, [colorName,svgID])
 
     const sizeScale = useMemo(() => {
 
@@ -206,7 +207,7 @@ export function Network({
                 range: _.range(3,10,(10-3)/uniqueValues.length)
             })
         }
-    }, [sizeName])
+    }, [sizeName,svgID])
 
     const handleMouseUp = (event) => {
         const coords = localPoint(event.target.ownerSVGElement, event);
@@ -270,7 +271,7 @@ export function Network({
                         sizeName,
                         colorName,
                         checkColorMap: true,
-                        colorMap : { "pathway": "#18325c", "Localization" : "#79c29e"},
+                        colorMap : { "pathway": "#466688", "localization" : "#18325c", "feature" : "#79c29e","main" : "#e7ad00"},
                         colorMapKeyName : "node_type",
                         colorScale,
                         rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
@@ -311,31 +312,22 @@ export function Network({
                 <TooltipInPortal
                     // set this to random so it correctly updates with parent bounds this tooltip is for the points of the scatter. 
                     key={Math.random()}
+                    
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
-                    <div className="flex flex-column justify-start">
-                        {hoverData.map((v, idx) => idx < 10 ? <div key={`${idx}-hover`}>
-                            {tooltipSmall ? <div>
-                                {
-                                    tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{v[tooltipName]}</div>)
-                                    
+                    <div className="flex flex-column justify-start" >
+                        {hoverIndcsArray.map((idx,ii) => _.isObject(data[idx]) ? <div key={`${idx}-hover`}>
+                            {<div>
+                                {ii === 0 ? <h4>{data[hoverIndcsArray[ii]][tooltipNames[0]]} ({hoverIndcsArray.length} links)</h4> : 
+                                    ii > 10 ? null : ii === 10 ? <div>...</div> : 
+                                    tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`}
+                                        style={{ maxWidth: "min(30vw, 600px)" }}>
+                                        {data[idx][tooltipName]} 
+                                    </div>)
                                 }
-                                
                                 {tooltipNames.length > 1 && hoverData.length > 1 ? <Divider /> : null}
-                            </div> :
-                                <div className="flex flex-column bg--lightgrey padding--medium margin--little" style={{ borderLeft: "3px solid " + colorScale(v[colorName]) }}>
-                                    {
-                                        tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`} className="margin--tiny">
-                                            
-                                            {tooltipName.startsWith("att_") && _.has(attributesByTag, tooltipName) ?
-                                                tooltipName !== "att_genotype" && _.has(attributeValuesByTag, v[tooltipName]) ?
-                                                    attributeValuesByTag[v[tooltipName]].text : tooltipName === "att_genotype" ? _.has(genotypesByLabel,v[tooltipName]) ? genotypesByLabel[v[tooltipName]].text : null : null : v[tooltipName]}
-                                            
-                                        </div>)
-                                        
-                                            
-                                    }
-                                </div>}
+                            </div>
+                            }
                         </div> : null)}
                         
                     </div>

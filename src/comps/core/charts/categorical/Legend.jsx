@@ -27,7 +27,7 @@ const CategoricalLegend = React.memo(
      * @param {String} props.colorName 
      * @returns 
      */
-    function ScatterLegend({
+    function CategoricalLegend({
         chartIdx,
         data,
         maxWidth,
@@ -51,30 +51,30 @@ const CategoricalLegend = React.memo(
     
     } = useTooltip();
 
-    const findAttributeValues = (attribute, attributeValueTagsString) => {
-        // there might be multiple tags which are separated by a space. 
-        if (attribute.tag === "att_genotype") {
-            const genotypeLabels = _.split(attributeValueTagsString, " ")
-            return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
+        const findAttributeValues = (attribute, attributeValueTagsString) => {
+            // there might be multiple tags which are separated by a space. 
+            if (attribute.tag === "att_genotype") {
+                const genotypeLabels = _.split(attributeValueTagsString, " ")
+                return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
+            }
+            const attributeValueTags = _.split(attributeValueTagsString, " ")
+            return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
         }
-        const attributeValueTags = _.split(attributeValueTagsString, " ")
-        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
-    }
     
 
-    const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
-        let attributeValueText = ""
+        const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
+            let attributeValueText = ""
+            const numberAttributeValues = attributeValues.length
         if (attribute.tag === "att_genotype") {
-
-            attributeValueText = "gene"
+            console.log(attributeValues)
+            attributeValueText = numberAttributeValues === 1 ? attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
         }
         else if (attribute.has_features_value) {
-            attributeValueText = attributeValues.length === 1 ? attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
+            attributeValueText = numberAttributeValues === 1 ? attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
         }
         else {
-            attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
+            attributeValueText = numberAttributeValues === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
         }
-        console.log(attributeValueText)
         return attributeValueText
     }
 
@@ -116,11 +116,11 @@ const CategoricalLegend = React.memo(
                 {_.has(colorScale, "domain") ? _.isObject(colorAttribute) ?
                     <div className="intent-margin-left--little">
                     {/* //onMouseLeave={() => resetSearchIdcs(chartIdx)} */}
-                        <h4>{colorAttribute.text}</h4>
+                        <div style={{maxWidth : "10rem"}}><h4>{colorAttribute.text}</h4></div>
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null
-                                const attributeValues = findAttributeValues(label.text)
+                                const attributeValues = findAttributeValues(colorAttribute, label.text)
                                 const labelString = getLegendLabelFromAttributeValues(colorAttribute,attributeValues)
                                 return (
                                     <LegendItem key={`${idx}-${label}`} >

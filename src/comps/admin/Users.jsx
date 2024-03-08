@@ -177,16 +177,23 @@ function AdminUsers({ authenticationStatus }) {
     if (isError) return<APIError error={error} /> 
     if (isLoading || isFetching) return <Loading />
     return (
-        <div className="intent-margin-top--little padding--medium" >
+        <div className="intent-margin-top--little padding--medium" style={{height : "85vh",width : "100%"}}>
             <ConfirmAlert {...confirmAlertProps} isLoading={deleteUserIsLoading || deleteUserIsFetching } />
             {isError ? <APIError error={error} /> : isLoading || isFetching ? <Loading /> :
-                <div>
+                <div className="flex flex-column">
+                    <div style={{height: "auto"}}>
                     <AddUserDialog isOpen={isUserDialogOpen} {...{ authenticationStatus, refetchUsers }} onClose={() => setIsUserDialogOpen(false)} />
                     <EditUserDialog {...{ ...editUserDialog }} {...{ authenticationStatus, refetchUsers }} onClose={() => setEditUserDialog({ isOpen: false, user: {} })} />
                     <Button icon="plus" onClick={() => setIsUserDialogOpen(true)} />
                     <TextInput placeholder="Search user" callbackKey={"query"} onChange={(callbackKey, value) => setQuery(value)} />
+                    </div>
+                    <div className="flex flex-column" style={{height : "calc(85vh - 100px)", overflowY:"scroll"}}>
                     {isSuccess && _.isArray(userMatchingQuery) ?
                         userMatchingQuery.map(user => <User key={user.label} {...user} userRoles={data.roles} {...{ blockUser, editUser, userProps: user, deleteUser }} />) : null}
+                    </div>
+                    <div style={{ display: "grid", gridColumn : 1, gridRowStart : 2, backgroundColor:"yellow", height : ""}}>
+                    
+                    </div>
                 </div>}
                 </div>
             

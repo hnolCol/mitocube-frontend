@@ -44,7 +44,7 @@ function CategoricalLineplot({
         left: 45,
         right: 0,
         bottom: 35,
-        top: 5
+        top: 8
     },
     yaxisName = "y",
     colorName,
@@ -63,11 +63,12 @@ function CategoricalLineplot({
     innerColorPadding = 0.0,
     svgID = undefined,
     attributesByTag,
-    attributeValuesByTag
+    attributeValuesByTag,
+    genotypesByLabel
     }) {
 
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
-    PaprikaBirneApfelxPae2004
+    
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
@@ -155,9 +156,9 @@ function CategoricalLineplot({
                                 {/* x axis label */}
                                 <Text
                                     x={margins.left + chartWidth / 2}
-                                    y={margins.top + chartHeight + 20}
+                                    y={margins.top + chartHeight + 25}
                                     verticalAnchor="start"
-                                    textAnchor="middle">{colorName}
+                                    textAnchor="middle">{_.has(attributesByTag,colorName)?attributesByTag[colorName].text : colorName}
                                 </Text>
                                 
                                 {colorCategories.map((colorCategory,colorIdx) => {
@@ -212,8 +213,8 @@ function CategoricalLineplot({
                     minMaxYDomain,
                     svgRef: containerRef,
                     attributesByTag,
-                        attributeValuesByTag,
-                        genotypesByLabel
+                    attributeValuesByTag,
+                    genotypesByLabel
                 }}>
             {(categoricalData) => categoricalData.map((
                 {
@@ -254,7 +255,7 @@ function CategoricalLineplot({
                                 attributeValuesByTag={attributeValuesByTag}
                                 valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
-                                {...{ chartHeight, chartWidth :  subplotWidth}} />
+                                {...{ chartHeight, chartWidth :  subplotWidth, genotypesByLabel}} />
                         
                           {subplotCategoryFound ?
                               <g>
@@ -268,11 +269,11 @@ function CategoricalLineplot({
                                 </Text>
                               </g> : null}
                           
-                          {didx === 0 ? <Text
+                              {didx === 0 ? <Text
                               x={margins.left + chartWidth / 2}
-                              y={margins.top + chartHeight + 20}
+                              y={margins.top + chartHeight + 25}
                               verticalAnchor="start"
-                              textAnchor="middle">{splitName}</Text> : null}
+                              textAnchor="middle">{_.has(attributesByTag,splitName)?attributesByTag[splitName].text : splitName}</Text> : null}
                         
                           
                         {/* {If there is not split but a subplot} */}

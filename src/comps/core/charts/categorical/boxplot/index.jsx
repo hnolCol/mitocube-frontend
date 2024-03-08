@@ -90,7 +90,7 @@ function CategoricalBoxplot({
         left: 45,
         right: 5,
         bottom: 35,
-        top: 5
+        top: 8
     },
     yaxisName = "y",
     colorName,
@@ -110,7 +110,9 @@ function CategoricalBoxplot({
     attributesByTag,
     attributeValuesByTag,
     genotypesByLabel
-    }) {
+}) {
+    
+   
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
     //console.log(data,colorName,splitName)
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)

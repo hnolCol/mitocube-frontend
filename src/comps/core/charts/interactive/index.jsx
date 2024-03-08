@@ -31,14 +31,16 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
     const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1 })
     const [backgroundScatter, setRerender] = useState({rerender : [Math.random()], filterIndices : new Set(), filterRange : [0,100], searchIndices : new Set(), searchString : ""})
     const numberCharts = keyNames.length
+    
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
-    const limits  = getMinMaxForMultipleKeyNames({data,keyNames : _.concat(keyNamesFlatten,extraLimitNames)})
+    const flattenKeyNames = _.join(keyNamesFlatten)
+    const limits  = useMemo(() => getMinMaxForMultipleKeyNames({data, keyNames : _.concat(keyNamesFlatten,extraLimitNames)}), [numberCharts,flattenKeyNames,dataName])
     const validIndices = useMemo(() => {
         const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
         return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {
             return([chartIdx, _.map(isNumber, d => isPointChart[chartIdx] ? d[xaxisName] && d[yaxisName ] : _.every(yaxisName, yName => d[yName]))])
         }))
-    },[_.join(keyNamesFlatten),dataName,data.length])
+    },[flattenKeyNames,dataName,data.length])
 
     const searchTrees = useMemo(() => {
         //create search trees for fast point finding in the array
@@ -52,12 +54,12 @@ function InteractiveChart({data = dataTest, keyNames = [{xaxisName : "x", yaxisN
             index.finish()
             return [chartIdx, {tree : index, xaxisName, yaxisName , limits, data_index}]
         }))
-    },[_.join(keyNamesFlatten),numberCharts,dataName,data.length])
+    },[flattenKeyNames,numberCharts,dataName,data.length])
 
 
     useEffect(() => {
         setRerender(prevValues => { return {...prevValues, rerender: [Math.random()]}})
-    },[_.join(keyNamesFlatten),numberCharts,_.join(extraLimitNames),dataName])
+    },[flattenKeyNames,numberCharts,_.join(extraLimitNames),dataName])
 
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         // finds the index in a rectangle

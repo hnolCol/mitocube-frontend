@@ -19,9 +19,9 @@ import _ from "lodash"
 
 
 
-export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14}) {
+export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14, color = ["#00000"]}) {
     return (<Group left={margins.left} top={margins.top + totalYOffset}>
-        {labelTexts.map((text, textIdx) => <Text key={`${text}-${textIdx}`} x={0} dx={textOffset} fontSize={fontSize} y={fontSize * textIdx} verticalAnchor="start" textAnchor="start">
+        {labelTexts.map((text, textIdx) => <Text key={`${text}-${textIdx}`} fill={color[textIdx]} x={0} dx={textOffset} fontSize={fontSize} y={fontSize * textIdx} verticalAnchor="start" textAnchor="start">
             {text}
         </Text>)}
     </Group>) 
@@ -45,6 +45,7 @@ export function ProfileChart({
     yaxisLabel,
     xaxisLabel,
     limits,
+    stroke = "#00000",
     svgID,
     rerenderHover,
     rerenderBackground,
@@ -109,7 +110,7 @@ export function ProfileChart({
         
             <QuantileBackground {...{xScale, yScale, data : q, keyNames : yaxisName, rerenderDependency: rerenderBackground}} />
             {profileAsLine ? <g >
-                <ProfileLine {...{ valid, data: hoverDataInSubset, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames, showPoints : !yaxisName.length > 30}} />
+                <ProfileLine {...{ valid, data: hoverDataInSubset, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames, showPoints : !yaxisName.length > 30, stroke}} />
             </g> : null}
             {profileAsBar ? <g>
                 <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
@@ -119,7 +120,7 @@ export function ProfileChart({
             
             {searchIndices.size > 0 ? <FilterIndicator {...{ searchIndices : searchIndicesInSubset, width, margins }} /> : null}
             
-            {<ChartTopLeftLabel {...{ margins, labelTexts: [`C${chartIdx}`,`n=${subsetIndices.size}`], textOffset: 3 }} />}
+            {<ChartTopLeftLabel {...{ margins, labelTexts: [`C${chartIdx}`,`n=${subsetIndices.size}`], textOffset: 3, color : [stroke,"#00000"] }} />}
             
             {/* {
                 searchIndices.size > 0 ? <ProfileLine {...{ valid, data: searchData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderBackground, stroke : "blue" }} /> : null} */}

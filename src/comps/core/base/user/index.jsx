@@ -63,14 +63,14 @@ User.propTypes = {
 export function User({firstname,lastname,email, role, created_on, userRoles, blockUser, editUser, label, allow_login, userProps, deleteUser, ...rest}) {
     const [m, formatedTime] = getFormatDateFromTimestamp(created_on)
     return (
-        <div className="bg--lightgrey margin--little center-items padding--little">
+        <div className="bg--lightgrey margin--little center-items padding--little" style={{maxHeight:"5rem"}}>
             <div className="flex flex-column bg--grey">
             <motion.div className="flex justify-space-between" style={{opacity : 0.85}} whileHover={{opacity:1}}>
             <div className="div--round flex center-items">
                 <BaseDashboardIcon width={30} height={30}>
                         <UserDashboardIcon text={`${firstname[0]}${lastname[0]}`} />   
                 </BaseDashboardIcon>
-                        <div><span className="h0-span">{firstname} {lastname}</span></div>
+                        <div><span className="h0-span">{firstname} {lastname} ({email})</span></div>
                         <div className="intent-margin-left--little">{!allow_login ? <span className="h2-span">blocked </span>: null}</div>
             </div>
                 <div>

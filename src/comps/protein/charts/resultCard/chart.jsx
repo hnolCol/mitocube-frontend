@@ -3,7 +3,7 @@
 import _ from "lodash"
 import { useMemo, useState } from "react"
 import GroupingSelection, { getIcon } from "../../../core/base/attribute_selection/Selection"
-import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, normalizeDataToGroup } from "../../../../services/arrays/groupby"
+import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
 import CategoricalBoxplot from "../../../core/charts/categorical/boxplot"
@@ -19,18 +19,20 @@ import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submi
 import Loading from "../../../core/base/loading"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
 import { CategoricalFeaturePlotSelection } from "./chartselection/CategoricalChartSelection"
+import { Card } from "@blueprintjs/core"
 
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment : "DMSO", Time : "00min"},{ "y": 24.2, Genotype: "WT", Treatment : "Treat", Time : "15min"},{ "y": 24.5, Genotype: "WT", Treatment : "DMSO", Time : "15min"}, { "y": 24.6, Genotype: "KO", Treatment : "Treat", Time : "15min"}, { "y": 25, Genotype: "KO", Treatment : "DMSO", Time : "00min"},{ "y": 25.4, Genotype: "KO", Treatment : "DMSO", Time : "15min"} ,{ "y": 25.2, Genotype: "KO", Treatment : "DMSO", Time : "15min"}, { "y": 24.7, Genotype: "WT" ,Treatment : "DMSO", Time : "15min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" },{ "y": 24, Genotype: "KO" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.2, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 23.4, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y": 24, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y":24.55, Genotype: "KO",  Treatment : "Treat", Time : "15min"  }, { "y": 24.3, Genotype: "KO", Treatment : "Treat" , Time : "00min"  }, { "y": 23.2, Genotype: "WT" , Treatment : "Treat" , Time : "15min" }, { "y": 23.5, Genotype: "WT", Treatment : "Treat", Time : "00min" }],
     yaxisName = "y",
     groupings = { Genotype: { KO: ["KO_01", "KO_02"], WT: ["WT1", "WT2"] }, Treatment: { DMSO: [], Treat: [] }, Time: { "00min": [], "15min": [] } },
-    dataID = "",
+    dataset_label = "",
     featureID = "",
     attributesByTag,
     attributeValuesByTag,
     genotypesByLabel,
-    title
+    title,
+    openMetadataDrawer
 }) {
     //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     const attributes = useMemo(() => Object.keys(groupings).map(attributeTag => attributesByTag[attributeTag]), [groupings])
@@ -44,7 +46,7 @@ function ResultChart({
     //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
-    const svgID = `${featureID}-svg-id${dataID}`
+    const svgID = `${featureID}-svg-id${dataset_label}`
 
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
@@ -64,12 +66,12 @@ function ResultChart({
     }, [plotType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
 
     const handleDataDownload = (dataType) => {
-
-        if (dataType === "Raw") downloadTxtFile(arrayOfObjectsToString(data, Object.keys(data[0])), `rawData-${featureID}.txt`)
-        else if (dataType === "Aggregated") downloadTxtFile(arrayOfObjectsToString(groupedAggratedData, Object.keys(groupedAggratedData[0])), `aggregatedData-${featureID}.txt`)
-        else if (dataType === "Normalized") downloadTxtFile(arrayOfObjectsToString(normalizedData, Object.keys(normalizedData[0])), `normlizedData-${featureID}.txt`)
-        else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataID}).png`, imageOptions)
-        else if (dataType === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureID}-${dataID}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataID}).png`, imageOptions)
+       
+        if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureID}-${dataset_label}.txt`)
+        else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureID}-${dataset_label}.txt`)
+        else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureID}.txt`)
+        else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataset_label}).png`, imageOptions)
+        else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureID}-${dataset_label}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataset_label}).png`, imageOptions)
     }
 
     const handleNormalizationGroupSelection = (groupingName, groupName) => {
@@ -147,9 +149,10 @@ function ResultChart({
     }
 
     return (
-
-        <div className="margin--medium" style={{maxWidth: "450px"}}>
+        <Card className="margin--little" compact={true} style={{maxWidth: "450x"}}>
+            
             {/* <SelectionDialog
+            <div className="margin--medium" style={{maxWidth: "450px"}}>
                 title="Normalization Group Selection"
                 applyButtonDisabled={!checkNormalizeToSelection()}
                 isOpen={normalizeDialog.isOpen}
@@ -199,7 +202,7 @@ function ResultChart({
                         />
                 </div>
                 <PlottypeIcon callback={cyclePlotTypes} {...{ plotType }} />
-                <InfoIcon />
+                <InfoIcon items={["Metadata","Dataset view"]} callback={() => openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, dataset_label : dataset_label}})}/>
 
             
                 <DownloadIcon items={["Raw", "Aggregated", "Normalized","DIVIDER","PNG","SVG"].map(dataType => {
@@ -208,21 +211,14 @@ function ResultChart({
 
                 <div className="flex center-items">
                     
-                    <h3>{title}</h3>
+                    <h5>{title}</h5>
                     
                 </div>
             </div>
             
                 {getPlot(plotType, groupedAggratedData)}
 
-
-
-
-
-
-
-
-        </div>
+        </Card>
 
     )
 }

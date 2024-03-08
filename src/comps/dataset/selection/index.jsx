@@ -11,7 +11,6 @@ import { Button, InputGroup } from "@blueprintjs/core";
 import Loading from "../../core/base/loading";
 import { useMemo, useState } from "react";
 import { filterArrayBySearchString } from "../../../services/arrays/filter";
-import { SubmissionBaseFilter } from "../../submission/filter";
 import { FeatureDatasetFilter } from "../../submission/filter/FeatureSelection";
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms";
 import useDebounce from "../../../hooks/useDebounce";

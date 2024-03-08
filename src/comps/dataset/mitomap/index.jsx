@@ -15,35 +15,35 @@ import { SegmentedControl } from "@blueprintjs/core"
 export function MitomapNetwork({ }) {
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext() 
     const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type : "pairwise" })
-    const [networkData, setNetworkData] = useState({})
+    //const [network_data, setnetwork_data] = useState({})
        
     const { data: network_data, isLoading, isFetching, isSuccess } = useGetNetwork({ type: networkProps.type })
     
-    console.log(network_data)
+    //console.log(network_data)
 
     const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, filterNames : [] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }
 
-    useEffect(() => {setNetworkData(network_data)},[isSuccess,networkProps.type])
+    // useEffect(() => {setnetwork_data(network_data)},[isSuccess,networkProps.type])
     
-    const networkDataValid = _.isObject(networkData) && _.has(networkData,"nodes")
-    const numericKeyNames = networkDataValid ? _.filter(_.keys(networkData.nodes[0]), keyName => _.isNumber(networkData.nodes[0][keyName])) : []
+    const network_dataValid = _.isObject(network_data) && _.has(network_data,"nodes")
+    const numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []
 
     return (<div className="div--expand" style={{overflowY:"scroll"}}>
         <div className="flex">
-        {isSuccess && _.isObject(metadata) && networkDataValid ? 
+        {isSuccess && _.isObject(metadata) && network_dataValid ? 
         <InteractiveChart
-            data={networkData.nodes}
+                data={network_data.nodes}
                 extraLimitNames={numericKeyNames}
                 dataName={networkProps.type}
-            keyNames={[
-            {
-                xaxisName: "x",
-                yaxisName: "y"
-            }]}
-            isPointChart={[true]}>
+                keyNames={[
+                {
+                    xaxisName: "x",
+                    yaxisName: "y"
+                }]}
+                isPointChart={[true]}>
                         {
                     /**
                      * 
@@ -71,7 +71,7 @@ export function MitomapNetwork({ }) {
                 }, didx) => {
                     return (
                         <div>
-                            <ScatterDataSelection keyNames={_.keys(networkData.nodes[0])}
+                            <ScatterDataSelection keyNames={_.keys(network_data.nodes[0])}
                                         {...{
                                             title : "MitoCarta 3.0 Network Map",
                                         numericKeyNames,
@@ -79,8 +79,8 @@ export function MitomapNetwork({ }) {
                                         selection,
                                         setSelection : handleScatterSelection,
                                         handleStringSearch,
-                                        downloadElements: ["network-scatter" + networkProps.type, networkData.nodes],
-                                        elementNames: ["SVG","DIVIDER",`Nodes (n = ${networkData.nodes.length})`],
+                                        downloadElements: ["network-scatter" + networkProps.type, network_data.nodes],
+                                        elementNames: ["SVG","DIVIDER",`Nodes (n = ${network_data.nodes.length})`],
                                         fileNames: [`${metadata.label}-MitoMap.svg`,`${metadata.label}-Mitomap.txt`],
                                         elementTypes: ["svg", "data"]
                                         }} />
@@ -92,7 +92,7 @@ export function MitomapNetwork({ }) {
                                 sizeName: undefined,
                                 // tooltipNames : selection.tooltipNames,
                                 data,
-                                linkIdcs : networkData.link_idcs,
+                                linkIdcs : network_data.link_idcs,
                                 valid,
                                 findDataInRectangle,
                                 setHoverDataInRectangle,
@@ -102,6 +102,7 @@ export function MitomapNetwork({ }) {
                                 findClosestPoint,
                                 tooltipSmall : true,
                                 tooltipNames: ["id"],
+                                labelNames : ["id"],
                                 dataRerender : [networkProps.type],
                                 ...hoverProps,
                                 ...filterProps,

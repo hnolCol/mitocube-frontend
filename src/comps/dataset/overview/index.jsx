@@ -20,10 +20,33 @@ import { getAttributeForUserNumericInput } from "../../../services/attributes";
 import { getUserFullName } from "../../../services/format/user";
 import { GenotypeCard } from "../../admin/genotypes/Genotypes";
 import genotypes from "../../../types/genotypes";
+import Loading from "../../core/base/loading";
 
-function MetatextBox({ metatextTag, metadata, metatext }) {
+export function Metatexts({ metadata }) {
+
+    const { data: metatext, isSuccess, isLoading, isFetching, isError} = useGetSubmissionMetatext({ }, { staleTime: Infinity })
+    if (isLoading || isFetching) return <Loading />
+    if (isError) return <p>Error occurred...</p>
+    if (!_.isObject(metatext)) return null 
+
+    return <div className="flex flex--wrap" style={{gap:"2rem"}}>{_.isObject(metadata) && _.isObject(metadata.metatext)?
+        _.keys(metatext.names).filter(metatextTag => _.isString(metadata.metatext[metatextTag])).map(metatextTag => <div
+            className="container--shadow padding--little intent-margin-top--little "
+            key = {metatextTag} >
+        
+            <MetatextBox {...{metadata,metatextTag,metatext}} />
     
+        </div>)
+    
+        : null
+    }</div>
+    
+
+}
+
+export function MetatextBox({ metatextTag, metadata, metatext}) {
     const [mouseIn, setMouseIn] = useState(false)
+
     return (
         <motion.div onMouseEnter={() => setMouseIn(true)} onMouseLeave={() => setMouseIn(false)}>
         <div className="flex margin--little justify-space-between">
@@ -51,12 +74,16 @@ export function AuthorList({user, collaborators = [], emailSubject = ""}) {
     const { data: users } = useGetPublicUserInfo()
     if (!_.isObject(users)) return null 
     const userByLabel = groupListByProperty(users, "label")
-    const datasetUserLabels = _.concat(user, collaborators).filter(userLabel => _.has(userByLabel,userLabel))
+    const datasetUserLabels = _.concat(user, collaborators).filter(userLabel => _.has(userByLabel, userLabel))
+    let affiliation = {}
     return (
-        <div className="flex">
+        <div className="flex flex-column center-items">
+            <div className="flex">
             {datasetUserLabels
                 .map((userLabel, idx) => {
-                const user = userByLabel[userLabel][0]
+                    const user = userByLabel[userLabel][0]
+                    affiliation[user.research_group] ??= _.keys(affiliation).length + 1
+                    const affiliationIdx = affiliation[user.research_group]
                 return (
                     <div className="flex intent-margin-right--little div--round" key={`${user.email}-${idx}`}>
                             <a
@@ -64,14 +91,16 @@ export function AuthorList({user, collaborators = [], emailSubject = ""}) {
                                 className="router-link">
                             <div className="flex" style={{color : "black"}}>
                                 <strong>{getUserFullName(user)}</strong>
-                                <div className="intent-margin-left--little"><Icon icon="envelope"/></div>
+                                <div style={{position:"relative",top:"-0.3rem",fontSize:"70%"}}>{affiliationIdx}</div><div className="intent-margin-left--little"><Icon icon="envelope"/></div>
                             </div>
                         </a>
+                        
                         {datasetUserLabels.length > 1?
                             idx === datasetUserLabels.length - 2 ? <div>, and</div> : idx !== datasetUserLabels.length - 1?<div>,</div> : null : null}
                         </div>
                 )
-            })}
+                })}</div>
+            <div>{_.keys(affiliation).map(researchGroup => <div className="font-size--smallest">{`${affiliation[researchGroup]} ${researchGroup}`}</div>)}</div>
         </div>
     )
 }
@@ -157,7 +186,8 @@ function SamplesAttributes({ metadata }) {
 function DatasetOverview({authenticationStatus}) {
 
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
-    const { data: metatext } = useGetSubmissionMetatext({ tokenString: authenticationStatus.token }, { staleTime: Infinity })
+    
+    
     useEffect(() => {
         if (tabHeader !== "") setTabHeader("")
         
@@ -217,12 +247,12 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
             </div>
             <div className="flex flex--wrap">
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "min(50vh,500px)", overflowY:"scroll"}}>
+                {hasGenotypes ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h2>Genotypes ({_.keys(metadata.genotypes).length})</h2>
                     <div className="flex flex-column div--expand padding--little">
-                        {_.keys(metadata.genotypes).map(genotypeLabel => <GenotypeCard {...{ justDisplay : true, genotype : metadata.genotypes[genotypeLabel], fill : true }} />)}
+                        {_.keys(metadata.genotypes).map(genotypeLabel => <GenotypeCard {...{ justDisplay: true, genotype: metadata.genotypes[genotypeLabel], fill: true }} />)}
                     </div>
-            </div>
+                </div> : null}
                 {!_.isEmpty(metadata.samples_attributes) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h2>Sample Attributes</h2>
                     <SamplesAttributes {...{ metadata }} />
@@ -236,16 +266,10 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
             </div>
             <div className="intent-margin-right ">
-                <h2>Metatext</h2>
+            <h2>Metatext</h2>
             <div className="flex flex--wrap" style={{gap:"2rem"}}>
-            {_.isObject(metadata) && _.isObject(metadata.metatext) && _.isObject(metatext) ?
-                    _.keys(metatext.names).filter(metatextTag => _.isString(metadata.metatext[metatextTag])).map(metatextTag => <div
-                        className="container--shadow padding--little intent-margin-top--little "
-                        key = {metatextTag} >
-                    
-                        <MetatextBox {...{metadata,metatextTag,metatext}} />
-                
-                    </div>)
+            {_.isObject(metadata) && _.isObject(metadata.metatext)?
+                    <Metatexts metadata={metadata}/>
                 
                         : null}
             </div>

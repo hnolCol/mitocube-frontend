@@ -28,7 +28,7 @@ function ProfileLine({
     colorScale, 
     fill = "none",
     stroke = "#000000", 
-    strokeWidth = 1.5, 
+    strokeWidth = 2, 
     rerenderDependency = [], 
     searchIndices = new Set() ,
     filterIndices = new Set(),

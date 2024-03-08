@@ -10,15 +10,8 @@ import { Button, Icon, InputGroup } from "@blueprintjs/core"
 import TextInput from "../../core/input/Text"
 import { filterArrayBySearchString, filterArrayOfObjects } from "../../../services/arrays/filter"
 import { useGetSubmissionStates, useGetSubmissionByQuery } from "../../../hooks/queries/submission.hooks"
-import { SubmissionBaseFilter } from "../filter"
-import { StateSelection } from "../filter/StateSelection"
-import { TextButtonIcon } from "../../core/svg/icons/filter/TextIcon"
-import Loading from "../../core/base/loading"
-import useDebounce from "../../../hooks/useDebounce"
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms"
-import TooltipButton from "../../core/base/buttons/TooltipButton"
-import { AttributeSelection } from "../filter/AttributeSelection"
-import { UserSelection } from "../filter/UserSelection"
+import { SubmissionFilterSelection } from "../filter"
 
 
 
@@ -135,9 +128,6 @@ export function AttributeFilterButton({
 }
 
 
-
-
-
 export function StateIndicator({ state, padding = "little" }) {
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     if (submissionStatesLoading) return null 
@@ -166,81 +156,6 @@ SubmissionContainer.propTypes = {
     submissions: PropTpyes.arrayOf(PropTpyes.object),
     attributesByTag : PropTpyes.object.isRequired
 }
-
-
-// export function AttributeFilter({ attributesInSubmission: { } }) {
-    
-//     return (<div className="flex flex-column">
-        
-//     </div>)
-// }
-
-// export function AttributeFilterSelection({uniqueAtributesInSubmissions, attributesByTag, setSubmissionFilter, submissionFilter,attributeSearchQuery, setAttributeSearchQuery}) {
-//     //const attributeTags = Object.keys(uniqueAtributesInSubmissions)
-//     const attribteValuesByTag = attributesByTag.attribute_values
-//     const attribtesByTag = attributesByTag.attributes
-//     //{Object.keys(uniqueAtributesInSubmissions).map(attributeTag => <AttributeFilterButton {...{attributeValue : attributeTag, submissionKey : attributeTag, submissionFilter, setSubmissionFilter}}/>)}
-//     const { filteredAtributes } = useMemo(() => {
-//         //use memo to filter based on a query.
-//         let attributeTags = Object.keys(uniqueAtributesInSubmissions)
-//         if (attributeSearchQuery.length < 2) return {
-//             filteredAtributes: attributeTags.filter(attributeTag => _.has(uniqueAtributesInSubmissions[attributeTag],"attribute.allow_as_filter") && uniqueAtributesInSubmissions[attributeTag].attribute.allow_as_filter),
-//             filteredAttributeTags: new Set()
-//         }
-//         else {
-//             //first check attributes match the query
-//             let attributeTagsMatchingFilterString = filterArrayBySearchString({
-//                 array: attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter).map(attributeTag => attribtesByTag[attributeTag]),
-//                 keyNames: ["tag", "text"], searchString: attributeSearchQuery
-//             })
-//             //then find the attribute Values that match the query.
-//             // optiona TO DO: one could add the tag and name of the attribute to the values to iteratte only through a single array
-//             let filteredAttributeValuesByTag = Object.fromEntries(attributeTags.map(attrTag => {
-//                 return [attrTag, filterArrayBySearchString({
-//                     array: [...uniqueAtributesInSubmissions[attrTag].values].map(attrValueTag => _.has(attribteValuesByTag,attrValueTag)?attribteValuesByTag[attrValueTag]:{tag:attrValueTag}),
-//                     searchString: attributeSearchQuery,
-//                     keyNames: ["tag", "text", "details"]
-//                 })]
-//             }).filter(attrValues => attrValues[1].length > 0))
-            
-//             return {
-//                 filteredAtributes: _.uniq(_.concat(
-//                     attributeTags.filter(attributeTag => attribtesByTag[attributeTag].allow_as_filter && _.has(filteredAttributeValuesByTag, attributeTag)),
-//                     attributeTagsMatchingFilterString.map(attribute => attribute.tag)
-//                 ))
-//             }
-//         }
-//     }, [attributeSearchQuery])
-
-//     return (
-//         <div>
-//             <h3>Attributes</h3>
-//             <InputGroup placeholder="Search attribute.." small={true} value={attributeSearchQuery} onValueChange={(query) => setAttributeSearchQuery(query)}/>
-//         <div className="flex flex-column" style={{height : "33vh", overflowY : "scroll", overflowX: "hidden", paddingTop : "0.2rem", marginTop : "0.3rem"}}>
-//             {filteredAtributes.map(attrTag => {
-//                 const { values, counts, attributeValues, attribute } = uniqueAtributesInSubmissions[attrTag]
-//                 if (values.size === 0) return null 
-//                 if (!_.isObject(attribute)) return null 
-//                 return (<div key={`${attrTag}-attr-filter`} className="flex flex-column">
-//                     <div><h5>{attribtesByTag[attrTag].text}</h5></div>
-//                     {[...values].map(attributeValueTag => {
-//                         const attrValue = attributeValues[attributeValueTag]
-//                     // let attrValue = _.has(attribteValuesByTag,attribteValueTag)?attribteValuesByTag[attribteValueTag]: createFakeAttributeValue({attribute : attribtesByTag[attrTag], numericInput : attribteValueTag})
-//                         return <AttributeFilterButton key={`${attrTag}-${attributeValueTag}`} {...{
-//                         attribute,
-//                         attributeValue: attrValue,
-//                         submissionKey: attrTag,
-//                         setSubmissionFilter,
-//                         submissionFilter,
-//                         numberSubmissionWithTag : counts[attributeValueTag]
-//                     }} />
-//                 })}</div>)
-//             })}
-//             </div>
-//             </div>
-        
-//     )
-// }
 
 
 export function filterSubmissionByDatasetAttribute({ submissionFilter, submissionDatasetAttributes, datasetAttributeFilter,  }) {
@@ -299,103 +214,70 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 
 export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog, setMetatextDialog}) {
     
-    const [searchString, setSearchString] = useState("")
-    const debouncedString = useDebounce(searchString, 200)
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
     // console.log(submissionFilter)
     // console.log(getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }))
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
-        query: debouncedString.length === 0 ? null : debouncedString,
+        query: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
         state: stateFilter,
+        genotype_label : getValueByKeyAndMergeToString({array : submissionFilter["genotype_label"], keyName : "label"}),
         user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
-        //attribute_tag : 
     })
     
-    //const {submissions, query_count, total_count, labels} = submissionQuery
-   // let labelsCombined = _.isArray(submissions) ? _.join(submissions.map(submission => submission.label)) : ""
-    //const { uniqueAtributesInSubmissions, usersByDataLabel } = extractSubmissionDetails({ submissions })
-    //console.log(uniqueAtributesInSubmissions)
+   
     const usersByLabel = groupListByProperty(users, "label")
     //const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
     const submissionsByState = _.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? groupListByProperty(submissionQuery.submissions, "state") : {}
-    //const userLabelsInSubmission = getUniqueValuesAndCountsFromList(filteredSubmission.map(submission => _.concat(submission.collaborators, submission.user_label)))
-    //console.log(attributesByTag.attributes)
-    // console.log(attributesByTag.attribute_values)
-    const attributeValuesByAttributeTag = groupListByProperty(_.values(attributesByTag.attribute_values), "attribute_tag")
-    // console.log(attributeValuesByAttributeTag)
+
     return (
         <div>
-            {/* <TextButtonIcon /> */}
-        <div className="submission__wrapper">
-        
-                <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
-                    <h3>Submissions ({isSuccess? submissionQuery.query_count:"0"}/{isSuccess? submissionQuery.total_count:"0"})</h3>
-                    <div className="flex" style={{width: "100%"}}>
-                    <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
-                    <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
-                    </div>
-                    <StateSelection {...{ states, submissionsByState, submissionFilter, setSubmissionFilter }} /> 
-                    <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} />
-                    <UserSelection {...{submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : []}} />
-                    
-                    {/* <SubmissionBaseFilter {...{
-                    submissionFilter,
-                    submissionsQuery,
-                    setSubmissionFilter,
-                    setSubmissionQuery,
-                    attributesByTag,
-                    userLabelsInSubmission,
-                    //uniqueAtributesInSubmissions,
-                    users,
-                    states,
-                    submissionsByState
-                }} /> */}
-            </div>
-
-        <div className="submission__items__container" style={{gridRow : 1, gridColumn : 2}}>
-                    {_.isEmpty(submissionsByState) && !(isLoading || isFetching) ? <p>No submission found that match the filter.</p> : null}
-                    {isError?<p>An error was returned when searching.</p>:null}
-            {Object.values(states.states).map((state,stateIdx) => {
-                const submissionsAreInState = _.has(submissionsByState, state)
-                if (!submissionsAreInState) return null 
-                
-                return (
-                    <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
-                        
-                        <StateHeader {...{
-                            stateName: states.states_inv[state],
-                            stateColor: states.colors_inv[state]
-                        }} />
-                        {_.isArray(submissionsByState[_.toString(state)]) ? submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
-                            //key are always strings .... 
+            <SubmissionFilterSelection {...{
+                submissionFilter,
+                setSubmissionFilter,
+                submissionsQuery,
+                setSubmissionQuery,
+                submissionQueryResult: submissionQuery,
+                isLoading,
+                isFetching,
+                isSuccess,
+                isError
+            }}
+                children={ Object.values(states.states).map((state,stateIdx) => {
+                            const submissionsAreInState = _.has(submissionsByState, state)
+                            if (!submissionsAreInState) return null 
                             return (
-                                <SubmissionItem
-                                    key={submission.label}
-                                    {...{
-                                    stateName : states.states_inv[state], 
-                                    states,
-                                    usersByLabel,
-                                    submission,
-                                    setAttributeSelectionDialog,
-                                    attributesByTag : attributesByTag.attributes,
-                                    attributeValuesByTag: attributesByTag.attribute_values,
-                                    setAttributesDialog,
-                                    setRunlistDialog,
-                                        setChangeOwnerDialog,
-                                        setMetatextDialog,
-                                    minimalView : submissionsQuery.minimalView
-                                    
-                                }} borderColor={states.colors_inv[state]} />
+                                <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
+                                    <StateHeader {...{
+                                        stateName: states.states_inv[state],
+                                        stateColor: states.colors_inv[state]
+                                    }} />
+                                    {_.isArray(submissionsByState[_.toString(state)]) ? submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
+                                        //key are always strings .... 
+                                        return (
+                                            <SubmissionItem
+                                                key={submission.label}
+                                                {...{
+                                                stateName : states.states_inv[state], 
+                                                states,
+                                                usersByLabel,
+                                                submission,
+                                                setAttributeSelectionDialog,
+                                                attributesByTag : attributesByTag.attributes,
+                                                attributeValuesByTag: attributesByTag.attribute_values,
+                                                setAttributesDialog,
+                                                setRunlistDialog,
+                                                setChangeOwnerDialog,
+                                                setMetatextDialog,
+                                                minimalView : submissionsQuery.minimalView
+                                                
+                                            }} borderColor={states.colors_inv[state]} />
+                                        )
+                                    }): null}
+                                </div>
                             )
-                        }): null}
-                    </div>
-                )
-            })}
-
-            </div>
-            </div>
+                        })} />
             </div>
     )
 }

@@ -22,6 +22,16 @@ export function isItemInArrayDeepComp({ array, item }) {
     return itemFound
 }
 
+
+export function addItemsToArrayIfNotPresent({ array = [], items = [] }) {
+    // checks if an item in an array, if there it will remove the item from the array
+    // otherswise it will add it to the array.
+    if (array.length === 0) return items 
+    const itemsNotInArray = items.filter(item => !isItemInArrayDeepComp({ array, item }))
+    if (itemsNotInArray.length === 0) return array 
+    return _.concat(array,itemsNotInArray)
+}
+
 export function addItemsToArrayOrRemoveItIfPresent({ array, items }) {
     // checks if an item in an array, if there it will remove the item from the array
     // otherswise it will add it to the array.
