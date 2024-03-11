@@ -20,6 +20,7 @@ import Loading from "../../../core/base/loading"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
 import { CategoricalFeaturePlotSelection } from "./chartselection/CategoricalChartSelection"
 import { Card } from "@blueprintjs/core"
+import { redirect, useNavigate } from "react-router"
 
 
 function ResultChart({
@@ -47,7 +48,7 @@ function ResultChart({
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const svgID = `${featureID}-svg-id${dataset_label}`
-
+    const redirect = useNavigate()
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
         const chartData = showNormalizedData ? normalizedData : data
@@ -94,6 +95,18 @@ function ResultChart({
         setNormalizeDialog(prevValues => { return { ...prevValues, isOpen: false } })
     }
     
+
+    const handleInfo = (infoType) => {
+        //handle info request
+        if (infoType === "Metadata") {
+            openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, dataset_label : dataset_label}})
+        }
+        else {
+            redirect("/datasets/"+dataset_label)
+        }
+        
+    }
+
     const getPlot = (plotType, groupedAggratedData) => { 
         if (keyNamesForSplitting.length === 0) return <div>Please select grouping names ...</div>
 
@@ -202,7 +215,7 @@ function ResultChart({
                         />
                 </div>
                 <PlottypeIcon callback={cyclePlotTypes} {...{ plotType }} />
-                <InfoIcon items={["Metadata","Dataset view"]} callback={() => openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, dataset_label : dataset_label}})}/>
+                <InfoIcon items={["Metadata","Dataset view"]} callback={handleInfo} callbackValueOnly={true}/>
 
             
                 <DownloadIcon items={["Raw", "Aggregated", "Normalized","DIVIDER","PNG","SVG"].map(dataType => {

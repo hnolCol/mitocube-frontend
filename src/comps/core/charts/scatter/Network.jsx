@@ -83,7 +83,7 @@ export function Network({
     resetSearchIdcs,
     setHoverDataInRectangle,
     centerXAxisAtZero = false,
-    defaultRadius = 5,
+    defaultRadius = 6,
     rerenderHover,
     hoverPosition,
     hoverChart,
@@ -103,7 +103,7 @@ export function Network({
     attributesByTag = {},
     suffix = "",
     indicateDataSize = true,
-    legendWithAttributes = true,
+    legendWithAttributes = false,
     genotypesByLabel = {}
 }) {
     //console.log(colorName)
@@ -168,7 +168,7 @@ export function Network({
             const m = _.max([Math.abs(colorDomain.min), Math.abs(colorDomain.max)])
             return scaleLinear({
                 domain: [-m, 0, m],
-                range: ["#095786","#fafafa","#ae0000"] // "#0090ab", "#db4646",#e6cea0
+                range: ["#095786","#fafafa","#ae0000"] // "#0090ab", "#db4646",#e6cea0#db4646
             })
         }
         else {
@@ -246,6 +246,7 @@ export function Network({
             
                 {_.isArray(linkIdcs) ? <NetworkLinks nodes={data} {...{ linkIdcs, xScale, yScale, rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]), }} /> : null}
                 <g>
+                    {/* Render background data points to hide link lines */}
                 {validDataInput ? <ScatterPoints {...{
                         data,
                         valid,
@@ -270,9 +271,12 @@ export function Network({
                         sizeName,
                         colorName,
                         checkColorMap: true, 
-                        colorMap : { "pathway": "#e7ad00", "localization" : "#e7ad00","main" : "#e7ad00"}, // "feature" : "#79c29e""#466688"#79c29e
+                        colorMap : { "pathway": "#e6d7ba", "localization" : "#e6d7ba","main" : "#e7ad00"}, // "feature" : "#79c29e""#466688"#79c29e#e7ad00#79c29e
                         colorMapKeyName : "node_type",
                         colorScale,
+                        glyphMap : { "pathway": "rect", "localization" : "rect"},
+                        checkPolyMap : true,
+                        polyMapKeyName : "node_type",
                         rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
                         filterIndices,
                         searchIndices
@@ -291,6 +295,10 @@ export function Network({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
+                        colorScale,
+                        glyphMap : { "pathway": "rect" },
+                        checkPolyMap : true,
+                        polyMapKeyName : "node_type",
                         fill: "red",
                         rerenderDependency: rerenderHover
                     }} /> : null}
@@ -331,7 +339,7 @@ export function Network({
                         
                     </div>
                 </TooltipInPortal> : null} 
-            
+            {console.log(colorName, legendWithAttributes)}
             <div>
                 {legend ? legendWithAttributes ? <ScatterLegend {...{
                     chartIdx,
@@ -354,24 +362,19 @@ export function Network({
                         sizeScale,
                         colorScale,
                         colorName,
-                        data,
+                            data,
+                            maxWidth : "12rem",
                         filterDataInKeyByValue,
                         resetSearchIdcs,
                         sizeLimit: limits[sizeName],
                         colorLimit: limits[colorName]}}/> : null}
-                {/* <h3>Legend</h3>
-                {_.isString(colorName) && _.isString(data[0][colorName]) ? 
-                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)}>
-                    <LegendOrdinal scale={colorScale}>
-                        {(labels) => labels.map(label => {   
-                            return (
-                                <LegendItem onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
-                                    <svg width={25} height={25} ><rect width={25} height={25} fill={label.value} stroke="#000" strokeWidth={0.5}/></svg>
-                                    <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
-                                </LegendItem>
-                            )
-                        })}
-                </LegendOrdinal></div>: null} */}
+                <div>
+                    <h4>Network Legend</h4>
+                    <div className="flex center-items"><svg width={20} height={20}><rect x={2} y={2} rx={3} width={18} height={18} fill={"#e6d7ba"} stroke="#000" strokeWidth={0.5} /></svg> <LegendLabel margin={5}>Pathway/Localization</LegendLabel></div>
+
+                    <div className="flex center-items">
+                    <svg width={20} height={20}><circle cx={10} cy={10} r={8} fill={"#fafafa"} stroke="#000" strokeWidth={0.5} /></svg> <LegendLabel margin={5}>Protein</LegendLabel></div>
+                </div>
         </div>
         </div>
         

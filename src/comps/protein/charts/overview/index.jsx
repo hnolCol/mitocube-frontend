@@ -16,7 +16,6 @@ import MultipleMetrices from "../../../core/metrics/collection"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
-    console.log(dataset_label)
     const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
     
     const metdataIsObject = _.isObject(metadata)
@@ -49,7 +48,7 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
         {isLoading || isFetching ? <Loading /> : isError ? <APIError error={error} /> : 
             metdataIsObject ? <div className="div--expand padding--little" style={{overflowY:"scroll"}}>
                 
-                <div className="flex flex-column center-items">
+                <div className="flex flex-column center-items ">
                 <h1>{metadata.title}</h1>
                 <AuthorList {...{
                     user: metadata.user_label,
@@ -63,14 +62,15 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
                 <MultipleMetrices metrices={datasetMetrices} />
                 </div>
                 </div>
+                <div className="margin--medium">
                 <h2>Dataset Attributes</h2>
                 <DatasetAttributeHierarchy {...{
                     selectedDasetAttributeValues: metadata.dataset_attributes,
                     selectedAttributes: _.values(metadata.attributes)
                 }} />
                 <h2>Metatext</h2>
-                <Metatexts metadata={metadata}/>
-                
+                <Metatexts metadata={metadata} fill={true} />
+                </div>
             </div> : null}
     </Drawer>
 }

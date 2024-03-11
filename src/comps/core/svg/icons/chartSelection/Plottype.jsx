@@ -15,9 +15,9 @@ function PlottypeIcon({ height, placeholder = "", items = [{ text: "Menu1" }], p
                 <rect key={`normr-${idx}`} {...rectProps} x={2 + idx * barWidth} y={15 - rectProps.height} height={rectProps.height} width={barWidth}
                     fill={colorPalette[idx]} stroke="none" />) : null}
             {plotType === "boxplot" ? [
-                { min: 20, q25: 15, median: 10, q75: 8, max: 4 },
-                { min: 18, q25: 12, median: 5, q75: 3, max: 2 },
-                { min: 16, q25: 15, median: 10, q75: 8, max: 4 }].map((boxplotProps, idx) => {
+                { min: 15, q25: 13, median: 8, q75: 6, max: 2 },
+                { min: 16, q25: 12, median: 5, q75: 3, max: 2 },
+                { min: 14, q25: 12, median: 8, q75: 6, max: 1 }].map((boxplotProps, idx) => {
                     return (
                         <Box key={`${idx}-plotType-box`}{...boxplotProps} width = {7} x={5 + 10*idx}  fill={colorPalette[idx]} strokeWidth={0.5}/>
                 )

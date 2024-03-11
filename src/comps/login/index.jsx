@@ -1,22 +1,16 @@
 
-import { InputGroup, Button, Slider, RangeSlider } from "@blueprintjs/core"
+import { InputGroup, Button } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
 import { useEffect, useState } from "react"
-import { Link, useNavigate} from "react-router-dom"
+import { useNavigate} from "react-router-dom"
 import { useLoginUser, useVerifyToken } from "../../hooks/queries/login.hooks"
 import APIError from "../core/error/APIerror"
 import axios from "axios"
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
 import { saveInLocalStorage } from "../../services/localstorage"
-
-import DescriptionButton from "../core/base/buttons/DescriptionButton"
-import InteractiveChart from "../core/charts/interactive"
-import { ScatterPlot } from "../core/charts/scatter"
-import { ProfileChart } from "../core/charts/profiles/ProfileChart"
-import Heatmap from "../core/charts/heatmap"
 
 
 Login.propTypes = {

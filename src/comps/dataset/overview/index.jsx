@@ -1,28 +1,23 @@
-import { useOutletContext, useParams } from "react-router";
+import { useOutletContext } from "react-router";
 import MultipleMetrices from "../../core/metrics/collection";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Header } from "../../core/base/Header";
 import _ from "lodash"
-import GroupingTable from "../../core/base/attribute_selection/AttributeTable";
 import { motion } from "framer-motion";
 import { Button, Collapse, Divider, Icon } from "@blueprintjs/core";
-import APIError from "../../core/error/APIerror";
 import { copyTextToClipboard } from "../../../services/clipboard";
-import HelpOverlay from "../../core/overlay/Helpoverlay";
-import {useOnScreen} from "../../../hooks/useOnScreen";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
 import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks";
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
-import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../services/arrays/groupby";
+import {  groupListByProperty } from "../../../services/arrays/groupby";
 import DatasetAttributeHierarchy, { AttributeFeatureTag } from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
-import { getAttributeForUserNumericInput } from "../../../services/attributes";
 import { getUserFullName } from "../../../services/format/user";
 import { GenotypeCard } from "../../admin/genotypes/Genotypes";
-import genotypes from "../../../types/genotypes";
 import Loading from "../../core/base/loading";
+import { titleFormat } from "../../../services/format/string";
 
-export function Metatexts({ metadata }) {
+export function Metatexts({ metadata, fill = false }) {
 
     const { data: metatext, isSuccess, isLoading, isFetching, isError} = useGetSubmissionMetatext({ }, { staleTime: Infinity })
     if (isLoading || isFetching) return <Loading />
@@ -31,10 +26,10 @@ export function Metatexts({ metadata }) {
 
     return <div className="flex flex--wrap" style={{gap:"2rem"}}>{_.isObject(metadata) && _.isObject(metadata.metatext)?
         _.keys(metatext.names).filter(metatextTag => _.isString(metadata.metatext[metatextTag])).map(metatextTag => <div
-            className="container--shadow padding--little intent-margin-top--little "
+            className="container--shadow padding--little intent-margin-top--little"
             key = {metatextTag} >
         
-            <MetatextBox {...{metadata,metatextTag,metatext}} />
+            <MetatextBox {...{metadata,metatextTag,metatext,width: fill ? "100%" : undefined}} />
     
         </div>)
     
@@ -44,11 +39,11 @@ export function Metatexts({ metadata }) {
 
 }
 
-export function MetatextBox({ metatextTag, metadata, metatext}) {
+export function MetatextBox({ metatextTag, metadata, metatext, width = "25vw"}) {
     const [mouseIn, setMouseIn] = useState(false)
 
     return (
-        <motion.div onMouseEnter={() => setMouseIn(true)} onMouseLeave={() => setMouseIn(false)}>
+        <motion.div onMouseEnter={() => setMouseIn(true)} onMouseLeave={() => setMouseIn(false)} className="margin--little">
         <div className="flex margin--little justify-space-between">
                 <div className="flex flex-column"><div><h3>{metatext.names[metatextTag]}</h3></div></div>
                 <div><Button
@@ -58,12 +53,12 @@ export function MetatextBox({ metatextTag, metadata, metatext}) {
                     minimal={true}
                     onClick={() => copyTextToClipboard(metadata.metatext[metatextTag])}/></div>
         </div>
-        <motion.div
-            className="margin--little intent-margin-left intent-padding-right--little container--scroll-y-hide-x"
-            style={{ textAlign: "justify", width: "25vw", height: "33vh" }}>
+        <div
+            className="intent-padding-right--little container--scroll-y-hide-x"
+            style={{ textAlign: "justify", width, height: "33vh" }}>
             
                 {metadata.metatext[metatextTag]}
-    </motion.div>
+    </div>
     </motion.div>)
 
 }
@@ -185,7 +180,7 @@ function SamplesAttributes({ metadata }) {
 
 function DatasetOverview({authenticationStatus}) {
 
-    const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext()    
+    const { dataset_label, metadata, setTabHeader, tabHeader } = useOutletContext()    
     
     
     useEffect(() => {
@@ -245,28 +240,34 @@ function DatasetOverview({authenticationStatus}) {
                     </div>
                     <Divider/>
                 </div>
+
             </div>
+            
             <div className="flex flex--wrap">
                 {hasGenotypes ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
-                    <h2>Genotypes ({_.keys(metadata.genotypes).length})</h2>
+                    <h3>Genotypes ({_.keys(metadata.genotypes).length})</h3>
                     <div className="flex flex-column div--expand padding--little">
                         {_.keys(metadata.genotypes).map(genotypeLabel => <GenotypeCard {...{ justDisplay: true, genotype: metadata.genotypes[genotypeLabel], fill: true }} />)}
                     </div>
                 </div> : null}
                 {!_.isEmpty(metadata.samples_attributes) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
-                    <h2>Sample Attributes</h2>
+                    <h3>Sample Attributes</h3>
                     <SamplesAttributes {...{ metadata }} />
                 </div> : null}
             <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "min(50vh,500px)", overflowY:"scroll"}}>
-                    <h2>Dataset Attributes</h2>
+                    <h3>Dataset Attributes</h3>
                 <DatasetAttributeHierarchy {...{
                     selectedDasetAttributeValues: datasetAttributeValues,
                     selectedAttributes: dataAttributes
                     }} />
                 </div>
+                {metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
+                    <h3>Links</h3>
+                    {metadata.links.map(link => <div key={link.id}><a href={link.url}><strong>{titleFormat(link.comment)}</strong></a></div>)}
+                </div> : null}
             </div>
             <div className="intent-margin-right ">
-            <h2>Metatext</h2>
+            <h3>Metatext</h3>
             <div className="flex flex--wrap" style={{gap:"2rem"}}>
             {_.isObject(metadata) && _.isObject(metadata.metatext)?
                     <Metatexts metadata={metadata}/>

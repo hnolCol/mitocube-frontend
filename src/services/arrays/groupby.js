@@ -149,7 +149,15 @@ export function getAverageAndErrorByGroups(
 }
 
 
-
+/**
+ * @description Calculates the quantile based on a list of indices (subsets) 
+ * @param {Object} props 
+ * @param {Object[]} props.data 
+ * @param {Set[]} props.subsetIndices List of sets that define the subset to calculate the quantiles from.  
+ * @param {String} props.valueName The name of the quantile array 
+ * @param {Number[]} props.qs - The list of quantiles to be caluclated. Must range between 0 and 1. 
+ * @returns 
+ */
 export function getQuantileByIndices({data,subsetIndices,valueName,subsetNames, qs = [0.0,0.25,0.5,0.75,1.0]}) {
     let quantilesBySubset = {}
     _.forEach(subsetIndices, (subsetIndc,subetIdx) => {
@@ -159,7 +167,15 @@ export function getQuantileByIndices({data,subsetIndices,valueName,subsetNames, 
     return quantilesBySubset
 }
 
-
+/**
+ * 
+ * @param {*} data 
+ * @param {*} keyNames 
+ * @param {*} qs 
+ * @param {*} valueName 
+ * @param {*} yaxisName 
+ * @returns 
+ */
 export function getQuantilesByGroups(
     data = [{ Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.2 }, { Genotype: "KO", T: "0.5", y: 4.4 }, { Genotype: "WT", T: "0.5", y: 4.2 }],
     keyNames = ["Genotype", "T"],

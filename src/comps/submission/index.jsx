@@ -4,9 +4,7 @@ import { useState } from "react";
 
 
 function SubmissionHeader({ }) {
-    //submission filter defined.
-    // const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
-    // const [submissionFilter, setSubmissionFilter] = useState({})
+    
     return (
         <div className="no-scroll div--expand">
             <Tabs tabs={[

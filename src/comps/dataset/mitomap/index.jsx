@@ -3,15 +3,11 @@ import _ from "lodash"
 import { useGetNetwork } from "../../../hooks/queries/network.hooks"
 import InteractiveChart from "../../core/charts/interactive"
 import { useOutletContext } from "react-router"
-import { ScatterPlot  } from "../../core/charts/scatter"
-import ForceGraph from "react-force-graph-2d"
-import { DefaultLink, DefaultNode, Graph } from "@visx/network"
-import { scaleLinear } from "@visx/scale"
 import { Network } from "../../core/charts/scatter/Network"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { ScatterDataSelection } from "../pca"
 import { SegmentedControl } from "@blueprintjs/core"
-import { AttributePairwiseSelection } from "../../core/attribute_selection/Pairwise"
+import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise"
 import APIError from "../../core/error/APIerror"
 
 export function MitomapNetwork({ }) {
@@ -26,7 +22,10 @@ export function MitomapNetwork({ }) {
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }
-
+    /**
+     * 
+     * @param {Object} props 
+     */
     const handleSelection = (props) => {
         setNetworkProps(prevValues => {return {...prevValues,statProps : props}})
     }
@@ -55,7 +54,7 @@ export function MitomapNetwork({ }) {
                     defaultValue="pathway"
                 />
                 {_.isObject(metadata) ? 
-                    <AttributePairwiseSelection {...{metadata,callbackText : "Map Network.", callback : handleSelection, isLoading : isError ? false : (isFetching || isLoading)}} /> : null}
+                    <AttributePairwiseSelection {...{metadata,callbackText : "Map Network Nodes.", callback : handleSelection, isLoading : isError ? false : (isFetching || isLoading)}} /> : null}
             {/* <h4>Color encoding</h4>
             <SegmentedControl
                     options={[{ label: "Pairwise", value: "pairwise" }, { label: "Multiple", value: "mulitple" }]}
@@ -102,7 +101,8 @@ export function MitomapNetwork({ }) {
                     handleSearchByDataIndex,
                     filterDataInKeyByValue,
                     hoverProps,
-                    filterProps
+                    filterProps,
+                    labelProps
                         }, didx) => {
                     return (
                         <div>
@@ -120,8 +120,8 @@ export function MitomapNetwork({ }) {
                                         elementTypes: ["svg", "data"]
                                         }} />
                             <Network key={`${chartIdx}`}{...{
-                                width: 800,
-                                height : 800,
+                                width: 1100,
+                                height : 1100,
                                 chartIdx,
                                 colorName: valueNameFound ? network_data["value_keyName"] : "node_type",
                                 sizeName: undefined,
@@ -141,6 +141,7 @@ export function MitomapNetwork({ }) {
                                 dataRerender : [networkProps.type],
                                 ...hoverProps,
                                 ...filterProps,
+                                ...labelProps,
                                 attributeValuesByTag: metadata.attribute_values_by_tag,
                                 attributesByTag: metadata.attributes,
                                 genotypesByLabel : metadata.genotypes,

@@ -8,21 +8,7 @@ import { Combobox } from "../../core/input/Combobox"
 import _ from "lodash"
 import { ItemTable } from "./Table"
 import InitialSubmission from "../new/InitialSubmission"
-
-
-
-
-// const newFiles = e.target.files;
-// const fileName = newFiles[0].name;
-// const extension = fileName.split(".").pop();
-// const isSupported = ["txt"].includes(extension);
-
-// if (isSupported){
-//     const reader = new FileReader()
-//     reader.onload = (readEvent) => {
-        
-//         let { columnNames, dataArray } = readLinesAndColumnNamesFromTxtFile(readEvent)
-        
+ 
 
 const initState = {
     isLoading: false,

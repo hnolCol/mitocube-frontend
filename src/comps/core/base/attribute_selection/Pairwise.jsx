@@ -2,9 +2,9 @@
 import _ from "lodash"
 import { useState } from "react"
 import { Button, Checkbox, Divider, Tooltip } from "@blueprintjs/core"
-import GroupIconWithName from "../svg/icons/chartSelection/Group"
-import { TextIconWithName } from "../svg/icons/chartSelection/Text"
-import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
+import GroupIconWithName from "../../svg/icons/chartSelection/Group"
+import { TextIconWithName } from "../../svg/icons/chartSelection/Text"
+import { addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/transforms"
 
 
 
@@ -113,7 +113,7 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
     const onSave = () => {
         if (!_.isFunction(callback)) return null 
         const props = {
-            impute : false,
+            impute : selection.impute,
             sample_attribute_tag: selection.sample_attribute_tag.tag,
             attribute_value_tag_left: getTagKeyLabel (selection.sample_attribute_tag,selection.attribute_value_tag_left),
             attribute_value_tag_right: getTagKeyLabel (selection.sample_attribute_tag,selection.attribute_value_tag_right),
@@ -129,10 +129,9 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
 
 
     return (
-        <div style={{ width: "20rem", backgroundColor: "#efefef" }}>
+        <div className="margin--medium" style={{ width: "22rem", backgroundColor: "#efefef" }}>
             <Divider />
-            <h4>Comparison Selection</h4>
-            
+            <h4>Define Pairwise Comparison</h4>
             <GroupIconWithName items={attributes} minimal={false} placeholder={getPlaceHolderAttribute(selection.sample_attribute_tag)} selectedItems={[selection.sample_attribute_tag]} callback={addAttributeToSelection} callbackKey={"sample_attribute_tag"}/>
             {_.isObject(selection.sample_attribute_tag) ? <div className="flex flex-column">
                 <div>Define left (L) and right (R) group.</div>

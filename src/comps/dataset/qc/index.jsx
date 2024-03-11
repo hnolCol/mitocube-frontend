@@ -20,7 +20,7 @@ function DatasetQC() {
     /**
      * @type {import("../../../types/datasets").DatasetContextOutlet}
      */
-    const { dataset_label, metadata, refetchMetaData, setTabHeader, attributesByTag } = useOutletContext()   
+    const { dataset_label, metadata, setTabHeader } = useOutletContext()   
 
     const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_label })
     useEffect(() => {
@@ -45,7 +45,7 @@ function DatasetQC() {
     const dataAttributes = _.values(metadata.attributes)
     
     return (
-        <div className="div--expand padding--medium" style={{ overflowY: "scroll"}}>
+        <div className="div--expand padding--medium margin--medium" style={{ overflowY: "scroll"}}>
             
             <h2>Basic metrices</h2>
             

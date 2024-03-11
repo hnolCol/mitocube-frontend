@@ -1,6 +1,7 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
+import { Polygon } from "@visx/shape"
 
 ScatterPoints.propTypes = {
     data : PropTypes.array.isRequired,
@@ -48,16 +49,21 @@ function ScatterPoints({
     colorScale, 
     fill = "#efefef",
     stroke = "#000000", 
-    strokeWidth = 0.5, 
+    strokeWidth = 0.5,
+    searchStrokeWidth = 1.0,
     checkColorMap = false,
     colorMap = { "pathway": "#79c29e" },
     colorMapKeyName = "node_type",
+    glyphMap = { "pathway": "rect" },
+    checkPolyMap = false,
+    polyMapKeyName = "node_type",
     rerenderDependency = [], 
     searchIndices = new Set() ,
     filterIndices =  new Set()}){
  
     const filterByIdx = filterIndices.size !== 0
     const opacityBySearch = searchIndices.size !== 0
+   
     const colorScaleDefined = colorName !== undefined && _.has(data[0], colorName) && _.isFunction(colorScale)
     let validIdcs = indices === undefined ?_.range(data.length).filter(idx => valid[idx]) : Array.from(indices).filter(idx => valid[idx]) //!opacityBySearch ? valid[idx] : valid[idx] && !searchIndices.has(idx))
     // if (opacityBySearch) {
@@ -66,10 +72,43 @@ function ScatterPoints({
     // }
 
     //const idcs = opacityBySearch ? _.concat(_.range(data.length).filter(idx => searchIndices.has(idx)),Array.from(searchIndices)) : _.range(data.length)
-    const opacity = opacityBySearch?0.2:1.0
+    const opacity = opacityBySearch ? 0.1 : 1.0
+    
+
+    const getCircle = (idx, d, colorScaleValid, props) => {
+        if (!checkPolyMap || !_.has(d,polyMapKeyName) || !_.has(glyphMap,d[polyMapKeyName]) || glyphMap[d[polyMapKeyName]] === "circle") return <circle 
+        //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
+        key={`${idx}-sc-p`}
+        cx={xScale(d[xaxisName])} 
+        cy={yScale(d[yaxisName])} 
+        r={sizeScale(d[sizeName])} 
+        fillOpacity={opacity}
+        strokeOpacity={opacity}
+        {...{
+            fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
+            stroke,
+            strokeWidth,
+            ...props
+            }} />
+        if (glyphMap[d[polyMapKeyName]] === "rect") {
+            const width = sizeScale(d[sizeName]) * 2.2
+            return <rect
+                x={xScale(d[xaxisName]) - width / 2}
+                y={yScale(d[yaxisName]) - width / 2}
+                width={width}
+                height={width}
+                {... {
+                fill: checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]] : colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
+                stroke,
+                    rx: 2,
+                fillOpacity: opacity,
+                strokeOpacity : opacity,
+                strokeWidth, ...props}} />
+        }   
+    }
+
     return(
         <g>
-
             {validIdcs.map(idx => {
                 const d = data[idx]
                 if (!valid[idx]) return null 
@@ -78,40 +117,17 @@ function ScatterPoints({
                 const inSearchIdc = opacityBySearch && searchIndices.has(idx)
                 if (inSearchIdc) return null 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
-                
                 const colorScaleValid = colorScaleDefined ? _.isString(colorScale(d[colorName])) : false
-
-                return <circle 
-                    //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
-                    key={`${idx}-sc-p`}
-                    cx={xScale(d[xaxisName])} 
-                    cy={yScale(d[yaxisName])} 
-                    r={sizeScale(d[sizeName])} 
-                    fillOpacity={opacity}
-                    strokeOpacity={opacity}
-                    {...{
-                        fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
-                        stroke,
-                        strokeWidth}}/>
+                return getCircle(idx, d, colorScaleValid)
             })}
             {opacityBySearch ? Array.from(searchIndices).map(idx => {
                 if (!valid[idx]) return null 
                 const d = data[idx]
                 const colorScaleValid = colorScaleDefined ? _.isString(colorScale(d[colorName])) : false
-                    //filter data first and then map over it 
-                    return <circle 
-                        //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
-                        key={`${idx}-${d[xaxisName]}`}
-                        cx={xScale(d[xaxisName])} 
-                        cy={yScale(d[yaxisName])} 
-                        r={sizeScale(d[sizeName])} 
-                        fillOpacity={1.0}
-                        strokeOpacity={1.0}
-                        {...{
-                            fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
-                            stroke,
-                            strokeWidth}}/>
-                }):null}
+                //filter data first and then map over it 
+                return getCircle(idx, d, colorScaleValid,{strokeWidth : searchStrokeWidth, fillOpacity : 1.0, strokeOpacity : 1.0})
+            })
+                : null}
         </g>
     )
 }

@@ -6,7 +6,11 @@ import Loading from "../core/base/loading";
 import { useGetSubmissionAttributesByTag, useGetSubmissionStates } from "../../hooks/queries/submission.hooks";
 
 
-
+/**
+ * @description The header for the dataset view. Loads the metadata as well as the attributes. 
+ * @param {*} param0 
+ * @returns 
+ */
 function DatasetHeader({authenticationStatus}) {
     const params = useParams()
     const dataset_label = params.dataID
@@ -15,7 +19,7 @@ function DatasetHeader({authenticationStatus}) {
     
     // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
     const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching, refetch : refetchMetaData} = useGetMetadata({dataset_label})
-    const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({tokenString : authenticationStatus.token},{staleTime : Infinity})
+    const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     
     return (

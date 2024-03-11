@@ -1,16 +1,12 @@
-import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
-import { Link } from "react-router-dom";
 import { SubmissionItem } from "../../submission/view/SubmissionItem";
-import { useGetSubmissionAttributesByTag, useGetSubmissionByQuery, useGetSubmissionStates, useGetSubmissions } from "../../../hooks/queries/submission.hooks";
+import { useGetSubmissionAttributesByTag, useGetSubmissionByQuery, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
-import { extractSubmissionDetails, filterSubmissionByDatasetAttribute, filterSubmissions } from "../../submission/view/SubmissionContainer";
-import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesAndCountsFromList, groupListByProperty } from "../../../services/arrays/groupby";
+import { groupListByProperty } from "../../../services/arrays/groupby";
 import _ from "lodash"
 import { Button, InputGroup } from "@blueprintjs/core";
 import Loading from "../../core/base/loading";
-import { useMemo, useState } from "react";
-import { filterArrayBySearchString } from "../../../services/arrays/filter";
+import { useState } from "react"
 import { FeatureDatasetFilter } from "../../submission/filter/FeatureSelection";
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms";
 import useDebounce from "../../../hooks/useDebounce";
@@ -19,6 +15,7 @@ import { AttributeSelection } from "../../submission/filter/AttributeSelection";
 import { UserSelection } from "../../submission/filter/UserSelection";
 import "../../submission/submission.css"
 import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeSelection";
+
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
     const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })

@@ -2,9 +2,7 @@ import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
 import { useGetDatasetHeatmap } from "../../../hooks/queries/datasets.hooks";
 import Heatmap from "../../core/charts/heatmap";
-import MultipleMetrices from "../../core/metrics/collection";
 import InteractiveChart from "../../core/charts/interactive";
-import { ProfileChart } from "../../core/charts/profiles/ProfileChart";
 import { InputGroup } from "@blueprintjs/core";
 import _ from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
@@ -12,7 +10,7 @@ function DatasetHeatmap({}) {
     
     const { dataset_label, metadata } = useOutletContext()   
   
-    const anovaDetails = { pvalue: 0.05, anovaType: "1-way ANOVA", grouping1: "Genotype" }
+   // const anovaDetails = { pvalue: 0.05, anovaType: "1-way ANOVA", grouping1: "Genotype" }
     
     const { data : heatmapData, isLoading, isFetching, isError, error } = useGetDatasetHeatmap({dataset_label})
    // const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})

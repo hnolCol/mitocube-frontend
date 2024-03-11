@@ -11,11 +11,8 @@ import { getFormatDateFromTimestamp } from "../../../services/date/format"
 import { StateIndicator } from "../../submission/view/SubmissionContainer"
 
 
-Timeline.propTypes = {
-    data  : PropTypes.array.isRequired
-}
-//data = [{Date : "20230402", label : "Initialized",c : "State Changed"},{Date : "20230702", label : "Processed", c : "Edited"},{Date : "20230708", label : "Groupings Changed", c : "Modified"},{Date : "20230802", label : "Done",c : "State Changed"}], dateKeyName = "asDate", isDate = false
-function Timeline({ authenticationStatus }) {
+
+function Timeline({ }) {
 
     const { dataset_label, metadata, submissionStates} = useOutletContext()   
     

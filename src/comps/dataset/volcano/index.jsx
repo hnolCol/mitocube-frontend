@@ -13,7 +13,7 @@ import { ScatterDataSelection } from "../pca";
 import { Card } from "@blueprintjs/core";
 import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../services/arrays/groupby";
-import { AttributePairwiseSelection } from "../../core/attribute_selection/Pairwise";
+import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise";
 
 
 function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIsFetching }) {

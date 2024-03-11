@@ -15,7 +15,7 @@ import { Text } from "@visx/text"
  * @param {Object[]} props.data
  * @param {Set[]} props.subsetIndices 
  */
-export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, height = 85, rerender, subsetNames, marginleft = 25, marginRight = 30, marginTop = 10 }) {
+export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, height = 85, rerender, subsetNames, marginleft = 25, marginRight = 30, marginTop = 10, marginBottom = 10 }) {
     
     //console.log(subsetIndices, data)
     
@@ -34,7 +34,7 @@ export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, hei
 
         return scaleLinear({
             domain: [yDomainWithMargin.max, yDomainWithMargin.min],
-            range: [0,height],
+            range: [marginTop,height - marginBottom],
             nice: true
         })
     }, [rerender])
@@ -54,7 +54,7 @@ export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, hei
         <div className="flex">
         <SVG {...{ width, height }}>
             {/* plot the total data boxplot */}
-            <AxisLeft left={marginleft} scale={yScale} tickLength={2} numTicks={2} strokeWidth={0.5}/>
+            <AxisLeft left={marginleft} scale={yScale} tickLength={2} numTicks={3} strokeWidth={0.5}/>
             {_.keys(qs).map((i,idx) => {
                 const qqs = _.fromPairs(_.map(qs[i].labels, (label, idx) => [label, yScale(qs[i][yaxisName][idx])]))
                 return <g><Box {...qqs} x={xScale(idx) + xScale.bandwidth() / 2} width={xScale.bandwidth()} fill={idx > 0 ? "red" : undefined} />
