@@ -98,8 +98,8 @@ export const useGetDatasetVolcano = (APIParams = {}, useQueryOptions = {}) => {
         APIParams.attribute_left_tag,
         APIParams.attribute_right_tag,
         APIParams.sample_attribute_tag,
-        APIParams.within_sample_attribute_tag,
-        APIParams.within_sample_attribute_value_tag,
+        APIParams.within_attribute_tag,
+        APIParams.within_attribute_value_tag,
         APIParams.impute], () => getDatasetVolcano_API({ ...APIParams }), useQueryOptions)
 }
 

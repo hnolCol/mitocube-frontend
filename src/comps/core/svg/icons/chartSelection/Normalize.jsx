@@ -9,7 +9,7 @@ function NormalizeIcon({ height, placeholder = "", items = [{ text: "Menu1" }], 
     return (
         <ComboboxIconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly}}>
             {[{ height: 3 }, { height: 8 }, { height: 14 }, { height: 12 }, { height: 6 }, { height: 1 }].map((rectProps, idx) =>
-                <rect key={`normr-${idx}`} {...rectProps} x={2 + idx * barWidth} y={16 - rectProps.height} height={rectProps.height} width={barWidth}
+                <rect key={`normr-${idx}`} {...rectProps} x={2 + idx * barWidth} y={18 - rectProps.height} height={rectProps.height} width={barWidth}
                     fill={colorPalette[colorIdx]} stroke="none" />)}
         </ComboboxIconBase>
     )

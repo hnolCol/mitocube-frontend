@@ -1,7 +1,6 @@
 
 import PropTypes from "prop-types"
 import MultipleMetrices from "../core/metrics/collection"
-import Messages from "../core/messages"
 import { useGetBackendInfo, useGetKeyFigures, useGetNews } from "../../hooks/queries/welcome.hooks"
 import _ from "lodash"
 
@@ -10,7 +9,6 @@ Welcome.propTypes = {
     applicationInfo: PropTypes.object.isRequired,
     setApplicationInfo : PropTypes.func.isRequired
 }
-
 
 function KeyFigure({ authenticationStatus }) {
 

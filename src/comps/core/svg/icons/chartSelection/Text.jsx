@@ -11,13 +11,9 @@ import ComboboxIconBase from "./ComboboxBase"
  * @param {String | Number} props.callbackKey
  * @returns {import("react").ReactElement} - The combobox for the tooltip selection. 
  */
-export function TextIconWithName({ height = 25, width = 25, text = "T", placeholder = "", items = [{ text: "Menu1" }], selectedItems = [], callbackKey = undefined, callback = undefined, callbackValueOnly = false, margin = 7,  minimal = false }) {
-    const iconHeight = height - margin
-    const middleX = height / 2
-    const splitCenter = iconHeight / 1.4
+export function TextIconWithName({ height = 25, width = 25, text = "T", placeholder = "", items = [{ text: "Menu1" }], selectedItems = [], callbackKey = undefined, callback = undefined, callbackValueOnly = false, minimal = false, textKey ="text" }) {
     return (
-        <ComboboxIconBase {...{ height, width, placeholder, items, callback, callbackKey, callbackValueOnly, selectedItems, minimal }}>
+        <ComboboxIconBase {...{ height, width, placeholder, items, callback, callbackKey, callbackValueOnly, selectedItems, minimal, textKey }}>
             <Text x={width / 2} y={height / 2} verticalAnchor="middle" textAnchor="middle">{text}</Text>
-
         </ComboboxIconBase>)
 }

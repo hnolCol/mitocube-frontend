@@ -1,6 +1,4 @@
 import PropTypes from "prop-types"
-import Point from "./Point"
-import AxisWithBackground from "../axis"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
 import { useMemo, useRef } from "react"
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
@@ -10,7 +8,6 @@ import { useTooltip, useTooltipInPortal, TooltipWithBounds, Tooltip } from '@vis
 import { localPoint } from '@visx/event';
 
 import _ from "lodash"
-import MetricTable from "../../base/metrictable"
 import ScatterPoints from "./ScatterPoints"
 import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesFromArrayOfObjectsByKey } from "../../../../services/arrays/groupby"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
@@ -25,6 +22,7 @@ import { ScatterLabel } from "./Label"
 import { SearchIndicator } from "../annotations/Search"
 import { ChartTopLeftLabel } from "../profiles/ProfileChart"
 import { NetworkLinks } from "./Links"
+import { Subsetboxplot } from "../boxplot/subsetboxplot/Subsetboxplot"
 
 
 Network.propTypes = {
@@ -108,12 +106,14 @@ export function Network({
     legendWithAttributes = true,
     genotypesByLabel = {}
 }) {
+    //console.log(colorName)
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
-    const linkMaps = _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)]))
+    const linkMaps = useMemo(() => _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)])),[rerenderBackground,svgID,hoverIndices])
     _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx))))
+    
     const hoverIndcsArray = Array.from(hoverIndices)
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
@@ -163,7 +163,7 @@ export function Network({
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
         
-        if (_.isNumber(data[0][colorName]) && _.has(limits,colorName)) {
+        if (_.has(limits,colorName)) {
             const colorDomain = limits[colorName]
             const m = _.max([Math.abs(colorDomain.min), Math.abs(colorDomain.max)])
             return scaleLinear({
@@ -269,8 +269,8 @@ export function Network({
                         sizeScale,
                         sizeName,
                         colorName,
-                        checkColorMap: true,
-                        colorMap : { "pathway": "#466688", "localization" : "#18325c", "feature" : "#79c29e","main" : "#e7ad00"},
+                        checkColorMap: true, 
+                        colorMap : { "pathway": "#e7ad00", "localization" : "#e7ad00","main" : "#e7ad00"}, // "feature" : "#79c29e""#466688"#79c29e
                         colorMapKeyName : "node_type",
                         colorScale,
                         rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
@@ -295,7 +295,7 @@ export function Network({
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
-                {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${data.length}`], textOffset: 3 }} /> : null}
+                {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${data.length}`,colorName], textOffset: 3 }} /> : null}
                 <g>
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
                         key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
@@ -306,7 +306,6 @@ export function Network({
                 <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} onMouseUp = {handleMouseUp} fill="#ffffff" opacity={0.0}/>
             
             </SVG >
-            
             {tooltipOpen && tooltipNames.length > 0 && hoverChart === chartIdx ?
                 <TooltipInPortal
                     // set this to random so it correctly updates with parent bounds this tooltip is for the points of the scatter. 
@@ -315,15 +314,16 @@ export function Network({
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
                     <div className="flex flex-column justify-start" >
-                        {hoverIndcsArray.map((idx,ii) => _.isObject(data[idx]) ? <div key={`${idx}-hover`}>
+                        {hoverIndcsArray.map((idx, ii) => _.isObject(data[idx]) ? <div key={`${idx}-hover`}>
                             {<div>
-                                {ii === 0 ? <h4>{data[hoverIndcsArray[ii]][tooltipNames[0]]} ({hoverIndcsArray.length} links)</h4> : 
+                                {ii === 0 ? <h4>{data[hoverIndcsArray[ii]][tooltipNames[0]]} {_.isNumber(data[idx][colorName]) ? `(${_.round(data[idx][colorName], 2)})` : null} ({hoverIndcsArray.length} links)</h4> : 
                                     ii > 10 ? null : ii === 10 ? <div>...</div> : 
                                     tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`}
                                         style={{ maxWidth: "min(30vw, 600px)" }}>
-                                        {data[idx][tooltipName]} 
+                                        {data[idx][tooltipName]} {_.isNumber(data[idx][colorName]) ? `(${_.round(data[idx][colorName], 2)})`: ""}
                                     </div>)
                                 }
+                                {_.isString(colorName) && _.has(data[0],colorName) && ii === hoverIndcsArray.length - 1 && data[hoverIndcsArray[0]]["node_type"] !== "feature" ? <Subsetboxplot {...{data, yaxisName : colorName , subsetIndices : [hoverIndcsArray], subsetNames : [data[hoverIndcsArray[0]]["id"]]}} /> : null}
                                 {tooltipNames.length > 1 && hoverData.length > 1 ? <Divider /> : null}
                             </div>
                             }

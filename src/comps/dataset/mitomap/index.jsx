@@ -11,29 +11,64 @@ import { Network } from "../../core/charts/scatter/Network"
 import { useEffect, useState } from "react"
 import { ScatterDataSelection } from "../pca"
 import { SegmentedControl } from "@blueprintjs/core"
+import { AttributePairwiseSelection } from "../../core/attribute_selection/Pairwise"
+import APIError from "../../core/error/APIerror"
 
 export function MitomapNetwork({ }) {
     const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext() 
-    const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type : "pairwise" })
+    const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type : "pairwise", statProps : {} })
     //const [network_data, setnetwork_data] = useState({})
        
-    const { data: network_data, isLoading, isFetching, isSuccess } = useGetNetwork({ type: networkProps.type })
+    const { data: network_data, isLoading, isFetching, isSuccess, isError, error } = useGetNetwork({ network_type: networkProps.type, dataset_label, statProps : networkProps.statProps }, {enabled : !_.isEmpty(networkProps.statProps)})
     
-    //console.log(network_data)
-
+    const valueNameFound = _.isObject(network_data) && _.has(network_data,"value_keyName")
     const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, filterNames : [] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }
 
+    const handleSelection = (props) => {
+        setNetworkProps(prevValues => {return {...prevValues,statProps : props}})
+    }
+
+    //console.log(network_data)
     // useEffect(() => {setnetwork_data(network_data)},[isSuccess,networkProps.type])
     
     const network_dataValid = _.isObject(network_data) && _.has(network_data,"nodes")
-    const numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []
+    let numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []
+    if (valueNameFound) {
+        numericKeyNames  = _.concat(numericKeyNames,[network_data["value_keyName"]])
+    }
 
     return (<div className="div--expand" style={{overflowY:"scroll"}}>
         <div className="flex">
-        {isSuccess && _.isObject(metadata) && network_dataValid ? 
+        <div>
+            <h3>Settings</h3>
+            <h4>MitoCarta Network</h4>
+            <SegmentedControl
+                    options={[{ label: "Pathway", value: "pathway" }, { label: "Localization", value: "localization" }]}
+                    small={true}
+                    fill={false}
+                    value={networkProps.type}
+                    onValueChange={(value) => setNetworkProps(prevValues => { return { ...prevValues, type : value } })}
+                    intent="primary"
+                    defaultValue="pathway"
+                />
+                {_.isObject(metadata) ? 
+                    <AttributePairwiseSelection {...{metadata,callbackText : "Map Network.", callback : handleSelection, isLoading : isError ? false : (isFetching || isLoading)}} /> : null}
+            {/* <h4>Color encoding</h4>
+            <SegmentedControl
+                    options={[{ label: "Pairwise", value: "pairwise" }, { label: "Multiple", value: "mulitple" }]}
+                    small={true}
+                    fill={false}
+                    value={networkProps.comp_type}
+                    onValueChange={(value) => setNetworkType(value)}
+                    intent="primary"
+                    defaultValue="pairwise"
+                /> */}
+            {isError ? <APIError error={error}/> : null}
+            </div>
+            {isSuccess && _.isObject(metadata) && network_dataValid ? 
         <InteractiveChart
                 data={network_data.nodes}
                 extraLimitNames={numericKeyNames}
@@ -68,7 +103,7 @@ export function MitomapNetwork({ }) {
                     filterDataInKeyByValue,
                     hoverProps,
                     filterProps
-                }, didx) => {
+                        }, didx) => {
                     return (
                         <div>
                             <ScatterDataSelection keyNames={_.keys(network_data.nodes[0])}
@@ -88,7 +123,7 @@ export function MitomapNetwork({ }) {
                                 width: 800,
                                 height : 800,
                                 chartIdx,
-                                colorName: "node_type",
+                                colorName: valueNameFound ? network_data["value_keyName"] : "node_type",
                                 sizeName: undefined,
                                 // tooltipNames : selection.tooltipNames,
                                 data,
@@ -119,31 +154,7 @@ export function MitomapNetwork({ }) {
                     })}
 
                 </InteractiveChart> : null}
-            <div>
-                <h3>Settings</h3>
-                <h4>MitoCarta Network</h4>
-                <SegmentedControl
-                        options={[{ label: "Pathway", value: "pathway" }, { label: "Localization", value: "localization" }]}
-                        small={true}
-                        fill={false}
-                        value={networkProps.type}
-                        onValueChange={(value) => setNetworkProps(prevValues => { return { ...prevValues, type : value } })}
-                        intent="primary"
-                        defaultValue="pathway"
-                />
-                <h4>Color encoding</h4>
-                <SegmentedControl
-                        options={[{ label: "Pairwise", value: "pairwise" }, { label: "Multiple", value: "mulitple" }]}
-                        small={true}
-                        fill={false}
-                        value={networkProps.comp_type}
-                        onValueChange={(value) => setNetworkType(value)}
-                        intent="primary"
-                        defaultValue="pairwise"
-                />
-                
-                
-            </div>
+            
             </div>
             {/* <svg width={width} height={height}>
                 <rect width={width} height={height} rx={14} fill={background} />

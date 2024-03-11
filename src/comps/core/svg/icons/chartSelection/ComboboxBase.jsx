@@ -33,14 +33,14 @@ function ComboboxIconBase({
     callback = undefined,
     callbackValueOnly = false,
     minimal = true,
-    filterable = true,
+    filterable = false,
     children }) {
     
     const itemsAreObjects = _.isObject(items[0])
     const checkedItems = _.isString(items[0])?items.map(v => {return {[textKey] : v}}):items
 
     const handleSelection = (item, e) => {
-        const returnItem = itemsAreObjects ? item : item.text
+        const returnItem = itemsAreObjects ? item : item[textKey]
         if (_.isFunction(callback)) {
             if (callbackValueOnly) 
                 callback(returnItem )
@@ -66,10 +66,10 @@ function ComboboxIconBase({
      */
     const renderItem = (item, { handleClick, handleFocus, index, modifiers, query, ref }) => {
         const selected = isItemInArrayDeepComp({array : selectedItems, item})
-        if (item.text === "DIVIDER") return <MenuDivider key={`${index}-comboMenuDiv`} />
+        if (item[textKey] === "DIVIDER") return <MenuDivider key={`${index}-comboMenuDiv`} />
         return <MenuItem
-            key={`${item.text}-${index}`}
-            text={item.text}
+            key={`${item[textKey]}-${index}`}
+            text={item[textKey]}
             active={modifiers.active}
             disabled={modifiers.disabled}
             onClick={handleClick}

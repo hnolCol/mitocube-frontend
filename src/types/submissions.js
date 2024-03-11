@@ -39,6 +39,7 @@
  * @property {Object} links - The links conneced to the dataset
  * @property {Timeline} timeline - The submission time line.
  * @property {Runlist} runlist - Runlist that has been created for the submission 
+ * @property {Object.<string Object>} samples_genotypes
 */
 
 

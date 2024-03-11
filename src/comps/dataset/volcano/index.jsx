@@ -13,11 +13,8 @@ import { ScatterDataSelection } from "../pca";
 import { Card } from "@blueprintjs/core";
 import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty, groupListByProperty } from "../../../services/arrays/groupby";
+import { AttributePairwiseSelection } from "../../core/attribute_selection/Pairwise";
 
-
-function VolcanoPlot({dataset_label}) {
-    const { data, isVolcanoLoading, isVolcanoFetching } = useGetDatasetVolcano({ dataset_label, testParams: {} })
-}
 
 function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIsFetching }) {
     const [volcanoData, setVolcanoData] = useState({data : [], testParams : [], selection : [], suffixes : []})
@@ -80,7 +77,8 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
 
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-    return (<div className="div--expand" style={{overflowY : "scroll"}}> 
+    return (<div className="div--expand" style={{ overflowY: "scroll" }}> 
+    
         <InteractiveChart
                         data={volcanoData.data}
                         extraLimitNames={extraLimits} 
@@ -175,20 +173,21 @@ function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValue
     const [isFetching, setIsFetching] = useState(false)
 
     const handleVolcano = (props) => {
-        const params = {
-            attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
-            attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
-            sample_attribute_tag: props.main.tag,
-            within_sample_attribute_tag: props.withinGrouping.tag === "none" ? undefined : props.withinGrouping.tag,
-            within_sample_attribute_value_tag: _.has(props.withinGroup,"label") ? props.withinGroup.label : props.withinGroup.tag === "none" ? undefined: props.withinGroup.tag,
-            impute : props.impute
-        }
-        setTestParams(params)
+        // const params = {
+        //     attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
+        //     attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
+        //     sample_attribute_tag: props.main.tag,
+        //     within_sample_attribute_tag: props.withinGrouping.tag === "none" ? undefined : props.withinGrouping.tag,
+        //     within_sample_attribute_value_tag: _.has(props.withinGroup,"label") ? props.withinGroup.label : props.withinGroup.tag === "none" ? undefined: props.withinGroup.tag,
+        //     impute : props.impute
+        // }
+        setTestParams(props)
     }
     const genotype_defined = _.has(samplesGenotypes, "att_genotype") && samplesGenotypes["att_genotype"].length > 0 
     return (
         <div className="div--expand flex">
-            <VolcanoDataHandler {...{ dataset_label, selectedTestParams : testParams, metadata, setIsFetching }} />
+            <VolcanoDataHandler {...{ dataset_label, selectedTestParams: testParams, metadata, setIsFetching }} />
+            <AttributePairwiseSelection {...{metadata, callbackText : "Volcano plot.", callback : handleVolcano}} />
            <SamplesAttributesSelection
                 attributes={attributes}
                 groupAttributeValues={genotype_defined ? { ...samplesGenotypes, ...attributeValues } : attributeValues}

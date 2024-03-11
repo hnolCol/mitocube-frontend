@@ -60,9 +60,10 @@ function AxisWithBackground({
                 label={leftLabel} //label only first axis
                 labelOffset={30}
                 labelProps={{fontSize: "0.8rem", textAnchor : "middle"}}
-                tickLabelProps={{ fontSize: "0.8rem", ...leftTickLabelProps }}
+                tickLabelProps={{ fontSize: "0.8rem", ...leftTickLabelProps, width : 0.8 * chartHeight}}
                 tickFormat={(tickLabel) => leftTickLabelsVisible ? tickLabel : undefined}
                 left={leftStart}
+
                 scale={leftScale}
                 hideTicks={leftHideTicks}
                 numTicks={getNumberTicks(chartHeight)}
@@ -75,13 +76,14 @@ function AxisWithBackground({
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}
-                labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle",dy:10}}
+                labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle", dy:10, width : 0.8 * chartWidth}}
                 tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps}}
                 labelOffset={10}
                 numTicks={getNumberTicks(chartWidth)}
                 scale={bottomScale}
                 stroke={getAxisStrokeColor()}
-                tickLength={3} />
+                tickLength={3}
+                />
 
             
         </g>

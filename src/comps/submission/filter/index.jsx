@@ -44,9 +44,11 @@ export function SubmissionFilterSelection({ submissionsQuery, submissionQueryRes
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
             </div>
             <StateSelection {...{ states : submissionStates, submissionsByState, submissionFilter, setSubmissionFilter }} /> 
-            <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQueryResult.labels : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} />
+            <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
+                <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQueryResult.labels : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} />
             <GenotypeDatasetFilter {...{setSubmissionFilter}} />
             <UserSelection {...{ submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQueryResult.labels : [] }} />
+            </div>
             </div>
 
             <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>

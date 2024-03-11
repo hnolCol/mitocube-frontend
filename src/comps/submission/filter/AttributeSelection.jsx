@@ -16,8 +16,11 @@ import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/tran
 export function AttributeValues({ attribute, labels, submissionFilter, setSubmissionFilter }) {
     const labelsFound = _.isArray(labels) && labels.length > 0
     const attributeIsFeature = attribute.has_features_value
+    console.log(attribute)
     const { data : allSubmissionAttributeValues, isLoading : allSubIsLoading, isFetching : allSubIsFetching} = useGetAttributeValues({ attribute_tag : attribute.tag}, { staleTime : 600000})    
     const { data, isLoading, isFetching, isError } = useGetAttributeValues({ labels: _.join(labels, ";"), attribute_tag : attribute.tag}, { enabled: labelsFound})    
+    console.log(allSubmissionAttributeValues)
+    
     const handleClick = (attribute_value) => {
 
         setSubmissionFilter(prevValues => {
@@ -104,8 +107,9 @@ export function ExpandableButton({isOpen = false, text = "" , count = 0,showCoun
 
 
 export function AttributeSelection({ states, setSubmissionFilter, submissionFilter, submissionsByState, attributesByTag, labels }) {
+    
+    
     const [openGroups, setOpenGroup] = useState({})
-
     const { data : allSubmissionAttributes, isLoading : asIsLoading, isFetching : asIsFetching, isSuccess : asIsSuccess } = useGetSubmissionsCount({ group: "attribute_tag"}, {staleTime : Infinity})
     const { data, isSuccess } = useGetSubmissionsCount({ group: "attribute_tag", labels : _.join(labels,";") }, {enabled : labels.length > 0})
 
@@ -140,7 +144,7 @@ export function AttributeSelection({ states, setSubmissionFilter, submissionFilt
                                 handleOpen={() => handleOpenGroupTag(group_tag)}/>
                             {isOpen ? groupedAttributes[group_tag].map(attribute => {
                                 const showAttributeValues = _.has(openGroups, [group_tag, "attributeIsOpen", attribute.tag]) ?
-                                    openGroups[group_tag]["attributeIsOpen"][attribute.tag] : false 
+                                openGroups[group_tag]["attributeIsOpen"][attribute.tag] : false 
                                 return (
                                     <div key={`${attribute.tag}`} style={{marginLeft : "0.8rem", width : "100%"}}>
                                         <AttributeButton {...{ attribute, setOpenGroup, group_tag, count : _.has(data,attribute.tag)?data[attribute.tag].submission_count:0, showAttributeValues, setSubmissionFilter, submissionFilter }} />

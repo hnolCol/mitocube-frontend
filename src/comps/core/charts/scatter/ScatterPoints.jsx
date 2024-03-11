@@ -78,6 +78,9 @@ function ScatterPoints({
                 const inSearchIdc = opacityBySearch && searchIndices.has(idx)
                 if (inSearchIdc) return null 
                 if (filterByIdx && !filterIndices.has(idx)) return null 
+                
+                const colorScaleValid = colorScaleDefined ? _.isString(colorScale(d[colorName])) : false
+
                 return <circle 
                     //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
                     key={`${idx}-sc-p`}
@@ -87,16 +90,17 @@ function ScatterPoints({
                     fillOpacity={opacity}
                     strokeOpacity={opacity}
                     {...{
-                        fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined ? colorScale(d[colorName]) : fill,
+                        fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
                         stroke,
                         strokeWidth}}/>
             })}
             {opacityBySearch ? Array.from(searchIndices).map(idx => {
-                    if (!valid[idx]) return null 
-                    const d = data[idx]
+                if (!valid[idx]) return null 
+                const d = data[idx]
+                const colorScaleValid = colorScaleDefined ? _.isString(colorScale(d[colorName])) : false
                     //filter data first and then map over it 
                     return <circle 
-                        //dont use opacity, very very slow on safari, instead fill and strokeOpacity 
+                        //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
                         key={`${idx}-${d[xaxisName]}`}
                         cx={xScale(d[xaxisName])} 
                         cy={yScale(d[yaxisName])} 
@@ -104,7 +108,7 @@ function ScatterPoints({
                         fillOpacity={1.0}
                         strokeOpacity={1.0}
                         {...{
-                            fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined ? colorScale(d[colorName]) : fill,
+                            fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
                             stroke,
                             strokeWidth}}/>
                 }):null}
