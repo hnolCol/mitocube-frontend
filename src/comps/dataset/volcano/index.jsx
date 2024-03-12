@@ -135,6 +135,8 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                                         }} />
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
+                                        width: 400,
+                                        height : 400,
                                         colorName: volcanoData.selection[didx].colorName,
                                         sizeName: volcanoData.selection[didx].sizeName,
                                         data,
@@ -173,26 +175,19 @@ function VolcanoPlotWrapper({dataset_label, metadata, attributes, attributeValue
     const [isFetching, setIsFetching] = useState(false)
 
     const handleVolcano = (props) => {
-        // const params = {
-        //     attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
-        //     attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
-        //     sample_attribute_tag: props.main.tag,
-        //     within_sample_attribute_tag: props.withinGrouping.tag === "none" ? undefined : props.withinGrouping.tag,
-        //     within_sample_attribute_value_tag: _.has(props.withinGroup,"label") ? props.withinGroup.label : props.withinGroup.tag === "none" ? undefined: props.withinGroup.tag,
-        //     impute : props.impute
-        // }
         setTestParams(props)
     }
     const genotype_defined = _.has(samplesGenotypes, "att_genotype") && samplesGenotypes["att_genotype"].length > 0 
     return (
         <div className="div--expand flex">
+            <AttributePairwiseSelection {...{metadata, callbackText : "Volcano plot.", callback : handleVolcano, isLoading : isFetching}} />
             <VolcanoDataHandler {...{ dataset_label, selectedTestParams: testParams, metadata, setIsFetching }} />
-            <AttributePairwiseSelection {...{metadata, callbackText : "Volcano plot.", callback : handleVolcano}} />
-           <SamplesAttributesSelection
+            
+           {/* <SamplesAttributesSelection
                 attributes={attributes}
                 groupAttributeValues={genotype_defined ? { ...samplesGenotypes, ...attributeValues } : attributeValues}
             
-                {...{ metadata, callback: handleVolcano, isLoading: isFetching }} />
+                {...{ metadata, callback: handleVolcano, isLoading: isFetching }} /> */}
         </div>
     )
 }

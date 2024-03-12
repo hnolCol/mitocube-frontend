@@ -296,7 +296,7 @@ export function Network({
                         sizeName,
                         colorName: undefined,
                         colorScale,
-                        glyphMap : { "pathway": "rect" },
+                        glyphMap : { "pathway": "rect", "localization" : "rect" },
                         checkPolyMap : true,
                         polyMapKeyName : "node_type",
                         fill: "red",

@@ -73,7 +73,8 @@ function DatasetQC() {
                             yaxisName="value"
                             title={metadata.title}
                             attributesByTag={metadata.attributes}
-                            attributeValuesByTag={metadata.attribute_values_by_tag} />
+                            attributeValuesByTag={metadata.attribute_values_by_tag}
+                            genotypesByLabel={metadata.genotypes}/>
                     </div>
                 )
             })}

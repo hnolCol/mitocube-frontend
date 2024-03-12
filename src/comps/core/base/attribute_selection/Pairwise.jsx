@@ -34,7 +34,7 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
     const attributesTags = hasSamplesGenotypes ? _.concat(["att_genotype"], _.keys(metadata.samples_attributes)) : _.keys(metadata.samples_attributes)
     const attributes = attributesTags.map(attributeTag => metadata.attributes[attributeTag])
     const attributeValuesByAttributeTag = _.fromPairs(_.map(attributesTags, attributeTag => attributeTag === "att_genotype" ? 
-        [attributeTag,_.keys(metadata.samples_genotypes).map(genotypeLabel => metadata.genotypes[genotypeLabel])]
+        [attributeTag,_.keys(metadata.samples_genotypes).filter(genotypeLabel => _.has(metadata.genotypes,genotypeLabel)).map(genotypeLabel => metadata.genotypes[genotypeLabel])]
         : [attributeTag, _.keys(metadata.samples_attributes[attributeTag]).map(attributeValueTag => metadata.attribute_values_by_tag[attributeValueTag])]))
     const numberSelection = attributes.length
 
@@ -50,12 +50,15 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
 
     const addAttributeToSelection = (key, attribute) => {
         const wasSelected = selection[key] === attribute
+        const isMain = key === "sample_attribute_tag"
         if (wasSelected) {
             setSelection(prevValues => {
                 return {
                     ...prevValues,
                     [key]: prevValues[key] === undefined,
-                    within_attribute_tag : attributes
+                    within_attribute_tag: attributes,
+                    attribute_value_tag_left: isMain ? undefined : prevValues.attribute_value_tag_left,
+                    attribute_value_tag_right : isMain ? undefined : prevValues.attribute_value_tag_right
                 }
             })
         }
@@ -65,7 +68,9 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
                 return {
                     ...prevValues,
                     [key]: attribute,
-                    within_attribute_tag : nonMatchingAttributes
+                    within_attribute_tag: nonMatchingAttributes,
+                    attribute_value_tag_left: isMain ? undefined : prevValues.attribute_value_tag_left,
+                    attribute_value_tag_right : isMain ? undefined : prevValues.attribute_value_tag_right
                 }
             })
         }
@@ -130,7 +135,7 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
 
     return (
         <div className="margin--medium" style={{ width: "22rem", backgroundColor: "#efefef" }}>
-            <Divider />
+            
             <h4>Define Pairwise Comparison</h4>
             <GroupIconWithName items={attributes} minimal={false} placeholder={getPlaceHolderAttribute(selection.sample_attribute_tag)} selectedItems={[selection.sample_attribute_tag]} callback={addAttributeToSelection} callbackKey={"sample_attribute_tag"}/>
             {_.isObject(selection.sample_attribute_tag) ? <div className="flex flex-column">
