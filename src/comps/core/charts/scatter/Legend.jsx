@@ -14,6 +14,7 @@ import { roundNumber } from "../../../../services/format/number";
 function areEqual(prevProps, nextProps) {
     if (prevProps.colorName !== nextProps.colorName) return false 
     if (prevProps.sizeName !== nextProps.sizeName) return false 
+    if (prevProps.maxWidth !== nextProps.maxWidth) return false
     return true
   }
 
@@ -54,7 +55,7 @@ const ScatterLegend = React.memo(
         showTooltip,
         hideTooltip,
     } = useTooltip();
-
+    console.log(maxWidth)
     const findAttributeValues = (attribute, attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
         if (attribute.tag === "att_genotype") {

@@ -147,7 +147,7 @@ function Heatmap({
             <div>
                 <LegendLinear scale={valueScale}>
                     {(labels) => labels.map(label => {
-                            return <LegendItem>
+                        return <LegendItem key={label.value}>
                                 <svg width={legendElementSize} height={legendElementSize}><rect width={legendElementSize} height={legendElementSize} fill={label.value} /></svg>
                                 <LegendLabel>{roundNumber({ number: label.datum, limit : {min : minMax[0], max : minMax[1]}})}</LegendLabel>
                         </LegendItem>

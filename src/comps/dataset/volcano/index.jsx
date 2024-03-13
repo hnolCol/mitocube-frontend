@@ -19,7 +19,6 @@ import { AttributePairwiseSelection } from "../../core/base/attribute_selection/
 function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIsFetching }) {
     const [volcanoData, setVolcanoData] = useState({data : [], testParams : [], selection : [], suffixes : []})
     //console.log(selectedTestParams,volcanoData.testParams)
-    console.log(metadata)
     const handleSuccess = (data) => {
         //merge data to get super fast split
        
@@ -77,7 +76,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
 
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-    return (<div className="div--expand" style={{ overflowY: "scroll" }}> 
+    return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap : "0.5rem" }}> 
     
         <InteractiveChart
                         data={volcanoData.data}
@@ -119,7 +118,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                             labelProps
                         }, didx) => {
                             return (
-                                <Card className="margin--little" compact={true} style={{maxWidth: "700px"}}>
+                                <Card compact={true} style={{maxWidth: "700px", maxHeight : "500px"}}>
                                     <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                         {...{
                                             title : "Volcano Plot",
