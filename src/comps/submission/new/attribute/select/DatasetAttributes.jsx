@@ -18,7 +18,11 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
         const attributeFromKey = attributes.filter(attr => attr.id === attributeValue.attribute_id)[0]
         handleItemSelect(attributeFromKey, attributeValue)
     }
-
+    /**
+     * @description Renders the items in the dataset attribute selection menu (suggest)
+     * @param {Object} props 
+     * @returns 
+     */
     const renderItems = ({ activeItem, filteredItems, query }) => {
         const filteredAttributeValuesByID = groupListByProperty(filteredItems, "attribute_id")
 
@@ -33,8 +37,7 @@ function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesBy
                 attributeValuesByID,
                 handleItemSelect,
                 proteome_ids,
-                query,
-                //handleFeatureSelection
+                query
             }} />
 
         )

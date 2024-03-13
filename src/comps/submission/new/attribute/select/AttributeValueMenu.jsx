@@ -8,17 +8,25 @@ import { createFakeAttributeValue } from "../../../../../services/attributes";
 import { FeatureInput } from "../../../../core/input/api/FeatureInput";
 
 
-function AttributeValueSelectionMenu({activeItem, attributes, filteredAttributeValuesByID, attributeValuesByID, handleItemSelect, maxItems = 10, query = "", proteome_ids = [],selectedDatasetAttribute,
-selectedDatasetAttributeValues}) {
+function AttributeValueSelectionMenu({
+    activeItem,
+    attributes,
+    filteredAttributeValuesByID,
+    attributeValuesByID,
+    handleItemSelect,
+    maxItems = 10,
+    query = "",
+    proteome_ids = [],
+    selectedDatasetAttributeValues}) {
     
     const attributesMatch = !_.isEmpty(attributeValuesByID)
+
     const attributeIDsMatchingQuery = useMemo(() => {
         if (query === "") return Object.fromEntries(attributes.map(attr => [attr.id,attr.id]))
         return Object.fromEntries(filterArrayBySearchString({ array: attributes, searchString: query, keyNames: ["tag", "text"]}).map(attr => [attr.id,attr.tag]))
     }, [query])
 
     const attributeMatch = !_.isEmpty(attributeIDsMatchingQuery)
-
     const handleNumericInput = (numericInput, attrValues, attribute) => {
         const attributeAlreadyPresent = attrValues.filter(attrValue => attrValue.text === _.toString(numericInput))
         if (attributeAlreadyPresent.length > 0) {

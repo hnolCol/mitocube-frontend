@@ -12,7 +12,7 @@ TextInput.propTypes = {
     style : PropTypes.object
 }
 
-function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, optional, placeholder = "Enter value ..", disabled =  false, style = {},  isRequired = true}) {
+function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, optional, placeholder = "Enter value ..", disabled =  false, style = {},  isRequired = true, id = undefined}) {
     //Textinput when props are derived from backend.
     const checkForMinLength = minLength > 0 
 
@@ -36,7 +36,7 @@ function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, option
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
             helperText={""}>
-                <InputGroup value={value} onValueChange={handleValueChange} {...{ placeholder, disabled }} {...style} />
+                <InputGroup value={value} onValueChange={handleValueChange} {...{ placeholder, disabled, id }} {...style} />
             </FormGroup>
             {/* <div className="font-size--small">
                 {optional?"Optional : ": ""}{`${hint} ${checkForMinLength?`(min. ${minLength} characters)`:""}`}

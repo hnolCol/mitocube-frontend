@@ -306,7 +306,7 @@ export function Network({
                 {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${data.length}`,colorName], textOffset: 3 }} /> : null}
                 <g>
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
-                        key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
+                        key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex, split : data[labelIndex]["node_type"] === "feature",
                         opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5}} />) : null}
                 </g>
 

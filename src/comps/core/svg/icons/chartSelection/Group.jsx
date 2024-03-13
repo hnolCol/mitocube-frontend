@@ -1,17 +1,15 @@
-import { getColorPalette } from "../../../colors/colorPalette"
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
-function GroupIconWithName({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }],textKey ="text", selectedItems = [], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true}) {
-    
-    const colorPalette = getColorPalette(3)
+function GroupIconWithName({ height = 25, width = 25, placeholder = "", hightlightBox ,items = [{ text: "Menu1" }],textKey ="text", selectedItems = [], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true}) {
+    const boxwidth = width / 3
+    const boxheight = height / 2
+    const horizotalmargin = 2
     return (
-        <ComboboxIconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly,selectedItems, minimal, textKey}}>
-            {[
-            { cx: width/3, cy: height/2, fill: colorPalette[0]},
-            { cx: width/2, cy: height/3, fill: colorPalette[1]},
-            { cx: width/1.7, cy: height/1.6, fill: colorPalette[2]}].map((circleProps, idx) => <circle key={`${idx}-circleP`} {...circleProps} r={5} stroke="black" strokeWidth={0.5} opacity={0.8} />)}
-            
+        <ComboboxIconBase {...{ height, placeholder, items, callback, callbackKey, callbackValueOnly, selectedItems, minimal, textKey }}>
+            <line x1={horizotalmargin + boxwidth/2} x2={width - horizotalmargin - boxwidth/2} y1={height / 2} y2={height / 2} stroke="black" strokeWidth={1} />
+            <rect x={horizotalmargin} y={height/2 - boxheight / 2} fill={hightlightBox ? "#fff" : hightlightBox === "left" ? "red" : "#fff"} width={boxwidth} height={boxheight} stroke="#000" rx={2} /> 
+            <rect x={width - horizotalmargin - boxwidth} y={height/2 - boxheight/2} fill={hightlightBox?"#fff":hightlightBox === "right" ? "red" : "#fff"} width={boxwidth} height={boxheight} stroke="#000" rx={2}/> 
         </ComboboxIconBase>
     )
 }

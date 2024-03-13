@@ -78,6 +78,38 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
         })
     }
 
+    const clearGenotypeColumn = (rowIdcs) => {
+        if (_.isArray(rowIdcs)) {
+
+            let genotypeAttributes = submission.genotypeAttributes
+            _.forEach(rowIdcs, rowIdx => {
+                genotypeAttributes[rowIdx] = []
+            })
+            updateSubmission(prevValues => {
+                return {
+                    ...prevValues,
+                    genotypeAttributes: genotypeAttributes,
+                    rerenderTableDependency: [Math.random()],
+                    sampleNames:
+                        constructSampleNames(prevValues.label, prevValues.sampleNames.length, prevValues.attributeTable, genotypeAttributes)
+                }
+            })
+        }
+        else {
+            //if not an array remove all
+            updateSubmission(prevValues => {
+                return {
+                    ...prevValues,
+                    genotypeAttributes: [],
+                    rerenderTableDependency: [Math.random()],
+                    sampleNames:
+                        constructSampleNames(prevValues.label, prevValues.sampleNames.length, prevValues.attributeTable, [])
+                }
+            })
+        }
+        
+    }
+
     const repeatSelection = (rowIdcs, attributeTag) => {
         let attributeTable = submission.attributeTable
         const n_samples = attributeTable.length
@@ -318,7 +350,8 @@ export function SampleAttributeTableWrapper({ submission, attributes, updateSubm
                 attributes: attributesAllowedForDataset,
                 genotypes,
                 addSampleAttr,
-                clearSampleAttrByIndex,
+                    clearSampleAttrByIndex,
+                    clearGenotypeColumn,
                 clearAttributeTableByRowIndex,
                 onSampleAttributeSelect,
                 removeSampleAttrByIndex,

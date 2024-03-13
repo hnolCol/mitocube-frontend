@@ -5,7 +5,7 @@ import TextInput from "../../../../core/input/Text"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
 import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider} from "@blueprintjs/core"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
 import _ from "lodash"
 import NumericValueInput from "../../../../core/input/Numeric"
@@ -27,7 +27,7 @@ function FeatureSelectionInMenu({ onSave, proteome_ids, attribute, selectedRows,
         const updatedFeatures = addItemToArrayOrRemoveItIfPresent({ array: selectedItems, item: feature })
         setSelectedItems(updatedFeatures)
     }
-    
+
     return (
         <div>
         <FeatureInput {...{ attribute, proteome_ids, onItemSelect : collectItems, selectedItems }} />
@@ -106,20 +106,27 @@ function extractGenotypeRepresentation(genotype) {
 }
 
 
-function GenotypeContextMenu({ genotypes, selectedRows, handleGenotypeSelection, proteome_ids }) {
+function GenotypeContextMenu({ genotypes, selectedRows, handleGenotypeSelection, proteome_ids, clearGenotypeColumn  }) {
     
     const [queryString, setQuery] = useState("")
-
+    
     let genotpesBySearchQuery = useMemo(() => queryString === "" ? genotypes : filterArrayBySearchString({
         searchString: queryString,
         array: genotypes,
         keyNames: ["text"]
     }), [queryString])
 
+
+    useEffect(() => {
+        const el = document.getElementById("genotype-input")
+        el.focus()
+    },[])
+
     return (
         <Menu style={{minWidth : "500px"}} onWheelCapture={e => e.stopPropagation()}>
             <MenuItem text="Genotypes" disabled={true} />
             <TextInput
+                id={"genotype-input"}
                     value={queryString}
                     callbackKey={"a"}
                     placeholder="Search genotype..."
@@ -137,6 +144,7 @@ function GenotypeContextMenu({ genotypes, selectedRows, handleGenotypeSelection,
                     : null}
             </Menu>
             <MenuDivider />
+            <MenuItem text="Clear Selection" icon="clean" onClick={() => clearGenotypeColumn(selectedRows)}/>
         </Menu>
     )
 }
@@ -180,9 +188,16 @@ export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAtt
         array: attributeValues,
         keyNames: ["text", "details"]
     }), [queryString])
+
+    useEffect(() => {
+        const el = document.getElementById("attribute-context-input")
+        el.focus()
+    }, [])
+    
     return (
         <Menu style={{zIndex:10}} onWheelCapture={e => e.stopPropagation()}>
-                <TextInput
+            <TextInput
+                    id = "attribute-context-input"
                     value={queryString}
                     callbackKey={"a"}
                     placeholder="Search attribute value..."
@@ -220,6 +235,7 @@ function SamplesAttributes({
     onTagRemove = undefined,
     removeSampleAttrByIndex = undefined,
     clearSampleAttrByIndex = undefined,
+    clearGenotypeColumn = undefined,
     clearAttributeTableByRowIndex = undefined,
     onFeatureSelection,
     rerenderTableDependency = 0,
@@ -282,7 +298,7 @@ function SamplesAttributes({
 
         //replicates menu 
         if (columnIndex === 1) return <ReplicateContextMenu {...{ numberReplicates, onReplicateChange, selectedRows }} />
-        if (columnIndex === 2) return <GenotypeContextMenu {...{genotypes, selectedRows, handleGenotypeSelection, proteome_ids}}/>
+        if (columnIndex === 2) return <GenotypeContextMenu {...{genotypes, selectedRows, handleGenotypeSelection, proteome_ids,clearGenotypeColumn}}/>
         let sampleAttribute = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
 
@@ -471,9 +487,18 @@ function SamplesAttributes({
         setSelectedRows(rows)
     }
 
-    const renderDefaultHeader = (headerName) => {
+    const genotypeHeaderMenu = () => {
 
-        return <ColumnHeaderCell>
+        return <Menu small={true}>
+            <MenuItem text="Genotypes" disabled={true} />
+            <MenuDivider />
+            <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={genotypeAttributes.length === 0} />
+        </Menu>
+    }
+
+    const renderDefaultHeader = (headerName, menuRenderer) => {
+
+        return <ColumnHeaderCell menuRenderer={menuRenderer}>
             <div className="margin--little" style={{ minHeight: "50px", maxHeight : "50px" }}>
                 <h4>{headerName}</h4></div>
         </ColumnHeaderCell>
@@ -512,11 +537,12 @@ function SamplesAttributes({
                         columnHeaderCellRenderer={() => renderDefaultHeader("Replicates")} />
                     <Column
                         cellRenderer={renderGenotype}
-                        columnHeaderCellRenderer={() => renderDefaultHeader("Genotype")} />
+                        columnHeaderCellRenderer={() => renderDefaultHeader("Genotype",genotypeHeaderMenu)} />
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.text}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
                     <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">
-                        <Button icon="plus" onClick={addSampleAttr} /></div></ColumnHeaderCell>} />
+                        <Button icon="plus" onClick={addSampleAttr} /></div>
+                    </ColumnHeaderCell>} />
             </Table2>
             </HotkeysProvider>
         </div>

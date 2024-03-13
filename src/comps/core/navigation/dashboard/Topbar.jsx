@@ -11,6 +11,7 @@ import { BaseDialog } from "../dialogs/BaseDialog"
 import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
 import { Link } from "react-router-dom"
+import { TermsOfUse } from "../../documents/TermsOfUse"
 
 
 /**
@@ -28,17 +29,34 @@ function Topbar({authenticationStatus,logout}) {
 
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
     
-    const onEidt = (e) => {
+    const onEdit = (e) => {
 
         setDialogProps(prevValues => {
             return {
                 ...prevValues,
                 isOpen: true,
                 title : "Edit User",
-                children: <EditUser userLabel={authenticationStatus.label} />
+                children: <EditUser userLabel={authenticationStatus.label} />,
+                style: { width: "600px" },
+                useDialogBody : true,
             }
         })
     }
+
+    const onReadUseTerms = () => {
+
+        setDialogProps(prevValues => {
+            return {
+                ...prevValues,
+                isOpen: true,
+                title : "Terms of use",
+                children: <TermsOfUse />,
+                useDialogBody : false,
+                style : {width : "800px"}
+            }
+        })
+    }
+
 
     return (
 
@@ -56,7 +74,7 @@ function Topbar({authenticationStatus,logout}) {
                     <Popover position={Position.BOTTOM_LEFT} content={<Menu>
                         <MenuItem disabled={true} text={`${authenticationStatus.firstname} ${authenticationStatus.lastname}`} />
                         <MenuDivider />
-                        <MenuItem text="Edit" icon="edit" onClick={onEidt}/>
+                        <MenuItem text="Edit" icon="edit" onClick={onEdit}/>
                         <MenuItem text="Logout" icon="log-out" onClick={logout}/>
                     </Menu>}>
                         <BaseDashboardIcon width={30} height={30}>
@@ -67,6 +85,7 @@ function Topbar({authenticationStatus,logout}) {
                 </div>
                 <div className="bg--grey margin--little">
                     <BasicMenu items={[
+                        { text : "Terms of use", icon : "document", onClick : onReadUseTerms},
                         { text: "Report an issue", icon: "issue-new", onClick: () => openInNewTab(backendInfo.issue_url), intent  :"danger"},
                         { text: "GitHub", icon: "git-branch", onClick: () => openInNewTab(backendInfo.github_url) },
                         { text: "Impressum", icon: "small-info-sign", href: "/impressum" },

@@ -19,6 +19,7 @@ function areEqual(prevProps, nextProps) {
     if (prevProps.xaxisName !== nextProps.xaxisName) return false 
     if (prevProps.yaxisName !== nextProps.yaxisName) return false 
     if (prevProps.opacity !== nextProps.opacity) return false 
+    if (prevProps.split !== nextProps.split) return false 
     return true
   }
 
@@ -34,6 +35,7 @@ const ScatterLabel = React.memo(
      * @param {String[]} props.labelNames - The array of keyNames to the labels.
      * @param {Function} props.xScale - The scale to calculate the pixel position in the svg for the x-axis
      * @param {Function} props.yScale - The scale to calculate the pixel position in the svg for the y-axis
+     * @param {Boolean} props.split - If the label should be split by the props.splitString and taking the desired props.splitIndex
      * @returns 
      */
     function ScatterLabel({
@@ -44,6 +46,7 @@ const ScatterLabel = React.memo(
         xaxisName,
         yaxisName,
         labelNames,
+        split = true,
         joinString = ",",
         splitString = " ",
         splitIndex = 0,
@@ -52,7 +55,7 @@ const ScatterLabel = React.memo(
     }) {
     
     const labelStrings = labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text))
-    const labelText = _.join(labelStrings.map(labelString => _.split(labelString,splitString).at(splitIndex)), joinString)
+    const labelText = _.join(labelStrings.map(labelString => split?_.split(labelString,splitString).at(splitIndex):labelString), joinString)
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 
     if (labelStrings.length === 0) return null 
     if (!_.isNumber(data[index][xaxisName]) || !_.isNumber(data[index][yaxisName])) return null 
