@@ -39,7 +39,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                 ...prevValues, data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
                 testParams: _.concat(prevValues.testParams, selectedTestParams),
-                selection : _.concat(prevValues.selection,{ xaxisName: `log2 FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `Significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, filterNames : [] })
+                selection : _.concat(prevValues.selection,{ xaxisName: `log2 FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `Significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, filterNames : ["genes"] })
             }
         })
     }
@@ -76,7 +76,9 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
 
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-    return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap : "0.5rem" }}> 
+    
+    //console.log(volcanoData)
+    return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap: "0.5rem" }}> 
     
         <InteractiveChart
                         data={volcanoData.data}

@@ -107,7 +107,7 @@ function DatasetHeatmap({}) {
                         
                         
                             }} /> */}
-                                <div>
+                                <div style={{overflowX:"scroll"}}>
                                     <Heatmap {...{
                                         data,
                                         clusterName : "cluster",

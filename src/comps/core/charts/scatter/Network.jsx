@@ -112,7 +112,7 @@ export function Network({
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
     const linkMaps = useMemo(() => _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)])),[rerenderBackground,svgID,hoverIndices])
-    _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx))))
+    useMemo( () => _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx)))), [linkMaps])
     
     const hoverIndcsArray = Array.from(hoverIndices)
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
@@ -339,7 +339,6 @@ export function Network({
                         
                     </div>
                 </TooltipInPortal> : null} 
-            {console.log(colorName, legendWithAttributes)}
             <div>
                 {legend ? legendWithAttributes ? <ScatterLegend {...{
                     chartIdx,
