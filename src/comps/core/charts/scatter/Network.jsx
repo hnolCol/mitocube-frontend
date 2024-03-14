@@ -256,6 +256,9 @@ export function Network({
                         xaxisName,
                         yaxisName,
                         sizeName,
+                        glyphMap : { "pathway": "rect", "localization" : "rect"},
+                        checkPolyMap : true,
+                        polyMapKeyName : "node_type",
                         fill : "#efefef",
                         rerenderDependency: _.concat(rerenderBackground, [sizeName]),
                     }} /> : null}
@@ -278,6 +281,7 @@ export function Network({
                         checkPolyMap : true,
                         polyMapKeyName : "node_type",
                         rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
+                        searchStrokeWidth : 1.5,
                         filterIndices,
                         searchIndices
                     }} /> : null}

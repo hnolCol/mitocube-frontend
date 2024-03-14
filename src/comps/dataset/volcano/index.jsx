@@ -142,6 +142,7 @@ function VolcanoDataHandler({ dataset_label, selectedTestParams, metadata, setIs
                                         sizeName: volcanoData.selection[didx].sizeName,
                                         data,
                                         valid,
+                                        centerXAxisAtZero : true,
                                         labelNames : ["genes"],
                                         findDataInRectangle,
                                         setHoverDataInRectangle,

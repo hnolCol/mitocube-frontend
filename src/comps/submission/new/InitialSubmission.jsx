@@ -254,7 +254,6 @@ function InitialSubmission({
                 delete submissionDetails["genotypes"]
             }
             submissionDetails["genotypes"] = genotypeAttributes
-            console.log(loadingFileProps)
             submissionDetails["attributeTable"] = attributeTable
             submissionDetails["label"] = label
             submissionDetails["title"] = flexAttributes.title 
@@ -265,7 +264,6 @@ function InitialSubmission({
                 loadingFileProps.sampleColumnsIdx.map(rowIndex => row_data[rowIndex] === "NaN" || row_data[rowIndex] === "" ? NaN : _.toNumber(row_data[rowIndex]))) : undefined
             submissionDetails["data_sample_names"] = submitExistingData ? loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx]) : []
             submissionDetails["data_index"] = findFeatures(loadingFileProps)
-            console.log(submissionDetails)
             postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
@@ -570,7 +568,7 @@ function InitialSubmission({
                     
                 {/* <Button onClick={handleGenotypeCreation} /> */}
                         <GenotypeGenerator
-                    proteome_ids={proteome_ids}
+                    proteome_ids={proteome_ids.filter(proteome_id => proteome_id !== "controls")}
                     attributes={attributesForGenotype}
                     attributeValuesByID={attributeValuesByAtrributeID}
                     //onSelection={genotypeSelection}

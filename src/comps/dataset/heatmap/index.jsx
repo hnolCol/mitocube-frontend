@@ -61,8 +61,8 @@ function DatasetHeatmap({}) {
                         }, didx) => {
                     return (
                         <div>
-                            <InputGroup onValueChange={(value, e) => handleStringSearch(heatmapData.label_names, value)} />
-                            <div className="flex" style={{display:"grid", gridTemplateColumns : "500px 1fr", gridTemplateRows: "1fr"}}>
+                            <InputGroup onValueChange={(value, e) => handleStringSearch(heatmapData.label_names, value)} small={true} placeholder="Search for gene name..."/>
+                            <div className="flex" style={{display:"grid", gridTemplateColumns : "500px 1fr", gridTemplateRows: "70vh"}}>
                             <div style={{overflowY:"scroll", gridColumn:1,gridRow:1, height:"1fr"}}>
                             <MultiProfiles {...{
                                 chartIdx, data,
@@ -107,7 +107,7 @@ function DatasetHeatmap({}) {
                         
                         
                             }} /> */}
-                                <div style={{overflowX:"scroll"}}>
+                                <div style={{overflowY:"scroll", gridColumn:2,gridRow:1, height:"1fr"}}>
                                     <Heatmap {...{
                                         data,
                                         clusterName : "cluster",

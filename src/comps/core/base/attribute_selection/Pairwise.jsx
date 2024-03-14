@@ -69,8 +69,8 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
                     ...prevValues,
                     [key]: attribute,
                     within_attribute_tag: nonMatchingAttributes,
-                    attribute_value_tag_left: isMain ? undefined : prevValues.attribute_value_tag_left,
-                    attribute_value_tag_right : isMain ? undefined : prevValues.attribute_value_tag_right
+                    attribute_value_tag_left: isMain ? attributeValuesByAttributeTag[attribute.tag][0] : prevValues.attribute_value_tag_left,
+                    attribute_value_tag_right : isMain ? attributeValuesByAttributeTag[attribute.tag][1] : prevValues.attribute_value_tag_right
                 }
             })
         }
@@ -101,7 +101,7 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
     }
 
     const getPlaceHolderAttribute = (attribute) => {
-        return _.isObject(attribute)?attribute.text:""
+        return _.isObject(attribute)?attribute.text:"Select attribute..."
     }
 
     const getPlaceHolderAttributeValue = (attribute, attributeValue) => {

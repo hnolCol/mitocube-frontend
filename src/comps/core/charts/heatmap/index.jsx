@@ -11,6 +11,7 @@ import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
 import { LegendItem, LegendLabel, LegendLinear } from "@visx/legend"
 import { roundNumber } from "../../../../services/format/number"
 import useDebounce from "../../../../hooks/useDebounce"
+import { localPoint } from "@visx/event"
 
 Heatmap.propTypes = {
     width : PropTypes.number,
@@ -118,6 +119,11 @@ function Heatmap({
 
 
     const handleMouseEntersRow = (event, index) => {
+        
+        // const coords = localPoint(event.target.ownerSVGElement, event);
+        // const int = (coords.x - binHeight / 4) / binHeight - 1 // maring
+        
+        //console.log(coords)
         hoverIndices.clear()
         hoverIndices.add(index)
         setHoverDataByDataIndex(undefined,hoverIndices)
@@ -143,8 +149,10 @@ function Heatmap({
     }
     return (
         
-        <div className="flex">
-            <div>
+        <div className="flex flex-column">
+            <div className="margin--medium flex flex-column" style={{maxHeight:"12rem"}}>
+                <div><h4>Z-Scores</h4></div>
+                <div className="flex">
                 <LegendLinear scale={valueScale}>
                     {(labels) => labels.map(label => {
                         return <LegendItem key={label.value}>
@@ -152,7 +160,8 @@ function Heatmap({
                                 <LegendLabel>{roundNumber({ number: label.datum, limit : {min : minMax[0], max : minMax[1]}})}</LegendLabel>
                         </LegendItem>
                     })}
-                </LegendLinear>
+                    </LegendLinear>
+                    </div>
             </div>
             {/* The actual heatmap with values */}
             <div style={{ overflowY: "scroll", maxHeight: "80vh" }} onScroll={(e) => setScrollPos(e.target.scrollTop)} ref={refScrollContainer}>

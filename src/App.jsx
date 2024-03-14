@@ -48,6 +48,7 @@ import AddExistingSubmission from "./comps/submission/add";
 import Runlist from "./comps/dataset/runlist";
 import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
 import { MitomapNetwork } from "./comps/dataset/mitomap";
+import DatasetHelp from "./comps/dataset/help";
 
 //axios defaults
 
@@ -197,7 +198,7 @@ function App() {
             <Route path="/datasets/:dataID/mitomap" element={<MitomapNetwork />} />
             <Route path="/datasets/:dataID/timeline" element={<Timeline {...{ authenticationStatus, logout }} />} />
             <Route path="/datasets/:dataID/runlist" element={<Runlist />} />
-            <Route path="/datasets/:dataID/help" element={<div><h3>Datasets Help</h3></div>}/>
+            <Route path="/datasets/:dataID/help" element={<div><DatasetHelp /></div>}/>
           </Route>
 
       <Route path="/datasets" element={
@@ -215,10 +216,12 @@ function App() {
             <Route path="/performance/overview" element={<PerformanceOverview />} />
             <Route path="/performance/runs" element={
               <div>
-               
+                <h3>Quality Control Runs</h3>
+                <p>In this section you can explore the qc runs performed on individual instruments. You can filter and plot for various attributes.</p>
+                <p>No qc runs found in the database ... Please add them.</p>
               </div>} />
             
-            <Route path="/performance/help" element={<h3>Help</h3>}/>
+            {/* <Route path="/performance/help" element={<h3>Help</h3>}/> */}
         </Route>
       
         

@@ -4,7 +4,7 @@ import { Combobox } from "../../../../core/input/Combobox"
 import TextInput from "../../../../core/input/Text"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider} from "@blueprintjs/core"
+import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider, NumericInput} from "@blueprintjs/core"
 import { useEffect, useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
 import _ from "lodash"
@@ -38,6 +38,82 @@ function FeatureSelectionInMenu({ onSave, proteome_ids, attribute, selectedRows,
 
 // tion(attribute,[value],true,selectedRows,undefined,undefined)}/>) : null}
 
+
+function ReplicateMenu({ selectedRows, numberReplicates, onReplicateChange }) {
+    
+
+    useEffect(() => {
+        //ensure that the input field is focused on.
+        const el = document.getElementById("numeric-replicate-input")
+        el.focus()
+    },[])
+    return <Menu>
+    <MenuItem text="Replicates." disabled={true} />
+        <MenuDivider /> 
+    {numberReplicates === 0 ? <MenuItem text="Select the number of replicates above." /> :
+        <Menu>
+            <MenuItem text="Fill pattern" disabled={true} />
+            <MenuItem text="1,2,3 ... 1,2,3" onClick={() => onReplicateChange(selectedRows,undefined,0)}/>
+            <MenuItem text={`1,1,1 ... ${_.join([numberReplicates, numberReplicates, numberReplicates], ",")}`}
+                onClick={() => onReplicateChange(selectedRows, undefined, 1)} />
+            <MenuDivider />
+                <NumericValueInput
+                id = "numeric-replicate-input"
+                placeholder={`Select replicate`}
+                callbackKey={"replicate"}
+                submitButton={true}
+                buttonProps={{
+                    intent: "primary",
+                    icon: "rocket"
+                    }}
+                    minValue={1}
+                maxValue = {_.toNumber(numberReplicates)}
+                onButtonClick={(callbackKey, replicate) => onReplicateChange(selectedRows,_.toInteger(replicate),undefined)}
+                />
+    </Menu>}
+    </Menu>
+    }
+
+
+function NumericInputMenu({attribute, attributeValues, repeatSelection, clearAttributeTableByRowIndex, handleNumericInput, onAttributeSelect, selectedRows}) {
+    useEffect(() => {
+        //ensure that the input field is focused on.
+        const el = document.getElementById("numeric-value-input-sample")
+        el.focus()
+    }, [])
+    if (!_.isArray(selectedRows)) return <Menu><MenuItem text="Selected rows not found." disabled/></Menu>
+
+    return <Menu>
+            <MenuItem text="Enter numeric value." disabled={true} />
+            <MenuDivider />
+            {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
+            {attributeValues.map(attrValue => <MenuItem
+                key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
+                text={attrValue.text}
+                labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>}
+                onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
+            }
+            
+        <NumericValueInput
+                id = "numeric-value-input-sample"
+                placeholder={`${attribute.text}`}
+                callbackKey={attribute.tag}
+                submitButton={true}
+                buttonProps={{
+                    intent: "primary",
+                    icon: "rocket"
+                }}
+                onButtonClick={(attributeTag, attributeValue) => handleNumericInput(attributeValue,attributeValues,attribute,selectedRows)}  //onAttributeSelect(attributeTag, createFakeAttributeValue({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
+                />
+            {selectedRows.length > 0 ?
+                <Menu>
+                    <MenuDivider />
+                    <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="repeat" onClick={() => repeatSelection(selectedRows,attribute.tag)}/>
+                    <MenuItem text={`Clear Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(selectedRows, attribute.tag)}/> 
+                </Menu>: null}
+            </Menu>
+
+}
 
 function AttributeSelectionHeader({
     columnIndex,
@@ -152,30 +228,8 @@ function GenotypeContextMenu({ genotypes, selectedRows, handleGenotypeSelection,
 function ReplicateContextMenu({numberReplicates, onReplicateChange, selectedRows }) {
     
     return (
-        <Menu>
-            <MenuItem text="Replicates." disabled={true} />
-            <MenuDivider /> 
-            {numberReplicates === 0 ? <MenuItem text="Select the number of replicates above." /> :
-                <Menu>
-                    <MenuItem text="Fill pattern" disabled={true} />
-                    <MenuItem text="1,2,3 ... 1,2,3" onClick={() => onReplicateChange(selectedRows,undefined,0)}/>
-                    <MenuItem text={`1,1,1 ... ${_.join([numberReplicates, numberReplicates, numberReplicates], ",")}`}
-                        onClick={() => onReplicateChange(selectedRows, undefined, 1)} />
-                    <MenuDivider />
-                    <NumericValueInput
-                        placeholder={`Select replicate`}
-                        callbackKey={"replicate"}
-                        submitButton={true}
-                        buttonProps={{
-                            intent: "primary",
-                            icon: "rocket"
-                        }}
-                        minValue = {1}
-                        maxValue = {_.toNumber(numberReplicates)}
-                        onButtonClick={(callbackKey, replicate) => onReplicateChange(selectedRows,_.toInteger(replicate),undefined)}
-                        />
-        </Menu>}
-    </Menu>
+        <ReplicateMenu {...{numberReplicates,onReplicateChange,selectedRows}} />
+       
     )
 }
 
@@ -312,7 +366,8 @@ function SamplesAttributes({
         const selectedAttributeValuesFound = attributeValuesSelected.length
         const prevSelection = _.uniqBy(_.flatten(_.map(selectedRows).map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)),filterKeyName)
         // onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
-        if (attribute.has_features_value) {            return <Menu style={{minWidth:"min(40vw,700px)"}}>
+        if (attribute.has_features_value) {
+            return <Menu style={{ minWidth: "min(40vw,700px)" }}>
                 <FeatureSelectionInMenu {...{attribute,onSave : onFeatureSelection, proteome_ids,selectedRows, prevSelection}}/>
             {selectedAttributeValuesFound? <MenuItem disabled text="Previous selections"/>:null}
             {selectedAttributeValuesFound ? <MenuDivider /> : null}
@@ -325,36 +380,40 @@ function SamplesAttributes({
         <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => repeatSelection(selectedRows,sampleAttribute.tag)}/>    
         </Menu>
         }
-        else if (attribute.has_numeric_input) return (<Menu>
-            
-            <MenuItem text="Enter numeric value." disabled={true} />
-            <MenuDivider />
-            {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
-            {attributeValues.map(attrValue => <MenuItem
-                key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
-                text={attrValue.text}
-                labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>}
-                onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
-            }
-            
-            <NumericValueInput
-                placeholder={`${sampleAttribute.text}`}
-                callbackKey={sampleAttribute.tag}
-                submitButton={true}
-                buttonProps={{
-                    intent: "primary",
-                    icon: "rocket"
-                }}
-                onButtonClick={(attributeTag, attributeValue) => handleNumericInput(attributeValue,attributeValues,attribute,selectedRows)}  //onAttributeSelect(attributeTag, createFakeAttributeValue({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
-                />
-            {selectedRows.length > 0 ?
-                <Menu>
-                    <MenuDivider />
-                    <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => repeatSelection(selectedRows,sampleAttribute.tag)}/>
-                    <MenuItem text={`Clear Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(selectedRows, sampleAttribute.tag)}/> 
-                </Menu>: null}
-            </Menu>)
         
+        else if (attribute.has_numeric_input) return (
+            
+            <NumericInputMenu {...{attribute,attributeValues,onAttributeSelect,handleNumericInput,clearAttributeTableByRowIndex,repeatSelection,selectedRows}} />
+            // <Menu>
+            
+            // <MenuItem text="Enter numeric value." disabled={true} />
+            // <MenuDivider />
+            // {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
+            // {attributeValues.map(attrValue => <MenuItem
+            //     key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
+            //     text={attrValue.text}
+            //     labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>}
+            //     onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
+            // }
+            
+            // <NumericValueInput
+            //     placeholder={`${sampleAttribute.text}`}
+            //     callbackKey={sampleAttribute.tag}
+            //     submitButton={true}
+            //     buttonProps={{
+            //         intent: "primary",
+            //         icon: "rocket"
+            //     }}
+            //     onButtonClick={(attributeTag, attributeValue) => handleNumericInput(attributeValue,attributeValues,attribute,selectedRows)}  //onAttributeSelect(attributeTag, createFakeAttributeValue({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
+            //     />
+            // {selectedRows.length > 0 ?
+            //     <Menu>
+            //         <MenuDivider />
+            //         <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => repeatSelection(selectedRows,sampleAttribute.tag)}/>
+            //         <MenuItem text={`Clear Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(selectedRows, sampleAttribute.tag)}/> 
+            //     </Menu>: null}
+            // </Menu>)
+        )
         return (
             <AttributeContextMenuSearch
                 {...{ onAttributeSelect, rowIdces : selectedRows, clearAttributeTableByRowIndex, repeatSelection }}

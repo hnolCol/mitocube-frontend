@@ -77,7 +77,7 @@ function SingleAttributeInput({ attribute,
     const filterItems = (searchString, items) => {
         if (searchString === "") return items 
         if (searchString.length <= minimumSearchStringLength) return items
-        const filteredAttributeValues = filterArrayBySearchString({ array: items, searchColumns, searchString })
+        const filteredAttributeValues = filterArrayBySearchString({ array: items, keyNames : searchColumns, searchString })
         return filteredAttributeValues
     }
     return (

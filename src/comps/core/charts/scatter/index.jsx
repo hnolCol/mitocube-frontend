@@ -64,7 +64,7 @@ export function ScatterPlot({
         left: 50,
         top: 10,
         right: 5,
-        bottom: 55
+        bottom: 60
     },
     data,
     valid,
@@ -325,7 +325,7 @@ export function ScatterPlot({
                     colorScale,
                     colorName,
                     data,
-                    maxWidth : "7rem",
+                    maxWidth : "8rem",
                     filterDataInKeyByValue,
                     resetSearchIdcs,
                     sizeLimit: limits[sizeName],
@@ -340,7 +340,7 @@ export function ScatterPlot({
                         sizeScale,
                         colorScale,
                             colorName,
-                        maxWidth : "7rem",
+                        maxWidth : "8rem",
                         data,
                         filterDataInKeyByValue,
                         resetSearchIdcs,

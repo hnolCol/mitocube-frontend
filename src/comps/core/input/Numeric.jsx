@@ -56,7 +56,8 @@ function NumericValueInput({ callbackKey,
         buttonPosition = "none", 
         submitButton = false, 
         onButtonClick = undefined, 
-        buttonProps = {}, 
+    buttonProps = {}, 
+        id = undefined,
         ...rest}) {
             
     const [valueString, setValue] = useState("")
@@ -69,7 +70,8 @@ function NumericValueInput({ callbackKey,
             inline={false}
             helperText={""}>
             <div className="flex center-items">
-            <NumericInput
+                <NumericInput
+                    id = {id}
                     value={submitButton ? valueString : value} 
                     onKeyUp={submitButton && valueString !== "" && valueInRange? (e) => {
                         if (e.key === "Enter") {

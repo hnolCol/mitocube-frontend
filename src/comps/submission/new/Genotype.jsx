@@ -1,7 +1,7 @@
 
 import _ from "lodash"
 import { Button, Drawer, InputGroup } from "@blueprintjs/core"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { createDataTree } from "../../../services/arrays/nest"
 import { objectHasKey } from "../../../services/objects/checks"
 import { useGetSequenceByFeatureKey } from "../../../hooks/queries/feature.hooks"
@@ -306,16 +306,17 @@ function GenotypeGenerator({ index = 6,
     const [genotype, setGenotype] = useState({})
     const [isDrawerOpen, setIsDrawerOpen] = useState()
     const nestedAttributes = createDataTree({ array: attributes, link: "parent_id" })
-    const submitDisabled = _.isEmpty(genotype) || genotype.attributes.length === 0 || !_.isString(genotype.text) || !_.isString(genotype.proteome_id) // || _.some(_.map(genotype.attributes,  attrs => !_.isEmpty(attrs)))
-    const {mutate, error, isError, isLoading, isFetching}  = usePostGenotype({enabled : !submitDisabled})
-
+    const submitDisabled = _.isEmpty(genotype) || !_.isArray(genotype.attributes) || genotype.attributes.length === 0 || !_.isString(genotype.text) || !_.isString(genotype.proteome_id) // || _.some(_.map(genotype.attributes,  attrs => !_.isEmpty(attrs)))
+    const { mutate, error, isError, isLoading, isFetching } = usePostGenotype({ enabled: !submitDisabled })
+        console.log(genotype)
+    useEffect(() => {setGenotype(prevValues => {return {...prevValues, proteome_id : proteome_ids[0]}})},[_.join(proteome_ids)])
 
     const addGenotype = () => {
 
         const genotypeLabel = getRandomID(5)
         let genotypeProps = {
             text: "",
-            proteome_id : proteome_ids[0],
+            proteome_id : proteome_ids[0], //dangerous, rather get it from the features selection
             label : genotypeLabel,
             attributes: [{}],
         }
@@ -419,7 +420,8 @@ function GenotypeGenerator({ index = 6,
             <h3>{`${index}. Genotypes`}</h3>
             <p>Please specify your genotypes. This section requires you to provide an organism before to select specific target protein. You are able to specify amino acid mutations and truncations as well as tags. If you are just using wild types, for example knock-down of a gene expression in just wild type cells does not require the definition of a genotype. </p>
             <p>Note that in case of a knockout and a reexpression of a protein, you need to define first the knockout and then the reexpression. Once you have defined your genotypes, you will have to assign them to each sample below in the sample attributes. Once you defined your genotypes, they are available from the drop-down menu for future submissions.</p>
-            <div style={{overflowX:"scroll"}}>
+            <p>The selected proteome is: <strong>{genotype.proteome_id}</strong></p>
+            <div style={{ overflowX: "scroll" }}>
                 {_.has(genotype ,"label") ? <GenotypeRow key={genotype.label}
                     {...{
                         attributes,

@@ -22,7 +22,6 @@ function TagBasedSearch({data, onTagChange, tags = {}}) {
 
             if (keyNameSpecificSearchString === "" && _.has(tags,keyName)) {
                 delete tags[keyName]
-                console.log("here?",tags)
                 onTagChange({ ...tags })
 
             }

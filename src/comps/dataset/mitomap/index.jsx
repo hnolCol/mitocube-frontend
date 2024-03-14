@@ -18,7 +18,7 @@ export function MitomapNetwork({ }) {
     const { data: network_data, isLoading, isFetching, isSuccess, isError, error } = useGetNetwork({ network_type: networkProps.type, dataset_label, statProps : networkProps.statProps }, {enabled : !_.isEmpty(networkProps.statProps)})
     
     const valueNameFound = _.isObject(network_data) && _.has(network_data,"value_keyName")
-    const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, filterNames : [] })
+    const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, filterNames : ["id"] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }
@@ -157,33 +157,7 @@ export function MitomapNetwork({ }) {
                 </InteractiveChart> : null}
             
             </div>
-            {/* <svg width={width} height={height}>
-                <rect width={width} height={height} rx={14} fill={background} />
-                <Graph
-                graph={data}
-                top={5}
-                left={10}
-                    nodeComponent={({ node }) => {
-                        console.log(xscale(node.x), yscale(node.y))
-                        return <circle cx={xscale(node.x)} cy={yscale(node.y)} r={8} fill={node.node_type === "pathway"?"white":"#21D4FD"} stroke="#000" />
-                    }}
-                linkComponent={({ link: { source, target, dashed } }) => (
-                    <line
-                    x1={xscale(source.x)}
-                    y1={yscale(source.y)}
-                    x2={xscale(target.x)}
-                    y2={yscale(target.y)}
-                    strokeWidth={2}
-                    stroke="#999"
-                    strokeOpacity={0.6}
-                    strokeDasharray={dashed ? '8,4' : undefined}
-                    />
-                )}
-                />
-          </svg>
-            // <ForceGraph graphData={data} nodeAutoColorBy={"node_type"} nodeLabel={(node) => node.id} nodeRelSize={8} />
-            : null}
-         */}
+           
 
     </div>)
 }

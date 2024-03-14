@@ -72,16 +72,16 @@ function ScatterPoints({
     // }
 
     //const idcs = opacityBySearch ? _.concat(_.range(data.length).filter(idx => searchIndices.has(idx)),Array.from(searchIndices)) : _.range(data.length)
-    const opacity = opacityBySearch ? 0.1 : 1.0
+    const opacity = opacityBySearch ? 0.3 : 1.0
     
 
-    const getCircle = (idx, d, colorScaleValid, props) => {
+    const getCircle = (idx, d, colorScaleValid, props, scaleSize = 1) => {
         if (!checkPolyMap || !_.has(d,polyMapKeyName) || !_.has(glyphMap,d[polyMapKeyName]) || glyphMap[d[polyMapKeyName]] === "circle") return <circle 
         //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
         key={`${idx}-sc-p`}
         cx={xScale(d[xaxisName])} 
         cy={yScale(d[yaxisName])} 
-        r={sizeScale(d[sizeName])} 
+        r={sizeScale(d[sizeName]) * scaleSize} 
         fillOpacity={opacity}
         strokeOpacity={opacity}
         {...{
@@ -91,7 +91,7 @@ function ScatterPoints({
             ...props
             }} />
         if (glyphMap[d[polyMapKeyName]] === "rect") {
-            const width = sizeScale(d[sizeName]) * 2.2
+            const width = (sizeScale(d[sizeName]) * 2.2) * scaleSize
             return <rect
                 x={xScale(d[xaxisName]) - width / 2}
                 y={yScale(d[yaxisName]) - width / 2}
@@ -100,7 +100,7 @@ function ScatterPoints({
                 {... {
                 fill: checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]] : colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
                 stroke,
-                    rx: 2,
+                rx: 2,
                 fillOpacity: opacity,
                 strokeOpacity : opacity,
                 strokeWidth, ...props}} />
@@ -125,7 +125,7 @@ function ScatterPoints({
                 const d = data[idx]
                 const colorScaleValid = colorScaleDefined ? _.isString(colorScale(d[colorName])) : false
                 //filter data first and then map over it 
-                return getCircle(idx, d, colorScaleValid,{strokeWidth : searchStrokeWidth, fillOpacity : 1.0, strokeOpacity : 1.0})
+                return getCircle(idx, d, colorScaleValid,{strokeWidth : searchStrokeWidth, fillOpacity : 1.0, strokeOpacity : 1.0},1.15)
             })
                 : null}
         </g>

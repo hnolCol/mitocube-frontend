@@ -33,7 +33,10 @@ function AxisWithBackground({
     const leftStart = leftLeft === undefined ? margins.left : leftLeft
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
     //const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
-    if (_.isNumber(bandwidth)) bottomTickLabelProps["width"] = bandwidth
+    if (_.isNumber(bandwidth)) {
+        bottomTickLabelProps["width"] = bandwidth * 1.1
+        bottomTickLabelProps["scaleToFit"] = true
+    }
     const getLabelString = (attributeValue) => {
         const attributeValuesTagSplit = attributeValue.split(" ")
         return _.join(_.map(attributeValuesTagSplit, attributeValueTag => {
@@ -78,7 +81,7 @@ function AxisWithBackground({
                 hideTicks={bottomHideTicks}
                 labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle", dy:10, width : 0.8 * chartWidth}}
                 tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps}}
-                labelOffset={10}
+                labelOffset={16}
                 numTicks={getNumberTicks(chartWidth)}
                 scale={bottomScale}
                 stroke={getAxisStrokeColor()}

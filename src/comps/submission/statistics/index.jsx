@@ -29,7 +29,20 @@ function SubmissionStatistics({ authenticationStatus, submissionsQuery, setSubmi
     //const submissionsByState = _.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? groupListByProperty(submissionQuery.submissions, "state") : {}
 
 
-    return <SubmissionFilterSelection {...{ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, isLoading,isFetching, isSuccess, isError, submissionQueryResult : submissionQuery}} children={<div><h3>plots</h3></div>}/>
+    return <SubmissionFilterSelection
+        {...{
+            submissionFilter,
+            setSubmissionFilter,
+            submissionsQuery,
+            setSubmissionQuery,
+            isLoading,
+            isFetching,
+            isSuccess,
+            isError,
+            submissionQueryResult: submissionQuery
+        }}
+        children={<div><h3>Statistics</h3><p>The statistic view is currently under development, but you will soon be able to explore number of submission per attribute (such as instrument, organs, cell line),
+            users, and research groups.</p></div>} />
 }
 
 

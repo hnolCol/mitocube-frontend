@@ -118,7 +118,7 @@ const ScatterLegend = React.memo(
         <div>
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data[0][colorName]) ? 
-                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="">
                         <h4>{colorAttribute.text}</h4>
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
@@ -130,7 +130,7 @@ const ScatterLegend = React.memo(
                                 return (
                                     <LegendItem key={`${idx}-${label}-colorcat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
                                         {renderLegendCircle(size,label.value,size/3)}
-                                        <LegendLabel align="left" margin={"0 4px"} onMouseEnter={(e) => handleTooltip(e,attributeValues,colorAttribute)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
+                                        <LegendLabel align="left" margin={"0 0px"} onMouseEnter={(e) => handleTooltip(e,attributeValues,colorAttribute)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
                                     </LegendItem>
                                 )
                             })}

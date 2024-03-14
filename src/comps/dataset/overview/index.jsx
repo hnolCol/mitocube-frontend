@@ -263,7 +263,7 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
                 {metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>
-                    {metadata.links.map(link => <div key={link.id}><a href={link.url}><strong>{titleFormat(link.comment)}</strong></a></div>)}
+                    {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
                 </div> : null}
             </div>
             <div className="intent-margin-right ">
