@@ -4,16 +4,21 @@ import { useGetFeatureByQuery } from "../../../../hooks/queries/feature.hooks"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
+import { FeatureMenuItem } from "../items/FeatureMenu"
 
-export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true, small = false, allowUndefinedProteomes = false}) {
+
+export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true, small = false, allowUndefinedProteomes = false, debounceDelay = 200}) {
     const [queryString,setQueryString] = useState("")
-    const debouncedString = useDebounce(queryString,200)
+    const debouncedString = useDebounce(queryString,debounceDelay)
     const { data: items, isLoading, isFetching } = useGetFeatureByQuery({ query: debouncedString, proteome_ids},
         { enabled: debouncedString.length > 0 })
+    
     const disabled = allowUndefinedProteomes ? false : !_.isArray(proteome_ids) ||  !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <MenuItem key={`${item.key}-${index}`} text={item.genes} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{item.key}</h4><p>{item.proteins}</p></div><div>{item.organism}</div></div>}/>
+
+        return <FeatureMenuItem {...{feature : item, onClick : handleClick,active : modifiers.active}} />
+        return <MenuItem key={`${item.key}-${index}`} text={item.gene_name} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{item.key}</h4><p>{item.protein_name}</p></div><div>{item.proteome_id}</div></div>}/>
     }
     /**
      * @description Handles the item selection 
@@ -23,10 +28,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
         if (_.isFunction(e.stopPropagation)) {
             e.stopPropagation()
         }
-       
-        
         onItemSelect(attribute, item)
-        
     }
 
     /**
@@ -35,12 +37,12 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
      * @returns 
      */
     const renderValue = (item) => {
-        return item.genes.split(" ").at(0)
+        return item.gene_name
     }
 
     return <FormGroup
     style={{margin : "0.1rem"}}
-    label={showLabel?attribute.text:undefined}
+    label={showLabel && _.has(attribute,"text")?attribute.text:undefined}
     labelInfo={isRequired ? "(required)" : "(optional)"}
     inline={inline}
     fill={true}

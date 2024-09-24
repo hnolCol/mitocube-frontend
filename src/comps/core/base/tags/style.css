@@ -10,3 +10,16 @@
 .close-div:hover{
     color : white
 }
+
+
+.unit-div::after{ 
+  display: inline-block;
+  font-size: 0.85rem;
+  margin-left: 3px;
+  content: "\25BC"; /* This will render the chevron */
+}
+
+
+.unit-div:hover{
+    color : white
+}

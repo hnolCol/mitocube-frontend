@@ -9,6 +9,8 @@ import NumericValueInput from "../../../core/input/Numeric";
 import { constructSampleNames } from "../../../../services/samples";
 import APIError from "../../../core/error/APIerror";
 import Loading from "../../../core/base/loading";
+import { get_proteome_id } from "../../new/InitialSubmission";
+import { useGetGenotypes } from "../../../../hooks/queries/genotype.hooks";
 
 
 // sampleNames: [],
@@ -30,11 +32,13 @@ import Loading from "../../../core/base/loading";
  * @returns 
  */
 export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubmit }) {
-
+        
     const {mutate : updateSubmissionAttrSamples, isLoading : patchingIsLoading ,isSuccess, isError : patchingIsError, error : patchingSumissionError} = usePathSubmissionSampleAttributes()
     const { data : attributesByTag, isLoading, isFetching} = useGetSubmissionAttributesByTag()
     const [samplesAttributesProps, setSamplesAttributesProps] = useState({ attributeTable: [], sampleNames : [], replicates : [], rerenderTableDependency : [Math.random()] , samplesAttributes : [], n_samples : 0, n_replicates : 0, label : ""})
-    
+    const proteome_ids = get_proteome_id(submission.dataset_attributes)
+    const { data: genotypes, isLoading: genotypeIsLoading, error: genotypeError, isError: genotypeIsError, refetch: refetchGenotypes } = useGetGenotypes({ proteome_ids: proteome_ids }, { enabled: proteome_ids.length > 0 })
+
     useEffect(() => {
         if (!_.isObject(attributesByTag)) return 
         if (_.isEmpty(submission)) return 
@@ -43,26 +47,19 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
             _.fromPairs(sampleAttributeTags.map(attrTag =>
                 [attrTag, []])))
                     
-        let samplesAttributes = _.keys(submission.samples_attributes).map(attributeTag => {
-            return {
-                name: submission.samples_attributes[attributeTag].name,
-                attribute : attributesByTag.attributes[attributeTag]
-            }
-        })
+        let samplesAttributes = _.keys(submission.samples_attributes).map(attributeTag => attributesByTag.attributes[attributeTag])
 
         _.forEach(_.keys(submission.samples_attributes), attributeTag => {
-            const { name, attribute_values, values } = submission.samples_attributes[attributeTag]
-            _.forEach(_.keys(values), attributeValueTag => {
-                let sampleIdcs = values[attributeValueTag]
-                let attributeValue = attribute_values[attributeValueTag]
+            const attributeValueTags = _.keys(submission.samples_attributes[attributeTag])
+            _.forEach(attributeValueTags, attributeValueTag => {
+                let sampleIdcs = submission.samples_attributes[attributeTag][attributeValueTag]
                 _.forEach(sampleIdcs, sampleIdx => {
-                    attributeTable[sampleIdx][attributeTag].push(attributeValue)
+                    attributeTable[sampleIdx][attributeTag].push(attributesByTag.attribute_values[attributeValueTag])
                 })
-            })
-
-            
+            })            
         })
-        
+
+
         setSamplesAttributesProps({
             label : submission.label,
             n_samples: submission.sample_names.length,
@@ -109,7 +106,7 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
         //handle sample attribute submit 
        
     }
-
+    console.log(samplesAttributesProps)
     return (
         <Dialog style={{ minWidth: "95vw", height: "80vh" }} {...{ isOpen }} title="Edit Samples Attributes" onClose={onClose}>
             
@@ -133,7 +130,8 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
                     submission={samplesAttributesProps}
                     attributes={_.values(attributesByTag.attributes)}
                     updateSubmission={setSamplesAttributesProps}
-                    numberReplicates={samplesAttributesProps.n_replicates}
+                        numberReplicates={samplesAttributesProps.n_replicates}
+                        genotypes={genotypes}
                 />
             </div>}
             

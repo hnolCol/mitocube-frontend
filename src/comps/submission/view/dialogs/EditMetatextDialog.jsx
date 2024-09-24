@@ -1,16 +1,8 @@
 import { Button, Dialog, DialogBody, DialogFooter } from "@blueprintjs/core";
-import { LiteralAttributeSelection } from "../../new/attribute/select/LiteralAttributeSelection";
 import { useEffect, useState } from "react";
-import PropTypes from "prop-types"
-import APIError from "../../../core/error/APIerror";
-import { mapAttributeTagsToAttributes } from "../../../../services/attributes";
 import MetaText from "../../new/MetaText";
-import { AxiosError } from "axios";
-import { UserInput } from "../../../core/input/api/UserInput";
-import { useGetPublicUserByLabel } from "../../../../hooks/queries/user.hooks";
 import _ from "lodash"
-import { useGetSubmissionMetatext, usePatchSubmission, usePatchSubmissionMetatext, usePostSubmissionOwner } from "../../../../hooks/queries/submission.hooks";
-import Loading from "../../../core/base/loading";
+import { usePatchSubmissionMetatext} from "../../../../hooks/queries/submission.hooks";
 // AttributeSelectionDialog.propTypes = {
 //     authenticationStatus: PropTypes.object.isRequired,
 //     attributesByTag: PropTypes.object.isRequired,
@@ -47,10 +39,6 @@ export function EditMetatextDialog({
   
 
 
-    // const { isLoading: getPrevOwnerIsLoading, isFetching: getPrevOwnerIsFetching, isError : getPrevOwnerIsError, error : getPrevOwnerError } = useGetPublicUserByLabel(
-    //     { label: submission.user_label },
-    //     { enabled: _.isObject(submission) && _.has(submission, "user_label"), onSuccess : (prevOwner) => setSelectedOwner(prevOwner) }
-    // )
 
     const { mutate, isLoading, isSuccess, reset } = usePatchSubmissionMetatext()
 

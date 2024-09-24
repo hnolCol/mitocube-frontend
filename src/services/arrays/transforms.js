@@ -23,6 +23,38 @@ export function isItemInArrayDeepComp({ array, item }) {
 }
 
 
+/**
+ * @description Adds an item (object) to an array of objects using the
+ * key 'tag' to determine uniqueness. 
+ * @param {Object} param0 
+ * @returns 
+ */
+export function addItemsToArrayByTag({ array = [], item = {} }) {
+    
+    return _.unionBy(array, [item], 'tag')
+}
+
+/**
+ * 
+ * @param {*} param0 
+ * @returns 
+ */
+export function addItemToArrayOrRemoveIfPresentByTag({ array = [], item = {} }) {
+
+    const itemIndex = _.findIndex(array, ['tag', item.tag])
+    if (itemIndex === -1) {
+        return _.concat(array, item)
+    }
+    else {
+        _.pullAt(array,itemIndex)
+        return array 
+    }
+
+}
+
+
+
+
 export function addItemsToArrayIfNotPresent({ array = [], items = [] }) {
     // checks if an item in an array, if there it will remove the item from the array
     // otherswise it will add it to the array.
@@ -44,9 +76,15 @@ export function addItemsToArrayOrRemoveItIfPresent({ array, items }) {
     return _.concat(filteredItems,filteredArray)
 }
 
+/**
+ * 
+ * @param {Object} props
+ * @param {Array} props.array - The array to the item to or remove if it is already presented 
+ * @param {Object} props.item - The item to be added. 
+ * @returns {Object[]}  
+ * @returns 
+ */
 export function addItemToArrayOrRemoveItIfPresent({ array, item }) {
-    // checks if an item in an array, if there it will remove the item from the array
-    // otherswise it will add it to the array.
     if (item === undefined) return array
     if (!_.isArray(array)) return [item]
     const itemInArray = isItemInArrayDeepComp({array,item})

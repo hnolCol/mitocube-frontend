@@ -20,9 +20,9 @@ function DatasetQC() {
     /**
      * @type {import("../../../types/datasets").DatasetContextOutlet}
      */
-    const { dataset_label, metadata, setTabHeader } = useOutletContext()   
-
-    const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_label })
+    const { dataset_tag, metadata, setTabHeader } = useOutletContext()   
+    const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_tag})
+    
     useEffect(() => {
         if (_.isObject(metadata) && _.has(metadata, "title")) {
             setTabHeader(metadata.title)

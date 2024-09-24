@@ -5,6 +5,11 @@ import { Button, Checkbox, Divider, Tooltip } from "@blueprintjs/core"
 import GroupIconWithName from "../../svg/icons/chartSelection/Group"
 import { TextIconWithName } from "../../svg/icons/chartSelection/Text"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/transforms"
+import { FilterInput } from "../../input/api/Filter"
+import { get_proteome_id } from "../../../submission/new/InitialSubmission"
+import { useGetMetaSamples } from "../../../../hooks/queries/datasets.hooks"
+import { groupListByProperty } from "../../../../services/arrays/groupby"
+import Loading from "../loading"
 
 
 
@@ -19,25 +24,24 @@ const initState = {
 /**
  * 
  * @param {object} props 
- * @param {import("../../types/submissions").Submission} props.metadata
+ * @param {import("../../../../types/submissions").Submission} props.metadata
  * @param {Fucntion} props.callback - The function to be called after selection. 
  * @param {String} props.callbackText - The text shown on the callback button 
  * @param {Boolean} props.isLoading - If the component should be display in loading state.
  * @returns 
  */
-export function AttributePairwiseSelection({ metadata, callback, callbackText = "Save", isLoading = false }) {
+export function AttributePairwiseSelection({dataset_tag, metadata, callback, callbackText = "Save", isLoading = false }) {
 
+    const {data, isLoadingSampleMeta, isFetchingSampleMeta, isSuccess} = useGetMetaSamples({dataset_tag})
     const [selection, setSelection] = useState(initState)
-    const hasSamplesGenotypes = !_.isEmpty(metadata.samples_genotypes)
-    const hasSamplesAttributes = !_.isEmpty(metadata.samples_attributes)
-    
-    const attributesTags = hasSamplesGenotypes ? _.concat(["att_genotype"], _.keys(metadata.samples_attributes)) : _.keys(metadata.samples_attributes)
-    const attributes = attributesTags.map(attributeTag => metadata.attributes[attributeTag])
-    const attributeValuesByAttributeTag = _.fromPairs(_.map(attributesTags, attributeTag => attributeTag === "att_genotype" ? 
-        [attributeTag,_.keys(metadata.samples_genotypes).filter(genotypeLabel => _.has(metadata.genotypes,genotypeLabel)).map(genotypeLabel => metadata.genotypes[genotypeLabel])]
-        : [attributeTag, _.keys(metadata.samples_attributes[attributeTag]).map(attributeValueTag => metadata.attribute_values_by_tag[attributeValueTag])]))
-    const numberSelection = attributes.length
+    if (!_.isObject(data)) return null 
+    if (isLoadingSampleMeta || isFetchingSampleMeta) return <Loading />
 
+
+    const attributes = data.attributes 
+    const attributeValuesByAttributeTag = groupListByProperty(data.attribute_values,"attribute_tag")
+
+    const numberSelection = attributes.length
 
     const addWithinAttributeToSelection = (key, attribute) => {
         setSelection(prevValues => {
@@ -97,7 +101,7 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
     
     const getTextKey = (attribute) => {
         if (!_.isObject(attribute)) return "text"
-        return attribute.has_features_value?"genes":"text"
+        return attribute.has_features_value?"gene_name":"text"
     }
 
     const getPlaceHolderAttribute = (attribute) => {
@@ -106,11 +110,10 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
 
     const getPlaceHolderAttributeValue = (attribute, attributeValue) => {
         if (!_.isObject(attribute) || !_.isObject(attributeValue)) return ""
-        return attribute.has_features_value ? attributeValue.genes : attributeValue.text
+        return attribute.has_features_value ? attributeValue.gene_name : attributeValue.text
     }
 
     const getTagKeyLabel = (attribute, attributeValue) => {
-        if (attribute.tag === "att_genotype") return attributeValue.label
         //even though attribute values wit
         return attributeValue.tag
     }
@@ -193,6 +196,14 @@ export function AttributePairwiseSelection({ metadata, callback, callbackText = 
                 <div></div>
             </div> : null}
             <div>
+                <Divider />
+                <h4>Filter</h4>
+                <div>Subsets the dataset considering only the features that are part of the filter.</div>
+                <FilterInput
+                    
+                    proteome_ids={""}
+                    selectedItems={_.isObject(selection.filter) ? [selection.filter] : []}
+                    onItemSelect={(callbackKey, filter) => setSelection(prevValues => { return { ...prevValues, [callbackKey]: filter } })} />    
             <Divider />
             <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{maxWidth : "14rem", textJustify : "inter-word"}}>Imputation is performed by filtering for proteins that are fully quantified in one group.
                     Then NaNs are replaced by random data taken from a downshifted gaussian distribution.

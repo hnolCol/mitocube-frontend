@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from "react-query";
 import axios from "axios"
-
+import _ from "lodash"
 
 // get users
 
@@ -23,13 +23,14 @@ export const useGetUsers = (APIParams = {}, useQueryOptions = {}) => {
  * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
  * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
  */
-async function getPublicUsers_API() {
-    const res = await axios.get('/api/users/public')
-    return res.data.users
+async function getPublicUsers_API({ tags }) {
+    const res = await axios.get('/api/users/public', {params : {tags}})
+    return res.data
 }
 
-export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
-    return useQuery(["getPublicUserInfo"],() =>  getPublicUsers_API({...APIParams}), useQueryOptions)
+export const useGetPublicUserInfo = (APIParams = { tags: undefined }, useQueryOptions = { staleTime: Infinity }) => {
+    const ts = APIParams.tags !== undefined ? APIParams.tags : ""
+    return useQuery(["getPublicUserInfo",ts],() =>  getPublicUsers_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -37,13 +38,13 @@ export const useGetPublicUserInfo = (APIParams = {}, useQueryOptions = {staleTim
  * @description Returns the public information about a user by its label. Still requires a valid token string. Public indicates here that it is available to all registered users. 
  * @returns {import("../../types/users").PublicUser} The public information about the users in the database as an array.
  */
-async function getPublicUsersByLabel_API({label}) {
-    const res = await axios.get('/api/users/'+label)
+async function getPublicUsersByLabel_API({tag}) {
+    const res = await axios.get('/api/users/'+tag)
     return res.data
 }
 
-export const useGetPublicUserByLabel = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
-    return useQuery(["getPublicUserByLabel",APIParams.label],() =>  getPublicUsersByLabel_API({...APIParams}), useQueryOptions)
+export const useGetPublicUserByTag = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
+    return useQuery(["getPublicUserByLabel",APIParams.tag],() =>  getPublicUsersByLabel_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -65,6 +66,8 @@ async function getPublicUsersByQuery_API({ query, }) {
 export const useGetPublicUserByQuery = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
     return useQuery(["getPublicUserInfoQuery",APIParams.query],() =>   getPublicUsersByQuery_API({...APIParams}), useQueryOptions)
 }
+
+
 
 
 

@@ -16,25 +16,23 @@ export function GenotypeInput({selectedItems = [], attribute, onItemSelect, isRe
     
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <MenuItem key={`${item.label}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}></div>}/>
+        return <MenuItem key={`${item.tag}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}>{item.proteome_id}</div>}/>
     }
     /**
      * @description Handles the item selection 
-     * @param {import("../../../types/feature").Feature} item 
+     * @param {Object} item 
      */
     const handleItemSelection = (item, e) => {
         if (_.isFunction(e.stopPropagation)) {
             e.stopPropagation()
         }
-       
-        onItemSelect(attribute, item)
-        
+        onItemSelect(attribute, item)   
     }
 
     /**
      * 
-     * @param {import("../../../types/feature").Feature} item 
+     * @param {Object} item 
      * @returns 
      */
     const renderValue = (item) => {

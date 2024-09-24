@@ -27,17 +27,17 @@ export function SimpleUser({ user, handleClick, isSelected = false, count = 2}) 
     )
 }
 
-export function UserSelection({ submissionFilter, setSubmissionFilter, labels }) {
+export function UserFilter({ submissionFilter, setSubmissionFilter, tags }) {
     const [openGroups, setOpenGroup] = useState({})
     const { data: allSubmissionUserCounts, isLoading: asIsLoading, isFetching: asIsFetching, isSuccess: asIsSuccess } = useGetSubmissionsCount({ group: "user" }, { staleTime: 600000 })
-    const { data : submissionCounts, isLoading : submissionUserIsLoading, isFetching : submissionUserIsFetching, isSuccess : submissionUserIsSuccess } = useGetSubmissionsCount({ group: "user", labels : _.join(labels,";") }, {enabled : labels.length > 0})
+    const { data : submissionCounts, isLoading : submissionUserIsLoading, isFetching : submissionUserIsFetching, isSuccess : submissionUserIsSuccess } = useGetSubmissionsCount({ group: "user", tags : _.join(tags,";") }, {enabled : tags.length > 0})
     const { data, isLoading, isFetching, isSuccess, isError, error } = useGetPublicUserInfo()
-    // console.log(allSubmissionUserCounts)
+    //console.log(allSubmissionUserCounts)
     // console.log(submissionCounts)
-    
+    //console.log(data)
     const groupedUsers = isSuccess && _.isArray(data) && data.length > 0 ? groupListByProperty(data, "research_group") : {}
     const researchGroups = _.keys(groupedUsers)
-
+    //console.log(researchGroups)
 
     const handleUserClick = (e, user) => {
             e.stopPropagation()
@@ -69,10 +69,9 @@ export function UserSelection({ submissionFilter, setSubmissionFilter, labels })
                 <div style={{ width: "100%" }}>
                     {researchGroups
                         .map(research_group => {
-
                             let isOpen = _.has(openGroups, research_group) && openGroups[research_group].isOpen
-                            const userInSubmissionCounts = groupedUsers[research_group].filter(user => _.has(allSubmissionUserCounts, user.label))
-                            const countsForResearchGroup = _.sum(userInSubmissionCounts.map(user => _.isObject(submissionCounts) ? _.has(submissionCounts,user.label) ? submissionCounts[user.label].submission_count : 0 : allSubmissionUserCounts[user.label].submission_count))
+                            const userInSubmissionCounts = groupedUsers[research_group].filter(user => _.has(allSubmissionUserCounts, user.tag))
+                            const countsForResearchGroup = _.sum(userInSubmissionCounts.map(user => _.isObject(submissionCounts) ? _.has(submissionCounts,user.tag) ? submissionCounts[user.tag].count : 0 : allSubmissionUserCounts[user.tag].count))
                             
                             if (userInSubmissionCounts.length === 0) return null 
                             const userInFilter = _.isArray(submissionFilter["user"]) && submissionFilter["user"].length > 0
@@ -87,11 +86,11 @@ export function UserSelection({ submissionFilter, setSubmissionFilter, labels })
                                         handleOpen={() => handleOpenGroup(research_group)}/>
                                     {isOpen || isAnyUserSelected ?
                                         userInSubmissionCounts
-                                            .map(user => <SimpleUser key={user.label} {...{
+                                            .map(user => <SimpleUser key={user.tag} {...{
                                                 user,
                                                 isSelected : userInFilter && isItemInArrayDeepComp({array : submissionFilter["user"], item : user}),
                                                 handleClick : handleUserClick,
-                                                count: _.isObject(submissionCounts) ?  _.has(submissionCounts,user.label) ? submissionCounts[user.label].submission_count : 0 : allSubmissionUserCounts[user.label].submission_count}}/>
+                                                count: _.isObject(submissionCounts) ?  _.has(submissionCounts,user.tag) ? submissionCounts[user.tag].count : 0 : allSubmissionUserCounts[user.tag].count}}/>
                                             ) : null}
                                 <Divider />
                                 </div>)

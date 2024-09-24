@@ -6,14 +6,14 @@ import _ from "lodash"
 
 
 function TermHeader({ useterms }) {
-
+    //header of the use of terms 
     if (!_.isObject(useterms)) return null 
     const [m, fromatedTime] = getFormatDateFromTimestamp(useterms.created_on)
    
     return (
         <div>
             <h4>{useterms.title}</h4>
-            <p>Authors: {_.join(useterms.authors.map((name,idx) => `${name}<${useterms.author_emails[idx]}>`),", ")}</p>
+            <p>Authors: {_.join(useterms.authors.map((name,idx) => `${name}<${_.has(useterms,"authors_emails") ? useterms.author_emails[idx] : null }>`),", ")}</p>
             <p>Version : {useterms.version}</p>
 
         </div>
@@ -56,7 +56,7 @@ export function TermsOfUse() {
     return (<div style={{maxHeight : "800px", minWidth : "min(700,80vw)"}}>
         <h2>Use of terms</h2>
 
-        {isLoading || isFetching ? <Loading /> : isSuccess ? <div className="flex flex-column margin--medium" style={{height : "700px", overflowY:"scroll"} }> 
+        {isLoading || isFetching ? <Loading /> : isSuccess && _.isObject(useterms) ? <div className="flex flex-column margin--medium" style={{height : "700px", overflowY:"scroll"} }> 
             <TermHeader {...{ useterms }} />
             <Divider />
             <MainSection {...{ useterms }} />

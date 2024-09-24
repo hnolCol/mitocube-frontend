@@ -7,24 +7,74 @@ import TooltipButton from "../../../../core/base/buttons/TooltipButton"
 import { objectHasKey } from "../../../../../services/objects/checks"
 import { useMemo } from "react"
 import { AttributeTagWithTooltip, FeatureTagWithTooltip } from "../../../../core/base/tags/TagWithTooltip"
+import { useGetDatasetAttributes } from "../../../../../hooks/queries/attribute.hooks"
+import { useGetSubmissionDatasetAttributesByTag } from "../../../../../hooks/queries/submission.hooks"
+import Loading from "../../../../core/base/loading"
+import { TitleText } from "../../../../core/metrics/ItemBasics"
 
-
-export function AttributeFeatureTag({ attribute, value, valueIsFeature = false, onRemove = undefined, popoverPosition = "top"}) {
-    
+/**
+ * 
+ * @param {Object} props 
+ * @property {Attribute} props.attribute
+ * @property {String[]} props.attributeValueTags 
+ * @property {Object.<String,Attributevalue|Feature} props.attributeValuesByTag
+ * @returns 
+ */
+export function AttributeWithValues({ attribute, attributeValueTags, attributeValuesByTag}) {
     return (
-        valueIsFeature ? <FeatureTagWithTooltip {...{attribute,feature : value, onRemove, popoverPosition}} /> : <AttributeTagWithTooltip {...{attribute, attributeValue : value, onRemove, popoverPosition}}/>
-        // <
-        // <Tooltip content={}>
-        // <Tag
-        //     key={valueIsFeature?`${attributeValue.key}`: `${attributeValue.text}-${attributeValue.id}`}
-        //     intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
-        //     style={{ marginRight: "0.4rem" }}
-        //     onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
-        //     minimal={true}
-        //     large={false}>
-        //         {valueIsFeature?attributeValue.genes:attributeValue.text}
-        //     </Tag>
-        // </Tooltip>
+        <div>
+            <TitleText title={attribute.text} />
+            <div className="flex">
+                {attributeValueTags.map(attribute_value_tag => {
+                    return <AttributeFeatureTag
+                        attribute={attribute}
+                        value={attributeValuesByTag[attribute_value_tag]}
+                        valueIsFeature={attribute.has_features_value} />
+                })}
+            </div></div>
+        
+    )
+}
+
+
+/**
+ * @description Represents dataset attributes in a hierarchy manner. The hierarchy is defined
+ * by the attributes itself which have a property 'parent_tag'. 
+ * @param {Object} props 
+ * @param {String} props.submission-tag  
+ * @returns 
+ */
+export function StaticDatasetAttributesHierarchy({ submission_tag }) {
+    const { data: datasetAttributes, isLoading, isError, isFetched, isSuccess } = useGetSubmissionDatasetAttributesByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const nestedAttributes = useMemo(() => isSuccess ? createDataTree({
+        array: _.keys(datasetAttributes.tags).map(attribute_tag => datasetAttributes.attributes[attribute_tag]),
+        link : "parent_tag"
+    }) : [], [isSuccess])
+    return (
+        <div>
+            {isFetched & isSuccess & _.isObject(datasetAttributes) ? _.keys(datasetAttributes.tags).map(attribute_tag => {
+                const attribute = datasetAttributes.attributes[attribute_tag]
+                return <AttributeWithValues
+                    attribute={attribute}
+                    attributeValueTags={datasetAttributes.tags[attribute_tag]}
+                    attributeValuesByTag={datasetAttributes.attribute_values} />
+
+            }) : isLoading ? <Loading /> : null}
+
+        </div>
+    )
+}
+
+
+
+
+
+export function AttributeFeatureTag({ attribute, value, units = {}, valueIsFeature = false, onRemove = undefined, popoverPosition = "top", addUnitsForDatasetAttributes, highlight = false}) {
+    //console.log(units)
+
+    return (
+        valueIsFeature ? <FeatureTagWithTooltip {...{ attribute, feature: value, onRemove, popoverPosition, highlight  }} /> :
+            <AttributeTagWithTooltip {...{ attribute, attributeValue: value, onRemove, popoverPosition, addUnitsForDatasetAttributes, units, highlight }} />
     )
 }
 
@@ -39,10 +89,9 @@ export function AttributeFeatureTag({ attribute, value, valueIsFeature = false, 
  * @param {String[]} props.highlightAttributeValuesByTag - Tags that should be highlighted. This is useful to indicated changes made by the user. 
 * @returns {Element} 
  */
-function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, level = 0, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false}) {
+function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, addUnitsForDatasetAttributes, datasetUnits, level = 0, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false}) {
     // displaying hierarchical dataset attributes.
     const attributeHasFeatures = attribute.has_features_value
-
     const handleAttributeRemove = (attributeValue) => {
         //on attribute remove, we have to remove the child nodes otherwise 
         //a different attribute object is returned than provided 
@@ -60,19 +109,13 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                     key={`${attribute.tag}-${attributeHasFeatures?attributeValue.key:attributeValue.tag}`}
                     {...{
                         attribute,
+                        units : _.has(datasetUnits,attributeValue.tag) ? datasetUnits[attributeValue.tag] : {},
                         value: attributeValue,
                         valueIsFeature: attributeHasFeatures,
-                        onRemove : _.isFunction(onDatasetAttributeRemove)?handleAttributeRemove:undefined
+                        onRemove: _.isFunction(onDatasetAttributeRemove) ? handleAttributeRemove : undefined,
+                        addUnitsForDatasetAttributes,
+                        highlight : highlightAttributeValuesByTag.includes(attributeValue.tag)
                     }} />
-                    // <Tag
-                    // key={attribute.has_features_value?`${attributeValue.key}`: `${attributeValue.text}-${attributeValue.id}`}
-                    // intent={highlightAttributeValuesByTag.includes(attributeValue.tag)?"primary": "none"}
-                    // style={{ marginRight: "0.4rem" }}
-                    // onRemove={_.isFunction(onDatasetAttributeRemove)?e => handleAttributeRemove(attributeValue):undefined}
-                    // minimal={true}
-                    // large={false}>
-                    //     {attribute.has_features_value?attributeValue.genes:attributeValue.text}
-                    // </Tag>
                 )}
                 {attributeValuesByTag[attribute.tag].length > 1 && warnAtTwoAttrValues? <TooltipButton
                     content={<div><div>You defined two dataset attribute values for an attribute ({attribute.text}).</div><div>Consider adding them as sample attributes, otherwise they are not accessible to statistical tests.</div></div>}
@@ -80,23 +123,28 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                 
                 </div>
             {_.has(attribute,"childNodes") && attribute.childNodes.length > 0 ? attribute.childNodes.map(child =>
-                <DisplayDatasetAttribute key={`${child.id}-${child.attribute_id}`} attribute={child} {...{ attributeValuesByTag, onDatasetAttributeRemove}} level={level + 1} />) : null}
+                <DisplayDatasetAttribute key={`${child.id}-${child.attribute_id}`} attribute={child} {...{ attributeValuesByTag, onDatasetAttributeRemove, addUnitsForDatasetAttributes, datasetUnits }} level={level + 1} />) : null}
         {level===0?<Divider />:null}
         </div>
     )
 }
 
 
-DatasetAttributeHierarchy.propTpyes = {
-    submissionID: PropTypes.string,
-    selectedAttributes: PropTypes.array.isRequired,
-    selectedDasetAttributeValues: PropTypes.func.isRequired,
-    onDatasetAttributeRemove : PropTypes.func.isRequired
-}
+// DatasetAttributeHierarchy.propTpyes = {
+//     submissionID: PropTypes.string,
+//     selectedAttributes: PropTypes.array.isRequired,
+//     selectedDasetAttributeValues: PropTypes.func.isRequired,
+//     onDatasetAttributeRemove : PropTypes.func.isRequired
+// }
 
-function DatasetAttributeHierarchy({ selectedAttributes, selectedDasetAttributeValues, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false }) {
-    //show dataet attributes
-    const nestedAttributes = useMemo(() => createDataTree({ array: selectedAttributes.filter(attr =>  _.has(selectedDasetAttributeValues,attr.tag) && selectedDasetAttributeValues[attr.tag].length > 0), link: "parent_id" }), [_.join(selectedAttributes.map(attr => attr.tag))])
+function DatasetAttributeHierarchy({ selectedAttributes, selectedDatasetAttributeValues, datasetUnits, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false, addUnitsForDatasetAttributes}) {
+    
+    const nestedAttributes = useMemo(() => createDataTree({
+        array: selectedAttributes
+            .filter(attr => _.has(selectedDatasetAttributeValues, attr.tag) && selectedDatasetAttributeValues[attr.tag].length > 0), link: "parent_tag"
+    }), [_.join(selectedAttributes.map(attr => attr.tag))])
+    // console.log(nestedAttributes,"nested shit")
+    // console.log(selectedAttributes, nestedAttributes, selectedDatasetAttributeValues)
     return (
         <div className="padding--little div--round bg--lightgrey intent-margin-top--little">
             
@@ -106,8 +154,13 @@ function DatasetAttributeHierarchy({ selectedAttributes, selectedDasetAttributeV
                         key={`${attribute.id}-level-0`}
                         attribute={attribute}
                         onDatasetAttributeRemove={onDatasetAttributeRemove}
-                        attributeValuesByTag={selectedDasetAttributeValues}
-                        {...{highlightAttributeValuesByTag,warnAtTwoAttrValues}} />  
+                        attributeValuesByTag={selectedDatasetAttributeValues}
+                        {...{
+                            highlightAttributeValuesByTag,
+                            warnAtTwoAttrValues,
+                            addUnitsForDatasetAttributes,
+                            datasetUnits
+                        }} />  
                 )
             })}
 

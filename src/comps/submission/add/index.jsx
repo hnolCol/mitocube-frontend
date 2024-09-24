@@ -1,13 +1,11 @@
 
-import { Button, FileInput, InputGroup, SegmentedControl } from "@blueprintjs/core"
-import PropTypes from "prop-types"
-import { useEffect, useState } from "react"
-import { readLinesAndColumnNamesFromTxtFile } from "../../../services/file/readtxtfile"
-import { arraysInArrayHaveSameLength } from "../../../services/arrays/checks"
+import { Button, FileInput, InputGroup } from "@blueprintjs/core"
+import { handleFileInput } from "../../../services/file/readtxtfile"
 import { Combobox } from "../../core/input/Combobox"
 import _ from "lodash"
 import { ItemTable } from "./Table"
 import InitialSubmission from "../new/InitialSubmission"
+import { useState } from "react"
  
 
 const initState = {
@@ -27,34 +25,9 @@ const initState = {
  * @param {Function} props.logout - Logout the user. 
  * @returns 
  */
-function AddExistingSubmission({authenticationStatus,logout}) {
-    const [submission, setSubmission] = useState({})
+function AddExistingSubmission({ authenticationStatus, logout }) {
+
     const [loadingFileProps, setLoadingFileProps] = useState(initState)
-
-
-    const handleFileInput = (e) => {
-        setLoadingFileProps(prevValues => {return {...prevValues, isLoading : true}})
-        const newFiles = e.target.files;
-        const fileName = newFiles[0].name;
-        const extension = fileName.split(".").at(-1)
-        const isSupported = ["txt", "tsv"].includes(extension);
-        if (isSupported) {
-            const reader = new FileReader()
-            reader.onload = (readEvent) => {
-                let { columnNames, dataArray } = readLinesAndColumnNamesFromTxtFile({ readEvent })
-                if (arraysInArrayHaveSameLength(dataArray)) return 
-
-                const columnNamesWithValues = columnNames.map((columnName, idx) => {
-                    return { text: columnName, firstValues : _.truncate(_.join(_.range(3).map(rowIdx => dataArray[rowIdx][idx]), ", "), {length : 24, omission : " ..."}) }
-                })
-                setLoadingFileProps(prevValues => {return {...prevValues,isLoading : false, columnNames, dataArray, columnNamesForSelection : columnNamesWithValues}})
-
-            }
-            reader.readAsText(e.target.files[0])
-        }
-
-    }
-
     return (
         <div className="div--expand center-items flex-column flex">
             <Button icon="reset" text="Reset Form" onClick={() => setLoadingFileProps(initState)} minimal={true} intent="danger"/>
@@ -68,28 +41,9 @@ function AddExistingSubmission({authenticationStatus,logout}) {
                     <InputGroup placeholder="Dataset label (optional)"
                         value={loadingFileProps.submission_label}
                         onValueChange={(value) => setLoadingFileProps(prevValues => { return { ...prevValues, submission_label: value } })} />
-                    
-                    {/* <SegmentedControl
-                        options={[{ label: "DIA-NN", value: "diann" }, { label: "MaxQuant", value: "maxquant" }, { label: "Spectronaut", value: "spec" }]}
-                        small={true}
-                        fill={false}
-                        intent="primary"
-                        defaultValue="diann"
-                    />
-
-                    <h4>File Format</h4>
-                    <p>Please select the file format. Wide format indicates that features are present in rows and samples in columns. While a long format indicates that there is a column such as 'raw.files' or 'samples' as well as some kind of quantitiy measure column. The row number is then equal to n_features x n_samples.</p>
-                    
-                    <SegmentedControl
-                        options={[{ label: "wide (features x samples)", value: "wide" }, { label: "long", value: "long" }]}
-                        small={true}
-                        fill={false}
-                        defaultValue="wide"
-                    /> */}
-
                     <h4>File Input</h4>
-                    <p>Please select a tab-delimited txt file. The file must have exactly one header. Allowed extension are .txt and .tsv.</p>
-                    <FileInput text="Choose file..." small={false} buttonText="..." onInputChange={handleFileInput} disabled={loadingFileProps.isLoading}/>
+                    <p>Please select a tab-delimited txt file. The file must have exactly one header and a column that contains the protein keys (Uniprot ID). Allowed extension are .txt and .tsv.</p>
+                    <FileInput text="Choose file..." small={false} buttonText="..." onInputChange={(e) => handleFileInput({ e, callback: setLoadingFileProps })} disabled={loadingFileProps.isLoading}/>
                     {loadingFileProps.isLoading ? <p>Reading file..</p> : null}
                 </div>
                 // if text file is loadded 

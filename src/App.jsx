@@ -25,7 +25,6 @@ import PerformanceHeader from "./comps/performance";
 import ProteinOverview from "./comps/protein/charts/overview";
 import Welcome from "./comps/welcome";
 import Timeline from "./comps/dataset/timeline";
-import Register from "./comps/register";
 import PerformanceOverview from "./comps/performance/overview";
 import SubmissionStatistics from "./comps/submission/statistics";
 import ProteinHeader from "./comps/protein";
@@ -49,6 +48,9 @@ import Runlist from "./comps/dataset/runlist";
 import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
 import { MitomapNetwork } from "./comps/dataset/mitomap";
 import DatasetHelp from "./comps/dataset/help";
+import { AdminProteomes } from "./comps/admin/proteomes/Proteomes";
+import { AdminFilterSets } from "./comps/admin/filters";
+import PerformanceRuns from "./comps/performance/runs";
 
 //axios defaults
 
@@ -120,7 +122,7 @@ function App() {
           token: tokenFromStorage.token,
           role: isTokenValid.role,
           verified: isTokenValid.verified,
-          label: isTokenValid.label,
+          tag: isTokenValid.tag,
           firstname: isTokenValid.firstname,
           lastname: isTokenValid.lastname
         })
@@ -163,9 +165,9 @@ function App() {
 
 
 
-      <Route path="/register" element={
+      {/* <Route path="/register" element={
           <Register />
-        } />
+        } /> */}
 
       {/* Redirected after successful login */}
       <Route path="/index" element={
@@ -214,12 +216,7 @@ function App() {
             
             <Route index element={<PerformanceOverview />} />
             <Route path="/performance/overview" element={<PerformanceOverview />} />
-            <Route path="/performance/runs" element={
-              <div>
-                <h3>Quality Control Runs</h3>
-                <p>In this section you can explore the qc runs performed on individual instruments. You can filter and plot for various attributes.</p>
-                <p>No qc runs found in the database ... Please add them.</p>
-              </div>} />
+            <Route path="/performance/runs" element={<PerformanceRuns />} />
             
             {/* <Route path="/performance/help" element={<h3>Help</h3>}/> */}
         </Route>
@@ -249,7 +246,9 @@ function App() {
             <Route path="/admin/users" element={<AdminUsers {...{authenticationStatus}}/>}/>
             <Route path="/admin/sharetoken" element={<ShareToken {...{authenticationStatus}}/>}/>
             <Route path="/admin/attributes" element={<AdminAttributes {...{ authenticationStatus }} />} />
-            <Route path="/admin/genotypes" element={<AdminGenotypes />}/>
+            <Route path="/admin/genotypes" element={<AdminGenotypes />} />
+            <Route path="/admin/proteomes" element={<AdminProteomes />} />
+            <Route path="/admin/sets" element={<AdminFilterSets />} />
             </Route>
           
 

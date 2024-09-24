@@ -1,16 +1,12 @@
 import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
 import PropTypes from "prop-types"
 import APIError from "../../core/error/APIerror"
-import AttributeInput from "./attribute/select/MultiSelectAttribute"
 import { useMemo, useState, useEffect } from "react"
-import { getUniqueValuesFromArrayOfObjectsByKey, groupListByProperty } from "../../../services/arrays/groupby"
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
+import { getUniqueValuesFromArrayOfObjectsByKey } from "../../../services/arrays/groupby"
+import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { objectHasKey } from "../../../services/objects/checks"
 import _ from "lodash"
 import NumericValueInput from "../../core/input/Numeric"
-import { getCurrentDate } from "../../../services/date/format"
-import UserSelection from "../../core/input/Users"
-import DatasetAttributeSelect from "./attribute/select/DatasetAttributes"
 import DatasetAttributeHierarchy from "./attribute/view/DatasetAttributesHierarchy"
 import TextInput from "../../core/input/Text"
 
@@ -26,11 +22,13 @@ import { constructSampleNames } from "../../../services/samples"
 
 import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 import { useNavigate } from "react-router"
-import { FeatureInput } from "../../core/input/api/FeatureInput"
 import { UserInput } from "../../core/input/api/UserInput"
+import { MandatoryAttributes } from "../MandatoryAttributes"
+import { AttributesInput } from "../../core/input/api/DatasetAttributeInput"
+import { AxiosError } from "axios"
 //move to service
 export function get_proteome_id(datasetAttributeValues) {
-    return _.has(datasetAttributeValues,"att_organism") && datasetAttributeValues["att_organism"].length > 0? datasetAttributeValues["att_organism"].map(attributeValue => attributeValue.value) : []
+    return _.has(datasetAttributeValues,"att_proteome") && datasetAttributeValues["att_proteome"].length > 0? datasetAttributeValues["att_proteome"].map(attributeValue => attributeValue.tag) : []
     
 }
 
@@ -38,7 +36,7 @@ export function get_proteome_id(datasetAttributeValues) {
 
 const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
-            label : "",
+            tag : "",
             replicates : [],
             sampleNames: [],
             collaborators : [],
@@ -51,7 +49,9 @@ const initSubmissionState = {
             datasetAttributeValues: {},
             datasetAttributes: [],
             genotypeAttributes : [],
-            rerenderTableDependency: 0
+            rerenderTableDependency: 0,
+    datasetAttributeUnits: {},
+            samplesAttributesUnit : {} // attribute_tag -> [[]] length == samples  
 }
             
 function InitialSubmission({
@@ -59,54 +59,29 @@ function InitialSubmission({
     logout,
     sampleNames = [],
     loadingFileProps,
-    submission_label
+    init_submission_tag
     }   
 ) {
-
+    
     const preDefinedSampleNames = sampleNames.length > 0 
     //check if submission is from an existing file...
     const submitExistingData = _.isObject(loadingFileProps) && _.has(loadingFileProps,"dataArray") && _.isArray(loadingFileProps.dataArray) && loadingFileProps.dataArray.length > 0 
     const redirect = useNavigate()
     const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
-    
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
-    const { data: metatext } = useGetSubmissionMetatext({}, { staleTime: Infinity }) // put metatext for long time in cache (staleTime - define in hooks!) 
-    const { data: submissionID, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID({},{enabled : !_.isString(submission_label)})
+    const { data: metatext } = useGetSubmissionMetatext({}) 
+    const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID({},{enabled : !_.isString(init_submission_tag)})
     const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_ids : proteome_ids},{enabled : proteome_ids.length > 0})
 
-    const label = useMemo(() => _.isString(submission_label) ? submission_label : _.isObject(submissionID) ? submissionID.id : undefined,[_.isObject(submissionID),submission_label])
+    const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.id : undefined,[_.isObject(submission_tag),submission_tag])
+    
     const { data: submissionAttributes,
         isLoading: attributesLoading,
         error: attributesAPIError,
         isError: attributeIsError,
         isSuccess: attributesIsSuccess } = useGetSubmissionAttributes() //
-    
-    //filter attributes that are not for dataset
-    const { attributeValuesByAtrributeID, attributeValuesWithParentInfo }  = useMemo(() => {
-        if (!attributesIsSuccess) return {}
-        let attrById = Object.fromEntries(submissionAttributes.attributes.map(attrs => [attrs.id,[attrs.tag,attrs.text]]))
-        let attrsValues = submissionAttributes.attribute_values
-        let attrs = attrsValues.map(attrValue => { return { ...attrValue, attribute_id_tag: attrById[attrValue.attribute_id][0], attribute_id_name: attrById[attrValue.attribute_id][1]} })
-
-        return { attributeValuesByAtrributeID: groupListByProperty(attrs, "attribute_id"), attributeValuesWithParentInfo : attrs }
-    }, [attributesIsSuccess])
-
-    const attributesRequiredForSubmission = useMemo((
-        ) => {
-            if (!attributesIsSuccess) return []
-            return submissionAttributes.attributes.filter(attribute => attribute["mandatory_for_submission"])
-
-    }, [attributesIsSuccess])
-    
-    const attributesAllowedForDataset = useMemo((
-        ) => {
-        if (!attributesIsSuccess) return []
-        
-            return submissionAttributes.attributes.filter(attribute => attribute["allow_for_dataset"] && (submitExistingData || attribute.min_state === 0))
-
-        },[attributesIsSuccess])
 
     const attributesForGenotype = useMemo((
         ) => {
@@ -126,14 +101,17 @@ function InitialSubmission({
         //handle changes that effect the samples names 
         const sampleNumber = parseInt(submission.attributes.sampleNumber)
         if (!_.isNumber(sampleNumber)) return 
-        if (!_.isString(label)) return
+        if (!_.isString(tag )) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
+        
         let genotypeAttributes = submission.genotypeAttributes
+        
         if (sampleNumber > genotypeAttributes.length) {
             const diffLength = sampleNumber - attributeTable.length
             _.forEach(_.range(diffLength), () => genotypeAttributes.push([]))
         }
+
         if (sampleNumber > attributeTable.length) {
             //add rows 
             const diff = sampleNumber - attributeTable.length
@@ -143,11 +121,11 @@ function InitialSubmission({
                 attributeTable.push(Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
         }
-        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames(label, sampleNumber, attributeTable) : sampleNames
+        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames(tag , sampleNumber, attributeTable) : sampleNames
 
-        setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, label, rerenderTableDependency : [Math.random()]}})
+        setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, tag , rerenderTableDependency : [Math.random()]}})
 
-    }, [submission.attributes.sampleNumber, label])
+    }, [submission.attributes.sampleNumber, tag ])
     
 
     const onSubmssionRequest = () => {
@@ -195,19 +173,24 @@ function InitialSubmission({
 
 
         //check for all mandatory attributes
-        let requiredAttributeNotSubmitted = _.filter(attributesRequiredForSubmission, attrRequired => !(objectHasKey({
-                        object: submission.datasetAttributeValues, keyName: attrRequired.tag})
-            && submission.datasetAttributeValues[attrRequired.tag].length > 0))
-        // TO DO check if present in samples attributes
-        if (attributeTable.length > 0) {
-            // check the attributes that are maybe in the sample attributes.
-            requiredAttributeNotSubmitted = requiredAttributeNotSubmitted.filter(reqAttr => !_.has(attributeTable[0],reqAttr.tag))
-        }
+
+        //perform check in backend....
+        // let requiredAttributeNotSubmitted = _.filter(attributesRequiredForSubmission, attrRequired => !(objectHasKey({
+        //                 object: submission.datasetAttributeValues, keyName: attrRequired.tag})
+        //     && submission.datasetAttributeValues[attrRequired.tag].length > 0))
+        
+        
+        
+        // // TO DO check if present in samples attributes
+        // if (attributeTable.length > 0) {
+        //     // check the attributes that are maybe in the sample attributes.
+        //     requiredAttributeNotSubmitted = requiredAttributeNotSubmitted.filter(reqAttr => !_.has(attributeTable[0],reqAttr.tag))
+        // }
         
 
-        if (requiredAttributeNotSubmitted.length > 0) {
-            errMsgs.push("Mandatory Dataset Attributes Missing: "+_.join(requiredAttributeNotSubmitted.map(attr => attr.text), ", "))
-        }
+        // if (requiredAttributeNotSubmitted.length > 0) {
+        //     errMsgs.push("Mandatory Dataset Attributes Missing: "+_.join(requiredAttributeNotSubmitted.map(attr => attr.text), ", "))
+        // }
 
         // check if sample attributes table is complete 
         const emptySampleInfo = attributeTable.map(sampleAttributes => _.some(Object.values(sampleAttributes), array => array.length == 0))
@@ -255,7 +238,8 @@ function InitialSubmission({
             }
             submissionDetails["genotypes"] = genotypeAttributes
             submissionDetails["attributeTable"] = attributeTable
-            submissionDetails["label"] = label
+            submissionDetails["samplesAttribute"] = attributeTable
+            submissionDetails["tag"] = tag 
             submissionDetails["title"] = flexAttributes.title 
             submissionDetails["replicates"] = validReplicates
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
@@ -264,6 +248,9 @@ function InitialSubmission({
                 loadingFileProps.sampleColumnsIdx.map(rowIndex => row_data[rowIndex] === "NaN" || row_data[rowIndex] === "" ? NaN : _.toNumber(row_data[rowIndex]))) : undefined
             submissionDetails["data_sample_names"] = submitExistingData ? loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx]) : []
             submissionDetails["data_index"] = findFeatures(loadingFileProps)
+            submissionDetails["samplesAttributesInput"] = submission.samplesAttributesUnit
+
+
             postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
@@ -276,6 +263,7 @@ function InitialSubmission({
                         intent: "success",
                         onClose: () => {
                             setAlertProps({ isOpen: false })
+                            resetSubmission()
                             redirect("/submission/view")
                         }
                     }),
@@ -297,14 +285,26 @@ function InitialSubmission({
 
     }
 
+    /**
+     * 
+     * @param {Object} loadingFileProps - The loading file props to find the index of the feature column, essential if the submission process
+     * is started from files loading. 
+     * @returns {String[]} The data index (feature tag) from a loaded data table file. 
+     */
     const findFeatures = (loadingFileProps) => {
         if (!submitExistingData) return undefined 
         const feature_index = loadingFileProps.columnNames.indexOf(loadingFileProps.keyColumnName)
         return loadingFileProps.dataArray.map(rowData => rowData[feature_index]) 
     }
 
+
+    /**
+     * @description Closes the alert window and loggs the user out 
+     * if the error is of status 401. 
+     * @param {AxiosError} error - The potential error returned from an axios request. 
+     */
     const closeAlertAndLogout = (error) => {
-        // function to handle altert closing 
+        // function to handle alert closing 
         setAlertProps({ isOpen: false })
         if (error.response.status === 401) {
             //logout if response is Unauthorized
@@ -336,8 +336,11 @@ function InitialSubmission({
         // load a submission from the submission.
         const {itemFound, itemValue : submission} = getItemFromLocalStorage({itemName : "submission", parseJson : true})
         if (_.isObject(submission)) {
-
+            console.log(submission)
             setSubmission(prevValues => {return {...prevValues, ...submission}})
+        }
+        else {
+            setSubmission(initSubmissionState)
         }
     }
 
@@ -354,15 +357,15 @@ function InitialSubmission({
         })
     }
 
-    const warnForMandatoryAttr = (addedAttribute) => {
-        // warns if a mandatory attribute (dataset) was selected
-        if (_.isObject(addedAttribute) && _.isObject(addedAttribute.attribute) && attributesRequiredForSubmission.includes(addedAttribute.attribute)) {
-            setAlertProps({
-                isOpen: true, children: <div><h3>Warning</h3><p>The selected attribute is defined as a mandatory dataset attribute.</p>
-                    <p>Defining it as a sample attribute overwrites the dataset attribute selection and is <strong>only recommended if the attribute differs between samples.</strong></p></div>
-            })
-        }
-    }
+    // const warnForMandatoryAttr = (addedAttribute) => {
+    //     // warns if a mandatory attribute (dataset) was selected
+    //     if (_.isObject(addedAttribute) && _.isObject(addedAttribute.attribute) && attributesRequiredForSubmission.includes(addedAttribute.attribute)) {
+    //         setAlertProps({
+    //             isOpen: true, children: <div><h3>Warning</h3><p>The selected attribute is defined as a mandatory dataset attribute.</p>
+    //                 <p>Defining it as a sample attribute overwrites the dataset attribute selection and is <strong>only recommended if the attribute differs between samples.</strong></p></div>
+    //         })
+    //     }
+    // }
 
     const onMetaTextChange = (tag, text) => {
         //handles changes in the metatext 
@@ -371,40 +374,6 @@ function InitialSubmission({
         setSubmission(prevValues => {return {...prevValues,metatext}})
         
     }
-
-    /**
-     * 
-     * @param {*} attribute 
-     * @param {import("../../../types/feature").Feature[]} selectedFeatures 
-     * @param {*} isSampleAttribute 
-     * @param {*} rowIdces 
-     * @param {*} genotypeLabel 
-     * @param {*} entryIdx 
-     */
-    const onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
-        //console.log(attribute)
-        if (attribute.allow_for_genotype) {
-            genotypeSelection(genotypeLabel,attribute.tag,selectedFeatures[0],entryIdx) //double check entry!! 
-        }
-        else if (isSampleAttribute) {
-            let d = submission.attributeTable
-            if (!_.has(d[0],attribute.tag)) {
-                d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
-            }
-            //save feature selection
-            rowIdces.filter(rowIndex => rowIndex < submission.sampleNames.length).forEach(rowIndex =>  d[rowIndex][attribute.tag] =  _.concat(d[rowIndex][attribute.tag],selectedFeatures) )
-            //update table
-            setSubmission(prevValues => { return { ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()] } })
-            }
-        else {
-            let filteredDatasetAttr = addItemToArrayIfNotPresent({ array: submission.datasetAttributes, item: attribute })
-            let datasetAttrValues = submission.datasetAttributeValues
-            datasetAttrValues[attribute.tag] = selectedFeatures
-            setSubmission(prevValues => { return {...prevValues, datasetAttributes : filteredDatasetAttr, datasetAttributeValues : datasetAttrValues, rerenderTableDependency: [Math.random()]}})
-        }
-        setAlertProps({isOpen : false})
-    }
-
 
     /**
      * 
@@ -423,7 +392,7 @@ function InitialSubmission({
         // handles dataset attribute selection (adding and removing) Dataset values are stored in a list. 
         //check if attributes has nodeChilds
         
-        
+       
         let filteredDatasetAttr = addItemToArrayIfNotPresent({ array: submission.datasetAttributes, item: attribute })
         let datasetAttrValues = submission.datasetAttributeValues
         if (_.has(datasetAttrValues, attribute.tag)) {
@@ -462,6 +431,12 @@ function InitialSubmission({
         setSubmission(prevValues => {return {...prevValues,"links" : prevValues.links.filter((d,idx) => idx !== linkIdx)}})
     }
 
+
+    const addUnitsForDatasetAttributes = (attribute, attributeValue, unitValues) => {
+
+        setSubmission(prevValues => {return {...prevValues, datasetAttributeUnits : {...prevValues.datasetAttributeUnits, [attributeValue.tag] : unitValues}}})
+    }
+
     const handleLinkChange = (linkIdx, updatedLinkProps) => {
         let links = submission.links 
         links[linkIdx] = updatedLinkProps
@@ -488,7 +463,7 @@ function InitialSubmission({
                 <h3>Information</h3>
             <p>
                 In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
-            <p>The unique datset identifier <span className="h0-span">{label}</span> has been created for your submission. Please include this unique identifier in any request about your project.
+            <p>The unique dataset tag <span className="h0-span">{tag }</span> has been created for your submission. Please include this unique identifier in any request about your project.
                 All files (such as raw file) will include the identifier. Please note that you and your collaborators will be notified via email when the state of your project changes.
                 The meta data are based on pre-defined attributes/ontologies and hence it might happen that you are missing an attribute for your project. 
                     </p>
@@ -497,7 +472,7 @@ function InitialSubmission({
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
-                    <div><span>Unique identifier: </span> <span className="h0-span">{label}</span></div>
+                    <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div>
                     
                     <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
                   
@@ -510,70 +485,51 @@ function InitialSubmission({
                         value={_.isString(submission.attributes["title"]) ? submission.attributes["title"] : ""}
                         callbackKey="title"
                         onChange={(callbackKey, title) => onInputChange(callbackKey, title)} />
+                    
+                    <MandatoryAttributes
+                        proteome_ids={proteome_ids}
+                        selectedDatasetAttributes={submission.datasetAttributeValues}
+                        onAttributeValueSelect={handleDatasetAttributeSelection} /> 
                 
-                {attributesRequiredForSubmission.length > 0 ? attributesRequiredForSubmission.map((attribute) => {
-                    const samplesAttributesPresent = submission.samplesAttributes.length > 0
-                    const hasFeatureValue = attribute.has_features_value
-                    if (objectHasKey({ object: attributeValuesByAtrributeID, keyName: attribute.id }) || hasFeatureValue) {
-                        const attributeValues = attribute.has_features_value ? [] : attributeValuesByAtrributeID[attribute.id]
-                        // if features are allow as values, then just submit an empty list, it will be handled by the attrobute input
-                        const isDefinedAsSamplesAttributes = samplesAttributesPresent ? submission.samplesAttributes.map(sampleAttr => sampleAttr.attribute).includes(attribute) : false
-                        const attributeInputDisabled = samplesAttributesPresent && isDefinedAsSamplesAttributes
-                        if (hasFeatureValue) {
-                            
-                            return <FeatureInput onItemSelect={handleDatasetAttributeSelection}
-                                attribute={attribute}
-                                proteome_ids={proteome_ids}
-                                selectedItems={_.has(submission.datasetAttributeValues, attribute.tag) ? submission.datasetAttributeValues[attribute.tag] : []} />
-                        }
-
-                        return <AttributeInput {...{ attributeValues, attribute }}
-                            key={`${attribute.text}-${attribute.id}-mandatory`}
-                            helperText={attributeInputDisabled?"Defined as a sample attribute below.":""}
-                            disabled={attributeInputDisabled}
-                            selectedItems={objectHasKey({ object: submission.datasetAttributeValues, keyName: attribute.tag }) ? submission.datasetAttributeValues[attribute.tag] : []}
-                            onItemSelect={handleDatasetAttributeSelection}
-                            onRemove={handleDatasetAttributeSelection}
-                        />
-                    }
-                }) : null}
                 </div>
+            
             <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                     <h3>4. Meta Text</h3>
-            <MetaText metatextValues={submission.metatext} {...{onMetaTextChange,authenticationStatus}} />
+            
+                    <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange, authenticationStatus }} />
+            
             </div>
-            <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange}/>
+            
+                <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange} />
 
-            {attributesIsSuccess && _.isArray(attributesAllowedForDataset) ?
+            {attributesIsSuccess ?
             <div>
 
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                         <h3>5. Dataset Attributes</h3>
                         <p>Dataset attributes describe the dataset and are valid for all samples.
                             As an example, if you have a project that uses the same cell line throughout the study, the cell line should be added here.</p>
-                        <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
-                        <DatasetAttributeSelect
-                            attributes={attributesAllowedForDataset}
-                                attributeValues={attributeValuesWithParentInfo}
-                                selectedDatasetAttribute={submission.datasetAttributes}
-                                selectedDatasetAttributeValues={submission.datasetAttributeValues}
-                                attributeValuesByID={attributeValuesByAtrributeID}
-                                proteome_ids={proteome_ids}
-                            {...{ handleDatasetAttributeSelection}} />
+                            <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
+                            
+                            <AttributesInput
+                                selectedDatasetAttributes={submission.datasetAttributeValues}
+                                {...{ handleDatasetAttributeSelection }} />
+                        
                         <DatasetAttributeHierarchy
-                            selectedAttributes={submission.datasetAttributes}
-                            selectedDasetAttributeValues={submission.datasetAttributeValues}
-                            onDatasetAttributeRemove={handleDatasetAttributeSelection} />
+                                selectedAttributes={submission.datasetAttributes}
+                                selectedDatasetAttributeValues={submission.datasetAttributeValues}
+                                onDatasetAttributeRemove={handleDatasetAttributeSelection}
+                                {...{addUnitsForDatasetAttributes, datasetUnits : submission.datasetAttributeUnits}} />
                 </div>
                     
                 {/* <Button onClick={handleGenotypeCreation} /> */}
-                        <GenotypeGenerator
-                    proteome_ids={proteome_ids.filter(proteome_id => proteome_id !== "controls")}
-                    attributes={attributesForGenotype}
-                    attributeValuesByID={attributeValuesByAtrributeID}
-                    //onSelection={genotypeSelection}
-                    genotypes={submission.genotypes} 
-                    {...{handlePositionSelection, refetchGenotypes }}/>
+                    <GenotypeGenerator
+                        proteome_ids={proteome_ids.filter(proteome_id => proteome_id !== "controls")}
+                        attributes={attributesForGenotype}
+                        // attributeValuesByID={attributeValuesByAtrributeID}
+                        //onSelection={genotypeSelection}
+                        genotypes={submission.genotypes} 
+                        {...{handlePositionSelection, refetchGenotypes }}/>
                             
                         
                 <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
@@ -602,7 +558,6 @@ function InitialSubmission({
                                 submission,
                                 genotypes,
                                 updateSubmission: setSubmission,
-                                attributes: attributesAllowedForDataset,
                                 numberReplicates: submission.attributes.replicates,
                             }} />
                     </div>

@@ -1,34 +1,13 @@
 
-import PropTypes from "prop-types"
-import MultipleMetrices from "../core/metrics/collection"
-import { useGetBackendInfo, useGetKeyFigures, useGetNews } from "../../hooks/queries/welcome.hooks"
+import { useGetBackendInfo } from "../../hooks/queries/welcome.hooks"
+import { Network } from "../protein/overview/Network"
+import { KeyFigure } from "./Keyfigures"
+
 import _ from "lodash"
+import { NewsView } from "./News"
 
-Welcome.propTypes = {
-    authenticationStatus: PropTypes.object.isRequired,
-    applicationInfo: PropTypes.object.isRequired,
-    setApplicationInfo : PropTypes.func.isRequired
-}
-
-function KeyFigure({ authenticationStatus }) {
-
-    const { isLoading: isLoadingKeyFigures, data: keyFigures, isFetching: isFetchingKeyFigures } = useGetKeyFigures({ tokenString: authenticationStatus.token })
-
-    return (
-        <div className="intent-margin-top">
-                {isLoadingKeyFigures || isFetchingKeyFigures ? null : <MultipleMetrices metrices={keyFigures}/> }
-        </div>    
-    )
-}
-
-function Welcome({ authenticationStatus}) {
-    //const enabled = _.isObject(authenticationStatus) && authenticationStatus.token
-    const { isLoading: backendInfoLoading, data : backendInfo } = useGetBackendInfo({ tokenString: authenticationStatus.token })
-    
-    // const { isLoading: isLoadingNews, data: news, isFetching: isFetchingNews } = useGetNews(
-    //     { tokenString: authenticationStatus.token },
-    //     )
-    
+function Welcome() {
+    const { isLoading: backendInfoLoading, data : backendInfo } = useGetBackendInfo()
     return (
         <div className="flex flex-column center-items div--expand">
             <div className="main-header">
@@ -37,10 +16,9 @@ function Welcome({ authenticationStatus}) {
             <div>
                 <p>{backendInfoLoading || !_.isObject(backendInfo) && _.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
             </div>
-            <KeyFigure {...{authenticationStatus}} />
-            {/* <div>
-                {isLoadingNews || isFetchingNews ? null : <Messages messages={news}/>}
-            </div> */}
+            <KeyFigure />
+            {/* <Network /> */}
+            <NewsView />
         </div>
     )
 }

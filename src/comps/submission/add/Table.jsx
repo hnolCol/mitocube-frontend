@@ -74,7 +74,7 @@ export function ItemTable({items = [], selectedItems = [], onSelection}) {
     return <Table2
         numRows={items.length}
         defaultRowHeight={20}
-        defaultColumnWidth={200}
+        defaultColumnWidth={250}
         selectionModes={SelectionModes.CELLS}
         selectedRegions={selectedItems.length > 0 ? selectedItems.map(rowIdx => {return {rows : [rowIdx,rowIdx]}}) : []}
         onSelection={handleSelection}

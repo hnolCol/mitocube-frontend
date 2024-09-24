@@ -2,13 +2,12 @@ import PropTpyes, { array } from "prop-types"
 import { getUniqueSetsOfAllValuesinArrayOfObjects, groupListByProperty } from "../../../services/arrays/groupby"
 import _ from "lodash"
 import { SubmissionItem } from "./SubmissionItem"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { isHexColorLight } from "../../../services/colors"
 import { titleFormat } from "../../../services/format/string"
 import {motion, useAnimation} from "framer-motion"
-import { Button, Icon, InputGroup } from "@blueprintjs/core"
-import TextInput from "../../core/input/Text"
-import { filterArrayBySearchString, filterArrayOfObjects } from "../../../services/arrays/filter"
+import { Icon } from "@blueprintjs/core"
+import { filterArrayBySearchString } from "../../../services/arrays/filter"
 import { useGetSubmissionStates, useGetSubmissionByQuery } from "../../../hooks/queries/submission.hooks"
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms"
 import { SubmissionFilterSelection } from "../filter"
@@ -215,13 +214,12 @@ export function filterSubmissions({ submissions, submissionFilter, submissionsQu
 export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog, setMetatextDialog}) {
     
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
-    // console.log(submissionFilter)
-    // console.log(getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }))
+
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
         query: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
         state: stateFilter,
-        genotype_label : getValueByKeyAndMergeToString({array : submissionFilter["genotype_label"], keyName : "label"}),
-        user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
+        genotype_tag : getValueByKeyAndMergeToString({array : submissionFilter["genotype_tag"], keyName : "tag"}),
+        user_tag : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
     })
@@ -230,7 +228,7 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
     const usersByLabel = groupListByProperty(users, "label")
     //const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
     const submissionsByState = _.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? groupListByProperty(submissionQuery.submissions, "state") : {}
-
+    
     return (
         <div>
             <SubmissionFilterSelection {...{
@@ -257,7 +255,7 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
                                         //key are always strings .... 
                                         return (
                                             <SubmissionItem
-                                                key={submission.label}
+                                                key={submission.tag}
                                                 {...{
                                                 stateName : states.states_inv[state], 
                                                 states,

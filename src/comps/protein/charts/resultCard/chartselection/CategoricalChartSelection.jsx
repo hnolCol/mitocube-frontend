@@ -137,8 +137,8 @@ export function ChartStringSearch({ keyNames, selection, onSelectionChange, hand
 
         if (!_.isFunction(handleStringSearch)) return 
 
-        handleStringSearch(selection.filterNames,debounceString)
-    }, [debounceString, _.join(selection.filterNames)])
+        handleStringSearch(selection.textSearchNames,debounceString)
+    }, [debounceString, _.join(selection.textSearchNames)])
 
 
     return (
@@ -146,13 +146,13 @@ export function ChartStringSearch({ keyNames, selection, onSelectionChange, hand
             <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")} />} />
             <FilterIcon
                     items={keyNames}
-                    callbackKey={"filterNames"}
-                    selectedItems={_.map(selection.filterNames, text => { return { text } })}
+                    callbackKey={"textSearchNames"}
+                    selectedItems={_.map(selection.textSearchNames, text => { return { text } })}
                     minimal={minimal}
                     callback={(key, item) => onSelectionChange(prevValues =>{
                     return {
                         ...prevValues,
-                        [key]: addItemToArrayOrRemoveItIfPresent({ array: prevValues.filterNames, item }),
+                        [key]: addItemToArrayOrRemoveItIfPresent({ array: prevValues.textSearchNames, item }),
                         tooltipNames : addItemToArrayIfNotPresent({array : prevValues.tooltipNames, item})
                     }
                 })} />

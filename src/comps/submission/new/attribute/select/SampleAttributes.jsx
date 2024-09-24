@@ -4,14 +4,23 @@ import { Combobox } from "../../../../core/input/Combobox"
 import TextInput from "../../../../core/input/Text"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider, NumericInput} from "@blueprintjs/core"
+import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider, NumericInput, SegmentedControl} from "@blueprintjs/core"
 import { useEffect, useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
 import _ from "lodash"
 import NumericValueInput from "../../../../core/input/Numeric"
 import { createFakeAttributeValue } from "../../../../../services/attributes"
-import { addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
+import { addItemsToArrayByTag, addItemToArrayOrRemoveIfPresentByTag, addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
 import { FeatureInput } from "../../../../core/input/api/FeatureInput"
+import { useGetAttributeValues, useGetValueForAttributeByTag } from "../../../../../hooks/queries/attribute.hooks"
+import { AttributeValueMenuItem } from "../../../../core/input/items/AttributeValueMenu"
+import Loading from "../../../../core/base/loading"
+import { TagWithTooltip, UnitSelectionTag } from "../../../../core/base/tags/TagWithTooltip"
+import { AttributeFeatureTag } from "../view/DatasetAttributesHierarchy"
+
+
+
+
 
 SamplesAttributes.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
@@ -19,7 +28,16 @@ SamplesAttributes.propTypes = {
     attributeValuesByID : PropTypes.object
 }
 
-
+/**
+ * 
+ * @param {Object} props 
+ * @param {Function} props.onSave 
+ * @param {String[]} props.proteome_ids 
+ * @param {import("../../../../../types/attributes").Attribute} props.attribute 
+ * @param {Number[]} props.selectedRows 
+ * @param {Object[]} props.prevSelection  
+ * @returns 
+ */
 function FeatureSelectionInMenu({ onSave, proteome_ids, attribute, selectedRows, prevSelection = []}) {
     const [selectedItems, setSelectedItems] = useState(prevSelection)
 
@@ -35,9 +53,6 @@ function FeatureSelectionInMenu({ onSave, proteome_ids, attribute, selectedRows,
         </div>
     )
 }
-
-// tion(attribute,[value],true,selectedRows,undefined,undefined)}/>) : null}
-
 
 function ReplicateMenu({ selectedRows, numberReplicates, onReplicateChange }) {
     
@@ -74,37 +89,42 @@ function ReplicateMenu({ selectedRows, numberReplicates, onReplicateChange }) {
     </Menu>
     }
 
+/**
+ * 
+ * @param {Object} props 
+ * @param {import("../../../../../types/attributes").Attribute} props.attribute 
+ * @param {Function} props.repeatSelection - Function to be called upon selection to repeat the current selection.
+ * @returns 
+ */
+function NumericInputMenu({
+    attribute,
+    repeatSelection,
+    clearAttributeTableByRowIndex,
+    onSamplesAttributeUnitInput,
+    onAttributeSelect,
+    samplesAttributeUnit,
+    selectedRows }) {
+    
+    const { data: attribute_values, isLoading, isFetching, isSuccess } = useGetValueForAttributeByTag({ tag: attribute.tag })
+    
+    const unitSelection = _.has(samplesAttributeUnit, attribute.tag) ? samplesAttributeUnit[attribute.tag][_.min(selectedRows)] : {}
 
-function NumericInputMenu({attribute, attributeValues, repeatSelection, clearAttributeTableByRowIndex, handleNumericInput, onAttributeSelect, selectedRows}) {
-    useEffect(() => {
-        //ensure that the input field is focused on.
-        const el = document.getElementById("numeric-value-input-sample")
-        el.focus()
-    }, [])
     if (!_.isArray(selectedRows)) return <Menu><MenuItem text="Selected rows not found." disabled/></Menu>
 
     return <Menu>
-            <MenuItem text="Enter numeric value." disabled={true} />
-            <MenuDivider />
-            {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
-            {attributeValues.map(attrValue => <MenuItem
-                key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
-                text={attrValue.text}
-                labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>}
-                onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
-            }
-            
-        <NumericValueInput
-                id = "numeric-value-input-sample"
-                placeholder={`${attribute.text}`}
-                callbackKey={attribute.tag}
-                submitButton={true}
-                buttonProps={{
-                    intent: "primary",
-                    icon: "rocket"
-                }}
-                onButtonClick={(attributeTag, attributeValue) => handleNumericInput(attributeValue,attributeValues,attribute,selectedRows)}  //onAttributeSelect(attributeTag, createFakeAttributeValue({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
-                />
+        {isLoading || isFetching ? <Loading /> :
+            isSuccess ?
+                attribute_values.map(attrValue => <AttributeValueMenuItem
+                    attributeValue={attrValue}
+                    onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />) : null
+        }
+        {attribute.has_unit ?
+            <UnitSelectionTag
+                attribute={attribute}
+                onSave={onSamplesAttributeUnitInput}
+                selectedRows={selectedRows}
+                initValues={unitSelection} /> : null
+        }
             {selectedRows.length > 0 ?
                 <Menu>
                     <MenuDivider />
@@ -119,7 +139,6 @@ function AttributeSelectionHeader({
     columnIndex,
     sampleAttrIndex,
     attributes = [],
-    sampleAttributeName = "",
     attributeName = "attribute type ...",
     attributesTagsInUse = [],
     onSampleAttributeSelect = undefined,
@@ -132,8 +151,8 @@ function AttributeSelectionHeader({
                 value={attributeName}
                // disabled={groupingName.length < 2}
                 buttonProps={{ minimal: true, fill: false, disabled}}
-                callbackKey={sampleAttributeName}
-                onChange={(callbackKey, attribute) => onSampleAttributeSelect(sampleAttrIndex, sampleAttributeName, attribute, true)} />
+                callbackKey={"sample_attr"}
+                onChange={(callbackKey, attribute) => onSampleAttributeSelect(sampleAttrIndex, attribute)} />
         </div>
     )
 }
@@ -154,7 +173,7 @@ function getPositionString(positionAttrValue) {
 }
 
 function extractGenotypeRepresentation(genotype) {
-    
+    if (!_.isArray(genotype.attributes)) return null 
     return <div>{genotype.attributes.map((attribute,attrIdx) => {
         const hasProteinMutation = _.has(attribute, "att_protein_position")
         const mutations = hasProteinMutation && _.has(attribute, "att_protein_mutation") ? attribute["att_protein_mutation"] : []
@@ -235,43 +254,127 @@ function ReplicateContextMenu({numberReplicates, onReplicateChange, selectedRows
 
 
 
-export function AttributeContextMenuSearch({attributeTag ,attributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined, repeatSelection}) {
-    const [queryString, setQuery] = useState("")
-    let attributeValueBySearchQuery = useMemo(() => queryString === "" ? attributeValues : filterArrayBySearchString({
-        searchString: queryString,
-        array: attributeValues,
-        keyNames: ["text", "details"]
-    }), [queryString])
+export function AttributeContextMenuSearch({attribute, selectedAttributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined, repeatSelection, handleUnitInput, samplesAttributeUnit}) {
+    // get attribute values 
+    const [page, setPage] = useState("attribute_values")
+    const { data: attribute_values, isLoading, isFetching, isSuccess } = useGetValueForAttributeByTag({ tag: attribute.tag })
+    const [currentSelection, setCurrentSelection] = useState([]) 
+    const [searchString, setQuery] = useState("")
+
+    let attributeValueBySearchQuery = useMemo(() => {
+        
+        if (searchString === "" && isSuccess)
+            return  _.sortBy(attribute_values,'text')
+        
+        return _.sortBy(filterArrayBySearchString({
+            searchString,
+            array: attribute_values,
+            keyNames: ["text", "description"]
+        }),'text')
+    }, [searchString, isSuccess])
+    
 
     useEffect(() => {
         const el = document.getElementById("attribute-context-input")
-        el.focus()
+        if (el !== null) el.focus()
+        
+    }, [page])
+
+
+    useEffect(() => {
+        setCurrentSelection(selectedAttributeValues)
+       
     }, [])
-    
+
+    /**
+     * 
+     * @param {import("../../../../../types/attributes").Attribute} attribute 
+     * @param {import("../../../../../types/attributes").AttributeValue} attributeValue 
+     * @param {Object} userInput 
+     */
+    const handleUserInput = (attribute, attributeValue, userInput, rowIdces) => {
+        handleUnitInput(attribute,attributeValue,userInput,rowIdces)
+    }
+
+    const handleAttributeSelection = (attributeTag, attributeValue, rowIdces) => {
+        
+        const updatedSelection = addItemToArrayOrRemoveIfPresentByTag({ array: currentSelection, item: attributeValue })
+        console.log(updatedSelection,"UPDATEA????? ", attributeValue, currentSelection)
+        setCurrentSelection(updatedSelection)
+        
+        onAttributeSelect(attributeTag, attributeValue, rowIdces)
+    }
+
+
     return (
-        <Menu style={{zIndex:10}} onWheelCapture={e => e.stopPropagation()}>
-            <TextInput
-                    id = "attribute-context-input"
-                    value={queryString}
+        <div>
+            <SegmentedControl small intent="primary"
+                onValueChange={(value) => setPage(value)}
+                defaultValue={page}
+                options={[{ label: "Attribute Values", value: "attribute_values" }, { label: "Details", value: "details" }]} />
+            {page === "attribute_values" ? <Menu style={{ zIndex: 10 }} onWheelCapture={e => e.stopPropagation()}>
+                <TextInput
+                    small
+                    id="attribute-context-input"
+                    value={searchString}
                     callbackKey={"a"}
                     placeholder="Search attribute value..."
-                    onChange={(key,value,type) => setQuery(value)}
+                    onChange={(key, value, type) => setQuery(value)}
                     
                 />
-                <Menu style={{ overflowY: "scroll", maxHeight: "280px" }} onWheelCapture={e => e.stopPropagation()}> 
-                {attributeValueBySearchQuery.map((attributeValue, index) =>
-                    index === 25 ? <MenuItem key={attributeValue.text} text=" . . . not all items shown, please use the search function.." disabled={true} /> : index > 25 ? null :
-                    <MenuItem
-                        onClick={(e) => onAttributeSelect(attributeTag, attributeValue,rowIdces)}
-                        key={attributeValue.text}
-                        text={attributeValue.text}
-                        labelElement={<div className="labelelement-wrap--fixed-width">{attributeValue.description}</div>}
-                        role="listoption" />)}
-            </Menu>
-            <MenuDivider />
-            <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces,attributeTag)}/>
-            <MenuItem text={`Clear Selection (${rowIdces.length} row(s))`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces,attributeTag)}/>
-            </Menu>
+
+                <Menu style={{ overflowY: "scroll", maxHeight: "40vh" }} onWheelCapture={e => e.stopPropagation()}>
+                    {isLoading || isFetching ? <Loading /> : attributeValueBySearchQuery.map((attributeValue, index) => {
+                        const initValues = _.has(samplesAttributeUnit, attribute.tag) ? rowIdces.map(idx => samplesAttributeUnit[attribute.tag][idx]).filter(u => _.has(u, attributeValue.tag)) : undefined
+                        // index === 25 ? <MenuItem disabled key={attributeValue.text} text=" . . . not all items shown, please use the search function.." /> : index > 25 ? null :
+                        const indexInSelection = _.findIndex(currentSelection, ['tag', attributeValue.tag])
+                        console.log(indexInSelection)
+                        return <div key={`${index}-${attributeValue.tag}-${indexInSelection}`}>
+                            <AttributeValueMenuItem
+                                attributeValue={attributeValue}
+                                selected={_.isObject(_.find(currentSelection, { tag: attributeValue.tag }))}
+                                onClick={(e) => handleAttributeSelection(attribute.tag, attributeValue, rowIdces)} />
+                            
+                            {indexInSelection >= 0 ?
+                                <UnitSelectionTag
+                                    key={attributeValue.tag}
+                                    {...{
+                                        attribute,
+                                        attributeValue,
+                                        rowIdces,
+                                        onSave: handleUserInput,
+                                        initValues: _.isArray(initValues) & initValues.length > 0 ? initValues[0][attributeValue.tag] : undefined
+                                    }} /> : null}
+                        </div>
+                    })}
+           
+                </Menu>
+                <MenuDivider />
+                <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces, attribute.tag)} />
+                <MenuItem text={`Clear Selection (${rowIdces.length} row(s))`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces, attribute.tag)} />
+            </Menu> : 
+            
+                <div style={{ overflowY: "scroll", maxHeight: "40vhpx" }}>
+                    {console.log(attribute)}
+                    {console.log(selectedAttributeValues)}
+                    {currentSelection.map(attributeValue => {
+                        const initValues = _.has(samplesAttributeUnit, attribute.tag) ? rowIdces.map(idx => samplesAttributeUnit[attribute.tag][idx]).filter(u => _.has(u, attributeValue.tag)) : undefined
+                        console.log(initValues)
+                        return <UnitSelectionTag
+                            key={attributeValue.tag}
+                            {...{
+                            attribute,
+                            attributeValue,
+                            rowIdces,
+                            onSave: handleUserInput,
+                            initValues: _.isArray(initValues) & initValues.length > 0 ? initValues[0][attributeValue.tag] : undefined
+                        }} />
+                    })}
+
+            </div>
+            
+            }
+            </div>
     )
 }
 
@@ -300,10 +403,11 @@ function SamplesAttributes({
     genotypeAttributes,
     handleGenotypeSelection,
     proteome_ids,
-    repeatSelection
+    repeatSelection,
+    onSamplesAttributeUnitInput,
+    samplesAttributeUnit
     }) {
     const [selectedRows, setSelectedRows] = useState([])
-
     /**
      * 
      * @param {Number} columnIndex 
@@ -347,6 +451,7 @@ function SamplesAttributes({
         // render context menu for attributes
         let targetColumns = r.target.cols
         let columnIndex = targetColumns[0]
+
         if (columnIndex === 0) return <Menu><MenuItem text="Samples names" disabled={true} /></Menu>
         if (sampleNames.length === 0) return <Menu><MenuItem text="Set number of samples first." disabled={true} /></Menu>
 
@@ -359,20 +464,26 @@ function SamplesAttributes({
         if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
         //find row indices from the selected region
         //attribute.has_features_value ? attributeValuesByID[-1] : 
-        let attributeValues = sampleAttribute === undefined || !_.has(attributeValuesByID, sampleAttribute.id) ? [] : attributeValuesByID[sampleAttribute.id]
-        const filterKeyName = attribute.has_features_value ? "key" : "tag"
-        const attributeValuesSelected = _.uniqBy(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])),filterKeyName)
+        const filterKeyName = "tag"
+        const selectedAttributeValues = _.uniqBy(_.flatten(attributeTable.filter(d => _.has(d,attribute.tag)).map(d => d[attribute.tag])),filterKeyName)
         // if there is no attribute values, then a numeric value can be inserted by the user
-        const selectedAttributeValuesFound = attributeValuesSelected.length
-        const prevSelection = _.uniqBy(_.flatten(_.map(selectedRows).map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)),filterKeyName)
+        const selectedAttributeValuesFound = selectedAttributeValues.length
+        const prevSelection = _.uniqBy(_.flatten(selectedRows.map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)),filterKeyName)
         // onFeatureSelection = (attribute, selectedFeatures, isSampleAttribute, rowIdces, genotypeLabel, entryIdx) => {
         if (attribute.has_features_value) {
             return <Menu style={{ minWidth: "min(40vw,700px)" }}>
-                <FeatureSelectionInMenu {...{attribute,onSave : onFeatureSelection, proteome_ids,selectedRows, prevSelection}}/>
+                <FeatureSelectionInMenu
+                    {...{
+                        attribute,
+                        onSave: onFeatureSelection,
+                        proteome_ids,
+                        selectedRows,
+                        prevSelection
+                    }} />
             {selectedAttributeValuesFound? <MenuItem disabled text="Previous selections"/>:null}
             {selectedAttributeValuesFound ? <MenuDivider /> : null}
             
-                {selectedAttributeValuesFound ? attributeValuesSelected.map(value => <MenuItem
+                {selectedAttributeValuesFound ? selectedAttributeValues.map(value => <MenuItem
                     key={value.key}
                     text={value.genes}
                     onClick={() => onFeatureSelection(attribute, [value], true, selectedRows, undefined, undefined)} />) : null}
@@ -381,48 +492,40 @@ function SamplesAttributes({
         </Menu>
         }
         
-        else if (attribute.has_numeric_input) return (
+        else if (attribute.has_numeric_input) return <NumericInputMenu
+            {...{
+                attribute,
+                onAttributeSelect,
+                handleNumericInput,
+                clearAttributeTableByRowIndex,
+                repeatSelection,
+                selectedRows,
+                samplesAttributeUnit,
+                onSamplesAttributeUnitInput
+            }} />
             
-            <NumericInputMenu {...{attribute,attributeValues,onAttributeSelect,handleNumericInput,clearAttributeTableByRowIndex,repeatSelection,selectedRows}} />
-            // <Menu>
-            
-            // <MenuItem text="Enter numeric value." disabled={true} />
-            // <MenuDivider />
-            // {/* {valuesAlreadyUsed.map(attrValue => <MenuItem text={attrValue} onClick={() => onAttributeSelect(attribute.tag, createFakeAttributeValue({...{attribute, numericInput : attrValue}}), selectedRows)}/>)} */}
-            // {attributeValues.map(attrValue => <MenuItem
-            //     key={`${attrValue.tag}-${attribute.tag}-numeric-input`}
-            //     text={attrValue.text}
-            //     labelElement={<div className="labelelement-wrap--fixed-width">{attrValue.description}</div>}
-            //     onClick={() => onAttributeSelect(attribute.tag, attrValue, selectedRows)} />)
-            // }
-            
-            // <NumericValueInput
-            //     placeholder={`${sampleAttribute.text}`}
-            //     callbackKey={sampleAttribute.tag}
-            //     submitButton={true}
-            //     buttonProps={{
-            //         intent: "primary",
-            //         icon: "rocket"
-            //     }}
-            //     onButtonClick={(attributeTag, attributeValue) => handleNumericInput(attributeValue,attributeValues,attribute,selectedRows)}  //onAttributeSelect(attributeTag, createFakeAttributeValue({ ... { attribute, numericInput: attributeValue } }), selectedRows)}
-            //     />
-            // {selectedRows.length > 0 ?
-            //     <Menu>
-            //         <MenuDivider />
-            //         <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => repeatSelection(selectedRows,sampleAttribute.tag)}/>
-            //         <MenuItem text={`Clear Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => clearAttributeTableByRowIndex(selectedRows, sampleAttribute.tag)}/> 
-            //     </Menu>: null}
-            // </Menu>)
-        )
         return (
             <AttributeContextMenuSearch
-                {...{ onAttributeSelect, rowIdces : selectedRows, clearAttributeTableByRowIndex, repeatSelection }}
-                attributeValues={attributeValues}
-                attributeTag={sampleAttribute.tag}
+                {...{
+                    selectedAttributeValues : prevSelection,
+                    onAttributeSelect,
+                    rowIdces: selectedRows,
+                    clearAttributeTableByRowIndex,
+                    repeatSelection,
+                    attribute,
+                    handleUnitInput,
+                    samplesAttributeUnit
+                }}
                />
         )
     }
 
+    /**
+     * @description Handles the genotype representation.
+     * @param {Number} rowIndex 
+     * @param {Number} columnIndex 
+     * @returns 
+     */
     const renderGenotype = (rowIndex, columnIndex) => {
         const cellKey = `${rowIndex}-${columnIndex}-genotype`
         if (!_.isArray(genotypeAttributes) || genotypeAttributes[rowIndex] === undefined) return <Cell key={cellKey}></Cell>
@@ -434,7 +537,18 @@ function SamplesAttributes({
             </Tag></div>
         })}</div>
         </Cell>
+    }
 
+    /**
+     * @description Handles the unit input of the user.
+     * @param {import("../../../../../types/attributes").Attribute} attribute 
+     * @param {import("../../../../../types/attributes").AttributeValue} attributeValue 
+     * @param {Object} units 
+     */
+    const handleUnitInput = (attribute, attributeValue, units, rowIdces) => {
+        console.log(units)
+
+        onSamplesAttributeUnitInput(attribute,attributeValue,units,rowIdces)
     }
 
     const renderCell = (rowIndex, columnIndex) => {
@@ -455,25 +569,43 @@ function SamplesAttributes({
         if (rowIndex >= sampleNames.length) return <Cell key={cellKey}></Cell>
 
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
-       // const attribute = getGroupingAttributeByColumnIndex(columnIndex)
-        if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
+        // const attribute = getGroupingAttributeByColumnIndex(columnIndex)
+        
+        
+        if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
+
         const attributeTag = attribute.tag
-        const attributeHasFeatures = attribute.has_features_value
         let cellData = attributeTable[rowIndex][attributeTag]
+        const unitInputForAttribute = attribute.has_unit && _.has(samplesAttributeUnit, attribute.tag)
+        const unitData = unitInputForAttribute ? samplesAttributeUnit[attribute.tag][rowIndex]: {}
+
+        const attributeHasFeatures = attribute.has_features_value        
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
             <div className="flex flex--wrap center-items">
                 {_.isArray(cellData) && cellData.length === 0 ? "" : cellData.map(attributeValue => {
                     const cellDataIsAttr = _.isObject(attributeValue)
-                    return <div key={`${rowIndex}-${columnIndex}-${attributeHasFeatures ? attributeValue.key : cellDataIsAttr ? attributeValue.tag : attributeValue}`} className="padding--little">
-                        <Tag minimal={true} onRemove={() => onTagRemove(rowIndex, attribute, attributeValue)}>
-                            {cellDataIsAttr?attributeHasFeatures?attributeValue.genes: attributeValue.text:attributeValue}
-                        </Tag>
+                    return <div
+                        key={`${rowIndex}-${columnIndex}-${attributeHasFeatures ? attributeValue.tag : cellDataIsAttr ? attributeValue.tag : attributeValue}`}
+                        className="padding--little">
+                        
+                        <AttributeFeatureTag
+                            attribute={attribute}
+                            value={attributeValue}
+                            valueIsFeature={attributeHasFeatures}
+                            units={unitInputForAttribute && _.has(unitData,attributeValue.tag) ? unitData[attributeValue.tag] : {}}
+                            // addUnitsForDatasetAttributes={handleUnitInput}
+                            onRemove={() => onTagRemove(rowIndex, attribute, attributeValue)} />
                     </div>})}
             </div>
         </Cell>
     }
 
+    /**
+     * @description Renders the grouping header menu allowing the user to select the attribute.
+     * @param {Number} columnIndex 
+     * @returns 
+     */
     const renderGroupingHeaderMenu = (columnIndex) => {
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute.tag])?rowData[attribute.tag].length === 0:true).length:attributeTable.length
@@ -494,6 +626,7 @@ function SamplesAttributes({
     const renderGroupingHeader = (columnIndex) => {
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
         const groupingInfo = groupings[sampleAttrIndex] //first column blocked
+        
         const sampleAttributeSelected = _.isObject(groupingInfo)
         const attributesTagsInUse  = groupings.filter(groupingInfo => _.isObject(groupingInfo) && _.has(groupingInfo,"tag")).map(groupingInfo => groupingInfo.tag)
         return (
@@ -513,7 +646,11 @@ function SamplesAttributes({
                 </div>
             </ColumnHeaderCell>)
     }
-
+    /**
+     * @description Handles the selection based on the selection region. 
+     * @param {import("@blueprintjs/table").Region} selectedRegion 
+     * @returns 
+     */
     const handleSelection = (selectedRegion) => {
         //handle selection of rows
         let rows = [] 
@@ -542,16 +679,14 @@ function SamplesAttributes({
                 rows = _.range(selectedRegion[0].rows[0],selectedRegion[0].rows[1]+1)
             }
         }
-
         setSelectedRows(rows)
     }
 
     const genotypeHeaderMenu = () => {
-
         return <Menu small={true}>
             <MenuItem text="Genotypes" disabled={true} />
             <MenuDivider />
-            <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={genotypeAttributes.length === 0} />
+            <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={_.isObject(genotypeAttributes) && genotypeAttributes.length === 0} />
         </Menu>
     }
 
@@ -578,13 +713,11 @@ function SamplesAttributes({
             <HotkeysProvider>
                 <Table2
                     enableGhostCells={true}
-                   // numFrozenColumns={1}
                     numRows={sampleNames.length}
                     cellRendererDependencies={[rerenderTableDependency]}
                     bodyContextMenuRenderer={renderBodyContextMenu}
                     defaultRowHeight={30}
                     selectionModes={SelectionModes.CELLS}
-                    //columnWidths={_.concat([220],_.range(groupings.length).map(_ => undefined),[50])}
                     minColumnWidth={120}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>

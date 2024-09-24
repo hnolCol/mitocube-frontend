@@ -25,7 +25,7 @@
  * @typedef Submission
  * @type {Object}
  * @property {Number} created_on - The unix time stamp when the submission was created 
- * @property {String} label - The label of the submission (unique string) 
+ * @property {String} tag -  The dataset tag (unique to each dataset)
  * @property {String} title - The title of the submission 
  * @property {Number} state - The state the submission is in. 
  * @property {String} user_label - The user_label which owns the submission. 

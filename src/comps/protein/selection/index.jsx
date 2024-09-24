@@ -15,10 +15,11 @@ function ProteinSelection(props) {
 
         
     }
-    return (<div>
-        
-        <OmnibarSearch isOpen={omnibarIsOpen} onSelect={handleFeatureList} onClose={ handleClose}/>
-    </div>)
+    return (<OmnibarSearch
+        isOpen={omnibarIsOpen}
+        onSelect={handleFeatureList}
+        onClose={handleClose} />
+   )
 }
 
 

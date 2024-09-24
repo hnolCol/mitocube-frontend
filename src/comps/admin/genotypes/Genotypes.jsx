@@ -26,19 +26,25 @@ export function GenotypeCard({ genotype, refetchGenotypes, justDisplay = false, 
                     onClick={() => mutate({ genotype_label: genotype.label }, { onSuccess: () => refetchGenotypes() })}
                     loading={isLoading} /> : null}
             </div>
-        <Divider />
-        <div className="flex">
-            {genotype.features.map(feature => <AttributeFeatureTag value={feature} valueIsFeature={true} />)}</div>
-        <div className="flex flex-column"><h4>AttributeValues:</h4>
-            <div className="flex flex--wrap">
-            {genotype.attributes.map(entryAttributes => {
-                return _.keys(entryAttributes).map(attributeTag => {
-                    const attribute = attributesByTag.attributes[attributeTag]
-                    return <div>{_.isArray(entryAttributes[attributeTag])?entryAttributes[attributeTag].map(attributeValue => <AttributeFeatureTag value={attributeValue} attribute={attribute} valueIsFeature={_.has(attributeValue,"genes")}/>):null}</div>
-            })
-            })}
-            </div>
-        </div>
+            <Divider />
+            {_.isObject(genotype) ? <div>
+                <div className="flex">
+                    {_.has(genotype, "feature") && _.isArray(genotype.features) ?
+                        genotype.features.map(feature => <AttributeFeatureTag value={feature} valueIsFeature={true} />) : null}
+                </div>
+                <div className="flex flex-column"><h4>AttributeValues:</h4>
+                    <div className="flex flex--wrap">
+                        {_.isArray(genotype.attributes)?genotype.attributes.map(entryAttributes => {
+                            return _.keys(entryAttributes).map(attributeTag => {
+                                const attribute = attributesByTag.attributes[attributeTag]
+                                return <div>{_.isArray(entryAttributes[attributeTag])?entryAttributes[attributeTag].map(attributeValue => <AttributeFeatureTag value={attributeValue} attribute={attribute} valueIsFeature={_.has(attributeValue,"genes")}/>):null}</div>
+                        })
+                        }): null}
+                    </div>
+                </div>
+
+            </div> : null}
+        
         
     </div>
     </Card>)

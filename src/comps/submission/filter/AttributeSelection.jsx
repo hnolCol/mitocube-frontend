@@ -1,9 +1,7 @@
 import _ from "lodash"
 import { motion } from "framer-motion"
 import { useState } from "react"
-import { titleFormat } from "../../../services/format/string"
-import { isHexColorLight } from "../../../services/colors"
-import { Divider, Icon } from "@blueprintjs/core"
+import { Divider } from "@blueprintjs/core"
 import { useGetSubmissionsCount } from "../../../hooks/queries/submission.hooks"
 import Loading from "../../core/base/loading"
 import { groupListByProperty } from "../../../services/arrays/groupby"
@@ -13,14 +11,13 @@ import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/tran
 
 
 
-export function AttributeValues({ attribute, labels, submissionFilter, setSubmissionFilter }) {
-    const labelsFound = _.isArray(labels) && labels.length > 0
+export function AttributeValues({ attribute, tags, submissionFilter, setSubmissionFilter }) {
+    const labelsFound = _.isArray(tags) && tags.length > 0
     const attributeIsFeature = attribute.has_features_value
-    console.log(attribute)
-    const { data : allSubmissionAttributeValues, isLoading : allSubIsLoading, isFetching : allSubIsFetching} = useGetAttributeValues({ attribute_tag : attribute.tag}, { staleTime : 600000})    
-    const { data, isLoading, isFetching, isError } = useGetAttributeValues({ labels: _.join(labels, ";"), attribute_tag : attribute.tag}, { enabled: labelsFound})    
-    console.log(allSubmissionAttributeValues)
     
+    const { data: allSubmissionAttributeValues, isLoading: allSubIsLoading, isFetching: allSubIsFetching } = useGetAttributeValues({ attribute_tag: attribute.tag }, { staleTime: 600000 })    
+    const { data, isError } = useGetAttributeValues({ tags: _.join(tags, ";"), attribute_tag : attribute.tag}, { enabled: labelsFound})    
+        
     const handleClick = (attribute_value) => {
 
         setSubmissionFilter(prevValues => {
@@ -35,12 +32,12 @@ export function AttributeValues({ attribute, labels, submissionFilter, setSubmis
 
     return (<div style={{ marginLeft: "1.6rem" }}>
         {isError ? <p>Error</p> : allSubIsLoading || allSubIsFetching ? <Loading /> :
-            _.isObject(allSubmissionAttributeValues) && _.has(allSubmissionAttributeValues, "attribute_value_tags") && _.has(allSubmissionAttributeValues, "submission_count") ?
+            _.isObject(allSubmissionAttributeValues) && _.has(allSubmissionAttributeValues, "attribute_value_tags") && _.has(allSubmissionAttributeValues, "count") ?
                 allSubmissionAttributeValues.attribute_value_tags.map(attribute_value_tag => {
                     const attribute_value = allSubmissionAttributeValues.attribute_values_by_tag[attribute_value_tag]
                     const isSelected = _.has(submissionFilter,"attribute_value_tag") && submissionFilter["attribute_value_tag"].filter(attr => attr.tag === attribute_value.tag).length > 0
                     if (!_.isObject(attribute_value)) return null 
-                    const count = labelsFound ? _.isObject(data) && _.has(data,["submission_count",attribute_value_tag]) ? data.submission_count[attribute_value_tag].submission_count : 0 : allSubmissionAttributeValues.submission_count[attribute_value_tag].submission_count
+                    const count = labelsFound ? _.isObject(data) && _.has(data,["count",attribute_value_tag]) ? data.count[attribute_value_tag].count : 0 : allSubmissionAttributeValues.count[attribute_value_tag].count
                     return <motion.div key={`${attribute_value_tag}-${count}`}  className="flex bg--grey center-items"
                         whileHover={{ color: "#000", backgroundColor: "#fafafa" }}>
                         <motion.button
@@ -48,7 +45,7 @@ export function AttributeValues({ attribute, labels, submissionFilter, setSubmis
                                 onClick={() => handleClick(attribute_value)}
                                 className={`attribute__filter__button ${isSelected ?"attribute__filter_button--selected":""}`}
                                 transition={{ duration: 0.1 }}>
-                            {attributeIsFeature ? `${attribute_value.genes} (${count})` : `${attribute_value.text} (${count})`}
+                            {attributeIsFeature ? `${attribute_value.gene_name} (${count})` : `${attribute_value.text} (${count})`}
                             </motion.button>
                         </motion.div>
             }) : null }
@@ -105,16 +102,21 @@ export function ExpandableButton({isOpen = false, text = "" , count = 0,showCoun
 }
 
 
-
-export function AttributeSelection({ states, setSubmissionFilter, submissionFilter, submissionsByState, attributesByTag, labels }) {
+/**
+ * @description Select attributes to filter submissions
+ * @param {object} props 
+ * @param {String[]} props.tags - List of attribute tags used to filter the submissions. 
+ * @returns 
+ */
+export function AttributeSubmissionFilter({ setSubmissionFilter, submissionFilter, attributesByTag, tags }) {
     
+
     
     const [openGroups, setOpenGroup] = useState({})
-    const { data : allSubmissionAttributes, isLoading : asIsLoading, isFetching : asIsFetching, isSuccess : asIsSuccess } = useGetSubmissionsCount({ group: "attribute_tag"}, {staleTime : Infinity})
-    const { data, isSuccess } = useGetSubmissionsCount({ group: "attribute_tag", labels : _.join(labels,";") }, {enabled : labels.length > 0})
-
+    const { data : allSubmissionAttributes, isLoading : asIsLoading, isFetching : asIsFetching, isSuccess : asIsSuccess } = useGetSubmissionsCount({ group: "attribute"}, {staleTime : Infinity})
+    const { data, isSuccess } = useGetSubmissionsCount({ group: "attribute", tags : _.join(tags,";") }, {enabled : tags.length > 0})
     const attributeTags = asIsSuccess ? _.keys(allSubmissionAttributes) : []
-    const attributes = _.isArray(attributeTags) ? _.sortBy(attributeTags.map(attributeTag => attributesByTag[attributeTag]).filter(attribute => attribute.allow_as_filter && attribute.allow_for_dataset),"min_state") : []
+    const attributes = _.isArray(attributeTags) ? _.sortBy(attributeTags.map(attributeTag => attributesByTag[attributeTag]).filter(attribute => _.isObject(attribute) && attribute.allow_as_filter && attribute.allow_for_dataset),"min_state") : []
     const order = _.uniqBy(attributes,"group_tag").map(attribute => attribute.group_tag)
     const groupedAttributes = groupListByProperty(attributes, "group_tag")
    
@@ -147,9 +149,9 @@ export function AttributeSelection({ states, setSubmissionFilter, submissionFilt
                                 openGroups[group_tag]["attributeIsOpen"][attribute.tag] : false 
                                 return (
                                     <div key={`${attribute.tag}`} style={{marginLeft : "0.8rem", width : "100%"}}>
-                                        <AttributeButton {...{ attribute, setOpenGroup, group_tag, count : _.has(data,attribute.tag)?data[attribute.tag].submission_count:0, showAttributeValues, setSubmissionFilter, submissionFilter }} />
+                                        <AttributeButton {...{ attribute, setOpenGroup, group_tag, count : _.has(data,attribute.tag)?data[attribute.tag].count:0, showAttributeValues, setSubmissionFilter, submissionFilter }} />
                                         {showAttributeValues ? 
-                                            <AttributeValues {...{attribute, labels, submissionFilter, setSubmissionFilter}} />: null}
+                                            <AttributeValues {...{attribute, tags, submissionFilter, setSubmissionFilter}} />: null}
                                     </div>)
                             }) : null}
                             <Divider style={{margin:"1px"}}/>

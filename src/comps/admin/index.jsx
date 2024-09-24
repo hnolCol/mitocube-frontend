@@ -13,10 +13,12 @@ function AdminHeader({ authenticationStatus }) {
             <Tabs tabs={[
                 { text: "Attributes", to: "/admin/attributes" },
                 { text: "Users", to: "/admin/users" },
-                { text: "Genotypes", to: "/admin/genotypes"},
+                { text: "Genotypes", to: "/admin/genotypes" },
+                { text: "Proteomes", to: "/admin/proteomes" },
+                { text: "Filter sets", to: "/admin/sets"},
                 { text: "ShareToken", to: "/admin/sharetoken" }]} />
                 
-            <div >
+                <div className="no-scroll div--expand">
                 <Outlet />
             </div>
             

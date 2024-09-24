@@ -1,7 +1,3 @@
-import { UseQueryResult } from "react-query";
-/**
- * @typedef {UseQueryResult} UseQueryResult
- */
 
 /**
  * @typedef Attribute
@@ -21,6 +17,8 @@ import { UseQueryResult } from "react-query";
  * @property {Boolean} allow_for_genotype -If True the attribute can be used to define the genotype.
  * @property {Boolean} has_numeric_input -If True the attribute can be defined by a numeric input. (e.g. user defined)
  * @property {Boolean} allow_for_dataset -If True the attribute can be define a dataset.
+ * @property {Boolean} has_unit 
+ * @property {String[]} unit 
 */
 
 /**
@@ -73,6 +71,15 @@ import { UseQueryResult } from "react-query";
  * @property {Object.<string, AttributeValue[]>} attribute_values
  */
 
+
+/**
+ * @typedef DatasetAttributesAPIResponse
+ * @type {Object}
+ * @property {String} tag - The submission tag  
+ * @property {Object.<string,string[]>} tags - The attribute - attribute values tags 
+ * @property {Object.<string, Attribute>} attributes - The attributes and its properties by their tag. 
+ * @property {Object.<string, AttributeValue | import("./feature").Feature>} attribute_values - The attribute values with props by their tag
+ */
 
 
 export default {}

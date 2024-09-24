@@ -1,4 +1,4 @@
-import { Button, Dialog, DialogBody, DialogFooter, Spinner, TextArea } from "@blueprintjs/core";
+import { Button, Dialog, DialogBody, DialogFooter, Divider, Spinner, TextArea } from "@blueprintjs/core";
 import { LiteralAttributeSelection } from "../../new/attribute/select/LiteralAttributeSelection";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types"
@@ -6,6 +6,8 @@ import APIError from "../../../core/error/APIerror";
 import { mapAttributeTagsToAttributes } from "../../../../services/attributes";
 import MetaText from "../../new/MetaText";
 import { AxiosError } from "axios";
+import { AddProteinTable } from "../../upload/ProteinTable";
+import _ from "lodash"
 
 AttributeSelectionDialog.propTypes = {
     authenticationStatus: PropTypes.object.isRequired,
@@ -44,8 +46,11 @@ export function AttributeSelectionDialog({
     success = true,
     error = undefined
 }) {
+    console.log(newSubmissionState, attributeFilter,"HEYA?")
     const [selectedAttributes, setSelectedAttributes] = useState({})
-    const [submissionText, setSubmissionText] = useState({comment : "", metatext : {}})
+    const [submissionText, setSubmissionText] = useState({ comment: "", metatext: {} })
+
+
     // const [comment, setComment] = useState("")
     // const [metatext, setMetatext] = useState({})
 
@@ -74,28 +79,33 @@ export function AttributeSelectionDialog({
     
     return <Dialog isOpen={isOpen} title="State Change" style={{ width: "min(70vw, 900px)" }} onClose={onClose}>
         <DialogBody>
-        <div className="flex flex-column padding--medium">
-        
-        
+            <div className="flex flex-column padding--medium">
+                
         <div style={{maxHeight : "40vh", overflowY:"scroll", marginBottom : "1rem"}}>
             <div>
                         {submitted ? null : isLoading ? <Spinner /> : <div>
                         <h3>Attribute Selection</h3>
-                            <p>Please select the required dataset attributes.</p>
-                            <LiteralAttributeSelection {...{
+                        <p>Please select the required dataset attributes.</p>
+                        <LiteralAttributeSelection {...{
                                         attributesByTag,
                                         selectedAttributes,
                                         setSelectedAttributes,
-                                        attributeFilter
-                                                }} />
+                                        attributeFilter }} />
                         </div>}
                 <div>
                     {submitted ? isLoading ? <p>Updating submission ...</p> : success ? <p>Success. Dataset attributes updated.</p> :  error !== undefined ? <APIError error={error} /> : null : null}
                 </div>
             </div>
-            </div>
+                </div>
+                
+                {newSubmissionState === 5 ? <div>
+                    <h3>Upload protein data file</h3>
+                    <p>Please select the protein file (wide format, proteins in rows, samples in columns)</p>
+                    <AddProteinTable />
+                    <Divider />
+                </div> : null}
 
-        {isLoading || submitted ? null : <div>
+        {isLoading || submitted ? null : _.keys(submissionText.metatext).length > 0 ? <div>
             <h3>Meta text</h3>
             <div>
                 <MetaText
@@ -113,7 +123,7 @@ export function AttributeSelectionDialog({
                             placeholder="Enter a comment here which will be visible in the timeline."
                             onChange={(e) => setSubmissionText(prevValues => { return { ...prevValues, comment: e.target.value } })} />
             </div>
-        </div>}
+        </div> : null}
             </div>
         </DialogBody>
         <DialogFooter actions={[<div className="flex">

@@ -11,15 +11,14 @@ import { FeatureDatasetFilter } from "../../submission/filter/FeatureSelection";
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms";
 import useDebounce from "../../../hooks/useDebounce";
 import TooltipButton from "../../core/base/buttons/TooltipButton";
-import { AttributeSelection } from "../../submission/filter/AttributeSelection";
-import { UserSelection } from "../../submission/filter/UserSelection";
+import { AttributeSubmissionFilter } from "../../submission/filter/AttributeSelection";
+import { UserFilter } from "../../submission/filter/UserSelection";
 import "../../submission/submission.css"
 import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeSelection";
 
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
     const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
-    // const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch: refetchSubmissions } = useGetSubmissions()    
     
     const { data: users, isLoading: userIsLoading, isFetching: userIsFetching } = useGetPublicUserInfo()
     const { data: states, isLoading: submissionStatesLoading } = useGetSubmissionStates()
@@ -29,9 +28,9 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
         query: debouncedString.length === 0 ? null : debouncedString,
         state: "5",
-        genotype_label : getValueByKeyAndMergeToString({array : submissionFilter["genotype_label"], keyName : "label"}),
-        feature_key : getValueByKeyAndMergeToString({ array: submissionFilter["feature_key"], keyName: "key" }),
-        user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
+        genotype_tag : getValueByKeyAndMergeToString({array : submissionFilter["genotype_tag"], keyName : "tag"}),
+        feature_key : getValueByKeyAndMergeToString({ array: submissionFilter["feature_key"], keyName: "tag" }),
+        user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
         //attribute_tag : 
@@ -52,10 +51,10 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
                     </div>
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
-            <AttributeSelection attributesByTag={attributesByTag.attributes} labels={isSuccess ? submissionQuery.labels : []} {...{ setSubmissionFilter, submissionFilter }} />
+            <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQuery.tags : []} {...{ setSubmissionFilter, submissionFilter }} />
                     <FeatureDatasetFilter  {...{ setSubmissionFilter }} />
                     <GenotypeDatasetFilter {...{ setSubmissionFilter }}/>
-            <UserSelection {...{ submissionFilter, setSubmissionFilter, labels: isSuccess ? submissionQuery.labels : [] }} />
+            <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQuery.tags : [] }} />
             </div>       
          </div>
 
@@ -77,14 +76,9 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
                                     
                                     
                                 }} borderColor={states.colors_inv[submission.state]} />) : null }
-                
-
-            </div>
             
             </div>
-
-       
-
+            </div>
         </div>
     )
 

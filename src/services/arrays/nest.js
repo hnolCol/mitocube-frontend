@@ -12,11 +12,11 @@ import _ from "lodash"
  */
 export function createDataTree({ array, link = 'parent_id' }){
     const hashTable = Object.create(null);
-    array.forEach(aData => hashTable[aData.id] = {...aData, childNodes: []});
+    array.forEach(aData => hashTable[aData.tag] = {...aData, childNodes: []});
     const dataTree = [];
     array.forEach(aData => {
-      if(aData[link] && _.has(hashTable,aData[link])) hashTable[aData[link]].childNodes.push(hashTable[aData.id])
-      else dataTree.push(hashTable[aData.id])
+      if(aData[link] && _.has(hashTable,aData[link])) hashTable[aData[link]].childNodes.push(hashTable[aData.tag])
+      else dataTree.push(hashTable[aData.tag])
     });
     return dataTree;
   };

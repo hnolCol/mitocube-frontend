@@ -21,16 +21,16 @@ export function useGetFeatures (useQueryOptions = {}, APIParams = {}) {
 /**
  * @description - Returns the data for a specific feature (e.g. all dataset in which the feature id was found). The feature id is organism specific. 
  * @param {object} props
- * @param {string} props.feature_key - The featureID. For proteins likely the uniprot id. 
+ * @param {string} props.feature_tag - The feature tag. For proteins likely the uniprot id. 
  * @returns {import("../../types/feature").FeatureDataResponse} The feature data object. Contains all the datasets in which the feature_id was found.
  */
-async function getDataByFeatureID_API({ feature_key }) {
-    const res = await axios.get(`/api/features/${feature_key}/data`)
+async function getDataByFeatureID_API({ feature_tag }) {
+    const res = await axios.get(`/api/features/${feature_tag}/data`)
     return res.data
     }
 
 export function useGetDataByFeatureID(APIParams = {}, useQueryOptions = {staleTime : Infinity}, ) {
-    return useQuery(["getDataByFeautreKey",APIParams.feature_key],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
+    return useQuery(["getDataByFeautreKey",APIParams.feature_tag],() =>  getDataByFeatureID_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -72,6 +72,7 @@ export function useGetSequenceByFeatureKey(APIParams = {}, useQueryOptions = {st
  * 
  * @param {Object} props
  * @param {String} props.query
+ * @param {String[]} props.proteome_ids
  * @returns 
  */
 async function findFeatureByQuery_API({ query, proteome_ids }) {
@@ -79,8 +80,26 @@ async function findFeatureByQuery_API({ query, proteome_ids }) {
     return res.data
 }
 
-export function useGetFeatureByQuery(APIParams = {}, useQueryOptions = {staleTime : Infinity}, ) {
-    return useQuery(["findFeature",APIParams.query],() =>  findFeatureByQuery_API({...APIParams}), useQueryOptions)
+export function useGetFeatureByQuery(APIParams = {}, useQueryOptions = { staleTime: Infinity },) {
+    const proteome_string = _.has(APIParams,"proteome_ids") && _.isArray(APIParams.proteome_ids) ? _.join(APIParams.proteome_ids,";") : "" 
+    return useQuery(["findFeature",APIParams.query,proteome_string],() =>  findFeatureByQuery_API({...APIParams}), useQueryOptions)
+}
+
+
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.tag - The feature tag (e.g. Uniprot ID)
+ * @returns 
+ */
+async function featureInfoByTag_API({ tag }) {
+    const res = await axios.get(`/api/features/${tag}/i`, { })
+    return res.data
+}
+
+export function useGetFeatureInfo(APIParams = {tag}, useQueryOptions = { }) {
+    return useQuery(["infoFeature",APIParams.tag],() =>  featureInfoByTag_API({...APIParams}), useQueryOptions)
 }
 
 

@@ -9,6 +9,16 @@
  * @property {Object<string, import("./attributes").AttributeValue[]|import("./feature").Feature[]|Object<string, MutationPosition>>} attributes 
  */
 
+
+/**
+ * @typedef MinimalGenotype
+ * @type {Object}
+ * @property {String} text 
+ * @property {String} tag 
+ * @property {String} proteome_id
+ */
+
+
 /**
  * @typedef MutationPosition
  * @property {import("./attributes").AttributeValue} attribute_value 

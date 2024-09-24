@@ -9,8 +9,6 @@ import { arrayOfObjectsToObjectByProperty} from "../../services/arrays/groupby";
 /**
  * @description Tries to get the submission from the backend. Returns submission in the database. Should not be 
  * used if a large number of submission are present. 
- * @author Hendrik Nolte 
- * @since 0.1.0
  * @returns {import("../../types/submissions").Submission[]} - Array of submissions.
  */
 async function getSubmissions_API({}) {
@@ -29,8 +27,8 @@ export const useGetSubmissions = (APIParams = {},useQueryOptions = {}) => {
  * @description Gets submissions by a query. Filtering is allowed by attribute_tag, attribute_value_tag, feature_key, genotype_label and state.
  * @returns {import("../../types/submissions").Submission[]} - Array of submissions.
  */
-async function getSubmissionsByQuery_API({query,attribute_tag,attribute_value_tag, feature_key, genotype_label,state, user_label}) {
-    const res = await axios.get('/api/submissions/q',{ params : {query, attribute_tag,attribute_value_tag,feature_key,genotype_label,state,user_label}})
+async function getSubmissionsByQuery_API({query,attribute_tag,attribute_value_tag, feature_key, genotype_tag,state, user_tag}) {
+    const res = await axios.get('/api/submissions/q',{ params : {query, attribute_tag,attribute_value_tag,feature_key,genotype_tag,state,user_tag}})
     return res.data 
 }
 
@@ -38,32 +36,30 @@ export const useGetSubmissionByQuery = (APIParams = {},useQueryOptions = {}) => 
     return useQuery(["getSubmissions",
         APIParams.query,
         APIParams.attribute_tag,
-        APIParams.genotype_label,
+        APIParams.genotype_tag,
         APIParams.feature_key,
         APIParams.state,
-        APIParams.user_label,
+        APIParams.user_tag,
         APIParams.attribute_value_tag],
         () => getSubmissionsByQuery_API({ ...APIParams }), useQueryOptions)
 }
 
 
-async function getSubmissionsCount_API({group, labels}) {
-    const res = await axios.get('/api/submissions/count',{params : {group, labels}})
+async function getSubmissionsCount_API({group, tags}) {
+    const res = await axios.get('/api/submissions/count',{params : {group, tags}})
     return res.data 
 }
 
-export const useGetSubmissionsCount = (APIParams = {group : "state", labels : null},useQueryOptions = {}) => {
+export const useGetSubmissionsCount = (APIParams = {group : "state", tags : null},useQueryOptions = {}) => {
     return useQuery(["getSubmissionsCount",APIParams.group,APIParams.labels],
         () => getSubmissionsCount_API({ ...APIParams }), useQueryOptions)
 }
 
 
 
-
-
 // change_owner of submission
-async function postSubmissionOwner_API({ submission_label, user_label }) {
-    const res = await axios.post(`/api/submissions/${submission_label}/owner`, {}, {params : {user_label}}
+async function postSubmissionOwner_API({ submission_tag, user_tag }) {
+    const res = await axios.post(`/api/submissions/${submission_tag}/owner`, {}, {params : {user_tag}}
         )
 }
 
@@ -74,6 +70,22 @@ export const usePostSubmissionOwner = (useMutationOptions = {}) => {
 
 
 
+/**
+ * @description Returns the public information about the users. Still requires a valid token string. 
+ * Public indicates here that it is available to all registered users. The default stale time is 250000. 
+ * @param {Object} props 
+ * @param {String} props.tag - The submission/dataset tag to get the users for 
+ * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
+ */
+async function getPublicUsersBySubmission_API({ dataset_tag }) {
+    const res = await axios.get(`/api/submissions/${dataset_tag}/users`)
+    return res.data
+}
+
+export const useGetPublicUserForSubmission = (APIParams = {}, useQueryOptions = {staleTime: 250000}) => {
+    return useQuery(["getPublicUserByDatasetTag",APIParams.dataset_tag],() =>   getPublicUsersBySubmission_API({...APIParams}), useQueryOptions)
+}
+
 
 
 
@@ -82,14 +94,14 @@ export const usePostSubmissionOwner = (useMutationOptions = {}) => {
 
 
 // sumbission ID
-async function getSubmissionID_API(token) {
+async function getSubmissionID_API({}) {
 
-    const res = await axios.get('/api/submission/id', { params: { token: token } })
+    const res = await axios.get('/api/submission/tag')
     return res.data
 }
 
 export const useGetSubmissionsID = (APIParams = {},useQueryOptions = {}) => {
-    return useQuery(["getSubmissionID"], () => getSubmissionID_API({...APIParams}), useQueryOptions)
+    return useQuery(["getSubmissionTAG"], () => getSubmissionID_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -142,8 +154,8 @@ export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {st
 }
 
 /**
- * @description Returns the attributes and attributes_values from the API and transform it to a object witht the tag as the key. This 
- * is useful when tranforming the tag based submission json objects back to the real attributes.
+ * @description Returns the attributes and attributes_values from the API and transform it to a object with the tag as the key. This 
+ * is useful when tranforming the tag based submission json objects back to the attributes with properties.
  * @author Hendrik Nolte 
  * @since 0.1.0
  * @returns {import("../../types/attributes").AttributesByTagAPIResponse} -  The attributes and attribute_values as an object where the tag is the key.
@@ -166,17 +178,32 @@ export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions 
 
 
 
+
+
+
+// submission metatexts
+async function getSubmissionMetatextsByTag_API({tag}) {
+    const res = await axios.get(`/api/submissions/${tag}/metatext`)
+    return res.data 
+}
+export const useGetSubmissionMetatextByTag = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["metatext_for_submission",APIParams.tag], () => getSubmissionMetatextsByTag_API({...APIParams}), useQueryOptions)
+}
+
+
+
+
 // submission metatexts
 async function getSubmissionMetatexts_API({}) {
         
-    const res = await axios.get('/api/submissions/metatext')
+    const res = await axios.get(`/api/submissions/metatext`)
     
     return res.data 
 }
-
 export const useGetSubmissionMetatext = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["metatext_for_submission"], () => getSubmissionMetatexts_API({...APIParams}), useQueryOptions)
 }
+
 //update submission metatexts
 async function postSubmissionMetatext_API({ label, metatext }) {
     const res = await axios.patch('/api/submissions/' + label + '/metatext',
@@ -204,10 +231,8 @@ export const usePostSubmission = (useMutationOptions = {}) => {
 
 //update submission
 
-async function patchSubmission_API({ label, data }) {
-   
-    const res = await axios.patch('/api/submissions/' + label + "/datasetattributes",
-    data)
+async function patchSubmission_API({ tag, datasetAttributes }) {
+    const res = await axios.patch(`/api/submissions/${tag}/datasetattributes`, datasetAttributes)
 }
 
 export const usePatchSubmission = (useMutationOptions = {}) => {
@@ -262,4 +287,26 @@ async function getRunlist_API({submission_label}) {
 }
 export const useGetRunlist = (APIParams = {}, useQueryOptions = {staleTime : 3000000}) => {
     return useQuery(["submissionStates",APIParams.submission_label], () => getRunlist_API({...APIParams}), useQueryOptions)
+}
+
+
+
+
+
+
+
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.tag
+ * @returns {import("../../types/attributes").DatasetAttributesAPIResponse}
+ */
+async function getSubmissionDatasetAttributes_API({ tag }) {
+    const res = await axios.get(`/api/submissions/${tag}/datasetattributes`)
+    return res.data 
+}
+
+export const useGetSubmissionDatasetAttributesByTag = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["submission_dataset_attributes",APIParams.tag], () => getSubmissionDatasetAttributes_API({...APIParams}), useQueryOptions)
 }

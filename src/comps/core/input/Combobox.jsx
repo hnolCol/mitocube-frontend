@@ -30,6 +30,7 @@ Combobox.propTypes = {
  * @param {Boolean} props.disabled - If true, the combobox is disabled. 
  * @param {String} props.textKey - The ```keyName``` used to display the item in items to the user. 
  * @param {String} props.labelKey - The ```keyName``` that is used to display in the label MenuItem
+ * @param {Number} props.minQueryLength - The minimal length of a filter query. Defaults to 2. 
  * @returns {import("react").ReactElement} The JSX element for a combobox. 
  */
 export function Combobox({
@@ -45,6 +46,7 @@ export function Combobox({
     disabled = false,
     formGroupMargin = true,
     matchTargetWidth = false,
+    minQueryLength  = 2,
     buttonProps = {
         minimal : false,
         small : true
@@ -61,7 +63,12 @@ export function Combobox({
                 key = {item[textKey]} 
                 text={item[textKey]} 
                 labelElement={<div style={{ maxWidth: "10rem", fontSize : "0.75rem"}}>{_.isString(labelKey)?item[labelKey]:""}</div>}
-                onClick={handleClick} 
+                onClick={e => {
+                    e.stopPropagation()
+                    handleClick(e)
+                }
+                } 
+
                 multiline={true}
                 intent={selected? "primary" : "blank"} 
                 icon={selected? "small-tick" : "blank"}/>
@@ -69,7 +76,7 @@ export function Combobox({
     }
 
     const filterItems = (query, items) => {
-        if (query.length < 2) return items 
+        if (query.length < minQueryLength) return items 
         else return filterArrayBySearchString({array : items, searchString : query, keyNames})
     }
 

@@ -11,14 +11,13 @@ import { useGetSubmissionAttributesByTag, useGetSubmissionStates } from "../../h
  * @param {*} param0 
  * @returns 
  */
-function DatasetHeader({authenticationStatus}) {
+function DatasetHeader({}) {
     const params = useParams()
-    const dataset_label = params.dataID
-    const urlStart = `/datasets/${dataset_label}`
+    const dataset_tag = params.dataID
+    const urlStart = `/datasets/${dataset_tag}`
     const [tabHeader, setTabHeader] = useState("")
-    
     // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
-    const {data : metadata, isLoading : metadataIsLoading, isFetching : metadataIsFetching, refetch : refetchMetaData} = useGetMetadata({dataset_label})
+    const { data: metadata, isLoading: metadataIsLoading, isFetching: metadataIsFetching, refetch: refetchMetaData } = useGetMetadata({ tag: dataset_tag })
     const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     
@@ -39,7 +38,8 @@ function DatasetHeader({authenticationStatus}) {
             {/* context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}} */}
             {metadataIsFetching || metadataIsLoading || attrIsLoading || attrIsFetching || submissionStatesLoading? <Loading /> : null}
             <div className="no-scroll div--expand">
-            <Outlet context={{dataset_label, metadata,refetchMetaData, tabHeader, setTabHeader,attributesByTag,submissionStates}}/>
+                
+            <Outlet context={{dataset_tag, metadata, refetchMetaData, tabHeader, setTabHeader,attributesByTag,submissionStates}}/>
             </div>
             
         </div>

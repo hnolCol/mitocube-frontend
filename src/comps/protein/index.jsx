@@ -10,17 +10,17 @@ function ProteinHeader({ }) {
 
     const [featureList, setFeatureList] = useState({ items: [{ text: "+", to: "/protein/selection" }] })
     const params = useParams()
-    const featureKey = params.ID
-    const isFeatureInList = filterArrayBySearchStringBySingleKey({ array : featureList.items, keyName : "to", searchString : `/protein/${featureKey}`}).idcs.size > 0
+    const feature_tag = params.ID
+    const isFeatureInList = filterArrayBySearchStringBySingleKey({ array : featureList.items, keyName : "to", searchString : `/protein/${feature_tag}`}).idcs.size > 0
 
 
     useEffect(() => {
         //handle the case if someone sends a link around to another person
-        const itemFromUrl = { text: featureKey, to: `/protein/${featureKey}` }
-        if (_.isString(featureKey) && _.every(featureList.items, item => item.to != itemFromUrl.to)) {
+        const itemFromUrl = { text: feature_tag, to: `/protein/${feature_tag}` }
+        if (_.isString(feature_tag) && _.every(featureList.items, item => item.to != itemFromUrl.to)) {
             handleFeatureList(itemFromUrl)
         }
-    }, [featureKey])
+    }, [feature_tag])
     
 
     useEffect(() => {
@@ -50,7 +50,7 @@ function ProteinHeader({ }) {
         <div className="no-scroll div--expand">
             <Tabs tabs={_.uniqBy(featureList.items, "to")} canClose={canClose} handleClose={handleFeatureRemove} />
             <div >
-                <Outlet context={{handleFeatureList,featureKey : isFeatureInList?featureKey:undefined }} />
+                <Outlet context={{handleFeatureList,feature_tag : isFeatureInList?feature_tag:undefined }} />
             </div>
             
         </div>

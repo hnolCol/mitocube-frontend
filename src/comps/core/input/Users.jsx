@@ -14,7 +14,7 @@ function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, f
         const itemText = `${item.firstname} ${item.lastname}`
         return <MenuItem
             text={itemText}
-            key={`${item.label}`} //must be unique
+            key={`${item.tag}`} //must be unique
             labelElement={<div className="labelelement-wrap--fixed-width">{`${item.institute} - ${item.research_group} - ${item.email}`}</div>}
             onClick={props.handleClick}
             onFocus={props.handleFocus}
@@ -39,7 +39,7 @@ function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, f
                     <FormGroup {...formGroupProps}>
                 <MultiSelect
                     itemRenderer={renderUser}
-                    items={users.filter(user => user.label !== authenticationStatus.label)}
+                    items={users.filter(user => user.tag !== authenticationStatus.tag)}
                     tagRenderer={renderSelectedItemAsTag}
                     onItemSelect={(item) => handleUserSelection(item)}
                     popoverProps={{ matchTargetWidth: true, minimal: true }}

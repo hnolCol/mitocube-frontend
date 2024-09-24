@@ -18,7 +18,7 @@ export function MitomapNetwork({ }) {
     const { data: network_data, isLoading, isFetching, isSuccess, isError, error } = useGetNetwork({ network_type: networkProps.type, dataset_label, statProps : networkProps.statProps }, {enabled : !_.isEmpty(networkProps.statProps)})
     
     const valueNameFound = _.isObject(network_data) && _.has(network_data,"value_keyName")
-    const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, filterNames : ["id"] })
+    const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, textSearchNames : ["id"] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }

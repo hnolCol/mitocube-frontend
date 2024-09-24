@@ -16,7 +16,7 @@ import MultipleMetrices from "../../../core/metrics/collection"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
-    const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
+    const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({tag : dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
     
     const metdataIsObject = _.isObject(metadata)
     
@@ -77,34 +77,52 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
 
 
 
-function ProteinOverview({
-    authenticationStatus,
-    // yaxisName = "y",
-    // sizeName = "y",
-    // colorName = "T",
-    // subplotName = "T",
-    // data = [{ "T": "HEK", "y" : 6, N : "GG"},{ "T": "Macrophages", "y" : 2 , N : "GG"} ,{ "T": "HeLa", "y" : 2 , N : "GG"},{ "T": "HeLa", "y" : 14 , N : "GG"},{ "T": "HeLa" , "y" : 3, N : "PP"}, { "T": "HeLa" , "y" : 4,  N : "PP"}, { "T": "HEK" , "y" : 4,  N : "PP"}],
-    subplotBasicWidth = 90,
-    orderData = true
-}) {
+function ProteinFilter({ tag }) {
+
+    return <div>
+
+    </div>
+}
+
+
+function ProteinCorrelation({tag}) {
+
+    return <div>
+        <h3>Correlation</h3>
+
+    </div>
+}
+
+function ProteinOverview() {
     
-    const { featureKey } = useOutletContext()
+    const { feature_tag } = useOutletContext()
     const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
-    const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_key: featureKey }, {})
+    const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_tag }, {})
     if (isError) return <APIError error={error} />
     return (
-        <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
+        <div>
             <MetaDataDrawer isOpen={metadataDrawer.isOpen} dataset_label={metadataDrawer.dataset_label} setIsOpen={setMetadataDrawer} />
+            <div>
+            <h3>Protein Information</h3>
+                <h3>Abundance</h3>
+
+                <ProteinCorrelation />
+                
+
+
+            </div>
+            <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
             {_.isObject(featureData) ? featureData["dataset_labels"].map(dataset_label => {
                 const data = featureData["data"][dataset_label] //get data for dataset
                 return (
-                    <ResultChart key={`${featureKey}-${dataset_label}`} groupings={featureData["samples_attributes"][dataset_label]} data={data} {...{ dataset_label, featureID: featureKey, title: featureData.title_by_label[dataset_label] }} yaxisName="value"
+                    <ResultChart key={`${feature_tag}-${dataset_label}`} groupings={featureData["samples_attributes"][dataset_label]} data={data} {...{ dataset_label, featureID: featureKey, title: featureData.title_by_label[dataset_label] }} yaxisName="value"
                         attributesByTag={featureData.attributes}
                         genotypesByLabel={featureData["genotypes_by_label"][dataset_label]}
                         attributeValuesByTag={featureData.attribute_values_by_tag}
                         openMetadataDrawer={setMetadataDrawer} />
                 )
-            }): null}
+            }) : null}
+                </div>
             
             {/* <BoxplotWithValue/>
             <div> Color : </div>

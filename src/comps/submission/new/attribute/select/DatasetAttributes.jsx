@@ -6,7 +6,10 @@ import AttributeValueSelectionMenu from "./AttributeValueMenu"
 
 
 
-function DatasetAttributeSelect({ attributes, attributeValues, attributeValuesByID, handleDatasetAttributeSelection, keyNamesForFilter = ["description", "text", "tag", "attribute_id_tag", "attribute_id_name"], proteome_ids = [], selectedDatasetAttributeValues, selectedDatasetAttribute}) {
+function DatasetAttributeSelect({ attributes,
+    attributeValues,
+    attributeValuesByID, handleDatasetAttributeSelection,
+    keyNamesForFilter = ["description", "text", "tag", "attribute_id_tag", "attribute_id_name"], proteome_ids = [], selectedDatasetAttributeValues, selectedDatasetAttribute }) {
     //handles the selection of a dataset attribute 
     const handleItemSelect = (attribute, attributeValue) => {
         //handle item select

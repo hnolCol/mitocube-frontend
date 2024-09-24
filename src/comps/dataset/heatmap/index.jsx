@@ -8,11 +8,11 @@ import _ from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 function DatasetHeatmap({}) {
     
-    const { dataset_label, metadata } = useOutletContext()   
+    const { dataset_tag, metadata } = useOutletContext()   
   
    // const anovaDetails = { pvalue: 0.05, anovaType: "1-way ANOVA", grouping1: "Genotype" }
     
-    const { data : heatmapData, isLoading, isFetching, isError, error } = useGetDatasetHeatmap({dataset_label})
+    const { data : heatmapData, isLoading, isFetching, isError, error } = useGetDatasetHeatmap({dataset_tag})
    // const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})
 
     // console.log(heatmapData)

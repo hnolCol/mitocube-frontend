@@ -19,13 +19,15 @@ export const useGetBackendInfo = (APIParams = {}, useQueryOptions = {}) => {
 }
 
 // get new mesages 
-async function getNews_API({tokenString}) {
-    const res = await axios.get('/api/news', {
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${tokenString}`
-        }
-    })
+/**
+ * 
+ * @param {Object} props 
+ * @param {Number} props.limit - The maximum number of news to be returned 
+ * @param {String} props.tags - Specific news tag to be returned.  
+ * @returns {import("../../types/news").News[]}
+ */
+async function getNews_API({tags,limit}) {
+    const res = await axios.get('/api/news',{params : {tags,limit}})
     return res.data 
 }
 
@@ -34,15 +36,15 @@ export const useGetNews = (APIParams = {}, useQueryOptions = {}) => {
 }
 
 
-// get key figures 
-
-async function getKeyFigures_API({ tokenString }) {
-    // return [{"label": "Proteins", "metric" : 7834}, {"label": "Instruments", "metric" : 5}, {"label": "Users", "metric" : 25}, {"label": "Turnaround [d]", "metric" : 23}]
+/**
+ * 
+ * @returns {Object[]}
+ */
+async function getKeyFigures_API() {
     const res = await axios.get('/api/info/keyfigures', {
     })
     return res.data 
 }
-
 export const useGetKeyFigures = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["getKeyFigures"],() =>  getKeyFigures_API({...APIParams}), useQueryOptions)
 }

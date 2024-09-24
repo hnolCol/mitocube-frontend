@@ -1,16 +1,11 @@
 import { Button, Dialog, DialogBody, DialogFooter } from "@blueprintjs/core";
-import { LiteralAttributeSelection } from "../../new/attribute/select/LiteralAttributeSelection";
-import { useEffect, useState } from "react";
-import PropTypes from "prop-types"
 import APIError from "../../../core/error/APIerror";
-import { mapAttributeTagsToAttributes } from "../../../../services/attributes";
-import MetaText from "../../new/MetaText";
-import { AxiosError } from "axios";
 import { UserInput } from "../../../core/input/api/UserInput";
-import { useGetPublicUserByLabel } from "../../../../hooks/queries/user.hooks";
+import { useGetPublicUserByTag } from "../../../../hooks/queries/user.hooks";
 import _ from "lodash"
-import { usePostSubmissionOwner } from "../../../../hooks/queries/submission.hooks";
 import Loading from "../../../core/base/loading";
+import { usePostSubmissionOwner } from "../../../../hooks/queries/submission.hooks";
+import { useState } from "react";
 // AttributeSelectionDialog.propTypes = {
 //     authenticationStatus: PropTypes.object.isRequired,
 //     attributesByTag: PropTypes.object.isRequired,
@@ -34,17 +29,18 @@ export function ChangeSubmissionUserDialog({
     setChangeOwnerDialog,
     isOpen = true,
 }) {
-
+    
     const [selectedOwner, setSelectedOwner] = useState({})
-    const { isLoading: getPrevOwnerIsLoading, isFetching: getPrevOwnerIsFetching, isError : getPrevOwnerIsError, error : getPrevOwnerError } = useGetPublicUserByLabel(
-        { label: submission.user_label },
-        { enabled: _.isObject(submission) && _.has(submission, "user_label"), onSuccess : (prevOwner) => setSelectedOwner(prevOwner) }
+    const { isLoading: getPrevOwnerIsLoading, isFetching: getPrevOwnerIsFetching, isError : getPrevOwnerIsError, error : getPrevOwnerError } = useGetPublicUserByTag(
+        { tag: submission.user_tag },
+        { enabled: _.isObject(submission) && _.has(submission, "user_tag"), onSuccess : (prevOwner) => setSelectedOwner(prevOwner) }
     )
     const {mutate, isLoading, reset, isSuccess, isError, error } = usePostSubmissionOwner()
  
     const handleSubmit = () => {
 
-        mutate({submission_label : submission.label, user_label : selectedOwner.label})
+        // console.log(submission)
+        mutate({submission_tag : submission.tag, user_tag : selectedOwner.tag})
     }
     
     /**

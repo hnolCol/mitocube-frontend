@@ -17,6 +17,7 @@ import { copyTextToClipboard } from "../../../services/clipboard";
 import { useNavigate } from "react-router";
 import { AttributeFeatureTag } from "../new/attribute/view/DatasetAttributesHierarchy";
 import { UserInput } from "../../core/input/api/UserInput";
+import { CraetedAt, TitleText } from "../../core/metrics/ItemBasics";
 
 
 
@@ -76,7 +77,7 @@ export function SubmissionItem({
     
     const usersPartInSubmission = _.concat([submission.user_label], submission.collaborators)
 
-    const [m, formatedTime] = getFormatDateFromTimestamp(submission.created_on)
+    const [m, formatedTime] = getFormatDateFromTimestamp(submission.created_at)
 
     const handleStateChange = (state) => {
         setAttributeSelectionDialog(prevValues => {
@@ -96,12 +97,12 @@ export function SubmissionItem({
         <ContextMenu
             disabled={!contextMenuEnabled}
             content={<Menu small={true}>
-                <MenuItem text={submission.label} onClick={() => copyTextToClipboard(submission.label)} />
+                <MenuItem text={submission.tag} onClick={() => copyTextToClipboard(submission.tag)} />
                 <MenuDivider />
-                <MenuItem text="Dataset View" onClick={ () => redirect("/datasets/"+submission.label)}/>
+                <MenuItem text="Dataset View" onClick={ () => redirect("/datasets/"+submission.tag)}/>
                 <MenuDivider />
                 <MenuItem text="State">
-                    <StateSubMenu {...{stateName,states,onStateChange : handleStateChange}} />
+                    <StateSubMenu {...{stateName, states, onStateChange : handleStateChange}} />
                 </MenuItem>
                 <MenuDivider />
                 <MenuItem text="Create">
@@ -126,7 +127,7 @@ export function SubmissionItem({
             <button
                 onClick={(e) => {
                     e.stopPropagation()
-                    redirect(`/datasets/${submission.label}`)
+                    redirect(`/datasets/${submission.tag}`)
                 }}
             className="submission__item__container bg--white"
                 style={{border: "none", color : "#000", padding : "0px"}}
@@ -136,22 +137,21 @@ export function SubmissionItem({
             <div className="flex justify-space-between" > 
             <div className="flex flex--wrap center-items">
                 
-                <div>{m.fromNow()} ({formatedTime})</div>
-                
-                <div style={{paddingLeft : "1rem", fontWeight:600}}>{submission.title}</div>
+                <CraetedAt createdat={submission.created_at}/>                
+                <TitleText title={submission.title} />
                             
             </div>
             <div className="flex flex--wrap center-items">
                     <div>
                         <AttributeTagWithTooltip {...{
                             attribute: { text: "Replicates", tag: "reps" },
-                            attributeValue: { tag: "numb-reps", text: _.uniq(submission.replicates).length }
+                            attributeValue: { tag: "numb-reps", text: submission.n_replicates}
                         }} />
                     </div>  
                     <div>
                     <AttributeTagWithTooltip {...{
                             attribute: { text: "Number samples", tag: "samples" },
-                            attributeValue: { tag: "numb-samps", text: submission.sample_names.length}
+                            attributeValue: { tag: "numb-samps", text: submission.n_samples}
                         }} />
                     </div> 
                     <div>

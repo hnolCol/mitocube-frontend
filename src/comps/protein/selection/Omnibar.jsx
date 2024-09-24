@@ -11,6 +11,7 @@ import _ from "lodash"
 import "./OmnibarStyles.css"
 import { useGetFeatureByQuery, useGetFeatures } from "../../../hooks/queries/feature.hooks";
 import Loading from "../../core/base/loading";
+import { FeatureMenuItem } from "../../core/input/items/FeatureMenu";
 
 export function OmnibarSearch(props) {
     // handle search for proteins in the protein centric view.
@@ -32,6 +33,19 @@ export function OmnibarSearch(props) {
             }
         })
     }
+
+    /**
+     * 
+     * @param {import("../../../types/feature").Feature} feature 
+     */
+    const onFeatureSelect = (feature) => {
+
+        let featureURL = `/protein/${feature.tag}`
+        onSelect({feature, text: feature.gene_name, to : featureURL })
+    } 
+
+
+
     /**
      * 
      * @param {import("../../../types/feature").Feature} item 
@@ -48,12 +62,13 @@ export function OmnibarSearch(props) {
             return <div><Loading/></div>
         }
         return (
-            <OmnibarItem
-                key={item.key}
-                item={item}
-                handleClose={onClose}
-                onSelect={onSelect}
-                />
+            <FeatureMenuItem key={item.tag} {...{feature : item, onClick : handleClick, active : modifiers.active}} />
+            // <OmnibarItem
+            //     key={item.key}
+            //     item={item}
+            //     handleClose={onClose}
+            //     onSelect={onSelect}
+            //     />
                
             );
           }
@@ -63,6 +78,7 @@ export function OmnibarSearch(props) {
             itemRenderer={renderItem}
             query={featureDeatails.searchString}
             resetOnSelect={true}
+            onItemSelect={onFeatureSelect}
             onQueryChange={setSearchString}
             inputProps={{ placeholder: isFetching || isLoading ? "Fetching ..." :isError ? 'An error occured fetching the feature list.' : _.isArray(features) && features.length===0?'No feature items available. API is loading or filtering excluded all features.':`Search in for protein name, gene name or uniprot id.`}}
             {...{ isOpen, onClose, items: isLoading || isFetching ? [{}] : _.isArray(features) ? features : []}} />

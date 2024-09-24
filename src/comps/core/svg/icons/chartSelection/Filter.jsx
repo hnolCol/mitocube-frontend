@@ -28,15 +28,13 @@ export function FilterSVG({ width, height, strokeColor}) {
     )
 }
 
+function FilterIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true, selectedItems = [], textKey = "text", labelKey = undefined}) {
 
-function FilterIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true, selectedItems = []}) {
-    
-   
     const colorPalette = getColorPalette(3)
     const strokeColor = selectedItems.length === 0? "#000" : colorPalette[0]
     
     return (
-        <ComboboxIconBase {...{width, height, placeholder, items, callback, callbackKey, callbackValueOnly, minimal, selectedItems }}>
+        <ComboboxIconBase {...{width, height, placeholder, items, callback, callbackKey, callbackValueOnly, minimal, selectedItems, textKey, labelKey }}>
             <FilterSVG {...{width,height,strokeColor}} />
         </ComboboxIconBase>
     )

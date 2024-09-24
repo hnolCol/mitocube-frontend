@@ -1,26 +1,26 @@
-import { useOutletContext } from "react-router";
-import APIError from "../../core/error/APIerror";
 import { useEffect, useState } from "react";
-import { useGetDatasetPCA } from "../../../hooks/queries/datasets.hooks";
+import { useOutletContext } from "react-router";
 import _ from "lodash"
-import Loading from "../../core/base/loading";
 
+import APIError from "../../core/error/APIerror";
+
+import { useGetDatasetPCA } from "../../../hooks/queries/datasets.hooks";
+
+import Loading from "../../core/base/loading";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
-import { useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks";
-
 import { Button, Divider, InputGroup } from "@blueprintjs/core";
-import { XAxisName, YAxisName } from "../../core/svg/icons/chartSelection/ChartAxisNames";
 import SizeIconWithName from "../../core/svg/icons/chartSelection/Size";
 import ColorIconWithName from "../../core/svg/icons/chartSelection/Color";
 import { TextIconWithName } from "../../core/svg/icons/chartSelection/Text";
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, arrayOfObjectsToString } from "../../../services/arrays/transforms";
+import { addItemToArrayOrRemoveItIfPresent, arrayOfObjectsToString } from "../../../services/arrays/transforms";
 import DownloadIcon from "../../core/svg/icons/chartSelection/Download";
 import FilterIcon from "../../core/svg/icons/chartSelection/Filter";
 import useDebounce from "../../../hooks/useDebounce";
 import { downloadSVG } from "../../../services/downloads/svg";
 import { downloadTxtFile } from "../../../services/downloads/txt";
-import { Legend } from "@visx/legend";
+import { FilterSelection } from "../../core/charts/selections/FilterSelection";
+import { ChartAxisSelection } from "../../core/charts/selections/ChartAxisSelection";
 
 function ChartMarksSelection({keyNames, selection, onSelectionChange, minimal}) {
     
@@ -43,6 +43,7 @@ function ChartMarksSelection({keyNames, selection, onSelectionChange, minimal}) 
 }
 
 
+
 function TextSelection({ keyNames, selection, onSelectionChange, minimal }) {
     return (
         <div className="flex">
@@ -54,28 +55,6 @@ function TextSelection({ keyNames, selection, onSelectionChange, minimal }) {
                 callbackKey="tooltipNames"
                 callback={(key, value) => onSelectionChange(key, addItemToArrayOrRemoveItIfPresent({ array: selection.tooltipNames, item : value }))}
                 />
-        </div>
-    )
-}
-
-
-function ChartAxisSelection({ keyNames, selection, onSelectionChange, minimal }) {
-    return (
-        <div className="flex">
-            <XAxisName
-                items={keyNames}
-                selectedItems={[{text : selection.xaxisName}]}
-                placeholder={selection.xaxisName}
-                callbackKey="xaxisName"
-                minimal={minimal}
-                callback={onSelectionChange} />
-            <YAxisName
-                items={keyNames}
-                placeholder={selection.yaxisName}
-                minimal={minimal}
-                selectedItems={[{text : selection.yaxisName}]}
-                callbackKey="yaxisName"
-                callback={onSelectionChange} />
         </div>
     )
 }
@@ -97,18 +76,18 @@ function ChartStringSearch({ keyNames, idx, selection, onSelectionChange, handle
 
         if (!_.isFunction(handleStringSearch)) return 
 
-        handleStringSearch(selection.filterNames,debounceString)
-    }, [debounceString, _.join(selection.filterNames)])
+        handleStringSearch(selection.textSearchNames,debounceString)
+    }, [debounceString, _.join(selection.textSearchNames)])
 
     return (
         <div className="flex center-items">
             <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")} />} />
             <FilterIcon
                 items={keyNames}
-                callbackKey={"filterNames"}
-                selectedItems={_.map(selection.filterNames, text => { return { text } })}
+                callbackKey={"textSearchNames"}
+                selectedItems={_.map(selection.textSearchNames, text => { return { text } })}
                 minimal={minimal}
-                callback={(key, value) => onSelectionChange(key, addItemToArrayOrRemoveItIfPresent({ array: selection.filterNames, item : value }))}
+                callback={(key, value) => onSelectionChange(key, addItemToArrayOrRemoveItIfPresent({ array: selection.textSearchNames, item : value }))}
                     // (key, item) => onSelectionChange(prevValues => {
                     // return {
                     //     ...prevValues,
@@ -162,7 +141,7 @@ function DownloadData({ elements = [], elementNames = [], elementTypes = [], fil
 
  * @returns 
  */
-export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = []}) {
+export function ScatterDataSelection({ keyNames, title = "", idx = 1, proteome_ids = [], numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = []}) {
     // const [searchString, setSearchString] = useState("")
     // const debounceString = useDebounce(searchString, 200)
 
@@ -174,10 +153,11 @@ export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKey
     return (
         <div><h3>{title}</h3>
         <div className="flex center-items">
-            <ChartAxisSelection keyNames={numericKeyNames}
-                selection={selection}
-                onSelectionChange={onSelection}
-                minimal={minimal} />
+                <ChartAxisSelection
+                    keyNames={numericKeyNames}
+                    selection={selection}
+                    onSelectionChange={onSelection}
+                    minimal={minimal} />
             <ChartMarksSelection
                 keyNames={keyNames}
                 selection={selection}
@@ -187,7 +167,13 @@ export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKey
                 keyNames={nonNumericKeyNames}
                 selection={selection}
                 onSelectionChange={onSelection}
-                minimal={minimal} />
+                    minimal={minimal} />
+            <FilterSelection
+                    proteome_tags = {proteome_ids}
+                    keyNames={nonNumericKeyNames}
+                    selection={selection}
+                    onSelectionChange={onSelection}
+                    minimal={minimal} />
         
             {/* {_.isFunction(handleStringSearch) ?
                 <InputGroup value={searchString} onChange={(event) => setSearchString(event.target.value)} small={true} rightElement={<Button icon="cross" minimal={true} onClick={() => setSearchString("")}/>}/> :
@@ -218,14 +204,14 @@ function DatasetPCA({ }) {
     /**
      * @type {import("../../../types/datasets").DatasetContextOutlet}
      */
-    const { dataset_label, metadata, setTabHeader } = useOutletContext()   
-
-    const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ dataset_label })
+    const { dataset_tag, metadata, setTabHeader } = useOutletContext() 
+    console.log(metadata)
+    const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ dataset_tag })
     // const { data: attributesByTag, isLoading: attrByTagIsLoading, isFetching: attrByTagIsFetching, isSuccess: attrByTagIsSuccess } = useGetSubmissionAttributesByTag()
     
-    const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterNames : [] })
+    const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, textSearchNames : [] })
     const metaDataFound = _.isObject(metadata) && !_.isEmpty(metadata)
-    const sampleAttributeNames = metaDataFound && _.isObject(metadata.samples_attributes) ? _.keys(metadata.samples_attributes).map(v => v) : []
+    const sampleAttributeNames = metaDataFound && _.isObject(pcaresults) && _.isObject(pcaresults.samples_attributes) ? _.keys(pcaresults.samples_attributes).map(v => v) : []
     const hasGenotypes = metaDataFound ? !_.isEmpty(metadata.genotypes) : false 
     const numericKeyNames = _.isObject(pcaresults) ? _.filter(_.keys(pcaresults.drivers[0]), keyName => _.isNumber(pcaresults.drivers[0][keyName])) : []
     const nonNumericKeyNames = _.isObject(pcaresults) ? _.keys(pcaresults.drivers[0]).filter(keyName => !numericKeyNames.includes(keyName)) : []
@@ -264,15 +250,6 @@ function DatasetPCA({ }) {
                     <p>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained)*10000)/100}% of the total variance.</p>
                     <div>
                         
-
-                        
-                        {/* if (didx === 1) return <div><ProfileChart {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/></div>
-                            return (<div><ScatterPlot {...{chartIdx,data,valid,findDataInRectangle,setHoverDataInRectangle,xaxisName,yaxisName,limits,...hoverProps, ...filterProps}}/>
-                            {didx===0?<div>
-                                <RangeSlider min={0} max={100} value={filterProps.filterRange} stepSize={5} onChange={range => handleNumericFilter(0,"x",range[0],range[1])}/><Button onClick={() => handleNumericFilter(0,"x",0.2,0.5)}/>
-                                <InputGroup onChange={(e) => handleStringSearch("label",e.target.value)}/>
-                                </div>:null} */}
-                        
                         <div className="flex justify-space-around">
                             {isSuccess ? <div>
                                 <ScatterDataSelection keyNames={_.keys(pcaresults.projection[0])} {...{
@@ -280,16 +257,20 @@ function DatasetPCA({ }) {
                                     idx : 0,
                                     numericKeyNames,
                                     selection,
+                                    proteome_ids : metadata.proteome_ids,
                                     setSelection : handleScatterSelection,
                                     downloadElements: ["scatter_plot-pca-projection", pcaresults.projection],
                                     elementNames: ["SVG","DIVIDER",`Projected Data (${pcaresults.projection.length} x ${_.keys(pcaresults.projection[0]).length})`],
-                                    fileNames: [`${metadata.label}-PCA.svg`,`${metadata.label}-PCA-Projection.txt`],
+                                    fileNames: [`${dataset_tag}-PCA.svg`,`${dataset_tag}-PCA-Projection.txt`],
                                     elementTypes: ["svg","data"]
                                 }} />
                                
                                 <InteractiveChart
                                     data={pcaresults.projection}
-                                    extraLimitNames={[selection.colorName, selection.sizeName].filter(keyName => _.isString(keyName) && numericKeyNamesProjection.includes(keyName))}
+                                    extraLimitNames={
+                                        [
+                                            selection.colorName,
+                                            selection.sizeName].filter(keyName => _.isString(keyName) && numericKeyNamesProjection.includes(keyName))}
                                     keyNames={[
                                     {
                                         xaxisName: selection.xaxisName,
@@ -339,9 +320,9 @@ function DatasetPCA({ }) {
                                         tooltipNames : hasGenotypes? _.concat(["index"],"att_genotype",sampleAttributeNames): _.concat(["index"],sampleAttributeNames),
                                         ...hoverProps,
                                         ...filterProps,
-                                        attributeValuesByTag: metadata.attribute_values_by_tag,
-                                            attributesByTag: metadata.attributes,
-                                        genotypesByLabel : metadata.genotypes,
+                                            attributeValuesByTag: {},  // metadata.attribute_values_by_tag,
+                                        attributesByTag: {},  //metadata.attributes,
+                                        genotypesByLabel : {},  //metadata.genotypes,
                                         legend: true,
                                             handleSearchByDataIndex,
                                             filterDataInKeyByValue,
@@ -353,10 +334,15 @@ function DatasetPCA({ }) {
 
                         </InteractiveChart> </div>: null}
 
-                            {isSuccess ? <InteractiveChart data={pcaresults.drivers} extraLimitNames={numericKeyNames} keyNames={
-                            [
-                                { xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }
-                            ]}
+                            {isSuccess ? <InteractiveChart data={pcaresults.drivers}
+                                extraLimitNames={numericKeyNames}
+                                keyNames={
+                                [
+                                        {
+                                            xaxisName: selection.xaxisName,
+                                            yaxisName: selection.yaxisName
+                                        }
+                                ]}
                                 isPointChart={[true]}>
                             {(chartData) => chartData.map(({
                                 data,
@@ -388,11 +374,11 @@ function DatasetPCA({ }) {
                                         handleStringSearch,
                                         downloadElements: ["scatter_plot-pca-drivers", pcaresults.drivers],
                                         elementNames: ["SVG","DIVIDER",`Data (${pcaresults.drivers.length} x ${_.keys(pcaresults.drivers[0]).length})`],
-                                        fileNames: [`${metadata.label}-PCA-drivers.svg`,`${metadata.label}-PCA-Drivers.txt`],
+                                        fileNames: [`${dataset_tag}-PCA-drivers.svg`,`${dataset_tag}-PCA-Drivers.txt`],
                                         elementTypes: ["svg", "data"]
                                         }} />
                                     
-                                    <ScatterPlot key={`${chartIdx}-drivers-${dataset_label}`}{...{
+                                    <ScatterPlot key={`${chartIdx}-drivers-${dataset_tag}`}{...{
                                         chartIdx,
                                         data,
                                         valid,
@@ -409,8 +395,8 @@ function DatasetPCA({ }) {
                                         xaxisName,
                                         yaxisName,
                                         limits,
-                                        attributeValuesByTag: metadata.attribute_values_by_tag,
-                                        attributesByTag : metadata.attributes,
+                                        attributeValuesByTag: {}, // metadata.attribute_values_by_tag,
+                                        attributesByTag: {}, // metadata.attributes,
                                         ...hoverProps,
                                         ...filterProps,
                                     }} />

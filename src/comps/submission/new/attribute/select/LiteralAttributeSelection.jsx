@@ -58,8 +58,8 @@ export function LiteralAttributeSelection({ selectedAttributes, setSelectedAttri
     if (!_.isObject(attrs)) return 
     const {attributes, attribute_values } = attrs
     const attributeMatchingFilter = _.filter(attributes, attributeFilter)
-    const attributeValuesByID = groupListByProperty(attribute_values,"attribute_id")
-    const nestedAttributes = createDataTree({array :attributeMatchingFilter , link : "parent_id"})
+    const attributeValuesByID = groupListByProperty(attribute_values,"attribute_tag")
+    const nestedAttributes = createDataTree({array :attributeMatchingFilter , link : "parent_tag"})
 
     const onItemSelect = (attribute, attributeValue) => {
         //update selection

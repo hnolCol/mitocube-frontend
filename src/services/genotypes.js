@@ -79,7 +79,7 @@ export function constructGenotypeName(genotypeAttributes){
     _.forEach(genotypeAttributes, (genotypeEntryAttributes, entryIdx) => {
         let entryName = ""
         if (_.isEmpty(genotypeEntryAttributes)) return ""
-        entryName += genotypeEntryAttributes["att_protein_coding_sequence"][0].genes.split(" ").at(0)
+        entryName += genotypeEntryAttributes["att_protein_coding_sequence"][0].gene_name
 
         if (_.has(genotypeEntryAttributes, "att_gene_engineering")) {
             const geneEngineeringAttribute = genotypeEntryAttributes["att_gene_engineering"][0]

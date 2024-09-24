@@ -16,6 +16,7 @@ import { usePostGenotype } from "../../../hooks/queries/genotype.hooks"
 import { FeatureInput } from "../../core/input/api/FeatureInput"
 import { GenotypeInfo } from "./GenotypeNomenclatureInfo"
 import { constructGenotypeName } from "../../../services/genotypes"
+import { useGetAttributeValues } from "../../../hooks/queries/attribute.hooks"
 
 const AMINO_ACIDS = new Set(["A","G","C","T","S","W","Y","N","D","E","I","L","M","V","P","F","H","K","R"])
 
@@ -24,8 +25,8 @@ const AMINO_ACIDS = new Set(["A","G","C","T","S","W","Y","N","D","E","I","L","M"
 function GenotypeAttributeSelection({
             attrIdx = 0,
             attribute,
-            attributeValues,
-            attributeValuesByID,
+            //attributeValues,
+            //attributeValuesByID,
             onSelection, level = 0,
             prevAttribute = {},
             genotypeProps,
@@ -37,6 +38,8 @@ function GenotypeAttributeSelection({
     handleGenotypePositionSelection
           }) {
     
+    const { data: attributeValues, isLoading, isFetching } = useGetAttributeValues({attribute_tag : attribute.tag})
+    console.log(attributeValues)
     const hasChildNodes = attribute.childNodes.length > 0
     const allowFeatures = attribute.has_features_value 
     const hasAttibuteData = _.isEmpty(prevAttribute) ? false : objectHasKey({ object: genotypeProps.attributes[entryIdx], keyName: attribute.tag }) 
@@ -50,6 +53,7 @@ function GenotypeAttributeSelection({
      */
     const handleSelection = (attribute, attrValue, attrMutationValue,attrIdx) => {
         // change this. //handleGenotypePositionSelection
+        console.log(attrValue)
         const positionSelectionAttributeValue = attrValue.tag === "att_protein_position:aa" || attrValue.tag === "att_protein_position:region"
         if (positionSelectionAttributeValue) {
             handlePositionSelection(
@@ -120,9 +124,9 @@ function GenotypeAttributeSelection({
             <div>
                 {hasChildNodes && hasAttibuteData ? <GenotypeAttributeSelection
                     attribute={childNode}
-                    attributeValues={attributeValuesByID[childNode.id]}
+                    //attributeValues={attributeValuesByID[childNode.id]}
                     {...{
-                        attributeValuesByID,
+                        //attributeValuesByID,
                         handleFeatureSelection,
                         handlePositionSelection,
                         genotypeLabel,
@@ -140,12 +144,13 @@ function GenotypeAttributeSelection({
 
 export function PositionSelection({feature, singlePosition  = true, aaSubstitution = true, onSave, onSaveProps, onClose}) {
     // Select a position in 
-    const { data: featureSequence, isSuccess: featureIsSuccess } = useGetSequenceByFeatureKey({feature})
+    const { data, isSuccess: featureIsSuccess } = useGetSequenceByFeatureKey({ feature })
+    const featureSequence = _.isArray(data) && data.length > 0 ?  data[0] : {}
     const [isMouseDown, setMouseDown] = useState(false)
     const [selectedAAPos, setselectedAAPos] = useState([])
     const [substitutionAA, setSubstitutionAA] = useState("")
     
-    const splitSequence = useMemo(() => featureIsSuccess  ? splitStringByNCharacters(featureSequence.sequence) : [],[featureIsSuccess])
+    const splitSequence = useMemo(() => featureIsSuccess && _.has(featureSequence,"sequence")  ? splitStringByNCharacters(featureSequence.sequence) : [],[featureIsSuccess])
     const isRegionSelected = selectedAAPos.length == 2
     const isSingleAASelected = selectedAAPos.length == 1
     const minAAIndex = _.min(selectedAAPos)
@@ -209,7 +214,7 @@ export function PositionSelection({feature, singlePosition  = true, aaSubstituti
     
     return (
         <div >
-            <h3>Amino acid sequence {feature.genes} ({feature.length} aa)</h3>
+            <h3>Amino acid sequence {feature.gene_name} ({feature.length} aa)</h3>
             {singlePosition ? <p>Select the exact amino acid position.</p> : <p> Select an amino acid region.</p>}
             <div className="flex flex--wrap prevent-select" style={{ fontFamily: "monospace", fontSize : "0.8rem", height : "50vh", overflowY : "scroll"}} onMouseLeave={handleMouseUp} onMouseUp={handleMouseUp}>
                 
@@ -262,9 +267,9 @@ function GenotypeRow({ attributes, nestedAttributes, attributeValuesByID, onSele
                                 {...{
                                     attrIdx,
                                     attribute,
-                                    attributeValues: attributeValuesByID[attribute.id],
+                                    //attributeValues: attributeValuesByID[attribute.id],
                                     handleFeatureSelection,
-                                    attributeValuesByID,
+                                   // attributeValuesByID,
                                     genotypeProps,
                                     onSelection,
                                     genotypeLabel,
@@ -308,7 +313,7 @@ function GenotypeGenerator({ index = 6,
     const nestedAttributes = createDataTree({ array: attributes, link: "parent_id" })
     const submitDisabled = _.isEmpty(genotype) || !_.isArray(genotype.attributes) || genotype.attributes.length === 0 || !_.isString(genotype.text) || !_.isString(genotype.proteome_id) // || _.some(_.map(genotype.attributes,  attrs => !_.isEmpty(attrs)))
     const { mutate, error, isError, isLoading, isFetching } = usePostGenotype({ enabled: !submitDisabled })
-        console.log(genotype)
+        
     useEffect(() => {setGenotype(prevValues => {return {...prevValues, proteome_id : proteome_ids[0]}})},[_.join(proteome_ids)])
 
     const addGenotype = () => {

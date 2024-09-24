@@ -15,7 +15,7 @@ function SubmissionStatistics({ authenticationStatus, submissionsQuery, setSubmi
     const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
         query: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
         state: stateFilter,
-        genotype_label : getValueByKeyAndMergeToString({array : submissionFilter["genotype_label"], keyName : "label"}),
+        genotype_tag: getValueByKeyAndMergeToString({array : submissionFilter["genotype_tag"], keyName : "tag"}),
         user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})

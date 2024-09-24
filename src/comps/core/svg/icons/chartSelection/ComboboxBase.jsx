@@ -1,7 +1,5 @@
-import { Menu, MenuDivider, Popover, MenuItem } from "@blueprintjs/core"
+import { MenuDivider, MenuItem } from "@blueprintjs/core"
 import { SVG } from "../../../charts/SVGHeader"
-import { getColorPalette } from "../../../colors/colorPalette"
-import AnimatedText from "../../AniamtedText"
 import _ from "lodash"
 import { motion } from "framer-motion"
 import { useState } from "react"
@@ -28,6 +26,7 @@ function ComboboxIconBase({
     placeholder = "",
     items = [{ text: "Menu1" }],
     textKey = "text",
+    labelKey = undefined,
     selectedItems = [],
     callbackKey = undefined,
     callback = undefined,
@@ -70,16 +69,25 @@ function ComboboxIconBase({
         return <MenuItem
             key={`${item[textKey]}-${index}`}
             text={item[textKey]}
+            label = {_.isString(labelKey) && _.has(item,labelKey) ? item[labelKey] : undefined}
             active={modifiers.active}
             disabled={modifiers.disabled}
             onClick={handleClick}
             onFocus={handleFocus}
+            labelClassName="labelelement-wrap--fixed-width"
             icon={selected ? "tick" : "blank"} />
     }
 
     return (
         <div> 
-            <Select items={checkedItems} itemListPredicate={filterItems} filterable={filterable} itemRenderer={renderItem} onItemSelect={handleSelection} disabled={items.length === 0}>
+            <Select items={checkedItems}
+                itemListPredicate={filterItems}
+                filterable={filterable}
+                itemRenderer={renderItem}
+                onItemSelect={handleSelection}
+                disabled={items.length === 0}
+            
+                >
                 <div className="flex margin--very-little icon__container center-items">
                     <div style={{height,width}}>
                     <SVG {...{ width, height }}>

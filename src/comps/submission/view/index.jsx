@@ -9,29 +9,12 @@ import { SubmissionContainer } from "./SubmissionContainer"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { AttributeSelectionDialog } from "./dialogs/AttributeSelectionDialog"
 import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
-import { EditDatasetAttributeDialog } from "./dialogs/DatasetAttributesDialog"
+// import { EditDatasetAttributeDialog } from "./dialogs/EditDatasetAttributes"
+import { EditDatasetAttributeDialog } from "./dialogs/EditDatasetAttributes"
 import { RunlistCreatorDialog } from "./dialogs/RunlistDialog"
 import { ChangeSubmissionUserDialog } from "./dialogs/ChangeSubmissionUserDialog"
 import { EditMetatextDialog } from "./dialogs/EditMetatextDialog"
 
-
-
-
-// SubmissionView.propTypes = {
-//     token: PropTypes.string.isRequired, //the token 
-//     logout : PropTypes.func.isRequired //logout if API returns that the token is not valid. 
-// }
-const initRenameGrouping = {
-    isOpen: false,
-    groupingNames: [],
-    dataID: undefined,
-    paramsFile: {}
-}
-const initExperimental = {
-    isOpen: false,
-    dataID: "",
-    paramsFile: {}
-}
 
 function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
@@ -78,33 +61,27 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     })
 
     //fetch data from API
-    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates({},{staleTime: Infinity}) //request only once. 
+    const { data: submissionStates, isLoading: submissionStatesLoading, isError, error } = useGetSubmissionStates({},{staleTime: Infinity}) //request only once. 
     
-    const { isSuccess, isLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions()    
+    // const { isSuccess, wsLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions()    
     const {data : attributesByTag} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo()
        
-    const {
-        mutate: patchSubmission,
-        isLoading: patchSubmissionIsLoading,
-        isSuccess: patchSubmissionSuccess,
-        isError: patchSubmissionIsError } = usePatchSubmission()
-    
-    
-    const handleStateChangeAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "") => {
-        handleSubmissionDatasetAttributeUpdate(label, datasetAttributeValues, state, prevState, comment, setAttributeSelectionDialog)
+    const {mutate: patchSubmission, isLoading: patchSubmissionIsLoading} = usePatchSubmission()
+
+    const handleStateChangeAttributeUpdate = (tag, datasetAttributes, datasetAttributeValues, state, prevState, comment = "") => {
+        handleSubmissionDatasetAttributeUpdate(tag, datasetAttributes, datasetAttributeValues, state, prevState, comment, setAttributeSelectionDialog)
     }
 
-    const handleDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "") => {
-        handleSubmissionDatasetAttributeUpdate(label, datasetAttributeValues, state, prevState, comment, setAttributesDialog)
+    const handleDatasetAttributeUpdate = (tag, datasetAttributes, datasetAttributeValues, state, prevState, comment = "") => {
+        handleSubmissionDatasetAttributeUpdate(tag, datasetAttributes, datasetAttributeValues, state, prevState, comment, setAttributesDialog)
     }
     
-    const handleSubmissionDatasetAttributeUpdate = (label, datasetAttributeValues, state, prevState, comment = "", alertUpdateFn) => {
+    const handleSubmissionDatasetAttributeUpdate = (tag, datasetAttributes, datasetAttributeValues, state, prevState, comment = "", alertUpdateFn) => {
         // handle patching the submission.
-        console.log(label)
-        let datasetAttributes = Object.keys(datasetAttributeValues).map(attributeTag => attributesByTag.attributes[attributeTag])
+    
         let updatedSubmission = {datasetAttributes, datasetAttributeValues}
-        const data = {
+        const updatedDatasetAttributes = {
             datasetAttributes: updatedSubmission,
             state_change: {
                 state,
@@ -112,7 +89,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                 comment
             }
         }
-        patchSubmission({label, data},
+        patchSubmission({tag, datasetAttributes : updatedDatasetAttributes},
             {
                 onSuccess: () => {
                     alertUpdateFn(prevValues => {
@@ -123,7 +100,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                             success: true
                         }
                     }),
-                        refetchSubmissions()
+                        console.log //undefined //refetch submission?
                 },
                 onError: (error) => {
                     alertUpdateFn(prevValues => {
@@ -139,16 +116,15 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                 
                 }
             })
-            alertUpdateFn(prevValues => {return {...prevValues,isLoading : patchSubmissionIsLoading}})
+    alertUpdateFn(prevValues => {return {...prevValues, isLoading : true}})
     }
-    
     return (
         <div className="no-scroll">
             <EditMetatextDialog {...metatextDialog} {...{setMetatextDialog}} /> 
             <ChangeSubmissionUserDialog {...changeOwnerDialog} {...{setChangeOwnerDialog}} />
             <AttributeSelectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
                 onSubmit={handleStateChangeAttributeUpdate} />
-            {_.isArray(submissions) ? <EditSamplesAttributeDialog {...samplesAttributesDialog}
+            <EditSamplesAttributeDialog {...samplesAttributesDialog}
                 isOpen={samplesAttributesDialog.isOpen && samplesAttributesDialog.samplesAttributes}
                 onClose={() => setAttributesDialog(prevValues => {
                     return {
@@ -158,8 +134,8 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                         success: false,
                         submitted: false
                     }
-                })} /> : null}
-            {_.isArray(submissions) ? <EditDatasetAttributeDialog {...samplesAttributesDialog}
+                })} />
+            <EditDatasetAttributeDialog {...samplesAttributesDialog}
                 onSubmit={handleDatasetAttributeUpdate}
                 isOpen={samplesAttributesDialog.isOpen && !samplesAttributesDialog.samplesAttributes}
                 onClose={() => setAttributesDialog(prevValues => {
@@ -170,11 +146,11 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                         success: false,
                         submitted: false
                     }
-                })} /> : null}
-            {_.isArray(submissions) ? <RunlistCreatorDialog {...runlistDialog} onClose={() => setRunlistDialog(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false } })}/>: null}
-            {isLoading || isFetching || userIsFetching || userIsLoading ?
+                })} /> 
+            <RunlistCreatorDialog {...runlistDialog} onClose={() => setRunlistDialog(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false } })}/>
+            {userIsFetching || userIsLoading ?
                 <Loading /> : isError ?
-                    <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") && _.isArray(submissions) ? 
+                    <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") ? 
                         <SubmissionContainer states={submissionStates}
                             {...{
                             attributesByTag,

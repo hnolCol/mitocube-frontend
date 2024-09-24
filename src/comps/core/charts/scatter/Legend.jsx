@@ -55,7 +55,6 @@ const ScatterLegend = React.memo(
         showTooltip,
         hideTooltip,
     } = useTooltip();
-    console.log(maxWidth)
     const findAttributeValues = (attribute, attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
         if (attribute.tag === "att_genotype") {
@@ -78,7 +77,6 @@ const ScatterLegend = React.memo(
         else {
             attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
         }
-        console.log(attributeValueText)
         return attributeValueText
     }
 
