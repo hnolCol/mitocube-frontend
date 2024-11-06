@@ -35,13 +35,13 @@ function AxisWithBackground({
     //const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
     if (_.isNumber(bandwidth)) {
         bottomTickLabelProps["width"] = bandwidth * 1.1
-        bottomTickLabelProps["scaleToFit"] = true
+        bottomTickLabelProps["scaleToFit"] = 'shrink-only'
     }
     const getLabelString = (attributeValue) => {
         const attributeValuesTagSplit = attributeValue.split(" ")
         return _.join(_.map(attributeValuesTagSplit, attributeValueTag => {
             const attributeValue = attributeValuesByTag[attributeValueTag]
-            if (valueIsFeature) return attributeValue.genes.split(" ").at(0)
+            if (valueIsFeature) return attributeValue.gene_name
             if (!_.isObject(attributeValue)) {
                 if (_.has(genotypesByLabel, attributeValueTag)) {
                     return genotypesByLabel[attributeValueTag].text
@@ -66,7 +66,6 @@ function AxisWithBackground({
                 tickLabelProps={{ fontSize: "0.8rem", ...leftTickLabelProps, width : 0.8 * chartHeight}}
                 tickFormat={(tickLabel) => leftTickLabelsVisible ? tickLabel : undefined}
                 left={leftStart}
-
                 scale={leftScale}
                 hideTicks={leftHideTicks}
                 numTicks={getNumberTicks(chartHeight)}
@@ -79,8 +78,8 @@ function AxisWithBackground({
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}
-                labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle", dy:10, width : 0.8 * chartWidth}}
-                tickLabelProps={{fontSize : "0.8rem", verticalAnchor : "middle",...bottomTickLabelProps}}
+                labelProps={{fontSize: "0.8rem", verticalAnchor:"middle", textAnchor :"middle", dy:5, width : 0.8 * chartWidth}}
+                tickLabelProps={{ fontSize: "0.8rem", dy : -2, verticalAnchor: "middle", ...bottomTickLabelProps }} //
                 labelOffset={16}
                 numTicks={getNumberTicks(chartWidth)}
                 scale={bottomScale}

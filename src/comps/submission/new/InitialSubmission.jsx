@@ -73,7 +73,7 @@ function InitialSubmission({
     const { data: metatext } = useGetSubmissionMetatext({}) 
     const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID({},{enabled : !_.isString(init_submission_tag)})
     const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
-    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_ids : proteome_ids},{enabled : proteome_ids.length > 0})
+    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_tags : proteome_ids},{enabled : proteome_ids.length > 0})
 
     const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.id : undefined,[_.isObject(submission_tag),submission_tag])
     
@@ -513,7 +513,7 @@ function InitialSubmission({
                             
                             <AttributesInput
                                 selectedDatasetAttributes={submission.datasetAttributeValues}
-                                {...{ handleDatasetAttributeSelection }} />
+                                {...{ handleAttributeSelection : handleDatasetAttributeSelection }} />
                         
                         <DatasetAttributeHierarchy
                                 selectedAttributes={submission.datasetAttributes}

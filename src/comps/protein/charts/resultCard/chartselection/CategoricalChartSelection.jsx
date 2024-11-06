@@ -16,7 +16,7 @@ function ChartInfo({ }) {
 }
 
 export function CategoricalFeaturePlotSelection({ keyNames, selection, onSelectionChange, minimal }) {
-    
+    console.log(keyNames)
     return <div className="flex">
         <CategoricalChartSelection {...{ keyNames, selection, onSelectionChange, minimal }} />
         <Divider />

@@ -26,17 +26,19 @@ import { redirect, useNavigate } from "react-router"
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment : "DMSO", Time : "00min"},{ "y": 24.2, Genotype: "WT", Treatment : "Treat", Time : "15min"},{ "y": 24.5, Genotype: "WT", Treatment : "DMSO", Time : "15min"}, { "y": 24.6, Genotype: "KO", Treatment : "Treat", Time : "15min"}, { "y": 25, Genotype: "KO", Treatment : "DMSO", Time : "00min"},{ "y": 25.4, Genotype: "KO", Treatment : "DMSO", Time : "15min"} ,{ "y": 25.2, Genotype: "KO", Treatment : "DMSO", Time : "15min"}, { "y": 24.7, Genotype: "WT" ,Treatment : "DMSO", Time : "15min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" },{ "y": 24, Genotype: "KO" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.2, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 23.4, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y": 24, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y":24.55, Genotype: "KO",  Treatment : "Treat", Time : "15min"  }, { "y": 24.3, Genotype: "KO", Treatment : "Treat" , Time : "00min"  }, { "y": 23.2, Genotype: "WT" , Treatment : "Treat" , Time : "15min" }, { "y": 23.5, Genotype: "WT", Treatment : "Treat", Time : "00min" }],
     yaxisName = "y",
-    groupings = { Genotype: { KO: ["KO_01", "KO_02"], WT: ["WT1", "WT2"] }, Treatment: { DMSO: [], Treat: [] }, Time: { "00min": [], "15min": [] } },
-    dataset_label = "",
+    sample_attribute_tags = [],
+    submission_tag = "",
     featureID = "",
     attributesByTag,
     attributeValuesByTag,
-    genotypesByLabel,
+    genotypesByTag,
     title,
     openMetadataDrawer
 }) {
+    console.log(attributesByTag)
     //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
-    const attributes = useMemo(() => Object.keys(groupings).map(attributeTag => attributesByTag[attributeTag]), [groupings])
+    const attributes = sample_attribute_tags.map(attributeTag => attributesByTag[attributeTag])
+    console.log(attributes)
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
@@ -47,7 +49,7 @@ function ResultChart({
     //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
-    const svgID = `${featureID}-svg-id${dataset_label}`
+    const svgID = `${featureID}-svg-id${submission_tag}`
     const redirect = useNavigate()
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
@@ -66,13 +68,16 @@ function ResultChart({
         }
     }, [plotType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
 
+
+    console.log(groupedAggratedData)
+
     const handleDataDownload = (dataType) => {
        
-        if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureID}-${dataset_label}.txt`)
-        else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureID}-${dataset_label}.txt`)
+        if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureID}-${submission_tag}.txt`)
+        else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureID}-${submission_tag}.txt`)
         else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureID}.txt`)
-        else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataset_label}).png`, imageOptions)
-        else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureID}-${dataset_label}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${dataset_label}).png`, imageOptions)
+        else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
+        else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureID}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
     }
 
     const handleNormalizationGroupSelection = (groupingName, groupName) => {
@@ -99,10 +104,10 @@ function ResultChart({
     const handleInfo = (infoType) => {
         //handle info request
         if (infoType === "Metadata") {
-            openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, dataset_label : dataset_label}})
+            openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, submission_tag : submission_tag}})
         }
         else {
-            redirect("/datasets/"+dataset_label)
+            redirect("/datasets/"+submission_tag)
         }
         
     }
@@ -123,7 +128,7 @@ function ResultChart({
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 attributesByTag,
                 attributeValuesByTag,
-                genotypesByLabel
+                genotypesByLabel : genotypesByTag
                 
             }} />
         }
@@ -140,7 +145,7 @@ function ResultChart({
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 attributesByTag,
                 attributeValuesByTag,
-                genotypesByLabel
+                genotypesByLabel : genotypesByTag
             }} />
         }
         else if (plotType === "boxplot") {
@@ -156,7 +161,7 @@ function ResultChart({
                 tooltipNames: _.concat(["N"], keyNamesForSplitting),
                 attributesByTag,
                 attributeValuesByTag,
-                genotypesByLabel
+                genotypesByLabel : genotypesByTag
             }} />
         }
     }

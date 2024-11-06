@@ -72,7 +72,7 @@ const ScatterLegend = React.memo(
             attributeValueText = _.join(_.map(attributeValues, attrValues => attrValues.text), " ")
         }
         else if (attribute.has_features_value) {
-            attributeValueText = attributeValues.length === 1 ? attributeValues[0].genes.split(" ").at(0) : _.join(attributeValues.map(attributeValue => attributeValue.genes.split(" ").at(0)), " + ")
+            attributeValueText = attributeValues.length === 1 ? attributeValues[0].gene_name : _.join(attributeValues.map(attributeValue => attributeValue.gene_name), " + ")
         }
         else {
             attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
@@ -181,14 +181,14 @@ const ScatterLegend = React.memo(
                     </LegendSize></div>: null}
 
             </div>
-            
+                
             {tooltipOpen && _.isObject(tooltipData) ?
                 <Tooltip top={tooltipTop} left={tooltipLeft} key={Math.random()}>
                     <div>{tooltipData.attributeValues.map(attributeValue => <div>
-                        <h4>{tooltipData.has_features_value ? attributeValue.genes : attributeValue.text }</h4>
+                        <h4>{tooltipData.has_features_value ? attributeValue.gene_names : attributeValue.text }</h4>
                         <div style={{ maxWidth: "min(33vw,400px)" }}>
-                            <p>{tooltipData.has_features_value ? attributeValue.key: null}</p>
-                            {tooltipData.has_features_value ? attributeValue.proteins : attributeValue.description}
+                            <p>{tooltipData.has_features_value ? attributeValue.tag: null}</p>
+                            {tooltipData.has_features_value ? attributeValue.protein_name : attributeValue.description}
                         </div>
                     </div>)}
                     </div>

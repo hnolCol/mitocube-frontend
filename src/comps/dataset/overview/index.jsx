@@ -7,13 +7,14 @@ import { motion } from "framer-motion";
 import { Button, Collapse, Divider, Icon } from "@blueprintjs/core";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
-import { useGetPublicUserForSubmission, useGetSubmissionMetatextByTag } from "../../../hooks/queries/submission.hooks";
+import { useGetPublicUserForSubmission, useGetSubmissionMetatextByTag, useGetSubmissionSampleNames, useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks";
 import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import DatasetAttributeHierarchy, { AttributeFeatureTag, StaticDatasetAttributesHierarchy } from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
 import { getUserFullName } from "../../../services/format/user";
 import { GenotypeCard } from "../../admin/genotypes/Genotypes";
 import Loading from "../../core/base/loading";
 import { titleFormat } from "../../../services/format/string";
+import TooltipButton from "../../core/base/buttons/TooltipButton";
 
 export function Metatexts({ dataset_tag, fill = false }) {
 
@@ -171,6 +172,44 @@ function SamplesAttributes({ metadata }) {
 }
 
 
+/**
+ * @param {Object} props
+ * @param {String} props.submission_tag - The submission tag for which the quick access control should be established.
+ * @returns 
+ */
+function QuickAccessBar({ submission_tag }) {
+    const [msg, setMsg] = useState()
+    const { isLoading : summaryIsLoading, isFetching : summaryIsFetching, isError : isSubmissionSummaryError, refetch: fetchSummaryString } = useGetSubmissionSummaryString(
+        { tag: submission_tag },
+        {
+            enabled: false, //only use refetch function to get the data. 
+            onSuccess: data => {
+                copyTextToClipboard(data)
+                setMsg("Summary string copied to clipboard.")
+            }
+        })
+    
+    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = useGetSubmissionSampleNames({tag : submission_tag},{enabled : false, onSuccess: data => {
+        copyTextToClipboard(data)
+        setMsg("Samples names copied to clipboard.")
+    }
+    })
+    
+    useEffect(() => {
+        if (isSubmissionSummaryError) setMsg("Retrieving the submission summary resulted in an error.")
+        else if (isSampleNamesError) setMsg("Retrieving the sample names resulted in an error.")
+    },[isSubmissionSummaryError, isSampleNamesError])
+    
+    return (
+        <div className="flex">
+            <TooltipButton icon="tag" content="Copy submission tag" onClick={()=>copyTextToClipboard(submission_tag)} />
+            <TooltipButton icon="info-sign" content="Tab delimited submission summary to paste in excel. " onClick={() => fetchSummaryString()} loading={summaryIsFetching | summaryIsLoading} />
+            <TooltipButton icon="numbered-list" onClick={() => fetchSampleNames()} loading={sampleNamesIsFetching | sampleNamesIsLoading} content = "Tab delimited sample name information."/>
+            <div className="font-size--smallest">{msg}</div>
+        </div>
+    )
+}
+
 
 function DatasetOverview({authenticationStatus}) {
 
@@ -207,7 +246,8 @@ function DatasetOverview({authenticationStatus}) {
     let datasetAttributeValues = metadata.dataset_attributes
  
     return (
-        <div style={{overflowY:"scroll", height : "90vh "}}>
+        <div style={{ overflowY: "scroll", height: "100%" }}>
+            <div className="flex justify-end intent-margin-right--little"><QuickAccessBar submission_tag={dataset_tag}/></div>
              <div id="top" className="flex flex-column center-items">
                 <div className="intent-margin-top" style={{ maxWidth : "66vw"}}>
                 <h1>{metadata.title}</h1>
@@ -237,6 +277,8 @@ function DatasetOverview({authenticationStatus}) {
                 </div>
 
             </div>
+
+            
             
             <div className="flex flex--wrap">
                 {hasGenotypes ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>

@@ -55,6 +55,20 @@ export function groupListByProperty(data, propertyName = "id") {
       }), {});
 }
 
+
+export function aggregateAttributeValues({attributeValuePair, keyName = "tag"}) {
+    if (!_.isArray(attributeValuePair) || attributeValuePair.length === 0) return {}
+    return attributeValuePair.reduce((agg, item) => ({
+        ...agg,
+        [item[0][keyName]]: [...(agg[item[0][keyName]] || []), item[1]]
+      }), {});
+}
+
+
+
+
+
+
 export function arrayOfObjectsToObjectByProperty(data = [], propertyName) {
     return Object.fromEntries(data.map(item => [item[propertyName],item]))
 }

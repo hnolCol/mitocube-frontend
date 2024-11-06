@@ -249,7 +249,7 @@ function CategoricalLineplot({
                                 margins={margins}
                                 leftScale={yScale}
                                 bottomScale={splitScale}
-                                bandwidth={colorBandwidth * 1.1}
+                                bandwidth={splitScale.bandwidth() * 1.1}
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
                                  bottomLabel={""}
                                 attributeValuesByTag={attributeValuesByTag}

@@ -37,7 +37,7 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
     const { data : attributesByTag, isLoading, isFetching} = useGetSubmissionAttributesByTag()
     const [samplesAttributesProps, setSamplesAttributesProps] = useState({ attributeTable: [], sampleNames : [], replicates : [], rerenderTableDependency : [Math.random()] , samplesAttributes : [], n_samples : 0, n_replicates : 0, label : ""})
     const proteome_ids = get_proteome_id(submission.dataset_attributes)
-    const { data: genotypes, isLoading: genotypeIsLoading, error: genotypeError, isError: genotypeIsError, refetch: refetchGenotypes } = useGetGenotypes({ proteome_ids: proteome_ids }, { enabled: proteome_ids.length > 0 })
+    const { data: genotypes, isLoading: genotypeIsLoading, error: genotypeError, isError: genotypeIsError, refetch: refetchGenotypes } = useGetGenotypes({ proteome_tags: proteome_ids }, { enabled: proteome_ids.length > 0 })
 
     useEffect(() => {
         if (!_.isObject(attributesByTag)) return 

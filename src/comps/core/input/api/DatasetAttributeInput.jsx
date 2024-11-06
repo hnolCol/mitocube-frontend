@@ -18,25 +18,25 @@ import { isItemInArrayDeepComp } from "../../../../services/arrays/transforms";
 
 
 
-function AttributeWithValueMenu({ attributePair, maxItems = 5, selectedDatasetAttributes, handleDatasetAttributeSelection }) {
+function AttributeWithValueMenu({ attributePair, maxItems = 5, selectedAttributes, handleAttributeSelection }) {
     const [showAll, setShowAll] = useState(false)
     
     //console.log(attributePair)
     const [attribute, attributeValues] = attributePair
     if (!_.isObject(attribute)) return null 
-    const attributeInSelection = _.has(selectedDatasetAttributes, attribute.tag)
+    const attributeInSelection = _.has(selectedAttributes, attribute.tag)
     return <div>
         <h3>{attribute.text}</h3>
         {attributeValues.map((attributeValue, valueIdx) => showAll || valueIdx < maxItems ? attribute.has_features_value ? 
             <FeatureMenuItem
                 key={attributeValue.tag}
                 feature={attributeValue}
-                onClick={(feature, e) => handleDatasetAttributeSelection(attribute, feature)} /> 
+                onClick={(feature, e) => handleAttributeSelection(attribute, feature)} /> 
             : <AttributeValueMenuItem
                 key={attributeValue.tag}
                 attributeValue={attributeValue}
-                selected={attributeInSelection &&  isItemInArrayDeepComp({array : selectedDatasetAttributes[attribute.tag], item : attributeValue}) }
-                onClick={(attributeValue => handleDatasetAttributeSelection(attribute, attributeValue))}
+                selected={attributeInSelection &&  isItemInArrayDeepComp({array : selectedAttributes[attribute.tag], item : attributeValue}) }
+                onClick={(attributeValue => handleAttributeSelection(attribute, attributeValue))}
             /> : null)}
         {attributeValues.length > maxItems ? <button style={{border : "none", backgroundColor : "#efefef", marginLeft : "1rem"}} onClick={() => setShowAll(prevValue => !prevValue)}>{showAll?`Hide`:`Show all (${attributeValues.length - maxItems})`}.</button>: null }
     </div>
@@ -60,10 +60,11 @@ export function AttributesInput({
         min_state = 0,
         min_search_string_length = 1, //set to 0 if you want to search without any string... (E.g. getting all)
         param_name = "allow_for_dataset", // attribute have specific filterings and props. define them here and check the backend for options 
-    handleDatasetAttributeSelection,
-    matchTargetWidth = true,
+        handleAttributeSelection,
+        showSelection = true, 
+        matchTargetWidth = true,
         placeHolderText  = "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)",
-        selectedDatasetAttributes }) {
+        selectedAttributes }) {
     
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
@@ -114,13 +115,14 @@ export function AttributesInput({
 
         return <div className="padding--medium" style={{minWidth : "40vw", maxHeight : "400px", overflowY : "scroll", maxWidth : "100%"}}>
             {items.map(attributePair => {
-                return <AttributeWithValueMenu attributePair={attributePair} {...{attributePair,selectedDatasetAttributes,handleDatasetAttributeSelection, key : attributePair[0].tag}} />
+                return <AttributeWithValueMenu attributePair={attributePair} {...{attributePair,selectedAttributes,handleAttributeSelection, key : attributePair[0].tag}} />
             })}
         </div>
     }
 
     const renderValue = (item) => {
-        return item.text
+        if (showSelection) return item.text
+        
     }
     
     return (

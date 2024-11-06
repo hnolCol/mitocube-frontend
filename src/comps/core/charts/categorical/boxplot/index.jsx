@@ -112,7 +112,7 @@ function CategoricalBoxplot({
     genotypesByLabel
 }) {
     
-   
+    
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
     //console.log(data,colorName,splitName)
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
@@ -172,7 +172,6 @@ function CategoricalBoxplot({
     
 
     const getTooltipData = (boxData) => {
-        const attrValuesByTag = attributesByTag.attribute_values
         const quantileData = extractQuantileData(boxData,undefined,false,true)
         const tooltipInfo = _.map(tooltipNames, tooltipName => {
             let tooltipValue = boxData[tooltipName]
@@ -180,7 +179,7 @@ function CategoricalBoxplot({
             let isAttribute = _.has(attributesByTag, tooltipName) 
             let isFeature = isAttribute ? attributesByTag[tooltipName].has_features_value: false
             if (_.has(attributeValuesByTag, tooltipValue)) {
-                attributeValueText = isFeature ? attributeValuesByTag[tooltipValue].genes : attributeValuesByTag[tooltipValue].text
+                attributeValueText = isFeature ? attributeValuesByTag[tooltipValue].gene_name : attributeValuesByTag[tooltipValue].text
             }
             //const { attrValues, asString, isAttrValue } = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
           
@@ -319,7 +318,8 @@ function CategoricalBoxplot({
                     colorScale,
                     yScale,
                     subplotData,
-                    chartHeight, chartWidth,
+                    chartHeight,
+                    chartWidth,
                     colorBandwidth,
                     margins,
                     xcenter,
@@ -342,7 +342,7 @@ function CategoricalBoxplot({
                                 bottomLabel={""}
                                 attributeValuesByTag={attributeValuesByTag}
                                 valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
-                                bandwidth={colorBandwidth * 1.1}
+                                bandwidth={splitScale.bandwidth() * 1.1}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
                                 {...{ chartHeight, chartWidth :  subplotWidth, genotypesByLabel}} />
                         
@@ -441,9 +441,6 @@ function CategoricalBoxplot({
                 
                 </MultiCategoricalChart>}
             
-            
-            {/* {colorName !== undefined ? <div className="intent-margin-bottom--middle">
-                <ChartLegend {...{height}} groupings={{ [colorName]: legendColors }} title={""} marginLeft={margins.left} /></div> : null} */}
             
             {tooltipOpen && (
                 <TooltipInPortal

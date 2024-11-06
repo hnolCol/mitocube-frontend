@@ -13,6 +13,8 @@ import DatasetAttributeHierarchy from "../../../submission/new/attribute/view/Da
 import { AuthorList, MetatextBox, Metatexts } from "../../../dataset/overview"
 import { getFormatDateFromTimestamp } from "../../../../services/date/format"
 import MultipleMetrices from "../../../core/metrics/collection"
+import { useGetFilters } from "../../../../hooks/queries/filter.hooks"
+import { FilterSummary } from "../../../core/filters/FilterSummary"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
@@ -78,8 +80,14 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
 
 
 function ProteinFilter({ tag }) {
+    const { data, isSuccess } = useGetFilters({ feature_tag: tag })
 
     return <div>
+        <h4>Protein Filter Tags</h4>
+        <p>The protein is associated with the following protein filter tags:</p>
+        {_.isArray(data) ? data.length === 0 ?
+            <div className="font-size--smallest"><p>The protein is not present in any of the filter sets.</p></div>
+            : <div>{data.map(filter => <FilterSummary key={filter.tag} filter={filter} />)} </div> : null}
 
     </div>
 }
@@ -98,12 +106,16 @@ function ProteinOverview() {
     const { feature_tag } = useOutletContext()
     const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
     const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_tag }, {})
+
+    console.log(featureData)
+
     if (isError) return <APIError error={error} />
     return (
         <div>
             <MetaDataDrawer isOpen={metadataDrawer.isOpen} dataset_label={metadataDrawer.dataset_label} setIsOpen={setMetadataDrawer} />
             <div>
-            <h3>Protein Information</h3>
+                <h3>Protein Information</h3>
+                <ProteinFilter tag = {feature_tag} />
                 <h3>Abundance</h3>
 
                 <ProteinCorrelation />
@@ -112,12 +124,19 @@ function ProteinOverview() {
 
             </div>
             <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
-            {_.isObject(featureData) ? featureData["dataset_labels"].map(dataset_label => {
-                const data = featureData["data"][dataset_label] //get data for dataset
+            {_.isObject(featureData) ? featureData["submission_tags"].map(submission_tag => {
+                const data = featureData["data"][submission_tag] //get data for dataset
                 return (
-                    <ResultChart key={`${feature_tag}-${dataset_label}`} groupings={featureData["samples_attributes"][dataset_label]} data={data} {...{ dataset_label, featureID: featureKey, title: featureData.title_by_label[dataset_label] }} yaxisName="value"
+                    <ResultChart key={`${feature_tag}-${submission_tag}`}
+                        sample_attribute_tags={featureData["sample_attribute_by_submission_tag"][submission_tag]}
+                        data={data}
+                        {...{
+                            submission_tag, featureID: feature_tag,
+                            title: featureData.title_by_tag[submission_tag]
+                        }}
+                        yaxisName="value"
                         attributesByTag={featureData.attributes}
-                        genotypesByLabel={featureData["genotypes_by_label"][dataset_label]}
+                        genotypesByTag={featureData["genotypes_by_tag"][submission_tag]}
                         attributeValuesByTag={featureData.attribute_values_by_tag}
                         openMetadataDrawer={setMetadataDrawer} />
                 )

@@ -150,7 +150,6 @@ async function getSubmissionAttribute_API() {
 }
 export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["attributes"], () => getSubmissionAttribute_API({...APIParams}), useQueryOptions)
-
 }
 
 /**
@@ -172,11 +171,6 @@ async function getSubmissionAttributeByTag_API() {
 export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
     return useQuery(["attributes_by_tag"], () => getSubmissionAttributeByTag_API({...APIParams}), useQueryOptions)
 }
-
-
-
-
-
 
 
 
@@ -310,3 +304,40 @@ async function getSubmissionDatasetAttributes_API({ tag }) {
 export const useGetSubmissionDatasetAttributesByTag = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["submission_dataset_attributes",APIParams.tag], () => getSubmissionDatasetAttributes_API({...APIParams}), useQueryOptions)
 }
+
+
+
+/**
+ * @description Returns a summary string of a submission. It is meant to be copied into 
+ * Excel for a quick way to provide the metadata information. 
+ * @param {Object} props
+ * @param {String} props.tag
+ * @returns {String} - The summary string of the submission given by its tag. 
+ */
+async function getSubmissionSummary_API({ tag }) {
+    const res = await axios.get(`/api/submissions/${tag}/summary`)
+    return res.data 
+}
+
+export const useGetSubmissionSummaryString = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["submission_summary_string",APIParams.tag], () => getSubmissionSummary_API({...APIParams}), useQueryOptions)
+}
+
+
+
+/**
+ * @description Returns the sample names of a submission including the replicate, the index, and the name. It
+ * is meant for copying it to Excel (tab separated.)
+ * @param {Object} props
+ * @param {String} props.tag
+ * @returns {String} - The submission sample names. 
+ */
+async function getSubmissionSampleNames_API({ tag }) {
+    const res = await axios.get(`/api/submissions/${tag}/samples`)
+    return res.data 
+}
+
+export const useGetSubmissionSampleNames = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery(["submission_samples",APIParams.tag], () => getSubmissionSampleNames_API({...APIParams}), useQueryOptions)
+}
+

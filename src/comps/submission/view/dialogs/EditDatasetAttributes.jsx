@@ -124,7 +124,7 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
                     </div>
                     <AttributesInput
                         selectedDatasetAttributes={datasetAttributes.selection}
-                        handleDatasetAttributeSelection={handleDatasetAttributeSelection}
+                        handleAttributeSelection={handleDatasetAttributeSelection}
                         min_state={submission.state} />
                 </div>
                 <div>

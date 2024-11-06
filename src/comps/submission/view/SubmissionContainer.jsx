@@ -111,7 +111,7 @@ export function AttributeFilterButton({
     
         <div className="flex  justify-space-between">
         <div className="padding--little" style={{marginRight : "1.5rem", display:"inline-block"}}>
-            {attribute.has_features_value? attributeValue.genes : attributeValue.text}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
+            {attribute.has_features_value? attributeValue.gene_names : attributeValue.text}{_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:""}
         </div>
         <motion.div style={{opacity : 0, width : "0rem"}} onAnimationComplete={() => {
             setIsAnimationPlaying(false)

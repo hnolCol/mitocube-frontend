@@ -19,15 +19,15 @@ export function useGetGenotypesByQuery(APIParams = {}, useQueryOptions = { stale
  * @param {Object} props
  * @returns {import("../../types/genotypes").GenotypeResponse[]} - The list of genotypes
  */
-async function getGenotypes_API({ proteome_ids, feature_key}) {
-    const res = await axios.get(`/api/genotypes`, {params : { proteome_ids, feature_key }})
+async function getGenotypes_API({ proteome_tags, feature_key}) {
+    const res = await axios.get(`/api/genotypes`, {params : { proteome_tags, feature_key }})
     return res.data
 }
 
 export function useGetGenotypes(APIParams = {}, useQueryOptions = { staleTime: 30000 },) {
-    const joinedProteomeIds = _.isArray(APIParams.proteome_ids)?_.join(APIParams.proteome_ids, ";"):_.isString(APIParams.proteome_ids)?APIParams.proteome_ids:undefined
-    APIParams.proteome_ids = joinedProteomeIds
-    return useQuery(["getGenotypes",joinedProteomeIds],() =>  getGenotypes_API({...APIParams}), useQueryOptions)
+    const joinedProteomeTags = _.isArray(APIParams.proteome_tags)?_.join(APIParams.proteome_tags, ";"):_.isString(APIParams.proteome_tags)?APIParams.proteome_tags:undefined
+    APIParams.proteome_tags = joinedProteomeTags
+    return useQuery(["getGenotypes",joinedProteomeTags],() =>  getGenotypes_API({...APIParams}), useQueryOptions)
 }
 
 //submit genotype

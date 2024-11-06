@@ -1,6 +1,5 @@
 
 import _ from "lodash"
-import { useGetSubmissionAttributes } from "../../hooks/queries/submission.hooks"
 import { AttributeHeader, AttributeValueWithPropsTable} from "../core/base/attribute"
 import { objectHasKey } from "../../services/objects/checks"
 import { groupListByProperty } from "../../services/arrays/groupby"
