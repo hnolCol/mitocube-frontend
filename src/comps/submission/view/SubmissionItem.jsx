@@ -1,24 +1,17 @@
-import { Button, ContextMenu, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
-import { getFormatDateFromTimestamp } from "../../../services/date/format";
-import { Header } from "../../core/base/Header";
-import { AttributeTagWithTooltip, SampleAttributeTagWithTooltip, TagWithTooltip } from "../../core/base/tags/TagWithTooltip";
-import { User, UserIcon, UserIconWithTooltip } from "../../core/base/user";
-import { BaseDashboardIcon } from "../../core/svg/icons/dashboard/IconBase";
-import UserDashboardIcon from "../../core/svg/icons/dashboard/User";
-
-import { useState } from "react";
-import MenuDashboardIcon from "../../core/svg/icons/dashboard/Menu";
-import BasicMenu from "../../core/menu";
-import _ from "lodash"
+import { ContextMenu, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
+import { TraitWithValueInput, SampleAttributeTagWithTooltip } from "../../core/base/tags/TagWithTooltip";
+import { UserIconWithTooltip } from "../../core/base/user";
 import { isHexColorLight } from "../../../services/colors";
 import { titleFormat } from "../../../services/format/string";
-import { motion } from "framer-motion";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import { useNavigate } from "react-router";
 import { AttributeFeatureTag } from "../new/attribute/view/DatasetAttributesHierarchy";
-import { UserInput } from "../../core/input/api/UserInput";
-import { CraetedAt, TitleText } from "../../core/metrics/ItemBasics";
+import { TitleText } from "../../core/metrics/ItemBasics";
+import { CraetedAt } from "../../core/metrics/CreatedAt";
+import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";
 
+
+import _ from "lodash"
 
 
 
@@ -61,8 +54,6 @@ export function SubmissionItem({
     borderColor,
     stateName,
     states,
-    attributesByTag = {},
-    attributeValuesByTag = {},
     setAttributeSelectionDialog,
     usersByLabel,
     setAttributesDialog,
@@ -72,19 +63,15 @@ export function SubmissionItem({
     setChangeOwnerDialog,
     setMetatextDialog
 }) {
-    const redirect = useNavigate()
-    const [mouseOver, setMouseOver] = useState(false)
-    
+    const redirect = useNavigate()    
     const usersPartInSubmission = _.concat([submission.user_label], submission.collaborators)
-
-    const [m, formatedTime] = getFormatDateFromTimestamp(submission.created_at)
 
     const handleStateChange = (state) => {
         setAttributeSelectionDialog(prevValues => {
             return {
                 ...prevValues,
                 isOpen: true,
-                submission,
+                submission_tag : submission.tag,
                 attributeFilter: { min_state: state }, // this is an attribute property 
                 prevSelectedAttributes: submission.dataset_attributes,
                 newSubmissionState : state
@@ -130,26 +117,24 @@ export function SubmissionItem({
                     redirect(`/datasets/${submission.tag}`)
                 }}
             className="submission__item__container bg--white"
-                style={{border: "none", color : "#000", padding : "0px"}}
-                onMouseEnter={() => setMouseOver(true)} onMouseLeave={() => setMouseOver(false)}>
+                style={{border: "none", color : "#000", padding : "0px"}}>
             <div style={{borderLeft : `3px solid ${borderColor}`}} className="padding--little">
             <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" > 
             <div className="flex flex--wrap center-items">
-                
                 <CraetedAt createdat={submission.created_at}/>                
                 <TitleText title={submission.title} />
                             
             </div>
             <div className="flex flex--wrap center-items">
                     <div>
-                        <AttributeTagWithTooltip {...{
+                        <TraitWithValueInput {...{
                             attribute: { text: "Replicates", tag: "reps" },
                             attributeValue: { tag: "numb-reps", text: submission.n_replicates}
                         }} />
                     </div>  
                     <div>
-                    <AttributeTagWithTooltip {...{
+                    <TraitWithValueInput {...{
                             attribute: { text: "Number samples", tag: "samples" },
                             attributeValue: { tag: "numb-samps", text: submission.n_samples}
                         }} />
@@ -159,15 +144,17 @@ export function SubmissionItem({
                     </div>      
 
             </div>
-                    </div>
+                        </div>
+                        <SampleAttributesView  submission_tag={submission.tag}/>
                     {minimalView ? <div>
-                        <div>
-                        {_.keys(submission.samples_attributes).map(sampleAttrs => {
+                            <div>
+                            {/* <SampleAttributeTagWithTooltip /> */}
+                        {/* {_.keys(submission.samples_attributes).map(sampleAttrs => {
                             const {name, values } = submission.samples_attributes[sampleAttrs]
                             return (
                                 <SampleAttributeTagWithTooltip key={`sampleAttr-${name}`} {...{ name, values, attrValuesByTag : attributeValuesByTag, sampleNames : submission.sample_names }} />
                             )
-                        })}
+                        })} */}
                      </div>
                     <div className="flex flex--wrap intent-margin-top--little">
                         {Object.keys(submission.dataset_attributes).map(attributeTag => {
@@ -179,7 +166,7 @@ export function SubmissionItem({
                                     {attributeValues.map(attributeValue => {
                                     return <div key={`${attributeTag}-${attributeValue.tag}`} className="intent-margin-right--little intent-margin-top--tiny">
                                         <AttributeFeatureTag {...{attribute,value : attributeValue, valueIsFeature : attribute.has_features_value}} />
-                                        {/* <AttributeTagWithTooltip {...{ attribute, attributeValue }} /> */}
+                                        {/* <TraitWithValueInput {...{ attribute, attributeValue }} /> */}
                                     </div>
                                 })}</div>
                             }

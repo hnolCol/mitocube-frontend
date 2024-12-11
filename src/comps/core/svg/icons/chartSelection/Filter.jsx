@@ -23,7 +23,8 @@ export function FilterSVG({ width, height, strokeColor}) {
                 [width / 5, marginY]]
                 .map(v => _.join(v, ",")), ", ")}
                 strokeWidth={1.5}
-                stroke={strokeColor} fill="none" />
+                stroke={strokeColor}
+                fill="none" />
             </g>
     )
 }

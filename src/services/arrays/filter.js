@@ -20,6 +20,18 @@ export function getSetOfMatchingIndcsInArrayOfObject({ data, keyName, keyValue }
 }
 
 
+/**
+ * @description Checks which keys in the *first* object/item of the data array
+ * are numeric values. 
+ * @param {Object[]} data
+ * @returns {String[]} The list of keys that have numeric value.
+ */
+export function getNumericKeysFromArrayOfObjects(data) {
+    if (!_.isObject(data[0])) return new Error("The elements of data must be objects.")
+    return _.filter(_.keys(data[0]), keyName => _.isNumber(data[0][keyName])) 
+}
+
+
 
 
 /**

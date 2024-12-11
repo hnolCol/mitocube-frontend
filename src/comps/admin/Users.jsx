@@ -1,4 +1,4 @@
-import { useDeleteUser, useGetUserAttributes, useGetUsers, usePatchUser, usePostBlockUser, usePostUser } from "../../hooks/queries/user.hooks"
+import { useDeleteUser, useGetAllUserTags, useGetUserAttributes, usePatchUser, usePostBlockUser, usePostUser } from "../../hooks/queries/user.hooks"
 import _ from "lodash"
 import { User } from "../core/base/user"
 import Loading from "../core/base/loading"
@@ -121,12 +121,12 @@ function AdminUsers({ authenticationStatus }) {
     const { mutate: blockUserByLabel } = usePostBlockUser()
     const { mutate : deleteUserByLabel, isLoading : deleteUserIsLoading, isFetching : deleteUserIsFetching} = useDeleteUser()
     const {
-        data,
+        data : user_tags,
         isError,
         error,
         isSuccess,
         isLoading,
-        isFetching, refetch : refetchUsers } = useGetUsers({ tokenString: authenticationStatus.token })
+        isFetching, refetch : refetchUsers } = useGetAllUserTags()
     
     
     const closeAlert = () => {
@@ -165,14 +165,17 @@ function AdminUsers({ authenticationStatus }) {
             }
         })
     }
+    const userMatchingQuery = []
+    // const userMatchingQuery = useMemo(() => {
+    //     if (!_.isObject(data) || !objectHasKey({object : data, keyName : "users"})) return []
+    //     if (query === "") return data.users
+    //     else {
+    //         return filterArrayBySearchString({array : data.users, searchString : query, keyNames : ["firstname","lastname","institute","research_group","email"]})
+    //     }
+    // }, [query, isLoading, isSuccess, isFetching])
+    
 
-    const userMatchingQuery = useMemo(() => {
-        if (!_.isObject(data) || !objectHasKey({object : data, keyName : "users"})) return []
-        if (query === "") return data.users
-        else {
-            return filterArrayBySearchString({array : data.users, searchString : query, keyNames : ["firstname","lastname","institute","research_group","email"]})
-        }
-    },[query, isLoading, isSuccess, isFetching])
+
     
     if (isError) return<APIError error={error} /> 
     if (isLoading || isFetching) return <Loading />
@@ -187,7 +190,10 @@ function AdminUsers({ authenticationStatus }) {
                     <Button icon="plus" onClick={() => setIsUserDialogOpen(true)} />
                     <TextInput placeholder="Search user" callbackKey={"query"} onChange={(callbackKey, value) => setQuery(value)} />
                     </div>
-                    <div className="flex flex-column" style={{height : "calc(85vh - 100px)", overflowY:"scroll"}}>
+                    <div className="flex flex-column" style={{ height: "calc(85vh - 100px)", overflowY: "scroll" }}>
+                    
+                        {isSuccess && _.isArray(user_tags) ? user_tags.map(user_tag => <div>{user_tag}</div>) : null }
+
                     {isSuccess && _.isArray(userMatchingQuery) ?
                         userMatchingQuery.map(user => <User key={user.label} {...user} userRoles={data.roles} {...{ blockUser, editUser, userProps: user, deleteUser }} />) : null}
                     </div>

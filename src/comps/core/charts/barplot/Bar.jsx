@@ -1,16 +1,18 @@
-import React from "react"
+import PropType from 'prop-types'
 import _ from "lodash"
 import { areAllValuesNumbers } from "../../../../services/arrays/checks"
+import { isPropHexColorString } from '../../types/checks/color'
+import { memo } from 'react'
 
 function Bar({
     x,
     width,
     y1, // the actual height of the bar
     y0, // the baseline of the bar
-    fill = "#efefef",
-    stroke = "black",
-    strokeWidth = 0.5,
-    opacity = 1 }) {
+    fill,
+    stroke,
+    strokeWidth,
+    opacity}) {
     // provide box coordinates in pixel 
     const barHeight = y0 > y1 ? y0-y1 : y1-y0
     const barBaseLine = y0 > y1 ? y1 : y0
@@ -22,7 +24,6 @@ function Bar({
         </g>
     )
 }
-
 
 function areEqual(prevProps, nextProps) {
     /*
@@ -37,6 +38,23 @@ function areEqual(prevProps, nextProps) {
     if (prevProps.fill !== nextProps.fill) return false
     return true
 
-  }
+}
   
-  export default React.memo(Bar, areEqual);
+Bar.defaultProps = {
+    fill: "#efefef",
+    stroke: "#000000",
+    strokeWidth: 0.5,
+    opacity: 1 
+}
+
+Bar.propTypes = {
+    x: PropType.number.isRequired,
+    width: PropType.number.isRequired,
+    y1: PropType.number.isRequired,
+    y0: PropType.number.isRequired,
+    fill: isPropHexColorString,
+    stroke: isPropHexColorString,
+    opacity: PropType.number
+}
+  
+  export default memo(Bar, areEqual);

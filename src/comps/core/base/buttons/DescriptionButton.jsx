@@ -12,7 +12,7 @@ import { motion } from "framer-motion"
  */
 function DescriptionButton({
     headerText = "Header", 
-    descriptionItems = ["Sasdasdada","asdadaasd"]}) {
+    descriptionItems = []}) {
 
     return (
         <motion.div className="flex flex-column div--round bg--lightgrey padding--medium margin--little" style={{width : 400}} whileHover={{backgroundColor : "#ffffff"}}>

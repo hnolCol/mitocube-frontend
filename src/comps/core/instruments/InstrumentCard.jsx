@@ -5,10 +5,10 @@ import MetricTable from "../base/metrictable";
 import _ from "lodash"
 import Loading from "../base/loading"
 import APIError from "../error/APIerror"
-import { StateIndicator } from "../../submission/view/SubmissionContainer";
 import { getUserFullName } from "../../../services/format/user";
-import { AuthorList } from "../../dataset/overview";
 import { useNavigate } from "react-router";
+import { StateIndicator } from "../base/states/SubmssionState";
+import { AuthorList } from "../authors/SubmissionAuthorList";
 
 
 export function SubmissionMiniSummary({miniSubmission}){
@@ -36,7 +36,8 @@ function InstrumentStats({stats}) {
                 </Tooltip>
                 <div className="flex flex-column">
                 <div className="flex flex-column center-items">
-                <div>{stats.is_measuring_submission.title}, {stats.is_measuring_submission.number_samples} samples</div>
+                        <div>{stats.is_measuring_submission.title}, {stats.is_measuring_submission.number_samples} samples</div>
+                        
                 <AuthorList user={stats.is_measuring_submission.user_label} collaborators={[]} />
                 </div><Divider/></div>
             </div> : null}

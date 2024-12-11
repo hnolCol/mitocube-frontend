@@ -2,7 +2,7 @@
 
 
 
-
+import PropTypes from "prop-types"
 import { MultiSelect } from "@blueprintjs/select";
 import { useGetAttributes } from "../../../../hooks/queries/attribute.hooks";
 import _ from "lodash"
@@ -12,17 +12,13 @@ import "./style.css"
 import useDebounce from "../../../../hooks/useDebounce";
 import { AttributeValueMenuItem } from "../items/AttributeValueMenu";
 import { FeatureMenuItem } from "../items/FeatureMenu";
-import { isItemInArrayDeepComp } from "../../../../services/arrays/transforms";
 
 
-
-
-
-function AttributeWithValueMenu({ attributePair, maxItems = 5, selectedAttributes, handleAttributeSelection }) {
+function AttributeWithValueMenu({ attribute, attributeValues, maxItems = 5, selectedAttributes, handleAttributeSelection }) {
     const [showAll, setShowAll] = useState(false)
     
     //console.log(attributePair)
-    const [attribute, attributeValues] = attributePair
+    //const [attribute, attributeValues] = attributePair
     if (!_.isObject(attribute)) return null 
     const attributeInSelection = _.has(selectedAttributes, attribute.tag)
     return <div>
@@ -35,7 +31,7 @@ function AttributeWithValueMenu({ attributePair, maxItems = 5, selectedAttribute
             : <AttributeValueMenuItem
                 key={attributeValue.tag}
                 attributeValue={attributeValue}
-                selected={attributeInSelection &&  isItemInArrayDeepComp({array : selectedAttributes[attribute.tag], item : attributeValue}) }
+                selected={attributeInSelection &&  selectedAttributes[attribute.tag].includes(attributeValue.tag)}
                 onClick={(attributeValue => handleAttributeSelection(attribute, attributeValue))}
             /> : null)}
         {attributeValues.length > maxItems ? <button style={{border : "none", backgroundColor : "#efefef", marginLeft : "1rem"}} onClick={() => setShowAll(prevValue => !prevValue)}>{showAll?`Hide`:`Show all (${attributeValues.length - maxItems})`}.</button>: null }
@@ -44,6 +40,29 @@ function AttributeWithValueMenu({ attributePair, maxItems = 5, selectedAttribute
 
 
 
+
+AttributesInput.propTypes = {
+    selectedItems: PropTypes.arrayOf(PropTypes.string),
+    // onItemSelect: PropTypes.func.isRequired,
+    param_name: PropTypes.oneOf(["allow_for_dataset","allow_for_sample"]),
+    min_state: PropTypes.number,
+    min_search_string_length: PropTypes.number,
+    showSelection: PropTypes.bool,
+    matchTargetWidth: PropTypes.bool,
+    placeHolderText: PropTypes.string,
+    selectedAttributes: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired
+}
+
+
+AttributesInput.defaultProps = {
+    selectedItems: [],
+    min_state: 5,
+    param_name: "allow_for_dataset",
+    min_search_string_length: 1,
+    showSelection: true,
+    matchTargetWidth: true,
+    placeHolderText: "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)"
+}
 /**
  * @description Select dataset attributes using the API backend for searching through the attributes and attribute values. 
  * @param {Object} props 
@@ -52,18 +71,19 @@ function AttributeWithValueMenu({ attributePair, maxItems = 5, selectedAttribute
  * @param {Number} props.min_search_string_length - The minimum search string length before the API request ist made. 
  * @param {Boolean} props.matchTargetWidth  - If the menu item width should match the Input widget. 
  * @param {String} props.placeHolderText - The text to be displayed as a hint for the user.
+ * @param {Function} props.onItemSelect - Should take two props (attribute, trait)
  * @returns 
  */
 export function AttributesInput({
         selectedItems = [],
         onItemSelect,
-        min_state = 0,
-        min_search_string_length = 1, //set to 0 if you want to search without any string... (E.g. getting all)
-        param_name = "allow_for_dataset", // attribute have specific filterings and props. define them here and check the backend for options 
+        min_state,
+        min_search_string_length, //set to 0 if you want to search without any string... (E.g. getting all)
+        param_name, // attribute have specific filterings and props. define them here and check the backend for options 
         handleAttributeSelection,
-        showSelection = true, 
-        matchTargetWidth = true,
-        placeHolderText  = "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)",
+        showSelection, 
+        matchTargetWidth,
+        placeHolderText,
         selectedAttributes }) {
     
     const [searchString, setSearchString] = useState("")
@@ -77,7 +97,6 @@ export function AttributesInput({
         }, {
         enabled: debouncedSearchString.length >= min_search_string_length
     })
-    
     /**
      * 
      * @param {MouseEvent} e 
@@ -113,9 +132,16 @@ export function AttributesInput({
         if (query.length > 0 &&  _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/values match the search string ...</p></div>
         if (!itemsLoaded || items.length === 0)  return <div className = "padding--medium"><p>Start typing...</p></div>
 
-        return <div className="padding--medium" style={{minWidth : "40vw", maxHeight : "400px", overflowY : "scroll", maxWidth : "100%"}}>
+        return <div className="padding--medium" style={{minWidth : "40vw", maxHeight : "400px", overflowY : "scroll", maxWidth : "80vh"}}>
             {items.map(attributePair => {
-                return <AttributeWithValueMenu attributePair={attributePair} {...{attributePair,selectedAttributes,handleAttributeSelection, key : attributePair[0].tag}} />
+                return <AttributeWithValueMenu
+                    key={attributePair.attribute.tag}
+                    attribute={attributePair.attribute}
+                    attributeValues={attributePair.traits}
+                    {...{
+                        selectedAttributes,
+                        handleAttributeSelection
+                    }} />
             })}
         </div>
     }

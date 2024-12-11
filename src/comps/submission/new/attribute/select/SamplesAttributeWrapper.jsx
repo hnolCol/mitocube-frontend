@@ -4,7 +4,7 @@ import Loading from "../../../../core/base/loading"
 import { useGetSubmissionAttributesByTag } from "../../../../../hooks/queries/submission.hooks"
 import { groupListByProperty } from "../../../../../services/arrays/groupby"
 import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent, addItemsToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
+import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent, addItemsToArrayOrRemoveItIfPresent, addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useMemo, useState } from "react"
 import { Alert } from "@blueprintjs/core"
@@ -29,12 +29,11 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 })
             }, [isSuccess])
     if (isLoading || isFetching) return <Loading />
-    
+    //console.log(submission.sampleNames)
     const addSampleAttr = () => {
         //adds a new sample attribute
         updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, {}) } })
     }
-
     const clearAttributeTableByRowIndex = (rowIdces, attributeTag) => {
         //clear rows in table for specific attribute by its tg
         let attributeTable = submission.attributeTable
@@ -44,7 +43,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 ...prevValues,
                 attributeTable,
                 rerenderTableDependency: [Math.random()],
-                sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, attributeTable, prevValues.genotypeAttributes)
+                sampleNames: constructSampleNames({
+                    submission_tag: prevValues.tag,
+                    sampleNumber: prevValues.sampleNames.length,
+                    sampleAttributes: attributeTable,
+                    sampleGenotypes: prevValues.genotypeAttributes,
+                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
             }
         })
     }
@@ -55,7 +59,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable, rerenderTableDependency: [Math.random()], sampleNames:
-                    constructSampleNames(prevValues.tag, prevValues.sampleNames.length, attributeTable, prevValues.genotypeAttributes)
+                constructSampleNames({
+                    submission_tag: prevValues.tag,
+                    sampleNumber: prevValues.sampleNames.length,
+                    sampleAttributes: attributeTable,
+                    sampleGenotypes: prevValues.genotypeAttributes,
+                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
             }
         })
     }
@@ -73,7 +82,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             return {
                 ...prevValues, genotypeAttributes, rerenderTableDependency: [Math.random()],
                 sampleNames:
-                    constructSampleNames(prevValues.tag, prevValues.sampleNames.length, prevValues.attributeTable, genotypeAttributes)
+                constructSampleNames({
+                    submission_tag: prevValues.tag,
+                    sampleNumber: prevValues.sampleNames.length,
+                    sampleAttributes: prevValues.attributeTable,
+                    sampleGenotypes: genotypeAttributes,
+                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
             }
         })
     }
@@ -91,7 +105,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     genotypeAttributes: genotypeAttributes,
                     rerenderTableDependency: [Math.random()],
                     sampleNames:
-                        constructSampleNames(prevValues.tag, prevValues.sampleNames.length, prevValues.attributeTable, genotypeAttributes)
+                    constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: prevValues.attributeTable,
+                        sampleGenotypes: genotypeAttributes,
+                        include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
                 }
             })
         }
@@ -103,7 +122,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     genotypeAttributes: [],
                     rerenderTableDependency: [Math.random()],
                     sampleNames:
-                        constructSampleNames(prevValues.tag, prevValues.sampleNames.length, prevValues.attributeTable, [])
+                    constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: prevValues.attributeTable,
+                        sampleGenotypes: [],
+                        include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
                 }
             })
         }
@@ -123,7 +147,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             return {
                 ...prevValues, attributeTable, rerenderTableDependency: [Math.random()],
                 sampleNames:
-                    constructSampleNames(prevValues.tag, prevValues.sampleNames.length, attributeTable, prevValues.genotypeAttributes)
+                constructSampleNames({
+                    submission_tag: prevValues.tag,
+                    sampleNumber: prevValues.sampleNames.length,
+                    sampleAttributes: attributeTable,
+                    sampleGenotypes: prevValues.genotypeAttributes,
+                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
             }
         })
     }
@@ -134,8 +163,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         }
         else if (isSampleAttribute) {
             let d = submission.attributeTable
-            if (!_.has(d[0],attribute.tag)) {
-                d = d.map(rowData => {return { ...rowData, [attribute.tag] : []}})
+            if (!_.has(d[0], attribute.tag)) {
+                d = d.map(rowData => { return { ...rowData, [attribute.tag]: [] } })
             }
             //save feature selection
             
@@ -147,9 +176,16 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 return {
                     ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
                     sampleNames:
-                    constructSampleNames(prevValues.tag, prevValues.sampleNames.length, d, prevValues.genotypeAttributes)}
+                        constructSampleNames({
+                            submission_tag: prevValues.tag,
+                            sampleNumber: prevValues.sampleNames.length,
+                            sampleAttributes: d,
+                            sampleGenotypes: prevValues.genotypeAttributes,
+                            include_sample_attributes: prevValues.samplesAttributes.map(a => a.tag)
+                        })
+                }
             })
-            }
+        }
         else {
             let filteredDatasetAttr = addItemToArrayIfNotPresent({ array: submission.datasetAttributes, item: attribute })
             let datasetAttrValues = submission.datasetAttributeValues
@@ -158,7 +194,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 return {
                     ...prevValues, datasetAttributes: filteredDatasetAttr, datasetAttributeValues: datasetAttrValues, rerenderTableDependency: [Math.random()],
                     sampleNames:
-                        constructSampleNames(prevValues.tag, prevValues.sampleNames.length, filteredDatasetAttr, prevValues.genotypeAttributes)
+                    constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: filteredDatasetAttr,
+                        sampleGenotypes: prevValues.genotypeAttributes,
+                        include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
                 }
             })
         }
@@ -209,13 +250,18 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             updateSubmission(prevValues => {
                 return {
                     ...prevValues, attributeTable, rerenderTableDependency: [Math.random()],
-                    sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, attributeTable, prevValues.genotypeAttributes)
+                    sampleNames: constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: attributeTable,
+                        sampleGenotypes: prevValues.genotypeAttributes,
+                        include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
                 }
             })
         }
     }
 
-    const onSampleAttributeValueSelect = (attributeTag, attributeValueTag, rowIdces) => {
+    const onSampleAttributeValueSelect = (attributeTag, trait, rowIdces) => {
         //on selection of a sample attribute value
         let d = submission.attributeTable
         if (!_.has(d[0], attributeTag)) {
@@ -223,38 +269,19 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         }
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
-            .forEach(rowIndex => d[rowIndex][attributeTag] = addItemToArrayOrRemoveItIfPresent({ array: d[rowIndex][attributeTag], item: attributeValueTag }))
+            .forEach(rowIndex => d[rowIndex][attributeTag] = addStringToArrayOrRemove({ array: d[rowIndex][attributeTag], string: trait.tag }))
         
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
-                sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, d, prevValues.genotypeAttributes)
+                sampleNames: constructSampleNames({
+                    submission_tag: prevValues.tag,
+                    sampleNumber: prevValues.sampleNames.length,
+                    sampleAttributes: d,
+                    sampleGenotypes: prevValues.genotypeAttributes,
+                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
             }
         })
-    }
-
-    /**
-     * @description Handles the input of the value and the unit. 
-     * @param {import("../../../../../types/attributes").Attribute} attribute 
-     * @param {*} units 
-     * @param {Number[]} rowIdces 
-     */
-    const onSamplesAttributeUnitInput = (attribute, attributeValue ,units, rowIdces) => {
-        let attributeUnitSelection = submission.samplesAttributeUnit[attribute.tag]
-        console.log(rowIdces)
-        rowIdces
-            .filter(rowIndex => rowIndex < submission.sampleNames.length)
-            .forEach(rowIndex => _.isObject(attributeValue) ?
-                attributeUnitSelection[rowIndex] = { ...attributeUnitSelection[rowIndex], [attributeValue.tag]: units } : 
-                attributeUnitSelection[rowIndex] = units
-            )
-
-        updateSubmission(prevValues => {
-            return {
-                ...prevValues, 
-                samplesAttributesUnit: { ...prevValues.samplesAttributeUnit, [attribute.tag]: attributeUnitSelection },
-                rerenderTableDependency: [Math.random()]
-        }})
     }
 
     /**
@@ -266,29 +293,31 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         
         let sampleAttrs = submission.samplesAttributes.slice()
         let sampleAttr = sampleAttrs[sampleAttrIdx]
-        //handle unit input by the user and prepare the required list... 
-        const attributeHasUnits = attribute.has_unit 
-        const samplesAttributeUnit = _.has(submission,"samplesAttributeUnit") ? submission.samplesAttributeUnit : {[attribute.tag] : []}
-        if (attributeHasUnits) {
-            samplesAttributeUnit[attribute.tag] = _.map(_.range(submission.sampleNames.length), sampleIdx => [])
-        }
+        //handle unit input by the user and prepare the required list...
+        // const samplesAttributeUnit = _.has(submission,"samplesAttributeUnit") ? submission.samplesAttributeUnit : {[attribute.tag] : []}
+        // if (attributeHasUnits) {
+        //     samplesAttributeUnit[attribute.tag] = _.map(_.range(submission.sampleNames.length), sampleIdx => [])
+        // }
         sampleAttrs[sampleAttrIdx] = attribute
         // if the the attribute is selected but at the index there has been already
         // a selection. 
         if (_.isObject(sampleAttr) && sampleAttr.tag !== attribute.tag) {
             //different tag selected 
             const prevGroupingAttributeTag = sampleAttr.tag
-            if (_.has(samplesAttributeUnit, prevGroupingAttributeTag)) delete samplesAttributeUnit[prevGroupingAttributeTag]
             //requires cleaning up the old tag
             let updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: prevGroupingAttributeTag })
             updateSubmission(prevValues => {
                 return {
                     ...prevValues,
                     samplesAttributes: sampleAttrs,
-                    samplesAttributeUnit,
                     attributeTable: updatedAttributeTable,
                     rerenderTableDependency: [Math.random()],
-                    sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, updatedAttributeTable, prevValues.genotypeAttributes)
+                    sampleNames: constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: updatedAttributeTable,
+                        sampleGenotypes: prevValues.genotypeAttributes,
+                        include_sample_attributes : sampleAttrs.map(a => a.tag) })
                 }
             })
         }
@@ -298,9 +327,13 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 return {
                     ...prevValues,
                     samplesAttributes: sampleAttrs,
-                    samplesAttributeUnit,
                     rerenderTableDependency: [Math.random()],
-                    sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, prevValues.attributeTable, prevValues.genotypeAttributes)
+                    sampleNames: constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: updatedAttributeTable,
+                        sampleGenotypes: prevValues.genotypeAttributes,
+                        include_sample_attributes : sampleAttrs.map(a => a.tag) })
                 }
             })
         }
@@ -314,18 +347,25 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     const removeSampleAttrByIndex = (sampleAttrIdx) => {
         //remove grouping by groupingIdx
         let sampleAttrs = submission.samplesAttributes
+        const updatedSampleAttrs = submission.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx)
         //remove attribute from attribibuteTable
         let samplAttribute = sampleAttrs[sampleAttrIdx]
         if (_.has(samplAttribute, "tag")) {
-            let groupingAttributeTag = samplAttribute.tag 
-            const updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: groupingAttributeTag })
+            let attributeTag = samplAttribute.tag 
+            const updatedAttributeTable = removeKeyInArrayOfObjects({ array: submission.attributeTable, keyName: attributeTag })
+            
             updateSubmission(prevValues => {
                 return {
                     ...prevValues,
-                    samplesAttributes: prevValues.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx),
+                    samplesAttributes: updatedSampleAttrs,
                     attributeTable: updatedAttributeTable,
                     rerenderTableDependency: [Math.random()],
-                    sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, updatedAttributeTable, prevValues.genotypeAttributes)
+                    sampleNames: constructSampleNames({
+                        submission_tag: prevValues.tag,
+                        sampleNumber: prevValues.sampleNames.length,
+                        sampleAttributes: updatedAttributeTable,
+                        sampleGenotypes: prevValues.genotypeAttributes,
+                        include_sample_attributes : updatedSampleAttrs.map(a => a.tag) })
                 }
             })
             return 
@@ -334,9 +374,14 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         updateSubmission(prevValues => {
             return {
                 ...prevValues,
-                samplesAttributes: prevValues.samplesAttributes.filter((groupInfo, idx) => idx !== sampleAttrIdx),
+                samplesAttributes: updatedSampleAttrs,
                 rerenderTableDependency: [Math.random()],
-                sampleNames: constructSampleNames(prevValues.tag, prevValues.sampleNames.length, prevValues.attributeTable, prevValues.genotypeAttributes)
+                sampleNames: constructSampleNames({
+                    submission_tag: prevValues.tag,
+                    sampleNumber: prevValues.sampleNames.length,
+                    sampleAttributes: updatedAttributeTable,
+                    sampleGenotypes: prevValues.genotypeAttributes,
+                    include_sample_attributes : updatedSampleAttrs.map(a => a.tag) })
             }
         })
     }
@@ -349,18 +394,40 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
     }
 
+
+    /**
+     * 
+     * @param {Object} userUnitInput - The units object as [attribute_tag][trait_tag][unittype_tag]["value"/"unit"]
+     * @param {Number[]} sampleIndices - The sample indices to set the units for. 
+     */
+    const onUserUnitInput = (attribute_tag, trait_tag, userUnitInput, sampleIndex) => {
+
+        const sampleIndexString = _.toString(sampleIndex)
+        const sampleUserInput = submission.sampleUserUnitInput 
+        sampleUserInput[sampleIndexString] ??= {}
+        sampleUserInput[sampleIndexString][attribute_tag] ??= {}
+        sampleUserInput[sampleIndexString][attribute_tag][trait_tag] ??= {}
+
+        sampleUserInput[sampleIndexString][attribute_tag] = {...sampleUserInput[sampleIndexString][attribute_tag], ...userUnitInput[attribute_tag]}
+
+        updateSubmission(prevValues => {return {...prevValues, "sampleUserUnitInput" : sampleUserInput, rerenderTableDependency: [Math.random()]}})
+
+    }
+
     return (
         <div>
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
 
             <SamplesAttributes
+                submission_tag={submission.tag}
             sampleNames={submission.sampleNames}
             attributeTable={submission.attributeTable}
             rerenderTableDependency={submission.rerenderTableDependency}
             attributeValuesByID={attributeValuesByAtrributeID}
             onAttributeSelect={onSampleAttributeValueSelect}
             onTagRemove={onSampleAttrRemove}
+            userUnitInput={submission.sampleUserUnitInput}
             {...{
                 attributes: attributesAllowedForDataset,
                 genotypes,
@@ -369,18 +436,17 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 clearGenotypeColumn,
                 clearAttributeTableByRowIndex,
                 onSampleAttributeSelect,
-                onSamplesAttributeUnitInput,
                 removeSampleAttrByIndex,
-                samplesAttributeUnit : submission.samplesAttributeUnit,
                 groupings: submission.samplesAttributes,
                 genotypeAttributes : submission.genotypeAttributes,
                 onFeatureSelection,
                 proteome_ids,
-                numberReplicates: numberReplicates !==undefined?numberReplicates :_.uniq(submission.replicates).length,
+                numberReplicates: numberReplicates !==undefined? _.toNumber(numberReplicates) :_.uniq(submission.replicates).length,
                 replicates: submission.replicates,
-                    onReplicateChange,
-                    handleGenotypeSelection,
-                    repeatSelection
+                onReplicateChange,
+                handleGenotypeSelection,
+                repeatSelection,
+                onUserUnitInput
                 }} />
             </div>
     )

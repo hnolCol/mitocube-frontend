@@ -93,11 +93,8 @@ export function ScatterPlot({
     tooltipSmall = true,
     findClosestPoint,
     legend = false,
-    labelData = [],
     hoverIndices = new Set(),
     labelIndices = new Set(),
-    labelRerender = [],
-    labelChart = -1,
     searchString = "",
     attributeValuesByTag = {},
     attributesByTag = {},
@@ -112,10 +109,10 @@ export function ScatterPlot({
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
-        let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.007
+        let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.01
         return [keyName, dist]
     }))
-
+    const validPoints = useMemo(() => _.sum(valid), [chartIdx,data.length,valid.length,suffix])
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins })
 
     const { containerRef, TooltipInPortal } = useTooltipInPortal({
@@ -271,7 +268,7 @@ export function ScatterPlot({
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
-                {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${data.length}`], textOffset: 3 }} /> : null}
+                {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${validPoints}`], textOffset: 3 }} /> : null}
                 <g>
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
                         key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,

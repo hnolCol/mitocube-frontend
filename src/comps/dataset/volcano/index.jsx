@@ -1,34 +1,36 @@
 import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
 import _ from "lodash"
-import { useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks";
-import { getAttributeForUserNumericInput } from "../../../services/attributes";
-import Loading from "../../core/base/loading";
 import { useGetDatasetVolcano } from "../../../hooks/queries/datasets.hooks";
 import { useEffect, useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
-import { ScatterDataSelection } from "../pca";
 import { Card } from "@blueprintjs/core";
 import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/groupby";
 import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise";
+import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 
 
-function VolcanoDataHandler({ dataset_tag, selectedTestParams, metadata, setIsFetching }) {
+function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setIsFetching }) {
 
-    const [volcanoData, setVolcanoData] = useState({data : [], testParams : [], selection : [], suffixes : []})
+    const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
+
     const handleSuccess = (data) => {
         //merge data to get super fast split
+        console.log(data)
         let updatedData = []
         let prevData = volcanoData.data
         if (prevData.length > 1) {
-            let groupBy = arrayOfObjectsToObjectByProperty(data.stats, "key")
-            updatedData = prevData.map(entry => { return { ...entry, ...groupBy[entry.key]} })
+            let groupBy = arrayOfObjectsToObjectByProperty(data.stats, "tag")
+            updatedData = prevData.map(entry => { return { ...entry, ...groupBy[entry.tag]} })
         }
         else {
             updatedData = data.stats
         }
+        console.log()
+
+
         setIsFetching(false)
 
 
@@ -41,6 +43,20 @@ function VolcanoDataHandler({ dataset_tag, selectedTestParams, metadata, setIsFe
             }
         })
     }
+
+
+    const handleError = (error) => {
+        setIsFetching(false)
+        console.log(error)
+    }
+
+    //fetch data
+    const { isSuccess, refetch} = useGetDatasetVolcano({ submission_tag, testParams: selectedTestParams,  }, {
+        enabled: false,
+        onSuccess: handleSuccess,
+        onError: handleError
+    })
+    
 
     const handleSelection = (idx,key,value) => {
         setVolcanoData(prevValues => {
@@ -57,10 +73,7 @@ function VolcanoDataHandler({ dataset_tag, selectedTestParams, metadata, setIsFe
         !_.isEmpty(selectedTestParams) &&
         !isItemInArrayDeepComp({ array: volcanoData.testParams, item: selectedTestParams })
     
-    const { isLoading, isRefetching, isSuccess, refetch} = useGetDatasetVolcano({ dataset_tag, testParams: selectedTestParams }, {
-            enabled: false,
-        onSuccess: handleSuccess
-        })
+
     
     useEffect(() => {
         if (testParamsUpdate) {
@@ -74,7 +87,7 @@ function VolcanoDataHandler({ dataset_tag, selectedTestParams, metadata, setIsFe
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
 
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-    
+    console.log(volcanoData)
     //console.log(volcanoData)
     return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap: "0.5rem" }}> 
     
@@ -129,7 +142,7 @@ function VolcanoDataHandler({ dataset_tag, selectedTestParams, metadata, setIsFe
                                         handleStringSearch,
                                         downloadElements: [`volcano-${didx}`, volcanoData.data],
                                         elementNames: ["SVG","DIVIDER",`Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
-                                        fileNames: [`${dataset_tag}-VolcanoPlot.svg`,`${dataset_tag}-VolcanoPlot-Data.txt`],
+                                        fileNames: [`${submission_tag}-VolcanoPlot.svg`,`${submission_tag}-VolcanoPlot-Data.txt`],
                                         elementTypes: ["svg", "data"]
                                         }} />
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
@@ -169,24 +182,17 @@ function VolcanoDataHandler({ dataset_tag, selectedTestParams, metadata, setIsFe
 }
 
 
-function VolcanoPlotWrapper({dataset_tag, metadata}) {
+function VolcanoPlotWrapper({submission_tag, metadata}) {
     const [testParams, setTestParams] = useState({})
     const [isFetching, setIsFetching] = useState(false)
 
     const handleVolcano = (props) => {
-        console.log(props)
         setTestParams(props)
     }
     return (
         <div className="div--expand flex">
-            <AttributePairwiseSelection {...{dataset_tag, metadata, callbackText : "Volcano plot.", callback : handleVolcano, isLoading : isFetching}} />
-            <VolcanoDataHandler {...{ dataset_tag, selectedTestParams: testParams, metadata, setIsFetching }} />
-            
-           {/* <SamplesAttributesSelection
-                attributes={attributes}
-                groupAttributeValues={genotype_defined ? { ...samplesGenotypes, ...attributeValues } : attributeValues}
-            
-                {...{ metadata, callback: handleVolcano, isLoading: isFetching }} /> */}
+            <AttributePairwiseSelection {...{submission_tag, metadata, callbackText : "Volcano plot.", callback : handleVolcano, isLoading : isFetching}} />
+            <VolcanoDataHandler {...{ submission_tag, selectedTestParams: testParams, metadata, setIsFetching }} />
         </div>
     )
 }
@@ -194,35 +200,9 @@ function VolcanoPlotWrapper({dataset_tag, metadata}) {
 
 
 function DatasetVolcanoPlot(logout) {
-    const { metadata, dataset_tag } = useOutletContext()
-    const [testParams, setTestParams] = useState({})
-    const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, textSearchNames : [] })
+    const { submission_tag } = useOutletContext()
 
-    const { data: attributesByTag, isLoading, isFetching, isError, error } = useGetSubmissionAttributesByTag()
-   // const { data: volcanoData, isLoading : isVolcanoLoading, isFetching :  isVolcanoFetching, isSuccess : isVolcanoSuccess, refetch } = useGetDatasetVolcano({ dataset_label, testParams }, { enabled: !_.isEmpty(testParams), onSuccess : handleSuccess})
-    //console.log(volcanoData)
-    // if (isError) return <APIError error={error} />
-    // if (isLoading) return <div>Dataset Info Loading...</div>
-    // groupItems = { "Treatment": ["A", "B","WT"], "Time": ["A1", "B1"] },
-    // groupingNames = ["Treatment", "Time"],
-
-    const handleVolcano = (props) => {
-        const params = {
-            attribute_left_tag: _.has(props.group1,"label") ? props.group1.label: props.group1.tag,
-            attribute_right_tag: _.has(props.group2,"label") ? props.group2.label: props.group2.tag,
-            sample_attribute_tag: props.main.tag
-        }
-        setTestParams(params)
-    }
-
-    if (!_.isObject(attributesByTag)) return null // !_.isObject(metadata) || 
-
-    // let sampleAttributesKey = Object.keys(metadata.samples_attributes)
-    // let sampleAttributeValues = _.fromPairs(_.keys(metadata.samples_attributes).map(sampleAttributeTag => [sampleAttributeTag, _.keys(metadata.samples_attributes[sampleAttributeTag]).map(attribute_value_tag => metadata.attribute_values_by_tag[attribute_value_tag])]))
-    
-    // let samplesGenotypes = { att_genotype: _.keys(metadata.samples_genotypes).map(genotypeLabel => metadata.genotypes[genotypeLabel]) }
-
-    return <VolcanoPlotWrapper {...{ dataset_tag}} />
+    return <VolcanoPlotWrapper {...{ submission_tag}} />
 }
 
 export default DatasetVolcanoPlot

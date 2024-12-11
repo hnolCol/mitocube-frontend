@@ -1,206 +1,15 @@
-import { Button, ButtonGroup, Divider, Menu, MenuDivider, MenuItem, NumericInput, Popover, Tooltip } from "@blueprintjs/core"
+import PropType from 'prop-types'
+import { Button, ButtonGroup, Divider, Icon, Menu, MenuDivider, MenuItem, NumericInput, Popover, Tooltip } from "@blueprintjs/core"
 import { motion } from "framer-motion"
-import _ from "lodash"
+import _, { hasIn } from "lodash"
 import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
 import "./style.css"
-import { useGetAttributeUnit } from "../../../../hooks/queries/attribute.hooks"
-import Loading from "../loading"
+import { useGetAttribute, useGetAttributeUnit, useGetTrait } from "../../../../hooks/queries/attribute.hooks"
 import { useEffect, useState } from "react"
-import { UnitInput } from "../units/UnitInput"
-import { getUnitString } from "../../../../services/unit/format"
+
 import { isHexColorLight } from "../../../../services/colors"
-
-export function UnitSelectionTag({ attribute, attributeValue, onSave, initValues, rowIdces}) {
-    const [userInput, setUserInput] = useState({})
-    const { data : attribute_units, isLoading, isFetching, isSuccess } = useGetAttributeUnit({tag : attribute.tag}, {enabled : _.isBoolean(attribute.has_unit) && attribute.has_unit})
-
-    useEffect(() => {
-        if (initValues !== undefined) setUserInput(initValues)
-    }, [])
-    
-    /**
-     * @description Wrapper function to handle saving the input made by the user. 
-     */
-    const handleSave = () => {
-        onSave(attribute,attributeValue,userInput,rowIdces)
-    }
-    const handleInput = (value, unit, isPrefix = false, time_unit = false) => {
-        if (isPrefix)
-            setUserInput(prevValues => {
-                return {
-                    ...prevValues,
-                    [unit.tag]: {
-                        time_unit : "s",
-                        ...prevValues[unit.tag],
-                        prefix: value,
-                        unit
-                    }
-                }
-            })
-        else if (time_unit) {
-
-            setUserInput(prevValues => {
-                return {
-                    ...prevValues,
-                    [unit.tag]: {
-                        prefix : "NA",
-                        ...prevValues[unit.tag],
-                        unit,
-                        time_unit : value
-                    }
-                }
-            })
-
-        }
-        else {
-            setUserInput(prevValues => {
-                return {
-                    ...prevValues,
-                    [unit.tag]: {
-                        prefix : "NA",
-                        time_unit : "s",
-                        ...prevValues[unit.tag],
-                        value,
-                        unit
-                    }
-                }
-            })
-        }
-    }
-   
-    return (
-        <div className="padding--little">
-            <h4>{attributeValue.text}</h4>
-            <div className="font-size--smallest">Setting for rows: {_.join(rowIdces,", ")}</div>
-            <div className="padding--little">
-                {isLoading || isFetching ? <Loading /> : isSuccess & _.isObject(attribute_units) ? <div>
-                    {attribute_units.units.filter(au => au.attribute.tag === attribute.tag)[0].units.map((unit,idx) => {
-                        return (
-                            <UnitInput {...{
-                                unit,
-                                focusInput : idx===0,
-                                prefixes: attribute_units.prefixes,
-                                onValueChange: handleInput,
-                                selection: _.has(userInput, unit.tag) ? userInput[unit.tag] : undefined,
-                                isTime : unit.tag == "time"
-                            }} />
-                        )
-                    })}
-                    </div> : null}
-                
-                    <Button text="Save" small minimal intent="primary" onClick={handleSave}/>
-                    {/* <Button text="Close" minimal intent="none" onClick={() => setIsOpen(false)}/> */}
-                
-            </div>
-            <Divider />
-            </div>
-    )
-
-}
-
-
-
-function AttributeValueUnitSelection({ attribute, attributeValue, onSave, initValues}) {
-    const [isOpen, setIsOpen] = useState(false)
-    const [userInput, setUserInput] = useState({})
-    const { data : attribute_units, isLoading, isFetching, isSuccess } = useGetAttributeUnit({tag : attribute.tag}, {enabled : _.isBoolean(attribute.has_unit) && attribute.has_unit})
-    useEffect(() => {
-        if (initValues !== undefined) setUserInput(initValues)
-    }, [])
-    //console.log(attribute_units)
-    const handleInput = (value, unit, isPrefix = false, time_unit = false) => {
-        if (isPrefix)
-            setUserInput(prevValues => {
-                return {
-                    ...prevValues,
-                    [unit.tag]: {
-                        time_unit : "s",
-                        ...prevValues[unit.tag],
-                        prefix: value,
-                        unit
-                    }
-                }
-            })
-        else if (time_unit) {
-
-            setUserInput(prevValues => {
-                return {
-                    ...prevValues,
-                    [unit.tag]: {
-                        ...prevValues[unit.tag],
-                        unit,
-                        time_unit : value
-                    }
-                }
-            })
-
-        }
-        else {
-            setUserInput(prevValues => {
-                return {
-                    ...prevValues,
-                    [unit.tag]: {
-                        time_unit : "s",
-                        ...prevValues[unit.tag],
-                        value,
-                        unit
-                    }
-                }
-            })
-        }
-    }
-
-    const handleSave = () => {
-        onSave(attribute, attributeValue, userInput)
-        setIsOpen(false)
-    }
-    
-
-    if (!attribute.has_unit) return null 
-
-
-    return <Popover minimal
-        canEscapeKeyClose={false}
-        isOpen={isOpen}
-        content={
-        <div className="padding--medium">
-            <h4>Unit for attribute {attribute.text}</h4>
-            <div className="padding--little">
-                {isLoading || isFetching ? <Loading /> : isSuccess ? <div>
-                    {attribute_units.units.map(unit => {
-                        return (
-                            <UnitInput {...{
-                                key : unit.tag,
-                                unit,
-                                prefixes: attribute_units.prefixes,
-                                onValueChange: handleInput,
-                                selection: _.has(userInput, unit.tag) ? userInput[unit.tag] : undefined,
-                                isTime : unit.tag == "time"
-                            }} />
-                        )
-                    })}
-                    </div> : null}
-                
-                <ButtonGroup alignText="right">
-                    <Button text="Save" minimal intent="primary" onClick={handleSave}/>
-                    <Button text="Close" minimal intent="none" onClick={() => setIsOpen(false)}/>
-                </ButtonGroup>
-            </div>
-            </div>}>
-        <button onClick={(e) => {
-            // e.stopPropagation()
-            console.log(e.button)
-
-            setIsOpen(true)
-        }}
-            style={{ margin: "0px", padding: "0px", border: "none", background: "transparent", outline: "none" }}>
-                <div className="unit-div"></div></button>
-        {/* <Button small minimal intent="danger" icon="chevron-down" /> */}
-    </Popover>
-}
-
-
-
+import { TraitValueWithUnitType } from "../traits/TraitValueWithUniType"
+import { RemoveButton } from '../buttons/RemoveButton'
 
 export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false }) {
     
@@ -229,60 +38,104 @@ export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false
 
 
 /**
- * 
+ * @description 
  * @param {Object} props 
- * @param {import("../../../../types/attributes").AttributeValue} props.attributeValue
- * @param {import("../../../../types/attributes").Attribute} props.attribute
+ * @param {String} props.attribute_tag
+ * @param {String} props.trait_tag 
  * @param {Boolean} props.disableTooltip 
  * @param {Function} prop.onRemove 
+ * @param {Function} prop.onUserInput
  * @returns 
  */
-export function AttributeTagWithTooltip({ attributeValue = {}, attribute = {}, disableTooltip = false, onRemove = undefined, popoverPosition = "top", units = {}, addUnitsForDatasetAttributes, highlight = false }) {
-    //add unit string...
-  
+export function TraitWithValueInput({
+        trait_tag, 
+        attribute_tag = "",
+        disableTooltip = false,
+        onRemove = undefined,
+        popoverPosition = "top",
+        highlight = false,
+        submission_tag,
+        onUserUnitInput,
+        unitInput }) {
+    const [isOpen,setIsOpen] = useState(false) //controlled popover
+    const { data: attribute, isLoading, isFetching, isSuccess } = useGetAttribute({ tag: attribute_tag })
+    const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = useGetTrait({ tag: trait_tag, include_input: _.isString(submission_tag), submission_tag }, {enabled : _.isString(trait_tag)})
+    
+    //handle data input 
+    const hasInput = _.has(unitInput, [attribute_tag, trait_tag]) && !_.isEmpty(unitInput[attribute_tag][trait_tag])
+    const inputByUser = hasInput ? unitInput[attribute_tag][trait_tag] : {}
+    const unittypes = !_.isEmpty(inputByUser)? _.keys(inputByUser).map(unittype  => _.isArray(inputByUser[unittype].value) ? _.join(inputByUser[unittype].value.map(v => v.gene_name),";"): `${inputByUser[unittype].value} ${inputByUser[unittype].unit_text}`): []
+    const unitString = unittypes.length > 0 ? _.join(unittypes,", ") : ""
+    //handle colors 
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const motionBackgroundColor = highlight ? "#e5e5e5" : "#466688"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
     const motionFontColor = isHexColorLight(motionBackgroundColor) ? "#000000" : "#fff"
-    const unitString = getUnitString(units)
-    return (
 
-            <motion.div
-                style={{backgroundColor : backgroundColor, color: fontColor, fontSize:"0.75rem"}} //lighter ? "#efefef" :
+    const handleUserInputSelection = (userUnitInput) => {
+        onUserUnitInput(userUnitInput)
+        setIsOpen(false)
+    }
+
+    useEffect(() => {
+        // if units were defined already, put them to the user input in the effect.
+        if (traitIsSuccess && _.isObject(trait.user_input) && !_.isEmpty(trait.user_input)) {
+            onUserUnitInput({ [attribute_tag] : {[trait_tag] : trait.user_input} })
+        }
+    }, [traitIsSuccess])
+    return (
+    <div>
+        { isFetching || isLoading || traitIsLoading ? <div>...</div> : isSuccess && traitIsSuccess?
+                <motion.div
+                style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem" }} //lighter ? "#efefef" :
                 className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
-                whileHover={{backgroundColor : motionBackgroundColor, color: motionFontColor}}>
-            <Popover disabled={disableTooltip} content={
-                    <div className="padding--little" style={{ maxWidth: "24rem" }}>
-                        <Menu small={true}>
-                            <MenuItem text={attribute.text} disabled={true} />
-                            <MenuDivider />
-                            <MenuItem text={attributeValue.description} multiline={true}/>
-                        </Menu>
-                    </div>}
+                whileHover={{ backgroundColor: motionBackgroundColor, color: motionFontColor }}
+                >
+                <Popover disabled={disableTooltip} content={
+                    <div className="padding--little bg--grey margin--little padding--little" style={{ maxWidth: "24rem" }}>
+                            <h4>{attribute.text}</h4>
+                            <div className="div--expand">
+                                {attribute.has_unit ?
+                                    <div>
+                                        <div>Please enter the required information.</div>
+                                        <TraitValueWithUnitType
+                                            attribute_tag={attribute_tag}
+                                            trait_tag={trait_tag}
+                                            onSelect={handleUserInputSelection}
+                                            prevValues={hasInput ? unitInput : undefined } />
+                                    </div>
+                                    : null}
+                        </div>
+                        </div>}
+                    canEscapeKeyClose={true}
                     minimal={false}
                     compact={true}
-                    popoverClassName = ""
-                    interactionKind="hover"
+                    isOpen={isOpen}
+                    popoverClassName=""
+                    onInteraction={(nextOpenState,e) => setIsOpen(nextOpenState)}
+                    interactionKind="click-target"
                     inheritDarkTheme={false}
-                    hoverOpenDelay={600}
+                    hoverOpenDelay={200}
                     hoverCloseDelay={100}
                     position={popoverPosition}>
-                <div>{attributeValue.text}{unitString.length > 0 ? ` (${unitString})` : null}</div>
-                </Popover>
-                {_.isFunction(onRemove) ? <button
-                    onClick={(e) => onRemove(attributeValue)}
-                    style={{ margin: "0px", padding: "0px", border: "none", background: "transparent", outline: "none", color : fontColor }}>
-                    <div className="close-div" />        
-                </button> : null}
-            
-            </motion.div>
-            
+                        <div className="flex">
+                        <div>{trait.text}{unitString.length > 0 ? ` (${unitString})` : null}</div>
+                        {attribute.has_unit && !hasInput ?<div className="intent-margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div>: null}
+                        </div>
+                    </Popover>
+                    
+                {_.isFunction(onRemove) ? <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(trait)} /> : null}
+                    
+                    
+            </motion.div> : null }
+    </div>
     )
 }
 
 
 /**
- * 
+ * @description Should actually not exist anymore. Deptra
+ * @deprecated SHould not be used anymore, feature are part of the units. 
  * @param {Object} props 
  * @param {import("../../../../types/feature").Feature} props.feature 
  * @param {import("../../../../types/attributes").Attribute} props.attribute

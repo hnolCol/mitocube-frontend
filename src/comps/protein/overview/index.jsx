@@ -22,7 +22,7 @@ export function ProteinOverviewPage({}) {
                 </div>
 
                 <div> 
-
+                    <h4>Publications</h4>
                     {/* Recent publications */}
 
                 </div>

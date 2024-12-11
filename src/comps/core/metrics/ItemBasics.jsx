@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import { Link } from "react-router-dom"
 import { getFormatDateFromTimestamp } from "../../../services/date/format"
 import { useGetMetadata } from "../../../hooks/queries/datasets.hooks"
@@ -6,23 +7,12 @@ import { useState } from "react"
 import Loading from "../base/loading"
 import { useGetFeatureInfo } from "../../../hooks/queries/feature.hooks"
 import { TagWithTooltip } from "../base/tags/TagWithTooltip"
-import { StateIndicator } from "../../submission/view/SubmissionContainer"
 import { useGetPublicUserByTag } from "../../../hooks/queries/user.hooks"
 import _ from "lodash"  
-export function CraetedAt({ createdat, addFromNow = true }) {
-    
-    if (Math.log10(createdat) < 11) { //since the backend is python and is using 
-        // seconds instead of miliseconds, check this first. 
-        var createdat = createdat * 1000 
-    }
+import { CraetedAt } from './CreatedAt'
+import { StateIndicator } from '../base/states/SubmssionState'
 
-    const [m, formatedTime] = getFormatDateFromTimestamp(createdat / 1000)
-    return (
-        <div style={{ fontSize: "0.8rem", color : "darkgrey"}}>
-            {formatedTime} {addFromNow ? `(${ m.fromNow() })` : ''}
-        </div>
-    )
-}
+
 
 export function TitleText({title}) {
     return <h4>{title}</h4>
@@ -48,8 +38,8 @@ export function Content({ text }) {
  * @param {String} props.userTag
  * @returns 
  */
-export function UserName({ userTag }) {
-    const { isFetched, data: user, isSuccess, isLoading} = useGetPublicUserByTag({ tag: userTag },{ enabled : _.isString(userTag)})
+export function UserName({ tag }) {
+    const { isFetched, data: user, isSuccess, isLoading} = useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
 
     return (
         <div>
@@ -107,7 +97,7 @@ function SubmissionSummary({ meta_data }) {
                 <StateIndicator state={meta_data.state} />
             </div>
             <TitleText title={meta_data.title} />
-            <UserName userTag={meta_data.user_tag} />
+            <UserName tag={meta_data.user_tag} />
             <p>Samples: {meta_data.n_samples} ({meta_data.n_replicates} Replicates)</p>
         </div>
     )

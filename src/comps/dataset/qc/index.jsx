@@ -20,8 +20,8 @@ function DatasetQC() {
     /**
      * @type {import("../../../types/datasets").DatasetContextOutlet}
      */
-    const { dataset_tag, metadata, setTabHeader } = useOutletContext()   
-    const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_tag})
+    const { submission_tag, metadata, setTabHeader } = useOutletContext()   
+    const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_tag : submission_tag})
     
     useEffect(() => {
         if (_.isObject(metadata) && _.has(metadata, "title")) {

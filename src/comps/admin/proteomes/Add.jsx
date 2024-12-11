@@ -25,7 +25,7 @@ export function AddProteome({ }) {
                 <Button icon="plus" onClick={handleProteomeSubmit} small={true} intent="primary" />
             </div>
             <p>Add multiple proteome tags by separating them using a ';'.</p>
-            <Checkbox checked label="Reviewed entries only" checked={proteomes.reviewed} onChange={() => setProteomes(prevValues => { return { ...prevValues, reviewed: !prevValues.reviewed } })} />
+            <Checkbox label="Reviewed entries only" checked={proteomes.reviewed} onChange={() => setProteomes(prevValues => { return { ...prevValues, reviewed: !prevValues.reviewed } })} />
             {isLoading ? <p><h2>Loading...</h2> You will be notified via mail when the proteome has been successfully added (takes several minutes depending on the proteome size and the download speed).</p> :
                 isError ? <APIError error={error} /> : null}
             </div>

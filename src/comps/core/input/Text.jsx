@@ -32,7 +32,8 @@ function TextInput({callbackKey,hint = "",onChange, minLength = 0, value, option
         <div>
             
             <FormGroup
-            label={hint}
+                label={hint}
+                style={{marginBottom : "3 px"}}
             labelInfo={isRequired ? "(required)" : "(optional)"}
             inline={false}
             helperText={""}>

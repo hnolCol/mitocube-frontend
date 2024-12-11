@@ -109,9 +109,7 @@ export function ExpandableButton({isOpen = false, text = "" , count = 0,showCoun
  * @returns 
  */
 export function AttributeSubmissionFilter({ setSubmissionFilter, submissionFilter, attributesByTag, tags }) {
-    
 
-    
     const [openGroups, setOpenGroup] = useState({})
     const { data : allSubmissionAttributes, isLoading : asIsLoading, isFetching : asIsFetching, isSuccess : asIsSuccess } = useGetSubmissionsCount({ group: "attribute"}, {staleTime : Infinity})
     const { data, isSuccess } = useGetSubmissionsCount({ group: "attribute", tags : _.join(tags,";") }, {enabled : tags.length > 0})

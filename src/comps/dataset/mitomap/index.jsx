@@ -5,17 +5,17 @@ import InteractiveChart from "../../core/charts/interactive"
 import { useOutletContext } from "react-router"
 import { Network } from "../../core/charts/scatter/Network"
 import { useState } from "react"
-import { ScatterDataSelection } from "../pca"
 import { SegmentedControl } from "@blueprintjs/core"
 import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise"
 import APIError from "../../core/error/APIerror"
+import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
 
 export function MitomapNetwork({ }) {
-    const { dataset_label, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext() 
+    const { submission_tag, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext() 
     const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type : "pairwise", statProps : {} })
     //const [network_data, setnetwork_data] = useState({})
        
-    const { data: network_data, isLoading, isFetching, isSuccess, isError, error } = useGetNetwork({ network_type: networkProps.type, dataset_label, statProps : networkProps.statProps }, {enabled : !_.isEmpty(networkProps.statProps)})
+    const { data: network_data, isLoading, isFetching, isSuccess, isError, error } = useGetNetwork({ network_type: networkProps.type, submission_tag, statProps : networkProps.statProps }, {enabled : !_.isEmpty(networkProps.statProps)})
     
     const valueNameFound = _.isObject(network_data) && _.has(network_data,"value_keyName")
     const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, textSearchNames : ["id"] })

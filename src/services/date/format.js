@@ -5,7 +5,7 @@ const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric
 
 
 export function getFormatDateFromTimestamp(timestamp) {
-   const m = moment.unix(timestamp)
+   const m = moment.unix(timestamp/1000)
    return [m, m.format("YYYY-MM-DD")]
 }
 

@@ -2,7 +2,7 @@
 import _ from "lodash"
 
 import ResultChart from "../resultCard/chart"
-import { useGetDataByFeatureID } from "../../../../hooks/queries/feature.hooks"
+import { useGetDataByFeatureID, useGetFeatureByTag } from "../../../../hooks/queries/feature.hooks"
 import { useOutletContext } from "react-router"
 import APIError from "../../../core/error/APIerror"
 import { DialogBody, Drawer } from "@blueprintjs/core"
@@ -10,11 +10,14 @@ import { useGetMetadata } from "../../../../hooks/queries/datasets.hooks"
 import Loading from "../../../core/base/loading"
 import { useMemo, useState } from "react"
 import DatasetAttributeHierarchy from "../../../submission/new/attribute/view/DatasetAttributesHierarchy"
-import { AuthorList, MetatextBox, Metatexts } from "../../../dataset/overview"
 import { getFormatDateFromTimestamp } from "../../../../services/date/format"
 import MultipleMetrices from "../../../core/metrics/collection"
 import { useGetFilters } from "../../../../hooks/queries/filter.hooks"
 import { FilterSummary } from "../../../core/filters/FilterSummary"
+import { AuthorList } from "../../../core/authors/SubmissionAuthorList"
+import { Metatexts } from "../../../core/metatext/SubmissionMetatext"
+import { GenePublications } from "../../../core/publications/GenePublications"
+import { ProteinAbundance } from "../FeatureAbundance"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
@@ -31,10 +34,10 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
         const [m, formatedTime] =  getFormatDateFromTimestamp(metadata.created_on) 
         let datasetMetrices = [
             { label : "Label", metric : metadata.label},
-            { label: "Samples", metric: metadata.sample_names.length },
-            { label: "Replicates", metric: _.isObject(metadata.samples_genotypes)?_.keys(metadata.samples_genotypes).length : 0},
-            { label: "Genotypes", metric : 2},
-            { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
+            { label: "Samples", metric: metadata.n_samples },
+            { label: "Replicates", metric: metadata.n_replicates},
+            // { label: "Genotypes", metric : 2},
+            // { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
         ]
         //add others / optional 
         return { datasetMetrices , m ,formatedTime}
@@ -46,16 +49,16 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
         title: "Metadata Overview",
         onClose : () => setIsOpen(prevValues => { return { ...prevValues, isOpen: false } })
     }}>
+    
         
         {isLoading || isFetching ? <Loading /> : isError ? <APIError error={error} /> : 
             metdataIsObject ? <div className="div--expand padding--little" style={{overflowY:"scroll"}}>
                 
                 <div className="flex flex-column center-items ">
                 <h1>{metadata.title}</h1>
-                <AuthorList {...{
-                    user: metadata.user_label,
-                    collaborators: metadata.collaborators,
-                    emailSubject: `Related to dataset ${metadata.title} (${metadata.label})`
+                    <AuthorList {...{
+                        submission_tag : metadata.tag,
+                        emailSubject: `Related to dataset ${metadata.title} (${metadata.label})`
                     }} />
                 <div className="font-size--small intent-margin-top--little">
                     {`${m.fromNow()} (${formatedTime})`}
@@ -71,7 +74,7 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
                     selectedAttributes: _.values(metadata.attributes)
                 }} />
                 <h2>Metatext</h2>
-                <Metatexts metadata={metadata} fill={true} />
+                <Metatexts submission_tag={metadata.tag} fill={true} />
                 </div>
             </div> : null}
     </Drawer>
@@ -97,7 +100,7 @@ function ProteinCorrelation({tag}) {
 
     return <div>
         <h3>Correlation</h3>
-
+        <div>Under progress. Showing correlations across all datasets   </div>
     </div>
 }
 
@@ -106,20 +109,22 @@ function ProteinOverview() {
     const { feature_tag } = useOutletContext()
     const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
     const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_tag }, {})
-
-    console.log(featureData)
-
+    const { data : feature } = useGetFeatureByTag({tag : feature_tag}, {enabled : _.isString(feature_tag), staleTime : Infinity})
+    console.log(feature)
+    const featureIsLoaded = _.isObject(feature)
     if (isError) return <APIError error={error} />
     return (
         <div>
             <MetaDataDrawer isOpen={metadataDrawer.isOpen} dataset_label={metadataDrawer.dataset_label} setIsOpen={setMetadataDrawer} />
             <div>
                 <h3>Protein Information</h3>
+                {featureIsLoaded ? <div><div>{feature.gene_names}</div><div>{feature.protein_name}</div></div> : null}
+                <MultipleMetrices metrices={[{label : "Times viewed", metric : 839}, {label : "Genotypes", metric : 4}]}/>
                 <ProteinFilter tag = {feature_tag} />
                 <h3>Abundance</h3>
-
+                {featureIsLoaded ? <ProteinAbundance tag={feature_tag} proteome_tag={feature.proteome_tag} /> : null}
                 <ProteinCorrelation />
-                
+                {featureIsLoaded && _.has(feature, "gene_name") ? <GenePublications gene_name={feature.gene_name} /> : null}
 
 
             </div>

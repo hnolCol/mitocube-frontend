@@ -30,3 +30,20 @@ async function postProteome_API({proteome_tag, reviewed = True}){
 export const usePostProteome = (useMutationOptions = {}) => {
     return useMutation((APIParams) => postProteome_API({...APIParams}), useMutationOptions)
 }
+
+
+
+
+async function getProteomeAbundanceDist_API({tag}) {
+    //user login attempt, returns a token.
+    const res = await axios.get(`/api/proteomes/${tag}/abundance`)
+    return res.data
+}
+
+export const useGetProteomeAbundaneDist = (APIParams = {tag}, queryOptions = {}) => {
+    return useQuery(["proteomesdist",APIParams.tag], () => getProteomeAbundanceDist_API({...APIParams}), queryOptions)
+}
+
+
+
+

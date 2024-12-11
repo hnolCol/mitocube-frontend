@@ -12,6 +12,20 @@
 }
 
 
+.add-div::after{
+  display: inline-block;
+  font-size: 1rem;
+  margin-left: 3px;
+  content: "\002B"; 
+  
+}
+
+.add-div:hover{
+  color : white
+}
+
+
+
 .unit-div::after{ 
   display: inline-block;
   font-size: 0.85rem;

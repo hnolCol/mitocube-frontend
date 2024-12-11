@@ -1,21 +1,22 @@
-import { Group } from "@visx/group"
-import MultiCategoricalChart from "../multiple"
-import { Text } from "@visx/text"
-import { ChartLegend } from "../../legend"
+import { useMemo } from "react"
 import _ from "lodash"
+
+import { Group } from "@visx/group"
+import { Text } from "@visx/text"
+import { scaleOrdinal } from "@visx/scale"
+import { localPoint } from "@visx/event"
+import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
+
+import MultiCategoricalChart from "../multiple"
+import { getColorPalette } from "../../../colors/colorPalette"
+import PropTypes from "prop-types"
+import Box from "../../boxplot/Box"
 import SingleCategoricalChart from "../single"
 import AxisWithBackground from "../../axis"
-import { useTooltip, useTooltipInPortal } from "@visx/tooltip"
-import { localPoint } from "@visx/event"
-import PropTypes from "prop-types"
-import Box from "../../boxplot/cached_box"
-import { getColorPalette } from "../../../colors/colorPalette"
 import MetricTable from "../../../base/metrictable"
 import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
-import { useMemo } from "react"
 import { getSetOfMatchingIndcsInArrayOfObject } from "../../../../../services/arrays/filter"
-import { CategoricalLegend } from "../Legend"
-import { scaleOrdinal } from "@visx/scale"
+
 
 
 export function Legend({ x, y, width, height, colorScale, colorName, attrValuesByTag, handleMouseOver, data, onLegendGroupLeave }) {

@@ -1,16 +1,19 @@
 import _ from "lodash"
 import PropTypes from "prop-types"
-import { createDataTree } from "../../../../../services/arrays/nest"
-import { Code, Divider, H5, Tag, Tooltip } from "@blueprintjs/core"
-import { Header } from "../../../../core/base/Header"
+import { Divider } from "@blueprintjs/core"
 import TooltipButton from "../../../../core/base/buttons/TooltipButton"
 import { objectHasKey } from "../../../../../services/objects/checks"
-import { useMemo } from "react"
-import { AttributeTagWithTooltip, FeatureTagWithTooltip } from "../../../../core/base/tags/TagWithTooltip"
-import { useGetDatasetAttributes } from "../../../../../hooks/queries/attribute.hooks"
+import { TraitWithValueInput, FeatureTagWithTooltip } from "../../../../core/base/tags/TagWithTooltip"
+import { useGetAttribute, useGetAttributeHierarchy, useGetAttributeValues, useGetDatasetAttributes } from "../../../../../hooks/queries/attribute.hooks"
 import { useGetSubmissionDatasetAttributesByTag } from "../../../../../hooks/queries/submission.hooks"
 import Loading from "../../../../core/base/loading"
 import { TitleText } from "../../../../core/metrics/ItemBasics"
+import { StaticTrait } from "../../../../core/base/traits/StaticTrait"
+
+
+
+
+
 
 /**
  * 
@@ -38,6 +41,44 @@ export function AttributeWithValues({ attribute, attributeValueTags, attributeVa
 
 
 /**
+ * @description JSX component to visualize a hierarchical order of 
+ * attributes. The level integer denotes the margin to the left border 
+ * @param {Object} props 
+ * @param {String} props.submission_tag 
+ * @param {String} props.attribute_tag 
+ * @param {String[]} props.children The attribute tags that are considered the children 
+ * of the given attribute 
+ * @param {Number} props.level The hierarchical level. The margin to the left border is determined as 0.75rem * level. 
+ * @returns 
+ */
+export function AttributeHierarchy({submission_tag, attribute_tag, children, level = 0 }) {
+    const { data: attribute, isSuccess } = useGetAttribute({ tag: attribute_tag }, {staleTime : 300000})
+    const { data: traits, isSuccess : isTraitSuccess } = useGetAttributeValues({tags : submission_tag, attribute_tag},{staleTime : 300000})
+    const marginLeft = level * 0.75
+
+
+    return <div style={{ marginLeft : "0.1rem", paddingLeft: `${marginLeft}rem`}}>
+        {isSuccess ? <TitleText key={attribute.tag} title={attribute.text} /> : null}
+        <div className="flex">
+        {isTraitSuccess &&  isSuccess
+            && _.isArray(traits["attribute_value_tags"])
+            && traits["attribute_value_tags"].length > 0 ?
+                traits["attribute_value_tags"].map(traitTag => 
+                    <StaticTrait attribute_tag={attribute_tag} trait_tag={traitTag} submission_tag={submission_tag} />
+                ) : null}
+        </div>
+        {_.isArray(children) && children.length > 0 ?
+            children.map(child => _.isObject(child) && _.has(child,"tag") ? <AttributeHierarchy
+                    children={child.IS_PARENT_OF}
+                    attribute_tag={child.tag}
+                    submission_tag={submission_tag}
+                    level={level + 1} /> : null) : null}
+        </div>
+}
+
+
+
+/**
  * @description Represents dataset attributes in a hierarchy manner. The hierarchy is defined
  * by the attributes itself which have a property 'parent_tag'. 
  * @param {Object} props 
@@ -45,36 +86,33 @@ export function AttributeWithValues({ attribute, attributeValueTags, attributeVa
  * @returns 
  */
 export function StaticDatasetAttributesHierarchy({ submission_tag }) {
+
     const { data: datasetAttributes, isLoading, isError, isFetched, isSuccess } = useGetSubmissionDatasetAttributesByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
-    const nestedAttributes = useMemo(() => isSuccess ? createDataTree({
-        array: _.keys(datasetAttributes.tags).map(attribute_tag => datasetAttributes.attributes[attribute_tag]),
-        link : "parent_tag"
-    }) : [], [isSuccess])
+    const { data: attrHierarchy, isSuccess: isHierarchySuccess } = useGetAttributeHierarchy(
+        {
+            tags: _.isObject(datasetAttributes) ? _.keys(datasetAttributes.tags) : [],
+            submission_tag
+        },
+        { enabled: _.isObject(datasetAttributes) && isSuccess && !_.isEmpty(datasetAttributes.tags) })
+    
     return (
         <div>
-            {isFetched & isSuccess & _.isObject(datasetAttributes) ? _.keys(datasetAttributes.tags).map(attribute_tag => {
-                const attribute = datasetAttributes.attributes[attribute_tag]
-                return <AttributeWithValues
-                    attribute={attribute}
-                    attributeValueTags={datasetAttributes.tags[attribute_tag]}
-                    attributeValuesByTag={datasetAttributes.attribute_values} />
-
-            }) : isLoading ? <Loading /> : null}
-
-        </div>
+            {isFetched & isSuccess & _.isObject(datasetAttributes) ?
+                    isHierarchySuccess && _.isArray(attrHierarchy) ? attrHierarchy.map(attrHierarchy => <AttributeHierarchy
+                        key={attrHierarchy.tag}
+                        attribute_tag={attrHierarchy.tag}
+                        submission_tag={submission_tag}
+                        children={attrHierarchy.IS_PARENT_OF} />) : null : <Loading /> }
+            </div>
     )
 }
 
 
-
-
-
-export function AttributeFeatureTag({ attribute, value, units = {}, valueIsFeature = false, onRemove = undefined, popoverPosition = "top", addUnitsForDatasetAttributes, highlight = false}) {
+export function AttributeFeatureTag({ attribute, value, units = {}, valueIsFeature = false, onRemove = undefined, popoverPosition = "top", addUnitsForDatasetAttributes, highlight = false, onUserUnitInput, unitInput}) {
     //console.log(units)
-
     return (
         valueIsFeature ? <FeatureTagWithTooltip {...{ attribute, feature: value, onRemove, popoverPosition, highlight  }} /> :
-            <AttributeTagWithTooltip {...{ attribute, attributeValue: value, onRemove, popoverPosition, addUnitsForDatasetAttributes, units, highlight }} />
+            <TraitWithValueInput {...{ attribute_tag: attribute.tag, attributeValue: value, onRemove, popoverPosition, addUnitsForDatasetAttributes, units, highlight, onUserUnitInput, unitInput}} />
     )
 }
 
@@ -89,7 +127,7 @@ export function AttributeFeatureTag({ attribute, value, units = {}, valueIsFeatu
  * @param {String[]} props.highlightAttributeValuesByTag - Tags that should be highlighted. This is useful to indicated changes made by the user. 
 * @returns {Element} 
  */
-function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, addUnitsForDatasetAttributes, datasetUnits, level = 0, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false}) {
+function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAttributeRemove, addUnitsForDatasetAttributes, datasetUnits, level = 0, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false, onUserUnitInput,unitInput}) {
     // displaying hierarchical dataset attributes.
     const attributeHasFeatures = attribute.has_features_value
     const handleAttributeRemove = (attributeValue) => {
@@ -114,7 +152,9 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                         valueIsFeature: attributeHasFeatures,
                         onRemove: _.isFunction(onDatasetAttributeRemove) ? handleAttributeRemove : undefined,
                         addUnitsForDatasetAttributes,
-                        highlight : highlightAttributeValuesByTag.includes(attributeValue.tag)
+                        highlight: highlightAttributeValuesByTag.includes(attributeValue.tag),
+                        onUserUnitInput,
+                        unitInput
                     }} />
                 )}
                 {attributeValuesByTag[attribute.tag].length > 1 && warnAtTwoAttrValues? <TooltipButton
@@ -123,7 +163,7 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
                 
                 </div>
             {_.has(attribute,"childNodes") && attribute.childNodes.length > 0 ? attribute.childNodes.map(child =>
-                <DisplayDatasetAttribute key={`${child.id}-${child.attribute_id}`} attribute={child} {...{ attributeValuesByTag, onDatasetAttributeRemove, addUnitsForDatasetAttributes, datasetUnits }} level={level + 1} />) : null}
+                <DisplayDatasetAttribute key={`${child.id}-${child.attribute_id}`} attribute={child} {...{ attributeValuesByTag, onDatasetAttributeRemove, addUnitsForDatasetAttributes, datasetUnits, unitInput, onUserUnitInput }} level={level + 1} />) : null}
         {level===0?<Divider />:null}
         </div>
     )
@@ -137,18 +177,22 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
 //     onDatasetAttributeRemove : PropTypes.func.isRequired
 // }
 
-function DatasetAttributeHierarchy({ selectedAttributes, selectedDatasetAttributeValues, datasetUnits, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false, addUnitsForDatasetAttributes}) {
-    
-    const nestedAttributes = useMemo(() => createDataTree({
-        array: selectedAttributes
-            .filter(attr => _.has(selectedDatasetAttributeValues, attr.tag) && selectedDatasetAttributeValues[attr.tag].length > 0), link: "parent_tag"
-    }), [_.join(selectedAttributes.map(attr => attr.tag))])
+function DatasetAttributeHierarchy({ selectedAttributes, selectedDatasetAttributeValues, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false, onUserUnitInput, unitInput}) {
+
+    // const nestedAttributes = useMemo(() => createDataTree({
+    //     array: selectedAttributes
+    //         .filter(attr => _.has(selectedDatasetAttributeValues, attr.tag) && selectedDatasetAttributeValues[attr.tag].length > 0), link: "parent_tag"
+    // }), [_.join(selectedAttributes.map(attr => attr.tag))])
+    // console.log(nestedAttributes)
     // console.log(nestedAttributes,"nested shit")
     // console.log(selectedAttributes, nestedAttributes, selectedDatasetAttributeValues)
     return (
         <div className="padding--little div--round bg--lightgrey intent-margin-top--little">
             
-            {nestedAttributes.map(attribute => {
+
+
+
+            {/* {nestedAttributes.map(attribute => {
                 return (                
                     <DisplayDatasetAttribute
                         key={`${attribute.id}-level-0`}
@@ -158,11 +202,11 @@ function DatasetAttributeHierarchy({ selectedAttributes, selectedDatasetAttribut
                         {...{
                             highlightAttributeValuesByTag,
                             warnAtTwoAttrValues,
-                            addUnitsForDatasetAttributes,
-                            datasetUnits
+                            onUserUnitInput,
+                            unitInput
                         }} />  
                 )
-            })}
+            })} */}
 
 
         </div>

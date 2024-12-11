@@ -1,13 +1,9 @@
-import { MultiSelect, Suggest } from "@blueprintjs/select";
+import { MultiSelect } from "@blueprintjs/select";
 import { useGetValueForAttributeByTag } from "../../../../hooks/queries/attribute.hooks";
 import _ from "lodash"
-import { useEffect, useRef, useState } from "react";
-import { Button, Divider, Menu, MenuItem } from "@blueprintjs/core";
-import Loading from "../../base/loading";
+import { useState } from "react";
+import { Button, Divider } from "@blueprintjs/core";
 import "./style.css"
-import { addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/transforms";
-import { TickIcon } from "../../svg/icons/input/Tick";
-import { BlankIcon } from "../../svg/icons/input/Blank";
 import { filterArrayBySearchStringByMultipleKeys } from "../../../../services/arrays/filter";
 import { AttributeValueMenuItem } from "../items/AttributeValueMenu";
 
@@ -15,12 +11,11 @@ import { AttributeValueMenuItem } from "../items/AttributeValueMenu";
  * 
  * @param {Object} props 
  * @param {import("../../../../types/attributes").Attribute} props.attribute
- * @param {import("../../../../types/attributes").AttributeValue[]} props.selectedItems 
+ * @param {String[]} props.selectedTraitTags
  * @param {Function} props.onItemSelect
  * @returns 
  */
-export function AttributeValueInput({ attribute, selectedItems, onItemSelect }) {
-    
+export function AttributeValueInput({ attribute, selectedTraitTags, onItemSelect }) {
     const [itemsLoaded, setItemsLoaded] = useState(false)
     //const [selectedItems, setSelectedItems] = useState([])
     const { data: attributeValues, isLoading, isFetching } = useGetValueForAttributeByTag(
@@ -66,7 +61,6 @@ export function AttributeValueInput({ attribute, selectedItems, onItemSelect }) 
         if (!itemsLoaded) return null 
         const activeItemTag = _.isObject(activeItem) ? activeItem.tag : undefined
         const attributeValues = query === "" ? items : filteredItems
-        
         return <div style={{minWidth : "40vw"}}>
             <div className="menu_item_header">
                 {attribute.text}
@@ -79,7 +73,8 @@ export function AttributeValueInput({ attribute, selectedItems, onItemSelect }) 
                         onClick: handleItemSelection,
                         key: `${item.tag}-${attribute.tag}`
                     }}
-                        active={activeItemTag === item.tag} selected={_.isObject(_.find(selectedItems,{tag : item.tag}))} />)}
+                        active={activeItemTag === item.tag}
+                        selected={_.isArray(selectedTraitTags) ? selectedTraitTags.includes(item.tag) : false} />)}
 
             </div>}
 
@@ -95,7 +90,6 @@ export function AttributeValueInput({ attribute, selectedItems, onItemSelect }) 
         <MultiSelect
             items={_.isArray(attributeValues) ? attributeValues : []}
             placeholder={attribute.text}
-
             tagRenderer={renderValue}
             onItemSelect={handleItemSelection}
             itemListRenderer={renderAttributeValues}
@@ -108,6 +102,7 @@ export function AttributeValueInput({ attribute, selectedItems, onItemSelect }) 
                 inputProps: { intent: "primary", onFocus : checkValues},
                 tagProps: { minimal: true }
             }}
-            selectedItems={selectedItems}/>
+            selectedItems={_.isArray(attributeValues) && _.isArray(selectedTraitTags)?attributeValues.filter(trait => selectedTraitTags.includes(trait.tag)):[]}
+            />
     )
 }

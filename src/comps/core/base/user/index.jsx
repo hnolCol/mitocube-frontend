@@ -26,10 +26,11 @@ export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false 
     )
 }
 
-export function UserIcon({text}) {
+
+export function UserIcon({text, fillColor, strokeWidth}) {
     return (
         <BaseDashboardIcon width={30} height={30}>
-            <UserDashboardIcon {...{ text }} />   
+            <UserDashboardIcon {...{ text, fillColor, strokeWidth }} />   
         </BaseDashboardIcon>
     )
 }

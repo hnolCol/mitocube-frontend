@@ -1,8 +1,6 @@
 
 import _ from "lodash"
-import { AttributeHeader, AttributeValueWithPropsTable} from "../core/base/attribute"
-import { objectHasKey } from "../../services/objects/checks"
-import { groupListByProperty } from "../../services/arrays/groupby"
+
 import TextInput from "../core/input/Text"
 import { useEffect, useMemo, useState } from "react"
 import { filterArrayBySearchString } from "../../services/arrays/filter"
@@ -148,19 +146,20 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
                     const numberAttributeValues = attributeValues.length 
                                 return <div key={attribute.tag}
                                     className="intent-margin-top--medium intent-padding-right--little"
-                                    style={{height : "100%"}}>
-                        <AttributeHeader {...attribute} addStringToName={`(${numberAttributeValues})`} />
+                                    style={{ height: "100%" }}>
+                       
+                        {/* <AttributeHeader {...attribute} addStringToName={`(${numberAttributeValues})`} /> */}
                         <div className="margin--little">
                             <Button icon="plus" text="Add attribute value" minimal intent="primary" onClick={() => setDialogProps(prevValues => { return { ...prevValues, isOpen: true, attribute, edit : false } })} />
                             
                             </div>
                         <div className="container--scroll-y-hide-x div--expand padding--medium" style={{maxHeight : "60vh"}}>
-                        {
+                        {/* {
                                 attributeValues.map((attributeValue, attrValueIdx) =>{
                                     if (attrValueIdx === maxShown - 1) return <p>Not all attribute values {maxShown} / {numberAttributeValues} shown. Use search option.</p>
                                     if (attrValueIdx >= maxShown) return null 
                                     return <AttributeValueWithPropsTable key={`${attribute.tag}-${attributeValue.tag}`} {...attributeValue} handleEdit={() => handleEdit(attribute,attributeValue)} />
-                                })}
+                                })} */}
                         </div>
                         </div> 
                 }) : null}

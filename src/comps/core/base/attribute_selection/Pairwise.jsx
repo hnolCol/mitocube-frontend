@@ -10,6 +10,7 @@ import { get_proteome_id } from "../../../submission/new/InitialSubmission"
 import { useGetMetaSamples } from "../../../../hooks/queries/datasets.hooks"
 import { groupListByProperty } from "../../../../services/arrays/groupby"
 import Loading from "../loading"
+import { useGetSampleAttributes } from "../../../../hooks/queries/submission.hooks"
 
 
 
@@ -19,35 +20,37 @@ const initState = {
     attribute_value_tag_right: undefined,
     within_attribute_tag: [],
     within_attribute_value_tag: {},
-    impute : false
+    impute: false,
+    filter : undefined
 }
 /**
  * 
  * @param {object} props 
- * @param {import("../../../../types/submissions").Submission} props.metadata
+ * @param {String} props.submission_tag
  * @param {Fucntion} props.callback - The function to be called after selection. 
  * @param {String} props.callbackText - The text shown on the callback button 
  * @param {Boolean} props.isLoading - If the component should be display in loading state.
  * @returns 
  */
-export function AttributePairwiseSelection({dataset_tag, metadata, callback, callbackText = "Save", isLoading = false }) {
+export function AttributePairwiseSelection({submission_tag, callback, callbackText = "Save", isLoading = false }) {
 
-    const {data, isLoadingSampleMeta, isFetchingSampleMeta, isSuccess} = useGetMetaSamples({dataset_tag})
+    // const {data : sampleAttributes} = useGetSampleAttributes({submission_tag},{enabled : _.isString(submission_tag)})
+
+    const {data, isLoadingSampleMeta, isFetchingSampleMeta } = useGetMetaSamples({dataset_tag: submission_tag})
     const [selection, setSelection] = useState(initState)
+   
     if (!_.isObject(data)) return null 
     if (isLoadingSampleMeta || isFetchingSampleMeta) return <Loading />
 
-
     const attributes = data.attributes 
     const attributeValuesByAttributeTag = groupListByProperty(data.attribute_values,"attribute_tag")
-
     const numberSelection = attributes.length
 
     const addWithinAttributeToSelection = (key, attribute) => {
         setSelection(prevValues => {
             return {
                 ...prevValues,
-                [key] : addItemToArrayOrRemoveItIfPresent({array : prevValues.within_attribute_tag,item : attribute})
+                [key] : addItemToArrayOrRemoveItIfPresent({array : prevValues.within_attribute_tag, item : attribute})
             }
         })
     }
@@ -121,7 +124,8 @@ export function AttributePairwiseSelection({dataset_tag, metadata, callback, cal
     const onSave = () => {
         if (!_.isFunction(callback)) return null 
         const props = {
-            impute : selection.impute,
+            impute: selection.impute,
+            filter_tag: _.isObject(selection.filter) && _.has(selection.filter, "tag") ?  selection.filter.tag : undefined,
             sample_attribute_tag: selection.sample_attribute_tag.tag,
             attribute_value_tag_left: getTagKeyLabel (selection.sample_attribute_tag,selection.attribute_value_tag_left),
             attribute_value_tag_right: getTagKeyLabel (selection.sample_attribute_tag,selection.attribute_value_tag_right),
@@ -200,8 +204,7 @@ export function AttributePairwiseSelection({dataset_tag, metadata, callback, cal
                 <h4>Filter</h4>
                 <div>Subsets the dataset considering only the features that are part of the filter.</div>
                 <FilterInput
-                    
-                    proteome_ids={""}
+                    minimal={false}
                     selectedItems={_.isObject(selection.filter) ? [selection.filter] : []}
                     onItemSelect={(callbackKey, filter) => setSelection(prevValues => { return { ...prevValues, [callbackKey]: filter } })} />    
             <Divider />

@@ -32,6 +32,19 @@
  * @property {String} value The actual value of the attribute value. 
 */
 
+
+
+/**
+ * @typedef Trait 
+ * @type {Object}
+ * @property {String} tag 
+ * @property {String} text 
+ * @property {String} description 
+ * @property {String} attribute_tag 
+ * @property {Object} userInput
+ */
+
+
 /**
  * @typedef SampleAttributes
  * @type {Object.<string, SamplesAttribute>} The key value represents the *attribute tag* and the values contains multiple ``SampleAttribute``that hold information about each sample and the *attribute value*.

@@ -77,13 +77,13 @@ export const usePostSubmissionOwner = (useMutationOptions = {}) => {
  * @param {String} props.tag - The submission/dataset tag to get the users for 
  * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
  */
-async function getPublicUsersBySubmission_API({ dataset_tag }) {
-    const res = await axios.get(`/api/submissions/${dataset_tag}/users`)
+async function getPublicUsersBySubmission_API({ submission_tag }) {
+    const res = await axios.get(`/api/submissions/${submission_tag}/users`)
     return res.data
 }
 
 export const useGetPublicUserForSubmission = (APIParams = {}, useQueryOptions = {staleTime: 250000}) => {
-    return useQuery(["getPublicUserByDatasetTag",APIParams.dataset_tag],() =>   getPublicUsersBySubmission_API({...APIParams}), useQueryOptions)
+    return useQuery(["getPublicUserByDatasetTag",APIParams.submission_tag],() =>   getPublicUsersBySubmission_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -96,7 +96,7 @@ export const useGetPublicUserForSubmission = (APIParams = {}, useQueryOptions = 
 // sumbission ID
 async function getSubmissionID_API({}) {
 
-    const res = await axios.get('/api/submission/tag')
+    const res = await axios.get('/api/submissions/tag')
     return res.data
 }
 
@@ -108,7 +108,7 @@ export const useGetSubmissionsID = (APIParams = {},useQueryOptions = {}) => {
 // update submission samplesAttributes
 async function patchSubmissionSampleAttrs_API({label,data}) {
 
-    const res = await axios.patch('/api/submission/' + label + 'samplesAttributes', data)
+    const res = await axios.patch('/api/submission/' + label + '/samplesAttributes', data)
     return res.data
 }
 
@@ -117,6 +117,23 @@ export const usePathSubmissionSampleAttributes = (useMutationOptions = {}) => {
 }
 
 
+
+
+/**
+ * 
+ * @param {Object} props 
+ * @param {String} props.submission_tag 
+ * @returns 
+ */
+async function getSampleAttributes_API({ submission_tag }) {
+    console.log(submission_tag)
+    const res = await axios.get('/api/submissions/' + submission_tag + '/sampleattributes')
+    return res.data
+}
+
+export const useGetSampleAttributes = (APIParams = { submission_tag }, useQueryOptions = {}) => {
+    return useQuery(["getSubmissionSampleAttributes",APIParams.submission_tag], () => getSampleAttributes_API({...APIParams}), useQueryOptions)
+}
 
 
 
@@ -173,18 +190,24 @@ export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions 
 }
 
 
-
-
 // submission metatexts
 async function getSubmissionMetatextsByTag_API({tag}) {
     const res = await axios.get(`/api/submissions/${tag}/metatext`)
     return res.data 
 }
-export const useGetSubmissionMetatextByTag = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
+export const useGetSubmissionMetatextByTag = (APIParams = {tag}, useQueryOptions = {staleTime : 30000}) => {
     return useQuery(["metatext_for_submission",APIParams.tag], () => getSubmissionMetatextsByTag_API({...APIParams}), useQueryOptions)
 }
 
 
+// submission metatexts
+async function getSpecificSubmissionMetatextsByTag_API({tag, metatext_tag}) {
+    const res = await axios.get(`/api/submissions/${tag}/metatext/${metatext_tag}`)
+    return res.data 
+}
+export const useGetSpecificSubmissionMetatextByTag = (APIParams = {tag, metatext_tag}, useQueryOptions = {staleTime : 30000000}) => {
+    return useQuery(["metatext_for_submission",APIParams.tag, APIParams.metatext_tag], () => getSpecificSubmissionMetatextsByTag_API({...APIParams}), useQueryOptions)
+}
 
 
 // submission metatexts
@@ -225,18 +248,18 @@ export const usePostSubmission = (useMutationOptions = {}) => {
 
 //update submission
 
-async function patchSubmission_API({ tag, datasetAttributes }) {
-    const res = await axios.patch(`/api/submissions/${tag}/datasetattributes`, datasetAttributes)
+async function patchSubmission_API({ tag, updatedDatasetAttributes }) {
+    console.log(updatedDatasetAttributes)
+    console.log({state_change : updatedDatasetAttributes.state_change, dataset_attributes: updatedDatasetAttributes.dataset_attributes})
+    const res = await axios.patch(`/api/submissions/${tag}/datasetattributes`, updatedDatasetAttributes)
 }
 
-export const usePatchSubmission = (useMutationOptions = {}) => {
+export const usePatchSubmissionDatasetAttributes = (useMutationOptions = {}) => {
     return useMutation((APIParams) => patchSubmission_API({...APIParams}), useMutationOptions)
 }
 
 /**
  * @description Returns the available states of a submission from the API.
- * @author Hendrik Nolte 
- * @since 0.1.0
  * @returns {import("../../types/states").StatesResponse} - The available states.
  */
 async function getSubmissionStates_API() {

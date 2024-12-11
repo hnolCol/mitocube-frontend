@@ -2,7 +2,8 @@ import { useGetNews } from "../../hooks/queries/welcome.hooks"
 import APIError from "../core/error/APIerror"
 import Loading from "../core/base/loading"
 import _ from "lodash"
-import { Content, CraetedAt, SubmissionLink, TitleText, FeatureLink } from "../core/metrics/ItemBasics"
+import { Content, SubmissionLink, TitleText, FeatureLink } from "../core/metrics/ItemBasics"
+import { CraetedAt } from "../core/metrics/CreatedAt"
 
 /**
  * 
@@ -16,7 +17,6 @@ export function NewsItem({ news }) {
             <div className="flex">
                 <TitleText title={news.title} />
                 <CraetedAt createdat={news.created_at} />
-                
             </div>
             <div>
                 <Content text={news.content} />

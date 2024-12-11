@@ -35,7 +35,7 @@ NumericValueInput.propTypes = {
  * @param {Number} props.maxValue - The maximum value that the user is allowed to enter. 
  * @param {String} props.value - The selected value which is the string of the text. To find the selected item the ```item[textKey]``` is compared to ```value```.
  * @param {String} props.callbackKey - Optional key that is returned upon selection to help to store the selection by its ```callbackKey```. Please see onChange for more info. 
- * @param {Function} props.onChange - Function to be called when a selection is made. If the ```callbackKey``` is undefined simply the selected item of the ``onChange(item)``` is returned, otherwise ```onChange(callbackKey,item)```. 
+ * @param {Function} props.onChange - Function to be called when a change is made. Returns ```onChange(callbackKey,value)``` upon each change. . 
  * @param {String} props.placeholder - The place holder string that is displayed to the user if value is undefined. 
  * @param {Boolean} props.isRequired - If true, the user is notified that this field is required. The combobox itself does not perform any checking if it is selected. 
  * @param {String} props.hint - The hint text to be displayed to the user for additional information.  

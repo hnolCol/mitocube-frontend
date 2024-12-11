@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "react-query"
 import axios from "axios"
-
+import _ from "lodash"
 
 
 
@@ -101,13 +101,13 @@ export const useUpdateAttributeValue = (useMutationOptions = {}) => {
  * @param {Object} props 
  * @returns {import("../../types/attributes").Attribute[]} - The mandatory attributes for a submission/dataset.
  */
-async function getMandatoryAttributes_API({ }) {
-    const res = await axios.get('/api/attributes/mandatory')
+async function getMandatoryAttributes_API({ state }) {
+    const res = await axios.get('/api/attributes/mandatory', {params : {state}})
     return res.data 
 }
 
-export const useGetMandatoryAttributes = (APIParams = {}, useQueryOptions) => {
-    return useQuery(["manAttributes"], () => getMandatoryAttributes_API({...APIParams}), useQueryOptions)
+export const useGetMandatoryAttributes = (APIParams = {state}, useQueryOptions) => {
+    return useQuery(["manAttributes",APIParams.state], () => getMandatoryAttributes_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -146,7 +146,7 @@ async function getAtributesAndValuesByQuery_API({search_string,min_state,param_n
 }
 
 export const useGetAttributes = (APIParams = {search_string, min_state, param_name}, useQueryOptions) => {
-    return useQuery(["datasetAttributes",APIParams.search_string,APIParams.min_state,APIParams.param_name], () => getAtributesAndValuesByQuery_API({...APIParams}), useQueryOptions)
+    return useQuery(["attributes_traits_by_query",APIParams.search_string,APIParams.min_state,APIParams.param_name], () => getAtributesAndValuesByQuery_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -172,7 +172,7 @@ export const useGetValueForAttributeByTag = (APIParams = {tag : ""}, useQueryOpt
  * @description Returns a list of attribute values that are present in the given dataset tags. 
     Use the attribute_value_tag and attribute_tag params to return a specific subset of attribute_tags. 
  * @param {Object} props
- * @param {String[]} props.tags - The submission tags for which the attributes/values should be returned 
+ * @param {String[]} props.tags - The submission tags for which the attributes/values should be returned, join multiple by ';' 
  * @param {String} props.attribute_tag - The attribute tag, for multiple join by ';'
  * @param {String} props.attribute_value_tag - The attribute value tags, for multiple join by ';'
  * @returns 
@@ -182,7 +182,7 @@ async function getAttributeValue_API({tags, attribute_tag, attribute_value_tag})
     return res.data 
 }
 
-export const useGetAttributeValues = (APIParams = {tags : "", attribute_tag : null, attribute_value_tag : null},useQueryOptions = {}) => {
+export const useGetAttributeValues = (APIParams = {tags : "", attribute_tag : null, attribute_value_tag : null}, useQueryOptions = {}) => {
     return useQuery(["getAttributeByTag", APIParams.tags,
         APIParams.attribute_tag,
         APIParams.attribute_value_tag],
@@ -191,28 +191,74 @@ export const useGetAttributeValues = (APIParams = {tags : "", attribute_tag : nu
 
 
 
-// async function getAttribute_API({labels}) {
-//     const res = await axios.get('/api/attributes/attributes/q',{params : {labels}})
-//     return res.data 
-// }
 
-// export const useGetAttributes = (APIParams = {labels : ""},useQueryOptions = {}) => {
-//     return useQuery(["getAttributeByLabel",APIParams.labels],
-//         () => getAttribute_API({ ...APIParams }), useQueryOptions)
-// }
-
-
-
-async function getAttributeUnit_API({tag}) {
-    const res = await axios.get('/api/attributes/units',{params : {tag}})
+async function getAttributeUnitType_API({tag}) {
+    const res = await axios.get(`/api/attributes/${tag}/unittypes`)
     return res.data 
 }
 
-export const useGetAttributeUnit = (APIParams = { tag: "" }, useQueryOptions = {}) => {
-    return useQuery(["getAttributeUnit",APIParams.tag],
-        () => getAttributeUnit_API({ ...APIParams }), useQueryOptions)
+export const useGetAttributeUnitType = (APIParams = { tag }, useQueryOptions = {}) => {
+    return useQuery(["getAttributeUnitType",APIParams.tag],
+        () => getAttributeUnitType_API({ ...APIParams }), useQueryOptions)
 }
 
 
+export const useGetAttributeUnit = (APIParams = { tag }, useQueryOptions = {}) => {
+    return useQuery(["getAttributeUnit",APIParams.tag],
+        () => getAttributeUnitType_API({ ...APIParams }), useQueryOptions)
+}
+
+
+
+/**
+ * @description Returns the attribute. The default stale time is 30000 ms.
+ * @param {Object} props
+ * @param {String} props.tag The attribute tag to be returned.  
+ * @returns {import("../../types/attributes").Attribute}
+ */
+async function getAttributeByTag_API({ tag }) {
+    const res = await axios.get(`/api/attributes/${tag}`)
+    return res.data 
+}
+
+export const useGetAttribute = (APIParams = { tag }, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["getAttribute",APIParams.tag],
+        () => getAttributeByTag_API({ ...APIParams }), useQueryOptions)
+}
+
+
+
+/**
+ * @description Returns a single trait value by its tag. The default stale time is 30000 ms.
+ * @param {Object} props
+ * @param {String} props.tag The attribute tag to be returned.  
+ * @returns {import("../../types/attributes").AttributeValue}
+ */
+async function getATratByTag_API({ tag, include_input, submission_tag }) {
+    const res = await axios.get(`/api/attributes/traits/${tag}`, {params : {include_input,submission_tag}})
+    return res.data 
+}
+
+export const useGetTrait = (APIParams = { tag, include_input, submission_tag }, useQueryOptions = {staleTime : 30000}) => {
+    return useQuery(["getTrait",APIParams.tag, APIParams.include_input, APIParams.submission_tag],
+        () => getATratByTag_API({ ...APIParams }), useQueryOptions)
+}
+
+
+
+
+
+async function getAttrHierarchy_API({ tags, submission_tag }) {
+    const res = await axios.get(`/api/attributes/hierarchy`, {params : {tags, submission_tag}})
+    return res.data 
+}
+
+
+export const useGetAttributeHierarchy = (APIParams = { tags, submission_tag }, useQueryOptions) => {
+    
+    const tagString = _.join(APIParams.tags, ";")
+    return useQuery(["getAttrHierarchy",tagString, APIParams.submission_tag ],
+        () => getAttrHierarchy_API({ tags : tagString, submission_tag : APIParams.submission_tag}), useQueryOptions)
+}
 
 

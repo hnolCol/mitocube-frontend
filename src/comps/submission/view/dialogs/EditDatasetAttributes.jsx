@@ -1,90 +1,102 @@
-import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Spinner } from "@blueprintjs/core";
-import { useEffect, useMemo, useState } from "react";
-import { mapAttributeTagsToAttributes } from "../../../../services/attributes";
-import { useGetSubmissionAttributesByTag, useGetSubmissionDatasetAttributesByTag } from "../../../../hooks/queries/submission.hooks";
+import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Popover } from "@blueprintjs/core";
+import { useEffect, useState } from "react";
+import { useGetSubmissionDatasetAttributesByTag, usePatchSubmissionDatasetAttributes } from "../../../../hooks/queries/submission.hooks";
 import _ from "lodash"
 import APIError from "../../../core/error/APIerror";
 import Loading from "../../../core/base/loading";
-import DatasetAttributeSelect from "../../new/attribute/select/DatasetAttributes";
-import { groupListByProperty } from "../../../../services/arrays/groupby";
-import { addItemsToArrayByTag, addItemToArrayIfNotPresent, addItemToArrayOrRemoveIfPresentByTag, addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/transforms";
+import { addItemsToArrayByTag, addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../../services/arrays/transforms";
 import DatasetAttributeHierarchy from "../../new/attribute/view/DatasetAttributesHierarchy";
-import { TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
-import { get_proteome_id } from "../../new/InitialSubmission";
+import { TraitWithValueInput, TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
 import { AttributesInput } from "../../../core/input/api/DatasetAttributeInput";
-import { useGetAttributes, useGetDatasetAttributes } from "../../../../hooks/queries/attribute.hooks";
+import { useGetAttributes } from "../../../../hooks/queries/attribute.hooks";
 import attributes from "../../../../types/attributes";
+import { Attribute } from "../../../core/base/attributes/Attribute";
+import { AttributeTraitSelection } from "../../../core/base/attributes/AttributeTraitSelection";
+import { DatasetAttributeView } from "../../../core/base/attributes/DatasetAttributeView";
 
 
+const initDatasetAttributeState = { traits: {},  highlight : [], userUnitInput : {}}
 /**
  * 
  * @param {Object} props 
  * @param {import("../../../../types/submissions").Submission} props.submission
  * @returns 
  */
-export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitted, submission, onClose, onSubmit, error = undefined }) {
-    const [datasetAttributes, setDatasetAttributes] = useState({selection : {}, highlight : [], attributes : []})
+export function EditDatasetAttributeDialog({ isOpen, submission, onClose }) {
+
+
+    const [datasetAttributes, setDatasetAttributes] = useState(initDatasetAttributeState )
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
-    const {data : mandatoryDatasetAttributes } = useGetAttributes({param_name : "mandatory_for_active"})
+    
+    const {mutate: patchSubmission, isLoading: patchSubmissionIsLoading, isSuccess, isError, error, reset} = usePatchSubmissionDatasetAttributes()
+    
+    const { data: mandatoryDatasetAttributes } = useGetAttributes({ param_name: "mandatory_for_active" })
     
     const { data: initialDatasetAttributes,
         isLoading: initDataAttrLoading,
-        isSuccess : initDataAttrIsSuccess,
-        isError : initDataAttrIsError } = useGetSubmissionDatasetAttributesByTag({ tag: submission.tag })
+        isFetching: initDataAttrFetching,
+        isSuccess: initDataAttrIsSuccess,
+        isRefetching : initDataAttrRefetching,
+        isError : initDataAttrIsError, refetch } = useGetSubmissionDatasetAttributesByTag({ tag: submission.tag })
     
-    const { data: attributesByTag, isSuccess: isSuccessAttr, isLoading: isLoadingAttrs, isFetching: isFetchingAttrs } = useGetSubmissionAttributesByTag()
-
+    
     useEffect(() => {
         if (!_.isObject(initialDatasetAttributes)) return
         if (initDataAttrLoading) return
+
         if (submission.tag == initialDatasetAttributes.tag) {
-            const selectedAttributeValues = _.keys(initialDatasetAttributes.tags)
-                .map(attributeTag => [attributeTag, initialDatasetAttributes.tags[attributeTag]
-                    .map(attributeValueTag => initialDatasetAttributes.attribute_values[attributeValueTag])])
 
             setDatasetAttributes(prevValues => {
                 return {
                     ...prevValues,
-                    selection: _.fromPairs(selectedAttributeValues),
+                    traits: initialDatasetAttributes.tags,
                     highlight: [],
-                    attributes: _.values(initialDatasetAttributes.attributes)
+                    attributes: _.keys(initialDatasetAttributes.tags)
                 }
             })
+
         }
-        
-    }, [submission.tag, _.isObject(initialDatasetAttributes), initDataAttrLoading, initDataAttrIsSuccess])
+    }, [submission.tag, _.isObject(initialDatasetAttributes), initDataAttrLoading, initDataAttrIsSuccess, initDataAttrRefetching])
     
 
-    if (isLoadingAttrs || isFetchingAttrs) return <Loading />
-
+    if (initDataAttrLoading || initDataAttrFetching) return <Loading />
     //find attributes that are missing  but are required to be active to show to the user.
-    const missingMandatoryAttributes = _.isObject(mandatoryDatasetAttributes) ? mandatoryDatasetAttributes.attributes.filter(attribute => !_.has(datasetAttributes.selection,attribute.tag)) : []
+    const missingMandatoryAttributes =
+        _.isArray(mandatoryDatasetAttributes) ? mandatoryDatasetAttributes
+            .map(item => item["attribute"])
+            .filter(attribute => !_.has(datasetAttributes.traits, attribute.tag))
+            : []
 
-    const handleDatasetAttributeSelection = (attribute, attributeValue) => {
-        datasetAttributes.selection[attribute.tag] ??= []
-        const updatedAttrValues = addItemToArrayOrRemoveIfPresentByTag({ array: datasetAttributes.selection[attribute.tag], item: attributeValue })
-        //the attribute value was already selected and will be deleted from the selection.
-        if (updatedAttrValues.length === 0) {
-            setDatasetAttributes(prevValues => {
-                return {
-                    ...prevValues,
-                    selection: _.omit(prevValues.selection, attribute.tag),
-                    attributes: prevValues.attributes.filter(attr => attr.tag != attribute.tag)
-                }
-            })
+
+    const handleAttributeSelection = (trait) => {
+
+        const attribute_tag = trait.attribute_tag 
+        let selected_traits = datasetAttributes.traits
+        
+        if (!_.has(selected_traits, attribute_tag)) {
+            selected_traits[attribute_tag] = [trait.tag]
         }
         else {
-            //add attribute if its not there yet to the state to display it in the hierarchy. 
-            const updatedAttributes = addItemsToArrayByTag({ array: datasetAttributes.attributes, item: attribute })
-            setDatasetAttributes(prevValues => {
-                return {
-                    ...prevValues,
-                    selection: _.assign(prevValues.selection, { [attribute.tag]: updatedAttrValues }),
-                    attributes : updatedAttributes, 
-                    highlight : prevValues.highlight.includes(attributeValue.tag)? prevValues.highlight: _.concat(prevValues.highlight, attributeValue.tag)
-                }
-            })
+            selected_traits[attribute_tag] = addStringToArrayOrRemove({ array: selected_traits[attribute_tag], string: trait.tag })
+            if (selected_traits[attribute_tag].length === 0) {
+                delete selected_traits[attribute_tag]
+            }
         }
+        
+        setDatasetAttributes(prevValues => {return {...prevValues, traits : selected_traits}})
+
+    }
+
+    const handleDatasetAttributeSelection = (attribute, attributeValue) => {
+
+        handleAttributeSelection(attributeValue)
+    }
+
+
+    const onUserUnitInput = (userUnitInput) => {
+        
+        setDatasetAttributes(prevValues => { return { ...prevValues, "userUnitInput": {...prevValues["userUnitInput"], ...userUnitInput} }})
+
     }
 
     const resetAlert = () => {
@@ -94,60 +106,102 @@ export function EditDatasetAttributeDialog({ isOpen, isLoading, success, submitt
 
     const handleSubmit = () => {
         //handle sample attribute submit 
-        onSubmit(
-            submission.tag,
-            datasetAttributes.attributes,
-            datasetAttributes.selection,
-            submission.state,
-            submission.state,
-            "Updated dataset attributes."
-        )
+        const updatedDatasetAttributes = {
+            dataset_attributes: datasetAttributes.traits,
+            state_change: {
+                state : submission.state,
+                prev_state: submission.state,
+                comment : ""
+            },
+            dataset_attribute_input : datasetAttributes.userUnitInput
+        }
+
+        patchSubmission({tag : submission.tag, updatedDatasetAttributes, })
     }
 
+    const handleClose = (e) => {
+        reset()
+        onClose()
+    }
+
+    const handleTraitRemove = (trait) => {
+        handleAttributeSelection(trait)
+    }
+
+    const handleReset = (e) => {
+        reset()
+        setDatasetAttributes(initDatasetAttributeState)
+        refetch()
+        
+    }
+
+    const attributeHasDefinedTraits = (attribute_tag) => {
+
+        return _.isObject(datasetAttributes.traits)
+                && _.has(datasetAttributes.traits, attribute_tag)
+                && _.isArray(datasetAttributes.traits[attribute_tag])
+                && datasetAttributes.traits[attribute_tag].length > 0 
+    }
 
     return (
-        <Dialog style={{ minWidth: "min(80vw,900px)", height: "80vh"}} {...{ isOpen }} title="Edit Dataset Attributes" onClose={onClose}>
-            <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
-                onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
-            {submitted ? null : isLoading ? <Loading /> :
-                <div className="no-scroll padding--medium">
+        <Dialog style={{ minWidth: "min(80vw,900px)", height: "80vh" }} {...{ isOpen }} title="Edit Dataset Attributes" onClose={handleClose}>
+            
+            <Alert style={{ minWidth: "700px" }}
+                canEscapeKeyCancel={true}
+                canOutsideClickCancel={true}
+                onConfirm={resetAlert}
+                onClose={resetAlert} {...alertProps} />
+            
+            {initDataAttrLoading || initDataAttrFetching ? <Loading /> :
+            <div className="no-scroll padding--medium">
                 <div className="flex flex-column padding--medium justify-flex-start no-scroll" style={{height : "80vh"}}>
-                <div className="flex flex-column justify-space-between" style={{ height: "13vh"}}>
+                <div className="flex flex-column justify-space-between" style={{ height: "13vh", marginBottom : "1rem"}}>
                     <p>Alter the dataset attributes and submit changes for project <strong>{submission.title}</strong> ({submission.tag})</p>
                     <div class="margin--little">
                         <Callout intent={missingMandatoryAttributes.length > 0 ? "warning" : "primary"}>
-                            {missingMandatoryAttributes.length > 0 ? <div><TagWithTooltip
-                                tagText={missingMandatoryAttributes.length}
-                                tooltipText={_.join(missingMandatoryAttributes.map(attribute => attribute.text), "\n")} /> attributes not defined that are required for an active dataset. </div> :
-                                <div>All attributes defined to publish the dataset.</div>}
+                                    <div >{missingMandatoryAttributes.length > 0 ?<div className="flex">
+                                        <Popover interactionKind="click-target"  content={missingMandatoryAttributes.map(attribute =>
+                                            <AttributeTraitSelection
+                                                key = {attribute.tag}
+                                                attribute_tag={attribute.tag}
+                                                onChange={handleAttributeSelection}
+                                                selected_traits={attributeHasDefinedTraits(attribute.tag) ? datasetAttributes.traits[attribute.tag] : []} />)}>
+                                            <Button minimal small text={missingMandatoryAttributes.length} />
+                                        </Popover>
+                                        <div>attributes not defined that are required for an active dataset. </div> </div>:
+                                <div>All attributes defined to publish the dataset.</div>} </div>
                         </Callout>
                     </div>
-                    <AttributesInput
-                        selectedDatasetAttributes={datasetAttributes.selection}
-                        handleAttributeSelection={handleDatasetAttributeSelection}
-                        min_state={submission.state} />
+                <AttributesInput
+                    selectedAttributes={datasetAttributes.traits}
+                    handleAttributeSelection={handleDatasetAttributeSelection}
+                    min_state={submission.state} />
                 </div>
                 <div>
-                    <div style={{ overflowY: "scroll", height : "55vh"}}>
-                        {_.isArray(datasetAttributes.attributes) && datasetAttributes.attributes.length > 0 ? <DatasetAttributeHierarchy
-                            selectedAttributes={datasetAttributes.attributes}
-                            selectedDatasetAttributeValues={datasetAttributes.selection}
-                            onDatasetAttributeRemove={handleDatasetAttributeSelection}
-                            highlightAttributeValuesByTag={datasetAttributes.highlight}
-                            warnAtTwoAttrValues={false} /> : null
-                        }
-                    </div>
+                    <DatasetAttributeView
+                            submission_tag={submission.tag}
+                            attributeTraits={datasetAttributes.traits}
+                            userUnitInput={datasetAttributes.userUnitInput}
+                            onUserUnitInput={onUserUnitInput}
+                            handleTraitRemove={handleTraitRemove } />
+    
                 </div>
-            </div>
-            </div>}
+                </div>
+                </div>}
+            
             <DialogBody>
-                {submitted ? success ? <p>Success. Dataset attribute were updated successfully.</p>
-                    : <APIError error={error} /> :
-                        isLoading ? <p>Updating submission ...</p> : null}
+                {isSuccess ? <p>Success. Dataset attribute were updated successfully.</p>
+                    : isError ? <APIError error={error} /> : patchSubmissionIsLoading ? 
+                    <p>Updating submission ...</p> : null }
             </DialogBody>
             <DialogFooter actions={<div>
-                <Button text="Submit" onClick={handleSubmit} disabled={isLoading || success || submitted} />
-                <Button text={submitted ? "Done" : "Cancel"} onClick={() => onClose()} intent={submitted ? "danger" : "primary"} disabled={isLoading} />
+                <Button text="" icon="reset" onClick={handleReset}/>
+                <Button
+                    text="Submit"
+                    onClick={handleSubmit}
+                    loading={patchSubmissionIsLoading}
+                    />
+                <Button text={isSuccess ? "Done" : "Cancel"} onClick={() => onClose()} intent={"primary"} disabled={patchSubmissionIsLoading} />
             </div>} />
         </Dialog>
     )

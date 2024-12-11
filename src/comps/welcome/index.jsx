@@ -17,8 +17,11 @@ function Welcome() {
                 <p>{backendInfoLoading || !_.isObject(backendInfo) && _.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
             </div>
             <KeyFigure />
+
+
             {/* <Network /> */}
             <NewsView />
+
         </div>
     )
 }

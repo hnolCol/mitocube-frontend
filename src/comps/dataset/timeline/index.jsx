@@ -1,46 +1,52 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { getAndTransformDatesFromArrayOfObjectsByKey } from "../../../services/arrays/transforms"
 import TimelineChart from "../../core/charts/timeline"
 import { useOutletContext } from "react-router"
-import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
-import { groupListByProperty } from "../../../services/arrays/groupby"
-import { titleFormat } from "../../../services/format/string"
-import { getStateName } from "../../../services/states"
-import { getFormatDateFromTimestamp } from "../../../services/date/format"
-import { StateIndicator } from "../../submission/view/SubmissionContainer"
+import { StateIndicator } from "../../core/base/states/SubmssionState"
+import { useGetTimelineBySubmissionTag } from "../../../hooks/queries/timeline.hooks"
+import { CraetedAt } from "../../core/metrics/CreatedAt"
+import { useEffect } from "react"
+import { Loading } from "../../core/base/states/Loading"
+import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
 
 
 
-function Timeline({ }) {
+function Timeline() {
+    const { submission_tag, metadata, refetchMetaData} = useOutletContext()   
+    const { data: submissionStates, isSuccess : stateIsSuccess } = useGetSubmissionStates()
+    const { data : timeline, isLoading : timelineIsLoading, isFetching : timelineIsFetching, isSuccess : timelineIsSuccess } = useGetTimelineBySubmissionTag({submission_tag})
 
-    const { dataset_label, metadata, submissionStates} = useOutletContext()   
-    
-    const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo()
-    const [m, formatedTime] = getFormatDateFromTimestamp(metadata.created_on)
-    if (!_.isObject(metadata) || !_.isObject(submissionStates) || !_.isObject(users)) return null 
-    const groupedUsers = groupListByProperty(users, "label")
-    const timeline = metadata.timeline 
-    let dataForLineChart = getAndTransformDatesFromArrayOfObjectsByKey({ data: timeline.entries, keyName: "created_on", dateFormat: "YYYYMMDD" })
-    
-    dataForLineChart = dataForLineChart.map(d => {
-        return {
-            ...d,
-            stateName: getStateName({ submissionStates, state: d.state }),
-            user: _.has(groupedUsers,d.user_label)?groupedUsers[d.user_label][0]:{},
-            user_name: _.has(groupedUsers,d.user_label)?`${groupedUsers[d.user_label][0].firstname} ${groupedUsers[d.user_label][0].lastname}`:""
-        }
-    })
-    const colorByStateName = Object.fromEntries(_.keys(submissionStates.colors).map(stateName => [titleFormat(stateName),submissionStates.colors[stateName]]))
-    
+    const metadataLoaded = _.isObject(metadata)
+    useEffect(() => {
+        if (!metadataLoaded)  refetchMetaData()
+    }, [metadataLoaded])
+
+    //map the submission_state(int) to the submission name
+    const timeline_data = timelineIsSuccess && _.isArray(timeline) ?
+        timeline.map(tl => {
+            return {
+                ...tl,
+                "submission_text": submissionStates.states_inv[tl.submission_state]
+            }
+        }) : []
     return (
         <div>
-            <h2>Project Timeline</h2>
-            <p>Project started: <strong>{m.fromNow()}</strong></p>
-            <div className="flex center-items">The current state of the project is : <StateIndicator state={metadata.state} padding="tiny"/></div>
-            <div className="flex center-items">The next state of your project will be :<StateIndicator state={metadata.state + 1} padding="tiny"/> </div>
-            {dataForLineChart.length > 0 ? <TimelineChart data={dataForLineChart} dateName={"asDate"} labelName="stateName" colorName="stateName" tooltipNames={["user_name", "comment"]} colorMapper={colorByStateName} /> : null}
-        </div>
+            {metadataLoaded && stateIsSuccess ? <div>
+                <h2>Project Timeline</h2>
+                <p>Project started: <CraetedAt createdat={metadata.created_at} /></p>
+                <div className="flex center-items">The current state of the project is : <StateIndicator state={metadata.state} padding="tiny" /></div>
+                <div className="flex center-items">The next state of your project will be :<StateIndicator state={metadata.state + 1} padding="tiny" /> </div>
+                {timelineIsFetching || timelineIsLoading ? <Loading /> : timelineIsSuccess ?
+                    <TimelineChart
+                        data={timeline_data}
+                        dateName={"created_at"}
+                        height={800}
+                        labelName="submission_text"
+                        colorName="submission_state"
+                        tooltipNames={["content"]}
+                        colorMapper={submissionStates.colors_inv} /> : null}
+            </div> : null}
+            </div>
     )
 }
 

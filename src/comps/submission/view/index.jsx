@@ -2,7 +2,7 @@
 import { useState } from "react"
 import "../submission.css"
 import _ from "lodash"
-import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions, usePatchSubmission } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions, usePatchSubmissionDatasetAttributes } from "../../../hooks/queries/submission.hooks"
 import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
 import { SubmissionContainer } from "./SubmissionContainer"
@@ -34,7 +34,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         isOpen: false,
         attributeFilter: {},
         prevSelectedAttributes: {},
-        submission: {},
+        submission_tag: undefined,
         newSubmissionState: undefined,
         error : undefined,
         isLoading: false,
@@ -67,7 +67,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     const {data : attributesByTag} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo()
        
-    const {mutate: patchSubmission, isLoading: patchSubmissionIsLoading} = usePatchSubmission()
+    const {mutate: patchSubmission, isLoading: patchSubmissionIsLoading} = usePatchSubmissionDatasetAttributes()
 
     const handleStateChangeAttributeUpdate = (tag, datasetAttributes, datasetAttributeValues, state, prevState, comment = "") => {
         handleSubmissionDatasetAttributeUpdate(tag, datasetAttributes, datasetAttributeValues, state, prevState, comment, setAttributeSelectionDialog)
@@ -122,7 +122,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         <div className="no-scroll">
             <EditMetatextDialog {...metatextDialog} {...{setMetatextDialog}} /> 
             <ChangeSubmissionUserDialog {...changeOwnerDialog} {...{setChangeOwnerDialog}} />
-            <AttributeSelectionDialog {...{ authenticationStatus, attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
+            <AttributeSelectionDialog {...{attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
                 onSubmit={handleStateChangeAttributeUpdate} />
             <EditSamplesAttributeDialog {...samplesAttributesDialog}
                 isOpen={samplesAttributesDialog.isOpen && samplesAttributesDialog.samplesAttributes}

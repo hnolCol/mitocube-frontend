@@ -6,7 +6,7 @@ import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 import { useGetGenotypesByQuery } from "../../../../hooks/queries/genotype.hooks"
 
-export function GenotypeInput({selectedItems = [], attribute, onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true}) {
+export function GenotypeInput({selectedItems = [], attribute = {tag : "att_genotype"}, onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
     const { data: items, isLoading, isFetching } = useGetGenotypesByQuery({ query: debouncedString },

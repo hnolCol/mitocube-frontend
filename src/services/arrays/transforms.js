@@ -53,6 +53,20 @@ export function addItemToArrayOrRemoveIfPresentByTag({ array = [], item = {} }) 
 }
 
 
+/**
+ * @description  Checks if a string is present in an array of strings.
+ * If not it will add it to the array, otherwise remove it. 
+ * @param {Object} props 
+ * @param {String[]} props.array 
+ * @param {String} props.string The  
+ * @returns 
+ */
+export function addStringToArrayOrRemove({ array, string }) {
+    if (!_.isArray(array)) return [string] //add string if array is no array.
+    const index = _.indexOf(array, string)
+    if (index === -1) return _.concat(array, [string])
+    return _.filter(array, s => s !== string)
+}
 
 
 
@@ -105,6 +119,11 @@ export function addItemToArrayIfNotPresent({ array, item }) {
     const itemInArray = isItemInArrayDeepComp({array,item})
     if (itemInArray) return array
     return _.concat(array, [item])
+}
+
+export function isItemInArrayByTag({ array, item }) {
+    
+    return _.some(array.map(i => i.tag === item.tag))
 }
 
 

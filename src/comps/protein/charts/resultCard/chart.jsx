@@ -18,10 +18,9 @@ import { downloadSVG } from "../../../../services/downloads/svg"
 import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
 import Loading from "../../../core/base/loading"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
-import { CategoricalFeaturePlotSelection } from "./chartselection/CategoricalChartSelection"
 import { Card } from "@blueprintjs/core"
 import { redirect, useNavigate } from "react-router"
-
+import { CategoricalChartSelection } from "./chartselection/CategoricalSelection"
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment : "DMSO", Time : "00min"},{ "y": 24.2, Genotype: "WT", Treatment : "Treat", Time : "15min"},{ "y": 24.5, Genotype: "WT", Treatment : "DMSO", Time : "15min"}, { "y": 24.6, Genotype: "KO", Treatment : "Treat", Time : "15min"}, { "y": 25, Genotype: "KO", Treatment : "DMSO", Time : "00min"},{ "y": 25.4, Genotype: "KO", Treatment : "DMSO", Time : "15min"} ,{ "y": 25.2, Genotype: "KO", Treatment : "DMSO", Time : "15min"}, { "y": 24.7, Genotype: "WT" ,Treatment : "DMSO", Time : "15min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" },{ "y": 24, Genotype: "KO" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.2, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 23.4, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y": 24, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y":24.55, Genotype: "KO",  Treatment : "Treat", Time : "15min"  }, { "y": 24.3, Genotype: "KO", Treatment : "Treat" , Time : "00min"  }, { "y": 23.2, Genotype: "WT" , Treatment : "Treat" , Time : "15min" }, { "y": 23.5, Genotype: "WT", Treatment : "Treat", Time : "00min" }],
@@ -201,7 +200,7 @@ function ResultChart({
 
             <div className="flex justify-flex-start flex--wrap">
                 <h4></h4>
-                <CategoricalFeaturePlotSelection {...{keyNames : attributes , selection, onSelectionChange : setSelection, minimal : true} }/>
+                <CategoricalChartSelection {...{keyNames : attributes , selection, onSelectionChange : setSelection} }/>
             {/* <div>
                 <GroupingSelection
                     groupings={groupings}

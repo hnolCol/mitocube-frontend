@@ -22,7 +22,7 @@ import { ScatterLabel } from "./Label"
 import { SearchIndicator } from "../annotations/Search"
 import { ChartTopLeftLabel } from "../profiles/ProfileChart"
 import { NetworkLinks } from "./Links"
-import { Subsetboxplot } from "../boxplot/subsetboxplot/Subsetboxplot"
+import { Subsetboxplot } from "../boxplot/Subsetboxplot"
 
 
 Network.propTypes = {

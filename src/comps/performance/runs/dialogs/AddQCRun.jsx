@@ -7,7 +7,7 @@ import Loading from "../../../core/base/loading";
 
 import _ from "lodash"
 import { useState } from "react";
-import { AttributeTagWithTooltip, TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
+import { TraitWithValueInput, TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
 import { aggregateAttributeValues } from "../../../../services/arrays/groupby";
 
 export function AddQCRunDialog({ isOpen }) {
@@ -77,7 +77,7 @@ export function AddQCRunDialog({ isOpen }) {
             <div className="font-size--smallest">Define mass spectrometer settings, lc-system and column properties.</div>
             <div className="flex">
                 {_.isArray(qcProps.attributes) ?
-                    qcProps.attributes.map(attribute => <AttributeTagWithTooltip attribute={attribute[0]} attributeValue={attribute[1]} onRemove={handleAttributeValueRemove} />)
+                    qcProps.attributes.map(attribute => <TraitWithValueInput attribute={attribute[0]} attributeValue={attribute[1]} onRemove={handleAttributeValueRemove} />)
                     : null}
             </div>
             <h4>Metrices</h4>

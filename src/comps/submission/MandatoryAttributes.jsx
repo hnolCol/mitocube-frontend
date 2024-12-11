@@ -5,19 +5,19 @@ import { FeatureInput } from "../core/input/api/FeatureInput"
 import Loading from "../core/base/loading"
 
 
-export function MandatoryAttributes({proteome_ids, selectedDatasetAttributes, onAttributeValueSelect}) {
+export function MandatoryAttributes({selectedDatasetAttributes, onAttributeValueSelect, submission_state = 0}) {
 
-    const { data: attributes, isLoading, isFetching } = useGetMandatoryAttributes()
+    const { data: attributes, isLoading, isFetching } = useGetMandatoryAttributes({state : submission_state})
     
     return (
         <div>
             {isLoading || isFetching ? <Loading /> :
                 _.isArray(attributes) ? attributes.map(attribute => {
-                    const selectedItems = _.has(selectedDatasetAttributes, attribute.tag) ? selectedDatasetAttributes[attribute.tag] : []
-                    if (attribute.has_features_value) {
-                        return <FeatureInput key={attribute.tag} {...{ attribute, selectedItems, proteome_ids }} onItemSelect={onAttributeValueSelect} />
-                    }
-                    return <AttributeValueInput key={attribute.tag} {...{ attribute, selectedItems }} onItemSelect={onAttributeValueSelect} />
+                    const selectedTraitTags = _.has(selectedDatasetAttributes, attribute.tag) ? selectedDatasetAttributes[attribute.tag] : []
+                    // if (attribute.has_features_value) {
+                    //     return <FeatureInput key={attribute.tag} {...{ attribute, selectedItems, proteome_ids }} onItemSelect={onAttributeValueSelect} />
+                    // }
+                    return <AttributeValueInput key={attribute.tag} {...{ attribute, selectedTraitTags }} onItemSelect={onAttributeValueSelect} />
                 }) : null }
         </div> 
     )

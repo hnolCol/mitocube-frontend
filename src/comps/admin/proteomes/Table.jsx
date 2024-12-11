@@ -7,8 +7,8 @@ import { getFormatDateFromTimestamp } from "../../../services/date/format";
 
 function ProteomeItem({ idx, proteome }) {
     
-    const [m, formatedTime] = getFormatDateFromTimestamp(proteome.created_at/1000)
-    const [modm, modFormatedTime] = getFormatDateFromTimestamp(proteome.modified_at/1000)
+    const [m, formatedTime] = getFormatDateFromTimestamp(proteome.created_at)
+    const [modm, modFormatedTime] = getFormatDateFromTimestamp(proteome.modified_at)
 
     return <div className="padding--little margin--little bg--white div--round"> 
          <div>{formatedTime}. last.modified {modm.fromNow()}</div>
@@ -23,7 +23,6 @@ export function ProteomesView({ }) {
 
     const {isLoading, data} = useGetProteomes()
     
-    console.log(data)
 
     
     return (

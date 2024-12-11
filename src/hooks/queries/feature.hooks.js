@@ -105,3 +105,53 @@ export function useGetFeatureInfo(APIParams = {tag}, useQueryOptions = { }) {
 
 
 
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.tag - The feature tag (e.g. Uniprot ID)
+ * @returns 
+ */
+async function featureFStat_API({ tag }) {
+    const res = await axios.get(`/api/features/${tag}/f`, { })
+    return res.data
+}
+
+export function useGetFeatureFStats(APIParams = {}, useQueryOptions = { }) {
+    return useQuery(["infoFeature",APIParams.tag],() =>  featureFStat_API({...APIParams}), useQueryOptions)
+}
+
+
+
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.tag - The feature tag (e.g. Uniprot ID)
+ * @returns {import("../../types/feature").Feature}
+ */
+async function feature_API({ tag }) {
+    const res = await axios.get(`/api/features/${tag}`, { })
+    return res.data
+}
+export function useGetFeatureByTag(APIParams = {tag }, useQueryOptions = {}) {
+    return useQuery(["feature",APIParams.tag],() =>  feature_API({...APIParams}), useQueryOptions)
+}
+
+
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.tag - The feature tag (e.g. Uniprot ID)
+ * @returns {Object} The distribution of the abundance of the feature across the database
+ */
+async function featureAbundance_API({ tag }) {
+    const res = await axios.get(`/api/features/${tag}/abundance`, { })
+    return res.data
+}
+export function useGetFeatureAbundanceByTag(APIParams = {tag}, useQueryOptions = {}) {
+    return useQuery(["featureAbudannceDist",APIParams.tag],() =>  featureAbundance_API({...APIParams}), useQueryOptions)
+}
+
+
+

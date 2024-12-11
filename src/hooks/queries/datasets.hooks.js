@@ -1,6 +1,6 @@
 import { useQuery } from "react-query";
 import axios from "axios"
-
+import _ from "lodash"
 
 async function getDatasetQC_API({ dataset_tag }) {
     console.log(dataset_tag)
@@ -57,15 +57,15 @@ export const useGetMetaSamples = (APIParams = {}, useQueryOptions = {}) => {
  * @param {string} props.dataset_label - The dataset unique label.
  * @returns {import("../../types/datasets").DatasetPCAResponse} - The API response for a principal component analysis.
  */
-async function getDatasetPCA_API({ dataset_tag }) {
-    const res = await axios.get('/api/datasets/'+dataset_tag+'/pca'
+async function getDatasetPCA_API({ submission_tag }) {
+    const res = await axios.get('/api/datasets/'+submission_tag+'/pca'
     )
     return res.data
 
 }
 
-export const useGetDatasetPCA = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
-    return useQuery(["getDatasetPCA",APIParams.dataset_tag],() => getDatasetPCA_API({...APIParams}), useQueryOptions)
+export const useGetDatasetPCA = (APIParams = {submission_tag}, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["getDatasetPCA",APIParams.submission_tag],() => getDatasetPCA_API({...APIParams}), useQueryOptions)
 }
 
 //// 
@@ -97,32 +97,33 @@ export const useGetDatasetInfo = (datasetInfo = {}, useQueryOptions = {}) => {
 
 // Heatmap for dataset
 
-async function getDatasetHeatmap_API({ dataset_tag }) {
-    const res = await axios.get(`/api/datasets/${dataset_tag}/heatmap`, { params: { }})
+async function getDatasetHeatmap_API({ submission_tag }) {
+    const res = await axios.get(`/api/datasets/${submission_tag}/heatmap`, { params: { }})
     return res.data 
 }
 
-export const useGetDatasetHeatmap = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
-    return useQuery(["getHeatmap", APIParams.dataset_tag], () => getDatasetHeatmap_API({ ...APIParams }), useQueryOptions)
+export const useGetDatasetHeatmap = (APIParams = { submission_tag}, useQueryOptions = {staleTime : Infinity}) => {
+    return useQuery(["getHeatmap", APIParams.submission_tag], () => getDatasetHeatmap_API({ ...APIParams }), useQueryOptions)
 }
 
 
 // Volcano for dataset
 
-async function getDatasetVolcano_API({ dataset_tag, testParams }) {
-    const res = await axios.get(`/api/datasets/${dataset_tag}/volcano`, { params: testParams })
+async function getDatasetVolcano_API({ submission_tag, testParams }) {
+    const res = await axios.get(`/api/datasets/${submission_tag}/volcano`, { params: testParams })
     return res.data 
 }
 
-export const useGetDatasetVolcano = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetDatasetVolcano = (APIParams = {submission_tag, testParams}, useQueryOptions = {}) => {
     return useQuery(["getVolcano",
-        APIParams.dataset_tag,
-        APIParams.attribute_left_tag,
-        APIParams.attribute_right_tag,
-        APIParams.sample_attribute_tag,
-        APIParams.within_attribute_tag,
-        APIParams.within_attribute_value_tag,
-        APIParams.impute], () => getDatasetVolcano_API({ ...APIParams }), useQueryOptions)
+        APIParams.submission_tag,
+        APIParams.testParams.attribute_left_tag,
+        APIParams.testParams.attribute_right_tag,
+        APIParams.testParams.sample_attribute_tag,
+        APIParams.testParams.within_attribute_tag,
+        APIParams.testParams.within_attribute_value_tag,
+        APIParams.testParams.impute,
+        APIParams.testParams.filter_tag], () => getDatasetVolcano_API({ ...APIParams }), useQueryOptions)
 }
 
 
@@ -142,3 +143,19 @@ export const useGetDatasetMitoLoc = (datasetInfo = {dataID : "", token : ""}, us
     console.log(datasetInfo)
     return useQuery(["getMitoLoc",datasetInfo.dataID],() => getDatasetMitoloc_API(datasetInfo), useQueryOptions)
 }
+
+
+
+async function getFeatureCorrelationsInDataset_API({ submission_tag, feature_tag, filter_tag, direction, limit, min_data_points}) {
+   
+    const res = await axios.get(`/api/datasets/${submission_tag}/correlation/${feature_tag}`, { params: {filter_tag, direction, limit, min_data_points}})
+    return res.data 
+}
+
+export const useGetFeatureCorrelationInDataset = (APIParams = { submission_tag, feature_tag, filter_tag, direction, limit, min_data_points }, useQueryOptions = {}) => {
+    return useQuery(["getDatasetFeatureCorrelation",_.join(_.values(APIParams))],() => getFeatureCorrelationsInDataset_API({...APIParams}), useQueryOptions)
+}
+
+
+
+

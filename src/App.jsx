@@ -52,6 +52,9 @@ import DatasetHelp from "./comps/dataset/help";
 import { AdminProteomes } from "./comps/admin/proteomes/Proteomes";
 import { AdminFilterSets } from "./comps/admin/filters";
 import PerformanceRuns from "./comps/performance/runs";
+import DatasetFeatureCorrelation from "./comps/dataset/correlation";
+import { AdminResearchGroup } from "./comps/admin/researchgroup/ResearchGroups";
+import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
 
 //axios defaults
 
@@ -193,13 +196,14 @@ function App() {
           <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <DatasetHeader {...{authenticationStatus, logout}}/>
             </ProtectedRoute>}>
-            <Route path="/datasets/:dataID" element={<DatasetOverview {...{authenticationStatus, logout}}/>} />
-            <Route path="/datasets/:dataID/volcano" element={<DatasetVolcanoPlot {...{authenticationStatus, logout}}/>} />
-            <Route path="/datasets/:dataID/heatmap" element={<DatasetHeatmap {...{authenticationStatus, logout}}/>} />
+            <Route path="/datasets/:dataID" element={<DatasetOverview {...{logout}}/>} />
+            <Route path="/datasets/:dataID/volcano" element={<DatasetVolcanoPlot {...{logout}}/>} />
+            <Route path="/datasets/:dataID/correlation" element={<DatasetFeatureCorrelation {...{ logout }} />} />
+            <Route path="/datasets/:dataID/heatmap" element={<DatasetHeatmap {...{}}/>} />
             <Route path="/datasets/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
             <Route path="/datasets/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
             <Route path="/datasets/:dataID/mitomap" element={<MitomapNetwork />} />
-            <Route path="/datasets/:dataID/timeline" element={<Timeline {...{ authenticationStatus, logout }} />} />
+            <Route path="/datasets/:dataID/timeline" element={<Timeline {...{ logout }} />} />
             <Route path="/datasets/:dataID/runlist" element={<Runlist />} />
             <Route path="/datasets/:dataID/help" element={<div><DatasetHelp /></div>}/>
           </Route>
@@ -250,6 +254,8 @@ function App() {
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
             <Route path="/admin/sets" element={<AdminFilterSets />} />
+            <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
+            <Route path="/admin/phenotypes" element={<AdminPhenotype />} />
             </Route>
           
 

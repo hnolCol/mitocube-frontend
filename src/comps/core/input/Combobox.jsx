@@ -20,6 +20,7 @@ Combobox.propTypes = {
 /**
  * @description - A combobox that allow for the selection of a single item out of multiple options
  * @param {Object} props 
+ * @param {Boolean} props.small - If the appearance should be small. 
  * @param {Object[]} props.items - The items to be displayed. The combobox display each item and represents it by accessing the ```textKey``` and the ```labelKey```. The text is the main name, while the label can display additional info.
  * @param {String} props.value - The selected value which is the string of the text. To find the selected item the ```item[textKey]``` is compared to ```value```.
  * @param {String} props.callbackKey - Optional key that is returned upon selection to help to store the selection by its ```callbackKey```. Please see onChange for more info. 
@@ -31,22 +32,27 @@ Combobox.propTypes = {
  * @param {String} props.textKey - The ```keyName``` used to display the item in items to the user. 
  * @param {String} props.labelKey - The ```keyName``` that is used to display in the label MenuItem
  * @param {Number} props.minQueryLength - The minimal length of a filter query. Defaults to 2. 
+ * @param {String} props.value_suffix A string that is added to the value. 
  * @returns {import("react").ReactElement} The JSX element for a combobox. 
  */
 export function Combobox({
     items,
     onChange,
     value,
+    selectedItems = [],
     placeholder = "Plase select",
     isRequired = true,
     hint = "",
     callbackKey,
+    includeKey = "tag",
     textKey = "text",
     labelKey = undefined,
     disabled = false,
+    small = false,
     formGroupMargin = true,
     matchTargetWidth = false,
-    minQueryLength  = 2,
+    minQueryLength = 2,
+    value_suffix = "",
     buttonProps = {
         minimal : false,
         small : true
@@ -54,21 +60,28 @@ export function Combobox({
     fill = true}) {
 
     const keyNames = [textKey,labelKey].filter(keyName => _.isString(keyName))
+    const sortedItems = selectedItems.length > 0 ? [...items.filter(i => selectedItems.includes(i[includeKey])),
+        ...items.filter(i => !selectedItems.includes(i[includeKey]))] : items
     
     const renderItems = (item, { handleClick, modifiers, query }) => {
         //render items as a Menu item. 
-        const selected = value === item[textKey]
+        let selected = false
+        if (_.isString(value)) {
+            selected = value === item[textKey]
+        }
+        else if (selectedItems.length > 0) {
+            selected = selectedItems.length > 0 && selectedItems.includes(item["tag"])
+        }
         return(
             <MenuItem 
                 key = {item[textKey]} 
                 text={item[textKey]} 
-                labelElement={<div style={{ maxWidth: "10rem", fontSize : "0.75rem"}}>{_.isString(labelKey)?item[labelKey]:""}</div>}
+                labelElement={<div style={{ maxWidth: "10rem", fontSize: "0.75rem" }}>
+                    {_.isString(labelKey) ? item[labelKey] : ""}</div>}
                 onClick={e => {
                     e.stopPropagation()
                     handleClick(e)
-                }
-                } 
-
+                }}
                 multiline={true}
                 intent={selected? "primary" : "blank"} 
                 icon={selected? "small-tick" : "blank"}/>
@@ -89,28 +102,29 @@ export function Combobox({
     }
 
     return (
-        <FormGroup
-            style={formGroupMargin ? {} : {marginBottom : "0px"}}
-            label={hint}
-            labelInfo={isRequired ? "(required)" : "(optional)"}
-            inline={false}
-            helperText={undefined}>
+        // <FormGroup
+        //     style={formGroupMargin ? {} : {marginBottom : "0px"}}
+        //     label={hint}
+        //     labelInfo={isRequired ? "(required)" : "(optional)"}
+        //     inline={false}
+        //     helperText={undefined}>
             <Select
-                fill={fill}
+                fill={true}
                 noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
                 filterable={items.length > 5 ? true : false}
-                items={items}
+                items={sortedItems}
                 resetOnSelect={true}
                 itemListPredicate={filterItems}
                 itemRenderer={renderItems}
                 onItemSelect={onItemSelection}
+                inputProps={{small:small}}
                 popoverProps={{ matchTargetWidth, minimal: true }}
                 popoverContentProps={{
                     onWheelCapture: (event) => event.stopPropagation()
                 }}
                 disabled={disabled}>
-                <Button text={value !== undefined ? value : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
+                <Button text={value !== undefined ? `${value} ${value_suffix}` : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
             </Select>
-        </FormGroup>
+        // </FormGroup>
     )
 }

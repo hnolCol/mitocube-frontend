@@ -70,8 +70,6 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
                                     submission,
                                     contextMenuEnabled : false,
                                     //setAttributeSelectionDialog,
-                                    attributesByTag : attributesByTag.attributes,
-                                    attributeValuesByTag: attributesByTag.attribute_values,
                             minimalView: submissionsQuery.minimalView,
                                     
                                     

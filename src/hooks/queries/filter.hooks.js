@@ -8,14 +8,14 @@ import _ from "lodash"
  * @param {String} props.proteome_id
  * @returns {import("../../types/filter").Filter[]} - The filter found for the given proteome_ids 
  */
-async function getFilters_API({proteome_id, feature_tag}){
+async function getFilters_API({proteome_tag, feature_tag, submission_tag}){
     //fetch availabe features from the API. Reconsider /details 
-    const res = await axios.get("/api/filters", {params : {proteome_id,feature_tag}} )
+    const res = await axios.get("/api/filters", {params : {proteome_tag,feature_tag, submission_tag}} )
     return res.data
 }
 
-export function useGetFilters (APIParams = {proteome_id, feature_tag}, useQueryOptions = {}) {
-    return useQuery(["getFilters",APIParams.proteome_id,APIParams.feature_tag],() =>  getFilters_API({...APIParams}), useQueryOptions)
+export function useGetFilters (APIParams = {proteome_tag, feature_tag, submission_tag}, useQueryOptions = {}) {
+    return useQuery(["getFilters",APIParams.proteome_tag,APIParams.feature_tag, APIParams.submission_tag],() =>  getFilters_API({...APIParams}), useQueryOptions)
 }
 
 

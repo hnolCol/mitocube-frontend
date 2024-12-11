@@ -1,41 +1,65 @@
 import React from "react";
 import PropTypes from 'prop-types';
 import _ from "lodash";
-
-Point.propTypes = {
-    idx : PropTypes.number, //index for point
-    xscale: PropTypes.func,
-    yscale: PropTypes.func,
-    p : PropTypes.array,
-    r : PropTypes.number, //circle radius 
-    defaultCircleFill: PropTypes.string,
-    fillGreaterZero : PropTypes.string,
-    fillSmallerZero : PropTypes.string,
-
-}
+import { isPropHexColorString } from "../../types/checks/color";
 
 
-function Point({idx,p, r = 4, opacity = 0.95,  fill = "red", stroke="#262626", strokeWidth = 1,  circleProps = {}, mouseOver, mouseOverParams = {dataID : "2"}}) {
-  /* render using props */
+/**
+ * @description Renders a point in a SVG. Utilizes memorization to avoid rerendering. Updates only 
+ * if the radius, the fill, the opacity, or the coordinates change. 
+ * @param {Object} props
+ *  
+ * @returns 
+ */
+function Point({idx, p, r, opacity,  fill, stroke, strokeWidth,  circleProps, mouseOver, mouseOverParams}) {
     const xValue = p[0]
     const yValue = p[1]
+ 
     return( 
         <circle 
             key={`${idx}-pp`} 
-            cx={xValue}  //move scale outsite? 
-            cy={yValue}  //move scale outsite?  // p[2]?p[0]>0?"#ea563c":"#7894a2":defaultCircleFill
+            cx={xValue}  
+            cy={yValue}  
             onMouseOver={_.isFunction(mouseOver)?e => mouseOver(e,idx,mouseOverParams):undefined}
-            {...{opacity,fill, r, stroke, strokeWidth}}
+            {...{
+                opacity,
+                fill,
+                r,
+                stroke,
+                strokeWidth
+            }}
             {...circleProps}/>
     )
   }
 
+Point.defaultProps = {
+    r: 4,
+    opacity: 0.95,
+    fill: "red",
+    stroke: "#262626",
+    strokeWidth: 1,
+    circleProps: {}
+}
+
+
+Point.propTypes = {
+    idx: PropTypes.number,
+    p: PropTypes.array.isRequired,
+    r: PropTypes.number,
+    opacity: PropTypes.number,
+    fill: isPropHexColorString,
+    strokeWidth: PropTypes.number,
+    mouseOver: PropTypes.func,
+    mouseOverParams: PropTypes.object
+}
+  
 
   function areEqual(prevProps, nextProps) {
     /*
-    return true if passing nextProps to render would return
+    Return true if passing nextProps to render would return
     the same result as passing prevProps to render,
-    otherwise return false
+    otherwise return false. 
+    Checks for radios, fill color, opacity and the point position. 
     */
     if (prevProps.r !== nextProps.r) return false 
     if (prevProps.fill !== nextProps.fill) return false 
@@ -43,8 +67,6 @@ function Point({idx,p, r = 4, opacity = 0.95,  fill = "red", stroke="#262626", s
     if (prevProps.p[0] !== nextProps.p[0]) return false
     if (prevProps.p[1] !== nextProps.p[1]) return false
 
-    //if (!_.isEqual(prevProps.p,nextProps.p)) return false 
-   // if (!_.isEqual(prevProps.xscale.domain,nextProps.xscale.domain)) return false 
     return true
   }
   export default React.memo(Point, areEqual);

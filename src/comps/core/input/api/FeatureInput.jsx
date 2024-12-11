@@ -7,18 +7,17 @@ import _ from "lodash"
 import { FeatureMenuItem } from "../items/FeatureMenu"
 
 
-export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true, small = false, allowUndefinedProteomes = false, debounceDelay = 200}) {
+export function FeatureInput({selectedItems = [], onItemSelect, attribute, proteome_ids, isRequired = true, helperText = "", inline = false, showLabel = true, allowUndefinedProteomes = false, debounceDelay = 200, rightElement}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,debounceDelay)
     const { data: items, isLoading, isFetching } = useGetFeatureByQuery({ query: debouncedString, proteome_ids},
         { enabled: debouncedString.length > 0 })
     
-    const disabled = allowUndefinedProteomes ? false : !_.isArray(proteome_ids) ||  !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
+    const disabled = allowUndefinedProteomes ? false : !_.isArray(proteome_ids) || !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
+    
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
 
-        return <FeatureMenuItem {...{feature : item, onClick : handleClick,active : modifiers.active}} />
-        return <MenuItem key={`${item.key}-${index}`} text={item.gene_name} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{item.key}</h4><p>{item.protein_name}</p></div><div>{item.proteome_id}</div></div>}/>
+        return <FeatureMenuItem key={item.tag} {...{feature : item, onClick : handleClick, active : modifiers.active}} />
     }
     /**
      * @description Handles the item selection 
@@ -41,7 +40,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
     }
 
     return <FormGroup
-    style={{margin : "0.1rem"}}
+    style={{ marginBottom : "0px" }}
     label={showLabel && _.has(attribute,"text")?attribute.text:undefined}
     labelInfo={isRequired ? "(required)" : "(optional)"}
     inline={inline}
@@ -58,13 +57,13 @@ export function FeatureInput({selectedItems = [], onItemSelect, attribute, prote
             onRemove={handleItemSelection}
             resetOnSelect={true}
             query={queryString}
-            fill = {true}
+            fill={true}
             onQueryChange={(query) => setQueryString(query)}
             popoverProps={{ minimal: true, matchTargetWidth: false }}
             menuProps={{style : {minWidth:"700px"}}}
             tagInputProps={{
-                rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
-                inputProps : {intent : "primary"},
+                rightElement : rightElement!==undefined? rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary"/>,
+                inputProps: { intent: "primary" },
                 tagProps: { minimal: true }
             }}
             initialContent={_.isArray(items) && selectedItems.length === 0 ? <MenuItem text="Search starts on typing.." disabled={true} /> : null }

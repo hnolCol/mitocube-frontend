@@ -15,7 +15,9 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Users", to: "/admin/users" },
                 { text: "Genotypes", to: "/admin/genotypes" },
                 { text: "Proteomes", to: "/admin/proteomes" },
-                { text: "Filter sets", to: "/admin/sets"},
+                { text: "Filter sets", to: "/admin/sets" },
+                { text: "Research Group", to: "/admin/researchgroup" },
+                { text: "Phenotype", to: "/admin/phenotypes"},
                 { text: "ShareToken", to: "/admin/sharetoken" }]} />
                 
                 <div className="no-scroll div--expand">

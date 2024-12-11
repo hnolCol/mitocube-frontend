@@ -18,9 +18,7 @@ import { GenotypeInfo } from "./GenotypeNomenclatureInfo"
 import { constructGenotypeName } from "../../../services/genotypes"
 import { useGetAttributeValues } from "../../../hooks/queries/attribute.hooks"
 
-const AMINO_ACIDS = new Set(["A","G","C","T","S","W","Y","N","D","E","I","L","M","V","P","F","H","K","R"])
-
-
+const AMINO_ACIDS = new Set(["A","G","C","T","S","W","Y","N","D","E","I","L","M","V","P","F","H","K","R","Q"])
 
 function GenotypeAttributeSelection({
             attrIdx = 0,
@@ -53,7 +51,7 @@ function GenotypeAttributeSelection({
      */
     const handleSelection = (attribute, attrValue, attrMutationValue,attrIdx) => {
         // change this. //handleGenotypePositionSelection
-        console.log(attrValue)
+
         const positionSelectionAttributeValue = attrValue.tag === "att_protein_position:aa" || attrValue.tag === "att_protein_position:region"
         if (positionSelectionAttributeValue) {
             handlePositionSelection(

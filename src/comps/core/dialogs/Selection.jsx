@@ -21,5 +21,14 @@ function SelectionDialog({title="Selection", isOpen = false, children, onApply, 
     )
 }
 
+SelectionDialog.defaultProps = {
+    title: "Selection"
+}
+
+SelectionDialog.propTypes = {
+
+}
+
+
 
 export default SelectionDialog

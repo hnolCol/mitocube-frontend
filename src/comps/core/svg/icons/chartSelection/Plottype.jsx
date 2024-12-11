@@ -3,7 +3,7 @@
 import { getColorPalette } from "../../../colors/colorPalette"
 import _ from "lodash"
 import IconBase from "./Base"
-import Box from "../../../charts/boxplot/cached_box"
+import Box from "../../../charts/boxplot/Box"
 
 function PlottypeIcon({ height, placeholder = "", items = [{ text: "Menu1" }], plotType = "barplot", colorIdx = 0, callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
     

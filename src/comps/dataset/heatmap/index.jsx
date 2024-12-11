@@ -6,20 +6,20 @@ import InteractiveChart from "../../core/charts/interactive";
 import { InputGroup } from "@blueprintjs/core";
 import _ from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
+
+
+
+
 function DatasetHeatmap({}) {
     
-    const { dataset_tag, metadata } = useOutletContext()   
+    const { submission_tag } = useOutletContext()   
   
-   // const anovaDetails = { pvalue: 0.05, anovaType: "1-way ANOVA", grouping1: "Genotype" }
-    
-    const { data : heatmapData, isLoading, isFetching, isError, error } = useGetDatasetHeatmap({dataset_tag})
-   // const {data : heatmapData, isLoading : heatmapIsLoading, isError : heatmapIsError, error : heatmapError} = useGetDatasetHeatmap({dataID,token,anovaDetails},{staleTime : 300000})
+    const { data : heatmapData, isLoading, isFetching, isError, error } = useGetDatasetHeatmap({submission_tag})
 
-    // console.log(heatmapData)
      if (isError) return <APIError error={error} />
      if (isLoading || isFetching) return <div>Loading...</div>
      
-    
+    if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData,"cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
@@ -47,14 +47,8 @@ function DatasetHeatmap({}) {
                     yaxisName,
                     valid,
                     limits,
-                    handleItemSelection,
-                    findIndexInRectangle,
-                    findDataInRectangle,
-                    setHoverDataInRectangle,
-                    handleNumericFilter,
                     handleStringSearch,
                     handleSearchByDataIndex,
-                    filterDataInKeyByValue,
                     setHoverDataByDataIndex,
                     hoverProps,
                     filterProps
@@ -75,38 +69,6 @@ function DatasetHeatmap({}) {
                                     }} />
                             </div>
 
-                            {/* <ProfileChart {...{
-                                chartIdx, data,
-                                yaxisLabel: "Z-Score",
-                                xaxisLabel: "Samples",
-                                ...hoverProps, ...filterProps,
-                                limits, xaxisName, yaxisName, valid, labelNames: heatmapData.label_names,
-                            }} /> */}
-                            
-                        {/* <ScatterPlot key={`${chartIdx}`}{...{
-                            chartIdx,
-                            colorName: selection.colorName,
-                            sizeName: selection.sizeName,
-                            tooltipNames : selection.tooltipNames,
-                            data,
-                            valid,
-                            findDataInRectangle,
-                            setHoverDataInRectangle,
-                            xaxisName,
-                            yaxisName,
-                            limits,
-                            tooltipSmall : false,
-                            tooltipNames : _.concat(["index"],sampleAttributeNames),
-                            ...hoverProps,
-                            ...filterProps,
-                            attributesByTag,
-                            legend: true,
-                                handleSearchByDataIndex,
-                                filterDataInKeyByValue,
-                            svgID : "scatter_plot-pca-projection"
-                        
-                        
-                            }} /> */}
                                 <div style={{overflowY:"scroll", gridColumn:2,gridRow:1, height:"1fr"}}>
                                     <Heatmap {...{
                                         data,

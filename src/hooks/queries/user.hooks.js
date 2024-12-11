@@ -4,20 +4,37 @@ import _ from "lodash"
 
 // get users
 
-async function getUsers_API({ tokenString }) {
-    const res = await axios.get('/api/users/full',
-      {
-          headers: {
-              "Authorization": `Bearer ${tokenString}`,
-              'Content-Type': 'application/json'
-          }
-        })
+// async function getUsers_API({ tokenString }) {
+//     const res = await axios.get('/api/users/full',
+//       {
+//           headers: {
+//               "Authorization": `Bearer ${tokenString}`,
+//               'Content-Type': 'application/json'
+//           }
+//         })
+//     return res.data
+// }
+
+// export const useGetUsers = (APIParams = {}, useQueryOptions = {}) => {
+//     return useQuery(["getUsers"],() =>  getUsers_API({...APIParams}), useQueryOptions)
+// }
+
+
+async function getUsers_API({limit}) {
+    const res = await axios.get('/api/users', {params : {limit}})
     return res.data
 }
 
-export const useGetUsers = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getUsers"],() =>  getUsers_API({...APIParams}), useQueryOptions)
+
+export const useGetAllUserTags = (APIParams = { limit : 99999}, useQueryOptions = {}) => {
+    return useQuery(["getUsersTags", APIParams.limit],() =>  getUsers_API({...APIParams}), useQueryOptions)
 }
+
+
+
+
+
+
 
 /**
  * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
@@ -63,7 +80,7 @@ async function getPublicUsersByQuery_API({ query, }) {
     return res.data
 }
 
-export const useGetPublicUserByQuery = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
+export const useGetPublicUserByQuery = (APIParams = {}, useQueryOptions = {staleTime: 500000}) => {
     return useQuery(["getPublicUserInfoQuery",APIParams.query],() =>   getPublicUsersByQuery_API({...APIParams}), useQueryOptions)
 }
 

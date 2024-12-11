@@ -14,12 +14,13 @@ import { useTooltip, useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { millisecondsToDays } from "../../../../services/format/dates";
 import PropTypes from "prop-types"
+import { checkFullMargin } from "../../types/checks/chart";
 
 
 TimelineChart.propTypes = {
     width: PropTypes.number,
     height: PropTypes.number,
-    margins: PropTypes.object,
+    margins: checkFullMargin,
     data: PropTypes.array.isRequired,
     dateName: PropTypes.string,
     labelName: PropTypes.string,
@@ -27,6 +28,14 @@ TimelineChart.propTypes = {
     r : PropTypes.number
 }
 
+/**
+ * 
+ * @param {Object} props 
+ * @param {Number} props.width 
+ * @param {Number} props.height 
+ * @param {Object} 
+ * @returns 
+ */
 function TimelineChart({
     width = 350,
     height = 300,
@@ -96,11 +105,11 @@ function TimelineChart({
         })
 
     }, [dateName, chartHeight, sortedData])
-    
+
     return (
         <div className="flex">
         <SVG {...{ width, height, svgRef : containerRef }}>
-            {sortedData.length > 1 ?
+            {sortedData.length > 0 ?
                 <g>
                         <AxisLeft scale={timeScale} left={margins.left} numTicks={8} tickLength={2}/>
                         <AxisBackground x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} />
@@ -112,8 +121,8 @@ function TimelineChart({
                         var prevData = idx>0?sortedData[idx - 1]:undefined
                         var y1 = idx > 0 ? timeScale(prevData[dateName]) + linePointMargin : undefined
                         var y2 = y - linePointMargin
-                        var distance = idx > 0 ? d[dateName].getTime() - prevData[dateName].getTime() : undefined
-                        var distanceToFirstItem = d[dateName].getTime() - sortedData[0][dateName].getTime()
+                        var distance = idx > 0 ? d[dateName] - prevData[dateName] : undefined
+                        var distanceToFirstItem = d[dateName] - sortedData[0][dateName]
                         return (
                             <g key={`${idx}-dPoint`}>
                                 {idx > 0 ?
@@ -152,7 +161,7 @@ function TimelineChart({
                                     </div>)}
                                     onMouseOut={hideTooltip}
                                     {...{ cx: xCenter, cy: y, r, fill: _.has(d, colorName) ? colorScale(d[colorName]) : "red", stroke: "black", strokeWidth: 0.5 }} />
-                                <AnimatedText x={xCenter + labelMargin} y={y} text={d[labelName]} delay={0.5 + idx + (0.5 * idx)} duration={0.5} textAnchor={labelRight ? "start" : "end"} reverse={!labelRight} />
+                                {/* <AnimatedText x={xCenter + labelMargin} y={y} text={d[labelName]} delay={0.5 + idx + (0.5 * idx)} duration={0.5} textAnchor={labelRight ? "start" : "end"} reverse={!labelRight} /> */}
                                 
                                 
                             </g>
