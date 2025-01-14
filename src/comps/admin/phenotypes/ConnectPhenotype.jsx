@@ -46,10 +46,11 @@ export function ConnectPhenotype({ }) {
                 For example, define the cellline, a method of how you quantified the phenotype. The goal is to find common protein regulations across datasets. 
 
             </div>
+            <div className="flex flex-column" style={{ maxWidth: "max(33vw,300px)" }}>
             <h4>Attributes</h4>
-            <AttributesInput selectedAttributes={phenotype.attributes} min_state={5} min_search_string_length={0} handleAttributeSelection={handleAttributeChange} />
+            <AttributesInput selectedAttributes={phenotype.attributes} min_state={5} min_search_string_length={0} handleAttributeSelection={handleAttributeChange} matchTargetWidth={false} />
             <DatasetAttributeView attributeTraits={phenotype.attributes} handleTraitRemove={handleTraitRemove} />
-        
+            </div>
 
         </div>
         </div>)

@@ -70,6 +70,11 @@ export function addStringToArrayOrRemove({ array, string }) {
 
 
 
+export function addStringToArray({ array, string }) {
+    if (!_.isArray(array)) return [string] 
+    return _.concat(array, [string])
+}
+
 
 
 

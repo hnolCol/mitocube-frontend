@@ -4,7 +4,7 @@ import { Text } from "@visx/text"
 import { FilterSVG } from "../../svg/icons/chartSelection/Filter"
 import { isPropHexColorString } from "../../types/checks/color"
 import { checkFullMargin } from '../../types/checks/chart'
-import { checkPropIsSet } from '../../types/checks/data'
+import { isPropSet } from '../../types/checks/data'
 
 
 export function FilterIndicator({ width, margins, searchIndices, iconSize, textOffset, activeColor}) {
@@ -27,7 +27,7 @@ FilterIndicator.defaultProps = {
 FilterIndicator.propTypes = {
     width: PropType.number.isRequired,
     margins: checkFullMargin, 
-    searchIndices: checkPropIsSet, 
+    searchIndices: isPropSet, 
     iconSize: PropType.number,
     textOffset: PropType.number,
     activeColor: isPropHexColorString

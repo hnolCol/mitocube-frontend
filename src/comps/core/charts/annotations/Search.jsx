@@ -3,7 +3,7 @@ import { Group } from "@visx/group"
 import { Text } from "@visx/text"
 import { SearchSVG } from "../../svg/icons/chartSelection/Search"
 import { checkFullMargin } from '../../types/checks/chart'
-import { checkPropIsSet } from '../../types/checks/data'
+import { isPropSet } from '../../types/checks/data'
 
 /**
  * @description A text with icon that indicates the result of search. Mainly it should be used to present the 
@@ -33,7 +33,7 @@ SearchIndicator.defaultProps = {
 SearchIndicator.propTypes = {
     width: PropType.number.isRequired,
     margins: checkFullMargin, 
-    searchIndices: checkPropIsSet, 
+    searchIndices: isPropSet, 
     searchString: PropType.string.isRequired,
     iconSize: PropType.number,
     textOffset: PropType.number

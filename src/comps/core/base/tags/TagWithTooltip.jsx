@@ -10,6 +10,7 @@ import { useEffect, useState } from "react"
 import { isHexColorLight } from "../../../../services/colors"
 import { TraitValueWithUnitType } from "../traits/TraitValueWithUniType"
 import { RemoveButton } from '../buttons/RemoveButton'
+import PropTypes from 'prop-types'
 
 export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false }) {
     
@@ -37,6 +38,11 @@ export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false
 }
 
 
+TraitWithValueInput.propTypes = {
+    trait_tag : PropTypes.string.isRequired
+}
+
+
 /**
  * @description 
  * @param {Object} props 
@@ -54,14 +60,16 @@ export function TraitWithValueInput({
         onRemove = undefined,
         popoverPosition = "top",
         highlight = false,
+        suffix = "",
+        prefix = "",
         submission_tag,
         onUserUnitInput,
-        unitInput }) {
+    unitInput }) {
     const [isOpen,setIsOpen] = useState(false) //controlled popover
     const { data: attribute, isLoading, isFetching, isSuccess } = useGetAttribute({ tag: attribute_tag })
     const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = useGetTrait({ tag: trait_tag, include_input: _.isString(submission_tag), submission_tag }, {enabled : _.isString(trait_tag)})
-    
-    //handle data input 
+
+    //handle data input
     const hasInput = _.has(unitInput, [attribute_tag, trait_tag]) && !_.isEmpty(unitInput[attribute_tag][trait_tag])
     const inputByUser = hasInput ? unitInput[attribute_tag][trait_tag] : {}
     const unittypes = !_.isEmpty(inputByUser)? _.keys(inputByUser).map(unittype  => _.isArray(inputByUser[unittype].value) ? _.join(inputByUser[unittype].value.map(v => v.gene_name),";"): `${inputByUser[unittype].value} ${inputByUser[unittype].unit_text}`): []
@@ -119,7 +127,7 @@ export function TraitWithValueInput({
                     hoverCloseDelay={100}
                     position={popoverPosition}>
                         <div className="flex">
-                        <div>{trait.text}{unitString.length > 0 ? ` (${unitString})` : null}</div>
+                            <div>{prefix.length > 0 ? `${prefix} ` : null}{trait.text}{unitString.length > 0 ? ` (${unitString})` : null}{suffix.length > 0? `${suffix}` : null}</div>
                         {attribute.has_unit && !hasInput ?<div className="intent-margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div>: null}
                         </div>
                     </Popover>

@@ -56,3 +56,24 @@ export const useDeleteGenotype = (useMutationOptions = {}) => {
 
 
 
+/**
+ * 
+ * @param {Object} props
+ * @returns {import("../../types/genotypes").GenotypeResponse} - The genotype
+ */
+async function getGenotypeByTag_API({ tag }) {
+    const res = await axios.get(`/api/genotypes/${tag}`)
+    return res.data
+}
+
+export const useGetGenotypeByTag = (APIParams = {tag}, useQueryOptions = { staleTime : 30000 })  => {
+    return useQuery(["getGenotypeByTag",APIParams.tag],() =>  getGenotypeByTag_API({...APIParams}), useQueryOptions)
+}
+
+
+
+
+
+
+
+

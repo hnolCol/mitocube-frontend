@@ -52,17 +52,17 @@
     cursor: default;
     /* border-radius: 0.25rem; */
     margin-top : 0.3rem;
-    box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
-    transition: 0.3s;
+    /* box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2); */
+    /* transition: 0.3s; */
     width : 100%;
     min-height: 2rem;
     
 }
 .submission__item__container:hover {
     background-color :#fff;
-    transition-property: background-color;
-    transition-duration: 400ms;
-    box-shadow: 0 5px 13px 0 rgba(0,0,0,0.2);
+    /* transition-property: background-color; */
+    /* transition-duration: 400ms; */
+    /* box-shadow: 0 5px 13px 0 rgba(0,0,0,0.2); */
 }
 
 .submission__state__header{

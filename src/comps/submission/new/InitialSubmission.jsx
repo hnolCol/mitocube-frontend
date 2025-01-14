@@ -16,7 +16,6 @@ import MetaText from "./MetaText"
 import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage} from "../../../services/localstorage"
 import DatasetLinks from "./Links"
 import { getRandomID } from "../../../services/random"
-import { PositionSelection } from "./Genotype"
 import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
 import { constructSampleNames } from "../../../services/samples"
 
@@ -30,6 +29,7 @@ import { extractTagsFromFeature } from "../../../services/unit/traverse"
 import { indexStrings } from "../../../services/arrays"
 import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttributeView"
 import { GenotypeGen } from "../genotype/GenotypeGenerator"
+import { SubmissionPanelStack } from "./panels/TabStack"
 //move to service
 export function get_proteome_id(datasetAttributeValues) {
     return _.has(datasetAttributeValues,"att_proteome") && datasetAttributeValues["att_proteome"].length > 0? datasetAttributeValues["att_proteome"].map(attributeValue => attributeValue.tag) : []
@@ -40,16 +40,20 @@ export function get_proteome_id(datasetAttributeValues) {
 
 const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
-            tag : "",
+    tag: "",
+    numberReplicates: 0,
+    sampleNumber: 0, 
+            
             replicates : [],
             sampleNames: [],
+            sampleNamesFixed: false,
             collaborators : [],
             attributeTable: [],
             samplesAttributes: [],
             metatext: {},
             genotypes: {},
             links : [{id : randomInitLinkID, link : "", comment : ""}],
-            attributes: {sampleNumber : 0, replicates : 0},
+            // attributes: {sampleNumber : 0, replicates : 0},
             datasetAttributeValues: {},
             datasetAttributes: [],
             genotypeAttributes : [],
@@ -60,7 +64,6 @@ const initSubmissionState = {
 }
             
 function InitialSubmission({
-    authenticationStatus,
     logout,
     sampleNames = [],
     loadingFileProps,
@@ -101,11 +104,17 @@ function InitialSubmission({
     useEffect(() => {
         loadSubmission()
     }, [])
+
+    useEffect(() => {
+        if (preDefinedSampleNames) {
+            setSubmission(prevValues => {return {...prevValues, sampleNamesFixed : true}})
+        }
+    }, [preDefinedSampleNames])
     
     useEffect(() => {
 
         //handle changes that effect the samples names 
-        const sampleNumber = parseInt(submission.attributes.sampleNumber)
+        const sampleNumber = parseInt(submission.sampleNumber)
         if (!_.isNumber(sampleNumber)) return 
         if (!_.isString(tag )) return
         //adjust attribute table 
@@ -131,16 +140,16 @@ function InitialSubmission({
 
         setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, tag , rerenderTableDependency : [Math.random()]}})
 
-    }, [submission.attributes.sampleNumber, tag ])
+    }, [submission.sampleNumber, tag ])
     
 
-    const onSubmssionRequest = () => {
+    const onSubmissionRequest = () => {
         // check the submisison before sending it to the API 
         // note that the API should also do its own checking. 
 
         let errMsgs = [] //collect error messages
         const numberSamples = submission.sampleNames.length
-        const maxReplicateID = _.toInteger(submission.attributes.replicates)
+        const maxReplicateID = _.toInteger(submission.numberReplicates)
         const validReplicates = submission.replicates.filter((rep, idx) => _.isNumber(rep) && idx < numberSamples && rep <= maxReplicateID)
         const numberReplicates = validReplicates.length
         const attributeTable = submission.attributeTable.slice(0, numberSamples)
@@ -259,7 +268,7 @@ function InitialSubmission({
             submissionDetails["collaborators"] = submission.collaborators.map(u => u.tag)
             submissionDetails["samplesAttributes"] = indexStrings(sampleAttributeTags)
             submissionDetails["tag"] = tag 
-            submissionDetails["title"] = flexAttributes.title 
+            submissionDetails["title"] = submission.title 
             submissionDetails["replicates"] = validReplicates
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
             submissionDetails["includes_data"] = submitExistingData
@@ -367,77 +376,56 @@ function InitialSubmission({
     }
 
 
-    const onInputChange = (inputTag, inputValue) => {
-        // handles the change of an attribute / attributeValue combination 
-        let submissionAttributes = submission.attributes
-        submissionAttributes[inputTag] = inputValue
-
-        setSubmission(prevValues => {
-            {
-                return { ...prevValues, attributes: submissionAttributes }
-            }
-        })
-    }
-
-    const onMetaTextChange = (tag, text) => {
-        //handles changes in the metatext 
-        let metatext = submission.metatext
-        metatext[tag] = text
-        setSubmission(prevValues => {return {...prevValues,metatext}})
+    
+    // const onMetaTextChange = (tag, text) => {
+    //     //handles changes in the metatext 
+    //     let metatext = submission.metatext
+    //     metatext[tag] = text
+    //     setSubmission(prevValues => {return {...prevValues,metatext}})
         
-    }
+    // }
 
-    /**
-     * 
-     * @param {import("../../../types/feature").Feature} feature 
-     */
-    const handlePositionSelection = (feature, singlePosition = true, aaSubstitution = false, onSave, onSaveProps) => {
-        setAlertProps({
-            isOpen: true,
-            confirmButtonText : "Cancel",
-            children : <PositionSelection {...{feature, singlePosition, aaSubstitution, onSave, onSaveProps, onClose : () => setAlertProps({isOpen : false})}}/>
-        })
+    // /**
+    //  * 
+    //  * @param {import("../../../types/feature").Feature} feature 
+    //  */
+    // const handlePositionSelection = (feature, singlePosition = true, aaSubstitution = false, onSave, onSaveProps) => {
+    //     setAlertProps({
+    //         isOpen: true,
+    //         confirmButtonText : "Cancel",
+    //         children : <PositionSelection {...{feature, singlePosition, aaSubstitution, onSave, onSaveProps, onClose : () => setAlertProps({isOpen : false})}}/>
+    //     })
         
-    }
+    // }
 
 
-    /**
-     * @description Handle dataset selection 
-     * @param {*} attribute - Historically - should be removed. 
-     * @param {*} trait - The actual trait that was selected. 
-     */
-    const handleDatasetAttributeSelection = (attribute, trait) => {
-        const attribute_tag = trait.attribute_tag 
-        let selected_traits = submission.datasetAttributeValues
+    // /**
+    //  * @description Handle dataset selection 
+    //  * @param {*} attribute - Historically - should be removed. 
+    //  * @param {*} trait - The actual trait that was selected. 
+    //  */
+    // const handleDatasetAttributeSelection = (attribute, trait) => {
+    //     const attribute_tag = trait.attribute_tag 
+    //     let selected_traits = submission.datasetAttributeValues
         
-        if (!_.has(selected_traits, attribute_tag)) {
-            selected_traits[attribute_tag] = [trait.tag]
-        }
-        else {
+    //     if (!_.has(selected_traits, attribute_tag)) {
+    //         selected_traits[attribute_tag] = [trait.tag]
+    //     }
+    //     else {
             
-            selected_traits[attribute_tag] = addStringToArrayOrRemove({ array: selected_traits[attribute_tag], string: trait.tag })
-            if (selected_traits[attribute_tag].length === 0) {
-                delete selected_traits[attribute_tag]
-            }
-        }
-        setSubmission(prevValues => { return {...prevValues, datasetAttributeValues : selected_traits}})
-    }
+    //         selected_traits[attribute_tag] = addStringToArrayOrRemove({ array: selected_traits[attribute_tag], string: trait.tag })
+    //         if (selected_traits[attribute_tag].length === 0) {
+    //             delete selected_traits[attribute_tag]
+    //         }
+    //     }
+    //     setSubmission(prevValues => { return {...prevValues, datasetAttributeValues : selected_traits}})
+    // }
 
-    const handleCollaboratorSelection = (callback, selectedUser) => {
-        //save collaborations that are seleted
-        setSubmission(prevValues => {return{...prevValues, collaborators : addItemToArrayOrRemoveItIfPresent({array : prevValues.collaborators, item : selectedUser})}})
-    }
+    // const handleCollaboratorSelection = (callback, selectedUser) => {
+    //     //save collaborations that are seleted
+    //     setSubmission(prevValues => {return{...prevValues, collaborators : addItemToArrayOrRemoveItIfPresent({array : prevValues.collaborators, item : selectedUser})}})
+    // }
 
-    const addLink = () => {
-        // add a new link
-        const linkID = getRandomID(5)
-        setSubmission(prevValues => {return {...prevValues,links : _.concat(submission.links, [{link : "", comment : "", id : linkID }])}})
-    }
-
-    const removeLinkByIndex = (linkIdx) => {
-        //remove a link by index
-        setSubmission(prevValues => {return {...prevValues,"links" : prevValues.links.filter((d,idx) => idx !== linkIdx)}})
-    }
 
 
     // const addUnitsForDatasetAttributes = (attribute, attributeValue, unitValues) => {
@@ -445,16 +433,10 @@ function InitialSubmission({
     //     setSubmission(prevValues => {return {...prevValues, datasetAttributeUnits : {...prevValues.datasetAttributeUnits, [attributeValue.tag] : unitValues}}})
     // }
 
-    const handleLinkChange = (linkIdx, updatedLinkProps) => {
-        let links = submission.links 
-        links[linkIdx] = updatedLinkProps
-        setSubmission(prevValues => {return {...prevValues,links}})
-    }
 
 
-    const onUserUnitInput = (userUnitInput) => {
-        setSubmission(prevValues => { return { ...prevValues, "userUnitInput": {...prevValues["userUnitInput"], ...userUnitInput} }})
-    }
+
+    
     const resetAlert = () => {
         // close the alert 
         setAlertProps(prevValues => { return { ...prevValues, isOpen: false } })
@@ -471,7 +453,7 @@ function InitialSubmission({
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
-                <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>Information</h3>
             <p>
                 In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
@@ -480,16 +462,16 @@ function InitialSubmission({
                 The meta data are based on pre-defined attributes/ontologies and hence it might happen that you are missing an attribute for your project. 
                     </p>
                     <span className="h0-span">Please take care to fill out the submission in a meticulously way. Data without carefully curated meta data are less informative.</span>
-            </div>
-            <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+            </div> */}
+            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
                     <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div>
                     
                     <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
                   
-            </div>
-            <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+            </div> */}
+            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>2. Mandatory Attributes</h3>
                 <p>Attributes that are required for the project submission. </p>
                     <TextInput placeholder="Set the title of your submission.."
@@ -499,39 +481,27 @@ function InitialSubmission({
                         onChange={(callbackKey, title) => onInputChange(callbackKey, title)} />
                     
                     <MandatoryAttributes
-                        proteome_ids={proteome_ids}
                         selectedDatasetAttributes={submission.datasetAttributeValues}
                         onAttributeValueSelect={handleDatasetAttributeSelection} /> 
                 
-                </div>
+                </div> */}
             
-            <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                     <h3>4. Meta Text</h3>
             
-                    <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange, authenticationStatus }} />
+                    <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />
             
-            </div>
+            </div> */}
+                
+                <SubmissionPanelStack {...{submission, setSubmission, onSubmissionRequest, saveSubmission, resetSubmission}} />
             
-                <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange} />
+                {/* <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange} /> */}
 
             
             <div>
 
-                <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-                        <h3>5. Dataset Attributes</h3>
-                        <p>Dataset attributes describe the dataset and are valid for all samples.
-                            As an example, if you have a project that uses the same cell line throughout the study, the cell line should be added here.</p>
-                            <p>Other examples are: Tissue, Lysis buffer and Cell culture media. If you compare two or more genotypes to each other, the genotype should be defined as a samples attributes.</p>
-                        
-                            <AttributesInput
-                                selectedAttributes={submission.datasetAttributeValues}
-                                handleAttributeSelection={handleDatasetAttributeSelection }
-                                min_state={submission.state} />
-                            
-                            <DatasetAttributeView submission_tag={submission.tag} attributeTraits={submission.datasetAttributeValues} userUnitInput={submission.userUnitInput} onUserUnitInput={onUserUnitInput} />
-
-                        </div>
-                        <GenotypeGen    />
+            {/* <GenotypeGen    /> */}
+                       
                         {/* <GenotypeGenerator /> */}
                 {/* <GenotypeGenerator /> */}
                 {/* <Button onClick={handleGenotypeCreation} /> */}
@@ -544,7 +514,7 @@ function InitialSubmission({
                         {...{handlePositionSelection, refetchGenotypes }}/>
                              */}
                         
-                <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
                 <h3>7. Sample Attributes</h3>
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
@@ -558,33 +528,30 @@ function InitialSubmission({
                             hint="Number of replicates"
                             placeholder="Number of replicates"
                             callbackKey={"replicates"}
-                            value={submission.attributes.replicates===0?"":_.toString(submission.attributes.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
+                            value={submission.replicates===0?"":_.toString(submission.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     <NumericValueInput
                             disabled={preDefinedSampleNames}
                             hint={"Number of samples"}
                             placeholder="Number of samples"
                             callbackKey={"sampleNumber"}
-                            value={submission.attributes.sampleNumber===0?"":_.toString(submission.attributes.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
+                            value={submission.sampleNumber===0?"":_.toString(submission.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     <SampleAttributeTableWrapper {...{
                             submission,
                             genotypes,
                             updateSubmission: setSubmission,
-                            numberReplicates: submission.attributes.replicates
+                            numberReplicates: submission.replicates
                         }} />
-                    </div>
-                    
-
-
+                </div> */}
             </div> 
             
        
                      
             </div>
-            <div className="flex padding--medium">
+            {/* <div className="flex padding--medium">
                 <Button text="Submit" onClick={onSubmssionRequest} intent="primary" />
                 <Button text="Save" onClick={saveSubmission} />
                 <Button text="Reset Form" onClick={resetSubmission} />
-            </div>
+            </div> */}
             
             </div>
         )

@@ -111,7 +111,7 @@ export function SubmissionLink({ tag }) {
     
     return (
         <div className="flex">
-            <div className="flex flex-column center-items">
+            <div className="flex flex-column" style={{justifyContent:"center"}}>
                 <div>Datasets:</div></div>
         <Tooltip inheritDarkTheme={false} content={
             <div className="padding--little">

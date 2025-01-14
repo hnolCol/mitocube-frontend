@@ -2,7 +2,14 @@ import axios from "axios";
 import { useQuery } from "react-query";
 
 
-async function getPubmedIDByGeneName_API({ gene_name, limit = 5 }) {
+/**
+ * 
+ * @param {Object} props
+ * @param {String} props.gene_name The 
+ * @param {Number} props.limit The maximum number of publications to return  
+ * @returns 
+ */
+async function getPubmedIDByQuery_API({ query, limit = 5, field }) {
 
     const res = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?`,
 
@@ -15,16 +22,16 @@ async function getPubmedIDByGeneName_API({ gene_name, limit = 5 }) {
                 sort: "pub_date",
                 retmax: limit,
                 db: "pubmed",
-                term: gene_name,
-                //field: "tiab"
+                term: query,
+                field
                 
         } }) //science[journal]
     return res.data 
 }
 
-export const useGetPubmedArticlesByGeneName_EX = (APIParams = { gene_name, limit : 5 }, useQueryOptions = {}) => {
-    return useQuery(["getPubmedArtikles",APIParams.gene_name, APIParams.limit],
-        () => getPubmedIDByGeneName_API({ ...APIParams }), useQueryOptions)
+export const useGetPubmedArticlesByQuery_EX = (APIParams = { query, limit : 5, field }, useQueryOptions = {}) => {
+    return useQuery(["getPubmedArtikles",APIParams.query, APIParams.limit],
+        () => getPubmedIDByQuery_API({ ...APIParams }), useQueryOptions)
 }
 
 

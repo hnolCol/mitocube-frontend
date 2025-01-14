@@ -56,12 +56,13 @@ export function SampleAttributesView({ submission_tag, minimal }) {
                                     {!minimal ?
                                         <Collapse isOpen={showSamplesFor.indexOf(`${attribute_tag}${trait_tag}`) !== -1}>
                                         <div className="flex flex-column flex-wrap">
-                                            
-                                            {data.sample_attributes[attribute_tag][trait_tag].map(sampleIndex => {
+                                                {_.has(data, ["sample_attributes", "attribute_tag", "trait_tag"]) && 
+                                                _.isArray(data.sample_attributes[attribute_tag][trait_tag])?
+                                                    data.sample_attributes[attribute_tag][trait_tag].map(sampleIndex => {
 
-                                                return (<div key={sampleIndex+"sample_text"}  className="font-size--smallest">{data.sample_map["sample_text"][sampleIndex]}
-                                                </div>)
-                                            })}
+                                                        return (<div key={sampleIndex + "sample_text"} className="font-size--smallest">{data.sample_map["sample_text"][sampleIndex]}
+                                                        </div>)
+                                                    }) : null}
                                         </div>
                                         </Collapse>   
                                     

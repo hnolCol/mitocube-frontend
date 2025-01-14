@@ -2,6 +2,8 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
 import { Polygon } from "@visx/shape"
+import { isPropSet } from "../../types/checks/data"
+import { isPropHexColorString } from "../../types/checks/color"
 
 ScatterPoints.propTypes = {
     data : PropTypes.array.isRequired,
@@ -9,8 +11,14 @@ ScatterPoints.propTypes = {
     xaxisName : PropTypes.string.isRequired,
     yaxisName : PropTypes.string.isRequired,
     xScale : PropTypes.func.isRequired,
-    yScale : PropTypes.func.isRequired,
-    rerenderDependency : PropTypes.array.isRequired
+    yScale: PropTypes.func.isRequired,
+    colorScale: PropTypes.func.isRequired,
+    sizeScale: PropTypes.func.isRequired,
+    fill: isPropHexColorString,
+    stroke: isPropHexColorString,
+    rerenderDependency: PropTypes.array.isRequired,
+    filterIndices: isPropSet,
+    searchIndices: isPropSet, 
 }
 
 /**
@@ -25,9 +33,11 @@ ScatterPoints.propTypes = {
  * @param {String} props.sizeName - The keyName to be used to acces the size /radius of the scatter points. ```data[idx][sizeName]```will be used to call the sizeScale for each item in the data array. 
  * @param {Function} props.xScale - The scale for the x axis, a function that returns the pixel by the data value 
  * @param {Function} props.yScale - The scale for the y-axis, a function that returns the pixel by the data value
- * @param {Function} props.sizeScale 
+ * @param {Function} props.sizeScale - Function that returns a size based on the value given in sizeName. If the 
  * @param {Function} props.colorScale - The scale that returns a number for the radius of scatter points by value in data array accessed by the colorName 
  * @param {String} props.fill - The hex color to fill the scatter points. Is ignored if ```colorName``` is not undefined and ```colorScale```is a function
+ * @param {Boolean} props.checkColorMap - If the colorMap should be checked for a matching key. 
+ * @param {Object.<string,string>} props.colorMap - Key - hexColor maps to be used instead of the colorScale. Will be ignored if checkColorMap is 'false'
  * @param {String} props.stroke - The hex color code for the stroke of the scatter points.  
  * @param {Number} props.strokeWidth - The strokewidth of the scatter points.   
  * @param {Array} props.rerenderDependency - An array with value that is checked and if it changed, the component will rerender, otherwise not. 
@@ -63,7 +73,7 @@ function ScatterPoints({
  
     const filterByIdx = filterIndices.size !== 0
     const opacityBySearch = searchIndices.size !== 0
-   
+    
     const colorScaleDefined = colorName !== undefined && _.has(data[0], colorName) && _.isFunction(colorScale)
     let validIdcs = indices === undefined ?_.range(data.length).filter(idx => valid[idx]) : Array.from(indices).filter(idx => valid[idx]) //!opacityBySearch ? valid[idx] : valid[idx] && !searchIndices.has(idx))
     // if (opacityBySearch) {
@@ -78,18 +88,19 @@ function ScatterPoints({
     const getCircle = (idx, d, colorScaleValid, props, scaleSize = 1) => {
         if (!checkPolyMap || !_.has(d,polyMapKeyName) || !_.has(glyphMap,d[polyMapKeyName]) || glyphMap[d[polyMapKeyName]] === "circle") return <circle 
         //dont use opacity, very very slow on safari, instead fillOpacity and strokeOpacity 
-        key={`${idx}-sc-p`}
-        cx={xScale(d[xaxisName])} 
-        cy={yScale(d[yaxisName])} 
-        r={sizeScale(d[sizeName]) * scaleSize} 
-        fillOpacity={opacity}
-        strokeOpacity={opacity}
-        {...{
-            fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
-            stroke,
-            strokeWidth,
-            ...props
-            }} />
+            key={`${idx}-sc-p`}
+            cx={xScale(d[xaxisName])} 
+            cy={yScale(d[yaxisName])} 
+            r={sizeScale(d[sizeName]) * scaleSize} 
+            fillOpacity={opacity}
+            strokeOpacity={opacity}
+            {...{
+                fill : checkColorMap && _.has(colorMap, d[colorMapKeyName]) ? colorMap[d[colorMapKeyName]]: colorScaleDefined && colorScaleValid ? colorScale(d[colorName]) : fill,
+                stroke,
+                strokeWidth,
+                ...props
+                }} />
+        
         if (glyphMap[d[polyMapKeyName]] === "rect") {
             const width = (sizeScale(d[sizeName]) * 2.2) * scaleSize
             return <rect

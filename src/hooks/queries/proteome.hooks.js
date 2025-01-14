@@ -35,7 +35,6 @@ export const usePostProteome = (useMutationOptions = {}) => {
 
 
 async function getProteomeAbundanceDist_API({tag}) {
-    //user login attempt, returns a token.
     const res = await axios.get(`/api/proteomes/${tag}/abundance`)
     return res.data
 }
@@ -45,5 +44,30 @@ export const useGetProteomeAbundaneDist = (APIParams = {tag}, queryOptions = {})
 }
 
 
+
+
+/**
+ * @description Returns the correlation result of a feature to any other feature
+ * in a given proteome. 
+ * @param {Object} props 
+ * @param {String} props.tag 
+ * @param {String} props.feature_tag 
+ * @param {Number} props.limit  
+ * @returns 
+ */
+async function getProteomeFeatureCorrelation_API({tag, feature_tag, filter_tag, limit}) {
+    const res = await axios.get(`/api/proteomes/${tag}/correlation/${feature_tag}`, {params : {limit,filter_tag}})
+    return res.data
+}
+
+
+export const useGetProteomeFeatureCorrelation = (APIParams = { tag, feature_tag, filter_tag, limit }, queryOptions = {}) => { 
+
+    return useQuery(["proteome_corr",
+        APIParams.tag,
+        APIParams.feature_tag,
+        APIParams.filter_tag,
+        APIParams.limit], () => getProteomeFeatureCorrelation_API({ ...APIParams }), queryOptions)
+}
 
 

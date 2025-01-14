@@ -140,14 +140,26 @@ export const useGetDatasetAttributes = (APIParams = {}, useQueryOptions) => {
  * @param {String} props.param_name - The name of an attribute param (boolean) that needs to be true. Example : allow_for_dataset, allow_for_qc,...
  * @returns {[import("../../types/attributes").Attribute,import("../../types/attributes").AttributeValue[]|import("../../types/feature").Feature[]][]} - The attributes that are allowed to be define for a dataset as an array of Attribute (index 0) and AttributeValues (index 1)
  */
-async function getAtributesAndValuesByQuery_API({search_string,min_state,param_name}) {
-    const res = await axios.get('/api/attributes', {params : {search_string,min_state,param_name}})
+async function getAtributesAndValuesByQuery_API({search_string,min_state,param_name, include_traits}) {
+    const res = await axios.get('/api/attributes', {params : {search_string,min_state,param_name, include_traits}})
     return res.data 
 }
 
-export const useGetAttributes = (APIParams = {search_string, min_state, param_name}, useQueryOptions) => {
-    return useQuery(["attributes_traits_by_query",APIParams.search_string,APIParams.min_state,APIParams.param_name], () => getAtributesAndValuesByQuery_API({...APIParams}), useQueryOptions)
+export const useGetAttributes = (APIParams = {search_string, min_state, param_name, include_traits : true}, useQueryOptions) => {
+    return useQuery(
+        [
+            "attributes_traits_by_query",
+            APIParams.search_string,
+            APIParams.min_state,
+            APIParams.param_name,
+            APIParams.include_traits
+        ],
+        () => getAtributesAndValuesByQuery_API({ ...APIParams }) , useQueryOptions)
 }
+
+
+
+
 
 
 /**

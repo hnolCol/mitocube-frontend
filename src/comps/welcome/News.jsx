@@ -25,6 +25,7 @@ export function NewsItem({ news }) {
                 {news.submission_tags.map(tag => <SubmissionLink key={tag} tag={tag} />)}
             </div>
             <div>
+                <div>Associated Features: </div>
                 {news.feature_tags.map(tag => <FeatureLink key={tag} tag={tag} />)}
             </div>
         </div>

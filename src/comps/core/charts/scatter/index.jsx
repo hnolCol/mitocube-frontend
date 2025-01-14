@@ -1,33 +1,31 @@
 import PropTypes from "prop-types"
-import Point from "./Point"
 import AxisWithBackground from "../axis"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
-import { useMemo, useRef } from "react"
-import { addMarginToBoundaries, getBoundariesFromArrayOfObjects, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
+import { useMemo } from "react"
+import { addMarginToBoundaries, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
 import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
-import { useTooltip, useTooltipInPortal, TooltipWithBounds, Tooltip } from '@visx/tooltip';
+import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 
 import _ from "lodash"
-import MetricTable from "../../base/metrictable"
 import ScatterPoints from "./ScatterPoints"
-import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesFromArrayOfObjectsByKey } from "../../../../services/arrays/groupby"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette } from "../../colors/colorPalette"
-import { Legend } from "../categorical/boxplot"
-import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
 import { Divider, H4 } from "@blueprintjs/core"
-import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
-import { roundNumber } from "../../../../services/format/number"
 import { ScatterLegend, TextScatterLegend } from "./Legend"
 import { ScatterLabel } from "./Label"
 import { SearchIndicator } from "../annotations/Search"
 import { ChartTopLeftLabel } from "../profiles/ProfileChart"
+import { Attribute } from "../../base/attributes/Attribute"
+import { Protein } from "../../base/protein/Protein"
+import { checkFullMargin } from "../../types/checks/chart"
+import { Genotype } from "../../base/genotype/Genotype"
 
 
 ScatterPlot.propTypes = {
-
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired,
     points : PropTypes.arrayOf(Object),
     defaultRadius: PropTypes.number,
     limits : PropTypes.object,
@@ -35,9 +33,23 @@ ScatterPlot.propTypes = {
     yaxisName: PropTypes.string,
     colorName: PropTypes.string,
     sizeName: PropTypes.string,
+    margins: checkFullMargin,
     data: PropTypes.arrayOf(PropTypes.object),
     centerXAxisAtZero : PropTypes.bool,
     findDataInRectangle : PropTypes.func
+}
+
+
+ScatterPlot.defaultProps = {
+    width: 500,
+    height: 500,
+    margins: {
+        left: 50,
+        top: 10,
+        right: 5,
+        bottom: 60
+    }
+
 }
 
 /**
@@ -58,27 +70,21 @@ ScatterPlot.propTypes = {
  */
 export function ScatterPlot({
     chartIdx,
-    width = 500,
-    height = 500,
-    margins = {
-        left: 50,
-        top: 10,
-        right: 5,
-        bottom: 60
-    },
+    width,
+    height,
+    margins,
     data,
     valid,
-    hoverData = [],
     limits,
     xaxisName,
     yaxisName,
+    xaxisLabel,
+    yaxisLabel,
     colorName = "x",
     sizeName = undefined,
     svgID = "scatterplot",
     tooltipNames = ["label"],
     labelNames = [],
-    findDataInRectangle,
-    handleSearchByDataIndex,
     filterDataInKeyByValue,
     resetSearchIdcs,
     setHoverDataInRectangle,
@@ -88,6 +94,7 @@ export function ScatterPlot({
     hoverPosition,
     hoverChart,
     rerenderBackground,
+    rerenderAxis,
     filterIndices,
     searchIndices,
     tooltipSmall = true,
@@ -101,8 +108,13 @@ export function ScatterPlot({
     suffix = "",
     indicateDataSize = true,
     legendWithAttributes = true,
-    genotypesByLabel = {}
+    genotypesByLabel = {},
+    tooltipNameIsAttribute = {}, 
+    tooltipNameIsGenotype = {},
+    tooltipNameIsFeature = {},
+    tooltipNameIsNumeric = {} //give number to be rounded to.
 }) {
+
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
@@ -127,6 +139,7 @@ export function ScatterPlot({
     
         const yDomain = limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
+        console.log(yDomainWithMargin)
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],
@@ -134,7 +147,7 @@ export function ScatterPlot({
                 nice: true
             }
         )
-    }, [yaxisName, chartHeight])
+    }, [yaxisName, chartHeight, limits[yaxisName].min, limits[yaxisName].max])
 
 
     const xScale = useMemo(() => {
@@ -150,7 +163,7 @@ export function ScatterPlot({
                 nice: true
             }
         )
-    }, [xaxisName, chartWidth])
+    }, [xaxisName, chartWidth, rerenderAxis, limits[xaxisName].min, limits[xaxisName].max])
 
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
@@ -227,9 +240,9 @@ export function ScatterPlot({
                 margins={margins}
                 leftScale={yScale}
                 bottomScale={xScale}
-                bottomLabel={`${xaxisName} ${suffix}`}
+                bottomLabel={`${_.isString(xaxisLabel) ? xaxisLabel : xaxisName} ${suffix}`}
                 leftHideTicks={false}
-                leftLabel={`${yaxisName} ${suffix}`}
+                leftLabel={`${_.isString(yaxisLabel) ? yaxisLabel : yaxisName} ${suffix}`}
                 moveBottomToLeft={false}
                 findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
@@ -282,34 +295,47 @@ export function ScatterPlot({
             
             {tooltipOpen && tooltipNames.length > 0 && hoverChart === chartIdx ?
                 <TooltipInPortal
+                    
                     // set this to random so it correctly updates with parent bounds this tooltip is for the points of the scatter. 
                     key={Math.random()}
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
                     <div className="flex flex-column justify-start">
-                        {hoverData.map((v, idx) => idx < 10 ? <div key={`${idx}-hover`}>
-                            {tooltipSmall ? <div>
-                                {
-                                    tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{v[tooltipName]}</div>)
-                                    
-                                }
+
+                    
+                        {hoverIndices.size > 0 ? Array.from(hoverIndices).map((index, i) => {
                                 
-                                {tooltipNames.length > 1 && hoverData.length > 1 ? <Divider /> : null}
-                            </div> :
-                                <div className="flex flex-column bg--lightgrey padding--medium margin--little" style={{ borderLeft: "3px solid " + colorScale(v[colorName]) }}>
-                                    {
-                                        tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`} className="margin--tiny">
-                                            
-                                            {tooltipName.startsWith("att_") && _.has(attributesByTag, tooltipName) ?
-                                                tooltipName !== "att_genotype" && _.has(attributeValuesByTag, v[tooltipName]) ?
-                                                    attributeValuesByTag[v[tooltipName]].text : tooltipName === "att_genotype" ? _.has(genotypesByLabel,v[tooltipName]) ? genotypesByLabel[v[tooltipName]].text : null : null : v[tooltipName]}
-                                            
-                                        </div>)
-                                        
-                                            
-                                    }
-                                </div>}
-                        </div> : null)}
+                            if (i > 10) return null
+
+                            const hoverIndexData = data[index]
+    
+                            return <div
+                                className={tooltipSmall ? "" : "flex flex-column bg--lightgrey padding--medium margin--little"}
+                                key={`${index}-hover`}
+                                style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
+                                
+                                {tooltipNames.map(tooltipName =>
+
+                                            {
+                                                if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} />
+                                                else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
+                                                else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
+                                                else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
+                                                else {
+                                                    return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
+                                                }
+                                    
+                                            })}
+
+                            </div>
+                        })
+                            : null}
+                        {tooltipNames.length > 1 && hoverIndices.size > 1 ? <Divider /> : null}
+
+                                
+                                
+    
+                                
                         
                     </div>
                 </TooltipInPortal> : null} 
@@ -329,7 +355,7 @@ export function ScatterPlot({
                     colorLimit: limits[colorName],
                     attributesByTag,
                     attributeValuesByTag,
-                    genotypesByLabel
+                    genotypesByLabel,
                 }} /> : <TextScatterLegend
                     {...{
                         chartIdx,
@@ -343,19 +369,6 @@ export function ScatterPlot({
                         resetSearchIdcs,
                         sizeLimit: limits[sizeName],
                         colorLimit: limits[colorName]}}/> : null}
-                {/* <h3>Legend</h3>
-                {_.isString(colorName) && _.isString(data[0][colorName]) ? 
-                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)}>
-                    <LegendOrdinal scale={colorScale}>
-                        {(labels) => labels.map(label => {   
-                            return (
-                                <LegendItem onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
-                                    <svg width={25} height={25} ><rect width={25} height={25} fill={label.value} stroke="#000" strokeWidth={0.5}/></svg>
-                                    <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
-                                </LegendItem>
-                            )
-                        })}
-                </LegendOrdinal></div>: null} */}
         </div>
         </div>
         

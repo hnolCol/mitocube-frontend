@@ -1,8 +1,8 @@
 
-import _ from "lodash"
+import _, { isError } from "lodash"
 
 import ResultChart from "../resultCard/chart"
-import { useGetDataByFeatureID, useGetFeatureByTag } from "../../../../hooks/queries/feature.hooks"
+import { useGetDataByFeatureID, useGetFeatureByTag, useGetFeatureSampleQuants } from "../../../../hooks/queries/feature.hooks"
 import { useOutletContext } from "react-router"
 import APIError from "../../../core/error/APIerror"
 import { DialogBody, Drawer } from "@blueprintjs/core"
@@ -18,6 +18,10 @@ import { AuthorList } from "../../../core/authors/SubmissionAuthorList"
 import { Metatexts } from "../../../core/metatext/SubmissionMetatext"
 import { GenePublications } from "../../../core/publications/GenePublications"
 import { ProteinAbundance } from "../FeatureAbundance"
+import { useGetProteomeFeatureCorrelation } from "../../../../hooks/queries/proteome.hooks"
+import InteractiveChart from "../../../core/charts/interactive"
+import { ScatterPlot } from "../../../core/charts/scatter"
+import { FeatureCorrelationPlot } from "../../../core/charts/correlation/FeatureCorrelationPlot"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
@@ -96,11 +100,111 @@ function ProteinFilter({ tag }) {
 }
 
 
-function ProteinCorrelation({tag}) {
+function ProteinQuantCounts({ tag }) {
+    console.log(tag)
+    const { data: quantStats, isLoading, isFetching } = useGetFeatureSampleQuants({ tag }, {enabled : _.isString(tag)})
+    console.log(quantStats)
+
+
+    if (isLoading || isFetching) return <Loading /> 
+    if (isError) return <div>Error..</div>
+
+    const rel = quantStats["samples"] / quantStats["total_samples"]
 
     return <div>
-        <h3>Correlation</h3>
-        <div>Under progress. Showing correlations across all datasets   </div>
+        <div>The protein was quantified in {rel}% ({quantStats["samples"]}/{quantStats["total_samples"]}) of all samples of the same proteome.</div>
+        {rel < 0.15 ?  <div> The feature appears to be either expressed at <strong>very low levels</strong> or <strong>expressed only under very specific conditions.</strong></div>: null }
+    </div>
+}
+
+
+
+/**
+ * @description The protein correlation visualization of a feature tag. 
+ * @param {Object} param0 
+ * @returns 
+ */
+function ProteinCorrelation({ tag, proteome_tag }) {
+
+    const [featureYTag, setFeatureYTag] = useState(undefined)
+    const {data : feature, isSuccess} = useGetFeatureByTag({tag : tag})
+    const { data, isLoading, isFetching } = useGetProteomeFeatureCorrelation({ tag: proteome_tag, feature_tag: tag, limit: 100 }, { enabled: _.isString(tag) && _.isString(proteome_tag) })
+
+
+    const handleFeautureSelection = (labelIndices) => {
+
+        if (!_.isSet(labelIndices)) return 
+        if (labelIndices.size === 0) return 
+        const selectedFeatureIdc = _.first(Array.from(labelIndices))
+        const featureTag = data[selectedFeatureIdc].tag
+        if (featureTag !==featureYTag) setFeatureYTag(featureTag)
+
+    }
+
+
+    return <div>
+        <h3>Correlation to {isSuccess ? feature.gene_name : null}</h3>
+
+        {isLoading || isFetching ? <Loading /> : null }
+        {_.isArray(data) && data.length > 0 ? <InteractiveChart
+            data={data}
+            keyNames={[
+                {
+                    xaxisName: "t",
+                    yaxisName: "pearson",
+                }]}
+            isPointChart={[true]}>
+            {
+                /**
+                 * 
+                 * @param {import("../../../types/charts").InteractiveChartResponse[]} chartData 
+                 * @returns 
+                 */
+                (chartData) => chartData.map(({
+                    data,
+                    chartIdx,
+                    xaxisName,
+                    yaxisName,
+                    valid,
+                    limits,
+                    findDataInRectangle,
+                    setHoverDataInRectangle,
+                    hoverProps,
+                    filterProps,
+                    findClosestPoint,
+                    labelProps
+                }, didx) => {
+                    handleFeautureSelection(labelProps.lastSelected)
+                    return (
+                        <ScatterPlot key={`correlation_over-view-${chartIdx}`}{...{
+                            chartIdx,
+                            //colorName: "",
+                            //sizeName: selection.sizeName,
+                            // tooltipNames : selection.tooltipNames,
+
+                            data,
+                            valid,
+                            findClosestPoint,
+                            findDataInRectangle,
+                            setHoverDataInRectangle,
+                            xaxisName,
+                            yaxisName,
+                            limits,
+                            tooltipSmall: true,
+                            tooltipNames: ["tag","pearson", "t", "N"],
+                            ...hoverProps,
+                            ...filterProps,
+                            legend: true,
+                            svgID: "scatter_plot-corr",
+                            tooltipNameIsFeature: { "tag" : true },
+                            tooltipNameIsNumeric : {"pearson" : 2, "t" : 2, "N" : 0}
+                        }} />
+                    )
+                })
+            }
+        </InteractiveChart> : null }
+        
+        <FeatureCorrelationPlot feature_tag_x={tag}  feature_tag_y={featureYTag}/>
     </div>
 }
 
@@ -110,20 +214,20 @@ function ProteinOverview() {
     const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
     const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_tag }, {})
     const { data : feature } = useGetFeatureByTag({tag : feature_tag}, {enabled : _.isString(feature_tag), staleTime : Infinity})
-    console.log(feature)
     const featureIsLoaded = _.isObject(feature)
     if (isError) return <APIError error={error} />
     return (
-        <div>
+        <div className="div-expand" style={{height : "85vh",overflowY:"scroll"}}>
             <MetaDataDrawer isOpen={metadataDrawer.isOpen} dataset_label={metadataDrawer.dataset_label} setIsOpen={setMetadataDrawer} />
             <div>
                 <h3>Protein Information</h3>
                 {featureIsLoaded ? <div><div>{feature.gene_names}</div><div>{feature.protein_name}</div></div> : null}
+                {featureIsLoaded ? <ProteinQuantCounts tag={feature_tag} /> : null }
                 <MultipleMetrices metrices={[{label : "Times viewed", metric : 839}, {label : "Genotypes", metric : 4}]}/>
                 <ProteinFilter tag = {feature_tag} />
                 <h3>Abundance</h3>
                 {featureIsLoaded ? <ProteinAbundance tag={feature_tag} proteome_tag={feature.proteome_tag} /> : null}
-                <ProteinCorrelation />
+                {featureIsLoaded ? <ProteinCorrelation {...{ tag: feature.tag, proteome_tag: feature.proteome_tag }} /> : null}
                 {featureIsLoaded && _.has(feature, "gene_name") ? <GenePublications gene_name={feature.gene_name} /> : null}
 
 

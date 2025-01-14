@@ -21,6 +21,7 @@ export function PubmedPublicationList({ pubmedids }) {
 
     return (<div>
         {isSuccess ? publications.result.uids.map(pubmedid => <motion.div
+                    key = {pubmedid}
                     className="flex padding--medium div--round bg--white margin--little" whileHover={{ backgroundColor: "#466688", color: "#ffffff" }}>
                         <div>{_.has(publications, ["result", pubmedid, "authors"])
                             && _.isArray(publications.result[pubmedid].authors)

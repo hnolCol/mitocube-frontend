@@ -18,12 +18,11 @@ function Link({index, id = "", url = "",comment = "", removeLink, onChange}) {
     )
 }
 
-function DatasetLinks({ links = [{id : "", url: "", comment: "" }], addLink, removeLink, onChange, index = 4}) {
+function DatasetLinks({ links = [{id : "", url: "", comment: "" }], addLink, removeLink, onChange}) {
     //handle dataset links 
     return (
         <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
-            <h3>{`${index}. Links`}</h3>
-            <p>Add relevant links for dataset. For exmaple the link to the electronic labbooks or protocols from a publication that is relevant for the project.
+            <p>Add relevant links for dataset. For example the link to the electronic labbooks or protocols from a publication that is relevant for the project.
             Please add more information in the comment.</p>
             <div className="flex flex--wrap" style={{columnGap : "1rem"}}>
                 {links.map((linkProps, linkIdx) => {

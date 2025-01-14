@@ -31,7 +31,7 @@ export function checkChartData(props, propName, componentName, propNameChecks = 
 }
 
 // Custom prop type checker for Set
-export function checkPropIsSet (props, propName, componentName) {
+export function isPropSet (props, propName, componentName) {
     if (!(props[propName] instanceof Set)) {
       return new Error(
         `Invalid prop \`${propName}\` supplied to \`${componentName}\`. Expected a Set.`

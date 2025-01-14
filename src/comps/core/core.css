@@ -25,6 +25,9 @@
     border-bottom: #696969 1px solid;
 }
 
+.div-border-right {
+    border-right: #696969 1px solid;
+}
 .div--expand{
     height : 100%;
     width : 100%;
@@ -201,6 +204,9 @@ h5 {
 .margin--little {
     margin : 0.25rem
 }
+.margin--tiny{
+    margin : 0.1rem
+}
 .margin--very-little{
     margin : 0.1rem
 }
@@ -333,6 +339,34 @@ h5 {
     background-color: #f6f6f6;
 }
 
+
+.navbar__submission__grid__container{
+    display: grid;
+    height : 80vh;
+    width : 80vw;
+    grid-template-columns: 150px 1fr;
+    grid-template-rows: 1fr 80px;
+    gap: 0.2rem;
+}
+
+.navbar__submission__grid__left {
+    grid-column: 1;
+    grid-row : 1;
+    background-color: #fafafa;
+  }
+  .navbar__submission__grid__right {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .navbar__submission__grid__bottom {
+    grid-column-start: 1;
+    grid-column-end: 3;
+    grid-row: 2;
+    background-color: green;
+  }
+
+
 /* Flex containers */
 
 .flex {
@@ -375,8 +409,6 @@ h5 {
     align-items: center;
 }
 
-
-
 .position--relative{
     position: relative;
 }
@@ -412,4 +444,23 @@ h5 {
     font-size: 0.75rem;
     text-align: left;
     padding-left: 0.5rem;
+}
+
+
+.submission-tab-navigation-button{
+    border: none;
+    padding: 0.2rem; 
+    background-color: #fafafa;
+    width: 130px;
+}
+
+.submission-tab-navigation-button--active{
+    border: none;
+    padding: 0.2rem; 
+    color: #466688;
+    font-weight: 800;
+}
+
+.submission-tab-navigation-button:hover{
+    background-color: #efefef;
 }

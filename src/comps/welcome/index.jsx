@@ -6,6 +6,12 @@ import { KeyFigure } from "./Keyfigures"
 import _ from "lodash"
 import { NewsView } from "./News"
 
+
+
+
+
+
+
 function Welcome() {
     const { isLoading: backendInfoLoading, data : backendInfo } = useGetBackendInfo()
     return (
@@ -17,8 +23,7 @@ function Welcome() {
                 <p>{backendInfoLoading || !_.isObject(backendInfo) && _.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
             </div>
             <KeyFigure />
-
-
+            {/* <StackTransitionExample /> */}
             {/* <Network /> */}
             <NewsView />
 

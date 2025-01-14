@@ -1,4 +1,4 @@
-import { AxisLeft } from "@visx/axis";
+import { AxisBottom, AxisLeft } from "@visx/axis";
 import { SVG } from "../SVGHeader";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useMemo } from "react";
@@ -12,18 +12,21 @@ import Box from "./Box";
  */
 export function Boxplot({
     data,
+    textKey = "text",
     width = 200,
-    height = 300,
+    height = 200,
     rerender, 
     yAxisLabel = "log2 Abundance",
     margin = {
-        top: 5,
+        top: 15,
         left: 40,
-        bottom: 20,
+        bottom: 25,
         right : 10
     }
     }) {
     
+    const xAxisTickLabels = data.map(d => d[textKey])
+
         
     console.log(data)
     
@@ -32,10 +35,10 @@ export function Boxplot({
         return scaleBand({
             domain,
             range: [margin.left, width-margin.left-margin.right],
-            paddingInner: 0.2,
-            paddingOuter: 0.2
+            paddingInner: 0.1,
+            paddingOuter: 0.1
         })
-    },[rerender, margin.right, margin.left])
+    },[rerender, margin.right, margin.left, width])
 
     const yScale = useMemo(() => {
         
@@ -48,12 +51,19 @@ export function Boxplot({
             range: [margin.top, height - margin.bottom- margin.top],
             nice: true
         })
-    }, [rerender])
+    }, [rerender,margin.bottom, margin.top, height])
     const bw = xScale.bandwidth()
 
     return (
         <SVG {...{ width, height }}>
-            <AxisLeft scale={yScale} top={margin.top}  left={margin.left} label={yAxisLabel} tickLength={0.75} labelOffset={20}/>
+            <AxisLeft scale={yScale} top={margin.top} left={margin.left} label={yAxisLabel} tickLength={1.5} labelOffset={20} numTicks={6} />
+            <AxisBottom scale={xScale}
+                top={height - margin.bottom}
+                label={""}
+                tickLength={1.5}
+                labelOffset={20}
+                numTicks={6}
+                tickFormat={(tickLabel) => xAxisTickLabels[tickLabel]} />
             {data.map((qs, i) => {
                 
                 return <Box

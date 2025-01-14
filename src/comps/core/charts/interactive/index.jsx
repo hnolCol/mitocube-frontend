@@ -48,7 +48,7 @@ function InteractiveChart({
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1})
     //const [selectedItems, setSelectedItems]  = useState()
     //label data, the data that are annotated. 
-    const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1 })
+    const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1, lastSelected : undefined})
     //background scatter indicates hovering over the data points. This allows quick rendering, as all chart components only rerender if the value rerender changes.
     const [backgroundScatter, setRerender] = useState({ rerender: [Math.random()], filterIndices: new Set(), filterRange: [0, 100], searchIndices: new Set(), searchString: "" })
     const numberCharts = keyNames.length
@@ -103,7 +103,7 @@ function InteractiveChart({
         return idcs
     }
 
-    const setHoverDataInRectangle = (chartIdx,minX,minY,maxX,maxY, screenPosition) => {
+    const setHoverDataInRectangle = (chartIdx, minX, minY, maxX, maxY, screenPosition) => {
         //finds data in an rectangle of coordinates and changes the state of hoverData
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         //check if the size changed and if hoverData idcs have not changed.
@@ -167,8 +167,7 @@ function InteractiveChart({
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         let labelIdcs = labelData.idcs
         _.forEach(Array.from(idcs), idx => labelIdcs.has(idx) ? labelIdcs.delete(idx) : labelIdcs.add(idx))
-
-        setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()]})
+        setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()], lastSelected : idcs})
         
     }
 
@@ -196,9 +195,9 @@ function InteractiveChart({
             filterDataInKeyByValue,
             setHoverDataByDataIndex,
             findClosestPoint,
-            hoverProps : {hoverData : hoverData.data,rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
+            hoverProps : {hoverData : hoverData.data, rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
             filterProps: { rerenderBackground: backgroundScatter.rerender, filterIndices: backgroundScatter.filterIndices, filterRange: backgroundScatter.filterRange, searchIndices: backgroundScatter.searchIndices, resetSearchIdcs, searchString : backgroundScatter.searchString },
-            labelProps : {labelData : labelData.data, labelIndices : labelData.idcs, labelRerender : labelData.rerender, labelChart : labelData.labelChart}
+            labelProps : {labelIndices : labelData.idcs, labelRerender : labelData.rerender, labelChart : labelData.labelChart, lastSelected : labelData.lastSelected}
         }
     })  
     

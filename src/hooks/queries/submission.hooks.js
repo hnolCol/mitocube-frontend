@@ -126,7 +126,6 @@ export const usePathSubmissionSampleAttributes = (useMutationOptions = {}) => {
  * @returns 
  */
 async function getSampleAttributes_API({ submission_tag }) {
-    console.log(submission_tag)
     const res = await axios.get('/api/submissions/' + submission_tag + '/sampleattributes')
     return res.data
 }

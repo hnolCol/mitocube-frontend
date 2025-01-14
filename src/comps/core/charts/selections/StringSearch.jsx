@@ -41,7 +41,7 @@ StringSearch.defaultProps = {
  * @param {Number} props.debounce - The milliseconds to wait until the search string is passed to onSearchStringChange. 
  * @returns 
  */
-export function StringSearch({ keyNames, selection, onSelectionChange, handleStringSearch, minimal, debounce }) {
+export function StringSearch({ keyNames, selection, onSelectionChange, handleStringSearch, minimal, debounce, callbackKey }) {
     const [searchString, setSearchString] = useState("")
     const debounceString = useDebounce(searchString, debounce)
 
