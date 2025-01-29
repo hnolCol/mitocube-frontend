@@ -31,31 +31,6 @@ const componentNames = {
 
 const XOFFSET = 50
 
-function TabNavigation2({ componentKey, setComponentKey, submission }) {
-    
-    return <div className="flex flex-column">
-        <h2>{ submission.title}</h2>
-        <div className="flex flex-column div-border-right">
-    
-        {_.keys(componentMap)
-            .map(k => <button
-                    className={`submission-tab-navigation-button div--round margin--tiny ${componentKey.current === k ? "submission-tab-navigation-button--active" : ""}`} 
-                    onClick={() => setComponentKey(prevValues => {
-                        return {
-                            current: k ,
-                            prev: prevValues.current
-                        }
-                    })}>
-                <div className="div--expand flex justify-end">
-                    <div>{componentNames[k]}</div>
-                </div>
-                </button>)
-            }
-        </div>
-
-    </div>
-}
-
 
 export function TabNextButton({ componentKey, setComponentKey }) {
     
@@ -119,7 +94,7 @@ function SelectedComponent({ componentKey, submission, setSubmission, setCompone
     if (!SelectedComponent) {
         return <div>Component not found</div>;
     }
-    return <div style={{ minHeight: "calc(80vh - 150px - 1rem)"}} className="div--expand bg--lightgrey"><SelectedComponent {...{setComponentKey, submission, setSubmission}} /></div>;
+    return <div style={{ minHeight: "calc(80vh - 150px - 1rem)"}} className="div--expand bg--grey div--round"><SelectedComponent {...{setComponentKey, submission, setSubmission}} /></div>;
 }
 
 export function SubmissionPanelStack({
@@ -136,12 +111,17 @@ export function SubmissionPanelStack({
 
 
     return <div>
-        <div className="navbar__submission__grid__container bg--lightgrey">
+        <div className="navbar__submission__grid__container bg--grey">
 
         <div className="navbar__submission__grid__left" style={{zIndex:5}}>
-            <TabNavigation {...{ componentKey, setComponentKey, componentNames, submission, componentKeys }} />
-            
-            
+                <TabNavigation {...{
+                    componentKey,
+                    setComponentKey,
+                    componentNames,
+                    submission,
+                    componentKeys
+                }} />
+
         </div>
             <div className="position--relative navbar__submission__grid__right" style={{ zIndex: 2 }}>
                 <div className="flex justify-end" style={{margin: "0.2rem"}}>
@@ -150,14 +130,14 @@ export function SubmissionPanelStack({
             <AnimatePresence>
                 <motion.div
                     custom={_.isString(componentKey.prev) ? _.indexOf(componentKeys, componentKey.current) - _.indexOf(componentKeys, componentKey.prev) : 0}
-                    className="bg--lightgrey div--round"
+                    className="bg--grey div--round"
                     style={{
                         position: "absolute",
                         top: 0,
                         left: 0,
                         width: "100%",
                         padding: "2rem",
-                        marginTop: "2rem",
+                        marginTop: "0.5rem",
                         maxHeight: "80%",
                         overflow: "scroll"
                     }}
@@ -166,16 +146,19 @@ export function SubmissionPanelStack({
                     animate="center"
                     exit="exit"
                     variants={stackVariants}> 
-
-                    <SelectedComponent {...{ componentKey, submission, setSubmission, setComponentKey }} />
+                            <SelectedComponent {...{ componentKey, submission, setSubmission, setComponentKey }} />
+                            
                 </motion.div>
             </AnimatePresence>
             
         </div>
             <div className="navbar__submission__grid__bottom">
-            <Button text="Submit" onClick={onSubmissionRequest} intent="primary" />
-            <Button text="Save" onClick={saveSubmission} />
-            <Button text="Reset Form" onClick={resetSubmission} />
+                <div>
+                    <Button text="Submit" onClick={onSubmissionRequest} intent="primary" />
+                    <Button text="Save" onClick={saveSubmission} />
+                    <Button text="Reset Form" onClick={resetSubmission} />
+                </div>
+            
         </div>
     </div>
     </div>

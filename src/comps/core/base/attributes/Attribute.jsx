@@ -14,7 +14,7 @@ Attribute.propTypes = {
 export function Attribute({ attribute_tag }) {
     const {data : attribute, isSuccess } = useGetAttribute({tag : attribute_tag})
     return (<div
-        style={{ fontSize: "0.75rem" }} //lighter ? "#efefef" :
+        style={{ fontSize: "0.75rem" }} 
         className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny">
         {isSuccess ? attribute.text : null}
     </div>)

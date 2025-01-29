@@ -21,7 +21,7 @@ export function LinksTab({ submission, setSubmission, setComponentKey, component
         setSubmission(prevValues => {return {...prevValues,links}})
     }
 
-    return  <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+    return  <div>
     <h3>Links</h3>
 
     <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange} />

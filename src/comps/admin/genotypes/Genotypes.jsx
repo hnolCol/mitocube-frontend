@@ -5,6 +5,7 @@ import APIError from "../../core/error/APIerror"
 import _ from "lodash"
 import { AttributeFeatureTag } from "../../submission/new/attribute/view/DatasetAttributesHierarchy"
 import { useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks"
+import { GenotypeDefinition } from "./GenotypeDefinition"
 /**
  * 
  * @param {Object} props 
@@ -57,7 +58,8 @@ export function AdminGenotypes() {
     return (
         <div className="div--expand" >
             <h3>Genotypes</h3>
-            <div style={{height : "70vh", overflowY:"scroll", paddingBottom : "2rem"}}>
+            <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
+            <GenotypeDefinition />
             {isError ? <APIError error={error} /> :
                 isLoading || isFetching ?
                     <Loading /> :

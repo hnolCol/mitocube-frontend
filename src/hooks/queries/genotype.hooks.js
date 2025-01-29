@@ -9,9 +9,22 @@ async function getGenotypesByQuery_API({ query }) {
     return res.data
 }
 
-export function useGetGenotypesByQuery(APIParams = {}, useQueryOptions = { staleTime: 30000 },) {
+export function useGetGenotypesByQuery(APIParams = {query}, useQueryOptions = { staleTime: 30000 },) {
     return useQuery(["getGenotypes",APIParams.query],() =>  getGenotypesByQuery_API({...APIParams}), useQueryOptions)
 }
+
+
+
+async function getGenotypesByFeatureTags_API({ tags }) {
+    const res = await axios.get(`/api/genotypes`, {params : { tags }})
+    return res.data
+}
+export function useGetGenotypesByFeatureTags(APIParams = { tags }, useQueryOptions = { staleTime: 30000 },) {
+    const featureTags = _.join(APIParams.tags,";")
+    return useQuery(["getGenotypesByTag",featureTags],() =>  getGenotypesByFeatureTags_API({tags : featureTags}), useQueryOptions)
+}
+
+
 
 
 /**

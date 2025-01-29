@@ -7,8 +7,6 @@ import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
 import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
-
-import _ from "lodash"
 import ScatterPoints from "./ScatterPoints"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette } from "../../colors/colorPalette"
@@ -21,35 +19,45 @@ import { Attribute } from "../../base/attributes/Attribute"
 import { Protein } from "../../base/protein/Protein"
 import { checkFullMargin } from "../../types/checks/chart"
 import { Genotype } from "../../base/genotype/Genotype"
-
+import _ from "lodash"
 
 ScatterPlot.propTypes = {
+    svgID : PropTypes.string.isRequired, 
     width: PropTypes.number.isRequired,
     height: PropTypes.number.isRequired,
     points : PropTypes.arrayOf(Object),
     defaultRadius: PropTypes.number,
     limits : PropTypes.object,
-    xaxisName: PropTypes.string,
-    yaxisName: PropTypes.string,
+    xaxisName: PropTypes.string.isRequired,
+    yaxisName: PropTypes.string.isRequired,
     colorName: PropTypes.string,
     sizeName: PropTypes.string,
     margins: checkFullMargin,
     data: PropTypes.arrayOf(PropTypes.object),
     centerXAxisAtZero : PropTypes.bool,
-    findDataInRectangle : PropTypes.func
+    findDataInRectangle: PropTypes.func,
+    tooltipNameIsAttribute: PropTypes.object, 
+    tooltipNameIsGenotype: PropTypes.object,
+    tooltipNameIsFeature: PropTypes.object,
+    tooltipNameIsNumeric: PropTypes.object
 }
 
 
 ScatterPlot.defaultProps = {
     width: 500,
     height: 500,
+    svgID : "scatterplot",
     margins: {
         left: 50,
         top: 10,
         right: 5,
         bottom: 60
-    }
-
+    },
+    tooltipNames : ["label"],
+    tooltipNameIsAttribute: {},
+    tooltipNameIsGenotype: {},
+    tooltipNameIsFeature: {},
+    tooltipNameIsNumeric: {}
 }
 
 /**
@@ -66,6 +74,11 @@ ScatterPlot.defaultProps = {
  * @param {String} props.colorName - The keyName to be used to access the color. ```data[idx][colorName]``` will be send to the colorScale function to get the color for each point. 
  * @param {String} props.sizeName - The keyName to be used to acces the size /radius of the scatter points. ```data[idx][sizeName]```will be used to call the sizeScale for each item in the data array. 
  * @param {Boolean} props.tooltipSmall - If true simply the values will be shown. If False, the tooltip will be grouped by the datapoints (e.g. if multiple are under the hover event) by their color (if provided). 
+ * @param {String[]} props.tooltipNames - The keys in each data item that are displayed via the tooltip
+ * @param {Object} props.tooltipNameIsAttribute - The tooltip name that is an attribute, then attribute information are obtained from the backend. 
+ * @param {Object} props.tooltipNameIsGenotype - The tooltipName that is a Genotype. Causes an API call to displayed the correct information. 
+ * @param {Object} props.tooltipNameIsNumeric - If the tooltip is a numeric value. Here the value should a number and provides the number of digits to which the value should be rounded 
+ * 
  * @returns 
  */
 export function ScatterPlot({
@@ -80,10 +93,10 @@ export function ScatterPlot({
     yaxisName,
     xaxisLabel,
     yaxisLabel,
-    colorName = "x",
-    sizeName = undefined,
-    svgID = "scatterplot",
-    tooltipNames = ["label"],
+    colorName,
+    sizeName,
+    svgID,
+    tooltipNames,
     labelNames = [],
     filterDataInKeyByValue,
     resetSearchIdcs,
@@ -301,21 +314,15 @@ export function ScatterPlot({
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
                     <div className="flex flex-column justify-start">
-
-                    
                         {hoverIndices.size > 0 ? Array.from(hoverIndices).map((index, i) => {
-                                
                             if (i > 10) return null
-
                             const hoverIndexData = data[index]
-    
                             return <div
                                 className={tooltipSmall ? "" : "flex flex-column bg--lightgrey padding--medium margin--little"}
                                 key={`${index}-hover`}
                                 style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
                                 
                                 {tooltipNames.map(tooltipName =>
-
                                             {
                                                 if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} />
                                                 else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
@@ -324,7 +331,7 @@ export function ScatterPlot({
                                                 else {
                                                     return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
                                                 }
-                                    
+
                                             })}
 
                             </div>

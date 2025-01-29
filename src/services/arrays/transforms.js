@@ -68,7 +68,10 @@ export function addStringToArrayOrRemove({ array, string }) {
     return _.filter(array, s => s !== string)
 }
 
-
+export function addStringToArrayIfNotPresent({ array, string }) {
+    if (!_.isArray(array)) return [string] 
+    return _.union(array, [string])
+}
 
 export function addStringToArray({ array, string }) {
     if (!_.isArray(array)) return [string] 

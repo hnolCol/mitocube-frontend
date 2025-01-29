@@ -3,6 +3,8 @@ import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from
 import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
+import { useGetAttribute } from "../../../../hooks/queries/attribute.hooks";
+import { useGetGenotypeByTag } from "../../../../hooks/queries/genotype.hooks";
 
 /**
  * @description Checks if the legend should rerender. basically only a change in colorName or sizeName causes a rerender. 
@@ -43,18 +45,29 @@ const ScatterLegend = React.memo(
         size = 25,
         colorLimit = {},
         sizeLimit = {},
+        colorNameIsAttribute = false,
+        sizeNameIsAttribute = false,
+        colorNameIsGenotype = false,
+        sizeNameIsGenotype = false,
         attributeValuesByTag = {},
         attributesByTag = {},
         genotypesByLabel = {}}) {
     
         const {
-        tooltipData,
-        tooltipLeft,
-        tooltipTop,
-        tooltipOpen,
-        showTooltip,
-        hideTooltip,
-    } = useTooltip();
+            tooltipData,
+            tooltipLeft,
+            tooltipTop,
+            tooltipOpen,
+            showTooltip,
+            hideTooltip,
+            } = useTooltip();
+        
+    const {data : colorAttribute } = useGetAttribute({tag : colorName}, {enabled : colorNameIsAttribute})
+        const { data: sizeAttribute } = useGetAttribute({ tag: colorName }, { enabled: sizeNameIsAttribute })
+        
+    const {data : colorGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : colorNameIsGenotype})
+    const {data : sizeGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : sizeNameIsGenotype})
+
     const findAttributeValues = (attribute, attributeValueTagsString) => {
         // there might be multiple tags which are separated by a space. 
         if (attribute.tag === "att_genotype") {
@@ -109,9 +122,10 @@ const ScatterLegend = React.memo(
                 strokeWidth={0.5} />
             </svg>
     } 
-    const colorAttribute = _.isString(colorName) && _.has(attributesByTag,colorName) ? attributesByTag[colorName] : ""
-    const sizeAttribute = _.isString(sizeName) && _.has(attributesByTag, sizeName) ? attributesByTag[sizeName] : ""
+    // const colorAttribute = _.isString(colorName) && _.has(attributesByTag,colorName) ? attributesByTag[colorName] : ""
+    // const sizeAttribute = _.isString(sizeName) && _.has(attributesByTag, sizeName) ? attributesByTag[sizeName] : ""
 
+        
         return (
         <div>
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>

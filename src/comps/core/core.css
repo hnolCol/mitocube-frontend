@@ -352,7 +352,6 @@ h5 {
 .navbar__submission__grid__left {
     grid-column: 1;
     grid-row : 1;
-    background-color: #fafafa;
   }
   .navbar__submission__grid__right {
     grid-column: 2;
@@ -363,7 +362,9 @@ h5 {
     grid-column-start: 1;
     grid-column-end: 3;
     grid-row: 2;
-    background-color: green;
+    display: flex;
+    justify-content: flex-end;
+    
   }
 
 

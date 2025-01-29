@@ -15,3 +15,9 @@ export function allKeysInObject({ object, keyNames }) {
 export function objectHasKey({ object, keyName }) {
     return _.has(object,keyName)
 }
+
+
+export function checkForKey({ object, keyName, defaultValue }) {
+    if (_.has(object, keyName)) return object[keyName]
+    return defaultValue
+}

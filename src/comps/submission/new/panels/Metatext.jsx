@@ -13,7 +13,7 @@ export function MetatextTab({ submission, setSubmission, setComponentKey, compon
     }
     
 
-    return  <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+    return  <div>
     <h3>Meta Text</h3>
 
     <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />

@@ -31,7 +31,7 @@ export function TabNavigation({componentKeys, componentKey, componentNames, setC
           position: "relative",
           display: "flex",
           flexDirection: "column",
-                alignItems: "center",
+            alignItems: "center",
           marginTop: "2rem"
         }}
       >
