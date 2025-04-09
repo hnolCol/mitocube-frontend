@@ -1,14 +1,9 @@
 
 import { useGetBackendInfo } from "../../hooks/queries/welcome.hooks"
-import { Network } from "../protein/overview/Network"
 import { KeyFigure } from "./Keyfigures"
 
 import _ from "lodash"
 import { NewsView } from "./News"
-
-
-
-
 
 
 

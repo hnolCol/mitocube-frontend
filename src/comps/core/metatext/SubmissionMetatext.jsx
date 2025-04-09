@@ -8,7 +8,6 @@ export function Metatexts({ submission_tag, fill = false }) {
     if (isLoading || isFetching) return <Loading />
     if (isError) return <p>Invalid response when getting metadata...</p>
     if (!_.isArray(metatexts)) return null 
-    console.log(metatexts,"WHY?")
     return (
         <div className="flex flex--wrap" style={{ gap: "2rem" }}>
                     

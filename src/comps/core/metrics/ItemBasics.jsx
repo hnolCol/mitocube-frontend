@@ -72,23 +72,6 @@ function FeatureSummary({ i, filters = [{ description: "MitoCarta", text: "MitoC
     )
 }
 
-export function FeatureLink({ tag }) {
-    
-    const [openedState, setOpenedState] = useState({hasOpened : false})
-    const { data, isLoading, isFetching, isError, error, isSuccess } = useGetFeatureInfo ({ tag }, { enabled: openedState.hasOpened })
-    
-    return (
-        <Tooltip inheritDarkTheme={false} content={
-            <div className="padding--little">
-                {isLoading || isFetching ?
-                <Loading /> :
-                    isSuccess ? <FeatureSummary {...{...data}} /> : null}</div>} onOpening={() => setOpenedState(true)}>
-                <div className="padding--tiny"><Link to={`/features/${tag}`}>{tag}</Link></div>
-        </Tooltip>
-    )
-}
-
-
 function SubmissionSummary({ meta_data }) {
     return (
         <div style={{width : "20rem"}}>

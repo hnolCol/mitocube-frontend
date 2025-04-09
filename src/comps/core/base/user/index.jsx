@@ -8,6 +8,46 @@ import { getFormatDateFromTimestamp } from "../../../../services/date/format";
 import moment from "moment";
 import { TagWithTooltip } from "../tags/TagWithTooltip";
 import _ from "lodash"
+import hooks from "@mitocube/api-hooks"
+
+
+/**
+ * @description Minimal user representation. 
+ * @param {Object} props 
+ * @param {String} props.user_tag 
+ * @param {Boolean} props.tooltip_enabled If a tooltip should be displayed containing the full name. 
+ * @returns 
+ */
+export function MinimalUserIcon({ user_tag, tooltip_enabled = true }) {
+
+    const { data : user, isSuccess} = hooks.users.useGetPublicUserByTag({tag : user_tag})
+    return <div>
+        {isSuccess ?
+        <Popover
+            disabled={ !tooltip_enabled }
+            interactionKind="hover"
+            position="top"
+            content={
+                <Menu small={true}>
+                <MenuItem text={`${user.firstname} ${user.lastname}`}
+                        icon="envelope"
+                        labelElement={<div style={{ maxWidth : "10rem" ,fontSize: "0.7rem", textAlign: "right" }}><div>{user.email}</div><div>{`${user.research_group} @${user.institute}`}</div></div>} />
+
+                </Menu>}
+            >
+
+       
+                <BaseDashboardIcon width={30} height={30}>
+                    <UserDashboardIcon {...{
+                        text: user.firstname[0] + user.lastname[0],
+                        fillColor: "#858585"
+                    }} />
+                </BaseDashboardIcon> 
+                
+        </Popover> : null}
+    </div>
+}
+
 
 
 export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false }) {
@@ -21,7 +61,7 @@ export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false 
         </Menu>} interactionKind="hover" position="top">
         <BaseDashboardIcon width={30} height={30}>
                 <UserDashboardIcon {...{ text, fillColor : selected? "#b91e18" : undefined}} />   
-            </BaseDashboardIcon>
+        </BaseDashboardIcon>
         </Popover>
     )
 }

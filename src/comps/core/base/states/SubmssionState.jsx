@@ -2,15 +2,17 @@ import _ from "lodash"
 import { useGetSubmissionStates } from "../../../../hooks/queries/submission.hooks"
 import { isHexColorLight } from "../../../../services/checks/color"
 import { titleFormat } from "../../../../services/format/string"
+import hooks from "@mitocube/api-hooks"
 
 
-export function StateIndicator({ state, padding = "little" }) {
+export function StateIndicator({ submission_tag, padding = "little" }) {
     
-    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
-    if (submissionStatesLoading) return null 
-    if (!_.has(submissionStates.states_inv,state)) return null 
-    const stateName = submissionStates.states_inv[state]
-    const stateColor = submissionStates.colors_inv[state]
+    const { data : state, isSuccess} = hooks.submissions.useGetSubmissionState({tag : submission_tag})
+    const { data : stateName, isSuccess : isSuccessStateName} = hooks.states.useGetStateName({state}, { enabled : _.isNumber(state) && isSuccess})
+    const { data : stateColor, isSuccess : isSuccessStateColor} = hooks.states.useGetStateColor({state}, { enabled : _.isNumber(state) && isSuccess})
+   
+
+    if (!isSuccess || !isSuccessStateName || !isSuccessStateColor) return null 
 
     return <div className="flex"><div className={`flex flex-column center-items div--round padding--${padding}`}style={{
         backgroundColor: stateColor,

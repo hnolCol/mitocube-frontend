@@ -19,6 +19,7 @@ import { StateIndicator } from "../../core/base/states/SubmssionState";
 import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";
 import { AuthorList } from "../../core/authors/SubmissionAuthorList";
 import { Metatexts } from "../../core/metatext/SubmissionMetatext";
+import { SubmissionComments } from "../../submission/comments";
 
 
 
@@ -41,7 +42,7 @@ function DatasetOverview() {
         if (!_.isObject(metadata)) return []
         //get metrices available at any state of the project
         let basicMetrices = [
-            { label: "Label", metric: submission_tag },
+            { label: "Tag", metric: submission_tag },
             { label: "Proteome", metric: metadata.proteome_tags },
             { label: "Samples", metric: metadata.n_samples },
             { label: "Replicates", metric: metadata.n_replicates},
@@ -74,7 +75,7 @@ function DatasetOverview() {
                     <CraetedAt createdat={metadata.created_at}/>
                 </div>
                 <div className="intent-margin-top--little">
-                    <StateIndicator state={metadata.state} />
+                    <StateIndicator submission_tag={submission_tag}/>
                 </div>
 
                 <div className="intent-margin-top--little">
@@ -111,6 +112,11 @@ function DatasetOverview() {
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
                 </div> : null}
             </div>
+            <div className="intent-margin-right ">
+                <h3>Comments</h3>
+                <SubmissionComments submission_tag={submission_tag}/>
+            </div>
+
             <div className="intent-margin-right ">
             <h3>Metatext</h3>
                 <div className="flex flex--wrap" style={{ gap: "2rem" }}>                    

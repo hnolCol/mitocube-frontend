@@ -181,7 +181,7 @@ export const useGetValueForAttributeByTag = (APIParams = {tag : ""}, useQueryOpt
 
 
 /**
- * @description Returns a list of attribute values that are present in the given dataset tags. 
+ * @description Returns a list of traits that are present in the given dataset tags. 
     Use the attribute_value_tag and attribute_tag params to return a specific subset of attribute_tags. 
  * @param {Object} props
  * @param {String[]} props.tags - The submission tags for which the attributes/values should be returned, join multiple by ';' 
