@@ -43,7 +43,7 @@ export function UnitSelectionTag({ attribute, attributeValue, onSave, initValues
 
 }
 
-export function AttributeValueInput({ attribute, attributeValues, onSave }) {
+export function TraitsInput({ attribute, attributeValues, onSave }) {
     
     const [userInput, setUserInput] = useState({})
     
@@ -134,7 +134,7 @@ export function UnitInput({ unit, prefixes, onValueChange, selection = { value: 
     useEffect(() => {
         if (focusInput) {
             const el = document.getElementById("numeric-value-input")
-            el.focus()
+            if (_.isFunction(el.focus)) el.focus()
         }
         
     }, [])

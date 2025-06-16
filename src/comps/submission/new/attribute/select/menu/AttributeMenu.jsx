@@ -1,29 +1,45 @@
 import { Menu, MenuDivider, MenuItem } from "@blueprintjs/core"
 import { Loading } from "../../../../../core/base/states/Loading"
-import { AttributeValueMenuItem } from "../../../../../core/input/items/AttributeValueMenu"
+import { TraitMenuItem } from "../../../../../core/input/items/AttributeValueMenu"
 import TextInput from "../../../../../core/input/Text"
 import { useEffect, useMemo, useState } from "react"
 import { useGetValueForAttributeByTag } from "../../../../../../hooks/queries/attribute.hooks"
 import _ from "lodash"
 import { filterArrayBySearchString } from "../../../../../../services/arrays/filter"
-import { addItemToArrayOrRemoveIfPresentByTag } from "../../../../../../services/arrays/transforms"
+import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../../../../services/arrays/transforms"
 
-export function AttributeContextMenuSearch({attribute, selectedAttributeValues, onAttributeSelect, rowIdces = [], clearAttributeTableByRowIndex = undefined, repeatSelection, handleUnitInput, samplesAttributeUnit}) {
-    const { data: attribute_values, isLoading, isFetching, isSuccess } = useGetValueForAttributeByTag({ tag: attribute.tag })
+import hooks from "@mitocube/api-hooks"
+import useDebounce from "../../../../../../hooks/useDebounce"
+
+export function AttributeContextMenuSearch({ attribute_tag,
+                selectedAttributeValues,
+                onSampleTraitSelection,
+                rowIdces = [],
+                clearAttributeTableByRowIndex = undefined,
+                repeatSelection,
+                handleUnitInput,
+    samplesAttributeUnit }) {
+    
     const [currentSelection, setCurrentSelection] = useState([]) 
     const [searchString, setQuery] = useState("")
 
-    let attributeValueBySearchQuery = useMemo(() => {
+    const debouncedString = useDebounce(searchString,30)
+    
+    const { data : trait_tags, isLoading, isSuccess, isFetching } = hooks.traits.useGetTraitBySearchString({search_string : debouncedString, limit : 30, attribute_tag})
+    // const { data: attribute_values, isLoading, isFetching, isSuccess } = useGetValueForAttributeByTag({ tag: attribute_tag })
+    
+
+    // let attributeValueBySearchQuery = useMemo(() => {
         
-        if (searchString === "" && isSuccess)
-            return  attribute_values
+    //     if (searchString === "" && isSuccess)
+    //         return  attribute_values
         
-        return _.sortBy(filterArrayBySearchString({
-            searchString,
-            array: attribute_values,
-            keyNames: ["tag","text", "description"]
-        }),'text')
-    }, [searchString, isSuccess])
+    //     return _.sortBy(filterArrayBySearchString({
+    //         searchString,
+    //         array: attribute_values,
+    //         keyNames: ["tag","text", "description"]
+    //     }),'text')
+    // }, [searchString, isSuccess])
     
 
     useEffect(() => {
@@ -48,12 +64,12 @@ export function AttributeContextMenuSearch({attribute, selectedAttributeValues, 
     //     handleUnitInput(attribute,attributeValue,userInput,rowIdces)
     // }
 
-    const handleAttributeSelection = (attributeTag, attributeValue, rowIdces) => {
+    const handleAttributeSelection = (attributeTag, trait_tag, rowIdces) => {
         
-        const updatedSelection = addItemToArrayOrRemoveIfPresentByTag({ array: currentSelection, item: attributeValue })
+        const updatedSelection =  addStringToArrayOrRemove({array : currentSelection, string : trait_tag})  
         setCurrentSelection(updatedSelection)
         
-        onAttributeSelect(attributeTag, attributeValue, rowIdces)
+        onAttributeSelect(attributeTag, trait_tag, rowIdces)
     }
 
 
@@ -71,14 +87,15 @@ export function AttributeContextMenuSearch({attribute, selectedAttributeValues, 
                 />
 
                 <Menu style={{ overflowY: "scroll", maxHeight: "40vh" }} onWheelCapture={e => e.stopPropagation()}>
-                    {isLoading || isFetching ? <Loading /> : attributeValueBySearchQuery.map((attributeValue, index) => {
+                    {isLoading || isFetching ? <Loading /> : trait_tags.map((trait_tag, index) => {
                         // index === 25 ? <MenuItem disabled key={attributeValue.text} text=" . . . not all items shown, please use the search function.." /> : index > 25 ? null :
-                        const indexInSelection = _.findIndex(currentSelection, ['tag', attributeValue.tag])
-                        return <div key={`${index}-${attributeValue.tag}-${indexInSelection}`}>
-                            <AttributeValueMenuItem
-                                attributeValue={attributeValue}
-                                selected={_.isObject(_.includes(currentSelection, attributeValue.tag))}
-                                onClick={(e) => handleAttributeSelection(attribute.tag, attributeValue, rowIdces)} />
+                        const indexInSelection = _.findIndex(currentSelection, ['tag', trait_tag])
+                        return <div key={`${index}-${trait_tag}-${indexInSelection}`}>
+                            <TraitMenuItem
+                                tag={trait_tag}
+                                attribute_tag={attribute_tag}
+                                selected={_.includes(currentSelection, trait_tag)}
+                                onClick={(attribute_tag, trait_tag) => onSampleTraitSelection([{ "type": "attribute", "tag": attribute_tag }, {"type" : "trait", "tag" : trait_tag}], rowIdces)} />
                         </div>
                     })}
            

@@ -112,7 +112,7 @@ export function AttributeSubmissionFilter({ setSubmissionFilter, submissionFilte
 
     const [openGroups, setOpenGroup] = useState({})
     const { data : allSubmissionAttributes, isLoading : asIsLoading, isFetching : asIsFetching, isSuccess : asIsSuccess } = useGetSubmissionsCount({ group: "attribute"}, {staleTime : Infinity})
-    const { data, isSuccess } = useGetSubmissionsCount({ group: "attribute", tags : _.join(tags,";") }, {enabled : tags.length > 0})
+    const { data } = useGetSubmissionsCount({ group: "attribute", tags : _.join(tags,";") }, {enabled : tags.length > 0})
     const attributeTags = asIsSuccess ? _.keys(allSubmissionAttributes) : []
     const attributes = _.isArray(attributeTags) ? _.sortBy(attributeTags.map(attributeTag => attributesByTag[attributeTag]).filter(attribute => _.isObject(attribute) && attribute.allow_as_filter && attribute.allow_for_dataset),"min_state") : []
     const order = _.uniqBy(attributes,"group_tag").map(attribute => attribute.group_tag)

@@ -36,7 +36,7 @@ export function SamplesTab({ submission, setSubmission, setComponentKey, compone
                     <NumericValueInput
                             hint="Number of replicates"
                             placeholder="Number of replicates"
-                            callbackKey={"replicates"}
+                            callbackKey={"numberReplicates"}
                             value={submission.numberReplicates===0?"":_.toString(submission.numberReplicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     <NumericValueInput
                             disabled={submission.sampleNamesFixed}

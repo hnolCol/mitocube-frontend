@@ -2,7 +2,6 @@
 import _ from "lodash"
 import Loading from "../../../../core/base/loading"
 import { useGetSubmissionAttributesByTag } from "../../../../../hooks/queries/submission.hooks"
-import { groupListByProperty } from "../../../../../services/arrays/groupby"
 import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent, addItemsToArrayOrRemoveItIfPresent, addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
@@ -11,6 +10,93 @@ import { Alert } from "@blueprintjs/core"
 import { constructSampleNames } from "../../../../../services/samples"
 import { get_proteome_id } from "../../InitialSubmission"
 
+function deleteByPath(data, path) {
+    if (path.length === 0) return false; // Nothing to delete
+  
+    const [current, ...restPath] = path;
+  
+    // Find the index of the node at this level
+    const idx = data.findIndex(
+      n => n.type === current.type && n.tag === current.tag
+    );
+  
+    if (idx === -1) return false; // Node not found
+  
+    if (restPath.length === 0) {
+      // This is the node to delete
+      data.splice(idx, 1);
+      return true;
+    } else {
+      // Recurse into children
+      if (data[idx].children) {
+        return deleteByPath(data[idx].children, restPath);
+      } else {
+        return false; // Path does not exist
+      }
+    }
+}
+  
+const findAndInsertTree = (
+        data,
+        path,
+        valueToInsert,
+        single_child_type = true,
+        level = 0
+      ) => {
+        if (path.length === 0) return;
+        console.log(path)
+        const [current, ...restPath] = path;
+        console.log(current)
+        // Find node by type and tag
+        let node = data.find(
+          n => n.type === current.type && n.tag === current.tag
+        );
+      
+        // If not found, create and push it
+        if (!node) {
+          node = { ...current, children: [] };
+          // Only apply single_child_type restriction at level >= 3
+          if (single_child_type && level >= 2) {
+            // Remove all nodes of the same type at this level
+            for (let i = data.length - 1; i >= 0; i--) {
+              if (data[i].type === current.type) {
+                data.splice(i, 1);
+              }
+            }
+          }
+          data.push(node);
+        }
+      
+        // If this is the last element in the path, set the value
+        if (restPath.length === 0) {
+          node.value = valueToInsert;
+          return;
+        }
+      
+        // Recurse into children, incrementing the level
+        findAndInsertTree(node.children, restPath, valueToInsert, single_child_type, level + 1);
+      };
+
+
+
+const findChildrenByPath = (data, path) => {
+    const [current, ...restPath] = path;
+    //if (!_.isObject(current)) return 
+    // Find node by type and tag
+    let node = data.find(
+        n => n.type === current.type && n.tag === current.tag
+    );
+
+    // If not found, create and push it
+    if (!node) return 
+
+    if (restPath.length === 0) {
+        return node.children
+    } 
+
+    return findChildrenByPath(node.children, restPath);
+    }
+
 
 export function SampleAttributeTableWrapper({ submission, updateSubmission, numberReplicates, genotypes }) {
     // wrapper to the sample attributes table 
@@ -18,21 +104,11 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     const { data: attributesByTag, isSuccess, isLoading, isFetching } = useGetSubmissionAttributesByTag()
     const proteome_ids = get_proteome_id(submission.datasetAttributeValues)
 
-    const { attributeValuesByAtrributeID, attributesAllowedForDataset } = useMemo((
-                ) => {
-                if (!isSuccess) return []
-                let attributeValues = _.flatten(_.values(attributesByTag.attribute_values))
-                let attributes = _.flatten(_.values(attributesByTag.attributes))
-                return ({
-                    attributeValuesByAtrributeID: groupListByProperty(attributeValues, "attribute_id"),
-                    attributesAllowedForDataset : attributes.filter(attribute => attribute["allow_for_dataset"])
-                })
-            }, [isSuccess])
     if (isLoading || isFetching) return <Loading />
-    //console.log(submission.sampleNames)
+
     const addSampleAttr = () => {
         //adds a new sample attribute
-        updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, {}) } })
+        updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, [[]]) } })
     }
     const clearAttributeTableByRowIndex = (rowIdces, attributeTag) => {
         //clear rows in table for specific attribute by its tg
@@ -261,36 +337,67 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         }
     }
 
-    const onSampleAttributeValueSelect = (attributeTag, trait, rowIdces) => {
-        //on selection of a sample attribute value
-        let d = submission.attributeTable
-        if (!_.has(d[0], attributeTag)) {
-            d = d.map(rowData => { return { ...rowData, [attributeTag]: [] } })
-        }
+
+    const getSelectionByPath = (path, rowIdx) => {
+        let d = submission.attributeTable.slice()
+        // console.log(d[rowIdx], "in finding??", path, rowIdx, d, "d(index), path, rowIdx,")
+        return findChildrenByPath(d[rowIdx], path)
+    }
+
+    const onSampleTraitSelection = (path, rowIdces, value) => {
+        console.log(path, rowIdces)
+        const attribute_tag = _.head(path).tag
+        let d = submission.attributeTable.slice()
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
-            .forEach(rowIndex => d[rowIndex][attributeTag] = addStringToArrayOrRemove({ array: d[rowIndex][attributeTag], string: trait.tag }))
-        
+            .forEach(rowIndex => findAndInsertTree(d[rowIndex], path, value))
+        console.log("done?")
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
-                sampleNames: constructSampleNames({
-                    submission_tag: prevValues.tag,
-                    sampleNumber: prevValues.sampleNames.length,
-                    sampleAttributes: d,
-                    sampleGenotypes: prevValues.genotypeAttributes,
-                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
+                // sampleNames: constructSampleNames({
+                //     submission_tag: prevValues.tag,
+                //     sampleNumber: prevValues.sampleNames.length,
+                //     sampleAttributes: d,
+                //     sampleGenotypes: prevValues.genotypeAttributes,
+                //     include_sample_attributes: prevValues.samplesAttributes.map(a => a.tag)
+                // })
             }
         })
     }
 
+    // const onSampleTraitSelection = (attribute_tag, trait_tag, rowIdces) => {
+    //     //on selection of a sample attribute value
+    //     let d = submission.attributeTable
+    //     if (!_.has(d[0], attribute_tag)) {
+    //         d = d.map(rowData => { return { ...rowData, [attribute_tag]: [] } })
+    //     }
+    //     rowIdces
+    //         .filter(rowIndex => rowIndex < submission.sampleNames.length)
+    //         .forEach(rowIndex => d[rowIndex][attribute_tag] = addStringToArrayOrRemove({ array: d[rowIndex][attribute_tag], string: trait_tag }))
+    //     console.log(attribute_tag, trait_tag)
+
+    //     console.log(rowIdces, d)
+        // updateSubmission(prevValues => {
+        //     return {
+        //         ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
+        //             sampleNames: constructSampleNames({
+        //             submission_tag: prevValues.tag,
+        //             sampleNumber: prevValues.sampleNames.length,
+        //             sampleAttributes: d,
+        //             sampleGenotypes: prevValues.genotypeAttributes,
+        //             include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
+        //     }
+        // })
+    // }
+
     /**
      * 
      * @param {Number} sampleAttrIdx 
-     * @param {import("../../../../../types/attributes").Attribute} attribute 
+     * @param {String} attribute_tag
      */
-    const onSampleAttributeSelect = (sampleAttrIdx, attribute) => {
-        
+    const onSampleAttributeSelect = (sampleAttrIdx, attribute_tag) => {
+        console.log(sampleAttrIdx,attribute_tag)
         let sampleAttrs = submission.samplesAttributes.slice()
         let sampleAttr = sampleAttrs[sampleAttrIdx]
         //handle unit input by the user and prepare the required list...
@@ -298,10 +405,11 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         // if (attributeHasUnits) {
         //     samplesAttributeUnit[attribute.tag] = _.map(_.range(submission.sampleNames.length), sampleIdx => [])
         // }
-        sampleAttrs[sampleAttrIdx] = attribute
+
+        sampleAttrs[sampleAttrIdx] = attribute_tag
         // if the the attribute is selected but at the index there has been already
         // a selection. 
-        if (_.isObject(sampleAttr) && sampleAttr.tag !== attribute.tag) {
+        if (sampleAttr !== attribute_tag) {
             //different tag selected 
             const prevGroupingAttributeTag = sampleAttr.tag
             //requires cleaning up the old tag
@@ -310,7 +418,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 return {
                     ...prevValues,
                     samplesAttributes: sampleAttrs,
-                    attributeTable: updatedAttributeTable,
+                    //attributeTable: updatedAttributeTable,
                     rerenderTableDependency: [Math.random()],
                     sampleNames: constructSampleNames({
                         submission_tag: prevValues.tag,
@@ -414,6 +522,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
     }
 
+    
     return (
         <div>
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
@@ -421,33 +530,34 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
             <SamplesAttributes
                 submission_tag={submission.tag}
-            sampleNames={submission.sampleNames}
-            attributeTable={submission.attributeTable}
-            rerenderTableDependency={submission.rerenderTableDependency}
-            attributeValuesByID={attributeValuesByAtrributeID}
-            onAttributeSelect={onSampleAttributeValueSelect}
-            onTagRemove={onSampleAttrRemove}
-            userUnitInput={submission.sampleUserUnitInput}
-            {...{
-                attributes: attributesAllowedForDataset,
-                genotypes,
-                addSampleAttr,
-                clearSampleAttrByIndex,
-                clearGenotypeColumn,
-                clearAttributeTableByRowIndex,
-                onSampleAttributeSelect,
-                removeSampleAttrByIndex,
-                groupings: submission.samplesAttributes,
-                genotypeAttributes : submission.genotypeAttributes,
-                onFeatureSelection,
-                proteome_ids,
-                numberReplicates: numberReplicates !==undefined? _.toNumber(numberReplicates) :_.uniq(submission.replicates).length,
-                replicates: submission.replicates,
-                onReplicateChange,
-                handleGenotypeSelection,
-                repeatSelection,
-                onUserUnitInput
-                }} />
+                sampleNames={submission.sampleNames}
+                attributeTable={submission.attributeTable}
+                rerenderTableDependency={submission.rerenderTableDependency}
+                // attributeValuesByID={attributeValuesByAtrributeID}
+                onSampleTraitSelection={onSampleTraitSelection}
+                onTagRemove={onSampleAttrRemove}
+                userUnitInput={submission.sampleUserUnitInput}
+                    {...{
+                        // attributes: attributesAllowedForDataset,
+                    genotypes,
+                    getSelectionByPath,
+                        addSampleAttr,
+                        clearSampleAttrByIndex,
+                        clearGenotypeColumn,
+                        clearAttributeTableByRowIndex,
+                        onSampleAttributeSelect,
+                        removeSampleAttrByIndex,
+                        groupings: submission.samplesAttributes,
+                        genotypeAttributes : submission.genotypeAttributes,
+                        onFeatureSelection,
+                        proteome_ids,
+                        numberReplicates: numberReplicates !==undefined? _.toNumber(numberReplicates) :_.uniq(submission.replicates).length,
+                        replicates: submission.replicates,
+                        onReplicateChange,
+                        handleGenotypeSelection,
+                        repeatSelection,
+                        onUserUnitInput
+                        }} />
             </div>
     )
 }

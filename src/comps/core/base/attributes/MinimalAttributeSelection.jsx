@@ -56,7 +56,7 @@ export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, se
 
     return (<div>
         <Select
-            placeholder = "Set attribute"
+            placeholder = "Select attribute"
             fill={true}
             onQueryChange={(query,e) => setQuery(query)}
             query={query}

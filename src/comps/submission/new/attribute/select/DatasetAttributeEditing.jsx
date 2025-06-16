@@ -1,4 +1,3 @@
-import { useGetSubmissionAttributes } from "../../../../../hooks/queries/submission.hooks"
 import { createDataTree } from "../../../../../services/arrays/nest"
 import Loading from "../../../../core/base/loading"
 import _ from "lodash"
@@ -50,42 +49,3 @@ function HierarchicalAttributeSelection({attribute, attributeValues, onItemSelec
 }
 
 
-
-export function LiteralAttributeSelection({ selectedAttributes, setSelectedAttributes, attributeFilter}) {
-    //attribute selection
-    const { data: attrs, isLoading, isFetching } = useGetSubmissionAttributes()
-    if (isLoading || isFetching) return <Loading />
-    if (!_.isObject(attrs)) return 
-    const {attributes, attribute_values } = attrs
-    const attributeMatchingFilter = _.filter(attributes, attributeFilter)
-    const attributeValuesByID = groupListByProperty(attribute_values,"attribute_tag")
-    const nestedAttributes = createDataTree({array :attributeMatchingFilter , link : "parent_tag"})
-
-    const onItemSelect = (attribute, attributeValue) => {
-        //update selection
-        selectedAttributes[attribute.tag] ??= []
-        const updatedAttrValues = addItemToArrayOrRemoveItIfPresent({ array: selectedAttributes[attribute.tag], item: attributeValue })
-        setSelectedAttributes(prevValues => { return {...prevValues, [attribute.tag] : updatedAttrValues}})
-    }
-
-    const onItemCreate = (attribute, numericInput) => {
-        //some attribute have the has_numeric_input and allow to enter the user a numeric value
-        onItemSelect(attribute, createFakeAttributeValue({ attribute, numericInput }))
-    }
-    return  <div>
-        {nestedAttributes.map(attribute => {
-            return <div key={attribute.tag} className="margin--little" style={{marginTop : "1rem"}}>
-                <HierarchicalAttributeSelection {...{
-                attribute,
-                attributeValues: attributeValuesByID[attribute.id],
-                attributeValuesByID,
-                onItemSelect,
-                onItemCreate,
-                selectedAttributes,
-                
-            }} /></div>
-            
-
-        })}
-        </div>
-}

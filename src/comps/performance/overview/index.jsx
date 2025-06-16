@@ -61,7 +61,7 @@ function PerformanceOverview({ }) {
         <div>
             {/* {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null} */}
             <h3>Instruments</h3>
-            <Instruments />
+            {/* <Instruments /> */}
 
 {/* 
             <Maintenance />

@@ -55,6 +55,8 @@ import PerformanceRuns from "./comps/performance/runs";
 import DatasetFeatureCorrelation from "./comps/dataset/correlation";
 import { AdminResearchGroup } from "./comps/admin/researchgroup/ResearchGroups";
 import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
+import PerformanceInstruments from "./comps/performance/instruments";
+import { InstrumentView } from "./comps/performance/instruments/View";
 
 //axios defaults
 
@@ -221,6 +223,8 @@ function App() {
             
             <Route index element={<PerformanceOverview />} />
             <Route path="/performance/overview" element={<PerformanceOverview />} />
+            <Route path="/performance/instruments/" element={<PerformanceInstruments />} />
+            <Route path="/performance/instruments/:instrument_tag" element={<InstrumentView />} />
             <Route path="/performance/runs" element={<PerformanceRuns />} />
             
             {/* <Route path="/performance/help" element={<h3>Help</h3>}/> */}

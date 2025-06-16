@@ -1,34 +1,22 @@
-import { useGetSubmissionsID, useGetSubmissionAttributes, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionsID, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
 import PropTypes from "prop-types"
 import APIError from "../../core/error/APIerror"
 import { useMemo, useState, useEffect } from "react"
 import { getUniqueValuesFromArrayOfObjectsByKey } from "../../../services/arrays/groupby"
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 import { objectHasKey } from "../../../services/objects/checks"
 import _ from "lodash"
-import NumericValueInput from "../../core/input/Numeric"
-import DatasetAttributeHierarchy from "./attribute/view/DatasetAttributesHierarchy"
-import TextInput from "../../core/input/Text"
-
-import { Alert, Button } from "@blueprintjs/core"
-
-import MetaText from "./MetaText"
+import { Alert} from "@blueprintjs/core"
 import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage} from "../../../services/localstorage"
-import DatasetLinks from "./Links"
+
 import { getRandomID } from "../../../services/random"
-import { SampleAttributeTableWrapper } from "./attribute/select/SamplesAttributeWrapper"
 import { constructSampleNames } from "../../../services/samples"
 
 import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 import { useNavigate } from "react-router"
-import { UserInput } from "../../core/input/api/UserInput"
-import { MandatoryAttributes } from "../MandatoryAttributes"
-import { AttributesInput } from "../../core/input/api/DatasetAttributeInput"
 import { AxiosError } from "axios"
 import { extractTagsFromFeature } from "../../../services/unit/traverse"
 import { indexStrings } from "../../../services/arrays"
-import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttributeView"
-import { GenotypeGen } from "../genotype/GenotypeGenerator"
+
 import { SubmissionPanelStack } from "./panels/TabStack"
 //move to service
 export function get_proteome_id(datasetAttributeValues) {
@@ -55,8 +43,9 @@ const initSubmissionState = {
             links : [{id : randomInitLinkID, link : "", comment : ""}],
             // attributes: {sampleNumber : 0, replicates : 0},
             datasetAttributeValues: {},
-            datasetAttributes: [],
-            genotypeAttributes : [],
+    datasetAttributes: [],
+    selected_traits: {}, // the dataset traits,
+        genotypeAttributes : [],
     rerenderTableDependency: 0,
     userUnitInput: {},
     datasetAttributeUnits: {},
@@ -84,21 +73,6 @@ function InitialSubmission({
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_tags : proteome_ids},{enabled : proteome_ids.length > 0})
 
     const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.id : undefined,[_.isObject(submission_tag),submission_tag])
-    
-    // const { data: submissionAttributes,
-    //     isLoading: attributesLoading,
-    //     error: attributesAPIError,
-    //     isError: attributeIsError,
-    //     isSuccess: attributesIsSuccess } = useGetSubmissionAttributes() //
-
-    // const attributesForGenotype = useMemo((
-    //     ) => {
-    //     if (!attributesIsSuccess) return []
-    //     return []
-    //         return submissionAttributes.attributes.filter(attribute => attribute["allow_for_genotype"])
-
-    //     },[attributesIsSuccess])
-    
     
     
     useEffect(() => {
@@ -133,15 +107,24 @@ function InitialSubmission({
             //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 
             const existingAttributeTags = attributeTable.length > 0?Object.keys(attributeTable[0]):submission.samplesAttributes.filter(groupInfo => _.isObject(groupInfo.attribute)).map(groupInfo => groupInfo.attribute.tag)
             _.forEach(_.range(diff), () => {
-                attributeTable.push(Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
+                attributeTable.push( [] ) //Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
         }
         const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : tag, sampleNumber : sampleNumber, sampleAttributes : attributeTable, sampleGenotypes : [], include_sample_attributes : submission.samplesAttributes}) : sampleNames
 
-        setSubmission(prevValues => {return {...prevValues, genotypeAttributes, sampleNames : constructedSampleNames, attributeTable, tag , rerenderTableDependency : [Math.random()]}})
+        setSubmission(prevValues => {
+            return {
+                ...prevValues,
+                genotypeAttributes,
+                sampleNames: constructedSampleNames,
+                attributeTable,
+                tag, rerenderTableDependency: [Math.random()]
+            }
+        })
 
     }, [submission.sampleNumber, tag ])
     
+    console.log(submission)
 
     const onSubmissionRequest = () => {
         // check the submisison before sending it to the API 
@@ -374,66 +357,6 @@ function InitialSubmission({
             setSubmission(initSubmissionState)
         }
     }
-
-
-    
-    // const onMetaTextChange = (tag, text) => {
-    //     //handles changes in the metatext 
-    //     let metatext = submission.metatext
-    //     metatext[tag] = text
-    //     setSubmission(prevValues => {return {...prevValues,metatext}})
-        
-    // }
-
-    // /**
-    //  * 
-    //  * @param {import("../../../types/feature").Feature} feature 
-    //  */
-    // const handlePositionSelection = (feature, singlePosition = true, aaSubstitution = false, onSave, onSaveProps) => {
-    //     setAlertProps({
-    //         isOpen: true,
-    //         confirmButtonText : "Cancel",
-    //         children : <PositionSelection {...{feature, singlePosition, aaSubstitution, onSave, onSaveProps, onClose : () => setAlertProps({isOpen : false})}}/>
-    //     })
-        
-    // }
-
-
-    // /**
-    //  * @description Handle dataset selection 
-    //  * @param {*} attribute - Historically - should be removed. 
-    //  * @param {*} trait - The actual trait that was selected. 
-    //  */
-    // const handleDatasetAttributeSelection = (attribute, trait) => {
-    //     const attribute_tag = trait.attribute_tag 
-    //     let selected_traits = submission.datasetAttributeValues
-        
-    //     if (!_.has(selected_traits, attribute_tag)) {
-    //         selected_traits[attribute_tag] = [trait.tag]
-    //     }
-    //     else {
-            
-    //         selected_traits[attribute_tag] = addStringToArrayOrRemove({ array: selected_traits[attribute_tag], string: trait.tag })
-    //         if (selected_traits[attribute_tag].length === 0) {
-    //             delete selected_traits[attribute_tag]
-    //         }
-    //     }
-    //     setSubmission(prevValues => { return {...prevValues, datasetAttributeValues : selected_traits}})
-    // }
-
-    // const handleCollaboratorSelection = (callback, selectedUser) => {
-    //     //save collaborations that are seleted
-    //     setSubmission(prevValues => {return{...prevValues, collaborators : addItemToArrayOrRemoveItIfPresent({array : prevValues.collaborators, item : selectedUser})}})
-    // }
-
-
-
-    // const addUnitsForDatasetAttributes = (attribute, attributeValue, unitValues) => {
-
-    //     setSubmission(prevValues => {return {...prevValues, datasetAttributeUnits : {...prevValues.datasetAttributeUnits, [attributeValue.tag] : unitValues}}})
-    // }
-
-
 
 
     

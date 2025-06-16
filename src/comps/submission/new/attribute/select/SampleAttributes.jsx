@@ -12,7 +12,7 @@ import NumericValueInput from "../../../../core/input/Numeric"
 import { addItemToArrayOrRemoveIfPresentByTag, addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
 import { FeatureInput } from "../../../../core/input/api/FeatureInput"
 import { useGetAttributes, useGetValueForAttributeByTag } from "../../../../../hooks/queries/attribute.hooks"
-import { AttributeValueMenuItem } from "../../../../core/input/items/AttributeValueMenu"
+import { TraitMenuItem } from "../../../../core/input/items/AttributeValueMenu"
 import Loading from "../../../../core/base/loading"
 import { AttributeFeatureTag } from "../view/DatasetAttributesHierarchy"
 import { ReplicateMenu } from "./menu/ReplicateMenu"
@@ -21,6 +21,8 @@ import { GenotypeContextMenu } from "./menu/GenotypeMenu"
 import { TraitWithValueInput } from "../../../../core/base/tags/TagWithTooltip"
 
 
+import hooks from "@mitocube/api-hooks"
+import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 
 
 
@@ -32,33 +34,25 @@ SamplesAttributes.propTypes = {
 
 
 function AttributeSelectionHeader({
+    selected_attribute_tag,
     sampleAttrIndex,
-    attributeName = "attribute type ...",
     attributesTagsInUse = [],
-    onSampleAttributeSelect = undefined,
+    onSampleAttributeSelect,
     disabled = false }) {
-    
-    const {data : attributes_, isLoading, isFetching, isSuccess, isError, error } = useGetAttributes({param_name: "allow_for_measurement", min_state: 0})
-    const attributes = _.isArray(attributes_) ? attributes_.map(a => { return { ...a.attribute, "prevview" : `${a.traits.length} traits. (${_.join(a.traits.slice(1,5).map(t => t.text))})` } }):[]
-    // table column header that allows to select an attribute -> which then enables the user to select features of that attribute.
+   
+    const {data : attribute} = hooks.attributes.useGetAttribute({tag : selected_attribute_tag},{enabled : _.isString(selected_attribute_tag)})
+    const attributeSelected = _.isObject(attribute) && _.has(attribute,"text")
     return (
         <div style={{marginRight : "2rem"}}>
-            {isSuccess && _.isArray(attributes) ? <Combobox
-                items={_.sortBy(attributes.filter(a => !attributesTagsInUse.includes(a.tag)), "text")}
-                value={attributeName}
-                textKey="text"
-                labelKey="prevview"
-                // disabled={groupingName.length < 2}
-                buttonProps={{ minimal: true, fill: false, disabled }}
-                callbackKey={"sample_attr"}
-                onChange={(callbackKey, attribute) => onSampleAttributeSelect(sampleAttrIndex, attribute)} /> : null}
+            {<AttributeInput {...{
+                text: attributeSelected ? attribute.text : "",
+                attribute_group : "sample",
+                min_state: 0, disabled,
+                onItemSelect: (attribute_tag) => onSampleAttributeSelect(sampleAttrIndex, attribute_tag)
+            }} />}
         </div>
     )
 }
-
-
-
-
 
 
 SamplesAttributes.propTypes = {
@@ -76,9 +70,11 @@ function SamplesAttributes({
     proteome_ids,
     sampleNames,
     attributeTable = [],
+    getSelectionByPath,
     attributes = [],
     groupings = [],
-    onAttributeSelect,
+    onSampleTraitSelection,
+    onChildrenSelection,
     addSampleAttr,
     onSampleAttributeSelect,
     onTagRemove ,
@@ -106,8 +102,7 @@ function SamplesAttributes({
      */
     const isGroupingAttributeDefined = (columnIndex) => {
         const groupingAttribute = getGroupingAttributeByColumnIndex(columnIndex)
-        if (!_.isObject(groupingAttribute)) return [false, undefined]
-        if (!_.has(groupingAttribute, "tag")) return [false, undefined]
+        if (!_.isString(groupingAttribute)) return [false, undefined]
         return [true, groupingAttribute]
     }
     
@@ -132,21 +127,21 @@ function SamplesAttributes({
             default: {
 
                 //let sampleAttribute = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
-                const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
+                const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
 
-                if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type" disabled={true} /></Menu>
+                if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type first.." disabled={true} /></Menu>
                 //find row indices from the selected region
                 // if there is no attribute values, then a numeric value can be inserted by the user
-                const prevSelection = _.uniqBy(_.flatten(selectedRows.map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)), "tag")
+                const prevSelection = [] //_.uniqBy(_.flatten(selectedRows.map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)), "tag")
                 return (
                     <AttributeContextMenuSearch
                         {...{
+                            attribute_tag,
                             selectedAttributeValues: prevSelection,
-                            onAttributeSelect,
+                            onSampleTraitSelection,
                             rowIdces: selectedRows,
                             clearAttributeTableByRowIndex,
                             repeatSelection,
-                            attribute,
                             handleUnitInput,
                         }}
                     />
@@ -189,7 +184,7 @@ function SamplesAttributes({
     const renderCell = (rowIndex, columnIndex) => {
 
         const cellKey = `${rowIndex}-${columnIndex}`
-        const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
+        const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
 
         if (columnIndex === 0) {
             return <Cell key={cellKey}>
@@ -206,31 +201,28 @@ function SamplesAttributes({
         if (rowIndex >= sampleNames.length) return <Cell key={cellKey}></Cell>
 
         
-        
-
 
         if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
-        const attributeTag = attribute.tag
-        let cellData = attributeTable[rowIndex][attributeTag]
-        
-        const attributeHasFeatures = attribute.has_features_value    
+        let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag }], rowIndex)
+       //let cellData = _.head(_.filter(attributeTable[rowIndex], attrCellData => attrCellData.type === "attribute" && attrCellData.tag === attribute_tag))
+        const attributeHasFeatures = false //attribute.has_features_value    
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
             <div className="flex flex--wrap center-items">
-                {_.isArray(cellData) && cellData.length === 0 ? "" : cellData.map(trait_tag => {
+                {cellData.map(child => {
                     return <div
-                        key={`${rowIndex}-${columnIndex}-${trait_tag}`}
+                        key={`${rowIndex}-${columnIndex}-${child.tag}`}
                         className="padding--little">
                         <TraitWithValueInput //consider changing to sampleTraitWithvalue? 
-                            attribute_tag={attribute.tag}
-                            trait_tag={trait_tag}
+                            rowIndex={rowIndex}
+                            attribute_tag={attribute_tag}
+                            getSelectionByPath = {getSelectionByPath}
+                            trait_tag={child.tag}
                             submission_tag={submission_tag}
                             sel={selectedRows}
-                            attribute={attribute}
+                            onChildrenSelection={onSampleTraitSelection}
                             valueIsFeature={attributeHasFeatures}
-                            unitInput={_.has(userUnitInput,rowIndex) && _.isObject(userUnitInput) ? userUnitInput[rowIndex]: undefined}
-                            onUserUnitInput={(userUnitInput)=> handleUnitInput(attribute.tag,trait_tag, userUnitInput,rowIndex)}
-                            onRemove={() => onTagRemove(rowIndex, attribute, trait_tag)} />
+                            onRemove={() => onTagRemove(rowIndex, attribute_tag, child.tag)} />
                     </div>})}
             </div>
         </Cell>
@@ -240,11 +232,11 @@ function SamplesAttributes({
 
 
     /**
-     * @description Renders the grouping header menu allowing the user to select the attribute.
+     * @description Renders the attribute header menu allowing the user to select the attribute.
      * @param {Number} columnIndex 
      * @returns 
      */
-    const renderGroupingHeaderMenu = (columnIndex) => {
+    const renderAttributeHeaderMenu = (columnIndex) => {
         const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute.tag])?rowData[attribute.tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0
@@ -261,27 +253,26 @@ function SamplesAttributes({
             </Menu>)
     }
 
-    const renderGroupingHeader = (columnIndex) => {
+    const renderAttributeHeader = (columnIndex) => {
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
-        const groupingInfo = groupings[sampleAttrIndex] //first column blocked
-        
-        const sampleAttributeSelected = _.isObject(groupingInfo)
-        const attributesTagsInUse  = groupings.filter(groupingInfo => _.isObject(groupingInfo) && _.has(groupingInfo,"tag")).map(groupingInfo => groupingInfo.tag)
+        const attribute_tag = groupings[sampleAttrIndex] 
         return (
-            <ColumnHeaderCell style={{minHeight : "3rem"}} menuRenderer={renderGroupingHeaderMenu} selectCellsOnMenuClick={false} isColumnSelected={false}>
-                <div className="margin--little" style={{ minHeight: "50px", maxHeight : "50px" }}>
-                    <AttributeSelectionHeader
-                        {...{
-                            sampleAttrIndex,
-                            attributes,
-                            onSampleAttributeSelect,
-                            columnIndex,
-                            attributesTagsInUse,
-                            disabled : sampleNames.length === 0,
-                            sampleAttributeName : sampleAttributeSelected && _.isString(groupingInfo.text)? groupingInfo.text : undefined,
-                            attributeName: sampleAttributeSelected && _.isObject(groupingInfo) ? groupingInfo.text : undefined
-                        }} />
-                </div>
+            <ColumnHeaderCell style={{ minHeight: "3rem" }}
+                menuRenderer={renderAttributeHeaderMenu}
+                selectCellsOnMenuClick={false}
+                isColumnSelected={false}
+            >
+                    <div className="margin--little"
+                        style={{ minHeight: "50px", maxHeight: "50px" }}>
+                        <AttributeSelectionHeader
+                            {...{
+                                selected_attribute_tag : attribute_tag,
+                                sampleAttrIndex,
+                                onSampleAttributeSelect,
+                                columnIndex,
+                                disabled : sampleNames.length === 0,
+                            }} />
+                    </div>
             </ColumnHeaderCell>)
     }
 
@@ -345,17 +336,17 @@ function SamplesAttributes({
         }
     }
 
-
     return (
     
         <div style={{paddingTop:"1rem",paddingBottom:"1rem",height:"500px",overflowY:"hidden"}}>
             <HotkeysProvider>
                 <Table2
+                    //enableColumnInteractionBar = {false}
                     enableGhostCells={true}
                     numRows={sampleNames.length}
                     cellRendererDependencies={[rerenderTableDependency]}
                     bodyContextMenuRenderer={renderBodyContextMenu}
-                    defaultRowHeight={30}
+                    defaultRowHeight={40}
                     selectionModes={SelectionModes.CELLS}
                     minColumnWidth={250}
                     onSelection={handleSelection}
@@ -370,10 +361,12 @@ function SamplesAttributes({
                         cellRenderer={renderGenotype}
                         columnHeaderCellRenderer={() => renderDefaultHeader("Genotype",genotypeHeaderMenu)} />
                     {groupings.map((groupInfo,groupIdx) =>
-                        <Column key={`${groupInfo.text}-${groupIdx}`} columnHeaderCellRenderer={renderGroupingHeader} cellRenderer={renderCell} />)}
-                    <Column columnHeaderCellRenderer={() => <ColumnHeaderCell><div className=" margin--little">
-                        <Button icon="plus" onClick={addSampleAttr} /></div>
-                    </ColumnHeaderCell>} />
+                        <Column key={`${groupInfo.text}-${groupIdx}`} columnHeaderCellRenderer={renderAttributeHeader} cellRenderer={renderCell} />)}
+                    
+                    <Column columnHeaderCellRenderer={() =>
+                            <ColumnHeaderCell><div className=" margin--little">
+                                <Button icon="plus" onClick={addSampleAttr} /></div>
+                        </ColumnHeaderCell>} />
             </Table2>
             </HotkeysProvider>
         </div>

@@ -1,5 +1,4 @@
 import { Button, Dialog, DialogBody, DialogFooter, Divider, Spinner, TextArea } from "@blueprintjs/core";
-import { LiteralAttributeSelection } from "../../new/attribute/select/DatasetAttributeEditing";
 import { useEffect, useState } from "react";
 import PropTypes from "prop-types"
 import APIError from "../../../core/error/APIerror";
@@ -150,11 +149,7 @@ export function AttributeSelectionDialog({
                                 : null}
                                 
                         </div>
-                        {/* <LiteralAttributeSelection {...{
-                                        attributesByTag,
-                                        selectedAttributes,
-                                        setSelectedAttributes,
-                                        attributeFilter }} /> */}
+            
                         </div>}
                 <div>
                     {isSuccess ? <p>Success. Dataset attributes updated.</p> :  isError ? <APIError error={error} /> : null}

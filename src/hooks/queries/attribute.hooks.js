@@ -141,7 +141,7 @@ export const useGetDatasetAttributes = (APIParams = {}, useQueryOptions) => {
  * @returns {[import("../../types/attributes").Attribute,import("../../types/attributes").AttributeValue[]|import("../../types/feature").Feature[]][]} - The attributes that are allowed to be define for a dataset as an array of Attribute (index 0) and AttributeValues (index 1)
  */
 async function getAtributesAndValuesByQuery_API({search_string,min_state,param_name, include_traits}) {
-    const res = await axios.get('/api/attributes', {params : {search_string,min_state,param_name, include_traits}})
+    const res = await axios.get('/api/attributes/q', {params : {search_string,min_state,param_name, include_traits}})
     return res.data 
 }
 

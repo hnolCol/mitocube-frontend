@@ -19,7 +19,6 @@ function DatasetPCA({ }) {
     const { submission_tag, metadata, setTabHeader } = useOutletContext()   
 
     const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ submission_tag })
-    // const { data: attributesByTag, isLoading: attrByTagIsLoading, isFetching: attrByTagIsFetching, isSuccess: attrByTagIsSuccess } = useGetSubmissionAttributesByTag()
     
     const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterNames : [] })
     const metaDataFound = _.isObject(metadata) && !_.isEmpty(metadata)

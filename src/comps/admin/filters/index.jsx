@@ -6,7 +6,7 @@ import _ from "lodash"
 import { usePostFilter } from "../../../hooks/queries/filter.hooks";
 import APIError from "../../core/error/APIerror";
 import { FilterSetView } from "./View";
-import { AttributeValueInput } from "../../core/input/api/AttributeValueInput";
+import { TraitsInput } from "../../core/input/api/TraitsInput";
 
 const INIT_PROPS = {proteome_tags : [], description : "", text : "", publication : "", protein_tags : [], protein_tag_string  : ""}
 export function AdminFilterSets({ }) {
@@ -63,7 +63,7 @@ export function AdminFilterSets({ }) {
                 <p>The minimum number of feature tags that have to be added is <strong>5</strong>. </p>
                 <div>
                     <TextInput value={filterProps["text"]} callbackKey="text" placeholder="Provide a name for the filter." onChange={handleChange}/>
-                    <AttributeValueInput attribute={{ tag: "att_proteome" }} selectedTraitTags={filterProps.proteome_tags} onItemSelect={(attribute,trait) => handleChange("proteome_tags",[trait.tag])} />
+                    <TraitsInput attribute={{ tag: "att_proteome" }} selectedTraitTags={filterProps.proteome_tags} onItemSelect={(attribute,trait) => handleChange("proteome_tags",[trait.tag])} />
                     <TextInput value={filterProps["description"]} callbackKey="description" placeholder="Provide a description of the protein set." onChange={handleChange} />
                     <TextInput value={filterProps["publication"]} callbackKey="publication" placeholder="Provide the pubmed id of the associated publication(s)." onChange={handleChange} hint="Publication" isRequired={false} />
                     <TextArea value={filterProps.protein_tag_string} style={{ width: "100%", minHeight: "400px" }} placeholder="Paste Uniprot IDs, separated by a new line or/and semicolon." onChange={handleProteinIDInput} />

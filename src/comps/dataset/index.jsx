@@ -3,7 +3,7 @@ import Tabs from "../core/navigation/tabs";
 import { useGetMetadata } from "../../hooks/queries/datasets.hooks";
 import { useState } from "react";
 import Loading from "../core/base/loading";
-import { useGetSubmissionAttributesByTag, useGetSubmissionStates } from "../../hooks/queries/submission.hooks";
+import { useGetSubmissionStates } from "../../hooks/queries/submission.hooks";
 import _ from "lodash"
 
 /**
@@ -18,7 +18,6 @@ function DatasetHeader({}) {
     const [tabHeader, setTabHeader] = useState("")
     // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
     const { data: metadata, isLoading: metadataIsLoading, isFetching: metadataIsFetching, refetch: refetchMetaData } = useGetMetadata({ tag: submission_tag}, {enabled : _.isString(submission_tag)})
-    //const {data : attributesByTag, isLoading : attrIsLoading, isFetching : attrIsFetching} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     
     return (

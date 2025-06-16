@@ -8,6 +8,7 @@ function PerformanceHeader({ }) {
         <div>
             <Tabs tabs={[
                 { text: "Overview", to: "/performance/overview" },
+                { text : "Instruments", to : "/performance/instruments"},
                 { text: "Runs", to: "/performance/runs" },
                 { text : "Help", to : "/performance/help"}]} />
             <div className="intent-margin-top">

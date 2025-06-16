@@ -10,52 +10,45 @@ import { useState } from "react";
 import { Button } from "@blueprintjs/core";
 import "./style.css"
 import useDebounce from "../../../../hooks/useDebounce";
-import { AttributeValueMenuItem } from "../items/AttributeValueMenu";
+import { TraitMenuItem } from "../items/AttributeValueMenu";
 import { FeatureMenuItem } from "../items/FeatureMenu";
 
+import hooks from "@mitocube/api-hooks"
 
-function AttributeWithValueMenu({ attribute, attributeValues, maxItems = 5, selectedAttributes, handleAttributeSelection }) {
-    const [showAll, setShowAll] = useState(false)
-    
-    //console.log(attributePair)
-    //const [attribute, attributeValues] = attributePair
-    if (!_.isObject(attribute)) return null 
-    const attributeInSelection = _.has(selectedAttributes, attribute.tag)
+/**
+ * 
+ * @param {Object} props 
+ * @param {String} props.tag The attribute tag 
+ * @param {String[]} props.trait_tags - List of trait tags 
+ * @param {String[]} props.selected_traits - List of traits that should be marked as selected.
+ * @param {Function} props.handleTraitSelection Handle the selection of a trait.
+ * @returns 
+ */
+export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits }) {
+    const { data: attribute, isLoading, isSuccess } = hooks.attributes.useGetAttribute({ tag }, {enabled : _.isArray(trait_tags) && trait_tags.length > 0})
     return <div>
-        <h3>{attribute.text}</h3>
-        {attributeValues.map((attributeValue, valueIdx) => showAll || valueIdx < maxItems ? attribute.has_features_value ? 
-            <FeatureMenuItem
-                key={attributeValue.tag}
-                feature={attributeValue}
-                onClick={(feature, e) => handleAttributeSelection(attribute, feature)} /> 
-            : <AttributeValueMenuItem
-                key={attributeValue.tag}
-                attributeValue={attributeValue}
-                selected={attributeInSelection &&  selectedAttributes[attribute.tag].includes(attributeValue.tag)}
-                onClick={(attributeValue => handleAttributeSelection(attribute, attributeValue))}
-            /> : null)}
-        {attributeValues.length > maxItems ? <button style={{border : "none", backgroundColor : "#efefef", marginLeft : "1rem"}} onClick={() => setShowAll(prevValue => !prevValue)}>{showAll?`Hide`:`Show all (${attributeValues.length - maxItems})`}.</button>: null }
+        {isSuccess ? <div className="menu_item_header"> {attribute.text }</div>: null}
+        {_.isArray(trait_tags) ? trait_tags.map(trait_tag => {
+            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.has(selected_traits,tag) && selected_traits[tag].includes(trait_tag)} />
+        }) : null}
     </div>
 }
 
 
 
-
 AttributesInput.propTypes = {
-    selectedItems: PropTypes.arrayOf(PropTypes.string),
-    // onItemSelect: PropTypes.func.isRequired,
+    selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
     param_name: PropTypes.oneOf(["allow_for_dataset","allow_for_sample"]),
     min_state: PropTypes.number,
     min_search_string_length: PropTypes.number,
     showSelection: PropTypes.bool,
     matchTargetWidth: PropTypes.bool,
     placeHolderText: PropTypes.string,
-    selectedAttributes: PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired
 }
 
 
 AttributesInput.defaultProps = {
-    selectedItems: [],
+    selected_traits : [],
     min_state: 5,
     param_name: "allow_for_dataset",
     min_search_string_length: 1,
@@ -64,7 +57,7 @@ AttributesInput.defaultProps = {
     placeHolderText: "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)"
 }
 /**
- * @description Select dataset attributes using the API backend for searching through the attributes and attribute values. 
+ * @description Select dataset attributes using the API backend for searching through the attributes and traits. 
  * @param {Object} props 
  * @param {import("../../../../types/attributes").AttributeValue[]} props.selectedItems 
  * @param {Number} props.min_state - The submission state for which dataset attributes should be selected. 
@@ -75,16 +68,15 @@ AttributesInput.defaultProps = {
  * @returns 
  */
 export function AttributesInput({
-        selectedItems = [],
-        onItemSelect,
         min_state,
         min_search_string_length, //set to 0 if you want to search without any string... (E.g. getting all)
-        param_name, // attribute have specific filterings and props. define them here and check the backend for options 
-        handleAttributeSelection,
+        param_name, // attribute have specific filtering and props. define them here and check the backend for options 
+        handleTraitSelection,
         showSelection, 
         matchTargetWidth,
         placeHolderText,
-        selectedAttributes }) {
+        selected_traits,
+        }) {
     
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
@@ -97,6 +89,7 @@ export function AttributesInput({
         }, {
         enabled: debouncedSearchString.length >= min_search_string_length
     })
+
     /**
      * 
      * @param {MouseEvent} e 
@@ -107,19 +100,6 @@ export function AttributesInput({
         }
         
     }
-
-
-    /**
-     * @description Handles the item selection 
-     * @param {import("../../../types/feature").Feature} item 
-     */
-        const handleItemSelection = (item,e) => {
-            if (_.isFunction(e.stopPropagation)) {
-                e.stopPropagation()
-            }
-            onItemSelect(attribute,item)
-        }
-
     /**
      * 
      * @param {Object} props 
@@ -129,19 +109,17 @@ export function AttributesInput({
      * @returns 
      */
     const renderAttributes = ({ activeItem, items, query, filteredItems }) => {
-        if (query.length > 0 &&  _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/values match the search string ...</p></div>
+        if (query.length > 0 &&  _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/traits match the search string ...</p></div>
         if (!itemsLoaded || items.length === 0)  return <div className = "padding--medium"><p>Start typing...</p></div>
+        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh" }}>
 
-        return <div className="padding--medium" style={{minWidth : "40vw", maxHeight : "400px", overflowY : "scroll", maxWidth : "80vh"}}>
-            {items.map(attributePair => {
-                return <AttributeWithValueMenu
-                    key={attributePair.attribute.tag}
-                    attribute={attributePair.attribute}
-                    attributeValues={attributePair.traits}
-                    {...{
-                        selectedAttributes,
-                        handleAttributeSelection
-                    }} />
+            {items.map(attributeWithTraits => {
+                return < AttributeWithTraitsMenuItem
+                    key={attributeWithTraits.attribute_tag}
+                    tag={attributeWithTraits.attribute_tag}
+                    trait_tags={attributeWithTraits.trait_tags}
+                    selected_traits={selected_traits}
+                    handleTraitSelection={handleTraitSelection} />
             })}
         </div>
     }
@@ -157,18 +135,19 @@ export function AttributesInput({
             items={debouncedSearchString.length >= min_search_string_length && _.isArray(queried_attributes) ? queried_attributes : []}
             placeholder={placeHolderText}
             tagRenderer={renderValue}
-            onItemSelect={handleItemSelection}
+            //onItemSelect={handleItemSelection}
             itemListRenderer={renderAttributes}
             resetOnSelect={true}
             resetOnQuery={true}
             onQueryChange={(searchString => setSearchString(searchString))}
-            onRemove={handleItemSelection}
+           // onRemove={handleItemSelection}
             popoverProps={{minimal : true, matchTargetWidth}}
             tagInputProps={{
                 rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
                 inputProps: { intent: "primary", onFocus : checkValues},
                 tagProps: { minimal: true }
             }}
-            selectedItems={selectedItems}/>
+            selectedItems={_.keys(selected_traits)}
+            />
     )
 }

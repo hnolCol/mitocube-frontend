@@ -1,6 +1,6 @@
 import { Button, Callout, Code, Dialog, DialogBody, DialogFooter, Switch } from "@blueprintjs/core";
 import { useState } from "react";
-import { useGetSubmissionAttributesByTag, usePostRunlist } from "../../../../hooks/queries/submission.hooks";
+import { usePostRunlist } from "../../../../hooks/queries/submission.hooks";
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric";
 import APIError from "../../../core/error/APIerror";
@@ -57,7 +57,6 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
         error: runlistSubmitError,
         isSuccess: runlistSubmitIsSuccess, reset } = usePostRunlist()
     
-    const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag()
     
     const [runlistProps, setRunlistProps] = useState(init_runprops)
     const [plates, setPlates] = useState(initPlates)

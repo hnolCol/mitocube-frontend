@@ -152,22 +152,6 @@ export const useGetSubmissionHelp = (useQueryOptions = {}, APIParams = {}) => {
 }
 
 
-
-/**
- * @description Returns the attributes and attributes_values from the API.
- * @author Hendrik Nolte 
- * @since 0.1.0
- * @returns {import("../../types/attributes").AttributesAPIResponse} -  The attributes and attribute_values as an array of its type.
- */
-async function getSubmissionAttribute_API() {
-    // returns submission attributes
-    const res = await axios.get('/api/attributes')
-    return res.data 
-}
-export const useGetSubmissionAttributes = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
-    return useQuery(["attributes"], () => getSubmissionAttribute_API({...APIParams}), useQueryOptions)
-}
-
 /**
  * @description Returns the attributes and attributes_values from the API and transform it to a object with the tag as the key. This 
  * is useful when tranforming the tag based submission json objects back to the attributes with properties.
