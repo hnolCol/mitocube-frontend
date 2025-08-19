@@ -2,6 +2,7 @@
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 import { useNavigate } from "react-router"
+import { InstrumentCosts } from "./Costs"
 
 /**
  * 

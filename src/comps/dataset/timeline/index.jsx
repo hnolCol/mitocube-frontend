@@ -4,16 +4,16 @@ import TimelineChart from "../../core/charts/timeline"
 import { useOutletContext } from "react-router"
 import { StateIndicator } from "../../core/base/states/SubmssionState"
 import { useGetTimelineBySubmissionTag } from "../../../hooks/queries/timeline.hooks"
-import { CraetedAt } from "../../core/metrics/CreatedAt"
+import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { useEffect } from "react"
 import { Loading } from "../../core/base/states/Loading"
-import { useGetSubmissionStates } from "../../../hooks/queries/submission.hooks"
-
+import hooks from "@mitocube/api-hooks"
 
 
 function Timeline() {
-    const { submission_tag, metadata, refetchMetaData} = useOutletContext()   
-    const { data: submissionStates, isSuccess : stateIsSuccess } = useGetSubmissionStates()
+    const { submission_tag, metadata, refetchMetaData } = useOutletContext()   
+    
+    const { data: state, isSuccess } = hooks.submissions.states.useGetSubmissionState({ tag: submission_tag })
     const { data : timeline, isLoading : timelineIsLoading, isFetching : timelineIsFetching, isSuccess : timelineIsSuccess } = useGetTimelineBySubmissionTag({submission_tag})
 
     const metadataLoaded = _.isObject(metadata)
@@ -33,7 +33,7 @@ function Timeline() {
         <div>
             {metadataLoaded && stateIsSuccess ? <div>
                 <h2>Project Timeline</h2>
-                <p>Project started: <CraetedAt createdat={metadata.created_at} /></p>
+                <p>Project started: <CreatedAt createdat={metadata.created_at} /></p>
                 <div className="flex center-items">The current state of the project is : <StateIndicator state={metadata.state} padding="tiny" /></div>
                 <div className="flex center-items">The next state of your project will be :<StateIndicator state={metadata.state + 1} padding="tiny" /> </div>
                 {timelineIsFetching || timelineIsLoading ? <Loading /> : timelineIsSuccess ?

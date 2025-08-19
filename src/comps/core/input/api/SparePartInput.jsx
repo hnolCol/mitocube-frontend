@@ -4,16 +4,19 @@ import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
+import "./style.css"
 
+import {copyTextToClipboard} from "../../../../services/clipboard"
 
-function SymptomMenuItem({ tag, handleClick, handleFocus, index, modifiers, query, selected}) {
+import {openInNewTab} from "../../../../services/tabs/newtab"
+function SparePartMenuItem({ tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
-    const { data: symptom, isSuccess, isLoading, isError } = hooks.maintenance.symptoms.useGetSymptomByTag({ tag })
-
+    const { data: sparepart, isSuccess, isLoading, isError } = hooks.maintenance.spareparts.useGetSparePartByTag({ tag })
+    console.log(sparepart)
     if (isError) return null 
     return (<MenuItem
         icon={selected ? "tick" : "blank"}
-        text={isLoading ? "... " : symptom.text}
+        text={isLoading ? "... " : sparepart.text}
         onClick={handleClick}
         onFocus={handleFocus}
         active={modifiers.active}
@@ -23,7 +26,41 @@ function SymptomMenuItem({ tag, handleClick, handleFocus, index, modifiers, quer
             float: "right",
             textWrap: "wrap",
             marginRight: "1rem"
-        }}>{_.has(symptom,"description") ? symptom.description : "..."}</div>}>
+        }}>
+            
+            <div className="flex flex-column">
+                <div>{_.has(sparepart, "company") ? sparepart.company : "..."}</div>
+                <div>{_.has(sparepart, "product_id") ? <div className="flex" style={{ float: "right" }}><strong>{sparepart.product_id}</strong>
+                    {/* //button to copy the product id  */}
+                    <Button icon={"clipboard"}
+                    minimal
+                    small
+                    fill={false}
+                    onClick={e => {
+                        e.stopPropagation()
+                        copyTextToClipboard(sparepart.product_id)                
+                    }} /> </div> : "..."}
+                    {_.has(sparepart, "link") && sparepart.link.length > 0 ?
+                        //link to webpage if available 
+                    <Button icon={"arrow-right"}
+                        minimal
+                        small
+                        fill={false}
+                        onClick={e => {
+                            e.stopPropagation()
+                            openInNewTab(sparepart.link)
+                                    
+                        }} /> : null}
+                </div>
+                <div>{_.has(sparepart, "price") && sparepart.price > 0 ? <strong>{sparepart.price} €</strong> : "na" }</div>
+                
+                <div className="font-size--small">{_.has(sparepart, "description") ? sparepart.description : "..."}</div>
+                        
+            </div>
+                
+            
+            
+        </div>}>
         
     </MenuItem>
     )
@@ -31,24 +68,24 @@ function SymptomMenuItem({ tag, handleClick, handleFocus, index, modifiers, quer
 
 
 /**
- * @description SymptomInput component for selecting a symptom with minimal appearance. Does not mean that 
- * only a single symptom can be selected, but the button design is minimal.
+ * @description SparePartInput component for selecting a SparePart with minimal appearance. Does not mean that 
+ * only a single SparePart can be selected, but the button design is minimal.
  * @param {Object} props 
  * @param {Array} props.selectedItems The currently selected item tags 
  * @returns 
  */
-export function SymptomInput({ selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false }) {
+export function SparePartInput({ selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false }) {
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.symptoms.useGetSymptomByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = hooks.maintenance.spareparts.useGetSparePartByQuery({ search_string: debouncedString })    
 
     /**
      * @description Handles the item rendering
-     * @param {*} item The Symptom item
+     * @param {*} item The SparePart item
      * @returns 
      */
-    const renderSymptom = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <SymptomMenuItem key={`${item}-${index}`}
+    const renderSparePart = (item, { handleClick, handleFocus, index, modifiers, query }) => {
+        return <SparePartMenuItem key={`${item}-${index}`}
             {...{
                 selected : _.includes(selectedItems, item.tag),
                 tag: item,
@@ -64,9 +101,9 @@ export function SymptomInput({ selectedItems = [], onItemSelect, isRequired = tr
         <Select
             popoverProps={{popoverClassName : "default_bp_menu"}}
             items={_.isArray(items) ? items : []}
-            itemRenderer={renderSymptom}
+            itemRenderer={renderSparePart}
             onQueryChange={queryString => setQueryString(queryString)}
-            onItemSelect={symptom_tag => onItemSelect(symptom_tag)}>
+            onItemSelect={sparepart_tag => onItemSelect(sparepart_tag)}>
             
             <Button icon={"plus"} minimal={true} intent="primary" />
             </Select>
@@ -76,14 +113,14 @@ export function SymptomInput({ selectedItems = [], onItemSelect, isRequired = tr
 
 
 
-export function SymptomsInput({selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false}) {
+export function SparePartsInput({selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false}) {
     
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.symptoms.useGetSymptomByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = hooks.maintenance.spareparts.useGetSparePartByQuery({ search_string: debouncedString })    
     
-    const renderSymptom = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <SymptomMenuItem key={`${item}-${index}`}
+    const renderSparePart = (item, { handleClick, handleFocus, index, modifiers, query }) => {
+        return <SparePartMenuItem key={`${item}-${index}`}
             {...{
                 tag : item,
                 handleClick,
@@ -135,7 +172,7 @@ export function SymptomsInput({selectedItems = [], onItemSelect, isRequired = tr
     helperText={helperText}>
         <MultiSelect
             disabled={disabled}
-            itemRenderer={renderSymptom}
+            itemRenderer={renderSparePart}
             items={_.isArray(items) ? items : []}
             tagRenderer={renderValue}
             selectedItems={selectedItems}
@@ -143,7 +180,7 @@ export function SymptomsInput({selectedItems = [], onItemSelect, isRequired = tr
             onRemove={handleItemSelection}
             resetOnSelect={true}
             query={queryString}
-            placeholder="Select symptom..."
+            placeholder="Select SparePart..."
             fill = {true}
             onQueryChange={(query) => setQueryString(query)}
             popoverProps={{ minimal: true, matchTargetWidth: true }}

@@ -1,0 +1,156 @@
+import _ from "lodash"
+import hooks from "@mitocube/api-hooks"
+import { Loading } from "../../core/base/states/Loading"
+import { InstrumentState } from "../instruments/StateHistory"
+import { CreatedAt } from "../../core/metrics/CreatedAt";
+import { Button, SegmentedControl } from "@blueprintjs/core";
+import { SymptomInput } from "../../core/input/api/SymptomInput";
+import PropTypes from "prop-types";
+import { useState } from "react";
+import { MaintenanceProcedures } from "./MaintenanceProcedures";
+import { MaintenanceSpareParts } from "./MaintenanceSpareParts";
+import { MaintenanceEventState } from "./MaintenanceStates";
+
+
+
+MaintenanceEventItem.propTypes = {
+    maintenance_event_tag: PropTypes.string.isRequired,
+    showInstrument: PropTypes.bool
+}   
+
+MaintenanceEventItem.defaultProps = {
+    showInstrument: true
+}   
+
+/**
+ * 
+ * @param {Object} props 
+ * @param {String} props.maintenance_event_tag The tag of the maintenance event to be displayed
+ * @param {Boolean} props.showInstrument Whether to show the instrument tag in the maintenance event
+ * @description Displays a single maintenance event item.
+ * It shows the instrument state, the description, the symptoms and procedures performed.
+ * It also allows to add or remove symptoms and procedures from the maintenance event. 
+ * @returns 
+ */
+export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
+
+    const { data: maintenance_event, isLoading, isError, refetch } = hooks.maintenance.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
+    const { isLoading: isLoadingAddingMaintenance, mutate: addSymptom } = hooks.maintenance.usePostSymptomToMaintenanceEvent()
+    const { isLoading: isLoadingDeletingMaintenance, mutate: deleteSymptom } = hooks.maintenance.useDeleteSymptomToMaintenanceEvent() 
+   
+    /**
+     * 
+     * @param {String} symptom_tag The symptom to be added or removed
+     * @description Handles the symptom selection. If the symptom is already selected, it will be removed from the list.
+     * If it is not selected, it will be added to the list
+     * On Success, it will refetch the maintenance event to update the UI.
+     * @returns {void}
+     */
+    const handleSymptomSelect = (symptom_tag) => {
+
+        if (_.includes(maintenance_event.symptom_tags, symptom_tag)) {
+            // remove the symptom tag from the list
+            deleteSymptom({ maintenance_event_tag, symptom_tag }, {
+                onSuccess: () => {
+                    refetch()
+                },
+                onError: (error) => {
+                    console.error("Error removing symptom from maintenance event", error)
+                }
+            })
+        }
+         else {
+            // add the symptom tag to the list
+            addSymptom({ maintenance_event_tag, symptom_tag }, {
+                onSuccess: () => {
+                    refetch()
+                }
+            })
+        }
+    }
+    
+
+    if (isLoading) return <Loading />
+    if (isError) return <div>Error loading maintenance event</div>
+
+    return <div className="bg--lightgrey padding--medium margin--medium div--round">
+        <div className="flex">
+        
+        <div>
+            <CreatedAt createdat={maintenance_event.created_at} />
+            {showInstrument ? <p>Instrument: {maintenance_event.instrument_tag}</p> : null}
+            <InstrumentState tag={maintenance_event.instrument_state_tag} />
+        </div>
+            
+        <div>
+            <h5>Description</h5>
+            <p>{maintenance_event.description}</p>
+                <div className="flex">
+                    <div>Symptoms</div>
+                    {_.isArray(maintenance_event.symptom_tags) && maintenance_event.symptom_tags.length > 0 ?
+                        maintenance_event.symptom_tags.map((symptom_tag, index) => {
+                            return <div key={`${symptom_tag}-${index}`}
+                                className="margin--small">
+                                {symptom_tag}
+                            </div>
+                        }) : null} 
+                    <SymptomInput selectedItems={maintenance_event.symptom_tags} onItemSelect={symptom_tag => handleSymptomSelect(symptom_tag)} />
+                </div>
+
+                <MaintenanceProcedures maintenance_event={maintenance_event} refetch={refetch} />
+                <MaintenanceSpareParts maintenance_event={maintenance_event} refetch={refetch} />
+                <MaintenanceEventState maintenance_event_tag={maintenance_event_tag} />
+        </div>
+        </div>
+        </div>
+}
+
+
+
+
+
+MaintenanceView.propTypes = {
+    instrument_tag : PropTypes.string.isRequired
+}
+
+/**
+ * 
+ * @param {Object} props 
+ * @param {String} props.instrument_tag The tag of the instrument for which the maintenance events should be displayed
+ * @description Displays the maintenance events for a specific instrument.
+ * It fetches the maintenance events for the instrument and displays them in a list. 
+ * @returns 
+ */
+export function MaintenanceView({ instrument_tag }) {
+    const [displayRange, setDisplayRange] = useState({limit : 10 , timestamp_min : undefined, timestamp_max : undefined})
+    const { data: maintenance_event_tags, isLoading } = hooks.maintenance.useGetQueryMaintenanceEvents(
+            {
+                instrument_tag,
+                ...displayRange
+            },
+        { enabled: !!instrument_tag })
+    const { data : maintenance_total_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag})
+    const { data : maintenance_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag, ...displayRange})
+
+    return <div>
+        {isLoading ? <Loading /> : <div>
+            <div> {[10,20,50,100].map(limit => {
+                return <Button small key={limit} onClick={() => setDisplayRange(prevValues => {
+                    return { ...prevValues, limit }
+                })}>{limit}</Button>
+            })}
+            </div>
+            <div className="font-size--small">
+                Total : {maintenance_total_counts} Filtered : {maintenance_counts}
+                </div>
+            <div>
+            {_.isArray(maintenance_event_tags) && maintenance_event_tags.length > 0 ?
+                maintenance_event_tags.map(me_tag => {
+                    return <div key={me_tag}>
+                        <MaintenanceEventItem maintenance_event_tag={me_tag} />
+                    </div>
+                }) : <div>No maintenance events found for this instrument.</div>}
+                </div>
+        </div>}
+    </div>
+}

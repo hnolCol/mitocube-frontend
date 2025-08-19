@@ -1,21 +1,21 @@
 import PropType from 'prop-types'
-import { Button, ButtonGroup, Divider, Icon, Menu, MenuDivider, MenuItem, NumericInput, Popover, Tooltip } from "@blueprintjs/core"
+import { Menu, MenuDivider, MenuItem, Popover } from "@blueprintjs/core"
 import { motion } from "framer-motion"
-import _, { hasIn } from "lodash"
+import _ from "lodash"
 import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
 import "./style.css"
-import { useGetAttribute, useGetAttributeUnit, useGetTrait } from "../../../../hooks/queries/attribute.hooks"
 import { useEffect, useState } from "react"
 
 import { isHexColorLight } from "../../../../services/colors"
-import { TraitValueWithUnitType } from "../traits/TraitValueWithUniType"
 import { RemoveButton } from '../buttons/RemoveButton'
 import PropTypes from 'prop-types'
-import { TraitsInput } from '../../input/api/TraitsInput'
 import NumericValueInput from '../../input/Numeric'
 
 import hooks from "@mitocube/api-hooks"
 import { TraitInput } from '../../input/api/TraitInput'
+import { findChildrenByPath } from '../../../submission/new/attribute/select/SamplesAttributeWrapper'
+import { MinimalTextInput } from '../../input/MinimalTextInput'
+import { Loading } from '../states/Loading'
 
 
 TraitChildren.propTypes = {
@@ -35,62 +35,90 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
                 children_tags.map(tag => <TraitChildSelection key={tag} attribute_tag={tag} onSelection={onChildrenSelection} {...{path, rowIndex, selectedRows, index, getSelectionByPath}} />)
                 : null
         }
-
     </div>)
 }
 
 
 
-
+/**
+ * @description Displays a child trait selection input for a given attribute tag.
+ * @param {Object} props 
+ * @param {String} props.attribute_tag The tag of the attribute for which the children should be displayed.
+ * @param {Function} props.onSelection Callback function to handle the selection of a child trait.
+ * @param {String[]} props.selectedRows The currently selected rows.
+ * @param {String[]} props.path The path to the current attribute and trait.
+ * @param {Function} props.getSelectionByPath Function to get the selection by path.
+ * @param {Number} props.rowIndex The index of the row in the table.
+ * @param {Number} props.index The index of the current attribute in the hierarchy. 
+ * @returns 
+ */
 export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex }) {
-    const { data: attribute, isLoading, isFetching, isSuccess } = hooks.attributes.useGetAttribute({ tag: attribute_tag })
+
+    const [childTrait, setChildTrait] = useState(null) 
+    const { data: attribute, isLoading, isFetching, isSuccess } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag)})
     //check if there are more children 
-    const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag})
-    let track_path = _.concat(path, [{"tag" : attribute_tag, "type" : "attribute"}])
-    const selection = _.head(getSelectionByPath(track_path, rowIndex))
+    const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
+    
+    
+    let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute" }])
+    const selection = _.isFunction(getSelectionByPath) ? _.head(getSelectionByPath(track_path, rowIndex)) : undefined
     const has_selection = _.isObject(selection)
-    const handleTraitSelection = (trait_tag) => {
+
+
+    const handleTraitSelection = (trait_tag, single_child_level = 3, single_child_type = false) => {
         
         const p = _.concat(track_path, [{ "type": "trait", "tag": trait_tag }])
-        onSelection(p,selectedRows)
+        setChildTrait(trait_tag)
+        onSelection(p,[rowIndex], single_child_level, single_child_type)
     }
 
     const handleTraitValueInput = (value) => {
-        console.log(value,"value to insert!")
-        const p = _.concat(track_path, [{ "type": "input", "value": value }])
-        onSelection(p, selectedRows)
+        const p = _.concat(track_path, [{ "type": "trait", "value": value, "tag": childTrait }])
+        onSelection(p,[rowIndex], index + 3, true) // true indicates that there is only a single child from level 3 on at this level 
     }
 
     const getInput = () => {
-        console.log(getSelectionByPath(track_path, rowIndex))
-        console.log("is there input?")
-        return undefined
+        const input = getSelectionByPath(track_path, rowIndex)
+
+        if (_.isArray(input) && input.length > 0) {
+
+            console.log(_.head(input).value, "INPUT_VALUE")
+            return _.head(input).value
+        }
+        return ""
+       
     }
-    
+
     return <div> {
         isSuccess ?
             <div style={{marginLeft : `${index * 8}px`}}>
                 {attribute.allow_input ?
-                    <div className='flex'>
-                        <div className='font-size--smallest'>{attribute.text}</div>
+                    <div className='flex flex-column'>
+                        <div>
 
-                        <NumericValueInput
-                            value={getInput()}
-                            callbackKey={attribute_tag}
-                            onChange={(attribute_tag, value) => handleTraitValueInput(value)} />
-                        
+                            <div className='font-size--smallest'>
+                                {attribute.text}
+                            </div>
+                        </div>
+                        <div className='flex center-items'>
+                        <MinimalTextInput
+                                value={getInput()}
+                                callbackKey={attribute_tag}
+                                onChange={(value) => handleTraitValueInput(value)}
+                                suffix_trait_tag={childTrait} />
                         <TraitInput
-                        
                             attribute_tag={attribute_tag}
-                            onItemSelect={handleTraitSelection}
-                            selected_trait={has_selection ? selection.tag : undefined} />
-                        
-                    </div> : <TraitInput
+                            onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, index + 3, true)}
+                            selected_trait={ _.isString(childTrait) ? childTrait : has_selection ? selection.tag : undefined }
+                            onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? setChildTrait(d[0]) : null} />
+                        </div>
+                    </div> :
+                    <TraitInput
                         attribute_tag={attribute_tag}
                         text={attribute.text}
                         onItemSelect={handleTraitSelection}
-                        selected_trait={has_selection ? selection.tag : undefined} />}
-                
+                        selected_trait={has_selection ? selection.tag : _.isString(childTrait) ? childTrait : undefined} />
+                }
                 {childrenIsSuccess && children.length > 0 ?
                     <TraitChildren children_tags={children} {...{path : track_path, rowIndex, getSelectionByPath, selectedRows, onChildrenSelection : onSelection, index : index + 1}}/> : null}
                 </div > : null
@@ -127,7 +155,12 @@ export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false
 
 
 TraitWithValueInput.propTypes = {
-    trait_tag : PropTypes.string.isRequired
+    attribute_tag : PropTypes.string.isRequired,
+    trait_tag: PropTypes.string.isRequired,
+    disableTooltip: PropTypes.bool,
+    onRemove: PropTypes.func,
+    popoverPosition: PropTypes.string,
+    highlight: PropTypes.bool,
 }
 
 
@@ -149,108 +182,51 @@ export function TraitWithValueInput({
         onRemove = undefined,
         popoverPosition = "top",
         highlight = false,
-        suffix = "",
-        prefix = "",
-        submission_tag,
-        onUserUnitInput,
         onChildrenSelection,
         getSelectionByPath,
-        unitInput,
-        sel}) {
-    const [isOpen,setIsOpen] = useState(false) //controlled popover
-    const { data: attribute, isLoading, isFetching, isSuccess } = hooks.attributes.useGetAttribute({tag : attribute_tag})
+    sel }) {
+    
+    console.log(attribute_tag, trait_tag, rowIndex, "TraitWithValueInput" ,"ROW INDEX", rowIndex, "SEL", sel) 
+    
+    // const { data: attribute, isLoading, isFetching, isSuccess } = hooks.attributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag)})
     const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = hooks.traits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag)})
-    const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag})
-    // let attr_path = _.isArray(attr_path) ? _.concat(attr_path,trait_tag) : [trait_tag]
+    const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && traitIsSuccess})
     const hasChildren = childrenIsSuccess && _.isArray(children) && children.length > 0
-
-
-    //handle data input
-    const hasInput = false
-    const inputByUser = hasInput ? unitInput[attribute_tag][trait_tag] : {}
-    const unittypes = !_.isEmpty(inputByUser)? _.keys(inputByUser).map(unittype  => _.isArray(inputByUser[unittype].value) ? _.join(inputByUser[unittype].value.map(v => v.gene_name),";"): `${inputByUser[unittype].value} ${inputByUser[unittype].unit_text}`): []
-    const unitString = unittypes.length > 0 ? _.join(unittypes, ", ") : ""
-
-
 
     //handle colors 
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
-    const motionBackgroundColor = highlight ? "#e5e5e5" : "#466688"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
-    const motionFontColor = isHexColorLight(motionBackgroundColor) ? "#000000" : "#fff"
 
-    const handleUserInputSelection = (userUnitInput) => {
-        onUserUnitInput(userUnitInput)
-        setIsOpen(false)
-    }
 
-    useEffect(() => {
-        // if units were defined already, put them to the user input in the effect.
-        if (traitIsSuccess && _.isObject(trait.user_input) && !_.isEmpty(trait.user_input)) {
-            onUserUnitInput({ [attribute_tag] : {[trait_tag] : trait.user_input} })
-        }
-    }, [traitIsSuccess])
     return (
-    <div>
-        { isFetching || isLoading || traitIsLoading ? <div>...</div> : isSuccess && traitIsSuccess?
+        <div>
+            { traitIsLoading || childrenIsLoading ? <Loading /> : traitIsSuccess && childrenIsSuccess?
                 <motion.div
-                style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem" }} //lighter ? "#efefef" :
-                className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
-                whileHover={{ backgroundColor: motionBackgroundColor, color: motionFontColor }}
-                >
-                {/* <Popover disabled={disableTooltip} content={
-                    <div className="padding--little bg--grey margin--little padding--little" style={{ maxWidth: "24rem" }}>
-                            <h4>{attribute.text}</h4>
-                            <div className="div--expand">
-                                {hasChildren ?
-                                    <div>
-                                        <div>Please enter the required information.</div>
-
-                                        
-                                        <TraitChildren children_tags={children} attr_path = {attr_path}  />
-
-
-                                        {/* <TraitValueWithUnitType
-                                            attribute_tag={attribute_tag}
-                                            trait_tag={trait_tag}
-                                            onSelect={handleUserInputSelection}
-                                            prevValues={hasInput ? unitInput : undefined } /> */}
-                                    {/* </div>
-                                    : null}
+                    style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem" }}
+                    className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
+                    whileHover={{ backgroundColor: "#efefef" }}>
+                
+                    <div className="flex">
+                        <div className="flex flex-column" style={{ width: "100%" }}>
+                            <div><strong>{trait.text}</strong></div>
+                            {hasChildren ?
+                                <TraitChildren children_tags={children} {...{
+                                    onChildrenSelection,
+                                    rowIndex,
+                                    getSelectionByPath,
+                                    path: [{ "tag": attribute_tag, "type": "attribute" }, { "tag": trait_tag, "type": "trait" }],
+                                    selectedRows: sel
+                                }} /> : null}
                         </div>
-                        </div>}
-                    canEscapeKeyClose={true}
-                    minimal={false}
-                    compact={true}
-                    isOpen={isOpen}
-                    popoverClassName=""
-                    onInteraction={(nextOpenState,e) => setIsOpen(nextOpenState)}
-                    interactionKind="click-target"
-                    inheritDarkTheme={false}
-                    hoverOpenDelay={200}
-                    hoverCloseDelay={100}
-                    position={popoverPosition}> */} 
-                        <div className="flex flex-column">
-                            <div >
+                        {_.isFunction(onRemove) ?
+                            <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}>
                                 
-                                {prefix.length > 0 ? `${prefix} ` : null}{trait.text}{unitString.length > 0 ? ` (${unitString})` : null}{suffix.length > 0 ? `${suffix}` : null}</div>
-                        {hasChildren ?
-                            <TraitChildren children_tags={children} {...{
-                                onChildrenSelection,
-                                rowIndex,
-                                getSelectionByPath,
-                                path: [{ "tag": attribute_tag, "type": "attribute" }, { "tag": trait_tag, "type": "trait" }],
-                                selectedRows: sel
-                            }} /> : null}
-                            {/* {hasChildren ?  <div className="intent-margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
-                        </div>
-                    {/* </Popover> */}
-                    
-                {_.isFunction(onRemove) ? <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(trait)} /> : null}
-                    
-                    
-            </motion.div> : null }
-    </div>
+                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove([{ "tag": attribute_tag, "type": "attribute" }, { "tag": trait_tag, "type": "trait" }], [rowIndex])} />
+                            </div>
+                            : null}
+                    </div>
+                </motion.div> : null }
+        </div>
     )
 }
 

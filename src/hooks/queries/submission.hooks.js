@@ -94,14 +94,14 @@ export const useGetPublicUserForSubmission = (APIParams = {}, useQueryOptions = 
 
 
 // sumbission ID
-async function getSubmissionID_API({}) {
+async function getSubmissionTag_API({}) {
 
     const res = await axios.get('/api/submissions/tag')
     return res.data
 }
 
-export const useGetSubmissionsID = (APIParams = {},useQueryOptions = {}) => {
-    return useQuery(["getSubmissionTAG"], () => getSubmissionID_API({...APIParams}), useQueryOptions)
+export const useGetSubmissionTag = (APIParams = {},useQueryOptions = {}) => {
+    return useQuery(["getSubmissionTAG"], () => getSubmissionTag_API({...APIParams}), useQueryOptions)
 }
 
 
@@ -149,27 +149,6 @@ async function getSubmissionHelp_API(token) {
 
 export const useGetSubmissionHelp = (useQueryOptions = {}, APIParams = {}) => {
     return useQuery(["getSubmissionHelp"], () => getSubmissionHelp_API({...APIParams}), useQueryOptions)
-}
-
-
-/**
- * @description Returns the attributes and attributes_values from the API and transform it to a object with the tag as the key. This 
- * is useful when tranforming the tag based submission json objects back to the attributes with properties.
- * @author Hendrik Nolte 
- * @since 0.1.0
- * @returns {import("../../types/attributes").AttributesByTagAPIResponse} -  The attributes and attribute_values as an object where the tag is the key.
- */
-async function getSubmissionAttributeByTag_API() {
-    // returns submission attributes but puts them in a dictionary where key is the tag
-    //TO DO: merge with function from above 
-    const res = await axios.get('/api/attributes')    
-    let attributesByTag = arrayOfObjectsToObjectByProperty(res.data.attributes,"tag")
-    let attributeValuesByTag = arrayOfObjectsToObjectByProperty(res.data.attribute_values,"tag")
-    return {attributes : attributesByTag, attribute_values : attributeValuesByTag}
-}
-
-export const useGetSubmissionAttributesByTag = (APIParams = {}, useQueryOptions = {staleTime : Infinity}) => {
-    return useQuery(["attributes_by_tag"], () => getSubmissionAttributeByTag_API({...APIParams}), useQueryOptions)
 }
 
 

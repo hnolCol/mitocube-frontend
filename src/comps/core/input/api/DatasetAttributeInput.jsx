@@ -11,7 +11,6 @@ import { Button } from "@blueprintjs/core";
 import "./style.css"
 import useDebounce from "../../../../hooks/useDebounce";
 import { TraitMenuItem } from "../items/AttributeValueMenu";
-import { FeatureMenuItem } from "../items/FeatureMenu";
 
 import hooks from "@mitocube/api-hooks"
 
@@ -29,7 +28,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     return <div>
         {isSuccess ? <div className="menu_item_header"> {attribute.text }</div>: null}
         {_.isArray(trait_tags) ? trait_tags.map(trait_tag => {
-            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.has(selected_traits,tag) && selected_traits[tag].includes(trait_tag)} />
+            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} />
         }) : null}
     </div>
 }
@@ -37,7 +36,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
 
 
 AttributesInput.propTypes = {
-    selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
+    // selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
     param_name: PropTypes.oneOf(["allow_for_dataset","allow_for_sample"]),
     min_state: PropTypes.number,
     min_search_string_length: PropTypes.number,
@@ -51,7 +50,7 @@ AttributesInput.defaultProps = {
     selected_traits : [],
     min_state: 5,
     param_name: "allow_for_dataset",
-    min_search_string_length: 1,
+    min_search_string_length: 0,
     showSelection: true,
     matchTargetWidth: true,
     placeHolderText: "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)"
@@ -76,20 +75,25 @@ export function AttributesInput({
         matchTargetWidth,
         placeHolderText,
         selected_traits,
-        }) {
+}) {
+    
+ 
     
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
     const [itemsLoaded, setItemsLoaded] = useState(false)
-    const { data: queried_attributes, isLoading, isFetching } = useGetAttributes(
+    const { data: queried_attributes, isLoading, isFetching } = hooks.attributes_query.useGetAttributesByQuery(
         {
             search_string: debouncedSearchString,
+            limit: 50,
+            include_traits: true,
             min_state: min_state,
             param_name: param_name // filters for attributes that actually allowed for a dataset ("allow_for_dataset")
         }, {
-        enabled: debouncedSearchString.length >= min_search_string_length
+            enabled: debouncedSearchString.length >= min_search_string_length,
+            staleTime: 300000,
+            placeholderData: (prev) => prev
     })
-
     /**
      * 
      * @param {MouseEvent} e 
@@ -109,6 +113,7 @@ export function AttributesInput({
      * @returns 
      */
     const renderAttributes = ({ activeItem, items, query, filteredItems }) => {
+        // if (isLoading || isFetching) return <div className="padding--medium"><p>Loading...</p></div>
         if (query.length > 0 &&  _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/traits match the search string ...</p></div>
         if (!itemsLoaded || items.length === 0)  return <div className = "padding--medium"><p>Start typing...</p></div>
         return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh" }}>

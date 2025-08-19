@@ -1,8 +1,7 @@
 import { Button, Dialog, DialogFooter } from "@blueprintjs/core";
 import SamplesAttributes from "../../new/attribute/select/SampleAttributes";
 import { useEffect, useState } from "react";
-import { mapAttributeValueTagsToAttributeValues, mapAttributeValueTagsToAttributes } from "../../../../services/attributes";
-import { useGetSubmissionAttributesByTag, usePathSubmissionSampleAttributes } from "../../../../hooks/queries/submission.hooks";
+import { usePathSubmissionSampleAttributes } from "../../../../hooks/queries/submission.hooks";
 import _ from "lodash"
 import { SampleAttributeTableWrapper } from "../../new/attribute/select/SamplesAttributeWrapper";
 import NumericValueInput from "../../../core/input/Numeric";
@@ -34,45 +33,44 @@ import { useGetGenotypes } from "../../../../hooks/queries/genotype.hooks";
 export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubmit }) {
         
     const {mutate : updateSubmissionAttrSamples, isLoading : patchingIsLoading ,isSuccess, isError : patchingIsError, error : patchingSumissionError} = usePathSubmissionSampleAttributes()
-    const { data : attributesByTag, isLoading, isFetching} = useGetSubmissionAttributesByTag()
     const [samplesAttributesProps, setSamplesAttributesProps] = useState({ attributeTable: [], sampleNames : [], replicates : [], rerenderTableDependency : [Math.random()] , samplesAttributes : [], n_samples : 0, n_replicates : 0, label : ""})
     const proteome_ids = get_proteome_id(submission.dataset_attributes)
     const { data: genotypes, isLoading: genotypeIsLoading, error: genotypeError, isError: genotypeIsError, refetch: refetchGenotypes } = useGetGenotypes({ proteome_tags: proteome_ids }, { enabled: proteome_ids.length > 0 })
 
-    useEffect(() => {
-        if (!_.isObject(attributesByTag)) return 
-        if (_.isEmpty(submission)) return 
-        const sampleAttributeTags = _.keys(submission.samples_attributes)
-        let attributeTable = submission.sample_names.map(sampleName =>
-            _.fromPairs(sampleAttributeTags.map(attrTag =>
-                [attrTag, []])))
+    // useEffect(() => {
+    //     if (!_.isObject(attributesByTag)) return 
+    //     if (_.isEmpty(submission)) return 
+    //     const sampleAttributeTags = _.keys(submission.samples_attributes)
+    //     let attributeTable = submission.sample_names.map(sampleName =>
+    //         _.fromPairs(sampleAttributeTags.map(attrTag =>
+    //             [attrTag, []])))
                     
-        let samplesAttributes = _.keys(submission.samples_attributes).map(attributeTag => attributesByTag.attributes[attributeTag])
+    //     let samplesAttributes = _.keys(submission.samples_attributes).map(attributeTag => attributesByTag.attributes[attributeTag])
 
-        _.forEach(_.keys(submission.samples_attributes), attributeTag => {
-            const attributeValueTags = _.keys(submission.samples_attributes[attributeTag])
-            _.forEach(attributeValueTags, attributeValueTag => {
-                let sampleIdcs = submission.samples_attributes[attributeTag][attributeValueTag]
-                _.forEach(sampleIdcs, sampleIdx => {
-                    attributeTable[sampleIdx][attributeTag].push(attributesByTag.attribute_values[attributeValueTag])
-                })
-            })            
-        })
+    //     _.forEach(_.keys(submission.samples_attributes), attributeTag => {
+    //         const attributeValueTags = _.keys(submission.samples_attributes[attributeTag])
+    //         _.forEach(attributeValueTags, attributeValueTag => {
+    //             let sampleIdcs = submission.samples_attributes[attributeTag][attributeValueTag]
+    //             _.forEach(sampleIdcs, sampleIdx => {
+    //                 attributeTable[sampleIdx][attributeTag].push(attributesByTag.attribute_values[attributeValueTag])
+    //             })
+    //         })            
+    //     })
 
 
-        setSamplesAttributesProps({
-            label : submission.label,
-            n_samples: submission.sample_names.length,
-            n_replicates : _.uniq(submission.replicates).length,
-            sampleNames: submission.sample_names,
-            attributeTable: attributeTable,
-            replicates: submission.replicates,
-            rerenderTableDependency: [Math.random()],
-            samplesAttributes,
-            datasetAttributeValues: submission.dataset_attributes
-        })
-    },
-        [submission.label, _.isObject(attributesByTag)])
+    //     setSamplesAttributesProps({
+    //         label : submission.label,
+    //         n_samples: submission.sample_names.length,
+    //         n_replicates : _.uniq(submission.replicates).length,
+    //         sampleNames: submission.sample_names,
+    //         attributeTable: attributeTable,
+    //         replicates: submission.replicates,
+    //         rerenderTableDependency: [Math.random()],
+    //         samplesAttributes,
+    //         datasetAttributeValues: submission.dataset_attributes
+    //     })
+    // },
+    //     [submission.label, _.isObject(attributesByTag)])
     
     
     useEffect(() => {
@@ -125,14 +123,14 @@ export function EditSamplesAttributeDialog({ isOpen, submission, onClose, onSubm
                     callbackKey={"n_replicates"}
                     onChange={(callbackKey, value) => setSamplesAttributesProps(prevValues => { return { ...prevValues, [callbackKey]: value } })} />
             
-                <SampleAttributeTableWrapper
+                {/* <SampleAttributeTableWrapper
                     
                     submission={samplesAttributesProps}
                     attributes={_.values(attributesByTag.attributes)}
                     updateSubmission={setSamplesAttributesProps}
                         numberReplicates={samplesAttributesProps.n_replicates}
                         genotypes={genotypes}
-                />
+                /> */}
             </div>}
             
             <DialogFooter actions={<div>

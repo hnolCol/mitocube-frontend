@@ -66,8 +66,11 @@ export function AttributeInput({ text, min_state, attribute_group, onItemSelect,
         min_state,
         attribute_group,
         include_traits: false, limit: 20
+    }, {
+        staleTime: 300000,
+        placeholderData: (prev) => prev ? prev : []
     })
-    
+
     const renderItem = (item, itemProps) => {
         
         return <AttributeMenuItem key={item} tag={item} menuItemProps={itemProps}  />

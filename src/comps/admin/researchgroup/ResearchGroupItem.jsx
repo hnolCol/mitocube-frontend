@@ -1,7 +1,7 @@
 import { ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
 import { motion } from "framer-motion";
 import { useGetResearchGroupByTag } from "../../../hooks/queries/researchgroup.hooks";
-import { CraetedAt } from "../../core/metrics/CreatedAt";
+import { CreatedAt } from "../../core/metrics/CreatedAt";
 import { Loading } from "../../core/base/states/Loading";
 import _ from "lodash"
 
@@ -30,7 +30,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
                 }}>
                  <div>
                 
-                    <CraetedAt createdat={research_group.created_at} />
+                    <CreatedAt createdat={research_group.created_at} />
                 
                     <div className="flex"><div><h4>{research_group.name}</h4></div><div>({research_group.abbreviation})</div></div>
                     <div className="font-size--smallest">{research_group.address}</div>

@@ -39,7 +39,7 @@ function DatasetHeader({}) {
             {metadataIsFetching || metadataIsLoading || submissionStatesLoading? <Loading /> : null}
             <div className="no-scroll div--expand">
                 
-            <Outlet context={{submission_tag, metadata, refetchMetaData, tabHeader, setTabHeader,submissionStates}}/>
+            <Outlet context={{submission_tag, metadata, refetchMetaData, tabHeader, setTabHeader, submissionStates}}/>
             </div>
             
         </div>

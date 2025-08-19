@@ -1,17 +1,14 @@
-import { addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/transforms"
+import { addStringToArrayOrRemove } from "../../../../services/arrays/transforms"
 import { UserInput } from "../../../core/input/api/UserInput"
 
-export function CollaboratorsTab(submission, setSubmission){
+export function CollaboratorsTab({submission, setSubmission}){
 
-    const handleCollaboratorSelection = (callbackKey, selectedUser) => {
+    const handleCollaboratorSelection = (callbackKey, user) => {
         //save collaborations that are seleted
         setSubmission(prevValues => {
             return {
                 ...prevValues,
-                collaborators: addItemToArrayOrRemoveItIfPresent({
-                    array: prevValues.collaborators,
-                    item: selectedUser
-                })
+                collaborators:  addStringToArrayOrRemove({array : prevValues.collaborators, string : user})   
             }
         })
     }
@@ -22,12 +19,17 @@ export function CollaboratorsTab(submission, setSubmission){
             {/* <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div> */}
         
         <UserInput
-            selectedUsers={submission.collaborators}
+            selected_users={submission.collaborators}
             onUserSelect={handleCollaboratorSelection}
             isRequired={false}
             showLabel={true}
-            helperText="Collaborators will also be informed about the state of your project." />
-            
+            helperText="Collaborators will also be informed about the state of your project. By default, collaborators cannot edit your submission." />
+    
+        
+
+
+
+
     </div>
     )
 }

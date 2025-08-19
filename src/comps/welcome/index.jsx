@@ -19,8 +19,6 @@ function Welcome() {
             <div>
                 <p>{backendInfoLoading || !_.isObject(backendInfo) && _.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
             </div>
-            <TraitsInput attribute_tag="att_compound" />
-            <TraitInput attribute_tag={"att_compound"} />
             <KeyFigure />
             {/* <StackTransitionExample /> */}
             {/* <Network /> */}

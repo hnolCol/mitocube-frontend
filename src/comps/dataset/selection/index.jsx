@@ -1,6 +1,6 @@
 import APIError from "../../core/error/APIerror";
 import { SubmissionItem } from "../../submission/view/SubmissionItem";
-import { useGetSubmissionAttributesByTag, useGetSubmissionByQuery, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
+import { useGetSubmissionByQuery, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { groupListByProperty } from "../../../services/arrays/groupby";
 import _ from "lodash"
@@ -18,7 +18,6 @@ import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeSelection
 
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
-    const { data: attributesByTag, isLoading: attrIsLoading, isFetching: attrIsFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     
     const { data: users, isLoading: userIsLoading, isFetching: userIsFetching } = useGetPublicUserInfo()
     const { data: states, isLoading: submissionStatesLoading } = useGetSubmissionStates()
@@ -51,7 +50,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
                     </div>
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
-            <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQuery.tags : []} {...{ setSubmissionFilter, submissionFilter }} />
+            {/* <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQuery.tags : []} {...{ setSubmissionFilter, submissionFilter }} /> */}
                     <FeatureDatasetFilter  {...{ setSubmissionFilter }} />
                     <GenotypeDatasetFilter {...{ setSubmissionFilter }}/>
             <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQuery.tags : [] }} />

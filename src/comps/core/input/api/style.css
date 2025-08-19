@@ -56,3 +56,9 @@
    /* font-weight: 500; */
     /* background-color: cadetblue; */
 }
+
+
+
+.default_bp_menu .bp5-menu {
+    min-width: 750px;
+}

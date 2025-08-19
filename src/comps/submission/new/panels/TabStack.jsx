@@ -1,27 +1,27 @@
-import { TitlePanel } from "./Title";
+import { ScopePanel } from "./Scope";
 import React, { useState } from "react";
 import "normalize.css"
 import { CollaboratorsTab } from "./Collaborators";
-import { MandAttributesTab } from "./MandatoryAttributes";
+import { AttributesTab } from "./Attributes";
 import _ from "lodash"
 import { MetatextTab } from "./Metatext";
 import { AnimatePresence, motion } from "framer-motion";
 import { LinksTab } from "./Links";
 import { SamplesTab } from "./Samples";
-import { Button } from "@blueprintjs/core";
+import { Button, Code } from "@blueprintjs/core";
 import { TabNavigation } from "./TabNavigation";
 
 const componentMap = {
-    "title": TitlePanel,
+    "scope": ScopePanel,
     "collaborators": CollaboratorsTab,
-    "mandatoryAttributes": MandAttributesTab,
+    "mandatoryAttributes": AttributesTab,
     "metatext": MetatextTab,
     "links": LinksTab,
     "samples" : SamplesTab,
 }
 
 const componentNames = {
-    "title": "Title",
+    "scope": "Scope",
     "collaborators": "Team",
     "mandatoryAttributes": "Attributes",
     "metatext": "Metatext",
@@ -106,14 +106,15 @@ export function SubmissionPanelStack({
         }) {
     
     // Initial panel for the stack
-    const [componentKey, setComponentKey] = useState({ current: "title", prev: undefined });
+    const [componentKey, setComponentKey] = useState({ current: "scope", prev: undefined });
     const componentKeys = _.keys(componentMap) 
 
 
-    return <div>
+    return <div className="div--expand">
         <div className="navbar__submission__grid__container bg--grey">
 
-        <div className="navbar__submission__grid__left" style={{zIndex:5}}>
+            <div className="navbar__submission__grid__left" style={{ zIndex: 5 }}>
+                <div>{_.isString(submission.tag) ? <h3>{submission.tag}: {submission.title}</h3>: null}</div>
                 <TabNavigation {...{
                     componentKey,
                     setComponentKey,

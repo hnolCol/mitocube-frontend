@@ -7,11 +7,45 @@ import { copyTextToClipboard } from "../../../services/clipboard";
 import { useNavigate } from "react-router";
 import { AttributeFeatureTag } from "../new/attribute/view/DatasetAttributesHierarchy";
 import { TitleText } from "../../core/metrics/ItemBasics";
-import { CraetedAt } from "../../core/metrics/CreatedAt";
+import { CreatedAt } from "../../core/metrics/CreatedAt";
 import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";
-
-
+import { motion } from "framer-motion";
+import PropTypes from "prop-types"
 import _ from "lodash"
+
+
+import hooks from "@mitocube/api-hooks"
+
+
+MinimalSubmissionItem.propTypes = {
+    tag: PropTypes.string.isRequired
+}
+
+
+/**
+ * 
+ * @param {Object} props 
+ */
+export function MinimalSubmissionItem({ tag }) {
+    const { data: submission_title } = hooks.submissions.useGetSubmissionTitle({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const { data: created_at } = hooks.submissions.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    return (
+        <motion.button style={{ backgroundColor: "#f0f0f0", border: "none" }} whileHover={{ backgroundColor: "#e0e0e0" }}
+            onClick={(e) => {
+                console.log("Clicked on submission item", tag);
+                e.stopPropagation()
+            }} className="submission__item__container bg--white">
+            <div className="flex"> 
+                {_.isNumber(created_at) ? <CreatedAt createdat={created_at} /> : null}
+                {_.isString(submission_title) ? submission_title : null}
+                <div className="submission__item__container__footer">
+                    
+                    
+                </div>
+            </div>
+        </motion.button>
+    )
+}
 
 
 
@@ -122,7 +156,7 @@ export function SubmissionItem({
             <div className="bg--grey margin--little padding--little">
             <div className="flex justify-space-between" > 
             <div className="flex flex--wrap center-items">
-                <CraetedAt createdat={submission.created_at}/>                
+                <CreatedAt createdat={submission.created_at}/>                
                 <TitleText title={submission.title} />
                             
             </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
 
-export function TabNavigation({componentKeys, componentKey, componentNames, setComponentKey }){
+export function TabNavigation({componentKeys, componentKey, componentNames, setComponentKey  }){
     const [activeIndex, setActiveIndex] = useState(0);
     const [positions, setPositions] = useState([]);
     const buttonRefs = useRef([]);

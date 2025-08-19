@@ -17,8 +17,8 @@ export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, sel
             {isSuccess ?
                 <div className="flex flex-column">
                     <button className={`menu_item ${selected ? "menu_item__selected" : ""} ${active ? "menu_item__active" : ""} `}
-                        onClick={(e) => onClick(attribute_tag, tag)}>
-                        
+                        onClick={(e) => onClick([{ "type": "attribute", "tag": attribute_tag }, { "type": "trait", "tag": tag }])}>
+
                         <div className={`flex justify-space-between " ${selected ? "" : ""}`}>
                             <div className="menu_item_text">{trait.text}</div>
                                 <div className="menu_item_description">{trait.description}</div>

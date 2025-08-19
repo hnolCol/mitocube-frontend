@@ -1,20 +1,20 @@
 import PropTpyes, { array } from "prop-types"
 import { getUniqueSetsOfAllValuesinArrayOfObjects, groupListByProperty } from "../../../services/arrays/groupby"
 import _ from "lodash"
-import { SubmissionItem } from "./SubmissionItem"
+import { MinimalSubmissionItem, SubmissionItem } from "./SubmissionItem"
 import { useState } from "react"
-import { isHexColorLight } from "../../../services/colors"
-import { titleFormat } from "../../../services/format/string"
+
 import {motion, useAnimation} from "framer-motion"
 import { Icon } from "@blueprintjs/core"
 import { filterArrayBySearchString } from "../../../services/arrays/filter"
-import { useGetSubmissionStates, useGetSubmissionByQuery } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionByQuery } from "../../../hooks/queries/submission.hooks"
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms"
 import { SubmissionFilterSelection } from "../filter"
 import { filterSubmissions } from "../../../services/submissions"
 
 
-
+import hooks from "@mitocube/api-hooks"
+import { StateHeader } from "./StateHeader"
 
 
 // AttributeFilterButton.propTypes = {
@@ -129,39 +129,33 @@ import { filterSubmissions } from "../../../services/submissions"
 
 
 
-export function StateHeader({stateName, stateColor}) {
-    return <div className="submission__state__header" style={{
-        backgroundColor: stateColor,
-        color: isHexColorLight(stateColor) ? "black" : "white"
-    }}>{titleFormat(stateName)}
-    </div>
-}
 
 SubmissionContainer.propTypes = {
-    states: PropTpyes.object.isRequired,
-    submissions: PropTpyes.arrayOf(PropTpyes.object),
-    attributesByTag : PropTpyes.object.isRequired
+    submissionFilter: PropTpyes.object.isRequired,
+    setSubmissionQuery: PropTpyes.func.isRequired,
+    setSubmissionFilter: PropTpyes.func.isRequired,
+    setAttributeSelectionDialog: PropTpyes.func.isRequired,
 }
 
 
 
-export function SubmissionContainer({ states, attributesByTag, users, submissionFilter, setSubmissionFilter, setAttributeSelectionDialog,submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog, setMetatextDialog}) {
+export function SubmissionContainer({ submissionFilter, setSubmissionFilter, setAttributeSelectionDialog, submissionsQuery, setSubmissionQuery, setAttributesDialog, setRunlistDialog, setChangeOwnerDialog, setMetatextDialog}) {
     
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
-
-    const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
-        query: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
+    
+    
+    const { data: submissionStates } = hooks.submissions.states.useGetStates()
+    
+    const { data: submission_by_state, isLoading, isFetching, isSuccess, isError, error } = hooks.submissions.query.useGetSubmissionByQuery({
+        search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
+        group_by_state : true,
         state: stateFilter,
-        genotype_tag : getValueByKeyAndMergeToString({array : submissionFilter["genotype_tag"], keyName : "tag"}),
-        user_tag : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
+        genotype_tag: getValueByKeyAndMergeToString({ array: submissionFilter["genotype_tag"], keyName: "tag" }),
+        user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
-        attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
+        attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" })
     })
 
-   
-    const usersByLabel = groupListByProperty(users, "label")
-    //const filteredSubmission = filterSubmissions({submissions, submissionFilter,submissionsQuery,usersByDataLabel})
-    const submissionsByState = _.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? groupListByProperty(submissionQuery.submissions, "state") : {}
     return (
         <div>
             <SubmissionFilterSelection {...{
@@ -169,46 +163,70 @@ export function SubmissionContainer({ states, attributesByTag, users, submission
                 setSubmissionFilter,
                 submissionsQuery,
                 setSubmissionQuery,
-                submissionQueryResult: submissionQuery,
+                submissionQueryResult: submission_by_state,
                 isLoading,
                 isFetching,
                 isSuccess,
                 isError
             }}
-                children={ Object.values(states.states).map((state,stateIdx) => {
-                            const submissionsAreInState = _.has(submissionsByState, state)
-                            if (!submissionsAreInState) return null 
-                            return (
-                                <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
-                                    <StateHeader {...{
-                                        stateName: states.states_inv[state],
-                                        stateColor: states.colors_inv[state]
-                                    }} />
-                                    {_.isArray(submissionsByState[_.toString(state)]) ? submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
-                                        //key are always strings .... 
+                children={
+                    
+                    <div>
+                        {_.isArray(submissionStates) && submissionStates
+                            .filter(state_tag => _.has(submission_by_state, state_tag) && _.isArray(submission_by_state[state_tag]) && submission_by_state[state_tag].length > 0)
+                            .map((state_tag, idx) => {
+                                return <div>
+                                    <StateHeader key={`${idx}-${state_tag}`} tag={state_tag} />
+                                        
+                                    {submission_by_state[state_tag].map((submission_tag, submissionIdx) => {
                                         return (
-                                            <SubmissionItem
-                                                key={submission.tag}
-                                                {...{
-                                                stateName : states.states_inv[state], 
-                                                states,
-                                                usersByLabel,
-                                                submission,
-                                                setAttributeSelectionDialog,
-                                                attributesByTag : attributesByTag.attributes,
-                                                attributeValuesByTag: attributesByTag.attribute_values,
-                                                setAttributesDialog,
-                                                setRunlistDialog,
-                                                setChangeOwnerDialog,
-                                                setMetatextDialog,
-                                                minimalView : submissionsQuery.minimalView
-                                                
-                                            }} borderColor={states.colors_inv[state]} />
+                                            <div key={`${submission_tag}-${submissionIdx}`}>
+                                                {/* // If minimalView is true, use MinimalSubmissionItem, otherwise use SubmissionItem */}
+                                                <MinimalSubmissionItem tag={submission_tag} />
+                                                {submission_tag}
+                                            </div>
                                         )
-                                    }): null}
+                                    })}
                                 </div>
-                            )
-                        })} />
+                        }) }
+                    </div>
+                    
+                    // Object.values(states.states).map((state, stateIdx) => {
+                    //         const submissionsAreInState = _.has(submissionsByState, state)
+                    //         if (!submissionsAreInState) return null 
+                    //         return (
+                    //             <div key={`${stateIdx}-${state}`} className="flex flex-column submission__state_container">
+                    //                 <StateHeader {...{
+                    //                     stateName: states.states_inv[state],
+                    //                     stateColor: states.colors_inv[state]
+                    //                 }} />
+                    //                 {_.isArray(submissionsByState[_.toString(state)]) ? submissionsByState[_.toString(state)].map((submission,submissionIdx) => {
+                    //                     //key are always strings .... 
+                    //                     return (
+                    //                         <SubmissionItem
+                    //                             key={submission.tag}
+                    //                             {...{
+                    //                             stateName : states.states_inv[state], 
+                    //                             states,
+                    //                             usersByLabel,
+                    //                             submission,
+                    //                             setAttributeSelectionDialog,
+                    //                             attributesByTag : attributesByTag.attributes,
+                    //                             attributeValuesByTag: attributesByTag.attribute_values,
+                    //                             setAttributesDialog,
+                    //                             setRunlistDialog,
+                    //                             setChangeOwnerDialog,
+                    //                             setMetatextDialog,
+                    //                             minimalView : submissionsQuery.minimalView
+                                                
+                    //                         }} borderColor={states.colors_inv[state]} />
+                    //                     )
+                    //                 }): null}
+                    //             </div>
+                    //         )
+                    // })
+                
+                } />
             </div>
     )
 }

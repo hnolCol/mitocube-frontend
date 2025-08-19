@@ -1,18 +1,13 @@
-import { MaintenanceEventDefinition } from "../maintenance/MaintenanceEvent"
 import { InstrumentMenu } from "./Menu"
 import hooks from "@mitocube/api-hooks"
 
 
 
-function PerformanceInstruments({ }) {
-    
-   
-    // const { data, isLoading } = useGetDendro()
+function PerformanceInstruments({instrument_tag}) {
     
     return (
         <div>
             <InstrumentMenu />
-            <MaintenanceEventDefinition />
         </div>
        
     )

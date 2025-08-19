@@ -11,6 +11,29 @@
     color : white
 }
 
+.reduce-div::after{ 
+  display: inline-block;
+  font-size: 1rem;
+  margin-left: 3px;
+  content: "-"
+}
+
+
+.reduce-div:hover{
+    color : white
+}
+
+.increase-div::after{ 
+  display: inline-block;
+  font-size: 1rem;
+  margin-left: 3px;
+  content: "+"; /* This will render the '+' */
+}
+
+
+.increase-div:hover{
+    color : white
+}
 
 .add-div::after{
   display: inline-block;

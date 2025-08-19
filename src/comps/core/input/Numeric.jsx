@@ -6,15 +6,6 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import { useState } from "react"
 
-{/* <div>
-<div className="font-size--small">
-    {optional?"Optional : ": ""}{`${hint} ${checkForMinLength?`(min. ${minLength} characters)`:""}`}
-</div>
-<div>
-    <InputGroup value={value} onChange={handleValueChange} {...{ placeholder }} {...style} />
-</div>
-
-</div> */}
 
 
 NumericValueInput.propTypes = {
@@ -64,7 +55,6 @@ function NumericValueInput({ callbackKey,
     const valueInRange = _.inRange(_.toNumber(valueString), minValue, maxValue + 1)
     return (
         <FormGroup
-            
             label={hint}
             labelInfo={isRequired ? "(required)" : ""}
             inline={false}

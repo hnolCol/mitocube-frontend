@@ -21,6 +21,7 @@ function TraitMenuItem({ tag, menuItemProps, selected }) {
     if (!isSuccess) return null 
 
     return <MenuItem
+        icon={ selected ? "tick" : "blank"}
         text={trait.text}
         labelElement={<div className="font-size--smallest"
             style={{ maxWidth: "8rem" }}>
@@ -39,21 +40,25 @@ function TraitMenuItem({ tag, menuItemProps, selected }) {
  * an item has been already selected.  
  * @returns 
  */
-export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait }) {
-
+export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 30)
     
-    const { data: traits, isError, isLoading } = hooks.traits.useGetTraitBySearchString({ search_string: debouncedString, attribute_tag, limit: 50 })
+    const { data: traits, isError, isLoading } = hooks.traits.useGetTraitBySearchString({ search_string: debouncedString, attribute_tag, limit: 50 }, {
+        enabled: _.isString(attribute_tag), onSuccess: (data) => {
+            if (_.isFunction(onTraitLoadSuccess)) onTraitLoadSuccess(data)
+        }
+    })
+
+
     const handleSelect = (trait_tag, e) => {
 
         if (_.isFunction(e.stopPropagation)) e.stopPropagation()
         
-        onItemSelect(trait_tag)
+        onItemSelect(attribute_tag, trait_tag)
     }
     
     const renderItem = (item, itemProps) => {
-        
         return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={_.isString(selected_trait) && item === selected_trait}  />
     }
     const handleQueryChange = (query) => {

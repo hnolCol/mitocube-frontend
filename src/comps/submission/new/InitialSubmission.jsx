@@ -1,4 +1,4 @@
-import { useGetSubmissionsID, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionTag, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
 import PropTypes from "prop-types"
 import APIError from "../../core/error/APIerror"
 import { useMemo, useState, useEffect } from "react"
@@ -14,7 +14,6 @@ import { constructSampleNames } from "../../../services/samples"
 import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 import { useNavigate } from "react-router"
 import { AxiosError } from "axios"
-import { extractTagsFromFeature } from "../../../services/unit/traverse"
 import { indexStrings } from "../../../services/arrays"
 
 import { SubmissionPanelStack } from "./panels/TabStack"
@@ -28,28 +27,23 @@ export function get_proteome_id(datasetAttributeValues) {
 
 const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
-    tag: "",
-    numberReplicates: 0,
-    sampleNumber: 0, 
-            
+            tag: "",
+            numberReplicates: 0,
+            sampleNumber: 0, 
             replicates : [],
             sampleNames: [],
-            sampleNamesFixed: false,
+    sampleNamesFixed: false,
+            samplesAttributes : [], 
             collaborators : [],
             attributeTable: [],
-            samplesAttributes: [],
             metatext: {},
             genotypes: {},
             links : [{id : randomInitLinkID, link : "", comment : ""}],
-            // attributes: {sampleNumber : 0, replicates : 0},
-            datasetAttributeValues: {},
-    datasetAttributes: [],
-    selected_traits: {}, // the dataset traits,
-        genotypeAttributes : [],
+                    // attributes: {sampleNumber : 0, replicates : 0},
+            selected_traits: [], // the dataset traits,
+            genotypeAttributes : [],
     rerenderTableDependency: 0,
-    userUnitInput: {},
-    datasetAttributeUnits: {},
-    sampleUserUnitInput : {},
+            title : ""
 }
             
 function InitialSubmission({
@@ -68,11 +62,11 @@ function InitialSubmission({
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}) 
-    const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionsID({},{enabled : !_.isString(init_submission_tag)})
+    const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : !_.isString(init_submission_tag)})
     const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
     const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_tags : proteome_ids},{enabled : proteome_ids.length > 0})
 
-    const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.id : undefined,[_.isObject(submission_tag),submission_tag])
+    const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.tag : undefined,[_.isObject(submission_tag),submission_tag])
     
     
     useEffect(() => {
@@ -139,7 +133,9 @@ function InitialSubmission({
         const genotypeAttributes = submission.genotypeAttributes.slice(0,numberSamples)
         const allEmptyGenoypes = _.every(genotypeAttributes.map(attrs => attrs.length === 0))
         const someEmptyGenotypes = _.some(genotypeAttributes.map(attrs => attrs.length === 0))
-        if (!_.isString(submission.attributes.title) || submission.attributes.title.length < 10) {
+        
+        
+        if (!_.isString(submission.title) || submission.title.length < 10) {
             errMsgs.push("Title not defined or to short (<10 characters).")
         }
 
@@ -148,7 +144,7 @@ function InitialSubmission({
         }
 
         if (numberReplicates === 0) {
-            errMsgs.push("No replicates defined")
+            errMsgs.push("No replicates defined for the samples.")
         }
 
         if (numberReplicates < numberSamples) {
@@ -226,9 +222,16 @@ function InitialSubmission({
         }
 
         else {
-            let submissionDetails = { ...submission }
+            let submissionDetails = { } // ...submission 
             // delete rendering float
-            const flexAttributes = submissionDetails["attributes"]
+            submissionDetails["title"] = submission.title 
+            submissionDetails["sample_names"] = submission.sampleNames 
+            submissionDetails["replicates"] = validReplicates
+            submissionDetails["samples_attributes"] = attributeTable
+            submissionDetails["dataset_attributes"] = submission.selected_traits
+            submissionDetails["collaborators"] = submission.collaborators.map(u => u.tag)
+            submissionDetails["tag"] = tag 
+            submissionDetails["metatext"] = submission.metatext
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
 
@@ -248,24 +251,24 @@ function InitialSubmission({
             //     const d = _.keys(item).map(key => [key,item[key].map(trait => trait.tag)])
             //     return _.fromPairs(d)
             // })
-            submissionDetails["collaborators"] = submission.collaborators.map(u => u.tag)
-            submissionDetails["samplesAttributes"] = indexStrings(sampleAttributeTags)
-            submissionDetails["tag"] = tag 
-            submissionDetails["title"] = submission.title 
-            submissionDetails["replicates"] = validReplicates
+            
+            // submissionDetails["samplesAttributes"] = indexStrings(sampleAttributeTags)
+            
+            
+            
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
-            submissionDetails["includes_data"] = submitExistingData
-            submissionDetails["data_array"] = submitExistingData ? loadingFileProps.dataArray.map(row_data =>
-            loadingFileProps.sampleColumnsIdx.map(rowIndex => row_data[rowIndex] === "NaN" || row_data[rowIndex] === "" ? NaN : _.toNumber(row_data[rowIndex]))) : undefined
-            submissionDetails["data_sample_names"] = submitExistingData ? loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx]) : []
-            submissionDetails["data_index"] = findFeatures(loadingFileProps)
+            // submissionDetails["includes_data"] = submitExistingData
+            // submissionDetails["data_array"] = submitExistingData ? loadingFileProps.dataArray.map(row_data =>
+            // loadingFileProps.sampleColumnsIdx.map(rowIndex => row_data[rowIndex] === "NaN" || row_data[rowIndex] === "" ? NaN : _.toNumber(row_data[rowIndex]))) : undefined
+            // submissionDetails["data_sample_names"] = submitExistingData ? loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx]) : []
+            // submissionDetails["data_index"] = findFeatures(loadingFileProps)
             //submissionDetails["samplesAttributesInput"] = submission.samplesAttributesUnit
 
 
-            console.log(extractTagsFromFeature(submission.userUnitInput ))
-            submissionDetails["datasetAttributeInput"] = extractTagsFromFeature(submission.userUnitInput )
-            submissionDetails["sampleUserUnitInput"] = submission.sampleUserUnitInput
-
+            // console.log(extractTagsFromFeature(submission.userUnitInput ))
+            // submissionDetails["datasetAttributeInput"] = extractTagsFromFeature(submission.userUnitInput )
+            // submissionDetails["sampleUserUnitInput"] = submission.sampleUserUnitInput
+            console.log("SUBMISSION DETAILS", submissionDetails)
             postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
@@ -278,7 +281,7 @@ function InitialSubmission({
                         intent: "success",
                         onClose: () => {
                             setAlertProps({ isOpen: false })
-                            resetSubmission()
+                            // resetSubmission()
                             redirect("/submission/view")
                         }
                     }),
@@ -372,7 +375,7 @@ function InitialSubmission({
         <div className="flex flex-column">
             <Alert style={{minWidth:"min(60vw,600px)"}} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
-        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{maxHeight : "84vh",position:"relative"}}>
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{height : "100%",position:"relative"}}>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
@@ -390,7 +393,7 @@ function InitialSubmission({
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
                     <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div>
-                    
+                    d
                     <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
                   
             </div> */}

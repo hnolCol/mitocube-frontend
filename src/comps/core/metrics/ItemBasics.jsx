@@ -9,7 +9,7 @@ import { useGetFeatureInfo } from "../../../hooks/queries/feature.hooks"
 import { TagWithTooltip } from "../base/tags/TagWithTooltip"
 import { useGetPublicUserByTag } from "../../../hooks/queries/user.hooks"
 import _ from "lodash"  
-import { CraetedAt } from './CreatedAt'
+import { CreatedAt } from './CreatedAt'
 import { StateIndicator } from '../base/states/SubmssionState'
 
 
@@ -76,7 +76,7 @@ function SubmissionSummary({ meta_data }) {
     return (
         <div style={{width : "20rem"}}>
             <div className="flex justify-space-between center-items">
-                <CraetedAt createdat={meta_data.created_at} />
+                <CreatedAt createdat={meta_data.created_at} />
                 <StateIndicator state={meta_data.state} />
             </div>
             <TitleText title={meta_data.title} />

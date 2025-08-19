@@ -1,4 +1,4 @@
-import { useGetSubmissionAttributesByTag, useGetSubmissionStates} from "../../../hooks/queries/submission.hooks"
+import {  useGetSubmissionStates} from "../../../hooks/queries/submission.hooks"
 import _ from "lodash"
 import { UserFilter } from "../filter/UserSelection"
 import { AttributeSubmissionFilter } from "../filter/AttributeSelection"
@@ -15,14 +15,14 @@ import { groupListByProperty } from "../../../services/arrays/groupby"
 export function SubmissionFilterSelection({ submissionsQuery, submissionQueryResult, isLoading, isFetching, isSuccess, isError,  submissionFilter, setSubmissionFilter, setSubmissionQuery, header = "Submissions", children = <div></div> }) {
     const [searchString, setSearchString] = useState(submissionsQuery.plain)
     const debouncedString = useDebounce(searchString, 200)
-    const { data: attributesByTag } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
-    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
+    // const { data: attributesByTag } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
+    // const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
     useEffect(() => { setSubmissionQuery(prevValues => { return { ...prevValues, plain: debouncedString } }) }, [debouncedString])
 
 
-    if (!_.isObject(attributesByTag) || submissionStatesLoading) return null
+    // if (!_.isObject(attributesByTag) || submissionStatesLoading) return null
     const submissionsByState = _.isObject(submissionQueryResult) && _.isArray(submissionQueryResult.submissions) ? groupListByProperty(submissionQueryResult.submissions, "state") : {}
-    const attributeValuesByAttributeTag = groupListByProperty(_.values(attributesByTag.attribute_values), "attribute_tag")
+    // const attributeValuesByAttributeTag = groupListByProperty(_.values(attributesByTag.attribute_values), "attribute_tag")
 
     return (
         <div className="submission__wrapper">
@@ -32,18 +32,19 @@ export function SubmissionFilterSelection({ submissionsQuery, submissionQueryRes
             <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
             </div>
-            <StateSelection {...{ states : submissionStates, submissionsByState, submissionFilter, setSubmissionFilter }} /> 
+            <StateSelection {...{ submissionFilter, setSubmissionFilter }} /> 
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
-                <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQueryResult.tags : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} />
+                {/* <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQueryResult.tags : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} /> */}
             <GenotypeDatasetFilter {...{setSubmissionFilter}} />
             <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [] }} />
             </div>
             </div>
 
             <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>
-                {isError ? <p>An error was returned.</p> :
-                    _.isEmpty(submissionsByState) && !(isLoading || isFetching) ?
-                        <p>No submission found that match the filter.</p> : children}
+                {/* isError ? <p>An error was returned.</p> :
+                    _.isEmpty(submissionsByState) && !(isLoading || isFet{ching) ?
+                        <p>No submission found that match the filter.</p> : children} */}
+                {children}
             </div>
             </div>
     )

@@ -4,7 +4,6 @@ import Loading from "../../core/base/loading"
 import APIError from "../../core/error/APIerror"
 import _ from "lodash"
 import { AttributeFeatureTag } from "../../submission/new/attribute/view/DatasetAttributesHierarchy"
-import { useGetSubmissionAttributesByTag } from "../../../hooks/queries/submission.hooks"
 import { GenotypeDefinition } from "./GenotypeDefinition"
 /**
  * 
@@ -13,7 +12,6 @@ import { GenotypeDefinition } from "./GenotypeDefinition"
  * @returns 
  */
 export function GenotypeCard({ genotype, refetchGenotypes, justDisplay = false, fill = false }) {
-    const { data: attributesByTag, isFetched } = useGetSubmissionAttributesByTag()
     const {mutate, isLoading, isSuccess} = useDeleteGenotype()
     if (!isFetched) return null 
     return (<Card compact={true} interactive={true} className="margin--little" style={{ padding: "0.4rem", width : fill ? undefined:"min(350px,80vw)" }}>

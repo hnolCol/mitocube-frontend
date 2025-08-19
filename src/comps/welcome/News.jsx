@@ -3,7 +3,7 @@ import APIError from "../core/error/APIerror"
 import Loading from "../core/base/loading"
 import _ from "lodash"
 import { Content, SubmissionLink, TitleText } from "../core/metrics/ItemBasics"
-import { CraetedAt } from "../core/metrics/CreatedAt"
+import { CreatedAt } from "../core/metrics/CreatedAt"
 import { FeatureLink } from "../core/links/Feature"
 
 /**
@@ -18,7 +18,7 @@ export function NewsItem({ news }) {
             style={{ width: "max(20rem,80%)" }}>
                 <div className="flex">
                     <TitleText title={news.title} />
-                    <CraetedAt createdat={news.created_at} />
+                    <CreatedAt createdat={news.created_at} />
                 </div>
                 <div>
                     <Content text={news.content} />

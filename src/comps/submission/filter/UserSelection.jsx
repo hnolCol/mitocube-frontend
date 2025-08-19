@@ -30,7 +30,7 @@ export function SimpleUser({ user, handleClick, isSelected = false, count = 2}) 
 export function UserFilter({ submissionFilter, setSubmissionFilter, tags }) {
     const [openGroups, setOpenGroup] = useState({})
     const { data: allSubmissionUserCounts, isLoading: asIsLoading, isFetching: asIsFetching, isSuccess: asIsSuccess } = useGetSubmissionsCount({ group: "user" }, { staleTime: 600000 })
-    const { data : submissionCounts, isLoading : submissionUserIsLoading, isFetching : submissionUserIsFetching, isSuccess : submissionUserIsSuccess } = useGetSubmissionsCount({ group: "user", tags : _.join(tags,";") }, {enabled : tags.length > 0})
+    const { data : submissionCounts, isLoading : submissionUserIsLoading, isFetching : submissionUserIsFetching, isSuccess : submissionUserIsSuccess } = useGetSubmissionsCount({ group: "user", tags : _.join(tags,";") }, {enabled : _.isArray(tags) && tags.length > 0})
     const { data, isLoading, isFetching, isSuccess, isError, error } = useGetPublicUserInfo()
     //console.log(allSubmissionUserCounts)
     // console.log(submissionCounts)

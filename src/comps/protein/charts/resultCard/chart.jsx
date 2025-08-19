@@ -2,7 +2,6 @@
 
 import _ from "lodash"
 import { useMemo, useState } from "react"
-import GroupingSelection, { getIcon } from "../../../core/base/attribute_selection/Selection"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
@@ -12,14 +11,11 @@ import PlottypeIcon from "../../../core/svg/icons/chartSelection/Plottype"
 import DownloadIcon from "../../../core/svg/icons/chartSelection/Download"
 import { downloadTxtFile } from "../../../../services/downloads/txt"
 import { arrayOfObjectsToString } from "../../../../services/arrays/transforms"
-import SelectionDialog from "../../../core/dialogs/Selection"
 import CategoricalLineplot from "../../../core/charts/categorical/lineplot"
 import { downloadSVG } from "../../../../services/downloads/svg"
-import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
-import Loading from "../../../core/base/loading"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
 import { Card } from "@blueprintjs/core"
-import { redirect, useNavigate } from "react-router"
+import { useNavigate } from "react-router"
 import { CategoricalChartSelection } from "./chartselection/CategoricalSelection"
 
 function ResultChart({
@@ -34,10 +30,7 @@ function ResultChart({
     title,
     openMetadataDrawer
 }) {
-    console.log(attributesByTag)
-    //const { data: attributesByTag, isLoading, isFetching } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
     const attributes = sample_attribute_tags.map(attributeTag => attributesByTag[attributeTag])
-    console.log(attributes)
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })

@@ -5,6 +5,11 @@ import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import APIError from "../../core/error/APIerror"
 import { Loading } from "../../core/base/states/Loading"
+import { InstrumentStateHistory } from "./StateHistory"
+import { InstrumentCosts } from "./Costs"
+import { MaintenanceEventDefinition } from "../maintenance/MaintenanceEvent"
+import { MaintenanceView } from "../maintenance/MaintenanceView"
+import { InstrumentStates } from "./States"
 
 /**
  * @description Details view for a specific instrument. 
@@ -12,7 +17,7 @@ import { Loading } from "../../core/base/states/Loading"
  */
 export function InstrumentView() {
     
-    const params = useParams()
+    const params = useParams() // get the instrument tag from the URL
     const {data : instrument, isSuccess, error, isError, isLoading} = hooks.instruments.useGetInstrument({tag : params.instrument_tag}, {enabled : _.isObject(params) && _.has(params,"instrument_tag")})
 
     return <div>
@@ -23,7 +28,16 @@ export function InstrumentView() {
             <h3>{params.instrument_tag}</h3>
             <h4>{instrument.text}</h4>
             <div>{instrument.description}</div>
+            <InstrumentCosts tag={params.instrument_tag} />
+            <InstrumentStates instrument_tag={params.instrument_tag} />
+            {/* <MaintenanceEventDefinition instrument_tag={params.instrument_tag} /> */}
+
+            {/* <div>
+                <h4>Maintenance Events</h4>
+                <MaintenanceView instrument_tag={params.instrument_tag}  />
+            </div> */}
         </div> : null}
+
 
     </div>
 

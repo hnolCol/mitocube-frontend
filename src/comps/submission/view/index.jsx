@@ -2,14 +2,13 @@
 import { useState } from "react"
 import "../submission.css"
 import _ from "lodash"
-import { useGetSubmissionAttributesByTag, useGetSubmissionStates, useGetSubmissions, usePatchSubmissionDatasetAttributes } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionStates, useGetSubmissions, usePatchSubmissionDatasetAttributes } from "../../../hooks/queries/submission.hooks"
 import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
 import { SubmissionContainer } from "./SubmissionContainer"
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks"
 import { AttributeSelectionDialog } from "./dialogs/AttributeSelectionDialog"
 import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
-// import { EditDatasetAttributeDialog } from "./dialogs/EditDatasetAttributes"
 import { EditDatasetAttributeDialog } from "./dialogs/EditDatasetAttributes"
 import { RunlistCreatorDialog } from "./dialogs/RunlistDialog"
 import { ChangeSubmissionUserDialog } from "./dialogs/ChangeSubmissionUserDialog"
@@ -64,7 +63,6 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     const { data: submissionStates, isLoading: submissionStatesLoading, isError, error } = useGetSubmissionStates({},{staleTime: Infinity}) //request only once. 
     
     // const { isSuccess, wsLoading, isFetching, isError, error, data: submissions, refetch : refetchSubmissions} = useGetSubmissions()    
-    const {data : attributesByTag} = useGetSubmissionAttributesByTag({},{staleTime : Infinity})
     const {data : users, isLoading : userIsLoading, isFetching : userIsFetching} = useGetPublicUserInfo()
        
     const {mutate: patchSubmission, isLoading: patchSubmissionIsLoading} = usePatchSubmissionDatasetAttributes()
@@ -122,9 +120,9 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         <div className="no-scroll">
             <EditMetatextDialog {...metatextDialog} {...{setMetatextDialog}} /> 
             <ChangeSubmissionUserDialog {...changeOwnerDialog} {...{setChangeOwnerDialog}} />
-            <AttributeSelectionDialog {...{attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog}
-                onSubmit={handleStateChangeAttributeUpdate} />
-            <EditSamplesAttributeDialog {...samplesAttributesDialog}
+            {/* <AttributeSelectionDialog {...{attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog} */}
+                {/* onSubmit={handleStateChangeAttributeUpdate} /> */}
+            {/* <EditSamplesAttributeDialog {...samplesAttributesDialog}
                 isOpen={samplesAttributesDialog.isOpen && samplesAttributesDialog.samplesAttributes}
                 onClose={() => setAttributesDialog(prevValues => {
                     return {
@@ -134,7 +132,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                         success: false,
                         submitted: false
                     }
-                })} />
+                })} /> */}
             <EditDatasetAttributeDialog {...samplesAttributesDialog}
                 onSubmit={handleDatasetAttributeUpdate}
                 isOpen={samplesAttributesDialog.isOpen && !samplesAttributesDialog.samplesAttributes}
@@ -150,10 +148,9 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
             <RunlistCreatorDialog {...runlistDialog} onClose={() => setRunlistDialog(prevValues => { return { ...prevValues, isOpen: false, isLoading : false, success : false, submitted : false } })}/>
             {userIsFetching || userIsLoading ?
                 <Loading /> : isError ?
-                    <APIError error={error} /> : _.isObject(attributesByTag) && _.has(attributesByTag,"attributes") && _.has(attributesByTag,"attribute_values") ? 
+                    <APIError error={error} /> :
                         <SubmissionContainer states={submissionStates}
                             {...{
-                            attributesByTag,
                             users: users,
                             submissionFilter,
                             setSubmissionFilter,
@@ -165,7 +162,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                             setRunlistDialog,
                             setChangeOwnerDialog,
                             setMetatextDialog
-                            }} /> : null}
+                            }} />}
             
         </div>
     )

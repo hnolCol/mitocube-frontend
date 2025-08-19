@@ -1,4 +1,4 @@
-import { CraetedAt } from "../../core/metrics/CreatedAt";
+import { CreatedAt } from "../../core/metrics/CreatedAt";
 import { N, TitleText } from "../../core/metrics/ItemBasics";
 
 
@@ -12,7 +12,7 @@ export function FilterItem({ filter }) {
     
     return (
         <div className="flex">
-            <CraetedAt createdat={filter.created_at} />
+            <CreatedAt createdat={filter.created_at} />
             <TitleText title={filter.text} />
             <N N={filter.N} />
         </div>

@@ -2,9 +2,7 @@ import { AxisBottom, AxisLeft } from "@visx/axis"
 import { getNumberTicks } from "../../../../services/plotting/ticks"
 import { getAxisStrokeColor } from "../../colors/colorPalette"
 import AxisBackground from "../background"
-import { useGetSubmissionAttributesByTag } from "../../../../hooks/queries/submission.hooks"
 import _ from "lodash"
-import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
 import React from "react"
 
 function AxisWithBackground({
@@ -32,7 +30,6 @@ function AxisWithBackground({
     
     const leftStart = leftLeft === undefined ? margins.left : leftLeft
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
-    //const { data: attributesByTag, isLoading, isFetching, isError } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity, enabled: findAttributesForBottomScale })
     if (_.isNumber(bandwidth)) {
         bottomTickLabelProps["width"] = bandwidth * 1.1
         bottomTickLabelProps["scaleToFit"] = 'shrink-only'

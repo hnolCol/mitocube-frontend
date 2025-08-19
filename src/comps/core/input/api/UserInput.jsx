@@ -5,12 +5,30 @@ import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
 import { getUserFullName } from "../../../../services/format/user"
 import { MultiSelect } from "@blueprintjs/select"
 import _ from "lodash"
+import hooks from "@mitocube/api-hooks"
+
+export function UserMenuItem({ tag, handleClick, handleFocus, modifiers }) {
+    
+    const { data: user, isSuccess } = hooks.users.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    return isSuccess ? <MenuItem
+        key={tag}
+        text={getUserFullName(user)}
+        onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+        labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{user.research_group}</h4><p>{user.institute}</p></div></div>}/> : null 
+}
 
 
-export function UserInput({selectedUsers = [], onUserSelect, isRequired = true, helperText = "", inline = false, showLabel = true, callbackKey = "", disabled = false, label = "Collaborators", showIsRequired = false, matchTargetWidth = true}) {
+/**
+ * 
+ * @param {Object} props 
+ * @param {String[]} props.selected_users
+ * @returns 
+ */
+export function UserInput({selected_users = [], onUserSelect, isRequired = true, helperText = "", inline = false, showLabel = true, callbackKey = "", disabled = false, label = "Collaborators", showIsRequired = false, matchTargetWidth = true, limit  = 20}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const {data : data, isLoading, isFetching, isSuccess} = useGetPublicUserByQuery({query : debouncedString},{enabled : debouncedString.length > 0})
+
+    const { data : user_tags, isLoading, isFetching } = hooks.users_query.useGetPublicUserByQuery({query : debouncedString, limit})
     
     /**
      * 
@@ -18,25 +36,26 @@ export function UserInput({selectedUsers = [], onUserSelect, isRequired = true, 
      * @param {*} param1 
      * @returns 
      */
-    const renderUser = (user, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <MenuItem key={user.label} text={getUserFullName(user)} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{user.research_group}</h4><p>{user.institute}</p></div></div>}/>
+    const renderUser = (user_tag, { handleClick, handleFocus, index, modifiers, query }) => {
+        return <UserMenuItem tag={user_tag} {...{ handleClick, handleFocus, modifiers}} />
+     
     }
     /**
      * @description Handles the user selection,prevents propagation by default.Calls the callback onUserSelection.
      * @param {Object} user
      * @param {MouseEvent} e
      */
-    const handleUserSelection = (user, e) => {
+    const handleUserSelection = (user_tag, e) => {
         if (_.isFunction(e.stopPropagation)) {
             e.stopPropagation()
         }
        
-        onUserSelect(callbackKey, user)
+        onUserSelect(callbackKey, user_tag)
     }
 
     const renderValue = (item) => {
-        return item.firstname
+        console.log(item)
+        return "Gustav" //item.firstname
     }
     return <FormGroup
     style={{margin : "0.1rem"}}
@@ -50,9 +69,9 @@ export function UserInput({selectedUsers = [], onUserSelect, isRequired = true, 
         <MultiSelect
             disabled={disabled}
             itemRenderer={renderUser}
-            items={isSuccess ? _.isArray(data.users) ? data.users : [] : []}
+            items={_.isArray(user_tags) ? user_tags : []}
             tagRenderer={renderValue}
-            selectedItems={selectedUsers}
+            selectedItems={selected_users}
             onItemSelect={handleUserSelection}
             onRemove={handleUserSelection}
             resetOnSelect={true}

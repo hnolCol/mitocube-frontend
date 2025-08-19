@@ -1,20 +1,11 @@
 
 import PropTypes from "prop-types"
-import { Combobox } from "../../../../core/input/Combobox"
-import TextInput from "../../../../core/input/Text"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider, Divider, SegmentedControl} from "@blueprintjs/core"
-import { useEffect, useMemo, useState } from "react"
-import { filterArrayBySearchString } from "../../../../../services/arrays/filter"
+import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
+import { useState } from "react"
 import _ from "lodash"
-import NumericValueInput from "../../../../core/input/Numeric"
-import { addItemToArrayOrRemoveIfPresentByTag, addItemToArrayOrRemoveItIfPresent } from "../../../../../services/arrays/transforms"
-import { FeatureInput } from "../../../../core/input/api/FeatureInput"
-import { useGetAttributes, useGetValueForAttributeByTag } from "../../../../../hooks/queries/attribute.hooks"
-import { TraitMenuItem } from "../../../../core/input/items/AttributeValueMenu"
-import Loading from "../../../../core/base/loading"
-import { AttributeFeatureTag } from "../view/DatasetAttributesHierarchy"
+
 import { ReplicateMenu } from "./menu/ReplicateMenu"
 import { AttributeContextMenuSearch } from "./menu/AttributeMenu"
 import { GenotypeContextMenu } from "./menu/GenotypeMenu"
@@ -71,10 +62,8 @@ function SamplesAttributes({
     sampleNames,
     attributeTable = [],
     getSelectionByPath,
-    attributes = [],
     groupings = [],
     onSampleTraitSelection,
-    onChildrenSelection,
     addSampleAttr,
     onSampleAttributeSelect,
     onTagRemove ,
@@ -82,7 +71,6 @@ function SamplesAttributes({
     clearSampleAttrByIndex,
     clearGenotypeColumn,
     clearAttributeTableByRowIndex,
-    //onFeatureSelection,
     rerenderTableDependency = 0,
     onReplicateChange,
     replicates = [],
@@ -91,8 +79,6 @@ function SamplesAttributes({
     genotypeAttributes,
     handleGenotypeSelection,
     repeatSelection,
-    userUnitInput,
-    onUserUnitInput
     }) {
     const [selectedRows, setSelectedRows] = useState([])
     /**
@@ -141,8 +127,7 @@ function SamplesAttributes({
                             onSampleTraitSelection,
                             rowIdces: selectedRows,
                             clearAttributeTableByRowIndex,
-                            repeatSelection,
-                            handleUnitInput,
+                            repeatSelection
                         }}
                     />
                 )
@@ -204,7 +189,7 @@ function SamplesAttributes({
 
         if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
         let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag }], rowIndex)
-       //let cellData = _.head(_.filter(attributeTable[rowIndex], attrCellData => attrCellData.type === "attribute" && attrCellData.tag === attribute_tag))
+        console.log(cellData, "cellData", rowIndex, columnIndex, attribute_tag)
         const attributeHasFeatures = false //attribute.has_features_value    
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
@@ -222,7 +207,7 @@ function SamplesAttributes({
                             sel={selectedRows}
                             onChildrenSelection={onSampleTraitSelection}
                             valueIsFeature={attributeHasFeatures}
-                            onRemove={() => onTagRemove(rowIndex, attribute_tag, child.tag)} />
+                            onRemove={onTagRemove} />
                     </div>})}
             </div>
         </Cell>

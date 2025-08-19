@@ -14,7 +14,7 @@ import Loading from "../../core/base/loading";
 import { titleFormat } from "../../../services/format/string";
 import { QuickAccessBar } from "./Topbar";
 import { ResearchAim } from "./Researchaim";
-import { CraetedAt } from "../../core/metrics/CreatedAt";
+import { CreatedAt } from "../../core/metrics/CreatedAt";
 import { StateIndicator } from "../../core/base/states/SubmssionState";
 import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";
 import { AuthorList } from "../../core/authors/SubmissionAuthorList";
@@ -72,7 +72,7 @@ function DatasetOverview() {
                     emailSubject : `Related to dataset ${metadata.title} (${metadata.label})`
                 }} />
                 <div className="font-size--small intent-margin-top--little">
-                    <CraetedAt createdat={metadata.created_at}/>
+                    <CreatedAt createdat={metadata.created_at}/>
                 </div>
                 <div className="intent-margin-top--little">
                     <StateIndicator submission_tag={submission_tag}/>

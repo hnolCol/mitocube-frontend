@@ -31,7 +31,6 @@ export function EditDatasetAttributeDialog({ isOpen, submission, onClose }) {
     const {mutate: patchSubmission, isLoading: patchSubmissionIsLoading, isSuccess, isError, error, reset} = usePatchSubmissionDatasetAttributes()
     
     const { data: mandatoryDatasetAttributes } = useGetAttributes({ param_name: "mandatory_for_active" })
-    
     const { data: initialDatasetAttributes,
         isLoading: initDataAttrLoading,
         isFetching: initDataAttrFetching,
@@ -60,12 +59,13 @@ export function EditDatasetAttributeDialog({ isOpen, submission, onClose }) {
     
 
     if (initDataAttrLoading || initDataAttrFetching) return <Loading />
+    const missingMandatoryAttributes = []
     //find attributes that are missing  but are required to be active to show to the user.
-    const missingMandatoryAttributes =
-        _.isArray(mandatoryDatasetAttributes) ? mandatoryDatasetAttributes
-            .map(item => item["attribute"])
-            .filter(attribute => !_.has(datasetAttributes.traits, attribute.tag))
-            : []
+    // const missingMandatoryAttributes = [] 
+    //     _.isArray(mandatoryDatasetAttributes) ? mandatoryDatasetAttributes
+    //         .map(item => item["attribute"])
+    //         .filter(attribute => !_.has(datasetAttributes.traits, attribute.tag))
+    //         : []
 
 
     const handleAttributeSelection = (trait) => {
