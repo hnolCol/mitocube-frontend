@@ -3,6 +3,8 @@ import { copyTextToClipboard } from "../../../services/clipboard"
 import { useGetSubmissionSampleNames, useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 
+import hooks from "@mitocube/api-hooks"
+
 /**
  * @param {Object} props
  * @param {String} props.submission_tag - The submission tag for which the quick access control should be established.
@@ -22,7 +24,7 @@ export function QuickAccessBar({ submission_tag }) {
         })
     
     
-    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = useGetSubmissionSampleNames({tag : submission_tag},{enabled : false, onSuccess: data => {
+    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = hooks.submissions.samples.useGetSubmissionSampleNames({tag : submission_tag},{enabled : false, onSuccess: data => {
         copyTextToClipboard(data)
         setMsg("Samples names copied to clipboard.")
     }

@@ -32,7 +32,7 @@ export function AttributeHeader({text, addStringToName = "", ...rest}) {
     const [isOpen, setIsOpen] = useState(false)
     const additionalMetrices = Object.keys(rest).map(keyName => {return {value : rest[keyName] ,text : keyName}}) 
     return (<motion.div
-        className="padding--little div-border-bottom intent-margin-left--little intent-margin-right--little"
+        className="padding--little div-border-bottom margin-left--little intent-margin-right--little"
         style={{overflowY:"hidden", fontFamily:"Arial"}}
         variants={variantsHeader}
         initial="hidden"

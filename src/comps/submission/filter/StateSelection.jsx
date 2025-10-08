@@ -72,7 +72,7 @@ export function StateSelection({ setSubmissionFilter, submissionFilter}) {
     
 
     return (
-        <div className="intent-margin-top--little">
+        <div className="intent-margin-toplittle">
             <h4>States</h4>
             <div className="flex flex--wrap">
             {_.isArray(submissionStates) && submissionStates.map(state_tag => {
@@ -82,7 +82,7 @@ export function StateSelection({ setSubmissionFilter, submissionFilter}) {
                     onHoverStart={setHoverState}
                     {...{ submissionFilter, setSubmissionFilter}} />
             })}
-                {/* <div className="flex center-items intent-margin-left--little">
+                {/* <div className="flex center-items margin-left--little">
                     <div>{isSuccess && hoverState ? `${titleFormat(states.states_inv[hoverState])} ${_.has(data, hoverState) ? `(${data[hoverState].submission_count})` : ""}` : null}</div>
                 </div> */}
             </div>

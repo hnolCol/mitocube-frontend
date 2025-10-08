@@ -52,8 +52,7 @@ SamplesAttributes.propTypes = {
     replicates: PropTypes.arrayOf(PropTypes.number),
     rerenderTableDependency: PropTypes.oneOfType([PropTypes.number, PropTypes.arrayOf(PropTypes.number)]),
     numberReplicates: PropTypes.number.isRequired,
-    proteome_ids : PropTypes.arrayOf(PropTypes.string),
-    onUserUnitInput: PropTypes.func.isRequired
+    proteome_ids : PropTypes.arrayOf(PropTypes.string)
 }
 
 function SamplesAttributes({
@@ -68,7 +67,7 @@ function SamplesAttributes({
     onSampleAttributeSelect,
     onTagRemove ,
     removeSampleAttrByIndex,
-    clearSampleAttrByIndex,
+    clearColumnByAttributeTag,
     clearGenotypeColumn,
     clearAttributeTableByRowIndex,
     rerenderTableDependency = 0,
@@ -189,7 +188,6 @@ function SamplesAttributes({
 
         if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
         let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag }], rowIndex)
-        console.log(cellData, "cellData", rowIndex, columnIndex, attribute_tag)
         const attributeHasFeatures = false //attribute.has_features_value    
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
@@ -222,8 +220,8 @@ function SamplesAttributes({
      * @returns 
      */
     const renderAttributeHeaderMenu = (columnIndex) => {
-        const [attributeDefined, attribute] = isGroupingAttributeDefined(columnIndex)
-        const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute.tag])?rowData[attribute.tag].length === 0:true).length:attributeTable.length
+        const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
+        const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute_tag])?rowData[attribute_tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
         return (
@@ -232,7 +230,7 @@ function SamplesAttributes({
                 <MenuDivider />
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
-                <MenuItem text="Clear" icon="clean" onClick={() => clearSampleAttrByIndex(attribute.tag)} disabled={!attributeDefined} />
+                <MenuItem text="Clear" icon="clean" onClick={() => clearColumnByAttributeTag(attribute_tag)} disabled={!attributeDefined} />
                 <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(sampleAttrIndex)} />
                 
             </Menu>)

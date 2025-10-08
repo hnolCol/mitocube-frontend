@@ -85,14 +85,16 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
             
             <div className="flex flex-column center-items">  
             
-                <div className="intent-margin-bottom--little">
-                    <Header text="User Login" />
+                <div className="margin-bottom--little">
+                    <Header text= { userLoginResponse.success && _.isString(userLoginResponse.token) ? "Verification Code" : "User Login" } />
                 </div>
                 {userLoginResponse.success && _.isString(userLoginResponse.token) ? 
                     
                     
-                    <div className="flex justify-space-between intent-margin-bottom--little" style={{ width: "45vw" }}>
-                        <InputGroup
+                    <div className="flex justify-space-between margin-bottom--little" style={{ width: "45vw" }}>
+                        <input
+                            className="search-input"
+                            type="text"
                             key="ver"
                             id = "verificationCode"
                             placeholder="Verification Code ..."
@@ -104,17 +106,34 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                                 }
                             }}
                             {...inputProps} /> 
-                        <Button
-                                key="buttin-verify-token"
-                                icon="log-in"
-                                intent={"success"}
+                         <button
+                                style={{
+                                    background: "#183A6D",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    marginBottom: "12px",
+                                    padding: "12px 12px",
+                                    fontSize: "1rem",
+                                    fontWeight: 500,
+                                    cursor: verifyTokenDisabled ? "not-allowed" : "pointer",
+                                    opacity: verifyTokenDisabled ? 0.6 : 1,
+                                    marginLeft: "8px",
+                                    transition: "background 0.2s"
+                                }}
                                 disabled={verifyTokenDisabled}
-                                loading={verifyTokenIsFetching || verifyTokenIsLoading}
-                                onClick={verifyToken} />
+                                onClick={verifyToken}
+                                type="button"
+                            >
+                                →
+                            </button>
+                        
                     </div> :
                     
-                    <div className="flex justify-space-between intent-margin-bottom--little" style={{ width: "45vw" }}>
-                        <InputGroup
+                    <div className="flex justify-space-between margin-bottom--little" style={{ width: "45vw" }}>
+                        <input
+                            className="search-input"
+                            type="text"
                             key="user"
                             id = "username"
                             placeholder="Username (E-Mail)"
@@ -122,7 +141,8 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                             value={userInput.username}
                             onChange={handleInputChange}
                             {...inputProps} /> 
-                        <InputGroup
+                        <input
+                            className="search-input"
                             key="pw"
                             id = "password"
                             placeholder="Password"
@@ -134,13 +154,28 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                                     handleLoginAttempt()
                                 }
                             }}
-                            {...inputProps} /> 
-                        <Button
-                                icon="log-in"
-                                intent={"primary"}
+                                                            {...inputProps} /> 
+                            <button
+                                style={{
+                                    background: "#183A6D",
+                                    color: "#fff",
+                                    border: "none",
+                                    borderRadius: "4px",
+                                    marginBottom: "12px",
+                                    padding: "12px 12px",
+                                    fontSize: "1rem",
+                                    fontWeight: 500,
+                                    cursor: loginDisabled ? "not-allowed" : "pointer",
+                                    opacity: loginDisabled ? 0.6 : 1,
+                                    marginLeft: "8px",
+                                    transition: "background 0.2s"
+                                }}
                                 disabled={loginDisabled}
-                                loading={loginFetching || loginLoading}
-                                onClick={handleLoginAttempt} />
+                                onClick={handleLoginAttempt}
+                                type="button"
+                            >
+                                →
+                            </button>
                             {/* handleLoginAttempt */}
                     </div>}
             
@@ -158,3 +193,4 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
 
 
 export default Login
+

@@ -13,7 +13,7 @@ function APIError({ error }) {
     return (
         <div className="flex flex-column center-items ">
             <div className="font-size--small font-color--red font-weight--bold">
-                <div className="intent-margin-bottom--little">{extraDetail}</div>
+                <div className="margin-bottom--little">{extraDetail}</div>
                 
                 <p>
                     The API returned an error. The error code :{errorResponse.status} (Status Text : {errorResponse.statusText}) </p>

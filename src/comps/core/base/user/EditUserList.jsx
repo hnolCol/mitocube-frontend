@@ -69,7 +69,7 @@ export function EditableUserList({ selected_user_tags, title = "User Selected", 
         
         <TextInput placeholder="Search user" isRequired={false} onChange={(cbkey, value) => setQuery(value)} />
         
-        <div className="font-size--smallest intent-margin-left--little">
+        <div className="font-size--smallest margin-left--little">
             {_.isObject(users) && isUserSuccess ?
                 `Selection ${selected_user_tags.length} users. ${_.isString(query) && query.length > 0 ? `Querying '${query}' results in ${users.query_count}/${users.total_count} ` : ""} ` : null}
         </div>

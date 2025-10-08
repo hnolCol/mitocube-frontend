@@ -8,7 +8,7 @@ import APIError from "../error/APIerror"
 import { getUserFullName } from "../../../services/format/user";
 import { useNavigate } from "react-router";
 import { StateIndicator } from "../base/states/SubmssionState";
-import { AuthorList } from "../authors/SubmissionAuthorList";
+import { AuthorList } from "../authors/AuthorList";
 
 
 export function SubmissionMiniSummary({miniSubmission}){

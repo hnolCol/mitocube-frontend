@@ -116,7 +116,7 @@ const CategoricalLegend = React.memo(
         <div>
             <div className="flex" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale, "domain") ? _.isObject(colorAttribute) ?
-                    <div className="intent-margin-left--little">
+                    <div className="margin-left--little">
                     {/* //onMouseLeave={() => resetSearchIdcs(chartIdx)} */}
                         <div style={{maxWidth : "10rem"}}><h4>{colorAttribute.text}</h4></div>
                         <LegendOrdinal scale={colorScale}>

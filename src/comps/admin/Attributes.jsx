@@ -130,7 +130,7 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
 
 
     return (
-        <div className="intent-margin-top--little padding--medium" >
+        <div className="intent-margin-toplittle padding--medium" >
             {attributeIsError ? <APIError error={attributesAPIError}/> :
                 <div>
                 <AddAndEditAttributeValueDialog {...dialogProps} refetchAttributes = {refetchAttributeSearch} setOpen={() => setDialogProps(prevValues => {return {...prevValues, isOpen : !prevValues.isOpen}})} />
@@ -145,7 +145,7 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
                     //const attrHasValues = objectHasKey({ object: attrValuesByAttrTag, keyName: attribute.tag })
                     const numberAttributeValues = attributeValues.length 
                                 return <div key={attribute.tag}
-                                    className="intent-margin-top--medium intent-padding-right--little"
+                                    className="intent-margin-topmedium intent-padding-right--little"
                                     style={{ height: "100%" }}>
                        
                         {/* <AttributeHeader {...attribute} addStringToName={`(${numberAttributeValues})`} /> */}

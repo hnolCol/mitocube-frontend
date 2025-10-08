@@ -3,23 +3,27 @@ import { getValueByKeyAndMergeToString } from "../../../services/arrays/transfor
 import { SubmissionFilterSelection } from "../filter"
 import _ from "lodash"
 
+import hooks from "@mitocube/api-hooks"
 
 
 
-function SubmissionStatistics({ authenticationStatus, submissionsQuery, setSubmissionQuery, submissionFilter, setSubmissionFilter }) {        
+function SubmissionStatistics({ submissionsQuery, setSubmissionQuery, submissionFilter, setSubmissionFilter }) {        
         
+
+    const { data: submissionDuration, isLoading: isLoadingDuration } = hooks.stats.submissions.useGetSubmissionDuration({})
+
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
     // console.log(submissionFilter)
     // console.log(getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }))
     
-    const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({
-        query: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
-        state: stateFilter,
-        genotype_tag: getValueByKeyAndMergeToString({array : submissionFilter["genotype_tag"], keyName : "tag"}),
-        user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
-        attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
-        attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
-    })
+    // const { data: submissionQuery, isLoading, isFetching, isSuccess, isError, error } = useGetSubmissionByQuery({dddddd
+    //     query: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
+    //     state: stateFilter,
+    //     genotype_tag: getValueByKeyAndMergeToString({array : submissionFilter["genotype_tag"], keyName : "tag"}),
+    //     user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "label" }),
+    //     attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
+    //     attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
+    // })
 
 
     
@@ -35,14 +39,17 @@ function SubmissionStatistics({ authenticationStatus, submissionsQuery, setSubmi
             setSubmissionFilter,
             submissionsQuery,
             setSubmissionQuery,
-            isLoading,
-            isFetching,
-            isSuccess,
-            isError,
-            submissionQueryResult: submissionQuery
+            // isLoading,
+            // isFetching,
+            // isSuccess,
+            // isError,
+            // submissionQueryResult: submissionQuery
         }}
         children={<div><h3>Statistics</h3><p>The statistic view is currently under development, but you will soon be able to explore number of submission per attribute (such as instrument, organs, cell line),
-            users, and research groups.</p></div>} />
+            users, and research groups.</p>
+        
+            {console.log(submissionDuration)}
+        </div>} />
 }
 
 

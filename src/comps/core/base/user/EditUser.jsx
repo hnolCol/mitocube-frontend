@@ -35,7 +35,7 @@ function PWChangeUser({ }) {
             <h4>Change password</h4>
             <p>Please enter the old and new password.</p>
             <p>A minimum length of 8 characters is required.</p>
-            <div className="padding--little intent-margin-bottom--little">
+            <div className="padding--little margin-bottom--little">
                 <PasswordInput onChange={handleStringChange} hint="New password" disabled={isLoading} />
             </div>
             {infoText.length > 0 ? <h4>{infoText}</h4>: null}

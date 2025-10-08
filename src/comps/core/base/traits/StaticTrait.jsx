@@ -84,7 +84,7 @@ export function StaticTrait({
                 position={popoverPosition}>
                 <div className="flex">
                     <div>{trait.text}{unitString.length > 0 ? ` (${unitString})` : null}{suffix.length > 0 ? ` ${suffix}`:null}</div>
-                    {/* {attribute.has_unit && !hasInput ? <div className="intent-margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
+                    {/* {attribute.has_unit && !hasInput ? <div className="margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
                 </div>
             </Popover>
         

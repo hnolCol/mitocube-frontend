@@ -282,7 +282,7 @@ function InitialSubmission({
                         onClose: () => {
                             setAlertProps({ isOpen: false })
                             // resetSubmission()
-                            redirect("/submission/view")
+                            redirect("/submissions/view")
                         }
                     }),
                     onError: (error) => setAlertProps({
@@ -375,11 +375,11 @@ function InitialSubmission({
         <div className="flex flex-column">
             <Alert style={{minWidth:"min(60vw,600px)"}} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
-        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-top--little intent-margin-right intent-padding-right--little" style={{height : "100%",position:"relative"}}>
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-toplittle intent-margin-right intent-padding-right--little" style={{height : "100%",position:"relative"}}>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
-                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
                 <h3>Information</h3>
             <p>
                 In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
@@ -389,7 +389,7 @@ function InitialSubmission({
                     </p>
                     <span className="h0-span">Please take care to fill out the submission in a meticulously way. Data without carefully curated meta data are less informative.</span>
             </div> */}
-            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
                     <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div>
@@ -397,7 +397,7 @@ function InitialSubmission({
                     <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
                   
             </div> */}
-            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
                 <h3>2. Mandatory Attributes</h3>
                 <p>Attributes that are required for the project submission. </p>
                     <TextInput placeholder="Set the title of your submission.."
@@ -412,7 +412,7 @@ function InitialSubmission({
                 
                 </div> */}
             
-            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
                     <h3>4. Meta Text</h3>
             
                     <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />
@@ -440,7 +440,7 @@ function InitialSubmission({
                         {...{handlePositionSelection, refetchGenotypes }}/>
                              */}
                         
-                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-top--little">
+                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
                 <h3>7. Sample Attributes</h3>
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.

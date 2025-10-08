@@ -4,8 +4,10 @@ import { KeyFigure } from "./Keyfigures"
 
 import _ from "lodash"
 import { NewsView } from "./News"
-import { TraitInput } from "../core/input/api/TraitInput"
-import { TraitsInput } from "../core/input/api/TraitsInput"
+import { ProteinQuantificationUploader } from "../core/base/files/ChunkProteinUploader"
+import { PrecursorQuantificationUploader } from "../core/base/files/ChunkPrecursorUploader"
+import { OpenAIChat } from "../core/openai/OpenAIChat"
+import { LastViewed } from "./Views"
 
 
 
@@ -20,10 +22,13 @@ function Welcome() {
                 <p>{backendInfoLoading || !_.isObject(backendInfo) && _.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
             </div>
             <KeyFigure />
-            {/* <StackTransitionExample /> */}
-            {/* <Network /> */}
-            <NewsView />
-
+            <div className="flex flex-wrap justify-flex-start" style={{width : "100%"}}>
+                <NewsView />
+            </div>
+            {/* <ProteinQuantificationUploader />
+            <PrecursorQuantificationUploader /> */}
+            <LastViewed user_tag={null} type="submissions" />
+            <OpenAIChat />
         </div>
     )
 }

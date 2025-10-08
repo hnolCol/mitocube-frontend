@@ -24,9 +24,9 @@ export function PubmedPublication({ pubmedid }) {
             <div>{_.has(publication, ["result", pubmedid, "authors"])
                 && _.isArray(publication.result[pubmedid].authors)
                 && publication.result[pubmedid].authors.length > 0 ? `${publication.result[pubmedid].authors[0].name}, [...] ,and ${publication.result[pubmedid].lastauthor}`: null} </div>
-            <div className="intent-margin-left--little" style={{ fontStyle: "italic" }}>{publication.result[pubmedid].title} <strong>{publication.result[pubmedid].fulljournalname}</strong></div>
-            <div className="intent-margin-left--little">({publication.result[pubmedid].pubdate})</div>
-            <div className="intent-margin-left--little"><a href={`https://pubmed.ncbi.nlm.nih.gov/${pubmedid}`} target="_blank" rel="noopener noreferrer">{pubmedid}</a></div>
+            <div className="margin-left--little" style={{ fontStyle: "italic" }}>{publication.result[pubmedid].title} <strong>{publication.result[pubmedid].fulljournalname}</strong></div>
+            <div className="margin-left--little">({publication.result[pubmedid].pubdate})</div>
+            <div className="margin-left--little"><a href={`https://pubmed.ncbi.nlm.nih.gov/${pubmedid}`} target="_blank" rel="noopener noreferrer">{pubmedid}</a></div>
         </motion.div> : isLoading || isFetching ? <Loading /> : null }
     </div>)
 }

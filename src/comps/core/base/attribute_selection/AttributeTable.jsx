@@ -41,7 +41,7 @@ function GroupingTable({
             {groupingNames.map(groupingName => {
                 const defaultColors = getColorPalette(Object.keys(grouping[groupingName]).length)
                 return (
-                    <div key={groupingName} className="flex flex-column intent-marign-left bg--lightgrey intent-marign-left--medium">
+                    <div key={groupingName} className="flex flex-column intent-marign-left bg--lightgrey margin-left--medium">
                         <GroupingHeader key={groupingName} groupingName={groupingName} />
                         {Object.keys(grouping[groupingName]).map((groupItem, groupIdx) =>
                             <GroupingItem key={`${groupingName}-${groupItem}`}

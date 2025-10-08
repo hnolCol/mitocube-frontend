@@ -15,6 +15,7 @@ import _ from "lodash"
 
 
 import hooks from "@mitocube/api-hooks"
+import { SubmissionTitle } from "./SubmissionTitle";
 
 
 MinimalSubmissionItem.propTypes = {
@@ -23,25 +24,29 @@ MinimalSubmissionItem.propTypes = {
 
 
 /**
- * 
- * @param {Object} props 
+ * Minimal Submission Item
+ * @param {Object} props
+ * @param {string} props.tag - The tag of the submission to be displayed in a minimal view.
+ * @param {Function} props.onClick - The function to be called when the submission item is clicked. If redirectOnClick is true, this function is called before the redirection.
+ * @param {boolean} props.redirectOnClick - Whether to redirect to the submission view on click. Default is true.
+ * @param {boolean} props.showCreatedAt - Whether to show the created at date. Default is true.
+ * @description A minimal submission item that displays the created at date and the title of the submission.
+ * @returns {JSX.Element} A minimal submission item that displays the created at date and the title of the submission.
  */
-export function MinimalSubmissionItem({ tag }) {
-    const { data: submission_title } = hooks.submissions.useGetSubmissionTitle({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+export function MinimalSubmissionItem({ tag, onClick, redirectOnClick = true, showCreatedAt = true }) {
+    const redirect = useNavigate()
     const { data: created_at } = hooks.submissions.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
     return (
-        <motion.button style={{ backgroundColor: "#f0f0f0", border: "none" }} whileHover={{ backgroundColor: "#e0e0e0" }}
+        <motion.button style={{ backgroundColor: "#efefef", border: "none" }} whileHover={{ backgroundColor: "#e0e0e0" }}
             onClick={(e) => {
-                console.log("Clicked on submission item", tag);
+                onClick ? onClick(e) : null
+                // Redirect to the submission view
+                redirectOnClick ? redirect(`/submissions/${tag}`) : null
                 e.stopPropagation()
             }} className="submission__item__container bg--white">
             <div className="flex"> 
-                {_.isNumber(created_at) ? <CreatedAt createdat={created_at} /> : null}
-                {_.isString(submission_title) ? submission_title : null}
-                <div className="submission__item__container__footer">
-                    
-                    
-                </div>
+                {_.isNumber(created_at) && showCreatedAt?<span><CreatedAt createdat={created_at} addFromNow={false} /> |</span> : null}
+                <span className="padding-left--little"> <SubmissionTitle tag={tag} showEdit={false} showCopyToClipboard={false} /> </span>
             </div>
         </motion.button>
     )
@@ -95,7 +100,6 @@ export function SubmissionItem({
     contextMenuEnabled = true,
     minimalView = false,
     setChangeOwnerDialog,
-    setMetatextDialog
 }) {
     const redirect = useNavigate()    
     const usersPartInSubmission = _.concat([submission.user_label], submission.collaborators)
@@ -190,7 +194,7 @@ export function SubmissionItem({
                             )
                         })} */}
                      </div>
-                    <div className="flex flex--wrap intent-margin-top--little">
+                    <div className="flex flex--wrap intent-margin-toplittle">
                         {Object.keys(submission.dataset_attributes).map(attributeTag => {
                             const attributeValues = submission.dataset_attributes[attributeTag]
                             const attribute = submission.attributes[attributeTag]
@@ -198,7 +202,7 @@ export function SubmissionItem({
                                 return <div className="flex"
                                     key={`${attributeTag}-subission-item-${submission.label}`}>
                                     {attributeValues.map(attributeValue => {
-                                    return <div key={`${attributeTag}-${attributeValue.tag}`} className="intent-margin-right--little intent-margin-top--tiny">
+                                    return <div key={`${attributeTag}-${attributeValue.tag}`} className="intent-margin-right--little intent-margin-toptiny">
                                         <AttributeFeatureTag {...{attribute,value : attributeValue, valueIsFeature : attribute.has_features_value}} />
                                         {/* <TraitWithValueInput {...{ attribute, attributeValue }} /> */}
                                     </div>

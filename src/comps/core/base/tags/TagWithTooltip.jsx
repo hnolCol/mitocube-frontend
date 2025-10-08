@@ -73,16 +73,20 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     }
 
     const handleTraitValueInput = (value) => {
+        // console.log(value, "handleTraitValueInput")
         const p = _.concat(track_path, [{ "type": "trait", "value": value, "tag": childTrait }])
+        console.log("called?", p)
         onSelection(p,[rowIndex], index + 3, true) // true indicates that there is only a single child from level 3 on at this level 
     }
 
+    /**
+     * @description Get the input value for the text input. The given path is screened to match and the value is returned.
+     * @returns {String} The input value for the text input.
+     */
     const getInput = () => {
         const input = getSelectionByPath(track_path, rowIndex)
-
         if (_.isArray(input) && input.length > 0) {
 
-            console.log(_.head(input).value, "INPUT_VALUE")
             return _.head(input).value
         }
         return ""
@@ -103,6 +107,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                         <div className='flex center-items'>
                         <MinimalTextInput
                                 value={getInput()}
+                                disabled={childTrait === null}
                                 callbackKey={attribute_tag}
                                 onChange={(value) => handleTraitValueInput(value)}
                                 suffix_trait_tag={childTrait} />
@@ -186,7 +191,7 @@ export function TraitWithValueInput({
         getSelectionByPath,
     sel }) {
     
-    console.log(attribute_tag, trait_tag, rowIndex, "TraitWithValueInput" ,"ROW INDEX", rowIndex, "SEL", sel) 
+    // console.log(attribute_tag, trait_tag, rowIndex, "TraitWithValueInput" ,"ROW INDEX", rowIndex, "SEL", sel) 
     
     // const { data: attribute, isLoading, isFetching, isSuccess } = hooks.attributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag)})
     const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = hooks.traits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag)})

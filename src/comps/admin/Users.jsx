@@ -180,7 +180,7 @@ function AdminUsers({ authenticationStatus }) {
     if (isError) return<APIError error={error} /> 
     if (isLoading || isFetching) return <Loading />
     return (
-        <div className="intent-margin-top--little padding--medium" style={{height : "85vh",width : "100%"}}>
+        <div className="intent-margin-toplittle padding--medium" style={{height : "85vh",width : "100%"}}>
             <ConfirmAlert {...confirmAlertProps} isLoading={deleteUserIsLoading || deleteUserIsFetching } />
             {isError ? <APIError error={error} /> : isLoading || isFetching ? <Loading /> :
                 <div className="flex flex-column">

@@ -38,7 +38,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
     
     if (isError) return <APIError error={error}/>
     
-    if (submissionStatesLoading || attrIsLoading || attrIsFetching) return <Loading />
+    if (submissionStatesLoading ) return <Loading />
 
     return (
         <div className="div--expand">            

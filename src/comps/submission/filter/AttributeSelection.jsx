@@ -128,7 +128,7 @@ export function AttributeSubmissionFilter({ setSubmissionFilter, submissionFilte
         })
     }
     return (
-        <div className="intent-margin-top--little" style={{width : "100%"}}>
+        <div className="intent-margin-toplittle" style={{width : "100%"}}>
             <h4>Attributes</h4>
             <div> 
                 {asIsLoading || asIsFetching ? <Loading /> : asIsSuccess ?  <div>

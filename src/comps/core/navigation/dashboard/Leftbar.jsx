@@ -13,7 +13,7 @@ function Leftbar ({
         { name: "Explore protein-centric data", linkTo: "/protein", iconName: "Protein" },
         { name: "Explore post-translational modifications", linkTo: "/ptm", iconName: "Ptm"},
         { name: "Performance Monitoring", linkTo: "/performance", iconName: "PerformanceMonitor" },
-        { name: "Sample Submission", linkTo: "/submission", iconName: "SampleSubmission" },
+        { name: "Sample Submission", linkTo: "/submissions", iconName: "SampleSubmission" },
         { name: "Settings", linkTo: "/admin", iconName: "Settings" }]
             }) {
    

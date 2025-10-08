@@ -42,7 +42,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
                 position={popoverPosition}>
                 <button className="flex" style={{border : "none", backgroundColor :"transparent"}} onClick={() => redirect(`/protein/${tag}`)}>
                     <div>{feature.gene_name}</div>
-                    {/* {attribute.has_unit && !hasInput ? <div className="intent-margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
+                    {/* {attribute.has_unit && !hasInput ? <div className="margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
                 </button>
             </Popover>
         

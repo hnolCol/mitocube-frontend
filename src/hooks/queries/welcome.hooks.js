@@ -26,12 +26,12 @@ export const useGetBackendInfo = (APIParams = {}, useQueryOptions = {}) => {
  * @param {String} props.tags - Specific news tag to be returned.  
  * @returns {import("../../types/news").News[]}
  */
-async function getNews_API({tags,limit}) {
-    const res = await axios.get('/api/news',{params : {tags,limit}})
+async function getNews_API({limit}) {
+    const res = await axios.get('/api/news',{params : {limit}})
     return res.data 
 }
 
-export const useGetNews = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetNews = (APIParams = {limit}, useQueryOptions = {}) => {
     return useQuery(["getNews"],() =>  getNews_API({...APIParams}), useQueryOptions)
 }
 

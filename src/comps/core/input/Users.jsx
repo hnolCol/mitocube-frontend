@@ -35,7 +35,7 @@ function UserSelection({ authenticationStatus, onUserSelection, selectedUsers, f
         
         <div>{
             isSuccess && _.isArray(users) && users.length > 0 ? 
-                <div className="intent-margin-top--little">
+                <div className="intent-margin-toplittle">
                     <FormGroup {...formGroupProps}>
                 <MultiSelect
                     itemRenderer={renderUser}

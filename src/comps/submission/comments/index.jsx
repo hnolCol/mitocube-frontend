@@ -5,7 +5,7 @@ export function SubmissionComments({ submission_tag }) {
     
     const {data : comments, isLoading, isSuccess } = hooks.submissions.useGetSubmissionComments({tag : submission_tag})
     return (
-        <div className="padding--little intent-margin-top--little">
+        <div className="padding--little intent-margin-toplittle">
             {isSuccess ? 
                 comments.map(comment => <Comment comment={comment}/>)
             : null }

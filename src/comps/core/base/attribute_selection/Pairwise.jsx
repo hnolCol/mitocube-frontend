@@ -168,7 +168,7 @@ export function AttributePairwiseSelection({submission_tag, callback, callbackTe
                     callback={(key,attributeValue) => addAttributeValueToSelection(key,selection.sample_attribute_tag,attributeValue,false)}
                     callbackKey={"attribute_value_tag_right"} />
             </div></div> : null}
-            {numberSelection > 1 ? <div className="intent-margin-top--little">
+            {numberSelection > 1 ? <div className="intent-margin-toplittle">
                 <Divider />
                 <h4>Within Selection</h4>
                 {_.range(selection.within_attribute_tag.length + 1).map(idx => {

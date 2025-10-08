@@ -32,9 +32,7 @@ export function UserFilter({ submissionFilter, setSubmissionFilter, tags }) {
     const { data: allSubmissionUserCounts, isLoading: asIsLoading, isFetching: asIsFetching, isSuccess: asIsSuccess } = useGetSubmissionsCount({ group: "user" }, { staleTime: 600000 })
     const { data : submissionCounts, isLoading : submissionUserIsLoading, isFetching : submissionUserIsFetching, isSuccess : submissionUserIsSuccess } = useGetSubmissionsCount({ group: "user", tags : _.join(tags,";") }, {enabled : _.isArray(tags) && tags.length > 0})
     const { data, isLoading, isFetching, isSuccess, isError, error } = useGetPublicUserInfo()
-    //console.log(allSubmissionUserCounts)
-    // console.log(submissionCounts)
-    //console.log(data)
+
     const groupedUsers = isSuccess && _.isArray(data) && data.length > 0 ? groupListByProperty(data, "research_group") : {}
     const researchGroups = _.keys(groupedUsers)
     //console.log(researchGroups)
@@ -63,7 +61,7 @@ export function UserFilter({ submissionFilter, setSubmissionFilter, tags }) {
 
 
     return (
-        <div className="intent-margin-top--little">
+        <div className="intent-margin-toplittle">
             <h4>Users</h4>
             {isError ? <p>Error</p> : isFetching && isLoading ? <Loading /> :
                 <div style={{ width: "100%" }}>

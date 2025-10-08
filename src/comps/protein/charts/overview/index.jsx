@@ -14,7 +14,7 @@ import { getFormatDateFromTimestamp } from "../../../../services/date/format"
 import MultipleMetrices from "../../../core/metrics/collection"
 import { useGetFilters } from "../../../../hooks/queries/filter.hooks"
 import { FilterSummary } from "../../../core/filters/FilterSummary"
-import { AuthorList } from "../../../core/authors/SubmissionAuthorList"
+import { AuthorList } from "../../../core/authors/AuthorList"
 import { Metatexts } from "../../../core/metatext/SubmissionMetatext"
 import { GenePublications } from "../../../core/publications/GenePublications"
 import { ProteinAbundance } from "../FeatureAbundance"
@@ -64,10 +64,10 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
                         submission_tag : metadata.tag,
                         emailSubject: `Related to dataset ${metadata.title} (${metadata.label})`
                     }} />
-                <div className="font-size--small intent-margin-top--little">
+                <div className="font-size--small intent-margin-toplittle">
                     {`${m.fromNow()} (${formatedTime})`}
                     </div>
-                    <div className="intent-margin-top--little">
+                    <div className="intent-margin-toplittle">
                 <MultipleMetrices metrices={datasetMetrices} />
                 </div>
                 </div>

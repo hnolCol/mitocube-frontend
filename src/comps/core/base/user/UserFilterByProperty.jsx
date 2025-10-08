@@ -124,7 +124,7 @@ export function HierarchicalUserView({ users, userLabelsInSubmission, submission
                                 userLabels : _.flatten(_.values(researchGroupGroupedUser[instituteName])).map(u => u.label)
                             }} />
                     {_.keys(researchGroupGroupedUser[instituteName]).map(research_group => {
-                        return <div className="flex flex-column intent-margin-left--little" key={`${research_group}-${instituteName}`}>
+                        return <div className="flex flex-column margin-left--little" key={`${research_group}-${instituteName}`}>
                             <UserLevelFilterButton {...{
                                 setSubmissionFilter,
                                 submissionFilter,

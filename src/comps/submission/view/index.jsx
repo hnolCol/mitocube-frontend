@@ -12,7 +12,6 @@ import { EditSamplesAttributeDialog } from "./dialogs/SamplesAttributesDialog"
 import { EditDatasetAttributeDialog } from "./dialogs/EditDatasetAttributes"
 import { RunlistCreatorDialog } from "./dialogs/RunlistDialog"
 import { ChangeSubmissionUserDialog } from "./dialogs/ChangeSubmissionUserDialog"
-import { EditMetatextDialog } from "./dialogs/EditMetatextDialog"
 
 
 function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
@@ -26,8 +25,6 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
         // submitted : false
     })
 
-
-    const[metatextDialog, setMetatextDialog] = useState({isOpen : false, submission : {}})
 
     const [attributeSelectionDialog, setAttributeSelectionDialog] = useState({
         isOpen: false,
@@ -118,7 +115,6 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
     }
     return (
         <div className="no-scroll">
-            <EditMetatextDialog {...metatextDialog} {...{setMetatextDialog}} /> 
             <ChangeSubmissionUserDialog {...changeOwnerDialog} {...{setChangeOwnerDialog}} />
             {/* <AttributeSelectionDialog {...{attributesByTag, setAttributeSelectionDialog }} {...attributeSelectionDialog} */}
                 {/* onSubmit={handleStateChangeAttributeUpdate} /> */}
@@ -161,7 +157,6 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                             setAttributesDialog,
                             setRunlistDialog,
                             setChangeOwnerDialog,
-                            setMetatextDialog
                             }} />}
             
         </div>

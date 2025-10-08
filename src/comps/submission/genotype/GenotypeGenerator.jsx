@@ -79,7 +79,7 @@ export function GenotypeGen() {
                     const attribute_tag = as.attribute.tag
                     if (!_.has(genotype,attribute_tag) || genotype[attribute_tag].length === 0) return null 
                     // console.log(attribute_tag, genotype[attribute_tag])
-                    return _.isArray(genotype[attribute_tag]) ? <div className="intent-margin-left--little intent-margin-top--tiny"
+                    return _.isArray(genotype[attribute_tag]) ? <div className="margin-left--little intent-margin-toptiny"
                         style={{ paddingLeft: `${attribute_index * 0.5}rem` }}>
                         {genotype[attribute_tag].map((trait_tag, index) => <TraitWithValueInput
                             key={`${attribute_tag}-${trait_tag}-${index}`}

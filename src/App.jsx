@@ -57,7 +57,10 @@ import { AdminResearchGroup } from "./comps/admin/researchgroup/ResearchGroups";
 import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
 import PerformanceInstruments from "./comps/performance/instruments";
 import { InstrumentView } from "./comps/performance/instruments/View";
-
+import { UsersAdminView } from "./comps/admin/users/index";
+import { UserView } from "./comps/admin/users/View";
+import { AttributesAdminView } from "./comps/admin/attributes/index";
+import { SubmissionSamples } from "./comps/dataset/samples";
 //axios defaults
 
 axios.defaults.headers.common['Content-Type'] = 'application/json';
@@ -194,22 +197,6 @@ function App() {
               <PTM />
             </ProtectedRoute>} />
 
-        <Route path="/datasets/:dataID" element={
-          <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-              <DatasetHeader {...{authenticationStatus, logout}}/>
-            </ProtectedRoute>}>
-            <Route path="/datasets/:dataID" element={<DatasetOverview {...{logout}}/>} />
-            <Route path="/datasets/:dataID/volcano" element={<DatasetVolcanoPlot {...{logout}}/>} />
-            <Route path="/datasets/:dataID/correlation" element={<DatasetFeatureCorrelation {...{ logout }} />} />
-            <Route path="/datasets/:dataID/heatmap" element={<DatasetHeatmap {...{}}/>} />
-            <Route path="/datasets/:dataID/pca" element={<DatasetPCA {...{logout}}/>} />
-            <Route path="/datasets/:dataID/qc" element={<DatasetQC {...{logout}}/>} />
-            <Route path="/datasets/:dataID/mitomap" element={<MitomapNetwork />} />
-            <Route path="/datasets/:dataID/timeline" element={<Timeline {...{ logout }} />} />
-            <Route path="/datasets/:dataID/runlist" element={<Runlist />} />
-            <Route path="/datasets/:dataID/help" element={<div><DatasetHelp /></div>}/>
-          </Route>
-
       <Route path="/datasets" element={
             <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <DatasetSelection {...{logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>
@@ -230,44 +217,68 @@ function App() {
             {/* <Route path="/performance/help" element={<h3>Help</h3>}/> */}
         </Route>
       
-        
           {/* Submission Routes */}
-      <Route path="/submission" element={
+          <Route path="/submissions" element={
             <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <SubmissionHeader/>
             </ProtectedRoute>
-          }>
+            }>
             <Route index element={<NewSubmission {...{authenticationStatus, logout}}/>} />
-            <Route path="/submission/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
-            <Route path="/submission/view" element={<SubmissionView {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>}/>
-            <Route path="/submission/existing" element={<AddExistingSubmission {...{authenticationStatus, logout}}/>}/>
-            <Route path="/submission/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
-            <Route path="/submission/statistics" element={
-              <SubmissionStatistics {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>} />
-      </Route>
+            <Route path="/submissions/new" element={<InitialSubmission {...{authenticationStatus, logout}}/>}/>
+            <Route path="/submissions/view" element={<SubmissionView {...{authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}}/>}/>
+            <Route path="/submissions/existing" element={<AddExistingSubmission {...{authenticationStatus, logout}}/>}/>
+            <Route path="/submissions/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
+            <Route path="/submissions/statistics" element={<SubmissionStatistics {...{ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} />} />
+        </Route>
+
+          <Route path="/submissions/:tag" element={
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <DatasetHeader {...{authenticationStatus, logout}}/>
+            </ProtectedRoute>}>
+            <Route path="/submissions/:tag" element={<DatasetOverview {...{ logout }} />} />
+            <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{logout}}/>} />
+            <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{logout}}/>} />
+            <Route path="/submissions/:tag/correlation" element={<DatasetFeatureCorrelation {...{ logout }} />} />
+            <Route path="/submissions/:tag/heatmap" element={<DatasetHeatmap {...{}}/>} />
+            <Route path="/submissions/:tag/pca" element={<DatasetPCA {...{logout}}/>} />
+            <Route path="/submissions/:tag/qc" element={<DatasetQC {...{logout}}/>} />
+            <Route path="/submissions/:tag/mitomap" element={<MitomapNetwork />} />
+            <Route path="/submissions/:tag/timeline" element={<Timeline {...{ logout }} />} />
+            <Route path="/submissions/:tag/runlist" element={<Runlist />} />
+            <Route path="/submissions/:tag/help" element={<div><DatasetHelp /></div>}/>
+          </Route>
       
       <Route path="/admin" element={
           <ProtectedAdminRoute isAuthenticated={authenticationStatus.isAuth} isAdmin={authenticationStatus.role === 4}>
               <AdminHeader {...{authenticationStatus}}/>
             </ProtectedAdminRoute>
           }>
-            <Route index element={<div>Admin Settings</div>} />
-            <Route path="/admin/users" element={<AdminUsers {...{authenticationStatus}}/>}/>
+            {/* <Route index element={<div>Admin Settings</div>} />  */}
+            <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
+            <Route path="/admin/users" element={<UsersAdminView />} />
             <Route path="/admin/sharetoken" element={<ShareToken {...{authenticationStatus}}/>}/>
-            <Route path="/admin/attributes" element={<AdminAttributes {...{ authenticationStatus }} />} />
+            <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
             <Route path="/admin/sets" element={<AdminFilterSets />} />
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
             <Route path="/admin/phenotypes" element={<AdminPhenotype />} />
             </Route>
+          <Route path="/admin/users/:tag" element={
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+              <UserView {...{ authenticationStatus }} />
+            </ProtectedRoute>} />
+          <Route path="/admin/attributes/:tag" element={
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+              <div><h3>Attributes</h3></div>
+            </ProtectedRoute>} />
           
-
+          
           <Route path="/contact" element={
             <div><h3>Contact</h3>
               <p>Please utilize the discussion and issue sections of the <a href="https://github.com/hnolcol/mitocube"><span className="h1-span">github</span></a> repository for requestion new web application features.</p>
             </div>} />
-             
+
         
       </Routes>
         

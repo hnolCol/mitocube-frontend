@@ -12,24 +12,27 @@ import { groupListByProperty } from "../../../services/arrays/groupby"
 
 
 
-export function SubmissionFilterSelection({ submissionsQuery, submissionQueryResult, isLoading, isFetching, isSuccess, isError,  submissionFilter, setSubmissionFilter, setSubmissionQuery, header = "Submissions", children = <div></div> }) {
+export function SubmissionFilterSelection({ submissionsQuery, submissionQueryResult, isSuccess, submissionFilter, setSubmissionFilter, setSubmissionQuery, header = "Submissions", children = <div></div> }) {
     const [searchString, setSearchString] = useState(submissionsQuery.plain)
     const debouncedString = useDebounce(searchString, 200)
-    // const { data: attributesByTag } = useGetSubmissionAttributesByTag({}, { staleTime: Infinity })
-    // const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
+
     useEffect(() => { setSubmissionQuery(prevValues => { return { ...prevValues, plain: debouncedString } }) }, [debouncedString])
 
 
-    // if (!_.isObject(attributesByTag) || submissionStatesLoading) return null
-    const submissionsByState = _.isObject(submissionQueryResult) && _.isArray(submissionQueryResult.submissions) ? groupListByProperty(submissionQueryResult.submissions, "state") : {}
-    // const attributeValuesByAttributeTag = groupListByProperty(_.values(attributesByTag.attribute_values), "attribute_tag")
 
     return (
         <div className="submission__wrapper">
         <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
             <h3>{header} ({isSuccess? submissionQueryResult.query_count:"0"}/{isSuccess? submissionQueryResult.total_count:"0"})</h3>
-            <div className="flex" style={{width: "100%"}}>
-            <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/>
+                <div className="flex center-items" style={{ width: "100%" }}>
+                    <div><input
+                    className="search-input"
+                    value={searchString}
+                    onChange={(e) => setSearchString(e.target.value)}
+                    placeholder="Search by label, metatext ..."
+                    />
+                        </div>
+            {/* <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/> */}
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
             </div>
             <StateSelection {...{ submissionFilter, setSubmissionFilter }} /> 

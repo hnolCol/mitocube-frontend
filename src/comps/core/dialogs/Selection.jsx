@@ -12,7 +12,7 @@ function SelectionDialog({title="Selection", isOpen = false, children, onApply, 
             
             <div className="flex flex-column">
             {children}
-                <div className="flex justify-space-around intent-margin-bottom--little">
+                <div className="flex justify-space-around margin-bottom--little">
                     <Button text="Apply" intent="primary" small={true} onClick={onApply} disabled={applyButtonDisabled} />
                     <Button text="Close" small={true} onClick={onClose}/>
                 </div>

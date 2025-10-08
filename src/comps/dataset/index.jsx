@@ -1,31 +1,46 @@
 import { Outlet, useParams } from "react-router";
 import Tabs from "../core/navigation/tabs";
-import { useGetMetadata } from "../../hooks/queries/datasets.hooks";
-import { useState } from "react";
 import Loading from "../core/base/loading";
-import { useGetSubmissionStates } from "../../hooks/queries/submission.hooks";
 import _ from "lodash"
+import hooks from "@mitocube/api-hooks";
+import { useEffect } from "react";
+
+    
+
 
 /**
  * @description The header for the dataset view. Loads the metadata as well as the attributes. 
  * @param {*} param0 
  * @returns 
  */
-function DatasetHeader({}) {
-    const params = useParams()
-    const submission_tag = params.dataID
-    const urlStart = `/datasets/${submission_tag}`
-    const [tabHeader, setTabHeader] = useState("")
-    // const {data : datasetInfo, isLoading, isFetching, isError, error, isFetched} = useGetDatasetInfo({token, dataID})
-    const { data: metadata, isLoading: metadataIsLoading, isFetching: metadataIsFetching, refetch: refetchMetaData } = useGetMetadata({ tag: submission_tag}, {enabled : _.isString(submission_tag)})
-    const { data: submissionStates, isLoading: submissionStatesLoading } = useGetSubmissionStates()
+function DatasetHeader({ }) {
     
+    const params = useParams()
+    const submission_tag = params.tag
+    const urlStart = `/submissions/${submission_tag}`
+    const { data: submissionExists, isLoading: submissionExistsLoading } = hooks.submissions.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const { mutate: insertSubmissionView } = hooks.submissions.views.usePostSubmissionView()
+
+
+    useEffect(() => {
+        let timeoutId;
+        if (_.isString(submission_tag) && submission_tag.length > 0 && submissionExists) {
+            insertSubmissionView({ tag: submission_tag });
+            timeoutId = setTimeout(() => {
+                insertSubmissionView({ tag: submission_tag });
+            }, 24 * 60 * 60 * 1000); // 1 day in milliseconds
+        }
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+        };
+    }, [submission_tag, submissionExists]);
+
     return (
         <div className="no-scroll div--expand">
             <Tabs
-                rightHeader={tabHeader}
                 tabs={[
                     { text: "Overview", to: urlStart },
+                    { text: "Samples", to: `${urlStart}/samples` },
                     { text: "Volcano", to: `${urlStart}/volcano`},
                     { text: "Heatmap", to: `${urlStart}/heatmap` },
                     { text: "PCA", to: `${urlStart}/pca` }, 
@@ -35,11 +50,12 @@ function DatasetHeader({}) {
                     { text: "Correlation", to: `${urlStart}/correlation` },
                     { text: "Runlist", to: `${urlStart}/runlist` },
                     { text: "Help", to : `${urlStart}/help`}]} />   
-            {/* context={{datasetInfo, isLoading, isFetching, isError, error, dataID, isFetched, setTabHeader, token}} */}
-            {metadataIsFetching || metadataIsLoading || submissionStatesLoading? <Loading /> : null}
             <div className="no-scroll div--expand">
-                
-            <Outlet context={{submission_tag, metadata, refetchMetaData, tabHeader, setTabHeader, submissionStates}}/>
+            {submissionExistsLoading ?  <Loading /> : null}
+                {(!submissionExists) ? <div className="margin--medium">Submission with tag <strong>{submission_tag}</strong> does not exist.</div> :
+                    
+                    <Outlet context={{ submission_tag }} />}
+            
             </div>
             
         </div>

@@ -1,0 +1,87 @@
+import { useState } from "react";
+import { MinimalTextInput } from "../../../core/input/MinimalTextInput";
+import _ from "lodash"
+import hooks from "@mitocube/api-hooks" 
+import { UserRoleSelection } from "../UserRoleSelection";
+
+const USER_INPUT = [
+    { type: "text", tag: "firstname", placeholder: "Enter user first name" },
+    { type: "text", tag: "lastname", placeholder: "Enter user last name" },
+    { type: "text", tag: "email", placeholder: "Enter user email" }]
+
+
+
+export function AddUserDialog({onCancel}) {
+
+
+    const { mutate: postUser, isLoading } = hooks.users.usePostUser()
+
+    const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group : "", institute : "", role : 1})
+    const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
+    
+    /**
+     * Handles the insertion of a new user
+     * @param {MouseEvent} e 
+     */
+    const handleInsert = (e) => {
+        e.preventDefault()
+        postUser(formData)
+    }
+    
+    const handleRoleChange = (role_tag) => {
+        setFormData(prevValues => { return {...prevValues, role: _.toNumber(role_tag)} })
+    }
+
+    return (
+        <div className="margin--medium padding--medium">
+            <h3>Add User Dialog</h3>
+
+            <div className="flex flex-column margin-bottom--little margin--medium">
+                {USER_INPUT.map((input) => (
+                    <div key={input.tag}>
+                        <input
+                            value={formData[input.tag]}
+                            onChange={(e) =>
+                                setFormData((prevValues) => ({
+                                    ...prevValues,
+                                    [input.tag]: e.target.value,
+                                }))
+                            }
+                            className="text-input"
+                            type="text"
+                            placeholder={input.placeholder}
+                        />
+                    </div>
+                ))}
+                <div className="font-size--small color--grey">
+                    A verification email will be sent to the user containing a randomly created password.
+                </div>
+                <h4>User role</h4>
+                <UserRoleSelection selectedRole={formData.role} onRoleChange={handleRoleChange} />
+
+
+                <div className="flex justify-end margin-top--medium">
+                    <button
+                        disabled={isLoading}
+                        className="dialog-button"
+                        type="button"
+                        onClick={(e) => {
+                            e.preventDefault()
+                            onCancel()
+                        }}
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        disabled = {disabledButton}
+                        className={`dialog-button bg--blue-light ${disabledButton ? "opacity--disabled" : ""}`}
+                        type="button"
+                        onClick={handleInsert}
+                    >
+                        {isLoading ? "Inserting..." : "Insert"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}   

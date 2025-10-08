@@ -148,7 +148,7 @@ const ScatterLegend = React.memo(
                             })}
                         </LegendOrdinal></div> :
                 
-                    <div className="intent-margin-left--little">
+                    <div className="margin-left--little">
                         <h4>{colorAttribute.text}</h4>
                         <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                             {(labels) => labels.map((label, idx) => {
@@ -162,7 +162,7 @@ const ScatterLegend = React.memo(
                         })}
                     </LegendLinear></div> : null}
                 {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
-                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
                         <h4>{sizeAttribute.text}</h4>
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
@@ -180,7 +180,7 @@ const ScatterLegend = React.memo(
                                 )
                             })}
                         </LegendOrdinal></div> :
-                        <div className="intent-margin-left--little">
+                        <div className="margin-left--little">
                         <h4>{sizeAttribute.text}</h4>
                         <LegendSize scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {
@@ -261,7 +261,7 @@ const ScatterLegend = React.memo(
             <div>
                 <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                     {_.has(colorScale,"domain") ? _.has(data[0],colorName) && _.isEmpty(colorLimit)? 
-                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
                             <h4>{colorName}</h4>
                             <LegendOrdinal scale={colorScale}>
                                 {(labels) => labels.map((label, idx) => {   
@@ -277,7 +277,7 @@ const ScatterLegend = React.memo(
                                 })}
                             </LegendOrdinal></div> :
                     
-                        <div className="intent-margin-left--little">
+                        <div className="margin-left--little">
                             <h4>{colorName}</h4>
                             <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                                 {(labels) => labels.map((label, idx) => {
@@ -290,7 +290,7 @@ const ScatterLegend = React.memo(
                             })}
                         </LegendLinear></div> : null}
                     {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isEmpty(sizeLimit) ? 
-                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="intent-margin-left--little">
+                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
                             <h4>{sizeName}</h4>
                             <LegendOrdinal scale={sizeScale}>
                                 {(labels) => labels.map((label, idx) => {  
@@ -305,7 +305,7 @@ const ScatterLegend = React.memo(
                                     )
                                 })}
                             </LegendOrdinal></div> :
-                            <div className="intent-margin-left--little">
+                            <div className="margin-left--little">
                             <h4>Size legend</h4>
                             <LegendSize scale={sizeScale}>
                                 {(labels) => labels.map((label, idx) => {

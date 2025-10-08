@@ -18,7 +18,7 @@ export function GenotypeDatasetFilter({ setSubmissionFilter }) {
     },[_.join(genotypeSelection.selectedGenotypes)])
 
     return (
-        <div className="intent-margin-top--little" style={{ width: "100%", paddingRight : "0.1rem"}}>
+        <div className="intent-margin-toplittle" style={{ width: "100%", paddingRight : "0.1rem"}}>
             <h4>Genotypes</h4>
             <div className="flex flex-column" >
                 <GenotypeInput selectedItems={genotypeSelection.selectedGenotypes} onItemSelect={onGenotypeSelection}/>

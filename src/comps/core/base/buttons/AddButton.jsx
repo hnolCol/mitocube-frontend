@@ -1,11 +1,14 @@
+import {motion } from "framer-motion"
 
-
-export function AddButton({fontColor = "#00000", onSelect, isLoading}) {
+export function AddButton({fontColor = "#00000", onSelect, isLoading, disabled = false}) {
     
-    return <button
-        delete={isLoading}
-        onClick={onSelect}
-        style={{ margin: "0px", padding: "0px", border: "none", background: "transparent", outline: "none", color: fontColor }}>
-        <div className="add-div" />
-        </button> 
+    return <motion.button
+        disabled={isLoading || disabled}
+            whileHover={{backgroundColor : "#fff"}}
+            className="action-button"
+            aria-label="Add Metatext"
+            onClick={onSelect}
+        >
+            <span style={{ fontWeight: "bold", lineHeight: "1" }}>+</span>
+        </motion.button>
 }

@@ -241,7 +241,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                         </Callout>
                     </div>
                     </div>
-                    <div className="intent-margin-top--little">
+                    <div className="intent-margin-toplittle">
                     <hr />
                     <h3>Well plate design</h3>
                     <p>In total total of <strong>{getNumberOfSamples(submission, runlistProps.aggregate_on, runlistProps.fractionate ? runlistProps.n_fractions : 1)}</strong> free well plate positions are required. <br/>

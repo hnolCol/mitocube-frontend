@@ -63,7 +63,7 @@ function Topbar({authenticationStatus,logout}) {
         <div className="flex justify-space-between">
             <BaseDialog {...{...dialogProps}} onClose={() => setDialogProps(prevValues => {return{...prevValues,isOpen : false}})}/>
             {/* <div>{basePathName.toUpperCase()}</div> */}
-            <div className="flex flex-column justify-center intent-margin-left--little">
+            <div className="flex flex-column justify-center margin-left--little">
                 <Link to="/index"><Header text={backendInfoIsSucces ? backendInfo.app_name : null} /></Link>
             </div>
             <div className="flex">

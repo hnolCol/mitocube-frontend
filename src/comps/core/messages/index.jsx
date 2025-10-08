@@ -13,7 +13,7 @@ function Message({ title, date, message }) {
                 <div className="h2-span">{title}</div>
                 <div>{date}</div>
             </div>
-            <div className="intent-margin-top--little">
+            <div className="intent-margin-toplittle">
                 {message}
             </div>
         </div>
@@ -30,7 +30,7 @@ function Messages({ messages = [{title : "New Dataset online.",date : "02.02.202
 
     return (
         <div className="message__container flex flex-column">
-            <div className="h0-span font-size--large intent-margin-bottom--little">
+            <div className="h0-span font-size--large margin-bottom--little">
                 News
             </div>
             <AnimatePresence>

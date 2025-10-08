@@ -10,8 +10,8 @@ export function ReplicateMenu({ selectedRows, numberReplicates, onReplicateChang
     useEffect(() => {
         //ensure that the input field is focused on.
         const el = document.getElementById("numeric-replicate-input")
-        if (_.isFunction(el.focus)) el.focus()
-        
+        if (el !== null && _.isFunction(el.focus)) el.focus()
+
     }, [])
     
     return <Menu>

@@ -112,7 +112,7 @@ export function User({firstname,lastname,email, role, created_on, userRoles, blo
                         <UserDashboardIcon text={`${firstname[0]}${lastname[0]}`} />   
                 </BaseDashboardIcon>
                         <div><span className="h0-span">{firstname} {lastname} ({email})</span></div>
-                        <div className="intent-margin-left--little">{!allow_login ? <span className="h2-span">blocked </span>: null}</div>
+                        <div className="margin-left--little">{!allow_login ? <span className="h2-span">blocked </span>: null}</div>
             </div>
                 <div>
                 <Code>{userRoles[role]}</Code>
