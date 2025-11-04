@@ -38,7 +38,7 @@ export function HighlightText({ text, search_string }) {
 
 export function SubmissionLink({ tag, search_string}) {
     
-    const { data : submission_title, isLoading, isFetching } = hooks.submissions.useGetSubmissionTitle({tag},{enabled : _.isString(tag) && tag.length > 0})
+    const { data : submission_title, isLoading, isFetching } = hooks.submissions.title.useGetSubmissionTitle({tag},{enabled : _.isString(tag) && tag.length > 0})
 
     return <div>
         <Link to={`/submissions/${tag}`}>

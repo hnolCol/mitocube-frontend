@@ -23,6 +23,11 @@ import InteractiveChart from "../../../core/charts/interactive"
 import { ScatterPlot } from "../../../core/charts/scatter"
 import { FeatureCorrelationPlot } from "../../../core/charts/correlation/FeatureCorrelationPlot"
 
+import hooks from "@mitocube/api-hooks";
+import { OptionButton } from "../../../core/base/buttons/OptionButton"
+import { useSearchParams } from "react-router-dom"
+import { OpenAiPublicationSummary } from "../../../core/openai/OpenAiPublicationSummary"
+import { ProteinOverview } from "./ProteinOverview"
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
     const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({tag : dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
@@ -64,10 +69,10 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
                         submission_tag : metadata.tag,
                         emailSubject: `Related to dataset ${metadata.title} (${metadata.label})`
                     }} />
-                <div className="font-size--small intent-margin-toplittle">
+                <div className="font-size--small margin-top--little">
                     {`${m.fromNow()} (${formatedTime})`}
                     </div>
-                    <div className="intent-margin-toplittle">
+                    <div className="margin-top--little">
                 <MultipleMetrices metrices={datasetMetrices} />
                 </div>
                 </div>
@@ -99,23 +104,6 @@ function ProteinFilter({ tag }) {
     </div>
 }
 
-
-function ProteinQuantCounts({ tag }) {
-    console.log(tag)
-    const { data: quantStats, isLoading, isFetching } = useGetFeatureSampleQuants({ tag }, {enabled : _.isString(tag)})
-    console.log(quantStats)
-
-
-    if (isLoading || isFetching) return <Loading /> 
-    if (isError) return <div>Error..</div>
-
-    const rel = quantStats["samples"] / quantStats["total_samples"]
-
-    return <div>
-        <div>The protein was quantified in {rel}% ({quantStats["samples"]}/{quantStats["total_samples"]}) of all samples of the same proteome.</div>
-        {rel < 0.15 ?  <div> The feature appears to be either expressed at <strong>very low levels</strong> or <strong>expressed only under very specific conditions.</strong></div>: null }
-    </div>
-}
 
 
 
@@ -207,51 +195,48 @@ function ProteinCorrelation({ tag, proteome_tag }) {
         <FeatureCorrelationPlot feature_tag_x={tag}  feature_tag_y={featureYTag}/>
     </div>
 }
-
-function ProteinOverview() {
+export function ProteinPage() {
     
     const { feature_tag } = useOutletContext()
-    const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
-    const { data: featureData, isError, error } = useGetDataByFeatureID({ feature_tag }, {})
-    const { data : feature } = useGetFeatureByTag({tag : feature_tag}, {enabled : _.isString(feature_tag), staleTime : Infinity})
-    const featureIsLoaded = _.isObject(feature)
-    if (isError) return <APIError error={error} />
-    return (
-        <div className="div-expand" style={{height : "85vh",overflowY:"scroll"}}>
-            <MetaDataDrawer isOpen={metadataDrawer.isOpen} dataset_label={metadataDrawer.dataset_label} setIsOpen={setMetadataDrawer} />
-            <div>
-                <h3>Protein Information</h3>
-                {featureIsLoaded ? <div><div>{feature.gene_names}</div><div>{feature.protein_name}</div></div> : null}
-                {featureIsLoaded ? <ProteinQuantCounts tag={feature_tag} /> : null }
-                <MultipleMetrices metrices={[{label : "Times viewed", metric : 839}, {label : "Genotypes", metric : 4}]}/>
-                <ProteinFilter tag = {feature_tag} />
-                <h3>Abundance</h3>
-                {featureIsLoaded ? <ProteinAbundance tag={feature_tag} proteome_tag={feature.proteome_tag} /> : null}
-                {featureIsLoaded ? <ProteinCorrelation {...{ tag: feature.tag, proteome_tag: feature.proteome_tag }} /> : null}
-                {featureIsLoaded && _.has(feature, "gene_name") ? <GenePublications gene_name={feature.gene_name} /> : null}
+    const [searchParams, setSearchParams] = useSearchParams();
 
+    const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
+
+    const viewOptions = [{ tag: "overview", text: "Overview" }, { tag: "data", text: "Data" }, { tag: "correlation", text: "Correlation" }, { tag: "abundance", text: "Abundance" }, { tag: "literature", text: "Literature (AI)" }, { tag: "publications", text: "Publications" }]
+    const viewParam = searchParams.get("view");
+    const selectedView = viewParam && viewOptions.some(o => o.tag === viewParam) ? viewParam : viewOptions[0].tag;
+    
+
+    const handleClick = (option_tag) => {
+        const newParams = new URLSearchParams(searchParams);
+        if (option_tag === viewOptions[0].tag) {
+            newParams.delete("view");
+        } else {
+            newParams.set("view", option_tag);
+        }
+        setSearchParams(newParams);
+    }
+    
+
+    return (
+        <div className="div-expand" style={{ height: "100%", }}>
+            <div className="bg--lightgrey padding--little margin--little">
+            {viewOptions.map(option =>
+                <OptionButton key={option.tag} isSelected={selectedView === option.tag} onClick={() => handleClick(option.tag)}>
+                    <span>{option.text}</span>
+                </OptionButton>
+                )}
+                </div>
+            <h2>{selectedView}</h2>
+            <div className="flex flex-column div--expand padding--little" style={{overflowY:"scroll", height : "88vh"}}>
+
+            {selectedView === "overview" ? <ProteinOverview feature_tag={feature_tag} /> : null }
+
+            
+
+            {selectedView == "literature" ? <div style={{paddingLeft : "3rem", paddingRight : "3rem"}}><OpenAiPublicationSummary feature_tag={feature_tag} /></div> : null }
 
             </div>
-            <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
-            {_.isObject(featureData) ? featureData["submission_tags"].map(submission_tag => {
-                const data = featureData["data"][submission_tag] //get data for dataset
-                return (
-                    <ResultChart key={`${feature_tag}-${submission_tag}`}
-                        sample_attribute_tags={featureData["sample_attribute_by_submission_tag"][submission_tag]}
-                        data={data}
-                        {...{
-                            submission_tag, featureID: feature_tag,
-                            title: featureData.title_by_tag[submission_tag]
-                        }}
-                        yaxisName="value"
-                        attributesByTag={featureData.attributes}
-                        genotypesByTag={featureData["genotypes_by_tag"][submission_tag]}
-                        attributeValuesByTag={featureData.attribute_values_by_tag}
-                        openMetadataDrawer={setMetadataDrawer} />
-                )
-            }) : null}
-                </div>
-            
             {/* <BoxplotWithValue/>
             <div> Color : </div>
                 <Combobox
@@ -344,6 +329,8 @@ function ProteinOverview() {
                                         }
                                         </LegendSize>
                                 </div>
+
+                                
          
                                  : null}
                           </div>
@@ -369,4 +356,39 @@ function ProteinOverview() {
 }
 
 
-export default ProteinOverview
+
+
+    // //  {/* <MetaDataDrawer isOpen={metadataDrawer.isOpen} dataset_label={metadataDrawer.dataset_label} setIsOpen={setMetadataDrawer} />
+    // //         <div>
+    // //             <h3>Protein Information</h3>
+    // //             {featureIsLoaded ? <div><div>{feature.gene_names}</div><div>{feature.protein_name}</div></div> : null}
+    // //             {featureIsLoaded ? <ProteinQuantCounts tag={feature_tag} /> : null }
+    // //             {/* <MultipleMetrices metrices={[{label : "Times viewed", metric : 839}, {label : "Genotypes", metric : 4}]}/> */}}
+    //             <ProteinFilter tag = {feature_tag} />
+    //             <h3>Abundance</h3>
+    //             {/* {featureIsLoaded ? <ProteinAbundance tag={feature_tag} proteome_tag={feature.proteome_tag} /> : null} */}
+    //             {featureIsLoaded ? <ProteinCorrelation {...{ tag: feature.tag, proteome_tag: feature.proteome_tag }} /> : null}
+    //             {featureIsLoaded && _.has(feature, "gene_name") ? <GenePublications gene_name={feature.gene_name} /> : null}
+
+
+    //         </div>
+    //         <div className="flex flex--wrap center-items container--scroll-y-hide-x" style={{maxHeight:"90vh"}}>
+    //         {_.isObject(featureData) ? featureData["submission_tags"].map(submission_tag => {
+    //             const data = featureData["data"][submission_tag] //get data for dataset
+    //             return (
+    //                 <ResultChart key={`${feature_tag}-${submission_tag}`}
+    //                     sample_attribute_tags={featureData["sample_attribute_by_submission_tag"][submission_tag]}
+    //                     data={data}
+    //                     {...{
+    //                         submission_tag, featureID: feature_tag,
+    //                         title: featureData.title_by_tag[submission_tag]
+    //                     }}
+    //                     yaxisName="value"
+    //                     attributesByTag={featureData.attributes}
+    //                     genotypesByTag={featureData["genotypes_by_tag"][submission_tag]}
+    //                     attributeValuesByTag={featureData.attribute_values_by_tag}
+    //                     openMetadataDrawer={setMetadataDrawer} />
+    //             )
+    //         }) : null}
+    //             </div> */}
+            

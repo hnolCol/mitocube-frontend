@@ -25,7 +25,7 @@ export function FilterSummary({ filter }) {
                 <motion.div
                     whileHover={{backgroundColor : motionBackgroundColor, color: motionFontColor}}
                     style={{backgroundColor : backgroundColor, color: fontColor, fontSize:"0.75rem"}} 
-                    className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny">{filter.text}</motion.div>
+                    className="flex center-items padding--tiny cursor--default div--round margin-right--tiny">{filter.text}</motion.div>
             </Tooltip>
         </div>
     )

@@ -6,29 +6,6 @@ import _ from "lodash"
 import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists } from "../attribute/select/SamplesAttributeWrapper";
 
 export function AttributesTab({submission, setSubmission, setComponentKey, componentKey }) {
-    
-    // /**
-    //  * @description Handle dataset selection 
-    //  * @param {String} attribute_tag - Historically - should be removed. 
-    //  * @param {String} trait - The actual trait that was selected by its tag. 
-    //  */
-    // const handleTraitSelection = (attribute_tag, trait_tag) => {
-    //     //const attribute_tag = trait.attribute_tag 
-    //     let selected_traits =  submission.selected_traits.slice() //mission.selected_traits
-        
-    //     if (!_.has(selected_traits, attribute_tag)) {
-    //         selected_traits[attribute_tag] = [trait_tag]
-    //     }
-    //     else {
-            
-    //         selected_traits[attribute_tag] = addStringToArrayOrRemove({ array: selected_traits[attribute_tag], string: trait_tag })
-    //         if (selected_traits[attribute_tag].length === 0) {
-    //             delete selected_traits[attribute_tag]
-    //         }
-    //     }
-    //     setSubmission(prevValues => { return {...prevValues, selected_traits}})
-    // }
-
 
     const getSelectionByPath = (path) => {
         const selection = findChildrenByPath(submission.selected_traits, path)
@@ -43,7 +20,7 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
     }
 
     const handleTraitSelectionHierarchy = (path, row_idcs, single_child_level, single_child_type) => {
-        console.log(row_idcs, single_child_level, single_child_type, "info")
+
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
         const pathExists = checkPathExists(selected_traits, path)

@@ -26,7 +26,7 @@ export function FeatureDatasetFilter({ setSubmissionFilter }) {
     },[_.join(featureSelection.selectedFeatures)])
 
     return (
-        <div className="intent-margin-toplittle" style={{ width: "100%", paddingRight : "0.1rem"}}>
+        <div className="margin-top--little" style={{ width: "100%", paddingRight : "0.1rem"}}>
             <h4>Features</h4>
             <div className="flex flex-column" >
                 <FeatureInput selectedItems={featureSelection.selectedFeatures} onItemSelect={onFeatureSelection} showLabel={false} allowUndefinedProteomes={true} />

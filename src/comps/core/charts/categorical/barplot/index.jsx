@@ -152,7 +152,6 @@ function CategoricalBarplot({
                                     bottomLabel={""}
                                     leftLabel={_.isString(yaxisLabel) ? yaxisLabel : yaxisName}
                                     attributeValuesByTag={attributeValuesByTag}
-                                    valueIsFeature={attributesByTag[colorName].has_features_value}
                                     {...{ chartHeight, chartWidth, genotypesByLabel }} />
                                 {/* x axis label */}
                                 <Text

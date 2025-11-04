@@ -28,8 +28,13 @@ export function ConditionApplicationItem({tag, attribute_tag, trait_tag, childre
 }
 
 
+/**
+ * 
+ * @param {Object} props 
+ * @param {String} props.tag - The tag of the condition application to be displayed. 
+ * @returns 
+ */
 export function ConditionApplicationsView({ tag }) { 
-    console.log("here??",tag)
     const {data: condition_applications} = hooks.condition_applications.useGetConditionApplication({ tag }, { enabled: !!tag })
 
     return (<motion.div whileHover={{color:HIGHLIGHT_COLOR}} style={{ backgroundColor: "#efefef", color : "#000000"}}>

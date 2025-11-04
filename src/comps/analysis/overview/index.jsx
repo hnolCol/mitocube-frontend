@@ -13,7 +13,10 @@ import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView";
 import { SubmissionTag } from "../../submission/view/SubmissionTag";
 import { SubmissionViews } from "../../submission/view/SubmissionViews";
-import { SubmissionProteinCount } from "../../submission/view/SubmissionProteinCount";
+import { SubmissionProteinGroupCount } from "../../submission/view/SubmissionProteinGroupCount";
+import { SubmissionUpload } from "../../submission/upload/SubmissionFeatureUpload";
+import { SubmissionSampleCount } from "../../submission/view/SubmissionSampleCount";
+import { SubmissionPeptideCount } from "../../submission/view/SubmissionPeptideCount";
 
 
 /**
@@ -27,7 +30,7 @@ function DatasetOverview() {
 
     return (
         <div style={{ overflowY: "scroll", height: "100%" }}>
-            <div className="flex justify-end intent-margin-right--little"><QuickAccessBar submission_tag={submission_tag}/></div>
+            <div className="flex justify-end margin-right--little"><QuickAccessBar submission_tag={submission_tag}/></div>
              <div id="top" className="flex flex-column center-items">
                 <div className="margin-top--little" style={{ maxWidth : "66vw"}}>
                     <h1><SubmissionTitle tag={submission_tag} /></h1>
@@ -42,7 +45,7 @@ function DatasetOverview() {
                     emailSubject : `Related to submission ${submission_tag}`
                 }} />
 
-                <div className="intent-margin-toplittle">
+                <div className="margin-top--little" style={{ maxWidth : "max(60vw,500px)"}}>
                 {/* <MultipleMetrices metrices={datasetMetrices} /> */}
                
                 <ResearchAim submission_tag={submission_tag}/>
@@ -56,9 +59,13 @@ function DatasetOverview() {
             <div className="flex">
                 <SubmissionTag {...{ submission_tag }} />
                 <SubmissionViews {...{ submission_tag }} />
-                <SubmissionProteinCount {...{ submission_tag }} />
+                <SubmissionProteinGroupCount {...{ submission_tag }} />
+                <SubmissionPeptideCount {...{ submission_tag }} />
+                <SubmissionSampleCount  {...{ submission_tag }} />
                 </div>
-            
+            <div>
+                <SubmissionUpload {...{ submission_tag }}/>
+            </div>
             <div className="flex flex--wrap">
                 {/* {hasGenotypes ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Genotypes ({_.keys(metadata.genotypes).length})</h3>
@@ -84,12 +91,12 @@ function DatasetOverview() {
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
                 </div> : null} */}
             </div>
-            <div className="intent-margin-right ">
+            <div className="margin-right ">
                 <h3>Comments</h3>
                 <SubmissionComments submission_tag={submission_tag}/>
             </div>
 
-            <div className="intent-margin-right ">
+            <div className="margin-right ">
             <h3>Metatext</h3>
                 <div className="flex flex--wrap" style={{ gap: "2rem" }}>                    
                     <Metatexts {...{submission_tag}} />

@@ -135,7 +135,7 @@ function MethodEditingDialog({
                 <div style={{width:"100%",height:"auto", maxHeight:"60vh",overflowY:"scroll",paddingRight:"1.5rem",paddingBottom:"1rem",marginTop:"0.5rem"}}>
                 {Object.keys(textDetails.sections).map(v => {
                     return(
-                        <div key={v} className="intent-margin-toplittle">
+                        <div key={v} className="margin-top--little">
                              <H5>{v}</H5>
                             <TextArea  onChange={e => onTextChange(v, e.target.value)} fill={true} value={textDetails.sections[v]} growVertically={true} />
                         </div>

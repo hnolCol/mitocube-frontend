@@ -16,8 +16,9 @@ import AxisWithBackground from "../../axis"
 import MetricTable from "../../../base/metrictable"
 import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
 import { getSetOfMatchingIndcsInArrayOfObject } from "../../../../../services/arrays/filter"
+import { getAttributeText } from "../../axis/AttributeText"
 
-
+import hooks from "@mitocube/api-hooks"
 
 export function Legend({ x, y, width, height, colorScale, colorName, attrValuesByTag, handleMouseOver, data, onLegendGroupLeave }) {
     if (!_.isFunction(colorScale) || !_.isFunction(colorScale.domain) || !_.isArray(colorScale.domain())) return null 
@@ -69,7 +70,6 @@ function CategoricalBoxplot({
     width = 400,
     height = 300,
     data = [
-    
         { y: 5, T: "A", G: "WT", O : "0.5h", e : 0.2},
         { y: 4, T: "B", G: "WT", O : "0.5h", e : 0.4 },
         { y: 10, T: "C", G: "WT", O: "0.5h", e : 1.2 },
@@ -86,7 +86,6 @@ function CategoricalBoxplot({
         { y: 4, T: "B", G: "KO", O : "10h", e : 0.2 },
         { y: 2, T: "C", G: "KO", O : "10h", e : 6.2 }
     ],
-    
     margins = {
         left: 45,
         right: 5,
@@ -100,7 +99,7 @@ function CategoricalBoxplot({
     yaxisLabel,
   //  categoricalNames = ["O","T","G"],
     errorName = "e",
-    tooltipNames = ["T","G"],
+    tooltipNames = [],
     colorPalette = [],
     minMaxYDomain = undefined,
     innerSubplotPadding = 0.05,
@@ -113,12 +112,16 @@ function CategoricalBoxplot({
     genotypesByLabel
 }) {
     
-    
+
+
+    const { data: colorAttribute, isSuccess : isColorAttributeSuccess } = hooks.attributes.useGetAttribute({ tag: colorName }, { enabled: _.isString(colorName) && !!colorName })
+    const { data: splitAttribute, isSuccess : isSplitAttributeSuccess } = hooks.attributes.useGetAttribute({ tag: splitName }, { enabled: _.isString(splitName) && !!splitName })
+    const { data: subplotAttribute, isSuccess : isSubplotAttributeSuccess } = hooks.attributes.useGetAttribute({ tag: subplotName }, { enabled: _.isString(subplotName) && !!subplotName })
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
     //console.log(data,colorName,splitName)
     const uniqueColorValuesFromData = _.uniqBy(data, colorName)
-    const colorCategoryFound = _.has(data[0], colorName)
-    const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
+    // const colorCategoryFound = _.has(data[0], colorName)
+    // const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
 
     const colorValues =  colorPalette.length === 0 ? getColorPalette(uniqueColorValuesFromData.length) : colorPalette.length === uniqueColorValuesFromData.length ? colorPalette : getColorPalette(uniqueColorValuesFromData.length)
     const legendColors = Object.fromEntries(uniqueColorValuesFromData.map((d, idx) => [d[colorName], colorValues[idx]]))
@@ -138,38 +141,38 @@ function CategoricalBoxplot({
         scroll: true,
     })
     
-    const colorScale = useMemo(() => {
-        // scale taking care of the fill color.
-        if (!colorCategoryFound) return () => getColorPalette(1)[0] //return a function that color the by in the default color if no colorName given
+    // const colorScale = useMemo(() => {
+    //     // scale taking care of the fill color.
+    //     if (!colorCategoryFound) return () => getColorPalette(1)[0] //return a function that color the by in the default color if no colorName given
         
-        var colorRange = []
-        if (colorPalette === undefined){
-            colorRange = getColorPalette(uniqueColorValues.length)
-        }
-        else if (_.isArray(colorPalette)) {
-            //check if colorPalette is same length? 
-            colorRange = colorPalette.slice()
-        }
-        else if (_.isObject(colorPalette)) {
-            // if an object is provided each colorValue must be in the color Palette
-            if (uniqueColorValues.filter(uniqueColorValue => !_.has(colorPalette, uniqueColorValue)).length !== 0) {
-                colorRange  = getColorPalette(uniqueColorValues.length)
-            }
-            else {
-                colorRange = uniqueColorValues.map(uniqueColorValue => colorPalette[uniqueColorValue])
-            }
-        }
-        else {
-            colorRange = getColorPalette(uniqueColorValues.length)
-        }
+    //     var colorRange = []
+    //     if (colorPalette === undefined){
+    //         colorRange = getColorPalette(uniqueColorValues.length)
+    //     }
+    //     else if (_.isArray(colorPalette)) {
+    //         //check if colorPalette is same length? 
+    //         colorRange = colorPalette.slice()
+    //     }
+    //     else if (_.isObject(colorPalette)) {
+    //         // if an object is provided each colorValue must be in the color Palette
+    //         if (uniqueColorValues.filter(uniqueColorValue => !_.has(colorPalette, uniqueColorValue)).length !== 0) {
+    //             colorRange  = getColorPalette(uniqueColorValues.length)
+    //         }
+    //         else {
+    //             colorRange = uniqueColorValues.map(uniqueColorValue => colorPalette[uniqueColorValue])
+    //         }
+    //     }
+    //     else {
+    //         colorRange = getColorPalette(uniqueColorValues.length)
+    //     }
 
-        return (
-            scaleOrdinal({
-                domain: uniqueColorValues, 
-                range : colorRange
-            })
-        )
-    }, [colorName, uniqueColorValues])
+    //     return (
+    //         scaleOrdinal({
+    //             domain: uniqueColorValues, 
+    //             range : colorRange
+    //         })
+    //     )
+    // }, [colorName, uniqueColorValues])
     
 
     const getTooltipData = (boxData) => {
@@ -239,7 +242,6 @@ function CategoricalBoxplot({
                         chartWidth,
                         colorBandwidth,
                     }, didx) => {
-                        
                         return (
                             <g key={`singleCat-bar-${idx}`}>
                                 {/* add axis with background */}
@@ -250,7 +252,7 @@ function CategoricalBoxplot({
                                     bandwidth={colorBandwidth}
                                     bottomLabel={""}
                                     attributeValuesByTag={attributeValuesByTag}
-                                    valueIsFeature={attributesByTag[colorName].has_features_value}
+                                    valueIsFeature={false}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth,genotypesByLabel }} />
                                 {/* x axis label */}
@@ -258,7 +260,8 @@ function CategoricalBoxplot({
                                     x={margins.left + chartWidth / 2}
                                     y={margins.top + chartHeight + 25}
                                     verticalAnchor="start"
-                                    textAnchor="middle">{_.has(attributesByTag,colorName)?attributesByTag[colorName].text : colorName}
+                                    textAnchor="middle">
+                                    {isColorAttributeSuccess ? colorAttribute.text : ""}
                                 </Text>
                                 
                                 {colorCategories.map(colorCategory => {
@@ -266,7 +269,6 @@ function CategoricalBoxplot({
                                     const color = colorScale(colorCategory)
                                     const dataForColorCategory = data.filter(d => d[colorName] === colorCategory)[0]
                                     const boxQuantiles = extractQuantileData(dataForColorCategory,yScale)
-                                    
                                     return (
                                         <Group key={`bar-error-${colorCategory}`} left={margins.left}
                                             onMouseEnter={e => handleMouseOver(e, getTooltipData(dataForColorCategory))}
@@ -342,7 +344,7 @@ function CategoricalBoxplot({
                                 bottomScale={splitScale}
                                 bottomLabel={""}
                                 attributeValuesByTag={attributeValuesByTag}
-                                valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
+                                valueIsFeature={false}
                                 bandwidth={splitScale.bandwidth() * 1.1}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
                                 {...{ chartHeight, chartWidth :  subplotWidth, genotypesByLabel}} />
@@ -355,7 +357,7 @@ function CategoricalBoxplot({
                                     width={subplotWidth}
                                     verticalAnchor="middle"
                                     textAnchor="middle">
-                                    {mapAttributeValueTagsToAttributes({attrValueTag : subplotCategory, attrValuesByTag : attributesByTag.attribute_values}).asString}
+                                    {"CA?"}
                                 </Text>
                               </g> : null}
                           
@@ -363,7 +365,7 @@ function CategoricalBoxplot({
                               x={margins.left + chartWidth / 2}
                               y={margins.top + chartHeight + 25}
                               verticalAnchor="start"
-                              textAnchor="middle">{_.has(attributesByTag,splitName)?attributesByTag[splitName].text : splitName}</Text> : null}
+                              textAnchor="middle">{isSplitAttributeSuccess && _.isObject(splitAttribute) ? splitAttribute.text : splitName}</Text> : null}
                         
                           
                         {/* {If there is not split but a subplot} */}
@@ -436,7 +438,6 @@ function CategoricalBoxplot({
                             </Group>
                         )
                         })}
-                          {/* <Legend x={width - margins.right} y={margins.top} width={margins.right} height={height - margins.bottom - margins.top} {...{ colorScale, colorName, attrValuesByTag : attributesByTag.attribute_values, handleMouseOver, hideTooltip }} /> */}
                     </g>)
             })}
                 

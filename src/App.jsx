@@ -20,39 +20,39 @@ import SubmissionView from './comps/submission/view';
 import Topbar from "./comps/core/navigation/dashboard/Topbar";
 import NewSubmission from "./comps/submission/new";
 import SubmissionHelp from "./comps/submission/help";
-import DatasetHeader from "./comps/dataset";
-import DatasetOverview from "./comps/dataset/overview";
+import DatasetHeader from "./comps/analysis";
+import DatasetOverview from "./comps/analysis/overview";
 import PerformanceHeader from "./comps/performance";
-import ProteinOverview from "./comps/protein/charts/overview";
+import { ProteinPage } from "./comps/protein/charts/overview";
 import Welcome from "./comps/welcome";
-import Timeline from "./comps/dataset/timeline";
+import Timeline from "./comps/analysis/timeline";
 import PerformanceOverview from "./comps/performance/overview";
 import SubmissionStatistics from "./comps/submission/statistics";
 import ProteinHeader from "./comps/protein";
 import ProteinSelection from "./comps/protein/selection";
-import DatasetHeatmap from "./comps/dataset/heatmap";
-import DatasetVolcanoPlot from "./comps/dataset/volcano";
+import DatasetHeatmap from "./comps/analysis/heatmap";
+import DatasetVolcanoPlot from "./comps/analysis/volcano";
 import PTM from "./comps/ptm";
 import InitialSubmission from "./comps/submission/new/InitialSubmission";
-import DatasetQC from "./comps/dataset/qc";
-import DatasetPCA from "./comps/dataset/pca";
+import DatasetQC from "./comps/analysis/qc";
+import DatasetPCA from "./comps/analysis/pca";
 import AdminHeader from "./comps/admin";
 import ShareToken from "./comps/admin/ShareToken";
 import AdminUsers from "./comps/admin/Users";
 import AdminAttributes from "./comps/admin/Attributes";
 import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
-import DatasetSelection from "./comps/dataset/selection";
+import DatasetSelection from "./comps/analysis/selection";
 import axios from "axios";
 import AddExistingSubmission from "./comps/submission/add";
-import Runlist from "./comps/dataset/runlist";
+import Runlist from "./comps/analysis/runlist";
 import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
-import { MitomapNetwork } from "./comps/dataset/mitomap";
-import DatasetHelp from "./comps/dataset/help";
+import { MitomapNetwork } from "./comps/analysis/mitomap";
+import DatasetHelp from "./comps/analysis/help";
 import { AdminProteomes } from "./comps/admin/proteomes/Proteomes";
 import { AdminFilterSets } from "./comps/admin/filters";
 import PerformanceRuns from "./comps/performance/runs";
-import DatasetFeatureCorrelation from "./comps/dataset/correlation";
+import DatasetFeatureCorrelation from "./comps/analysis/correlation";
 import { AdminResearchGroup } from "./comps/admin/researchgroup/ResearchGroups";
 import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
 import PerformanceInstruments from "./comps/performance/instruments";
@@ -60,7 +60,9 @@ import { InstrumentView } from "./comps/performance/instruments/View";
 import { UsersAdminView } from "./comps/admin/users/index";
 import { UserView } from "./comps/admin/users/View";
 import { AttributesAdminView } from "./comps/admin/attributes/index";
-import { SubmissionSamples } from "./comps/dataset/samples";
+import { SubmissionSamples } from "./comps/analysis/samples";
+import { DatasetFeatureView } from "./comps/analysis/features";
+import { AIPage } from "./comps/ai";
 //axios defaults
 
 axios.defaults.headers.common['Content-Type'] = 'application/json';
@@ -106,43 +108,37 @@ function App() {
   const basePathName = location.pathname.split("/")[1]
   
   useEffect(() => {
-    //check for token in local storage and validate if present
-    // store the location.pathname as this useEffect will be called on initial render. 
-    // Therfore we have to store this to redirect the user. 
-    const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "token" })
+    // Check for token in local storage and validate if present
+    // Store the location.pathname and search params for redirect after login
+    const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "token" });
+    const search = location.search || "";
     if (itemFound) {
-      setTokenFromStorage({ token: itemValue, locationPathName: location.pathname })
+      setTokenFromStorage({ token: itemValue, locationPathName: location.pathname, locationSearch: search });
+    } else {
+      setTokenFromStorage(prevValues => ({ ...prevValues, locationPathName: location.pathname, locationSearch: search }));
     }
-    else {
-      setTokenFromStorage(prevValues => { return { ...prevValues, locationPathName: location.pathname }})
-    }
-    
-  }, [])
+    }, []);
 
-
-  useEffect(() => {
-    // use effect if token string was found in storage. 
+    useEffect(() => {
+    // Use effect if token string was found in storage.
     if (tokenValidIsError && tokenValidError.response.status === 401) {
-      logout()
-    }
-    else if (_.isObject(isTokenValid) && isTokenValid.success) {
-        setAuthenticationStatus({
-          isAuth: true,
-          token: tokenFromStorage.token,
-          role: isTokenValid.role,
-          verified: isTokenValid.verified,
-          tag: isTokenValid.tag,
-          firstname: isTokenValid.firstname,
-          lastname: isTokenValid.lastname
-        })
+      logout();
+    } else if (_.isObject(isTokenValid) && isTokenValid.success) {
+      setAuthenticationStatus({
+      isAuth: true,
+      token: tokenFromStorage.token,
+      role: isTokenValid.role,
+      verified: isTokenValid.verified,
+      tag: isTokenValid.tag,
+      firstname: isTokenValid.firstname,
+      lastname: isTokenValid.lastname
+      });
       axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
-      if (tokenFromStorage.locationPathName === "/") {
-        redirect("/index")
-      }
-      else { redirect(tokenFromStorage.locationPathName) }
-      }
-  }, [tokenValidSuccess,_.isObject(isTokenValid),tokenValidIsError])
-
+      const redirectPath = tokenFromStorage.locationPathName === "/" ? "/index" : tokenFromStorage.locationPathName;
+      const redirectSearch = tokenFromStorage.locationSearch || "";
+      redirect(redirectPath + redirectSearch);
+    }
+    }, [tokenValidSuccess, _.isObject(isTokenValid), tokenValidIsError]);
   /**
    * @description Logs the user out by deleting the token from local storage and removing the axios default
    * Authorization header. It will also redirect the user to '/' 
@@ -189,7 +185,7 @@ function App() {
                 <ProteinHeader/>
             </ProtectedRoute>}>
             <Route path="/protein/selection" element={<ProteinSelection {...{authenticationStatus}}/>} />
-            <Route path="/protein/:ID" element={<ProteinOverview {...{authenticationStatus}}/>} />
+            <Route path="/protein/:ID" element={<ProteinPage {...{authenticationStatus}}/>} />
         </Route>
 
           <Route path="/ptm" element={
@@ -236,6 +232,7 @@ function App() {
                 <DatasetHeader {...{authenticationStatus, logout}}/>
             </ProtectedRoute>}>
             <Route path="/submissions/:tag" element={<DatasetOverview {...{ logout }} />} />
+            <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{logout}}/>} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{logout}}/>} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{logout}}/>} />
             <Route path="/submissions/:tag/correlation" element={<DatasetFeatureCorrelation {...{ logout }} />} />
@@ -247,7 +244,11 @@ function App() {
             <Route path="/submissions/:tag/runlist" element={<Runlist />} />
             <Route path="/submissions/:tag/help" element={<div><DatasetHelp /></div>}/>
           </Route>
-      
+          <Route path="/ai/chat" element={
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <AIPage />
+            </ProtectedRoute>}>
+          </Route>
       <Route path="/admin" element={
           <ProtectedAdminRoute isAuthenticated={authenticationStatus.isAuth} isAdmin={authenticationStatus.role === 4}>
               <AdminHeader {...{authenticationStatus}}/>

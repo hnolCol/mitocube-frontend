@@ -13,7 +13,7 @@ function Message({ title, date, message }) {
                 <div className="h2-span">{title}</div>
                 <div>{date}</div>
             </div>
-            <div className="intent-margin-toplittle">
+            <div className="margin-top--little">
                 {message}
             </div>
         </div>

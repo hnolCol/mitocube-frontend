@@ -50,8 +50,7 @@ export function MinimalTextInput({
     suffix_trait_tag,
     disabled = false
 }) {
-
-    const { data: suffixTrait } = hooks.traits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: !!suffix_trait_tag });
+    const { data: suffixTrait } = hooks.traits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
 
     const handleValueChange = (e) => {
         const newValue = e.target.value;

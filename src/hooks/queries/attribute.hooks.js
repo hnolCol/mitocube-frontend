@@ -247,7 +247,8 @@ export const useGetAttribute = (APIParams = { tag }, useQueryOptions = {staleTim
  * @returns {import("../../types/attributes").AttributeValue}
  */
 async function getATratByTag_API({ tag, include_input, submission_tag }) {
-    const res = await axios.get(`/api/attributes/traits/${tag}`, {params : {include_input,submission_tag}})
+    console.log("is this the error?")
+    const res = await axios.get(`/api/attributes/traits/${tag}/hi`, {params : {include_input,submission_tag}})
     return res.data 
 }
 

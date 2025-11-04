@@ -40,6 +40,7 @@ function DatasetHeader({ }) {
             <Tabs
                 tabs={[
                     { text: "Overview", to: urlStart },
+                    { text: "Features", to: `${urlStart}/features` },
                     { text: "Samples", to: `${urlStart}/samples` },
                     { text: "Volcano", to: `${urlStart}/volcano`},
                     { text: "Heatmap", to: `${urlStart}/heatmap` },

@@ -26,7 +26,7 @@ export function SubmissionTag({ submission_tag }) {
         >
             <div>
                 <h4>Tag</h4>
-                <div>{submission_tag}</div>
+                {!copied ? <div>{submission_tag}</div> : null}
             {copied && (
                 <span
                     style={{

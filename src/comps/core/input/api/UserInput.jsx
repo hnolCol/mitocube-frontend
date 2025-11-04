@@ -7,6 +7,12 @@ import { MultiSelect } from "@blueprintjs/select"
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 
+
+export function UserFullName({ tag }) {
+    const { data: user, isSuccess } = hooks.users.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    return isSuccess ? <span>{getUserFullName(user)}</span> : null 
+}
+
 export function UserMenuItem({ tag, handleClick, handleFocus, modifiers }) {
     
     const { data: user, isSuccess } = hooks.users.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
@@ -28,7 +34,7 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
 
-    const { data : user_tags, isLoading, isFetching } = hooks.users_query.useGetPublicUserByQuery({query : debouncedString, limit})
+    const { data : user_tags, isLoading, isFetching } = hooks.users_query.useGetUserByQuery({query : debouncedString, limit})
     
     /**
      * 
@@ -55,7 +61,7 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
 
     const renderValue = (item) => {
         console.log(item)
-        return "Gustav" //item.firstname
+        return <UserFullName tag={item} />
     }
     return <FormGroup
     style={{margin : "0.1rem"}}

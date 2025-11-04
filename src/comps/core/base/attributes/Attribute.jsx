@@ -15,7 +15,7 @@ export function Attribute({ attribute_tag }) {
     const {data : attribute, isSuccess } = useGetAttribute({tag : attribute_tag})
     return (<div
         style={{ fontSize: "0.75rem" }} 
-        className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny">
+        className="flex center-items padding--tiny cursor--default div--round margin-right--tiny">
         {isSuccess ? attribute.text : null}
     </div>)
 }

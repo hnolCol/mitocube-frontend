@@ -1,6 +1,7 @@
 import { TraitWithValueInput } from "../tags/TagWithTooltip"
 import _ from "lodash"
 import { Attribute } from "./Attribute"
+import { getRandomID } from "../../../../services/random"
 
 /**
  * 
@@ -22,15 +23,15 @@ export function DatasetAttributeView({submission_tag, attributeTraits, handleTra
                         <Attribute attribute_tag={attribute_tag} />
                             {attributeTraitHierarchy.children
                                 .map(trait => {
-                                    const selection = getSelectionByPath([{ type: "attribute", tag: attribute_tag }, { type: "trait", tag: trait.tag }])
                                     return <TraitWithValueInput
-                                        key={trait.tag}
+                                        key={`trait-${trait.tag}-${trait.id}`}
                                         onChildrenSelection={onChildrenSelection}
                                         attribute_tag={attribute_tag}
                                         trait_tag={trait.tag}
                                         submission_tag={submission_tag}
                                         onRemove={handleTraitRemove}
                                         getSelectionByPath={getSelectionByPath}
+                                        referenceID={trait.id}
                                     />
                                 })}
                         </div>:

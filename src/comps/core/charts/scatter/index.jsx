@@ -16,7 +16,7 @@ import { ScatterLabel } from "./Label"
 import { SearchIndicator } from "../annotations/Search"
 import { ChartTopLeftLabel } from "../profiles/ProfileChart"
 import { Attribute } from "../../base/attributes/Attribute"
-import { Protein } from "../../base/protein/Protein"
+import { Protein, ProteinGroup } from "../../base/protein/Protein"
 import { checkFullMargin } from "../../types/checks/chart"
 import { Genotype } from "../../base/genotype/Genotype"
 import _ from "lodash"
@@ -39,7 +39,8 @@ ScatterPlot.propTypes = {
     tooltipNameIsAttribute: PropTypes.object, 
     tooltipNameIsGenotype: PropTypes.object,
     tooltipNameIsFeature: PropTypes.object,
-    tooltipNameIsNumeric: PropTypes.object
+    tooltipNameIsNumeric: PropTypes.object,
+    tooltipNameIsFeatures: PropTypes.object
 }
 
 
@@ -57,7 +58,8 @@ ScatterPlot.defaultProps = {
     tooltipNameIsAttribute: {},
     tooltipNameIsGenotype: {},
     tooltipNameIsFeature: {},
-    tooltipNameIsNumeric: {}
+    tooltipNameIsNumeric: {},
+    tooltipNameIsFeatures: {}
 }
 
 /**
@@ -116,16 +118,14 @@ export function ScatterPlot({
     hoverIndices = new Set(),
     labelIndices = new Set(),
     searchString = "",
-    attributeValuesByTag = {},
-    attributesByTag = {},
     suffix = "",
     indicateDataSize = true,
     legendWithAttributes = true,
-    genotypesByLabel = {},
     tooltipNameIsAttribute = {}, 
     tooltipNameIsGenotype = {},
     tooltipNameIsFeature = {},
-    tooltipNameIsNumeric = {} //give number to be rounded to.
+    tooltipNameIsNumeric = {},
+    tooltipNameIsFeatures = {}//give number to be rounded to.
 }) {
 
     // Plots an array of points. Each item in the array 
@@ -134,7 +134,7 @@ export function ScatterPlot({
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
-        let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.01
+        let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.02
         return [keyName, dist]
     }))
     const validPoints = useMemo(() => _.sum(valid), [chartIdx,data.length,valid.length,suffix])
@@ -152,7 +152,6 @@ export function ScatterPlot({
     
         const yDomain = limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
-        console.log(yDomainWithMargin)
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],
@@ -323,7 +322,8 @@ export function ScatterPlot({
                                 style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
                                 
                                 {tooltipNames.map(tooltipName =>
-                                            {
+                                {
+                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} />
                                                 if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} />
                                                 else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
                                                 else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
@@ -360,9 +360,7 @@ export function ScatterPlot({
                     resetSearchIdcs,
                     sizeLimit: limits[sizeName],
                     colorLimit: limits[colorName],
-                    attributesByTag,
-                    attributeValuesByTag,
-                    genotypesByLabel,
+                    colorNameIsAttribute : true,
                 }} /> : <TextScatterLegend
                     {...{
                         chartIdx,

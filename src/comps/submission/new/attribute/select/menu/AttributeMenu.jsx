@@ -39,14 +39,6 @@ export function AttributeContextMenuSearch({ attribute_tag,
        
     }, [])
 
-    const handleAttributeSelection = (attributeTag, trait_tag, rowIdces) => {
-        
-        const updatedSelection =  addStringToArrayOrRemove({array : currentSelection, string : trait_tag})  
-        setCurrentSelection(updatedSelection)
-        
-        onAttributeSelect(attributeTag, trait_tag, rowIdces)
-    }
-
 
 
     return (
@@ -69,10 +61,9 @@ export function AttributeContextMenuSearch({ attribute_tag,
                                 tag={trait_tag}
                                 attribute_tag={attribute_tag}
                                 selected={_.includes(currentSelection, trait_tag)}
-                                onClick={(p) => onSampleTraitSelection(p, rowIdces)} />
+                                onClick={(p) => onSampleTraitSelection(p, rowIdces, 3, false, false, true)} />
                         </div>
                     })}
-           
                 </Menu>
                 <MenuDivider />
                 <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces, attribute_tag)} />

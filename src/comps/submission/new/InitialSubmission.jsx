@@ -29,7 +29,8 @@ const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
             tag: "",
             numberReplicates: 0,
-            sampleNumber: 0, 
+    sampleNumber: 0, 
+            research_aim: "", 
             replicates : [],
             sampleNames: [],
     sampleNamesFixed: false,
@@ -41,7 +42,7 @@ const initSubmissionState = {
             links : [{id : randomInitLinkID, link : "", comment : ""}],
                     // attributes: {sampleNumber : 0, replicates : 0},
             selected_traits: [], // the dataset traits,
-            genotypeAttributes : [],
+            // genotypeAttributes : [],
     rerenderTableDependency: 0,
             title : ""
 }
@@ -87,13 +88,8 @@ function InitialSubmission({
         if (!_.isString(tag )) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
-        
-        let genotypeAttributes = submission.genotypeAttributes
-        
-        if (sampleNumber > genotypeAttributes.length) {
-            const diffLength = sampleNumber - attributeTable.length
-            _.forEach(_.range(diffLength), () => genotypeAttributes.push([]))
-        }
+            
+
 
         if (sampleNumber > attributeTable.length) {
             //add rows 
@@ -109,7 +105,6 @@ function InitialSubmission({
         setSubmission(prevValues => {
             return {
                 ...prevValues,
-                genotypeAttributes,
                 sampleNames: constructedSampleNames,
                 attributeTable,
                 tag, rerenderTableDependency: [Math.random()]
@@ -130,9 +125,8 @@ function InitialSubmission({
         const validReplicates = submission.replicates.filter((rep, idx) => _.isNumber(rep) && idx < numberSamples && rep <= maxReplicateID)
         const numberReplicates = validReplicates.length
         const attributeTable = submission.attributeTable.slice(0, numberSamples)
-        const genotypeAttributes = submission.genotypeAttributes.slice(0,numberSamples)
-        const allEmptyGenoypes = _.every(genotypeAttributes.map(attrs => attrs.length === 0))
-        const someEmptyGenotypes = _.some(genotypeAttributes.map(attrs => attrs.length === 0))
+        // const allEmptyGenoypes = _.every(genotypeAttributes.map(attrs => attrs.length === 0))
+        // const someEmptyGenotypes = _.some(genotypeAttributes.map(attrs => attrs.length === 0))
         
         
         if (!_.isString(submission.title) || submission.title.length < 10) {
@@ -152,18 +146,15 @@ function InitialSubmission({
         }
 
 
-        if (allEmptyGenoypes && (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0)) {
-            errMsgs.push("No samples attributes provided. Require at least one.")
-        }
-        
-        if (!allEmptyGenoypes && genotypeAttributes.length !== attributeTable.length) {
-            errMsgs.push("Attribute table and genotype have different length indicating that you forgot to define the genotype for a sample.")
-        }
+        // if (allEmptyGenoypes && (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0)) {
+        //     errMsgs.push("No samples attributes provided. Require at least one.")
+        // }
+    
 
-        if (!allEmptyGenoypes && someEmptyGenotypes) {
-            //only if not all genotypes are empty 
-            errMsgs.push("Some sample genotypes are empty.")
-        }
+        // if (!allEmptyGenoypes && someEmptyGenotypes) {
+        //     //only if not all genotypes are empty 
+        //     errMsgs.push("Some sample genotypes are empty.")
+        // }
 
 
         //check for all mandatory attributes
@@ -229,18 +220,19 @@ function InitialSubmission({
             submissionDetails["replicates"] = validReplicates
             submissionDetails["samples_attributes"] = attributeTable
             submissionDetails["dataset_attributes"] = submission.selected_traits
-            submissionDetails["collaborators"] = submission.collaborators.map(u => u.tag)
+            submissionDetails["collaborators"] = submission.collaborators.slice()
+            submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
             submissionDetails["tag"] = tag 
             submissionDetails["metatext"] = submission.metatext
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
 
-            if (allEmptyGenoypes) {
-                delete submissionDetails["genotypes"]
-            }
-            else {
-                submissionDetails["genotypes"] = indexStrings(submission["genotypes"].map(genotype => genotype.map(g => g.tag)))
-            }
+            // if (allEmptyGenoypes) {
+            //     delete submissionDetails["genotypes"]
+            // }
+            // else {
+            //     submissionDetails["genotypes"] = indexStrings(submission["genotypes"].map(genotype => genotype.map(g => g.tag)))
+            // }
             //submissionDetails["datasetAttributes"] = _.map(submission.datasetAttributes, datasetAttribute => datasetAttribute.tag)
             submissionDetails["datasetAttributes"] = _.fromPairs(_.keys(submission["datasetAttributeValues"])
                 .filter(key => _.isArray(submission["datasetAttributeValues"][key]) && submission["datasetAttributeValues"][key].length > 0).map(key => [key, submission["datasetAttributeValues"][key].map(t => t.tag)]))
@@ -375,11 +367,11 @@ function InitialSubmission({
         <div className="flex flex-column">
             <Alert style={{minWidth:"min(60vw,600px)"}} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
-        <div className="flex flex-column container--scroll-y-hide-x padding--medium intent-margin-toplittle intent-margin-right intent-padding-right--little" style={{height : "100%",position:"relative"}}>
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium margin-top--little margin-right intent-padding-right--little" style={{height : "100%",position:"relative"}}>
             {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
                 <Button text="Submit" />
             </div> */}
-                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
+                {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
                 <h3>Information</h3>
             <p>
                 In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
@@ -389,7 +381,7 @@ function InitialSubmission({
                     </p>
                     <span className="h0-span">Please take care to fill out the submission in a meticulously way. Data without carefully curated meta data are less informative.</span>
             </div> */}
-            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
+            {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
                 <h3>1. Contact and Collaborators</h3>
                 <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
                     <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div>
@@ -397,7 +389,7 @@ function InitialSubmission({
                     <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
                   
             </div> */}
-            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
+            {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
                 <h3>2. Mandatory Attributes</h3>
                 <p>Attributes that are required for the project submission. </p>
                     <TextInput placeholder="Set the title of your submission.."
@@ -412,7 +404,7 @@ function InitialSubmission({
                 
                 </div> */}
             
-            {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
+            {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
                     <h3>4. Meta Text</h3>
             
                     <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />
@@ -440,7 +432,7 @@ function InitialSubmission({
                         {...{handlePositionSelection, refetchGenotypes }}/>
                              */}
                         
-                {/* <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
+                {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
                 <h3>7. Sample Attributes</h3>
                     <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
                         The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.

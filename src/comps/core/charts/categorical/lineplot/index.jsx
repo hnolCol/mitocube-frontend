@@ -89,12 +89,7 @@ function CategoricalLineplot({
       })
     
     const getTooltipData = (value, errorValue, pointData) => {
-        const attrValuesByTag = attributesByTag.attribute_values
-        const tooltipInfo = Object.fromEntries(_.map(tooltipNames, tooltipName => {
-            let tooltipValue = pointData[tooltipName]
-            const {asString} = mapAttributeValueTagsToAttributes({attrValueTag : tooltipValue, attrValuesByTag})
-            return [tooltipName, asString]
-        }).filter(v => v[1] !== undefined))
+        
         return {[yaxisName] : _.round(value,2), error : _.isNaN(errorValue)?"NaN":_.round(errorValue,2), ...tooltipInfo}
     }
     

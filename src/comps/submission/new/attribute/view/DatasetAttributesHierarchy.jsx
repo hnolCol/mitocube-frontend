@@ -187,7 +187,7 @@ function DatasetAttributeHierarchy({ selectedAttributes, selectedDatasetAttribut
     // console.log(nestedAttributes,"nested shit")
     // console.log(selectedAttributes, nestedAttributes, selectedDatasetAttributeValues)
     return (
-        <div className="padding--little div--round bg--lightgrey intent-margin-toplittle">
+        <div className="padding--little div--round bg--lightgrey margin-top--little">
             
 
 

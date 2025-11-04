@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import hooks from "@mitocube/api-hooks";
+import { CopySubmissionSampleTags } from "../../../submission/samples/SampleTags";
+import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
 const CHUNK_SIZE = 1024 * 10; // 10KB per chunk (adjust as needed)
 
 const REQUIRED_COLUMNS = [
-    { key: "sample_tag", label: "Sample Tag" },
+    { key: "sample_tag", label: "Sample Name" },
     { key: "value", label: "Value" },
-    { key: "tag", label: "Protein Tag" },
+    { key: "tag", label: "Protein Group Tag" },
 ];
 
     // Map of keywords to column keys for auto-selection
@@ -57,7 +59,7 @@ export function ProteinQuantificationUploader({ submission_tag }) {
 
 
     // Auto-select columns based on keywords in headers
-    React.useEffect(() => {
+    useEffect(() => {
         if (headers.length === 0) return;
 
         setColumnIndex((prev) => {
@@ -94,7 +96,7 @@ export function ProteinQuantificationUploader({ submission_tag }) {
             // Remove header
             lines.shift();
 
-            const totalChunks = Math.ceil(lines.length / (CHUNK_SIZE / 100)); // rough estimate: 100 chars per line
+            // const totalChunks = Math.ceil(lines.length / (CHUNK_SIZE / 100)); // rough estimate: 100 chars per line
 
             for (let i = 0; i < lines.length; i += CHUNK_SIZE / 100) {
                 const chunkLines = lines.slice(i, i + CHUNK_SIZE / 100);
@@ -109,7 +111,6 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                             tag: cols[columnIndex.tag],
                         };
                     });
-                console.log(chunk)
                 await mutateAsync({ tag: submission_tag, quantifications: chunk });
                 setProgress(Math.round(((i + chunkLines.length) / lines.length) * 100));
             }
@@ -136,22 +137,75 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                 alignItems: "center",
             }}
         >
-            <h2 style={{ fontSize: 22, fontWeight: 600, marginBottom: 20 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
                 Upload Protein Quantification File
             </h2>
-            <input
-                type="file"
-                accept=".txt"
-                onChange={handleFileChange}
-                style={{
-                    marginBottom: 20,
-                    fontSize: 16,
-                    border: "1px solid #d1d5db",
-                    borderRadius: 6,
-                    padding: 8,
-                    width: "100%",
-                }}
-            />
+            <div>
+                <span>
+                    Protein quantification files must be uploaded in a long format. The columns must be tab-separated. The required columns are:{" "}
+                    {REQUIRED_COLUMNS.map((col) => col.label).join(", ")}
+                </span>
+                <div style={{ float: "right" }}>
+                    <CopySubmissionSampleTags submission_tag={submission_tag} />
+                </div>
+            </div>
+            <div style={{ width: "100%", marginBottom: 20, marginTop: 20 }}>
+                <label
+                    // htmlFor="modern-file-upload"
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        padding: "14px 0",
+                        background: "#f3f4f6",
+                        border: `2px solid ${HIGHLIGHT_COLOR}`,
+                        borderRadius: 8,
+                        textAlign: "center",
+                        color: HIGHLIGHT_COLOR,
+                        fontWeight: 500,
+                        fontSize: 16,
+                        cursor: "pointer",
+                        transition: "background 0.2s, border-color 0.2s",
+                        marginBottom: 0,
+                    }}
+                    onMouseOver={e => (e.currentTarget.style.background = "#e0e7ef")}
+                    onMouseOut={e => (e.currentTarget.style.background = "#f3f4f6")}
+                >
+                    {file ? (
+                        <>
+                            <span style={{ color: "#111827" }}>{file.name}</span>
+                            <span style={{ marginLeft: 12, color: "#6b7280", fontSize: 14 }}>
+                                (Change file)
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="28"
+                                height="28"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                style={{ verticalAlign: "middle", marginRight: 8, color: HIGHLIGHT_COLOR}}
+                            >
+                                <path
+                                    fill="currentColor"
+                                    d="M12 16a1 1 0 0 1-1-1V7.83l-2.29 2.3a1 1 0 1 1-1.42-1.42l4-4a1 1 0 0 1 1.42 0l4 4a1 1 0 1 1-1.42 1.42L13 7.83V15a1 1 0 0 1-1 1Zm-7 4a1 1 0 0 1 0-2h14a1 1 0 1 1 0 2H5Z"
+                                />
+                            </svg>
+                            Click or drag to select a .txt file
+                        </>
+                    )}
+                    <input
+                        id="modern-file-upload"
+                        type="file"
+                        accept=".txt"
+                        onChange={handleFileChange}
+                        style={{
+                            display: "none",
+                        }}
+                    />
+                </label>
+            </div>
             {headers.length > 0 && (
                 <div style={{ width: "100%", marginBottom: 20 }}>
                     <h4 style={{ marginBottom: 8 }}>Map Required Columns:</h4>
@@ -162,9 +216,12 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                                 value={columnIndex[col.key] ?? ""}
                                 onChange={(e) => handleHeaderSelect(col.key, Number(e.target.value))}
                                 style={{
-                                    padding: 6,
-                                    borderRadius: 4,
+                                    padding: 8,
+                                    borderRadius: 6,
                                     border: "1px solid #d1d5db",
+                                    fontSize: 15,
+                                    background: "#f9fafb",
+                                    minWidth: 120,
                                 }}
                             >
                                 <option value="" disabled>
@@ -184,15 +241,16 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                 onClick={uploadFileInChunks}
                 disabled={!canUpload}
                 style={{
-                    padding: "10px 24px",
-                    background: canUpload ? "#2563eb" : "#d1d5db",
+                    padding: "12px 28px",
+                    background: canUpload ? HIGHLIGHT_COLOR : "#d1d5db",
                     color: "#fff",
                     border: "none",
-                    borderRadius: 6,
-                    fontWeight: 500,
-                    fontSize: 16,
+                    borderRadius: 8,
+                    fontWeight: 600,
+                    fontSize: 17,
                     cursor: canUpload ? "pointer" : "not-allowed",
                     transition: "background 0.2s",
+                    marginTop: 6,
                 }}
             >
                 Upload
@@ -200,7 +258,7 @@ export function ProteinQuantificationUploader({ submission_tag }) {
             {progress > 0 && (
                 <div
                     style={{
-                        marginTop: 24,
+                        marginTop: 20,
                         width: "100%",
                         background: "#f3f4f6",
                         height: 16,
@@ -210,7 +268,7 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                 >
                     <div
                         style={{
-                            background: "#22c55e",
+                            background: HIGHLIGHT_COLOR,
                             height: "100%",
                             width: `${progress}%`,
                             borderRadius: 8,

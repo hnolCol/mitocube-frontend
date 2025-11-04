@@ -7,6 +7,7 @@ import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../..
 import PropTypes from "prop-types"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
 import { CategoricalLegend } from "./Legend"
+import { color } from "framer-motion"
 
 
 MultiCategoricalChart.propTypes = {
@@ -77,9 +78,12 @@ function MultiCategoricalChart({
 }) {
     
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
-    const colorCategoryFound = _.has(data[0], colorName)
-    const subplotCategoryFound = _.has(data[0], subplotName)
-    const splitCategoryFound = _.has(data[0], splitName)
+    const colorCategoryFound = _.isString(colorName) && _.has(data[0], colorName)
+    const subplotCategoryFound = _.isString(subplotName) && _.has(data[0], subplotName)
+    const splitCategoryFound = _.isString(splitName) && _.has(data[0], splitName)
+
+    console.log(colorCategoryFound, subplotCategoryFound, splitCategoryFound, colorName, subplotName, splitName)
+
     const subplotCategories =subplotCategoryFound?_.uniqBy(data, subplotName).map(d => d[subplotName]):[""]
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
     const splitCategories = splitCategoryFound?_.uniqBy(data, splitName).map(d => d[splitName]):[]

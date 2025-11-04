@@ -56,7 +56,7 @@ export function Metatexts({ submission_tag, fill = false }) {
         <div className="flex flex--wrap" style={{ gap: "2rem" }}>
             
             {_.isArray(metatexts) ? metatexts.map(metatext_tag => <div
-                className="container--shadow padding--little intent-margin-toplittle"
+                className="container--shadow padding--little margin-top--little"
                 key={metatext_tag}>
 
                 <MetatextBox tag={metatext_tag}

@@ -24,9 +24,9 @@ export function OptionButton({ onClick, children, isSelected }) {
     return (
         <motion.button
             className="padding--little margin-left--little"
-            whileHover={{ backgroundColor: "#efefef" }}
+            whileHover={{ scale: 1.1    }}
             style={{
-                backgroundColor: isSelected ? "#efefef" : "#f9f9f9",
+                backgroundColor: "#f9f9f9",
                 borderRadius: "5px",
                 border: "none",
                 outline: "none",

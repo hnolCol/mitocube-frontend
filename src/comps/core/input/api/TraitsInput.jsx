@@ -9,8 +9,7 @@ import { AttributeWithTraitsMenuItem } from "./DatasetAttributeInput";
 import _ from "lodash"
 
 function TraitTag({ tag }) {
-    
-    const { data: trait , isSuccess} = hooks.traits.useGetTraitByTag({ tag })
+    const { data: trait , isSuccess} = hooks.traits.useGetTraitByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     
     return <span>{isSuccess && _.isString(trait.tag)?trait.text:""}</span>
 }

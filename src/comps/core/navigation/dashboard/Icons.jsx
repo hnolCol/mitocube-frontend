@@ -6,6 +6,7 @@ import DatasetDashboardIcon from "../../svg/icons/dashboard/Dataset";
 import SettingDashboardIcon from "../../svg/icons/dashboard/Settings";
 import PTMDashboardIcon from "../../svg/icons/dashboard/Ptm";
 import ProteinDashboardIcon from "../../svg/icons/dashboard/Protein";
+import AIChatIcon from "../../svg/icons/dashboard/AIChat";
 
 const icons = {
     Protein : ProteinDashboardIcon,
@@ -13,7 +14,8 @@ const icons = {
     PerformanceMonitor: PerformanceMonitorDashboardIcon,
     Dataset: DatasetDashboardIcon,
     Settings:  SettingDashboardIcon,
-    Ptm : PTMDashboardIcon
+    Ptm: PTMDashboardIcon,
+    AIChat: AIChatIcon
   }
   
 getDashBoardIcon.propTypes = {

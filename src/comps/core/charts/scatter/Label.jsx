@@ -4,7 +4,8 @@ import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
 import { Text } from "@visx/text";
-
+import hooks from "@mitocube/api-hooks"
+import { useGetFeatureByTag } from "../../../../hooks/queries/feature.hooks";
 /**
  * @description Checks if the legend should rerender. basically only a change in colorName or sizeName causes a rerender. 
  * This might be important if the list of items is long.
@@ -51,9 +52,13 @@ const ScatterLabel = React.memo(
         splitString = " ",
         splitIndex = 0,
         offset = 5,
-        opacity = 1
+        opacity = 1,
+        isFeature = true
     }) {
     
+    const { data : feature, isLoading, isSuccess } = useGetFeatureByTag({tag : data[index]["tag"]}, {enabled : isFeature})
+    console.log(feature)
+    console.log(data[index]["tag"])
     const labelStrings = labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text))
     const labelText = _.join(labelStrings.map(labelString => split?_.split(labelString,splitString).at(splitIndex):labelString), joinString)
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 
@@ -61,9 +66,9 @@ const ScatterLabel = React.memo(
     if (!_.isNumber(data[index][xaxisName]) || !_.isNumber(data[index][yaxisName])) return null 
 
     const x = xScale(data[index][xaxisName])
-        const y = yScale(data[index][yaxisName])
-        
-        const moveLeft = domainIsAroundZero && data[index][xaxisName] < 0
+    const y = yScale(data[index][yaxisName])
+    const moveLeft = domainIsAroundZero && data[index][xaxisName] < 0
+
     return (
         <Text
             x={x}
@@ -75,6 +80,7 @@ const ScatterLabel = React.memo(
             fillOpacity={opacity}
         >
             {labelText}
+            <span>hllo</span>
         </Text>
         
     )

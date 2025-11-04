@@ -14,17 +14,18 @@ import { Button, Menu, MenuItem } from "@blueprintjs/core";
  * @param {Object} props.menuItemProps - The properties for a menu item (blueprint)
  * @returns
  */
-function TraitMenuItem({ tag, menuItemProps, selected }) {
+function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem" }) {
 
-    const { data: trait, isSuccess } = hooks.traits.useGetTraitByTag({ tag })
+    const { data: trait, isSuccess } = hooks.traits.useGetTraitByTag({ tag } , { enabled: _.isString(tag), staleTime: Infinity })
 
     if (!isSuccess) return null 
 
     return <MenuItem
         icon={ selected ? "tick" : "blank"}
         text={trait.text}
+        multiline={true}
         labelElement={<div className="font-size--smallest"
-            style={{ maxWidth: "8rem" }}>
+            style={{ maxWidth: descriptionWidth }}>
             {trait.description}
         </div>}
         active={menuItemProps.modifiers.active} 
@@ -59,7 +60,7 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
     }
     
     const renderItem = (item, itemProps) => {
-        return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={_.isString(selected_trait) && item === selected_trait}  />
+        return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={_.isString(selected_trait) && item === selected_trait}  descriptionWidth="450px"/>
     }
     const handleQueryChange = (query) => {
         setQuery(query)
@@ -71,10 +72,12 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
                 disabled={isError}
                 items={_.isArray(traits) ? traits : []}
                 itemRenderer={renderItem}
-            
+
                 inputValueRenderer={(i) => i.text}
                 onQueryChange={handleQueryChange}
-                onItemSelect={handleSelect}>
+                onItemSelect={handleSelect}
+                popoverProps={{ popoverClassName: "default_bp_menu" }}
+                >
                 
                 <Button small minimal text={text} loading={isLoading} icon={"chevron-down"}/>
             

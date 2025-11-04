@@ -7,15 +7,27 @@ export function ProtectedRoute({
   isAuthenticated,
   isLoadingToken,
   redirectPath = '/',
-  children }) {
+  children
+}) {
+  const location = useLocation();
+
   if (!isAuthenticated && !isLoadingToken) {
-      return <Navigate to={redirectPath} replace />;
+    // Preserve search params and hash when redirecting
+    const to =
+      typeof redirectPath === 'string'
+        ? {
+            pathname: redirectPath,
+            search: location.search,
+            hash: location.hash,
+          }
+        : redirectPath;
+    return <Navigate to={to} replace />;
   }
-  
-  if (isLoadingToken) return <Loading />
-  
-    return <>{children}</>;
-  };
+
+  if (isLoadingToken) return <Loading />;
+
+  return <>{children}</>;
+}
 
 ProtectedRoute.propTypes = {
   isAuthenticated: PropTypes.bool,

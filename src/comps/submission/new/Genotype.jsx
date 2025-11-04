@@ -313,7 +313,7 @@ function GenotypeGenerator({ index = 6,
     //console.log(genotype)
     return (
         
-        <div className="bg--lightgrey padding--medium div--round intent-margin-toplittle">
+        <div className="bg--lightgrey padding--medium div--round margin-top--little">
             <Drawer isOpen={isDrawerOpen} isCloseButtonShown={true} title="Protein mutation nomenclature" onClose={() => setIsDrawerOpen(false)} children={<GenotypeInfo />} />
             <h3>{`${index}. Genotypes`}</h3>
             <p>Please specify your genotypes. This section requires you to provide an organism before to select specific target protein. You are able to specify amino acid mutations and truncations as well as tags. If you are just using wild types, for example knock-down of a gene expression in just wild type cells does not require the definition of a genotype. </p>

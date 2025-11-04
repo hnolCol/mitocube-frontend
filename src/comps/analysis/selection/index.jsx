@@ -1,5 +1,4 @@
 import APIError from "../../core/error/APIerror";
-import { SubmissionItem } from "../../submission/view/SubmissionItem";
 import { useGetSubmissionByQuery, useGetSubmissionStates } from "../../../hooks/queries/submission.hooks";
 import { useGetPublicUserInfo } from "../../../hooks/queries/user.hooks";
 import { groupListByProperty } from "../../../services/arrays/groupby";
@@ -59,7 +58,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
 
                 <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>
                     
-                    {_.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? submissionQuery.submissions.length === 0 ? <p>No submissions match the filter...</p> :
+                    {/* {_.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? submissionQuery.submissions.length === 0 ? <p>No submissions match the filter...</p> :
                         submissionQuery.submissions.map(submission => <SubmissionItem
                                     key={submission.label}
                                     {...{
@@ -72,7 +71,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
                             minimalView: submissionsQuery.minimalView,
                                     
                                     
-                                }} borderColor={states.colors_inv[submission.state]} />) : null }
+                                }} borderColor={states.colors_inv[submission.state]} />) : null } */}
             
             </div>
             </div>

@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import ColorIconWithName from "../../../../core/svg/icons/chartSelection/Color"
 import SplitIconWithName from "../../../../core/svg/icons/chartSelection/Split"
 import SubplotIconWithName from "../../../../core/svg/icons/chartSelection/Subplot"
-
+import _ from "lodash"
 /**
  * @description Selection of several aspects of a categorical chart. Including the 
  * colorName, splitName and subplotName. 
@@ -16,10 +16,13 @@ import SubplotIconWithName from "../../../../core/svg/icons/chartSelection/Subpl
 export function CategoricalChartSelection({ keyNames, selection, onSelectionChange, minimal }) {
 
     const handleSelection = (key, item) => {
+        console.log(key,item)
         onSelectionChange(prevValues => {
-            return { ...prevValues, [key]: _.isObject(prevValues[key]) ? prevValues[key].tag === item.tag ? undefined : item : item }
+            return { ...prevValues, [key]: _.isObject(prevValues[key]) ? prevValues[key] === item ? undefined : item : item }
         })
     }
+
+    console.log(selection, "SELECTION??")
     return <div className="flex">
         <ColorIconWithName
             callbackKey="colorName"

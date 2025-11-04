@@ -11,15 +11,17 @@ import _ from "lodash"
 import "./OmnibarStyles.css"
 import { useGetFeatureByQuery, useGetFeatures } from "../../../hooks/queries/feature.hooks";
 import Loading from "../../core/base/loading";
-import { FeatureMenuItem } from "../../core/input/items/FeatureMenu";
+import { ProteinMenuItem } from "../../core/input/items/FeatureMenu";
+import hooks from "@mitocube/api-hooks";
+
 
 export function OmnibarSearch(props) {
     // handle search for proteins in the protein centric view.
     const { isOpen, onClose, token, filter, onSelect} = props
     const [featureDeatails, setFeatureDetails] = useState({items : [], featureLabels : {}, itemsToShow : [], searchString : "", sortBy : ""})
     const debounceSearchString = useDebounce(featureDeatails.searchString, 400)
-
-    const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
+    const { data : features, isLoading, isSuccess, isError, isFetching} = hooks.features.proteins.useGetProteinFeatureByQuery({ search_string: debounceSearchString, limit: 50 }, { staleTime: 5 * 60 * 1000 })
+    // const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
  
 
     useEffect(() => {setSearchString("")},[isOpen])
@@ -38,13 +40,11 @@ export function OmnibarSearch(props) {
      * 
      * @param {import("../../../types/feature").Feature} feature 
      */
-    const onFeatureSelect = (feature) => {
+    const onFeatureSelect = (feature_tag, event) => {
 
-        let featureURL = `/protein/${feature.tag}`
-        onSelect({feature, text: feature.gene_name, to : featureURL })
+        let featureURL = `/protein/${feature_tag}`
+        onSelect({feature_tag, text: feature_tag, to : featureURL })
     } 
-
-
 
     /**
      * 
@@ -62,15 +62,8 @@ export function OmnibarSearch(props) {
             return <div><Loading/></div>
         }
         return (
-            <FeatureMenuItem key={item.tag} {...{feature : item, onClick : handleClick, active : modifiers.active}} />
-            // <OmnibarItem
-            //     key={item.key}
-            //     item={item}
-            //     handleClose={onClose}
-            //     onSelect={onSelect}
-            //     />
-               
-            );
+            <ProteinMenuItem key={item} {...{tag : item, onClick : handleClick, active : modifiers.active}} />
+        )
           }
     return (
 

@@ -37,7 +37,7 @@ function SingleCategoricalChart({
         top: 5
     },
     yaxisName = "y",
-    colorName = "T",
+    colorName = "Treatment",
     innerColorPadding = 0.1,
     outerColorPadding = 0.2,
     svgID = undefined,
@@ -49,6 +49,7 @@ function SingleCategoricalChart({
 }) {
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
+    console.log("uniqueColorValues", uniqueColorValues,"IN SINGLE CAT CHART", colorName, data)
     const splitColorScale = useMemo(() => {
         // color scale taking care of the position of the color (e.g horizontal)
         return (

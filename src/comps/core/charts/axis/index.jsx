@@ -4,6 +4,45 @@ import { getAxisStrokeColor } from "../../colors/colorPalette"
 import AxisBackground from "../background"
 import _ from "lodash"
 import React from "react"
+import hooks from "@mitocube/api-hooks"
+import { getConditionApplicationText } from "./ConditionApplicationString"
+import { Text } from "@visx/text"
+
+function ConditionApplicationLabel({ x, y, tag, tickProps }) {
+    const ca_tags = _.split(tag, ";");
+    const text = tag
+
+
+    const { data : condition_application_text } =  hooks.condition_applications.useGetConditionApplicationText({ tag }, { enabled: !!tag })
+    // // Fetch all condition applications for all tags at once
+    // const results = ca_tags.map(ca_tag =>
+    //     hooks.condition_applications.useGetConditionApplication(
+    //         { tag: ca_tag },
+    //         { enabled: !!ca_tag }
+    //     )
+    // );
+
+    // const text = results.map(({ data: condition_applications }) =>
+    //     getConditionApplicationText({ condition_applications })
+    // );
+
+    // console.log(text)
+
+    return (
+        <Text
+            dx={x}
+            dy={y}
+            aria-multiline={true}
+            textAnchor="middle"
+            verticalAnchor="middle"
+            fontSize={12}
+            fill="#333"
+            {...tickProps}
+        >
+            {condition_application_text}
+        </Text>
+  );
+}
 
 function AxisWithBackground({
     leftLeft,
@@ -20,33 +59,18 @@ function AxisWithBackground({
     moveBottomToLeft = true,
     leftTickLabelProps,
     bottomTickLabelProps = {},
-    findAttributesForBottomScale = true,
     bandwidth,
     chartHeight,
     chartWidth,
-    attributeValuesByTag = {},
-    valueIsFeature = false,
-    genotypesByLabel}) {
+    }) {
     
     const leftStart = leftLeft === undefined ? margins.left : leftLeft
     const topStart = topBottom === undefined ? margins.top + chartHeight : topBottom
+
     if (_.isNumber(bandwidth)) {
         bottomTickLabelProps["width"] = bandwidth * 1.1
         bottomTickLabelProps["scaleToFit"] = 'shrink-only'
-    }
-    const getLabelString = (attributeValue) => {
-        const attributeValuesTagSplit = attributeValue.split(" ")
-        return _.join(_.map(attributeValuesTagSplit, attributeValueTag => {
-            const attributeValue = attributeValuesByTag[attributeValueTag]
-            if (valueIsFeature) return attributeValue.gene_name
-            if (!_.isObject(attributeValue)) {
-                if (_.has(genotypesByLabel, attributeValueTag)) {
-                    return genotypesByLabel[attributeValueTag].text
-                }
-                return ""
-            }
-            return attributeValue.text
-        })," + ")
+        bottomTickLabelProps["fontSize"] ="12px"
     }
 
     return (
@@ -71,7 +95,7 @@ function AxisWithBackground({
         
             <AxisBottom
                 left={moveBottomToLeft ? leftStart : 0}
-                tickFormat={bottomHideTickLabels ? () => "" : findAttributesForBottomScale ? (tickLabel) =>  getLabelString(tickLabel): null}
+                tickComponent={({x,y,formattedValue}) => bottomHideTickLabels ? null : <ConditionApplicationLabel x={x} y={y} tag={formattedValue} tickProps={bottomTickLabelProps} />}
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}

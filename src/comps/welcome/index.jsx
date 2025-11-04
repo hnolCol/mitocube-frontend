@@ -8,6 +8,9 @@ import { ProteinQuantificationUploader } from "../core/base/files/ChunkProteinUp
 import { PrecursorQuantificationUploader } from "../core/base/files/ChunkPrecursorUploader"
 import { OpenAIChat } from "../core/openai/OpenAIChat"
 import { LastViewed } from "./Views"
+import { OpenAiPublicationSummary } from "../core/openai/OpenAiPublicationSummary"
+import { InsertGeneticApplication } from "../core/genotype/InsertGeneticApplication"
+import { InsertGenotype } from "../core/genotype/InsertGenotype"
 
 
 
@@ -28,7 +31,14 @@ function Welcome() {
             {/* <ProteinQuantificationUploader />
             <PrecursorQuantificationUploader /> */}
             <LastViewed user_tag={null} type="submissions" />
-            <OpenAIChat />
+
+
+            {/* <OpenAiPublicationSummary feature_tag={"Q330K2"} /> */}
+
+            
+        <InsertGenotype />
+
+
         </div>
     )
 }

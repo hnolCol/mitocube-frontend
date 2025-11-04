@@ -61,7 +61,7 @@ export function UserFilter({ submissionFilter, setSubmissionFilter, tags }) {
 
 
     return (
-        <div className="intent-margin-toplittle">
+        <div className="margin-top--little">
             <h4>Users</h4>
             {isError ? <p>Error</p> : isFetching && isLoading ? <Loading /> :
                 <div style={{ width: "100%" }}>

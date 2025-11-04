@@ -130,7 +130,7 @@ function AdminAttributes({ authenticationStatus, maxShown = 10}) {
 
 
     return (
-        <div className="intent-margin-toplittle padding--medium" >
+        <div className="margin-top--little padding--medium" >
             {attributeIsError ? <APIError error={attributesAPIError}/> :
                 <div>
                 <AddAndEditAttributeValueDialog {...dialogProps} refetchAttributes = {refetchAttributeSearch} setOpen={() => setDialogProps(prevValues => {return {...prevValues, isOpen : !prevValues.isOpen}})} />

@@ -4,16 +4,14 @@ import { MinimalSubmissionItem } from "../submission/view/SubmissionItem";
 
 
 export function LastViewed({user_tag, type, limit}) {
-    console.log(type)
     const { data: userSubmissionViews, isLoading, isError } = hooks.users.views.useGetUserViews({tag : user_tag, type, limit }, {staleTime: 60000 });
-    console.log(userSubmissionViews, isLoading, isError)
     return (
         <div>
             <h3>Last Viewed {type[0].toUpperCase()}{type.slice(1)}</h3>
             {isLoading ? <div>Loading...</div> : isError ? <div>Error loading views.</div> : _.isArray(userSubmissionViews) && userSubmissionViews.length === 0 ? <div>No views found.</div> : (
                 <div>
                     {userSubmissionViews.map((submission_tag) => (
-                        <MinimalSubmissionItem tag={submission_tag} redirectOnClick={true} showCreatedAt={false} />
+                        <MinimalSubmissionItem key={submission_tag} tag={submission_tag} redirectOnClick={true} showCreatedAt={false} />
                     ))}
                 </div>
             )}

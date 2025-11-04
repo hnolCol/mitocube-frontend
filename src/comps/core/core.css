@@ -228,16 +228,20 @@ h5 {
 .intent-margin-left {
     margin-left: 2rem;
 }
-.intent-margin-right {
+.margin-right {
     margin-right: 2rem;
 }
-.intent-margin-right--little {
+.margin-right--little {
     margin-right: 0.5rem;
 }
 .margin-left--little {
     margin-left: 0.5rem;
 }
-.intent-margin-right--tiny {
+.margin-right--medium {
+    margin-right: 1rem;
+}
+
+.margin-right--tiny {
     margin-right: 0.2rem;
 }
 
@@ -247,7 +251,7 @@ h5 {
 .margin-top{
     margin-top: 2rem;
 }
-.margin-topmedium {
+.margin-top--medium {
     margin-top: 1.0rem;
 }
 .intent-marign-left--little{
@@ -525,7 +529,7 @@ h5 {
     color: var(--highlight-color, #466688);
     font-size: 1.2rem;
     cursor: pointer;
-    margin-bottom: 1rem;
+    
 }
 
 .opacity--disabled {
@@ -556,6 +560,22 @@ h5 {
     border-radius: 0.5em;
     background: #f5f5f7;
     color: #333;
+    border: none;
+    cursor: pointer;
+    user-select: none;
+    transition: box-shadow 0.2s;
+    letter-spacing: 0.02em;
+    margin: 0.2rem 0.5rem;
+    height: min(100px, 4vh);
+    position: relative;
+}
+
+.upload-button {
+    display: inline-block;
+    padding: 0.3em 0.9em;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 0.5em;
     border: none;
     cursor: pointer;
     user-select: none;

@@ -16,7 +16,7 @@ export function deleteByPath(data, path) {
   
     // Find the index of the node at this level
     const idx = data.findIndex(
-      n => n.type === current.type && n.tag === current.tag
+      n => n.type === current.type && n.tag === current.tag && n.id === current.id
     );
   
     if (idx === -1) return false; // Node not found
@@ -35,49 +35,79 @@ export function deleteByPath(data, path) {
     }
 }
   
+export const findNode = (data, type, tag, id) => {
+    if (!_.isArray(data) || data.length === 0) return undefined;
+
+    for (const node of data) {
+        if (!node) continue;
+        if (node.type === type && node.tag === tag && node.id === id) {
+            return node; // found, stop searching
+        }
+        if (_.isArray(node.children) && node.children.length > 0) {
+            const found = findNode(node.children, type, tag, id);
+            if (found) return found;
+        }
+    }
+
+    return undefined;
+}
+
 export const findAndInsertTree = (
         data,
         path,
         single_child_level = 2,
         single_child_type = false,
+        join_values = false,
+        forceInsert = false,
         level = 0
 ) => {
-        if (path.length === 0) return;
-        const [current, ...restPath] = path;
-        // Find node by type and tag
-        let node = data.find(
-          n => n.type === current.type && n.tag === current.tag
-        );
-      
-        // If not found, create and push it
-        if (!node) {
-            node = { ...current, children: [] };
-          // Only apply single_child_type restriction at level >= single_child_level
-            if (single_child_type && level >= single_child_level) {
-    
-            // Remove all nodes of the same type at this level
-            for (let i = data.length - 1; i >= 0; i--) {
-              if (data[i].type === current.type) {
-                data.splice(i, 1);
-              }
+    // console.log(data,single_child_type,forceInsert)
+            if (path.length === 0) return;
+            const [current, ...restPath] = path;
+            // Find node by type and id
+            let node = data.find(
+            n =>  n.type === current.type && n.id === current.id && n.tag === current.tag
+            );
+            
+            // If not found, create and push it
+            if (!node) {
+                node = { ...current, children: [] };
+            // Only apply single_child_type restriction at level >= single_child_level
+                if (single_child_type && level >= single_child_level) {
+                // Remove all nodes of the same type at this level
+                for (let i = data.length - 1; i >= 0; i--) {
+                if (data[i].type === current.type && data[i].id === current.id) {
+                    data.splice(i, 1);
+                }
+                }
+                }
+            data.push(node);
             }
-          }
-          data.push(node);
-        }
+            else if (forceInsert && restPath.length === 0) {
+                    data.push(current)
+            }
+        
+            
 
-        if (node.value === undefined && _.isObject(current) && _.has(current,"value") && current.value) {
-            node.value = current.value; // Set the value if specified in the path  
-            node.tag = current.tag // Ensure tag is set 
-            node.type = current.type // Ensure type is set
-        }
-        else if (_.has(current,"value") && node.value !== current.value ) {
-            node.value = current.value; // Update the value if it has changed
-            node.tag = current.tag // Ensure tag is set 
-            node.type = current.type // Ensure type is set
-        }
-        // Recurse into children, incrementing the level
-        findAndInsertTree(node.children, restPath, single_child_level, single_child_type, level + 1);
-      };
+            // Update the value if needed
+
+            if (node.value === undefined && _.isObject(current) && _.has(current,"value") && current.value) {
+                node.value = current.value; // Set the value if specified in the path  
+                node.tag = current.tag // Ensure tag is set 
+                node.type = current.type // Ensure type is set
+                node.id = current.id // Ensure id is set
+            }
+            else if (_.has(current, "value") && node.value !== current.value) {
+                node.value = current.value; // Update the value if it has changed
+               
+                node.tag = current.tag // Ensure tag is set 
+                node.type = current.type // Ensure type is set
+                node.id = current.id // Ensure id is set
+            }
+            // Recurse into children, incrementing the level
+            findAndInsertTree(node.children, restPath, single_child_level, single_child_type, join_values, forceInsert, level + 1);
+};
+
 
 
 export const checkPathExists = (data, path) => {
@@ -86,7 +116,7 @@ export const checkPathExists = (data, path) => {
     const [current, ...restPath] = path;
     // Find node by type and tag
     let node = data.find(
-        n => n.type === current.type && n.tag === current.tag
+        n => n.type === current.type && n.tag === current.tag && n.id === current.id
     );  
     // If not found, return false   
     if (!node) return false;
@@ -109,7 +139,7 @@ export const findPath = (data, path) => {
 
     // Find node by type and tag
     let node = data.find(
-        n => n.type === current.type && n.tag === current.tag
+        n => n.type === current.type && n.tag === current.tag && n.id === current.id
     );
     // If not found, return undefined
     if (!node) return undefined;
@@ -131,7 +161,7 @@ export const findChildrenByPath = (data, path) => {
     //if (!_.isObject(current)) return 
     // Find node by type and tag
     let node = data.find(
-        n => n.type === current.type && n.tag === current.tag
+        n => n.type === current.type && n.id === current.id && n.tag === current.tag
     );
 
     // If not found, create and push it
@@ -369,36 +399,9 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
-                // sampleNames: constructSampleNames({
-                //     submission_tag: prevValues.tag,
-                //     sampleNumber: prevValues.sampleNames.length,
-                //     sampleAttributes: d,
-                //     sampleGenotypes: prevValues.genotypeAttributes,
-                    //     include_sample_attributes: prevValues.samplesAttributes.map(a => a.tag)
-                    // })
                 }
             })
         }
-    //     //handles the removal of a samples attributes
-    //     let attributeTable = submission.attributeTable
-    //     let rowData = attributeTable[rowIndex]
-      
-    //     if (_.has(rowData,attribute.tag)){
-    //         rowData[attribute.tag] = rowData[attribute.tag].filter(attrValueTag => attrValueTag !== attributeValueTag)
-    //         attributeTable[rowIndex] = rowData
-    //         updateSubmission(prevValues => {
-    //             return {
-    //                 ...prevValues, attributeTable, rerenderTableDependency: [Math.random()],
-    //                 sampleNames: constructSampleNames({
-    //                     submission_tag: prevValues.tag,
-    //                     sampleNumber: prevValues.sampleNames.length,
-    //                     sampleAttributes: attributeTable,
-    //                     sampleGenotypes: prevValues.genotypeAttributes,
-    //                     include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
-    //             }
-    //         })
-    //     }
-    // }
 
 
     const getSelectionByPath = (path, rowIdx) => {
@@ -407,58 +410,22 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         return findChildrenByPath(d[rowIdx], path)
     }
 
-    const onSampleTraitSelection = (path, rowIdces, single_child_level = 3 , single_child_type = false) => {
+    const onSampleTraitSelection = (path, rowIdces, single_child_level = 3 , single_child_type = false, join_values = false, forceInsert = false) => {
         let d = submission.attributeTable.slice()
-        console.log(d,"D", single_child_level, single_child_type, "SINGLE CHILD LEVEL, TYPE", path, "PATH")
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
             .forEach(rowIndex => {
-                console.log("FIND AND INSERT", d[rowIndex], path,  rowIndex, "row index")
-                findAndInsertTree(d[rowIndex], path, single_child_level, single_child_type)
+                findAndInsertTree(d[rowIndex], path, single_child_level, single_child_type, join_values, forceInsert)
             })
-        console.log("ON INSERT", path, rowIdces, d, "MODIFIED D")
         
         
         
         updateSubmission(prevValues => {
             return {
-                ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
-                // sampleNames: constructSampleNames({
-                //     submission_tag: prevValues.tag,
-                //     sampleNumber: prevValues.sampleNames.length,
-                //     sampleAttributes: d,
-                //     sampleGenotypes: prevValues.genotypeAttributes,
-                //     include_sample_attributes: prevValues.samplesAttributes.map(a => a.tag)
-                // })
+                ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()]
             }
         })
     }
-
-    // const onSampleTraitSelection = (attribute_tag, trait_tag, rowIdces) => {
-    //     //on selection of a sample attribute value
-    //     let d = submission.attributeTable
-    //     if (!_.has(d[0], attribute_tag)) {
-    //         d = d.map(rowData => { return { ...rowData, [attribute_tag]: [] } })
-    //     }
-    //     rowIdces
-    //         .filter(rowIndex => rowIndex < submission.sampleNames.length)
-    //         .forEach(rowIndex => d[rowIndex][attribute_tag] = addStringToArrayOrRemove({ array: d[rowIndex][attribute_tag], string: trait_tag }))
-    //     console.log(attribute_tag, trait_tag)
-
-    //     console.log(rowIdces, d)
-        // updateSubmission(prevValues => {
-        //     return {
-        //         ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
-        //             sampleNames: constructSampleNames({
-        //             submission_tag: prevValues.tag,
-        //             sampleNumber: prevValues.sampleNames.length,
-        //             sampleAttributes: d,
-        //             sampleGenotypes: prevValues.genotypeAttributes,
-        //             include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
-        //     }
-        // })
-    // }
-
     /**
      * 
      * @param {Number} sampleAttrIdx 
@@ -535,21 +502,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             return 
         }
 
-    //     updateSubmission(prevValues => {
-    //         return {
-    //             ...prevValues,
-    //             samplesAttributes: updatedSampleAttrs,
-    //             rerenderTableDependency: [Math.random()],
-    //             sampleNames: constructSampleNames({
-    //                 submission_tag: prevValues.tag,
-    //                 sampleNumber: prevValues.sampleNames.length,
-    //                 sampleAttributes: updatedAttributeTable,
-    //                 sampleGenotypes: prevValues.genotypeAttributes,
-    //                 include_sample_attributes : updatedSampleAttrs.map(a => a.tag) })
-    //         }
-    //     })
-    // }
-    
     /**
      * @description Resets the alert. 
      */

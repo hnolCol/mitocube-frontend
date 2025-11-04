@@ -36,7 +36,7 @@ export function AuthorList({ submission_tag, emailSubject = "" }) {
             {_.isArray(users) ? users
                 .map((user_tag, idx) => {
                 return (
-                    <div className="flex intent-margin-right--little div--round" key={`${user_tag}-${idx}`}>
+                    <div className="flex margin-right--little div--round" key={`${user_tag}-${idx}`}>
                             <a
                                 // href={`mailto:${user.email}?subject=${emailSubject}`} //cc=${_.join(authors.filter(author => author.email !== authorProps.email).map(author => author.email), ", ")}
                                 className="router-link">

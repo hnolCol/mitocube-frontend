@@ -62,7 +62,7 @@ export function StaticTrait({
     return <div>
         {isSuccess && traitIsSuccess ? <motion.div
             style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem" }} //lighter ? "#efefef" :
-            className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
+            className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
             whileHover={{ backgroundColor: motionBackgroundColor, color: motionFontColor }}
         >
             <Popover disabled={disableTooltip}
@@ -84,7 +84,7 @@ export function StaticTrait({
                 position={popoverPosition}>
                 <div className="flex">
                     <div>{trait.text}{unitString.length > 0 ? ` (${unitString})` : null}{suffix.length > 0 ? ` ${suffix}`:null}</div>
-                    {/* {attribute.has_unit && !hasInput ? <div className="margin-left--little intent-margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
+                    {/* {attribute.has_unit && !hasInput ? <div className="margin-left--little margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
                 </div>
             </Popover>
         

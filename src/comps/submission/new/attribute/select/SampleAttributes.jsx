@@ -75,9 +75,9 @@ function SamplesAttributes({
     replicates = [],
     numberReplicates = 0,
     genotypes,
-    genotypeAttributes,
     handleGenotypeSelection,
     repeatSelection,
+    genotypeAttributes = []
     }) {
     const [selectedRows, setSelectedRows] = useState([])
     /**
@@ -153,18 +153,6 @@ function SamplesAttributes({
         </Cell>
     }
 
-    /**
-     * @description Handles the unit input of the user.
-     * @param {String} attribute_tag 
-     * @param {String} trait_tag 
-     * @param {Object} userUnitInput The user input object with [attribute_tag][trait_tag][unittype]["value"/"unit"]
-     * @param {Number} rowIndex The index of the row the user selected. 
-     */
-    const handleUnitInput = (attribute_tag, trait_tag, userUnitInput, rowIndex) => {
-        
-        onUserUnitInput(attribute_tag, trait_tag, userUnitInput, rowIndex)
-    }
-
     const renderCell = (rowIndex, columnIndex) => {
 
         const cellKey = `${rowIndex}-${columnIndex}`
@@ -194,7 +182,7 @@ function SamplesAttributes({
             <div className="flex flex--wrap center-items">
                 {cellData.map(child => {
                     return <div
-                        key={`${rowIndex}-${columnIndex}-${child.tag}`}
+                        key={`${rowIndex}-${columnIndex}-${child.tag}-${child.id}`}
                         className="padding--little">
                         <TraitWithValueInput //consider changing to sampleTraitWithvalue? 
                             rowIndex={rowIndex}
@@ -205,6 +193,7 @@ function SamplesAttributes({
                             sel={selectedRows}
                             onChildrenSelection={onSampleTraitSelection}
                             valueIsFeature={attributeHasFeatures}
+                            referenceID={child.id}
                             onRemove={onTagRemove} />
                     </div>})}
             </div>
@@ -299,7 +288,7 @@ function SamplesAttributes({
         return <Menu small={true}>
             <MenuItem text="Genotypes" disabled={true} />
             <MenuDivider />
-            <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={_.isObject(genotypeAttributes) && genotypeAttributes.length === 0} />
+            <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={_.isObject(genotypeAttributes)} />
         </Menu>
     }
 

@@ -30,7 +30,7 @@ export function getMinMaxForMultipleKeyNames({data = [], keyNames = ["x","y"]}){
                 if (v >  p[keyName].max ) {
                     p[keyName].max = v
                 }
-                else if (v < p[keyName].min){
+                if (v < p[keyName].min){
                     p[keyName].min = v
                 }
             }

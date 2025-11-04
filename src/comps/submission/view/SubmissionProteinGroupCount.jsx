@@ -4,10 +4,10 @@ import { Loading } from "../../core/base/states/Loading";
 import { motion } from "framer-motion";
 
 
-export function SubmissionProteinCount({ submission_tag }) {
+export function SubmissionProteinGroupCount({ submission_tag }) {
 
 
-    const { data : protein_count, isLoading } = hooks.submissions.counts.useGetSubmissionProteinCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
+    const { data : protein_count, isLoading } = hooks.submissions.counts.useGetSubmissionProteinGroupCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
 
     return (
@@ -18,7 +18,7 @@ export function SubmissionProteinCount({ submission_tag }) {
             className="submission-metric-view"
         >
             <div>
-                <h4>Proteins</h4>
+                <h4>Protein Groups</h4>
                 {isLoading ? <Loading /> : <span>{protein_count}</span>}
             </div>
         </motion.button>

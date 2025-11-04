@@ -72,7 +72,7 @@ export function StateSelection({ setSubmissionFilter, submissionFilter}) {
     
 
     return (
-        <div className="intent-margin-toplittle">
+        <div className="margin-top--little">
             <h4>States</h4>
             <div className="flex flex--wrap">
             {_.isArray(submissionStates) && submissionStates.map(state_tag => {

@@ -43,7 +43,7 @@ export function ResearchAim({ submission_tag, showEdit = true }) {
 
     const research_aim_found = !_.isString(research_aim) || isError
     return (
-        <div style={{ minWidth: "min(45vw,800px)", textAlign: "justify", fontFamily: "Inter, Arial, sans-serif" }} className="intent-margin-toplittle">
+        <div style={{ minWidth: "min(45vw,800px)", textAlign: "justify", fontFamily: "Inter, Arial, sans-serif" }} className="margin-top--little">
             <div className="margin-left--little">
                 <TitleText title={"Abstract"} />
             </div>

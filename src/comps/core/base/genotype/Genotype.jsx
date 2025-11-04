@@ -16,7 +16,7 @@ export function Genotype({ tag, highlight }) {
             color: fontColor,
             fontSize: "0.75rem"
             }} 
-        className="flex center-items padding--tiny cursor--default div--round intent-margin-right--tiny"
+        className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
         whileHover={{
             backgroundColor: motionBackgroundColor,
             color: motionFontColor

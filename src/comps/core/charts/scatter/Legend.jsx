@@ -5,6 +5,22 @@ import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
 import { useGetAttribute } from "../../../../hooks/queries/attribute.hooks";
 import { useGetGenotypeByTag } from "../../../../hooks/queries/genotype.hooks";
+import hooks from "@mitocube/api-hooks"
+
+function ConditionApplicationLegendLabel({ tag, handleTooltip, hideTooltip }) {
+
+    const { data: conditionApplicationText } = hooks.condition_applications.useGetConditionApplicationText({ tag }, { enabled: _.isString(tag) })
+
+    return (
+        <LegendLabel align="left" margin={"0 0px"} onMouseEnter={(e) => handleTooltip(e, tag)} onMouseLeave={hideTooltip}>
+
+            {conditionApplicationText}
+
+        </LegendLabel>
+    )
+}
+                                        
+
 
 /**
  * @description Checks if the legend should rerender. basically only a change in colorName or sizeName causes a rerender. 
@@ -60,45 +76,49 @@ const ScatterLegend = React.memo(
             tooltipOpen,
             showTooltip,
             hideTooltip,
-            } = useTooltip();
-        
-    const {data : colorAttribute } = useGetAttribute({tag : colorName}, {enabled : colorNameIsAttribute})
-        const { data: sizeAttribute } = useGetAttribute({ tag: colorName }, { enabled: sizeNameIsAttribute })
+        } = useTooltip();
+
+
+    const { data: colorAttribute } = hooks.attributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute, staleTime: Infinity })
+    const { data: sizeAttribute } = hooks.attributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute, staleTime: Infinity })
+
+
+    console.log(colorAttribute, colorNameIsAttribute, colorName)
         
     const {data : colorGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : colorNameIsGenotype})
     const {data : sizeGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : sizeNameIsGenotype})
 
-    const findAttributeValues = (attribute, attributeValueTagsString) => {
-        // there might be multiple tags which are separated by a space. 
-        if (attribute.tag === "att_genotype") {
-            const genotypeLabels = _.split(attributeValueTagsString, " ")
-            return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
-        }
-        const attributeValueTags = _.split(attributeValueTagsString, " ")
-        return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
-    }
+    // const findAttributeValues = (attribute, attributeValueTagsString) => {
+    //     // there might be multiple tags which are separated by a space. 
+    //     if (attribute.tag === "att_genotype") {
+    //         const genotypeLabels = _.split(attributeValueTagsString, " ")
+    //         return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
+    //     }
+    //     const attributeValueTags = _.split(attributeValueTagsString, " ")
+    //     return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
+    // }
     
 
-    const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
-        let attributeValueText = ""
-        if (attribute.tag === "att_genotype") {
-            attributeValueText = _.join(_.map(attributeValues, attrValues => attrValues.text), " ")
-        }
-        else if (attribute.has_features_value) {
-            attributeValueText = attributeValues.length === 1 ? attributeValues[0].gene_name : _.join(attributeValues.map(attributeValue => attributeValue.gene_name), " + ")
-        }
-        else {
-            attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
-        }
-        return attributeValueText
-    }
+    // const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
+    //     let attributeValueText = ""
+    //     if (attribute.tag === "att_genotype") {
+    //         attributeValueText = _.join(_.map(attributeValues, attrValues => attrValues.text), " ")
+    //     }
+    //     else if (attribute.has_features_value) {
+    //         attributeValueText = attributeValues.length === 1 ? attributeValues[0].gene_name : _.join(attributeValues.map(attributeValue => attributeValue.gene_name), " + ")
+    //     }
+    //     else {
+    //         attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
+    //     }
+    //     return attributeValueText
+    // }
 
     /**
      * 
      * @param {MouseEvent} e 
      * @param {import("../../../../types/attributes").AttributeValue[]} props.attributeValues
      */
-    const handleTooltip = (e,attributeValues,attribute) => {
+    const handleTooltip = (e, tag ) => {
 
         showTooltip({
             tooltipTop : e.clientY,
@@ -115,7 +135,8 @@ const ScatterLegend = React.memo(
      * @returns 
      */
     const renderLegendCircle = (size, fill, r) => {
-        return <svg width={size} height={size} ><circle cx={size / 2} cy={size / 2}
+        return <svg width={size} height={size} >
+            <circle cx={size / 2} cy={size / 2}
                 fill={fill}
                 r={r}
                 stroke="#000"
@@ -131,30 +152,32 @@ const ScatterLegend = React.memo(
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
                 {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data[0][colorName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="">
-                        <h4>{colorAttribute.text}</h4>
+                        <h4>{_.isObject(colorAttribute) && _.isString(colorAttribute.text) ? colorAttribute.text : ""}</h4>
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
-                                const attributeValues = findAttributeValues(colorAttribute,label.text)
-                                if (attributeValues.length === 0) return null 
-                                const labelString = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
-                                
+                                // const attributeValues = findAttributeValues(colorAttribute,label.text)
+                                // if (attributeValues.length === 0) return null d
+                                // const label = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
+                                console.log(label, "H" ? label.text : "")
                                 return (
-                                    <LegendItem key={`${idx}-${label}-colorcat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
-                                        {renderLegendCircle(size,label.value,size/3)}
-                                        <LegendLabel align="left" margin={"0 0px"} onMouseEnter={(e) => handleTooltip(e,attributeValues,colorAttribute)} onMouseLeave={hideTooltip}>{labelString}</LegendLabel>
+
+                                    <LegendItem key={`${idx}-${label.text}-colorcat`}
+                                        onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)}> 
+                                        {renderLegendCircle(size, label.value, size / 3)}
+                                        <ConditionApplicationLegendLabel tag={label.datum} handleTooltip={(e, tag) => handleTooltip(e, tag)} hideTooltip={hideTooltip} />
                                     </LegendItem>
                                 )
                             })}
                         </LegendOrdinal></div> :
                 
                     <div className="margin-left--little">
-                        <h4>{colorAttribute.text}</h4>
+                        <h4>{_.isObject(colorAttribute) && _.isString(colorAttribute.text) ? colorAttribute.text : ""}</h4>
                         <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
                             {(labels) => labels.map((label, idx) => {
                             if (idx > 25) return null 
                                 return (
-                                <LegendItem key={`${idx}-${label}-colornum`}>
+                                <LegendItem className="flex center-items" key={`${idx}-${label.text}-colornum`}>
                                     {renderLegendCircle(size,label.value,size/3)}
                                     <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
                                 </LegendItem>
@@ -163,25 +186,25 @@ const ScatterLegend = React.memo(
                     </LegendLinear></div> : null}
                 {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
-                        <h4>{sizeAttribute.text}</h4>
+                        <h4>{"SIZE ATTR"}</h4>
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
-                                const attributeValues = findAttributeValues(sizeAttribute,label.text)
-                                if (attributeValues.length === 0) return null 
-                                const labelString = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
+                                // const attributeValues = findAttributeValues(sizeAttribute,label.text)
+                                // if (attributeValues.length === 0) return null 
+                                // const label = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
                                 if (idx > 25) return null 
                                 return (
-                                        <LegendItem key={`${idx}-${label.text}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
+                                        <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
                                         {renderLegendCircle(size,"#fff",label.value)}
                                         <LegendLabel align="left" margin={"0 4px"}>
-                                            {labelString}
+                                            {label.text}
                                                 </LegendLabel>
                                                 </LegendItem>
                                 )
                             })}
                         </LegendOrdinal></div> :
                         <div className="margin-left--little">
-                        <h4>{sizeAttribute.text}</h4>
+                        <h4>{"SIZE ATTR"}</h4>
                         <LegendSize scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null 
@@ -215,115 +238,115 @@ const ScatterLegend = React.memo(
 
 
 
-    const TextScatterLegend = React.memo(
-        /**
-         * 
-         * @param {Object} props 
-         * @param {Object[]} props.data 
-         * @param {Function} props.colorScale 
-         * @param {Function} props.sizeScale 
-         * @param {String} props.colorName 
-         * @param {String} props.sizeName 
-         * @returns 
-         */
-        function TextScatterLegend({
-            chartIdx,
-            data,
-            maxWidth,
-            colorScale,
-            sizeScale,
-            colorName,
-            sizeName,
-            filterDataInKeyByValue,
-            resetSearchIdcs,
-            size = 25,
-            colorLimit = {},
-            sizeLimit = {},
-            }) {
-        
+const TextScatterLegend = React.memo(
+    /**
+     * 
+     * @param {Object} props 
+     * @param {Object[]} props.data 
+     * @param {Function} props.colorScale 
+     * @param {Function} props.sizeScale 
+     * @param {String} props.colorName 
+     * @param {String} props.sizeName 
+     * @returns 
+     */
+    function TextScatterLegend({
+        chartIdx,
+        data,
+        maxWidth,
+        colorScale,
+        sizeScale,
+        colorName,
+        sizeName,
+        filterDataInKeyByValue,
+        resetSearchIdcs,
+        size = 25,
+        colorLimit = {},
+        sizeLimit = {},
+        }) {
     
-        /**
-         * 
-         * @param {Number} size - The size of the SVG 
-         * @param {String} fill - The hex color fill of the circle.
-         * @param {Number} r - The radius of the circle.
-         * @returns 
-         */
-        const renderLegendCircle = (size, fill, r) => {
-            return <svg width={size} height={size} ><circle cx={size / 2} cy={size / 2}
-                    fill={fill}
-                    r={r}
-                    stroke="#000"
-                    strokeWidth={0.5} />
-                </svg>
-        } 
-        return (
-            <div>
-                <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
-                    {_.has(colorScale,"domain") ? _.has(data[0],colorName) && _.isEmpty(colorLimit)? 
-                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
-                            <h4>{colorName}</h4>
-                            <LegendOrdinal scale={colorScale}>
-                                {(labels) => labels.map((label, idx) => {   
-                                    
-                                    return (
-                                        <LegendItem key={`${idx}-${label}-colorcat`} >  
-                                            {/* // onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)} */}
-                                            {renderLegendCircle(size,label.value,size/3)}
-                                            <LegendLabel align="left" margin={"0 4px"} >
-                                                {label.text}</LegendLabel>
-                                        </LegendItem>
-                                    )
-                                })}
-                            </LegendOrdinal></div> :
-                    
-                        <div className="margin-left--little">
-                            <h4>{colorName}</h4>
-                            <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
-                                {(labels) => labels.map((label, idx) => {
-                                    return (
-                                    <LegendItem key={`${idx}-${label}-colornum`}>
-                                        {renderLegendCircle(size,label.value,size/3)}
-                                        <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
-                                    </LegendItem>
-                                )
-                            })}
-                        </LegendLinear></div> : null}
-                    {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isEmpty(sizeLimit) ? 
-                        <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
-                            <h4>{sizeName}</h4>
-                            <LegendOrdinal scale={sizeScale}>
-                                {(labels) => labels.map((label, idx) => {  
-                                    return (
-                                        <LegendItem key={`${idx}-${label}-sizecat`} > 
-                                            {/* onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)} */}
-                                            {renderLegendCircle(size,"#fff",label.value)}
-                                            <LegendLabel align="left" margin={"0 4px"}>
-                                                {label.text}
-                                                    </LegendLabel>
-                                                    </LegendItem>
-                                    )
-                                })}
-                            </LegendOrdinal></div> :
-                            <div className="margin-left--little">
-                            <h4>Size legend</h4>
-                            <LegendSize scale={sizeScale}>
-                                {(labels) => labels.map((label, idx) => {
-                                    if (idx > 25) return null 
+
+    /**
+     * 
+     * @param {Number} size - The size of the SVG 
+     * @param {String} fill - The hex color fill of the circle.
+     * @param {Number} r - The radius of the circle.
+     * @returns 
+     */
+    const renderLegendCircle = (size, fill, r) => {
+        return <svg width={size} height={size} ><circle cx={size / 2} cy={size / 2}
+                fill={fill}
+                r={r}
+                stroke="#000"
+                strokeWidth={0.5} />
+            </svg>
+    } 
+    return (
+        <div>
+            <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
+                {_.has(colorScale,"domain") ? _.has(data[0],colorName) && _.isEmpty(colorLimit)? 
+                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
+                        <h4>{colorName}</h4>
+                        <LegendOrdinal scale={colorScale}>
+                            {(labels) => labels.map((label, idx) => {   
+                                
                                 return (
-                                    <LegendItem key={`${idx}-${label}-sizenum`}>
-                                        {renderLegendCircle(size,"#fff",label.value)}
-                                        <LegendLabel align="left" margin={"0 4px"}>{roundNumber({ number: label.datum, limit: sizeLimit })}</LegendLabel>
+                                    <LegendItem key={`${idx}-${label}-colorcat`} >  
+                                        {/* // onMouseEnter={() => filterDataInKeyByValue(chartIdx, colorName, label.datum)} */}
+                                        {renderLegendCircle(size,label.value,size/3)}
+                                        <LegendLabel align="left" margin={"0 4px"} >
+                                            {label.text}</LegendLabel>
                                     </LegendItem>
                                 )
                             })}
-                        </LegendSize></div>: null}
-    
-                </div>
-    
+                        </LegendOrdinal></div> :
+                
+                    <div className="margin-left--little">
+                        <h4>{colorName}</h4>
+                        <LegendLinear scale={colorScale} labelFormat={(d, i) => roundNumber({ number: d, limit : colorLimit })}>
+                            {(labels) => labels.map((label, idx) => {
+                                return (
+                                <LegendItem key={`${idx}-${label}-colornum`}>
+                                    {renderLegendCircle(size,label.value,size/3)}
+                                    <LegendLabel align="left" margin={"0 4px"}>{label.text}</LegendLabel>
+                                </LegendItem>
+                            )
+                        })}
+                    </LegendLinear></div> : null}
+                {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isEmpty(sizeLimit) ? 
+                    <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
+                        <h4>{sizeName}</h4>
+                        <LegendOrdinal scale={sizeScale}>
+                            {(labels) => labels.map((label, idx) => {  
+                                return (
+                                    <LegendItem key={`${idx}-${label}-sizecat`} > 
+                                        {/* onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)} */}
+                                        {renderLegendCircle(size,"#fff",label.value)}
+                                        <LegendLabel align="left" margin={"0 4px"}>
+                                            {label.text}
+                                                </LegendLabel>
+                                                </LegendItem>
+                                )
+                            })}
+                        </LegendOrdinal></div> :
+                        <div className="margin-left--little">
+                        <h4>Size legend</h4>
+                        <LegendSize scale={sizeScale}>
+                            {(labels) => labels.map((label, idx) => {
+                                if (idx > 25) return null 
+                            return (
+                                <LegendItem key={`${idx}-${label}-sizenum`}>
+                                    {renderLegendCircle(size,"#fff",label.value)}
+                                    <LegendLabel align="left" margin={"0 4px"}>{roundNumber({ number: label.datum, limit: sizeLimit })}</LegendLabel>
+                                </LegendItem>
+                            )
+                        })}
+                    </LegendSize></div>: null}
+
             </div>
-        )
-        }, areEqual )
+
+        </div>
+    )
+    }, areEqual )
 
 export { ScatterLegend, TextScatterLegend }
 

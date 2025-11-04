@@ -24,21 +24,25 @@ function ResultChart({
     sample_attribute_tags = [],
     submission_tag = "",
     featureID = "",
-    attributesByTag,
-    attributeValuesByTag,
+    // attributesByTag,
+    // attributeValuesByTag,
     genotypesByTag,
     title,
     openMetadataDrawer
 }) {
-    const attributes = sample_attribute_tags.map(attributeTag => attributesByTag[attributeTag])
+    const attributes = sample_attribute_tags.map(attributeTag => attributeTag)
     const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
     const [selection, setSelection] = useState({colorName : attributes[0], splitName : attributes[1], subplotName : attributes[2]})
-
-    const keyNamesForSplitting = _.uniq(Object.values(selection).filter(v => _.isObject(v)).map(v => v.tag))
-    const selectionTags = _.fromPairs(_.keys(selection).filter(selectionKey => _.isObject(selection[selectionKey])).map(selectionKey => [selectionKey ,selection[selectionKey].tag]))
+    console.log("SELECTION", selection)
+    const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
+    const selectionTags = _.fromPairs(_.keys(selection).filter(selectionKey => _.isObject(selection[selectionKey])).map(selectionKey => [selectionKey ,selection[selectionKey]]))
     //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
+    
+    console.log(keyNamesForSplitting)
+    console.log(selectionTags)
+    
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const svgID = `${featureID}-svg-id${submission_tag}`
@@ -61,7 +65,7 @@ function ResultChart({
     }, [plotType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
 
 
-    console.log(groupedAggratedData)
+
 
     const handleDataDownload = (dataType) => {
        
@@ -117,10 +121,7 @@ function ResultChart({
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
                 svgID,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting),
-                attributesByTag,
-                attributeValuesByTag,
-                genotypesByLabel : genotypesByTag
+                tooltipNames: _.concat(["N"], keyNamesForSplitting)
                 
             }} />
         }
@@ -134,15 +135,12 @@ function ResultChart({
                 svgID,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting),
-                attributesByTag,
-                attributeValuesByTag,
-                genotypesByLabel : genotypesByTag
+                tooltipNames: _.concat(["N"], keyNamesForSplitting)
             }} />
         }
         else if (plotType === "boxplot") {
             return <CategoricalBoxplot {...{
-                ...selectionTags,
+                ...selection,
                 data: groupedAggratedData,
                 yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
                 errorName: "e",
@@ -150,46 +148,13 @@ function ResultChart({
                 svgID,
                 //categoricalNames: keyNamesForSplitting,
                 minMaxYDomain,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting),
-                attributesByTag,
-                attributeValuesByTag,
-                genotypesByLabel : genotypesByTag
+                tooltipNames: _.concat(["N"], keyNamesForSplitting)
             }} />
         }
     }
 
     return (
         <Card className="margin--little" compact={true} style={{maxWidth: "450x"}}>
-            
-            {/* <SelectionDialog
-            <div className="margin--medium" style={{maxWidth: "450px"}}>
-                title="Normalization Group Selection"
-                applyButtonDisabled={!checkNormalizeToSelection()}
-                isOpen={normalizeDialog.isOpen}
-                onApply={applyNormalization}
-                onClose={() => setNormalizeDialog(prevValues => { return { ...prevValues, isOpen: false } })}>
-                <div className="margin--medium">
-                <p>Please select the groups that should be used for normalization.</p>
-                <div className="flex justify-space-around margin--medium">
-                {_.isObject(selection)?Object.keys(selection).map(selectedGrouping => {
-                    const Icon = getIcon(selectedGrouping)
-                    const groupingName = selectedGroupings[selectedGrouping]
-                    if  (!_.has(groupings,groupingName)) return null 
-                    const items = Object.keys(groupings[groupingName])
-                    if (!_.isArray(items)) return null
-                    return (
-                        <div className="flex">
-                            <Icon
-                                items={items}
-                                placeholder={normalizeDialog.normalizeToSelection[groupingName]}
-                                callback={handleNormalizationGroupSelection}
-                                callbackKey={groupingName} />
-                        </div>
-                    )
-                }):null}
-                    </div>
-                    </div>
-            </SelectionDialog> */}
 
             <div className="flex justify-flex-start flex--wrap">
                 <h4></h4>
