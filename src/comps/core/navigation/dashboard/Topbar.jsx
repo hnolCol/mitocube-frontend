@@ -12,7 +12,7 @@ import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
 import { Link } from "react-router-dom"
 import { TermsOfUse } from "../../documents/TermsOfUse"
-
+import hooks from "@mitocube/api-hooks"
 
 /**
  * 
@@ -21,14 +21,15 @@ import { TermsOfUse } from "../../documents/TermsOfUse"
  * @param {Function} props.logout - A function to log the user out. 
  * @returns 
  */
-function Topbar({authenticationStatus,logout}) {
-    
+function Topbar({authenticationStatus,logout, user_tag}) {
+
     const [dialogProps, setDialogProps] = useState({isOpen : false})
-    const { data: userRoles } = useGetUserRoles({}, { enabled: authenticationStatus.isAuth, staleTime: Infinity })
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({},{enabled: authenticationStatus.isAuth, staleTime : Infinity})
 
+    const { data : userRole } =  hooks.users.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
+    const { data : user, isSuccess} = hooks.users.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
+    const initials = isSuccess ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`.toUpperCase() : ""
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
-    
     const onEdit = (e) => {
 
         setDialogProps(prevValues => {
@@ -68,17 +69,17 @@ function Topbar({authenticationStatus,logout}) {
             </div>
             <div className="flex">
                 <div className="flex flex-column justify-center">
-                    <Code>role: {_.isObject(userRoles)?userRoles[authenticationStatus.role]:null}</Code>
+                    <Code>role: {userRole}</Code>
                 </div>
                 <div className="bg--grey margin--little">
                     <Popover position={Position.BOTTOM_LEFT} content={<Menu>
-                        <MenuItem disabled={true} text={`${authenticationStatus.firstname} ${authenticationStatus.lastname}`} />
+                        {_.isObject(user) ? <MenuItem disabled={true} text={`${user.firstname} ${user.lastname}`} /> : null}
                         <MenuDivider />
                         <MenuItem text="Edit" icon="edit" onClick={onEdit}/>
                         <MenuItem text="Logout" icon="log-out" onClick={logout}/>
                     </Menu>}>
                         <BaseDashboardIcon width={30} height={30}>
-                            <UserDashboardIcon text={"USER"} />
+                            <UserDashboardIcon text={initials} />
                         </BaseDashboardIcon>
                     </Popover>
                     
