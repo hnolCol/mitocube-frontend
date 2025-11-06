@@ -78,7 +78,7 @@ function Topbar({authenticationStatus,logout}) {
                         <MenuItem text="Logout" icon="log-out" onClick={logout}/>
                     </Menu>}>
                         <BaseDashboardIcon width={30} height={30}>
-                            <UserDashboardIcon text={`${authenticationStatus.firstname[0]}${authenticationStatus.lastname[0]}`} />
+                            <UserDashboardIcon text={"USER"} />
                         </BaseDashboardIcon>
                     </Popover>
                     

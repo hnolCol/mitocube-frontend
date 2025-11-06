@@ -203,10 +203,6 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, set
                 setSubmissionFilter,
                 submissionsQuery,
                 setSubmissionQuery,
-                // isLoading,
-                // isFetching,
-                // isSuccess,
-                // isError
             }}
                 children={
                     

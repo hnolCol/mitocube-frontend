@@ -128,7 +128,8 @@ function App() {
       isAuth: true,
       token: tokenFromStorage.token,
       verified: isTokenValid.verified,
-      tag: isTokenValid.tag,
+        tag: isTokenValid.tag,
+      role : isTokenValid.role
       });
       axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
       const redirectPath = tokenFromStorage.locationPathName === "/" ? "/index" : tokenFromStorage.locationPathName;
@@ -247,9 +248,10 @@ function App() {
             </ProtectedRoute>}>
           </Route>
       <Route path="/admin" element={
-          <ProtectedAdminRoute isAuthenticated={authenticationStatus.isAuth} isAdmin={authenticationStatus.role === 4}>
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+            {/* // isAdmin={authenticationStatus.role === 4} */}
               <AdminHeader {...{authenticationStatus}}/>
-            </ProtectedAdminRoute>
+            </ProtectedRoute>
           }>
             {/* <Route index element={<div>Admin Settings</div>} />  */}
             <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
@@ -269,6 +271,7 @@ function App() {
           <Route path="/admin/attributes/:tag" element={
             <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
               <div><h3>Attributes</h3></div>
+              <div>THis is attributes</div>
             </ProtectedRoute>} />
           
           
