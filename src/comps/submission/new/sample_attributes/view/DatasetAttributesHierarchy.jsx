@@ -170,13 +170,6 @@ function DisplayDatasetAttribute({ attribute, attributeValuesByTag, onDatasetAtt
 }
 
 
-// DatasetAttributeHierarchy.propTpyes = {
-//     submissionID: PropTypes.string,
-//     selectedAttributes: PropTypes.array.isRequired,
-//     selectedDasetAttributeValues: PropTypes.func.isRequired,
-//     onDatasetAttributeRemove : PropTypes.func.isRequired
-// }
-
 function DatasetAttributeHierarchy({ selectedAttributes, selectedDatasetAttributeValues, onDatasetAttributeRemove, highlightAttributeValuesByTag = [], warnAtTwoAttrValues = false, onUserUnitInput, unitInput}) {
 
     // const nestedAttributes = useMemo(() => createDataTree({

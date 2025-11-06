@@ -32,9 +32,6 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
     const {
         isError: loginIsError,
         error: loginError,
-        isSuccess: loginSuccess,
-        isFetching: loginFetching,
-        isLoading: loginLoading,
         refetch: handleLoginAttempt } = useLoginUser(userInput, { enabled: false, onSuccess : (data) => setUserLoginResponse(data)})
 
     const {
@@ -53,10 +50,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
             setAuthenticationStatus({
                 isAuth: verifiedToken.verified,
                 token: verifiedToken.token,
-                role: verifiedToken.role, //user role encoded as integer. 
-                firstname: verifiedToken.firstname,
-                lastname: verifiedToken.lastname,
-                label: verifiedToken.label
+                tag : verifiedToken.tag
             })
             saveInLocalStorage({itemName : "token", itemValue : verifiedToken.token})
             axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
@@ -176,13 +170,8 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                             >
                                 →
                             </button>
-                            {/* handleLoginAttempt */}
                     </div>}
-            
-            {/* <div className="flex">
-                <p>No account yet?</p>
-                <Link className="router-link" to="/register">Please create an account.</Link>
-            </div> */}
+
             
                 {loginIsError || verifyTokenIsError? <APIError error={verifyTokenIsError?verfiyTokenError:loginError} />:null}
             </div>

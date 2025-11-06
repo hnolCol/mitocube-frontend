@@ -49,29 +49,6 @@ export function UserName({ tag }) {
 }
 
 
-/**
- * 
- * @param {Object} props 
- * @param {import("../../../types/feature").Feature} props.i 
- * @param {[]} props.filters 
- * @returns 
- */
-function FeatureSummary({ i, filters = [{ description: "MitoCarta", text: "MitoCarta 3.0" }] }) {
-    return (
-        <div style={{width : "20rem"}}>
-            <TitleText title={i.gene_name} />
-            {i.gene_names}
-            {i.tag}
-            {i.protein_name}
-
-            {filters.length > 0 ? filters.map(filter => <TagWithTooltip tagText={filter.text} tooltipText={`${filter.description}`} />) : null}
-            
-        </div>
-
-        
-    )
-}
-
 function SubmissionSummary({ meta_data }) {
     return (
         <div style={{width : "20rem"}}>

@@ -1,6 +1,6 @@
 import NumericValueInput from "../../../core/input/Numeric"
 import _ from "lodash"
-import { SampleAttributeTableWrapper } from "../attribute/select/SamplesAttributeWrapper"
+import { SampleAttributeTableWrapper } from "../sample_attributes/select/SamplesAttributeWrapper"
 import { useGetGenotypes } from "../../../../hooks/queries/genotype.hooks"
 import { get_proteome_id } from "../InitialSubmission"
 

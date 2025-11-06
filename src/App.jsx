@@ -38,8 +38,6 @@ import DatasetQC from "./comps/analysis/qc";
 import DatasetPCA from "./comps/analysis/pca";
 import AdminHeader from "./comps/admin";
 import ShareToken from "./comps/admin/ShareToken";
-import AdminUsers from "./comps/admin/Users";
-import AdminAttributes from "./comps/admin/Attributes";
 import { useTokenValid } from "./hooks/queries/login.hooks";
 import _ from "lodash"
 import DatasetSelection from "./comps/analysis/selection";
@@ -82,15 +80,20 @@ const initApplicationInfo = {
   email : ""
 }
 
+
 function App() {
+
   const [tokenFromStorage, setTokenFromStorage] = useState({ token: undefined, locationPathName: "/" })
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus)
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo)
-  //const [attributeSearchQuery, setAttributeSearchQuery] = useState("")
 
   // set up filter for datasets/submissions 
   const [submissionsQuery, setSubmissionQuery] = useState({attributes : "", plain : "", minimalView : false})
   const [submissionFilter, setSubmissionFilter] = useState({})
+
+  const location = useLocation()
+  const redirect = useNavigate()
+  const basePathName = location.pathname.split("/")[1]
 
   // check if token is valid, if a token is found in storage.
   const { data: isTokenValid, 
@@ -103,10 +106,7 @@ function App() {
       enabled : _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth
     })
 
-  const location = useLocation()
-  const redirect = useNavigate()
-  const basePathName = location.pathname.split("/")[1]
-  
+
   useEffect(() => {
     // Check for token in local storage and validate if present
     // Store the location.pathname and search params for redirect after login
@@ -127,11 +127,8 @@ function App() {
       setAuthenticationStatus({
       isAuth: true,
       token: tokenFromStorage.token,
-      role: isTokenValid.role,
       verified: isTokenValid.verified,
       tag: isTokenValid.tag,
-      firstname: isTokenValid.firstname,
-      lastname: isTokenValid.lastname
       });
       axios.defaults.headers.common['Authorization'] = `Bearer ${tokenFromStorage.token}`;
       const redirectPath = tokenFromStorage.locationPathName === "/" ? "/index" : tokenFromStorage.locationPathName;

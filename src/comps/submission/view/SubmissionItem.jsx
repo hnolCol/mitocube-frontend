@@ -5,7 +5,7 @@ import { isHexColorLight } from "../../../services/colors";
 import { titleFormat } from "../../../services/format/string";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import { useNavigate } from "react-router";
-import { AttributeFeatureTag } from "../new/attribute/view/DatasetAttributesHierarchy";
+import { AttributeFeatureTag } from "../new/sample_attributes/view/DatasetAttributesHierarchy";
 import { TitleText } from "../../core/metrics/ItemBasics";
 import { CreatedAt } from "../../core/metrics/CreatedAt";
 import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";

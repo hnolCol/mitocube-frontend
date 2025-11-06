@@ -2,7 +2,7 @@ import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 import { Link } from "react-router-dom"
 /**
- * 
+ * Highlights occurrences of search_string in text. Only works on exact matches.
  * @param {Object} props 
  * @param {String} props.text 
  * @returns 
@@ -35,15 +35,22 @@ export function HighlightText({ text, search_string }) {
     return <>{buildComp(splits)}</>
 }
 
-
+/**
+ * The submission link component. AAllows to highlight a search string in the title in order to visualize search matches.
+ * @param {Object} props 
+ * @param {String} props.tag The submission tag
+ * @param {String} props.search_string potential search string to highlight in the submission title 
+ * @returns 
+ */
 export function SubmissionLink({ tag, search_string}) {
     
-    const { data : submission_title, isLoading, isFetching } = hooks.submissions.title.useGetSubmissionTitle({tag},{enabled : _.isString(tag) && tag.length > 0})
+    const { data : submission_title, isSuccess } = hooks.submissions.title.useGetSubmissionTitle({tag},{enabled : _.isString(tag) && tag.length > 0})
 
     return <div>
-        <Link to={`/submissions/${tag}`}>
-            <HighlightText text={submission_title} search_string={search_string}/>
-        </Link>
+        {isSuccess && _.isString(submission_title) ?
+            <Link to={`/submissions/${tag}`}>
+            <HighlightText text={submission_title} search_string={search_string} />
+        </Link> : null }
             
     </div>
 }

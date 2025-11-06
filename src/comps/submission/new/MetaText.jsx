@@ -31,7 +31,6 @@ function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0, allo
                         onChange={onMetaTextChange} />}
                     ) : null}
             </div>
-        
     )
 }
 

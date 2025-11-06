@@ -175,12 +175,18 @@ export const findChildrenByPath = (data, path) => {
     }
 
 
+/**
+ * Wrapper for the sample attribute table component.
+ * @param {Object} props 
+ * @param {Object} props.submission - The submission object (e.g. coming from a useState) 
+ * @param {Function} props.updateSubmission - The submission update function (e.g. coming from a useState) 
+ * @param {Number} props.numberReplicates - The number of replicates for the submission
+ * @returns 
+*/
 export function SampleAttributeTableWrapper({ submission, updateSubmission, numberReplicates, genotypes }) {
-    // wrapper to the sample attributes table 
-    const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
+    // wrapper to the sample attributes table
+    const [alertProps, setAlertProps] = useState({ isOpen: false, children: <div></div> })
     const proteome_ids = get_proteome_id(submission.datasetAttributeValues)
-
-    // if (isLoading || isFetching) return <Loading />
 
     const addSampleAttr = () => {
         //adds a new sample attribute
@@ -403,13 +409,28 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             })
         }
 
-
+    /**
+     * Get the selection children from the attribute table by the given path and row index.
+     * @param {Object[]} path - The path to find the selection [{type, tag, id, children : [type, tag, id, children]},...]
+     * @param {Number} rowIdx The row index in the attribute table to get the correct data. 
+     * @returns 
+     */
     const getSelectionByPath = (path, rowIdx) => {
         let d = submission.attributeTable.slice()
         // console.log(d[rowIdx], "in finding??", path, rowIdx, d, "d(index), path, rowIdx,")
         return findChildrenByPath(d[rowIdx], path)
     }
 
+
+    /**
+     * Inserts a selected trait into the table data at the given path for the selected row indices.
+     * @param {Object[]} path - The path to find the selection [{type, tag, id, children : [type, tag, id, children]},...]
+     * @param {Number[]} rowIdces - The row indices in the attribute table to insert the selection.
+     * @param {Number} single_child_level - The level of the child to insert.
+     * @param {Boolean} single_child_type - Whether to insert a single child type. (e.g. deleting the rest.)
+     * @param {Boolean} join_values - Whether to join the values.
+     * @param {Boolean} forceInsert - Whether to force the insert.
+     */
     const onSampleTraitSelection = (path, rowIdces, single_child_level = 3 , single_child_type = false, join_values = false, forceInsert = false) => {
         let d = submission.attributeTable.slice()
         rowIdces
@@ -417,15 +438,14 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             .forEach(rowIndex => {
                 findAndInsertTree(d[rowIndex], path, single_child_level, single_child_type, join_values, forceInsert)
             })
-        
-        
-        
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()]
             }
         })
     }
+
+    
     /**
      * 
      * @param {Number} sampleAttrIdx 

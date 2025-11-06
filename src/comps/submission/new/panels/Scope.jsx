@@ -11,6 +11,8 @@ export function ScopePanel({submission, setSubmission, setComponentKey}) {
 
     const { data: submission_tags } = hooks.submissions.query.useGetSubmissionByQuery({ search_string: debouncedTitle, limit: 10, group_by_state : false },
         {enabled: debouncedTitle.length > 0, staleTime: 300000, placeholderData: (prev) => prev || []})
+    
+    
     const handleTitleChange = (key, title) => {
         setSubmission(prevValues => { return { ...prevValues, title } })
         setSubmissionTitle(title)

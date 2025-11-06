@@ -13,7 +13,7 @@ import NumericValueInput from '../../input/Numeric'
 
 import hooks from "@mitocube/api-hooks"
 import { TraitInput } from '../../input/api/TraitInput'
-import { findChildrenByPath } from '../../../submission/new/attribute/select/SamplesAttributeWrapper'
+import { findChildrenByPath } from '../../../submission/new/sample_attributes/select/SamplesAttributeWrapper'
 import { MinimalTextInput } from '../../input/MinimalTextInput'
 import { Loading } from '../states/Loading'
 import { FeatureInput } from '../../input/api/FeatureInput'

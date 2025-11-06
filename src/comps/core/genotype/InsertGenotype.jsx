@@ -5,7 +5,7 @@ import { AddButton } from "../base/buttons/AddButton"
 import { getRandomID } from "../../../services/random"
 import { RemoveButton } from "../base/buttons/RemoveButton"
 import { InsertGeneticApplication } from "./InsertGeneticApplication"
-import { findAndInsertTree, findChildrenByPath, findNode, deleteByPath } from '../../submission/new/attribute/select/SamplesAttributeWrapper';
+import { findAndInsertTree, findChildrenByPath, findNode, deleteByPath } from '../../submission/new/sample_attributes/select/SamplesAttributeWrapper';
 import _ from "lodash"
 
 
@@ -18,7 +18,7 @@ export function InsertGenotype({ }) {
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
-    const { mutate : postGenotype, isLoading }  = hooks.genotypes.usePostGenotype()
+    const { mutate : postGenotype, isLoading, isError, isSuccess }  = hooks.genotypes.usePostGenotype()
         
    
     
@@ -98,11 +98,19 @@ export function InsertGenotype({ }) {
             components: selectedTraits.slice()
         }
         console.log(selectedTraits.slice())
-        postGenotype({...data})
+        postGenotype(data, {
+            onSuccess: (response) => {
+                // reset form state on success
+                setGenotype(INITIAL_GENOTYPE)
+                setSelectedTraits([])
+                // optionally show a toast or close a dialog here
+            },
+            onError: (error) => {
+                console.error("Failed to insert genotype", error)
+            }
+        })
     }
         
-        
-
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem" }}>
             <h3>Genotype Insertion</h3>
@@ -115,7 +123,7 @@ export function InsertGenotype({ }) {
             </div>
             <div className="flex center-items"><div>
                 <span>Insert component</span></div><div className="flex flex-column"><AddButton onSelect={() => setGenotype(prevValues => {return {...prevValues, components: [...prevValues.components, {"referenceID" : getRandomID(5)}]}})}/></div></div>
-           
+           <span>{isSuccess && genotype.components.length === 0 ? <span>Genotype inserted successfully!</span> : null}</span>
             <div className="flex" style={{gap : "1rem", flexWrap : "wrap"}}>
                 {genotype.components.map((component, idx) => {
                     return (

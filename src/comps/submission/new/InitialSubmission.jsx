@@ -145,38 +145,6 @@ function InitialSubmission({
             errMsgs.push("Less replicates defined than samples. Check for missing cells in the sample attribute table. Maybe you also changed the number of replicates after you defined them in the table.")
         }
 
-
-        // if (allEmptyGenoypes && (attributeTable.length === 0 || Object.keys(attributeTable[0]).length === 0)) {
-        //     errMsgs.push("No samples attributes provided. Require at least one.")
-        // }
-    
-
-        // if (!allEmptyGenoypes && someEmptyGenotypes) {
-        //     //only if not all genotypes are empty 
-        //     errMsgs.push("Some sample genotypes are empty.")
-        // }
-
-
-        //check for all mandatory attributes
-
-        //perform check in backend....
-        // let requiredAttributeNotSubmitted = _.filter(attributesRequiredForSubmission, attrRequired => !(objectHasKey({
-        //                 object: submission.datasetAttributeValues, keyName: attrRequired.tag})
-        //     && submission.datasetAttributeValues[attrRequired.tag].length > 0))
-        
-        
-        
-        // // TO DO check if present in samples attributes
-        // if (attributeTable.length > 0) {
-        //     // check the attributes that are maybe in the sample attributes.
-        //     requiredAttributeNotSubmitted = requiredAttributeNotSubmitted.filter(reqAttr => !_.has(attributeTable[0],reqAttr.tag))
-        // }
-        
-
-        // if (requiredAttributeNotSubmitted.length > 0) {
-        //     errMsgs.push("Mandatory Dataset Attributes Missing: "+_.join(requiredAttributeNotSubmitted.map(attr => attr.text), ", "))
-        // }
-
         // check if sample attributes table is complete 
         const emptySampleInfo = attributeTable.map(sampleAttributes => _.some(Object.values(sampleAttributes), array => array.length == 0))
         if (_.some(emptySampleInfo)) {

@@ -1,9 +1,8 @@
-import { addStringToArrayOrRemove } from "../../../../services/arrays/transforms";
 import { DatasetAttributeView } from "../../../core/base/attributes/DatasetAttributeView";
 import { AttributesInput } from "../../../core/input/api/DatasetAttributeInput";
 import { MandatoryAttributes } from "../../MandatoryAttributes";
 import _ from "lodash"
-import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists } from "../attribute/select/SamplesAttributeWrapper";
+import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists } from "../sample_attributes/select/SamplesAttributeWrapper";
 
 export function AttributesTab({submission, setSubmission, setComponentKey, componentKey }) {
 
