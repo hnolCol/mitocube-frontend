@@ -1,9 +1,6 @@
 import { Button, Card, Divider } from "@blueprintjs/core"
-import { useDeleteGenotype, useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
-import Loading from "../../core/base/loading"
-import APIError from "../../core/error/APIerror"
+import { useDeleteGenotype } from "../../../hooks/queries/genotype.hooks"
 import _ from "lodash"
-import { AttributeFeatureTag } from "../../submission/new/attribute/view/DatasetAttributesHierarchy"
 import { GenotypeDefinition } from "./GenotypeDefinition"
 /**
  * 
@@ -28,8 +25,7 @@ export function GenotypeCard({ genotype, refetchGenotypes, justDisplay = false, 
             <Divider />
             {_.isObject(genotype) ? <div>
                 <div className="flex">
-                    {_.has(genotype, "feature") && _.isArray(genotype.features) ?
-                        genotype.features.map(feature => <AttributeFeatureTag value={feature} valueIsFeature={true} />) : null}
+                    
                 </div>
                 <div className="flex flex-column"><h4>AttributeValues:</h4>
                     <div className="flex flex--wrap">
@@ -52,18 +48,12 @@ export function GenotypeCard({ genotype, refetchGenotypes, justDisplay = false, 
 
 export function AdminGenotypes() {
     
-    const {data : genotypes, isLoading, isFetching, isError, error, refetch : refetchGenotypes} = useGetGenotypes({})
     return (
         <div className="div--expand" >
             <h3>Genotypes</h3>
             <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
             <GenotypeDefinition />
-            {isError ? <APIError error={error} /> :
-                isLoading || isFetching ?
-                    <Loading /> :
-                    _.isArray(genotypes) ?
-                        <div  className="flex flex--wrap">
-                            {genotypes.map(genotype => { return <GenotypeCard {...{ genotype, refetchGenotypes }} /> })} </div>: null}
+            
             </div>
         </div>
     )

@@ -1,7 +1,6 @@
 import { useOutletContext } from "react-router";
 import _ from "lodash"
 
-import { AttributeFeatureTag, StaticDatasetAttributesHierarchy } from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
 import { QuickAccessBar } from "./Topbar";
 import { ResearchAim } from "./Researchaim";
 import { StateIndicator } from "../../core/base/states/SubmssionState";
@@ -67,12 +66,7 @@ function DatasetOverview() {
                 <SubmissionUpload {...{ submission_tag }}/>
             </div>
             <div className="flex flex--wrap">
-                {/* {hasGenotypes ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
-                    <h3>Genotypes ({_.keys(metadata.genotypes).length})</h3>
-                    <div className="flex flex-column div--expand padding--little">
-                        {_.keys(metadata.genotypes).map(genotypeLabel => <GenotypeCard {...{ justDisplay: true, genotype: metadata.genotypes[genotypeLabel], fill: true }} />)}
-                    </div>
-                </div> : null} */}
+
                 {_.isString(submission_tag) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Sample Attributes</h3>
                     <SampleAttributesView submission_tag={submission_tag} minimal={false} />
@@ -80,7 +74,7 @@ function DatasetOverview() {
             <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "min(50vh,500px)", overflowY:"scroll"}}>
                     <h3>Dataset Attributes</h3>
                     <ConditionApplicationsView />
-                <StaticDatasetAttributesHierarchy submission_tag={submission_tag} />
+                {/* <StaticDatasetAttributesHierarchy submission_tag={submission_tag} /> */}
                 {/* <DatasetAttributeHierarchy {...{
                     selectedDasetAttributeValues: datasetAttributeValues,
                     selectedAttributes: dataAttributes

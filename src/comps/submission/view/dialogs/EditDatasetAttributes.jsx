@@ -4,13 +4,10 @@ import { useGetSubmissionDatasetAttributesByTag, usePatchSubmissionDatasetAttrib
 import _ from "lodash"
 import APIError from "../../../core/error/APIerror";
 import Loading from "../../../core/base/loading";
-import { addItemsToArrayByTag, addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../../services/arrays/transforms";
-import DatasetAttributeHierarchy from "../../new/attribute/view/DatasetAttributesHierarchy";
-import { TraitWithValueInput, TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
+import {addStringToArrayOrRemove } from "../../../../services/arrays/transforms";
+
 import { AttributesInput } from "../../../core/input/api/DatasetAttributeInput";
 import { useGetAttributes } from "../../../../hooks/queries/attribute.hooks";
-import attributes from "../../../../types/attributes";
-import { Attribute } from "../../../core/base/attributes/Attribute";
 import { AttributeTraitSelection } from "../../../core/base/attributes/AttributeTraitSelection";
 import { DatasetAttributeView } from "../../../core/base/attributes/DatasetAttributeView";
 

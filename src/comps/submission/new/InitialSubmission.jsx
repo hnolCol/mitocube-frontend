@@ -225,9 +225,7 @@ function InitialSubmission({
             //submissionDetails["samplesAttributesInput"] = submission.samplesAttributesUnit
 
 
-            // console.log(extractTagsFromFeature(submission.userUnitInput ))
-            // submissionDetails["datasetAttributeInput"] = extractTagsFromFeature(submission.userUnitInput )
-            // submissionDetails["sampleUserUnitInput"] = submission.sampleUserUnitInput
+            
             console.log("SUBMISSION DETAILS", submissionDetails)
             postSubmission({ submission: submissionDetails },
                 {

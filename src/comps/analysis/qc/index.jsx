@@ -7,9 +7,6 @@ import Loading from "../../core/base/loading";
 import _ from "lodash"
 import ResultChart from "../../protein/charts/resultCard/chart";
 import { useEffect } from "react";
-import MetricTable from "../../core/base/metrictable";
-import DatasetAttributeHierarchy from "../../submission/new/attribute/view/DatasetAttributesHierarchy";
-import { mapDatasetAttributeTagsToAttributes } from "../../../services/attributes";
 
 
 
@@ -79,11 +76,7 @@ function DatasetQC() {
                 )
             })}
             </div>
-            <h2>Quality Control</h2>
-            <DatasetAttributeHierarchy {...{
-                selectedDasetAttributeValues: datasetAttributeValues,
-                selectedAttributes: dataAttributes
-                }} />
+
             {/* <CategoricalBoxplot data={datatable.poi_data[0]} colorName={"Treatment"} yaxisName="value" splitName={"Gene Knock-down"}/> */}
         </div>
     )
