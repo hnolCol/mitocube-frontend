@@ -18,32 +18,29 @@ import { indexStrings } from "../../../services/arrays"
 
 import { SubmissionPanelStack } from "./panels/TabStack"
 //move to service
+
 export function get_proteome_id(datasetAttributeValues) {
     return _.has(datasetAttributeValues,"att_proteome") && datasetAttributeValues["att_proteome"].length > 0? datasetAttributeValues["att_proteome"].map(attributeValue => attributeValue.tag) : []
     
 }
 
-
-
 const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
             tag: "",
             numberReplicates: 0,
-    sampleNumber: 0, 
+            sampleNumber: 0, 
             research_aim: "", 
             replicates : [],
             sampleNames: [],
-    sampleNamesFixed: false,
+            sampleNamesFixed: false,
             samplesAttributes : [], 
             collaborators : [],
             attributeTable: [],
             metatext: {},
             genotypes: {},
             links : [{id : randomInitLinkID, link : "", comment : ""}],
-                    // attributes: {sampleNumber : 0, replicates : 0},
             selected_traits: [], // the dataset traits,
-            // genotypeAttributes : [],
-    rerenderTableDependency: 0,
+            rerenderTableDependency: 0,
             title : ""
 }
             
@@ -61,12 +58,10 @@ function InitialSubmission({
     const redirect = useNavigate()
     const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
-    const { mutate : postSubmission, isLoading : submissionLoading, isError : submissionFailed, error : submissionError } = usePostSubmission()
+    
+    const { mutate: postSubmission, isLoading: submissionLoading, isError: submissionFailed, error: submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}) 
     const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : !_.isString(init_submission_tag)})
-    const proteome_ids = _.isObject(submission) ? get_proteome_id(submission.datasetAttributeValues) : [] 
-    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_tags : proteome_ids},{enabled : proteome_ids.length > 0})
-
     const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.tag : undefined,[_.isObject(submission_tag),submission_tag])
     
     
@@ -112,8 +107,7 @@ function InitialSubmission({
         })
 
     }, [submission.sampleNumber, tag ])
-    
-    console.log(submission)
+
 
     const onSubmissionRequest = () => {
         // check the submisison before sending it to the API 
@@ -195,38 +189,12 @@ function InitialSubmission({
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
 
-            // if (allEmptyGenoypes) {
-            //     delete submissionDetails["genotypes"]
-            // }
-            // else {
-            //     submissionDetails["genotypes"] = indexStrings(submission["genotypes"].map(genotype => genotype.map(g => g.tag)))
-            // }
-            //submissionDetails["datasetAttributes"] = _.map(submission.datasetAttributes, datasetAttribute => datasetAttribute.tag)
             submissionDetails["datasetAttributes"] = _.fromPairs(_.keys(submission["datasetAttributeValues"])
                 .filter(key => _.isArray(submission["datasetAttributeValues"][key]) && submission["datasetAttributeValues"][key].length > 0).map(key => [key, submission["datasetAttributeValues"][key].map(t => t.tag)]))
             
-  
-
-            // const sampleAttributeTags = attributeTable.map(item => {
-            //     const d = _.keys(item).map(key => [key,item[key].map(trait => trait.tag)])
-            //     return _.fromPairs(d)
-            // })
-            
-            // submissionDetails["samplesAttributes"] = indexStrings(sampleAttributeTags)
-            
-            
             
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
-            // submissionDetails["includes_data"] = submitExistingData
-            // submissionDetails["data_array"] = submitExistingData ? loadingFileProps.dataArray.map(row_data =>
-            // loadingFileProps.sampleColumnsIdx.map(rowIndex => row_data[rowIndex] === "NaN" || row_data[rowIndex] === "" ? NaN : _.toNumber(row_data[rowIndex]))) : undefined
-            // submissionDetails["data_sample_names"] = submitExistingData ? loadingFileProps.sampleColumnsIdx.map(rowIdx => loadingFileProps.columnNames[rowIdx]) : []
-            // submissionDetails["data_index"] = findFeatures(loadingFileProps)
-            //submissionDetails["samplesAttributesInput"] = submission.samplesAttributesUnit
 
-
-            
-            console.log("SUBMISSION DETAILS", submissionDetails)
             postSubmission({ submission: submissionDetails },
                 {
                     onSuccess: (data) => setAlertProps({
@@ -331,111 +299,25 @@ function InitialSubmission({
 
     return (
         <div className="flex flex-column">
-            <Alert style={{minWidth:"min(60vw,600px)"}} canEscapeKeyCancel={true} canOutsideClickCancel={true}
-                onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
-        <div className="flex flex-column container--scroll-y-hide-x padding--medium margin-top--little margin-right intent-padding-right--little" style={{height : "100%",position:"relative"}}>
-            {/* <div style={{position:"-webkit-sticky",right:50,top:0}}>
-                <Button text="Submit" />
-            </div> */}
-                {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
-                <h3>Information</h3>
-            <p>
-                In this section, you can enter details about your new project. If you are looking for advice for your experimental design visit the <a href="/submission/help"><span className="a-span">help section</span></a>.</p>
-            <p>The unique dataset tag <span className="h0-span">{tag }</span> has been created for your submission. Please include this unique identifier in any request about your project.
-                All files (such as raw file) will include the identifier. Please note that you and your collaborators will be notified via email when the state of your project changes.
-                The meta data are based on pre-defined attributes/ontologies and hence it might happen that you are missing an attribute for your project. 
-                    </p>
-                    <span className="h0-span">Please take care to fill out the submission in a meticulously way. Data without carefully curated meta data are less informative.</span>
-            </div> */}
-            {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
-                <h3>1. Contact and Collaborators</h3>
-                <span>Project owner: </span><span className="h0-span">{authenticationStatus.firstname} {authenticationStatus.lastname}</span>
-                    <div><span>Unique identifier: </span> <span className="h0-span">{tag}</span></div>
-                    d
-                    <UserInput selectedUsers={submission.collaborators} onUserSelect={handleCollaboratorSelection} isRequired={false} showLabel={true}  helperText="Collaborators will also be informed about the state of your project." />
-                  
-            </div> */}
-            {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
-                <h3>2. Mandatory Attributes</h3>
-                <p>Attributes that are required for the project submission. </p>
-                    <TextInput placeholder="Set the title of your submission.."
-                        hint="Project Title"
-                        value={_.isString(submission.attributes["title"]) ? submission.attributes["title"] : ""}
-                        callbackKey="title"
-                        onChange={(callbackKey, title) => onInputChange(callbackKey, title)} />
-                    
-                    <MandatoryAttributes
-                        selectedDatasetAttributes={submission.datasetAttributeValues}
-                        onAttributeValueSelect={handleDatasetAttributeSelection} /> 
+            <Alert
+                style={{ minWidth: "min(60vw,600px)" }}
+                canEscapeKeyCancel={true}
+                canOutsideClickCancel={true}
+                onConfirm={resetAlert}
+                onClose={resetAlert} {...alertProps} />
+            
+            <div
+                className="flex flex-column container--scroll-y-hide-x padding--medium margin-top--little margin-right intent-padding-right--little"
+                style={{ height: "100%", position: "relative" }}>
                 
-                </div> */}
-            
-            {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
-                    <h3>4. Meta Text</h3>
-            
-                    <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />
-            
-            </div> */}
-                
-                <SubmissionPanelStack {...{submission, setSubmission, onSubmissionRequest, saveSubmission, resetSubmission}} />
-            
-                {/* <DatasetLinks index={4} links={submission.links} addLink={addLink} removeLink={removeLinkByIndex} onChange={handleLinkChange} /> */}
-
-            
-            <div>
-
-            {/* <GenotypeGen    /> */}
-                       
-                        {/* <GenotypeGenerator /> */}
-                {/* <GenotypeGenerator /> */}
-                {/* <Button onClick={handleGenotypeCreation} /> */}
-                    {/* <GenotypeGenerator
-                        proteome_ids={proteome_ids.filter(proteome_id => proteome_id !== "controls")}
-                        attributes={attributesForGenotype}
-                        // attributeValuesByID={attributeValuesByAtrributeID}
-                        //onSelection={genotypeSelection}
-                        genotypes={submission.genotypes} 
-                        {...{handlePositionSelection, refetchGenotypes }}/>
-                             */}
-                        
-                {/* <div className="bg--lightgrey padding--medium div--round margin-top--little">
-                <h3>7. Sample Attributes</h3>
-                    <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
-                        The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
-                    </p>
-                    <p>First, create a sample attribute and name it in the table header. Then specify an attribute such as <span className="h1-span">Genotype</span> or <span className="h2-span">Treatment</span>.
-                        After attribute selection you will be able to select from a defined set of attribute values from the drop-down menu (right click on the table cells).
-                        If you want to assign an attribute value to multiple rows, select the rows and then choose the attribute value from the drop-down menu.</p>
-                    <p>An attribute can only be assigned to a <span className="h0-span">single sample attribute</span> and the attribute values must have at least <span className="h0-span">two unique values</span>.
-                                Otherwise they should be specified as dataset attributes above.</p>
-                    <NumericValueInput
-                            hint="Number of replicates"
-                            placeholder="Number of replicates"
-                            callbackKey={"replicates"}
-                            value={submission.replicates===0?"":_.toString(submission.replicates)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
-                    <NumericValueInput
-                            disabled={preDefinedSampleNames}
-                            hint={"Number of samples"}
-                            placeholder="Number of samples"
-                            callbackKey={"sampleNumber"}
-                            value={submission.sampleNumber===0?"":_.toString(submission.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
-                    <SampleAttributeTableWrapper {...{
-                            submission,
-                            genotypes,
-                            updateSubmission: setSubmission,
-                            numberReplicates: submission.replicates
-                        }} />
-                </div> */}
-            </div> 
-            
-       
-                     
+                    <SubmissionPanelStack {...{
+                        submission,
+                        setSubmission,
+                        onSubmissionRequest,
+                        saveSubmission,
+                        resetSubmission
+                    }} />
             </div>
-            {/* <div className="flex padding--medium">
-                <Button text="Submit" onClick={onSubmssionRequest} intent="primary" />
-                <Button text="Save" onClick={saveSubmission} />
-                <Button text="Reset Form" onClick={resetSubmission} />
-            </div> */}
             
             </div>
         )

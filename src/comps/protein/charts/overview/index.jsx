@@ -28,6 +28,7 @@ import { OptionButton } from "../../../core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom"
 import { OpenAiPublicationSummary } from "../../../core/openai/OpenAiPublicationSummary"
 import { ProteinOverview } from "./ProteinOverview"
+import { ProteinFilter } from "../../../core/filters/ProteinFilters"
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
     const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({tag : dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
@@ -90,19 +91,6 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
 }
 
 
-
-function ProteinFilter({ tag }) {
-    const { data, isSuccess } = useGetFilters({ feature_tag: tag })
-
-    return <div>
-        <h4>Protein Filter Tags</h4>
-        <p>The protein is associated with the following protein filter tags:</p>
-        {_.isArray(data) ? data.length === 0 ?
-            <div className="font-size--smallest"><p>The protein is not present in any of the filter sets.</p></div>
-            : <div>{data.map(filter => <FilterSummary key={filter.tag} filter={filter} />)} </div> : null}
-
-    </div>
-}
 
 
 
@@ -200,9 +188,13 @@ export function ProteinPage() {
     const { feature_tag } = useOutletContext()
     const [searchParams, setSearchParams] = useSearchParams();
 
-    const [metadataDrawer, setMetadataDrawer] = useState({isOpen : false, dataset_label : undefined})
-
-    const viewOptions = [{ tag: "overview", text: "Overview" }, { tag: "data", text: "Data" }, { tag: "correlation", text: "Correlation" }, { tag: "abundance", text: "Abundance" }, { tag: "literature", text: "Literature (AI)" }, { tag: "publications", text: "Publications" }]
+    const viewOptions = [{ tag: "overview", text: "Overview" },
+        { tag: "data", text: "Data" },
+        { tag: "correlation", text: "Correlation" },
+        { tag: "abundance", text: "Abundance" },
+        { tag: "literature", text: "Literature (AI)" },
+        { tag: "publications", text: "Publications" }];
+    
     const viewParam = searchParams.get("view");
     const selectedView = viewParam && viewOptions.some(o => o.tag === viewParam) ? viewParam : viewOptions[0].tag;
     
@@ -228,6 +220,7 @@ export function ProteinPage() {
                 )}
                 </div>
             <h2>{selectedView}</h2>
+            {/* <ProteinFilter tag={feature_tag} /> */}
             <div className="flex flex-column div--expand padding--little" style={{overflowY:"scroll", height : "88vh"}}>
 
             {selectedView === "overview" ? <ProteinOverview feature_tag={feature_tag} /> : null }

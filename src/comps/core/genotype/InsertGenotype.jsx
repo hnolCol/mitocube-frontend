@@ -112,7 +112,7 @@ export function InsertGenotype({ }) {
     }
         
     return (
-        <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
             <h3>Genotype Insertion</h3>
             <span>Genotypes are defined by <strong>genetic components</strong>. A component is for example a specific gene knock out, while a knockout and a re-expression of the protein (WT) would be in total two components.</span>
             <span> Multiple point mutations must also be defined in multiple components (one for each mutation). </span>
@@ -124,7 +124,8 @@ export function InsertGenotype({ }) {
             <div className="flex center-items"><div>
                 <span>Insert component</span></div><div className="flex flex-column"><AddButton onSelect={() => setGenotype(prevValues => {return {...prevValues, components: [...prevValues.components, {"referenceID" : getRandomID(5)}]}})}/></div></div>
            <span>{isSuccess && genotype.components.length === 0 ? <span>Genotype inserted successfully!</span> : null}</span>
-            <div className="flex" style={{gap : "1rem", flexWrap : "wrap"}}>
+           <div className="div--expand flex flex-column " style={{justifyContent: "space-between"}}>
+            <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
                 {genotype.components.map((component, idx) => {
                     return (
                         <div className="padding--medium bg--lightgrey flex flex-column"
@@ -147,9 +148,10 @@ export function InsertGenotype({ }) {
                 })}
             </div> 
             <div className="flex justify-end">
-                <button className="dialog-button" disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button>
-                <button className="dialog-button">Close</button>
-            </div>
+                    <button className="dialog-button">Close</button>
+                    <button className="dialog-button" disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button>
+                </div>
+                </div>
             
 
          

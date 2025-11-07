@@ -30,6 +30,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
     const { data : user, isSuccess} = hooks.users.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const initials = isSuccess ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`.toUpperCase() : ""
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
+    
     const onEdit = (e) => {
 
         setDialogProps(prevValues => {

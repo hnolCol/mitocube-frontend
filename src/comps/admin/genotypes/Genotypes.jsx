@@ -2,6 +2,9 @@ import { Button, Card, Divider } from "@blueprintjs/core"
 import { useDeleteGenotype } from "../../../hooks/queries/genotype.hooks"
 import _ from "lodash"
 import { GenotypeDefinition } from "./GenotypeDefinition"
+import { useState } from "react"
+import { AddButton } from "../../core/base/buttons/AddButton"
+import { AddGenotypeDialog } from "./AddGentoypeDialog"
 /**
  * 
  * @param {Object} props 
@@ -48,12 +51,15 @@ export function GenotypeCard({ genotype, refetchGenotypes, justDisplay = false, 
 
 export function AdminGenotypes() {
     
+    const [dialogProps, setDialogProps] = useState({isOpen : false})
+
     return (
         <div className="div--expand" >
+            <AddGenotypeDialog isOpen={dialogProps.isOpen} onClose={() => setDialogProps(prevValues => { return { ...prevValues, isOpen: false } })} />
             <h3>Genotypes</h3>
             <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
-            <GenotypeDefinition />
-            
+                <AddButton onSelect={() => setDialogProps(prevValues => { return { ...prevValues, isOpen: true } })} />
+
             </div>
         </div>
     )
