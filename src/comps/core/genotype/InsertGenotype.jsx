@@ -7,6 +7,8 @@ import { RemoveButton } from "../base/buttons/RemoveButton"
 import { InsertGeneticApplication } from "./InsertGeneticApplication"
 import { findAndInsertTree, findChildrenByPath, findNode, deleteByPath } from '../../submission/new/sample_attributes/select/SamplesAttributeWrapper';
 import _ from "lodash"
+import APIError from "../error/APIerror"
+import { HIGHLIGHT_COLOR } from "../colors/colorPalette"
 
 
 const INITIAL_GENOTYPE = { text: "", description: "", publication: "", components: [] } 
@@ -14,11 +16,11 @@ const INITIAL_GENOTYPE = { text: "", description: "", publication: "", component
  * InsertGenotype components. 
  * @returns 
  */
-export function InsertGenotype({ }) {
+export function InsertGenotype({ onClose }) {
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
-    const { mutate : postGenotype, isLoading, isError, isSuccess }  = hooks.genotypes.usePostGenotype()
+    const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = hooks.genotypes.usePostGenotype()
         
    
     
@@ -97,7 +99,7 @@ export function InsertGenotype({ }) {
             publication: genotype.publication,
             components: selectedTraits.slice()
         }
-        console.log(selectedTraits.slice())
+
         postGenotype(data, {
             onSuccess: (response) => {
                 // reset form state on success
@@ -110,22 +112,23 @@ export function InsertGenotype({ }) {
             }
         })
     }
-        
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
             <h3>Genotype Insertion</h3>
             <span>Genotypes are defined by <strong>genetic components</strong>. A component is for example a specific gene knock out, while a knockout and a re-expression of the protein (WT) would be in total two components.</span>
             <span> Multiple point mutations must also be defined in multiple components (one for each mutation). </span>
             <div className="flex flex-column" style={{gap : "0.5rem"}}>
-                <input className="text-input" type="text" placeholder="Enter genotype name that describes all components" onChange={(e) => setGenotype(prevValues => ({ ...prevValues, text: e.target.value }))} />
-                <input className="text-input" type="text" placeholder="Enter genotype description/information" onChange={(e) => setGenotype(prevValues => ({ ...prevValues, description: e.target.value }))} />
-                <input className="text-input" type="text" placeholder="Enter genotype external reference (e.g. PMID) if applicable." onChange={(e) => setGenotype(prevValues => ({ ...prevValues, publication: e.target.value }))} />
+                <input className="text-input" type="text" value={genotype.text} placeholder="Enter genotype name that describes all components" onChange={(e) => setGenotype(prevValues => ({ ...prevValues, text: e.target.value }))} />
+                <input className="text-input" type="text" value={genotype.description} placeholder="Enter genotype description/information" onChange={(e) => setGenotype(prevValues => ({ ...prevValues, description: e.target.value }))} />
+                <input className="text-input" type="text" value={genotype.publication} placeholder="Enter genotype external reference (e.g. PMID) if applicable." onChange={(e) => setGenotype(prevValues => ({ ...prevValues, publication: e.target.value }))} />
             </div>
             <div className="flex center-items"><div>
-                <span>Insert component</span></div><div className="flex flex-column"><AddButton onSelect={() => setGenotype(prevValues => {return {...prevValues, components: [...prevValues.components, {"referenceID" : getRandomID(5)}]}})}/></div></div>
-           <span>{isSuccess && genotype.components.length === 0 ? <span>Genotype inserted successfully!</span> : null}</span>
+                <span>Insert component</span></div><div className="flex flex-column"><AddButton onSelect={() => setGenotype(prevValues => { return { ...prevValues, components: [...prevValues.components, { "referenceID": getRandomID(5) }] } })} /></div>
+            </div>
+            <div className="margin--medium" style={{color: HIGHLIGHT_COLOR}}>{isSuccess && genotype.components.length === 0 ? <h3>Genotype inserted successfully!</h3> : null}</div>
+            <div>{isError ? <APIError error={error} /> : null}</div>
            <div className="div--expand flex flex-column " style={{justifyContent: "space-between"}}>
-            <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
+            <div className="flex" style={{ gap: "1rem", flexWrap: "wrap", overflowY: "scroll" }}>
                 {genotype.components.map((component, idx) => {
                     return (
                         <div className="padding--medium bg--lightgrey flex flex-column"
@@ -146,10 +149,11 @@ export function InsertGenotype({ }) {
                         </div>
                     )
                 })}
-            </div> 
+                </div> 
+                
             <div className="flex justify-end">
-                    <button className="dialog-button">Close</button>
-                    <button className="dialog-button" disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button>
+                    <button className="dialog-button" style={{backgroundColor : "#ec7160ff"}} onClick={onClose}>Close</button>
+                    <button className="dialog-button"  disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button>
                 </div>
                 </div>
             

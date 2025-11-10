@@ -5,6 +5,7 @@ import { GenotypeDefinition } from "./GenotypeDefinition"
 import { useState } from "react"
 import { AddButton } from "../../core/base/buttons/AddButton"
 import { AddGenotypeDialog } from "./AddGentoypeDialog"
+import { GenotypeSearch } from "./GenotypeSearch"
 /**
  * 
  * @param {Object} props 
@@ -59,6 +60,12 @@ export function AdminGenotypes() {
             <h3>Genotypes</h3>
             <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
                 <AddButton onSelect={() => setDialogProps(prevValues => { return { ...prevValues, isOpen: true } })} />
+
+                
+                <GenotypeSearch />
+
+
+
 
             </div>
         </div>

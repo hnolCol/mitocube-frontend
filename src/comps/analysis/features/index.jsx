@@ -24,7 +24,6 @@ export function DatasetFeatureView() {
     const proteinGroupTags = proteinGroupTagsString
         ? proteinGroupTagsString.split(TAGS_SEPARATOR).filter(Boolean)
         : [];
-    console.log(proteinGroupTags);
     // Handlers to update URL params
     const updateParam = (key, value) => {
         const newParams = new URLSearchParams(searchParams);
