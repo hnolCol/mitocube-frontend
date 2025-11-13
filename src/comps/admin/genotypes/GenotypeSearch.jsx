@@ -30,7 +30,7 @@ export function GenotypeSearch({ }) {
     const [searchParams, setSearchParams] = useSearchParams(); 
 
     const { data: genotype_tags, isLoading, isSuccess, isError, error } = hooks.genotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 20 }, { staleTime: 2000 });
-
+    console.log(genotype_tags)
     // Determine selected limit from URL params
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) ? _.toNumber(searchParams.get("limit")) : LIMIT_OPTIONS[0];
 
