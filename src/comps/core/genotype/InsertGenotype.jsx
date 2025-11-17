@@ -1,6 +1,6 @@
 
 import hooks from "@mitocube/api-hooks"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AddButton } from "../base/buttons/AddButton"
 import { getRandomID } from "../../../services/random"
 import { RemoveButton } from "../base/buttons/RemoveButton"
@@ -16,12 +16,21 @@ const INITIAL_GENOTYPE = { text: "", description: "", publication: "", component
  * InsertGenotype components. 
  * @returns 
  */
-export function InsertGenotype({ onClose }) {
+export function InsertGenotype({ onClose, isEditing = false, tag = undefined, preSelectedTraits = [] }) {
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
     const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = hooks.genotypes.usePostGenotype()
         
+    useEffect(() => {
+
+        if (isEditing && _.isArray(preSelectedTraits) && preSelectedTraits.length > 0) {
+            setGenotype(prevValues => { return { ...prevValues, 
+                text : `Editing: ${tag}`, 
+                components : preSelectedTraits.map(ca => { return {"referenceID" : ca.id}}) } })
+            setSelectedTraits(preSelectedTraits)
+        }
+    }, [isEditing])
    
     
     const handleTraitSelection = (trait_tag, referenceID) => {
@@ -30,6 +39,8 @@ export function InsertGenotype({ onClose }) {
         
         setSelectedTraits(selected_traits)
     }
+
+
 
     const getTraitSelection = (referenceID) => {
         const selectedTrait = getSelectionByPath([{ "type": "attribute", "tag": 'att_gene_engineering', 'id' : referenceID }])
@@ -112,9 +123,13 @@ export function InsertGenotype({ onClose }) {
             }
         })
     }
+
+    console.log(selectedTraits)
+    console.log(genotype)
+
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
-            <h3>Genotype Insertion</h3>
+            <h3>{isEditing?"Genotype Editing":"Genotype Insertion"}</h3>
             <span>Genotypes are defined by <strong>genetic components</strong>. A component is for example a specific gene knock out, while a knockout and a re-expression of the protein (WT) would be in total two components.</span>
             <span> Multiple point mutations must also be defined in multiple components (one for each mutation). </span>
             <div className="flex flex-column" style={{gap : "0.5rem"}}>
@@ -153,7 +168,9 @@ export function InsertGenotype({ onClose }) {
                 
             <div className="flex justify-end">
                     <button className="dialog-button" style={{backgroundColor : "#ec7160ff"}} onClick={onClose}>Close</button>
-                    <button className="dialog-button"  disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button>
+                    {isEditing ?
+                        <button className="dialog-button"  disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Editing..." : "Edit"}</button> :
+                        <button className="dialog-button"  disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button> }
                 </div>
                 </div>
             
