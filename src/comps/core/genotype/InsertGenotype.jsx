@@ -16,7 +16,7 @@ const INITIAL_GENOTYPE = { text: "", description: "", publication: "", component
  * InsertGenotype components. 
  * @returns 
  */
-export function InsertGenotype({ onClose, isEditing = false, tag = undefined, preSelectedTraits = [] }) {
+export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelectedTraits = [], preText = "", preDescription = "", prePublication = "" }) {
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
@@ -27,7 +27,9 @@ export function InsertGenotype({ onClose, isEditing = false, tag = undefined, pr
 
         if (isEditing && _.isArray(preSelectedTraits) && preSelectedTraits.length > 0) {
             setGenotype(prevValues => { return { ...prevValues, 
-                text : `Editing: ${tag}`, 
+                text : preText,
+                description : preDescription,
+                publication : prePublication, 
                 components : preSelectedTraits.map(ca => { return {"referenceID" : ca.id}}) } })
             setSelectedTraits(preSelectedTraits)
         }
@@ -106,6 +108,7 @@ export function InsertGenotype({ onClose, isEditing = false, tag = undefined, pr
     const insertGenotype = () => {
 
         const data = {
+            tag: tag, 
             text: genotype.text,
             description: genotype.description,
             publication: genotype.publication,
@@ -130,6 +133,7 @@ export function InsertGenotype({ onClose, isEditing = false, tag = undefined, pr
 
     const editGenotype = () => {
         const data = {
+            tag: tag, 
             text: genotype.text,
             description: genotype.description,
             publication: genotype.publication,
@@ -147,6 +151,8 @@ export function InsertGenotype({ onClose, isEditing = false, tag = undefined, pr
         })
     }
 
+
+    
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
             <h3>{isEditing?"Genotype Editing":"Genotype Insertion"}</h3>
