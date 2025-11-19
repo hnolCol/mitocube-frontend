@@ -56,6 +56,7 @@ export function AdminGenotypes() {
 
     return (
         <div className="div--expand" >
+            
             <AddGenotypeDialog isOpen={dialogProps.isOpen} onClose={() => setDialogProps(prevValues => { return { ...prevValues, isOpen: false } })} />
             <h3>Genotypes</h3>
             <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
