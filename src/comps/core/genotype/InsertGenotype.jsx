@@ -11,6 +11,8 @@ import APIError from "../error/APIerror"
 import { HIGHLIGHT_COLOR } from "../colors/colorPalette"
 
 
+
+
 const INITIAL_GENOTYPE = { text: "", description: "", publication: "", components: [] } 
 /**
  * InsertGenotype components. 
@@ -21,7 +23,8 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
     const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = hooks.genotypes.usePostGenotype()
-    const { mutate : updateGenotype } = hooks.genotypes.useEditGenotype()
+    const { mutate : updateGenotype, isLoading : isUpdateLoading } = hooks.genotypes.useEditGenotype()
+
 
     useEffect(() => {
 
@@ -121,6 +124,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
                 setGenotype(INITIAL_GENOTYPE)
                 setSelectedTraits([])
                 // optionally show a toast or close a dialog here
+   
             },
             onError: (error) => {
                 console.error("Failed to insert genotype", error)
@@ -140,10 +144,10 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
             components: selectedTraits.slice()
         }
 
+
         updateGenotype(data, {
             onSuccess: () => {
-                setGenotype(INITIAL_GENOTYPE)
-                setSelectedTraits([])
+                onClose()
             },
             onError: (error) => {
                 console.error("Failed to edit genotype", error)
@@ -195,7 +199,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
             <div className="flex justify-end">
                     <button className="dialog-button" style={{backgroundColor : "#ec7160ff"}} onClick={onClose}>Close</button>
                     {isEditing ?
-                        <button className="dialog-button"  disabled={isLoading} onClick={editGenotype}>{isLoading ? "Editing..." : "Edit"}</button> :
+                        <button className="dialog-button"  disabled={isUpdateLoading} onClick={editGenotype}>{isUpdateLoading  ? "Editing..." : "Edit"}</button> :
                         <button className="dialog-button"  disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button> }
                 </div>
                 </div>

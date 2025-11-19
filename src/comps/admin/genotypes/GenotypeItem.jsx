@@ -5,6 +5,7 @@ import { GenotypeDescription } from "./GentotypeDescription"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 import { EditGenotypeDialog } from "./AddGentoypeDialog"
 import { useState } from "react"
+import { set } from "lodash"
 
 
 /**
@@ -15,8 +16,9 @@ import { useState } from "react"
 
 
 export function GenotypeItem({ tag, showDetails = false }) {
-  
+  console.log(tag)
   const [isOpen, setIsOpen] = useState(false)
+  const [update, setUpdate] = useState(undefined)
   const { data: permissions, isSuccess } =
     hooks.genotypes.useGetGenotypePermissions();
 
@@ -25,15 +27,20 @@ export function GenotypeItem({ tag, showDetails = false }) {
   };
   const canShowRemoveButton = isSuccess && !_.isEmpty(permissions) && permissions?.role === 2;
    
+  const handleEditClose = () => {
+      setUpdate(Date.now())
+      setIsOpen(false)
+    }
+   
 
   return (
     <div className="flex flex-column margin--medium padding--little div--expand">
-      <EditGenotypeDialog isOpen={isOpen} onClose={() => setIsOpen(false)} tag = {tag}/>
+      <EditGenotypeDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
       <div
         className="flex justify-space-between align-center"
         style={{ width: "100%" }}
       >
-        <GenotypeText tag={tag} />
+        <GenotypeText tag={tag} update={update} />
         <button onClick={() => setIsOpen(true)} className="button--link font-size--smallest">
           Edit
         </button>
@@ -49,7 +56,7 @@ export function GenotypeItem({ tag, showDetails = false }) {
           className="flex font-size--smallest margin-left--little"
           style={{ color: "#555" }}
         >
-          <GenotypeDescription tag={tag} />
+          <GenotypeDescription tag={tag} update={update} />
         </div>
       ) : null}
     </div>
