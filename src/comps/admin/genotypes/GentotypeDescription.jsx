@@ -1,5 +1,6 @@
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
+import { useEffect } from "react"
 
 
 /**
@@ -7,12 +8,15 @@ import _ from "lodash"
  * @param {Object} props  
  * @param {String} props.tag The tag of the genotype to display the description
  */
-export function GenotypeDescription({tag}) {
+export function GenotypeDescription({tag, update}) {
 
-    const {data : genotypeDescription, isError, error, isSuccess} = hooks.genotypes.useGetGenotypeDescription({genotype_tag : tag})
-
+    const {data : genotypeDescription, isError, error, isSuccess, refetch} = hooks.genotypes.useGetGenotypeDescription({genotype_tag : tag})
+    
     if (isError) console.log(error)
-
+    useEffect(() =>{
+        if (_.isNumber(update)) refetch()
+        
+    }, [update])
 
     return <span>{isSuccess && _.isString(genotypeDescription)?genotypeDescription:null}</span>
 }
