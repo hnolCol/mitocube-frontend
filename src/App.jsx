@@ -76,6 +76,7 @@ import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
 import { UsersAdminView } from "./comps/admin/users/index";
 import { UserView } from "./comps/admin/users/View";
 import { AttributesAdminView } from "./comps/admin/attributes/index";
+import { AdminSymptoms } from "./comps/admin/symptoms/Symptoms";
 
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
@@ -324,6 +325,7 @@ function App() {
             <Route path="/admin/sets" element={<AdminFilterSets />} />
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
             <Route path="/admin/phenotypes" element={<AdminPhenotype />} />
+            <Route path="/admin/symptoms" element={<AdminSymptoms />} />
           </Route>
 
           <Route

@@ -25,7 +25,7 @@ export function GenotypeItem({ tag, showDetails = false }) {
   const handleRemove = (e) => {
     e.stopPropagation();
   };
-  const canShowRemoveButton = isSuccess && !_.isEmpty(permissions) && permissions?.role === 2;
+  const canShowRemoveButton = isSuccess && !_.isEmpty(permissions) && permissions?.role === 4;
    
   const handleEditClose = () => {
       setUpdate(Date.now())
