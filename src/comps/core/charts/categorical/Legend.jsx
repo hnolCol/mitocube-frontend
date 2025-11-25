@@ -36,12 +36,9 @@ const CategoricalLegend = React.memo(
         filterDataInKeyByValue,
         resetSearchIdcs,
         size = 25,
-        attributesByTag,
-        attributeValuesByTag,
-        genotypesByLabel
+
     }) {
         
-        console.log(colorName,attributeValuesByTag)
 
         const {
         tooltipData,
@@ -54,13 +51,14 @@ const CategoricalLegend = React.memo(
     } = useTooltip();
 
         const findAttributeValues = (attribute, attributeValueTagsString) => {
+            return []
             // there might be multiple tags which are separated by a space. 
-            if (attribute.tag === "att_genotype") {
-                const genotypeLabels = _.split(attributeValueTagsString, " ")
-                return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
-            }
-            const attributeValueTags = _.split(attributeValueTagsString, " ")
-            return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
+            // if (attribute.tag === "att_genotype") {
+            //     const genotypeLabels = _.split(attributeValueTagsString, " ")
+            //     return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
+            // }
+            // const attributeValueTags = _.split(attributeValueTagsString, " ")
+            // return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
         }
     
 
@@ -68,7 +66,6 @@ const CategoricalLegend = React.memo(
             let attributeValueText = ""
             const numberAttributeValues = attributeValues.length
         if (attribute.tag === "att_genotype") {
-            console.log(attributeValues)
             attributeValueText = numberAttributeValues === 1 ? attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
         }
         else if (attribute.has_features_value) {

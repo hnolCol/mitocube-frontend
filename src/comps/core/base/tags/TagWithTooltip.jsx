@@ -139,7 +139,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                         </div>
                         <div className='flex center-items'>
 
-                            {attribute.tag === "att_feature" ?
+                            {attribute.tag === "att_protein" ?
 
                                 <FeatureInput onItemSelect={(a, tag) => handleFeatureSelection(tag)} selectedItems={getFeatureInput()} /> :
                         

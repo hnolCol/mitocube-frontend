@@ -9,11 +9,8 @@ import { localPoint } from '@visx/event';
 
 import _ from "lodash"
 import ScatterPoints from "./ScatterPoints"
-import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesFromArrayOfObjectsByKey } from "../../../../services/arrays/groupby"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette } from "../../colors/colorPalette"
-import { Legend } from "../categorical/boxplot"
-import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
 import { Divider, H4 } from "@blueprintjs/core"
 import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
 import { roundNumber } from "../../../../services/format/number"

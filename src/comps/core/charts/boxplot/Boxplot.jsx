@@ -3,7 +3,8 @@ import { SVG } from "../SVGHeader";
 import { scaleBand, scaleLinear } from "@visx/scale";
 import { useMemo } from "react";
 import _ from "lodash"
-import Box from "./Box";
+
+import viz from "@mitocube/viz"
 
 /**
  * @description Data are assume to be a list of objects with the calculated quantiles. 
@@ -66,7 +67,7 @@ export function Boxplot({
                 tickFormat={(tickLabel) => xAxisTickLabels[tickLabel]} />
             {data.map((qs, i) => {
                 
-                return <Box
+                return <viz.primitives.Box
                     key={`${i}-boxplot-box`}
                     x={xScale(i)+bw/2}
                     median={yScale(qs.m)}

@@ -1,6 +1,5 @@
 import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
-import CategoricalBoxplot from "../../core/charts/categorical/boxplot";
 import { useGetDataQC } from "../../../hooks/queries/datasets.hooks";
 import LineChart from "../../core/charts/linechart";
 import Loading from "../../core/base/loading";
@@ -38,8 +37,7 @@ function DatasetQC() {
         }
     })
     
-    const datasetAttributeValues = metadata.dataset_attributes
-    const dataAttributes = _.values(metadata.attributes)
+
     
     return (
         <div className="div--expand padding--medium margin--medium" style={{ overflowY: "scroll"}}>

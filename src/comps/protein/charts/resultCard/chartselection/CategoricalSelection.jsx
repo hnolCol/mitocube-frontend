@@ -13,17 +13,17 @@ import _ from "lodash"
  * @param {Boolean} props.minimal If the minimal style should be used. The selection will then not be displayed next to the icon. 
  * @returns 
  */
-export function CategoricalChartSelection({ keyNames, selection, onSelectionChange, minimal }) {
+export function CategoricalChartSelection({ keyNames, selection, onSelectionChange, minimal, vertical = false }) {
 
     const handleSelection = (key, item) => {
-        console.log(key,item)
         onSelectionChange(prevValues => {
-            return { ...prevValues, [key]: _.isObject(prevValues[key]) ? prevValues[key] === item ? undefined : item : item }
+            return {
+                ...prevValues,
+                [key]: _.isObject(prevValues[key]) ? prevValues[key] === item ? undefined : item : item
+            }
         })
     }
-
-    console.log(selection, "SELECTION??")
-    return <div className="flex">
+    return <div className={`flex ${vertical ? "flex-column" : ""}`}>
         <ColorIconWithName
             callbackKey="colorName"
             items={keyNames}
