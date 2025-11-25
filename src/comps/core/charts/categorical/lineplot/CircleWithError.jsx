@@ -19,7 +19,6 @@ function CircleWithError({ cx, cy, yValue, errorValue, yScale, fill, left, handl
             null}
             
             <circle cx={cx} cy={cy} r={pointRadius} fill={fill} />
-        {/* <Box {...boxQuantiles} fill={colorScale(colorCategory)} x={xBar+boxWidth/2} width={boxWidth}/> */}
     
     </Group>
     )

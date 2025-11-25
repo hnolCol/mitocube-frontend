@@ -64,10 +64,7 @@ const ScatterLegend = React.memo(
         colorNameIsAttribute = false,
         sizeNameIsAttribute = false,
         colorNameIsGenotype = false,
-        sizeNameIsGenotype = false,
-        attributeValuesByTag = {},
-        attributesByTag = {},
-        genotypesByLabel = {}}) {
+        sizeNameIsGenotype = false}) {
     
         const {
             tooltipData,
@@ -87,31 +84,6 @@ const ScatterLegend = React.memo(
         
     const {data : colorGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : colorNameIsGenotype})
     const {data : sizeGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : sizeNameIsGenotype})
-
-    // const findAttributeValues = (attribute, attributeValueTagsString) => {
-    //     // there might be multiple tags which are separated by a space. 
-    //     if (attribute.tag === "att_genotype") {
-    //         const genotypeLabels = _.split(attributeValueTagsString, " ")
-    //         return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
-    //     }
-    //     const attributeValueTags = _.split(attributeValueTagsString, " ")
-    //     return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
-    // }
-    
-
-    // const getLegendLabelFromAttributeValues = (attribute, attributeValues) => {
-    //     let attributeValueText = ""
-    //     if (attribute.tag === "att_genotype") {
-    //         attributeValueText = _.join(_.map(attributeValues, attrValues => attrValues.text), " ")
-    //     }
-    //     else if (attribute.has_features_value) {
-    //         attributeValueText = attributeValues.length === 1 ? attributeValues[0].gene_name : _.join(attributeValues.map(attributeValue => attributeValue.gene_name), " + ")
-    //     }
-    //     else {
-    //         attributeValueText = attributeValues.length === 1?attributeValues[0].text : _.join(attributeValues.map(attributeValue => attributeValue.text), " + ")
-    //     }
-    //     return attributeValueText
-    // }
 
     /**
      * 

@@ -7,7 +7,6 @@ import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../..
 import PropTypes from "prop-types"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
 import { CategoricalLegend } from "./Legend"
-import { color } from "framer-motion"
 
 
 MultiCategoricalChart.propTypes = {
@@ -25,9 +24,7 @@ MultiCategoricalChart.propTypes = {
     outerSubplotPadding : PropTypes.number,
     innerSplitPadding : PropTypes.number,
     innerColorPadding: PropTypes.number,
-    colorPalette : PropTypes.oneOfType([
-        PropTypes.arrayOf(PropTypes.string),
-        PropTypes.object])
+    colorPalette : PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string),PropTypes.object])
 }
 
 function MultiCategoricalChart({
@@ -71,9 +68,6 @@ function MultiCategoricalChart({
     colorPalette = [],
     minMaxYDomain = undefined,
     yScaleStartsAtZero = true,
-    attributesByTag = {},
-    attributeValuesByTag = {},
-    genotypesByLabel = {},
     children
 }) {
     
@@ -81,8 +75,6 @@ function MultiCategoricalChart({
     const colorCategoryFound = _.isString(colorName) && _.has(data[0], colorName)
     const subplotCategoryFound = _.isString(subplotName) && _.has(data[0], subplotName)
     const splitCategoryFound = _.isString(splitName) && _.has(data[0], splitName)
-
-    console.log(colorCategoryFound, subplotCategoryFound, splitCategoryFound, colorName, subplotName, splitName)
 
     const subplotCategories =subplotCategoryFound?_.uniqBy(data, subplotName).map(d => d[subplotName]):[""]
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
@@ -216,9 +208,6 @@ function MultiCategoricalChart({
             <div>{_.isFunction(colorScale) && _.has(colorScale, "domain") ? <CategoricalLegend {...{
                 colorName,
                 colorScale,
-                attributesByTag,
-                attributeValuesByTag,
-                genotypesByLabel
             }} /> : null}</div>
             
             </div>

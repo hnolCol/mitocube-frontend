@@ -2,14 +2,14 @@ import { getColorPalette } from "../../../colors/colorPalette"
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
-function NormalizeIcon({ height, placeholder = "", items = [{ text: "Menu1" }], colorIdx = 0, callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
+function NormalizeIcon({ height, width = 25, placeholder = "", items = [{ text: "Menu1" }], colorIdx = 0, callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
     
     const colorPalette = getColorPalette(3)
-    const barWidth = 4
+    const barWidth = width / 7
     return (
-        <ComboboxIconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly}}>
+        <ComboboxIconBase {...{height,width,placeholder,items,callback,callbackKey,callbackValueOnly}}>
             {[{ height: 3 }, { height: 8 }, { height: 14 }, { height: 12 }, { height: 6 }, { height: 1 }].map((rectProps, idx) =>
-                <rect key={`normr-${idx}`} {...rectProps} x={2 + idx * barWidth} y={18 - rectProps.height} height={rectProps.height} width={barWidth}
+                <rect key={`normr-${idx}`} {...rectProps} x={idx * barWidth+3} y={18 - rectProps.height} height={rectProps.height} width={barWidth}
                     fill={colorPalette[colorIdx]} stroke="none" />)}
         </ComboboxIconBase>
     )

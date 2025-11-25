@@ -1,9 +1,7 @@
 import { useGetFeatureAbundanceByTag } from "../../../hooks/queries/feature.hooks";
 import { useGetProteomeAbundaneDist } from "../../../hooks/queries/proteome.hooks";
 import _ from "lodash"
-import CategoricalBoxplot from "../../core/charts/categorical/boxplot";
 import { Boxplot } from "../../core/charts/boxplot/Boxplot";
-import { AttributeBoxplot } from "../../core/charts/boxplot/AttributeBoxplot";
 import { useState } from "react";
 import { MinimalAttributeSelection } from "../../core/base/attributes/MinimalAttributeSelection";
 

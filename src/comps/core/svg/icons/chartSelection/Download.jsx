@@ -7,7 +7,7 @@ function DownloadIcon({ height = 25, width = 25, placeholder = "", items = [{ te
     const halfWidth = width / 2
     const arrowEnd = height / 1.5
     const arrowHeight = height/5
-
+    console.log(height,width,"2")
     return (
         <ComboboxIconBase {...{width, height, placeholder, items, callback, callbackKey, callbackValueOnly, minimal, filterable : false}}>
             <g>

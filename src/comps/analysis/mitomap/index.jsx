@@ -55,16 +55,6 @@ export function MitomapNetwork({ }) {
                 />
                 {_.isObject(metadata) ? 
                     <AttributePairwiseSelection {...{metadata,callbackText : "Map Network Nodes.", callback : handleSelection, isLoading : isError ? false : (isFetching || isLoading)}} /> : null}
-            {/* <h4>Color encoding</h4>
-            <SegmentedControl
-                    options={[{ label: "Pairwise", value: "pairwise" }, { label: "Multiple", value: "mulitple" }]}
-                    small={true}
-                    fill={false}
-                    value={networkProps.comp_type}
-                    onValueChange={(value) => setNetworkType(value)}
-                    intent="primary"
-                    defaultValue="pairwise"
-                /> */}
             {isError ? <APIError error={error}/> : null}
             </div>
             {isSuccess && _.isObject(metadata) && network_dataValid ? 

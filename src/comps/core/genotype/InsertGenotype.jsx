@@ -26,8 +26,10 @@ export function InsertGenotype({ onClose }) {
     
     const handleTraitSelection = (trait_tag, referenceID) => {
         let selected_traits = selectedTraits.slice() //mission.selected_traits
-        findAndInsertTree(selected_traits, [{ "type": "attribute", "tag": 'att_gene_engineering', 'id' : referenceID }, { "type": "trait", "tag": trait_tag, "id": referenceID }], 0, true, false, false)
-        
+        findAndInsertTree(selected_traits, [
+            { "type": "attribute", "tag": 'att_gene_engineering', 'id': referenceID },
+            { "type": "trait", "tag": trait_tag, "id": referenceID }], 0, true, false, false)
+
         setSelectedTraits(selected_traits)
     }
 
@@ -40,13 +42,12 @@ export function InsertGenotype({ onClose }) {
     }
 
     const handleSelection = (path) => {
-
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         findAndInsertTree(selected_traits, path, 3, true, true, false, 0)
         setSelectedTraits(selected_traits)
     }
 
-
+    
     const getSelectionByPath = (path) => {
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         const selection = findChildrenByPath(selected_traits, path)
@@ -112,6 +113,8 @@ export function InsertGenotype({ onClose }) {
             }
         })
     }
+
+
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
             <h3>Genotype Insertion</h3>

@@ -4,7 +4,7 @@ import _ from "lodash"
 import { usePostProteome } from "../../../hooks/queries/proteome.hooks";
 import APIError from "../../core/error/APIerror";
 
-export function AddProteome({ }) {
+export function AddProteome({ can_insert = false}) {
     const [proteomes, setProteomes] = useState({proteome_tag : "", reviewed : true})
     const { mutate, isLoading, isError, error } = usePostProteome()
     
@@ -21,8 +21,8 @@ export function AddProteome({ }) {
             <div>
             <p>Add a proteome using the Uniprot <a href="https://www.uniprot.org/proteomes?query=*">reference proteome.</a></p>
             <div className="flex">
-                <InputGroup placeholder="Enter uniprot proteome id(s) (UP....)" value={proteomes.proteome_tag} onValueChange={(value) => setProteomes(prevValues => {return {...prevValues, proteome_tag : value}})} fill/>
-                <Button icon="plus" onClick={handleProteomeSubmit} small={true} intent="primary" />
+                <InputGroup disabled={!can_insert} placeholder="Enter uniprot proteome id(s) (UP....)" value={proteomes.proteome_tag} onValueChange={(value) => setProteomes(prevValues => {return {...prevValues, proteome_tag : value}})} fill/>
+                <Button disabled={!can_insert} icon="plus" onClick={handleProteomeSubmit} small={true} intent="primary" />
             </div>
             <p>Add multiple proteome tags by separating them using a ';'.</p>
             <Checkbox label="Reviewed entries only" checked={proteomes.reviewed} onChange={() => setProteomes(prevValues => { return { ...prevValues, reviewed: !prevValues.reviewed } })} />
