@@ -58,23 +58,6 @@ function ProfileBars({
                         width={barWidth*0.5} /> : null}
                 </g>
             })}
-            
-
-            {/* {data.filter((d,idx) => valid[idx]).map((d,idx) => {
-                //filter data first and then map over it 
-                if (filterByIdx && !filterIndices.has(idx)) return null 
-                
-                return <circle 
-                    //dont use opacity, very very slow on safari 
-                    key={`${idx}-${d[xaxisName]}`}
-                    cx={xScale(d[xaxisName])} 
-                    cy={yScale(d[yaxisName])} 
-                    r={sizeScale(d[sizeName])} 
-                    fillOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
-                    strokeOpacity={oapcityBySearch?searchIndices.has(idx)?1.0:0.2:1.0}
-                    {...{fill : colorName===undefined?fill:colorScale(d[colorName]),
-                        stroke,strokeWidth}}/>
-            })} */}
 
         </g>
     )

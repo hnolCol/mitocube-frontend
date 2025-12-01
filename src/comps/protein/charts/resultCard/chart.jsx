@@ -3,46 +3,61 @@
 import _ from "lodash"
 import { useMemo, useState } from "react"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
-import CategoricalBarplot from "../../../core/charts/categorical/barplot"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
-import CategoricalBoxplot from "../../../core/charts/categorical/boxplot"
 import { useCycle } from "framer-motion"
 import PlottypeIcon from "../../../core/svg/icons/chartSelection/Plottype"
 import DownloadIcon from "../../../core/svg/icons/chartSelection/Download"
 import { downloadTxtFile } from "../../../../services/downloads/txt"
 import { arrayOfObjectsToString } from "../../../../services/arrays/transforms"
-import CategoricalLineplot from "../../../core/charts/categorical/lineplot"
 import { downloadSVG } from "../../../../services/downloads/svg"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
 import { Card } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 import { CategoricalChartSelection } from "./chartselection/CategoricalSelection"
 
+
+
+import viz from "@mitocube/viz"
+
+
+
 function ResultChart({
-    data = [{ "y": 24.2, Genotype: "WT", Treatment : "DMSO", Time : "00min"},{ "y": 24.2, Genotype: "WT", Treatment : "Treat", Time : "15min"},{ "y": 24.5, Genotype: "WT", Treatment : "DMSO", Time : "15min"}, { "y": 24.6, Genotype: "KO", Treatment : "Treat", Time : "15min"}, { "y": 25, Genotype: "KO", Treatment : "DMSO", Time : "00min"},{ "y": 25.4, Genotype: "KO", Treatment : "DMSO", Time : "15min"} ,{ "y": 25.2, Genotype: "KO", Treatment : "DMSO", Time : "15min"}, { "y": 24.7, Genotype: "WT" ,Treatment : "DMSO", Time : "15min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" },{ "y": 24, Genotype: "KO" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.2, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 24.3, Genotype: "WT" ,Treatment : "DMSO", Time : "00min" }, { "y": 23.4, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y": 24, Genotype: "WT"  ,Treatment : "DMSO", Time : "15min" }, { "y":24.55, Genotype: "KO",  Treatment : "Treat", Time : "15min"  }, { "y": 24.3, Genotype: "KO", Treatment : "Treat" , Time : "00min"  }, { "y": 23.2, Genotype: "WT" , Treatment : "Treat" , Time : "15min" }, { "y": 23.5, Genotype: "WT", Treatment : "Treat", Time : "00min" }],
+    data = [{ "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
+        { "y": 24.2, Genotype: "WT", Treatment: "Treat", Time: "15min" },
+        { "y": 24.5, Genotype: "WT", Treatment: "DMSO", Time: "15min" },
+        { "y": 24.6, Genotype: "KO", Treatment: "Treat", Time: "15min" },
+        { "y": 25, Genotype: "KO", Treatment: "DMSO", Time: "00min" },
+        { "y": 25.4, Genotype: "KO", Treatment: "DMSO", Time: "15min" },
+        { "y": 25.2, Genotype: "KO", Treatment: "DMSO", Time: "15min" },
+        { "y": 24.7, Genotype: "WT", Treatment: "DMSO", Time: "15min" },
+        { "y": 24.3, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
+        { "y": 24, Genotype: "KO", Treatment: "DMSO", Time: "00min" },
+        { "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
+        { "y": 24.3, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
+        { "y": 23.4, Genotype: "WT", Treatment: "DMSO", Time: "15min" },
+        { "y": 24, Genotype: "WT", Treatment: "DMSO", Time: "15min" },
+        { "y": 24.55, Genotype: "KO", Treatment: "Treat", Time: "15min" },
+        { "y": 24.3, Genotype: "KO", Treatment: "Treat", Time: "00min" },
+        { "y": 23.2, Genotype: "WT", Treatment: "Treat", Time: "15min" },
+        { "y": 23.5, Genotype: "WT", Treatment: "Treat", Time: "00min" }],
     yaxisName = "y",
-    sample_attribute_tags = [],
+    attribute_tags = [],
     submission_tag = "",
     featureID = "",
-    // attributesByTag,
-    // attributeValuesByTag,
-    genotypesByTag,
+    width,
+    height,
     title,
+    showMenu = true,
     openMetadataDrawer
 }) {
-    const attributes = sample_attribute_tags.map(attributeTag => attributeTag)
-    const [plotType, cyclePlotTypes] = useCycle("boxplot","barplot","lineplot")
+
+    const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
-    const [selection, setSelection] = useState({colorName : attributes[0], splitName : attributes[1], subplotName : attributes[2]})
-    console.log("SELECTION", selection)
+    const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
-    const selectionTags = _.fromPairs(_.keys(selection).filter(selectionKey => _.isObject(selection[selectionKey])).map(selectionKey => [selectionKey ,selection[selectionKey]]))
-    //console.log(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
-    
-    console.log(keyNamesForSplitting)
-    console.log(selectionTags)
-    
+    const selectionTags = selection
+
     const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const svgID = `${featureID}-svg-id${submission_tag}`
@@ -50,7 +65,7 @@ function ResultChart({
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
         const chartData = showNormalizedData ? normalizedData : data
-        if (plotType === "boxplot") {
+        if (chartType === "boxplot") {
             return getQuantilesByGroups(
                 chartData,
                 keyNamesForSplitting,
@@ -58,11 +73,11 @@ function ResultChart({
                 yaxisName,
                 yaxisName)
         }
-        else if (["barplot", "lineplot"].includes(plotType)) {
+        else if (["barplot", "lineplot"].includes(chartType)) {
             //calculate average and standard deviation for lineplots and barplots.
             return getAverageAndErrorByGroups(chartData, keyNamesForSplitting, yaxisName)
         }
-    }, [plotType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
+    }, [chartType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
 
 
 
@@ -103,98 +118,75 @@ function ResultChart({
             openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, submission_tag : submission_tag}})
         }
         else {
-            redirect("/datasets/"+submission_tag)
+            redirect("/submissions/"+submission_tag)
         }
         
     }
 
-    const getPlot = (plotType, groupedAggratedData) => { 
-        if (keyNamesForSplitting.length === 0) return <div>Please select grouping names ...</div>
-
-        if (plotType === "barplot") {
-            return <CategoricalBarplot {...{
-                ...selectionTags,
-                data: groupedAggratedData,
-                errorName: "e",
-                yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
-                yaxisName,
-                //categoricalNames: keyNamesForSplitting,
-                minMaxYDomain,
-                svgID,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting)
-                
-            }} />
-        }
-        else if (plotType === "lineplot") {
-            return <CategoricalLineplot {...{
-                ...selectionTags,
-                data: groupedAggratedData,
-                yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
-                errorName: "e",
-                yaxisName,
-                svgID,
-                //categoricalNames: keyNamesForSplitting,
-                minMaxYDomain,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting)
-            }} />
-        }
-        else if (plotType === "boxplot") {
-            return <CategoricalBoxplot {...{
-                ...selection,
-                data: groupedAggratedData,
-                yaxisLabel: _.join([NormalizationPrefixes[normalization], yaxisName, normalization!=="raw"?`(${_.join(Object.values(normalizeDialog.normalizeToSelection),", ")})`:""]," "),
-                errorName: "e",
-                yaxisName,
-                svgID,
-                //categoricalNames: keyNamesForSplitting,
-                minMaxYDomain,
-                tooltipNames: _.concat(["N"], keyNamesForSplitting)
-            }} />
-        }
-    }
+    
 
     return (
-        <Card className="margin--little" compact={true} style={{maxWidth: "450x"}}>
-
-            <div className="flex justify-flex-start flex--wrap">
-                <h4></h4>
-                <CategoricalChartSelection {...{keyNames : attributes , selection, onSelectionChange : setSelection} }/>
-            {/* <div>
-                <GroupingSelection
-                    groupings={groupings}
-                    keyNames={["colorName", "splitName", "subplotName"]}
-                    handleSelection={(name,value) => setSelectedGroupings(prevValues => { return { ...prevValues, [name] : _.has(data[0],value)?value:undefined}})}
-                    selectedItems={selectedGroupings} />
-            </div> */}
-                
-                <div>
-                    <NormalizeIcon
-                        placeholder=""
-                        colorIdx={NormalizationModes.indexOf(normalization)}
-                        items={_.concat(NormalizationModes.map(v => { return { text: v, selected: normalization === v, disabled: v !== "raw" && !checkNormalizeToSelection() } }), [{text : "Normalize to .."}])}
-                        callbackValueOnly={true}
-                        callback={handleNormalization}
-                        />
-                </div>
-                <PlottypeIcon callback={cyclePlotTypes} {...{ plotType }} />
-                <InfoIcon items={["Metadata","Dataset view"]} callback={handleInfo} callbackValueOnly={true}/>
-
+        <div
+            className="margin--little"
+            style={{ width: width, height: height }}
+        >
             
-                <DownloadIcon items={["Raw", "Aggregated", "Normalized","DIVIDER","PNG","SVG"].map(dataType => {
-                    return ({ text: dataType, disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0 ): false})
-                })} placeholder="" callback={handleDataDownload} callbackValueOnly={true} />
 
-                <div className="flex center-items">
-                    
-                    <h5>{title}</h5>
-                    
-                </div>
+            <div className="flex center-items">
+                <h5>{title}</h5>
             </div>
-            
-                {getPlot(plotType, groupedAggratedData)}
+            <div className="flex">
 
-        </Card>
+            <viz.charts.Categorical
+                width={width - 40 || undefined}
+                height={height - 50 || undefined}
+                {...selectionTags}
+                data={groupedAggratedData}
+                errorName="e"
+                yaxisLabel={_.join([NormalizationPrefixes[normalization], yaxisName, normalization !== "raw" ? `(${_.join(Object.values(normalizeDialog.normalizeToSelection), ", ")})` : ""], " ")}
+                yaxisName={yaxisName}
+                minMaxYDomain={minMaxYDomain}
+                svgID={svgID}
+                chartType={chartType}
+                tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
+            />
 
+            {showMenu && (
+                <div className="flex flex-column justify-flex-start">
+                    <CategoricalChartSelection
+                        vertical={true}
+                        {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
+                    />
+
+                    <div>
+                        <NormalizeIcon
+                            placeholder=""
+                            colorIdx={NormalizationModes.indexOf(normalization)}
+                            items={_.concat(
+                                NormalizationModes.map((v) => {
+                                    return { text: v, selected: normalization === v, disabled: v !== "raw" && !checkNormalizeToSelection() }
+                                }),
+                                [{ text: "Normalize to .." }]
+                            )}
+                            callbackValueOnly={true}
+                            callback={handleNormalization}
+                        />
+                    </div>
+                    <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
+                    <InfoIcon items={["Metadata", "Dataset view"]} callback={handleInfo} callbackValueOnly={true} />
+
+                    <DownloadIcon
+                        items={["Raw", "Aggregated", "Normalized", "DIVIDER", "PNG", "SVG"].map((dataType) => {
+                            return { text: dataType, disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0) : false }
+                        })}
+                        placeholder=""
+                        callback={handleDataDownload}
+                        callbackValueOnly={true}
+                    />
+                </div>
+                )}
+                </div>
+        </div>
     )
 }
 

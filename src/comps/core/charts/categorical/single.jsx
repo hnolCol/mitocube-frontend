@@ -9,47 +9,73 @@ import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting
 
 
 SingleCategoricalChart.propTypes = {
-    width: PropTypes.number, 
-    height: PropTypes.number, 
+    width: PropTypes.number,
+    height: PropTypes.number,
     data: PropTypes.arrayOf(PropTypes.object),
     margins: PropTypes.object,
-    yaxisName: PropTypes.string, 
-    colorName: PropTypes.string, 
-    splitName: PropTypes.string, 
-    subplotName: PropTypes.string, 
-    svgID : PropTypes.string
+    yaxisName: PropTypes.string,
+    colorName: PropTypes.string,
+    innerColorPadding: PropTypes.number,
+    outerColorPadding: PropTypes.number,
+    svgID: PropTypes.string,
+    svgRef: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
+    colorPalette: PropTypes.oneOfType([PropTypes.array, PropTypes.object]),
+    minMaxYDomain: PropTypes.shape({
+        min: PropTypes.number,
+        max: PropTypes.number
+    }),
+    yScaleStartsAtZero: PropTypes.bool,
+    darkmode: PropTypes.bool,
+    children: PropTypes.func
 }
 
-function SingleCategoricalChart({
-    width = 600,
-    height = 300,
-    data = [
-    
-        { y: 5, T: "A", G: "WT", O : "0.5h" },
-        { y: 4, T: "B", G: "WT", O : "0.5h" },
+SingleCategoricalChart.defaultProps = {
+    width: 600,
+    height: 300,
+    data: [
+        { y: 5, T: "A", G: "WT", O: "0.5h" },
+        { y: 4, T: "B", G: "WT", O: "0.5h" },
         { y: 10, T: "C", G: "WT", O: "0.5h" }
     ],
-    
-    margins = {
+    margins: {
         left: 15,
         right: 5,
         bottom: 30,
         top: 5
     },
-    yaxisName = "y",
-    colorName = "Treatment",
-    innerColorPadding = 0.1,
-    outerColorPadding = 0.2,
-    svgID = undefined,
-    svgRef =undefined,
-    colorPalette = [],
-    minMaxYDomain = undefined,
-    yScaleStartsAtZero = true,
+    yaxisName: "y",
+    colorName: "Treatment",
+    innerColorPadding: 0.1,
+    outerColorPadding: 0.2,
+    svgID: undefined,
+    svgRef: undefined,
+    colorPalette: [],
+    minMaxYDomain: undefined,
+    yScaleStartsAtZero: true,
+    darkmode: false,
+    children: () => null
+}
+
+function SingleCategoricalChart({
+    width,
+    height,
+    data,
+    margins,
+    yaxisName,
+    colorName,
+    innerColorPadding,
+    outerColorPadding,
+    svgID,
+    svgRef,
+    colorPalette,
+    minMaxYDomain,
+    yScaleStartsAtZero,
+    darkmode,
     children
 }) {
+    console.log(darkmode)
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
-    console.log("uniqueColorValues", uniqueColorValues,"IN SINGLE CAT CHART", colorName, data)
     const splitColorScale = useMemo(() => {
         // color scale taking care of the position of the color (e.g horizontal)
         return (
@@ -70,7 +96,7 @@ function SingleCategoricalChart({
         
         var colorRange = []
         if (colorPalette.length === 0){
-            colorRange = getColorPalette(uniqueColorValues.length)
+            colorRange = getColorPalette(uniqueColorValues.length, darkmode)
         }
         else if (_.isArray(colorPalette)) {
             //check if colorPalette is same length? 
@@ -79,14 +105,14 @@ function SingleCategoricalChart({
         else if (_.isObject(colorPalette)) {
             // if an object is provided each colorValue must be in the color Palette
             if (uniqueColorValues.filter(uniqueColorValue => !_.has(colorPalette, uniqueColorValue)).length !== 0) {
-                colorRange  = getColorPalette(uniqueColorValues.length)
+                colorRange  = getColorPalette(uniqueColorValues.length, darkmode)
             }
             else {
                 colorRange = uniqueColorValues.map(uniqueColorValue => colorPalette[uniqueColorValue])
             }
         }
         else {
-            colorRange = getColorPalette(uniqueColorValues.length)
+            colorRange = getColorPalette(uniqueColorValues.length, darkmode)
         }
 
         return (
@@ -127,6 +153,7 @@ function SingleCategoricalChart({
             yScale,
             chartHeight,
             chartWidth,
+            darkmode,
             colorBandwidth : splitColorScale.bandwidth(),
             xcenter: margins.left + chartWidth/2,
         }

@@ -11,7 +11,8 @@ import PropTypes from "prop-types"
 import { STROKE_COLOR, getColorPalette } from "../../../colors/colorPalette"
 import { areAllValuesNumbers } from "../../../../../services/arrays/checks"
 import CircleWithError from "./CircleWithError"
-import { mapAttributeValueTagsToAttributes } from "../../../../../services/attributes"
+
+import viz from "@mitocube/viz"
 
 CategoricalLineplot.propTypes = {
     colorName: PropTypes.string,
@@ -61,10 +62,8 @@ function CategoricalLineplot({
     outerSubplotPadding = 0.1,
     innerSplitPadding = 0.2,
     innerColorPadding = 0.0,
-    svgID = undefined,
-    attributesByTag,
-    attributeValuesByTag,
-    genotypesByLabel
+    svgID = undefined
+    
     }) {
 
     // const { colorName, splitName, subplotName } = getNamesFromCategories({categoricalNames,data})
@@ -138,14 +137,12 @@ function CategoricalLineplot({
                         return (
                             <g key={`singleCat-bar-${idx}`}>
                                 {/* add axis with background */}
-                                <AxisWithBackground
+                                <viz.axis.XYaxis
                                     margins={margins}
                                     leftScale={yScale}
                                     bandwidth={colorBandwidth}
                                     bottomScale={splitColorScale}
                                     bottomLabel={""}
-                                    attributeValuesByTag={attributeValuesByTag}
-                                    valueIsFeature={attributesByTag[colorName].has_features_value}
                                     leftLabel={_.isString(yaxisLabel)?yaxisLabel:yaxisName}
                                     {...{ chartHeight, chartWidth }} />
                                 {/* x axis label */}
@@ -153,7 +150,7 @@ function CategoricalLineplot({
                                     x={margins.left + chartWidth / 2}
                                     y={margins.top + chartHeight + 25}
                                     verticalAnchor="start"
-                                    textAnchor="middle">{_.has(attributesByTag,colorName)?attributesByTag[colorName].text : colorName}
+                                    textAnchor="middle">{colorName}
                                 </Text>
                                 
                                 {colorCategories.map((colorCategory,colorIdx) => {
@@ -206,10 +203,7 @@ function CategoricalLineplot({
                     colorPalette: legendColors,
                     yScaleStartsAtZero : false,
                     minMaxYDomain,
-                    svgRef: containerRef,
-                    attributesByTag,
-                    attributeValuesByTag,
-                    genotypesByLabel
+                    svgRef: containerRef
                 }}>
             {(categoricalData) => categoricalData.map((
                 {
@@ -246,11 +240,9 @@ function CategoricalLineplot({
                                 bottomScale={splitScale}
                                 bandwidth={splitScale.bandwidth() * 1.1}
                                 leftTickLabelProps={{ opacity: didx === 0 ? 1 : 0 }}
-                                 bottomLabel={""}
-                                attributeValuesByTag={attributeValuesByTag}
-                                valueIsFeature={_.isString(splitName) ? attributesByTag[splitName].has_features_value : false}
+                                bottomLabel={""}
                                 leftLabel={didx === 0 ? _.isString(yaxisLabel)?yaxisLabel:yaxisName : ""}
-                                {...{ chartHeight, chartWidth :  subplotWidth, genotypesByLabel}} />
+                                {...{ chartHeight, chartWidth :  subplotWidth }} />
                         
                           {subplotCategoryFound ?
                               <g>
@@ -260,7 +252,7 @@ function CategoricalLineplot({
                                       verticalAnchor="middle"
                                       width={subplotWidth}
                                     textAnchor="middle">
-                                    {mapAttributeValueTagsToAttributes({attrValueTag : subplotCategory, attrValuesByTag : attributesByTag.attribute_values}).asString}
+                                    {subplotCategory}
                                 </Text>
                               </g> : null}
                           
@@ -268,7 +260,7 @@ function CategoricalLineplot({
                               x={margins.left + chartWidth / 2}
                               y={margins.top + chartHeight + 25}
                               verticalAnchor="start"
-                              textAnchor="middle">{_.has(attributesByTag,splitName)?attributesByTag[splitName].text : splitName}</Text> : null}
+                              textAnchor="middle">{splitName}</Text> : null}
                         
                           
                         {/* {If there is not split but a subplot} */}

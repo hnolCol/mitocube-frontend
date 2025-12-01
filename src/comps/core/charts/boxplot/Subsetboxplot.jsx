@@ -4,9 +4,9 @@ import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../..
 import { SVG } from "../SVGHeader"
 import { getQuantileByIndices } from "../../../../services/arrays/groupby"
 import _ from "lodash"
-import Box from "./Box"
 import { AxisLeft } from "@visx/axis"
 import { Text } from "@visx/text"
+import viz from "@mitocube/viz"
 
 /**
  * @description Simple minimal boxplot to show in a tooltip, not to read exact value, jsut to get an 
@@ -57,7 +57,7 @@ export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, hei
             <AxisLeft left={marginleft} scale={yScale} tickLength={2} numTicks={3} strokeWidth={0.5}/>
             {_.keys(qs).map((i,idx) => {
                 const qqs = _.fromPairs(_.map(qs[i].labels, (label, idx) => [label, yScale(qs[i][yaxisName][idx])]))
-                return <g><Box {...qqs} x={xScale(idx) + xScale.bandwidth() / 2} width={xScale.bandwidth()} fill={idx > 0 ? "red" : undefined} />
+                return <g><viz.primitives.Box {...qqs} x={xScale(idx) + xScale.bandwidth() / 2} width={xScale.bandwidth()} fill={idx > 0 ? "red" : undefined} />
                     {idx > 0 && _.isNumber(qqs["median"]) && _.isNumber(qs[i].N) ? <g><Text
                         x={xScale(idx) + xScale.bandwidth()}
                         verticalAnchor="middle"

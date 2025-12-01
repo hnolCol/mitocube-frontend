@@ -64,10 +64,6 @@ export function FeatureCorrelationPlot({ width = 200, height = 200, margin = {to
                             ...hoverProps,
                             ...filterProps,
                             rerenderBackground: `${filterProps.rerenderBackground}-${feature_tag_y}-${feature_tag_x}}`,
-                            // rerenderAxis : `${feature_tag_y}-${feature_tag_x}}`,
-                            //attributeValuesByTag: metadata.attribute_values_by_tag,
-                            //    attributesByTag: metadata.attributes,
-                            //genotypesByLabel : metadata.genotypes,
                             legend: true,
                             svgID: "scatter_plot-corr"
                         }} />

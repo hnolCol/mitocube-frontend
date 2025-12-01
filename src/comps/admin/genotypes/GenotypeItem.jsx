@@ -19,17 +19,17 @@ export function GenotypeItem({ tag, showDetails = false }) {
   console.log(tag)
   const [isOpen, setIsOpen] = useState(false)
   const [update, setUpdate] = useState(undefined)
-  const { data: permissions, isSuccess } =
-    hooks.genotypes.useGetGenotypePermissions();
+  const { data: permissions, isSuccess } = hooks.genotypes.useGetGenotypePermissions({ tag });
 
   const handleRemove = (e) => {
     e.stopPropagation();
   };
-  const canShowRemoveButton = isSuccess && !_.isEmpty(permissions) && permissions?.role === 2;
-   
+  const canShowRemoveButton = isSuccess && permissions.delete
+  console.log(canShowRemoveButton)
+
   const handleEditClose = () => {
       setUpdate(Date.now())
-      setIsOpen(false)
+      setIsOpen()
     }
    
 
@@ -41,13 +41,17 @@ export function GenotypeItem({ tag, showDetails = false }) {
         style={{ width: "100%" }}
       >
         <GenotypeText tag={tag} update={update} />
-        <button onClick={() => setIsOpen(true)} className="button--link font-size--smallest">
-          Edit
-        </button>
+        <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+                <button onClick={() => setIsOpen(true)} className="button--link font-size--smallest">
+                    Edit
+                </button>
 
-        {canShowRemoveButton && (
-          <RemoveButton onRemove={handleRemove} fontColor={"#e63946"} />
-        )}
+                {canShowRemoveButton && (
+                    <button onClick={handleRemove} className="button--link font-size--smallest">
+                        Delete
+                    </button>
+                )}
+        </div>
       </div>
 
 

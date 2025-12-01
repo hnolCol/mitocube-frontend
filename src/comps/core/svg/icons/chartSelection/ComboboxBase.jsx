@@ -1,14 +1,40 @@
 import { MenuDivider, MenuItem } from "@blueprintjs/core"
 import { SVG } from "../../../charts/SVGHeader"
-import _ from "lodash"
-import { motion } from "framer-motion"
-import { useState } from "react"
+import _, { at } from "lodash"
 import { Group } from "@visx/group"
-import { Text } from "@visx/text"
 import "./style.css"
 import { Select } from "@blueprintjs/select"
 import { filterArrayBySearchStringBySingleKey } from "../../../../../services/arrays/filter"
 import { isItemInArrayDeepComp } from "../../../../../services/arrays/transforms"
+
+
+import hooks from "@mitocube/api-hooks"
+
+/**
+ * 
+ * @param {Objet} props 
+ * @param {String} props.attribute_tag - The tag of the attribute to be displayed. 
+ * @param {Function} props.handleClick - The function to be called upon click.
+ * @param {Boolean} props.active - If the item is active. 
+ * @param {Boolean} props.selected - If the item is selected. 
+ * @param {Boolean} props.disabled - If the item is disabled. 
+ * @returns 
+ */
+function AttributeMenuItem({ attribute_tag, handleClick, active = false, selected = false, disabled = false }) {
+
+    const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    return (
+    <div>
+            {isSuccess ? <MenuItem
+                text={attribute.text}
+                label={""} icon={selected ? "tick" : "blank"}
+                onClick={handleClick}
+                active={active}
+                disabled={disabled} /> : null}
+    </div>)
+}
+
+
 /**
  * 
  * @param {Object} props 
@@ -20,6 +46,7 @@ import { isItemInArrayDeepComp } from "../../../../../services/arrays/transforms
  * @param {SVGAElement} props.children - The children to be displayed in the SVG
  * @returns 
  */
+
 function ComboboxIconBase({
     height = 25,
     width = 25,
@@ -33,6 +60,7 @@ function ComboboxIconBase({
     callbackValueOnly = false,
     minimal = true,
     filterable = false,
+    itemIsAttribute = true,
     children }) {
     
     const itemsAreObjects = _.isObject(items[0])
@@ -66,6 +94,14 @@ function ComboboxIconBase({
     const renderItem = (item, { handleClick, handleFocus, index, modifiers, query, ref }) => {
         const selected = isItemInArrayDeepComp({array : selectedItems, item})
         if (item[textKey] === "DIVIDER") return <MenuDivider key={`${index}-comboMenuDiv`} />
+        if (itemIsAttribute) {
+            return <AttributeMenuItem
+                key={`${item[textKey]}-${index}`}
+                attribute_tag={item.text}
+                active={modifiers.active}
+                selected={selected}
+                handleClick={handleClick} />
+        }
         return <MenuItem
             key={`${item[textKey]}-${index}`}
             text={item[textKey]}
@@ -80,31 +116,30 @@ function ComboboxIconBase({
 
     return (
         <div> 
-            <Select items={checkedItems}
+            <Select
+                items={checkedItems}
                 itemListPredicate={filterItems}
                 filterable={filterable}
                 itemRenderer={renderItem}
                 onItemSelect={handleSelection}
                 disabled={items.length === 0}
-            
                 >
-                <div className="flex margin--very-little icon__container center-items">
-                    <div style={{height,width}}>
+                <button className="flex margin--very-little icon__container center-items" style={{outline : "none", border : "none", width, height, padding : "0px"}} onMouseDown={e => e.stopPropagation()}>
+
                     <SVG {...{ width, height }}>
                         <Group  left={0} top={0} >
                                 {children}
                         </Group>
                     </SVG>
-                    </div>
                     {!minimal ?
                         <div className="flex icon__container__text">
                             {placeholder}
                         </div> : null}
-                    </div>
-                    </Select>
+                    </button>
+            </Select>
         </div>
         
-       
+                        
     )
 }
 

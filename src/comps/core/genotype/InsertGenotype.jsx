@@ -41,8 +41,10 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     
     const handleTraitSelection = (trait_tag, referenceID) => {
         let selected_traits = selectedTraits.slice() //mission.selected_traits
-        findAndInsertTree(selected_traits, [{ "type": "attribute", "tag": 'att_gene_engineering', 'id' : referenceID }, { "type": "trait", "tag": trait_tag, "id": referenceID }], 0, true, false, false)
-        
+        findAndInsertTree(selected_traits, [
+            { "type": "attribute", "tag": 'att_gene_engineering', 'id': referenceID },
+            { "type": "trait", "tag": trait_tag, "id": referenceID }], 0, true, false, false)
+
         setSelectedTraits(selected_traits)
     }
 
@@ -57,13 +59,12 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     }
 
     const handleSelection = (path) => {
-
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         findAndInsertTree(selected_traits, path, 3, true, true, false, 0)
         setSelectedTraits(selected_traits)
     }
 
-
+    
     const getSelectionByPath = (path) => {
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         const selection = findChildrenByPath(selected_traits, path)

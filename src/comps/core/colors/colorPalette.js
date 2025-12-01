@@ -1,6 +1,14 @@
 
-// move this to services!! 
-
+const STD_CHART_COLOR_PALETTE_DARK = [
+    "#61dafb", // light blue
+    "#06d6a0", // teal
+    "#ffd166", // warm yellow
+    "#ef476f", // pink/red
+    "#118ab2", // deep cyan
+    "#8338ec", // purple
+    "#ff7b00", // orange
+    "#2dd4bf"  // mint
+]
 const STD_CHART_COLOR_PALETTE = [
     "#466688",
     "#79c29e",
@@ -12,8 +20,9 @@ const STD_CHART_COLOR_PALETTE = [
     "#d97a4b"
     ]
 
-export function getColorPalette(n) {
-    return STD_CHART_COLOR_PALETTE.slice(0,n)
+export function getColorPalette(n, darkmode = false) {
+    const colorPalette = darkmode ? STD_CHART_COLOR_PALETTE_DARK : STD_CHART_COLOR_PALETTE;
+    return colorPalette.slice(0,n)
 }
 
 export function getRedBlueColorScale() {
