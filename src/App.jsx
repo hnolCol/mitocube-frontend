@@ -77,6 +77,7 @@ import { UsersAdminView } from "./comps/admin/users/index";
 import { UserView } from "./comps/admin/users/View";
 import { AttributesAdminView } from "./comps/admin/attributes/index";
 import { AdminSymptoms } from "./comps/admin/symptoms/Symptoms";
+import { AdminSparepart } from "./comps/admin/spareparts/Sparepart";
 
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
@@ -326,6 +327,7 @@ function App() {
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
             <Route path="/admin/phenotypes" element={<AdminPhenotype />} />
             <Route path="/admin/symptoms" element={<AdminSymptoms />} />
+            <Route path="/admin/spareparts" element={<AdminSparepart />} />
           </Route>
 
           <Route

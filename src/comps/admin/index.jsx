@@ -19,7 +19,8 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Research Group", to: "/admin/researchgroup" },
                 { text: "Phenotype", to: "/admin/phenotypes"},
                 { text: "ShareToken", to: "/admin/sharetoken" },
-                { text: "Symptoms", to: "/admin/symptoms"}]} />
+                { text: "Symptoms", to: "/admin/symptoms"},
+                { text: "Spare Parts", to : "/admin/spareparts"}]} />
                 
                 <div className="no-scroll div--expand">
                 <Outlet />
