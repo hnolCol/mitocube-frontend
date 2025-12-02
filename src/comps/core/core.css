@@ -500,6 +500,18 @@ h5 {
     margin-left: 5px;
     background: #fafbfc;
 }
+
+.basic-button {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
 .dialog-button {
     background: #f3f4f6;
     color: #374151;

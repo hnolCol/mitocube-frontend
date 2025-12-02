@@ -42,12 +42,12 @@ export function GenotypeItem({ tag, showDetails = false }) {
       >
         <GenotypeText tag={tag} update={update} />
         <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
-                <button onClick={() => setIsOpen(true)} className="button--link font-size--smallest">
+                <button onClick={() => setIsOpen(true)} className="basic-button font-size--smallest">
                     Edit
                 </button>
 
                 {canShowRemoveButton && (
-                    <button onClick={handleRemove} className="button--link font-size--smallest">
+                    <button onClick={handleRemove} className="basic-button font-size--smallest">
                         Delete
                     </button>
                 )}

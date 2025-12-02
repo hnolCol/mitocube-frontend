@@ -29,7 +29,7 @@ export function SymptomsItem({ tag, showDetails = false }) {
 
             
             <SymptomText tag={tag} update={update} />
-            <button onClick={() => setIsOpen(true)} className="button--link font-size--smallest">
+            <button onClick={() => setIsOpen(true)} className="basic-button font-size--smallest">
                 Edit
             </button>
             </div>

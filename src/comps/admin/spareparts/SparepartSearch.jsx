@@ -40,7 +40,7 @@ export function SparepartSearch() {
     }
 
     return (
-        <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }} overFlowY="scroll">
+        <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem", overflowY: "scroll" }}>
             <div>
                 <input
                     className="search-input"
