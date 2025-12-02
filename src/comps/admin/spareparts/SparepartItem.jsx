@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { EditSparepartDialog } from "./AddSparepartDialog";
+import { DeleteSparepartDialog } from "./DeleteSparepartDialog";
 import _ from "lodash"; 
 import hooks from "@mitocube/api-hooks"
-import { SparepartText } from "./SparepartText";
+import { SparepartText } from "./sparepartText";
 import { SparepartDescription } from "./SparepartDescription";
 import { SparepartCompany } from "./SparepartCompany";
 import { SparepartProductID } from "./SparepartProductID";
@@ -12,17 +13,28 @@ import { SparepartLink } from "./SparepartLink";
 export function SparepartItem({ tag, showDetails = false }) {
 
     const [ isOpen, setIsOpen ] = useState(false);  
-    const [update, setUpdate] = useState(undefined)
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [update, setUpdate] = useState(undefined);
+    
+
     const { data: permissions, isSuccess } = hooks.maintenance.sparepartpermissions.useGetSparepartPermissions({ tag });
 
-    const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart();
+    const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart({
+      onSuccess: () => {
+        setIsDeleteOpen(true); 
+      },
+    });
+  
 
-    const handleRemove = (e) => {
-        e.stopPropagation();
-        deleteSparepart({ tag : tag});
-      };
-      const canShowRemoveButton = isSuccess && permissions.delete
+    const canShowRemoveButton = isSuccess && permissions.delete
       console.log(canShowRemoveButton)
+
+      const handleRemove = (e) => {
+        e.stopPropagation();
+        deleteSparepart({ tag });
+      };
+      
+    
 
     const handleEditClose = () => {
         setUpdate(Date.now())
@@ -34,11 +46,13 @@ export function SparepartItem({ tag, showDetails = false }) {
 
 
             <EditSparepartDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
+            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} tag={tag}/>
+
             <div
             className="flex justify-space-between align-center"
             style={{ width: "100%" }}
             >
-
+            
             
             <SparepartText tag={tag} update={update} />
             <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
@@ -57,17 +71,44 @@ export function SparepartItem({ tag, showDetails = false }) {
            
 
             {showDetails ? (
-            <div
-                className="flex flex-column font-size--smallest margin-left--little"
-                style={{ color: "#555", gap: "0.4rem" }}
+            <table
+                style={{
+                width: "fit-content",
+                fontSize: "0.75rem",
+                textAlign: "left",
+                marginTop: "0.25rem",
+                }}
             >
-                <SparepartDescription tag={tag} update={update} />
-                <SparepartCompany tag={tag} update={update} />
-                <SparepartProductID tag={tag} update={update} />
-                <SparepartPrice tag={tag} update={update} />
-                <SparepartLink tag={tag} update={update} />
-            </div>
+            <tbody>
+            <tr>
+                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <td><SparepartDescription tag={tag} update={update} /></td>
+            </tr>
+
+            <tr>
+                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Company</th>
+                <td><SparepartCompany tag={tag} update={update} /></td>
+            </tr>
+
+            <tr>
+                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Product ID</th>
+                <td><SparepartProductID tag={tag} update={update} /></td>
+            </tr>
+
+            <tr>
+                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Price</th>
+                <td><SparepartPrice tag={tag} update={update} /></td>
+            </tr>
+
+            <tr>
+                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Link</th>
+                <td><SparepartLink tag={tag} update={update} /></td>
+            </tr>
+            </tbody>
+        </table>
+
             ) : null}
         </div>
     );
 }
+

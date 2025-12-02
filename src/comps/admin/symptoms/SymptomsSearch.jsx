@@ -16,7 +16,7 @@ export function SymptomsSearch() {
     const [symptomsToDisplay, setSymptomsToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { data: tag, isLoading, isSuccess, isError } =
+    const { data: tag, isLoading, isSuccess, isError, refetch } =
         hooks.maintenance.symptoms.useGetSymptomByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }

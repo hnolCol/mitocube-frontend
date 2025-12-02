@@ -16,7 +16,7 @@ export function SparepartSearch() {
     const [sparepartToDisplay, setSparepartToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { data: tag, isLoading, isSuccess, isError } =
+    const { data: tag, isLoading, isSuccess, isError, refetch } =
         hooks.maintenance.spareparts.useGetSparePartByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }

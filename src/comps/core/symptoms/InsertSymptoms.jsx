@@ -89,7 +89,7 @@ export function InsertEditSymptom({
             <div className="flex flex-column" style={{ gap: "0.5rem" }}>
                 <input className="text-input" type="text" value={symptom.text} placeholder="Enter symptom text" onChange={(e) => setSymptom((prev) => ({ ...prev, text: e.target.value }))} />
                 <input className="text-input" type="text" value={symptom.description} placeholder="Enter symptom description" onChange={(e) => setSymptom((prev) => ({ ...prev, description: e.target.value }))} />
-                <input className="number-input" type="number" value={symptom.priority} placeholder="Enter symptom priority" onChange={(e) => setSymptom((prev) => ({ ...prev, priority: Number.target.value }))} />
+                <input className="number-input" type="number" value={symptom.priority} placeholder="Enter symptom priority" onChange={(e) => setSymptom((prev) => ({ ...prev, priority: e.target.value }))} />
             </div>
 
   
