@@ -3,7 +3,7 @@ import hooks from "@mitocube/api-hooks";
 import _ from "lodash";
 import { Dialog } from "@blueprintjs/core";
 
-export function AddSymptomDialog({ isOpen, onClose }) {
+export function AddSymptomDialog({ isOpen, onClose }) { 
 
     return (
         <Dialog isOpen={isOpen} title="Add Symptom" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }} canOutsideClickClose={false}>
@@ -19,10 +19,7 @@ export function AddSymptomDialog({ isOpen, onClose }) {
 export function EditSymptomDialog({ isOpen, onClose, tag }) {
 
     const {data: symptom, isSuccess : isSymptomSuccess} = hooks.maintenance.symptoms.useGetSymptomByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
-    // const {data: text, isSuccess : isSuccessText} = hooks.maintenance.symptoms.useGetSymptomText({tag : tag}, { enabled : _.isString(tag) && isOpen})
-    // const {data : description, isSuccess : isSuccessDescription} = hooks.maintenance.symptoms.useGetSymptomDescription({tag : tag}, { enabled : _.isString(tag) && isOpen}) 
-    // const {data : priority, isSuccess : isSuccessPriority} = hooks.maintenance.symptoms.useGetSymptomPriority({tag : tag}, { enabled : _.isString(tag) && isOpen })
-
+    
     return (
         <Dialog  isOpen={isOpen} title="Edit Symptom" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium" style={{ height: "95%" }}>

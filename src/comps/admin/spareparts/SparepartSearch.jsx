@@ -6,17 +6,20 @@ import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom"
 import { SparepartContainer } from "./SparepartContainer"
+import { AddSparepartDialog } from "./AddSparepartDialog"
+import { AddButton } from "../../core/base/buttons/AddButton"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
 export function SparepartSearch() {
 
+    const [dialogProps, setDialogProps] = useState({ isOpen: false });
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString, 300)
     const [sparepartToDisplay, setSparepartToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { data: tag, isLoading, isSuccess, isError } =
+    const { data: tag, isLoading, isSuccess, isError, refetch: updateSparpartList } =
         hooks.maintenance.spareparts.useGetSparePartByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }
@@ -39,8 +42,25 @@ export function SparepartSearch() {
         setSearchParams(newParams, { replace: true })
     }
 
+    const handleClose = (updateSpareparts = false) => {
+        setDialogProps({ isOpen: false });
+        if (updateSpareparts) updateSparpartList();
+    }
+
     return (
         <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem", overflowY: "scroll" }}>
+            <h3>Spare parts</h3>
+            <div className="flex">
+
+            <AddSparepartDialog
+                            isOpen={dialogProps.isOpen}
+                            onClose={handleClose}
+                        />
+            
+             <AddButton onSelect={() => setDialogProps({ isOpen: true })} />
+            
+            </div>
+                    
             <div>
                 <input
                     className="search-input"
@@ -67,7 +87,10 @@ export function SparepartSearch() {
                 {isError ? <span>Error in searching for spare parts...</span> : isLoading ? <Loading /> : null}
             </div>
 
-            <SparepartContainer tags={sparepartToDisplay} />
+            <SparepartContainer 
+                tags={sparepartToDisplay}
+                updateSparpartList={updateSparpartList}
+            />
         </div>
     )
 }

@@ -6,17 +6,20 @@ import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom"
 import { SymptomsContainer } from "./SymptomsContainer"
+import { AddSymptomDialog } from "./AddSymptomsDialog"
+import { AddButton } from "../../core/base/buttons/AddButton"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
 export function SymptomsSearch() {
 
+    const [dialogProps, setDialogProps] = useState({ isOpen: false });
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString, 300)
     const [symptomsToDisplay, setSymptomsToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { data: tag, isLoading, isSuccess, isError } =
+    const { data: tag, isLoading, isSuccess, isError, refetch : updateSymptomList } =
         hooks.maintenance.symptoms.useGetSymptomByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }
@@ -37,10 +40,28 @@ export function SymptomsSearch() {
         if (!value) newParams.delete(key)
         else newParams.set(key, value)
         setSearchParams(newParams, { replace: true })
+        
+    }
+
+    const handleClose = (updateSymptoms = false) => {
+        setDialogProps({ isOpen: false });
+        if (updateSymptoms) updateSymptomList();
     }
 
     return (
         <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+            <h3>Symptoms</h3>
+            <div className="flex">
+            
+                <AddSymptomDialog
+                                isOpen={dialogProps.isOpen}
+                                onClose={handleClose}
+                            />
+                
+                            
+                
+                <AddButton onSelect={() => setDialogProps({ isOpen: true })} />
+            </div>
             <div>
                 <input
                     className="search-input"
@@ -67,7 +88,11 @@ export function SymptomsSearch() {
                 {isError ? <span>Error in searching for symptoms..</span> : isLoading ? <Loading /> : null}
             </div>
 
-            <SymptomsContainer tags={symptomsToDisplay} />
+            <SymptomsContainer
+                tags={symptomsToDisplay}
+                updateSymptomList={updateSymptomList}
+            />
+
         </div>
     )
 }

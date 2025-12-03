@@ -21,7 +21,11 @@ export function InsertEditSparePart({
 }) {
     
     const [sparepart, setSparepart] = useState(INITIAL_SPAREPART);
-    const {mutate : postSparePart, isLoading, isError, error, isSuccess} = hooks.maintenance.spareparts.usePostSparePart();
+    const {mutate : postSparePart, isLoading, isError, error, isSuccess} = hooks.maintenance.spareparts.usePostSparePart({
+        onSuccess: () => {
+            setSparepart(INITIAL_SPAREPART);
+        },
+    });
     const {mutate : updateSparePart, isLoading : isUpdateLoading} = hooks.maintenance.spareparts.useUpdateSparePart()
 
     useEffect(() => {
@@ -52,6 +56,7 @@ export function InsertEditSparePart({
         postSparePart(data, {
             onSuccess: () => {
                 setSparepart(INITIAL_SPAREPART);
+                onClose(true);
             },
             onError: (err) => {
                 console.error("Failed to insert spare part", err)
