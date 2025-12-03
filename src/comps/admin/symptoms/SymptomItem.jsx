@@ -1,8 +1,8 @@
 import hooks from "@mitocube/api-hooks";
-import { Button } from "@blueprintjs/core";
-import { useState } from "react";
 import { EditSymptomDialog } from "./AddSymptomsDialog";
+import { DeleteSymptomDialog } from "./DeleteSymptomDialog";
 import _ from "lodash"; 
+import { useState } from "react";
 import { SymptomText } from "./SymptomText";
 import { SymptomDescription } from "./SymptomDescription";
 import { SymptomPriority } from "./SymptomPriority";
@@ -11,20 +11,26 @@ import { SymptomPriority } from "./SymptomPriority";
 export function SymptomsItem({ tag, showDetails = false }) {
 
     const [ isOpen, setIsOpen ] = useState(false);  
-    const [update, setUpdate] = useState(undefined)
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+    const [update, setUpdate] = useState(undefined);
 
     const { data: permissions, isSuccess } = hooks.maintenance.symptomspermissions.useGetSymptomsPermissions({ tag});
     
-    const { mutate: deleteSymptom } = hooks.maintenance.symptoms.useDeleteSymptom();
+    const { mutate: deleteSymptom } = hooks.maintenance.symptoms.useDeleteSymptom({
+        onSuccess: () => {
+            setIsDeleteOpen(true); 
+          },
+    });
     
+    const canShowRemoveButton = isSuccess && permissions.delete
+    console.log(canShowRemoveButton)
 
     const handleRemove = (e) => {
         e.stopPropagation();
-        deleteSymptom({ tag : tag});
+        deleteSymptom({ tag});
     };
 
-    const canShowRemoveButton = isSuccess && permissions.delete
-    console.log(canShowRemoveButton)
+
 
     const handleEditClose = () => {
         setUpdate(Date.now())
@@ -36,6 +42,8 @@ export function SymptomsItem({ tag, showDetails = false }) {
 
 
             <EditSymptomDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
+            <DeleteSymptomDialog isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} tag={tag}/>
+            
             <div
             className="flex justify-space-between align-center"
             style={{ width: "100%" }}
