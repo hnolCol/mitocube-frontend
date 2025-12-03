@@ -1,4 +1,4 @@
-import { Dialog, Button } from "@blueprintjs/core";
+import { Dialog } from "@blueprintjs/core";
 
 export function DeleteSparepartDialog({ isOpen, onClose }) {
   return (

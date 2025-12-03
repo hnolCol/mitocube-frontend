@@ -8,7 +8,9 @@ import { SymptomDescription } from "./SymptomDescription";
 import { SymptomPriority } from "./SymptomPriority";
 
 
-export function SymptomsItem({ tag, showDetails = false }) {
+
+
+export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
 
     const [ isOpen, setIsOpen ] = useState(false);  
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -37,16 +39,22 @@ export function SymptomsItem({ tag, showDetails = false }) {
         setIsOpen()
       }
 
+    const handleDeleteDialogClose = () => {
+        setIsDeleteOpen(false);
+        updateSymptomList();
+        
+      }
+
     return (
         <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
 
 
             <EditSymptomDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
-            <DeleteSymptomDialog isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} tag={tag}/>
+            <DeleteSymptomDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} tag={tag}/>
             
             <div
             className="flex justify-space-between align-center"
-            style={{ width: "100%" }}
+            style={{ wixdth: "100%" }}
             >
 
             

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { EditSparepartDialog } from "./AddSparepartDialog";
-import { DeleteSparepartDialog } from "./DeleteSparepartDialog";
 import _ from "lodash"; 
 import hooks from "@mitocube/api-hooks"
+import { EditSparepartDialog } from "./AddSparepartDialog";
+import { DeleteSparepartDialog } from "./DeleteSparepartDialog";
 import { SparepartText } from "./sparepartText";
 import { SparepartDescription } from "./SparepartDescription";
 import { SparepartCompany } from "./SparepartCompany";
@@ -10,22 +10,20 @@ import { SparepartProductID } from "./SparepartProductID";
 import { SparepartPrice } from "./SparepartPrice";
 import { SparepartLink } from "./SparepartLink";
 
-export function SparepartItem({ tag, showDetails = false }) {
+export function SparepartItem({ tag, showDetails = false, updateSparepartList }) {
 
     const [ isOpen, setIsOpen ] = useState(false);  
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
     
-
     const { data: permissions, isSuccess } = hooks.maintenance.sparepartpermissions.useGetSparepartPermissions({ tag });
 
     const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart({
-      onSuccess: () => {
-        setIsDeleteOpen(true); 
-      },
+        onSuccess: () => {
+            setIsDeleteOpen(true); 
+        },
     });
   
-
     const canShowRemoveButton = isSuccess && permissions.delete
       console.log(canShowRemoveButton)
 
@@ -41,12 +39,18 @@ export function SparepartItem({ tag, showDetails = false }) {
         setIsOpen()
       }
 
+    const handleDeleteDialogClose = () => {
+        setIsDeleteOpen(false);
+        updateSparepartList();
+        
+      }
+
     return (
         <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
 
 
             <EditSparepartDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
-            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} tag={tag}/>
+            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} tag={tag}/>
 
             <div
             className="flex justify-space-between align-center"

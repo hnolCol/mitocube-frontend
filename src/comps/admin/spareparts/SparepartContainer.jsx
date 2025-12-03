@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { SparepartItem } from "./SparepartItem"
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 
-export function SparepartContainer({ tags }) {
+export function SparepartContainer({ tags, updateSparpartList }) {
 
     const [showDetailTags, setShowDetailsTags] = useState([])
 
@@ -25,7 +25,10 @@ export function SparepartContainer({ tags }) {
                     onClick={(e) => handleClick(e, tag)}
                     style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%"}}
                 >
-                    <SparepartItem tag={tag} showDetails={showDetailTags.includes(tag)} />
+                    <SparepartItem 
+                    tag={tag}
+                    updateSparpartList={updateSparpartList}
+                    showDetails={showDetailTags.includes(tag)} />
                 </motion.button>
                 </div>
             ))}

@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import { SymptomsItem } from "./SymptomItem"
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 
-export function SymptomsContainer({ tags }) {
+export function SymptomsContainer({ tags, updateSymptomList }) {
 
     const [showDetailTags, setShowDetailsTags] = useState([])
 
@@ -25,7 +25,10 @@ export function SymptomsContainer({ tags }) {
                     onClick={(e) => handleClick(e, tag)}
                     style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%"}}
                 >
-                    <SymptomsItem tag={tag} showDetails={showDetailTags.includes(tag)} />
+                    <SymptomsItem 
+                        tag={tag} 
+                        updateSymptomList={updateSymptomList}  
+                        showDetails={showDetailTags.includes(tag)} />
                 </motion.button>
                 </div>
             ))}

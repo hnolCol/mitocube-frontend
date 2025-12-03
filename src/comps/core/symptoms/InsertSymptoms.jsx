@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import _ from "lodash";
 import APIError from "../error/APIerror";
 
-const INITIAL_SYMPTOM = { tag: "", text: "", description: "", priority: "" };
+const INITIAL_SYMPTOM = { tag: "", text: "", description: "", priority: "500" };
 
 /**
  * Insert / Edit Symptom Component
@@ -18,19 +18,13 @@ export function InsertEditSymptom({
 }) {
     
     const [symptom, setSymptom] = useState(INITIAL_SYMPTOM);
-    const {mutate : postSymptom, isLoading, isError, error, isSuccess } = hooks.maintenance.symptoms.usePostSymptom();
+    const {mutate : postSymptom, isLoading, isError, error, isSuccess } = hooks.maintenance.symptoms.usePostSymptom({
+        onSuccess: () => {
+            setSymptom(INITIAL_SYMPTOM);
+        },
+    });
     const { mutate : updateSymptom, isLoading : isUpdateLoading } = hooks.maintenance.symptoms.useEditSymptom()
 
-    
-    // useEffect(() => {
-    //     if (isEditing) {
-    //         setSymptom(prevValues => { return { ...prevValues,
-    //             text: preText, 
-    //             description: preDescription, 
-    //             priority: prepriority } });
-    //     }
-        
-    // }, [isEditing]);
 
     useEffect(() => {
         if (isEditing) {
@@ -55,6 +49,8 @@ export function InsertEditSymptom({
         postSymptom(data, {
             onSuccess: () => {
                 setSymptom(INITIAL_SYMPTOM);
+                onClose(true);
+                
             },
             onError: (err) => {
                 console.error("Failed to insert symptom", err)
