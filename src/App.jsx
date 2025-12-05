@@ -83,6 +83,7 @@ import { AdminSparepart } from "./comps/admin/spareparts/Sparepart";
 import PTM from "./comps/ptm";
 import Welcome from "./comps/welcome";
 import {AIPage} from "./comps/ai";
+import { AdminProcedure } from "./comps/admin/procedure/Procedure";
 
 /* axios defaults */
 axios.defaults.headers.common["Content-Type"] = "application/json";
@@ -328,6 +329,7 @@ function App() {
             <Route path="/admin/phenotypes" element={<AdminPhenotype />} />
             <Route path="/admin/symptoms" element={<AdminSymptoms />} />
             <Route path="/admin/spareparts" element={<AdminSparepart />} />
+            <Route path="/admin/procedure" element={<AdminProcedure />} />
           </Route>
 
           <Route

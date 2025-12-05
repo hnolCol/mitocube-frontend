@@ -20,7 +20,8 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Phenotype", to: "/admin/phenotypes"},
                 { text: "ShareToken", to: "/admin/sharetoken" },
                 { text: "Symptoms", to: "/admin/symptoms"},
-                { text: "Spare Parts", to : "/admin/spareparts"}]} />
+                { text: "Spare Parts", to : "/admin/spareparts"},
+                { text: "Procedures", to : "/admin/procedure"}]} />
                 
                 <div className="no-scroll div--expand">
                 <Outlet />
