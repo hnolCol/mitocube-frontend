@@ -12,7 +12,6 @@ import {openInNewTab} from "../../../../services/tabs/newtab"
 function SparePartMenuItem({ tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
     const { data: sparepart, isSuccess, isLoading, isError } = hooks.maintenance.spareparts.useGetSparePartByTag({ tag })
-    console.log(sparepart)
     if (isError) return null 
     return (<MenuItem
         icon={selected ? "tick" : "blank"}

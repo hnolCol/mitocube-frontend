@@ -3,6 +3,8 @@ import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 import { useNavigate } from "react-router"
 import { InstrumentCosts } from "./Costs"
+import { Trait } from "../../core/base/traits/Trait"
+import { Attribute } from "../../core/base/attributes/Attribute"
 
 /**
  * 
@@ -35,7 +37,8 @@ function Instruments({instrument_type,open_instrument_tag}) {
 
     const { data: instruments } = hooks.instruments.useGetInstrumentsByType({ tag: instrument_type })
     return (<div>
-        <h4>{instrument_type}</h4>
+        <h4><Attribute attribute_tag={instrument_type} /></h4>
+        
         {_.isArray(instruments) ? instruments.map(instrument_tag => <Instrument key={instrument_tag} tag={instrument_tag} isOpen={open_instrument_tag===instrument_tag} /> ):null}
     </div>)
 }

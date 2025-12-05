@@ -9,7 +9,7 @@ import {addStringToArrayOrRemove} from "../../../services/arrays/transforms"
 
 
 
-export function MaintenanceEventDefinition({instrument_tag}) {
+export function InsertMaintenanceEvent({instrument_tag}) {
         
     const [me, setMaintenanceEvent] = useState({description : "", instrument_state_tag : undefined, instrument_tag : instrument_tag, symptom_tags : []}) //me = MaintenanceEvent 
     const { data: instrument, isSuccess } = hooks.instruments.useGetInstrument({ tag: instrument_tag }, { enabled: !!instrument_tag, stateTime: "Infinity" })    

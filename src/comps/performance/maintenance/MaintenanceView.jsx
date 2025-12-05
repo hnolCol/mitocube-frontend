@@ -10,6 +10,9 @@ import { useState } from "react";
 import { MaintenanceProcedures } from "./MaintenanceProcedures";
 import { MaintenanceSpareParts } from "./MaintenanceSpareParts";
 import { MaintenanceEventState } from "./MaintenanceStates";
+import { OptionButton } from "../../core/base/buttons/OptionButton";
+import { Trait } from "../../core/base/traits/Trait";
+import { Symptom } from "./Symptom";
 
 
 
@@ -74,28 +77,28 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
     if (isError) return <div>Error loading maintenance event</div>
 
     return <div className="bg--lightgrey padding--medium margin--medium div--round">
-        <div className="flex">
+        <div className="flex" style={{gap : "20px"}}>
         
         <div>
-            <CreatedAt createdat={maintenance_event.created_at} />
-            {showInstrument ? <p>Instrument: {maintenance_event.instrument_tag}</p> : null}
+            
+                {showInstrument ? <div><Trait trait_tag={maintenance_event.instrument_tag} /></div>: null}
+                <CreatedAt createdat={maintenance_event.created_at} />
             <InstrumentState tag={maintenance_event.instrument_state_tag} />
         </div>
             
-        <div>
-            <h5>Description</h5>
-            <p>{maintenance_event.description}</p>
-                <div className="flex">
-                    <div>Symptoms</div>
-                    {_.isArray(maintenance_event.symptom_tags) && maintenance_event.symptom_tags.length > 0 ?
-                        maintenance_event.symptom_tags.map((symptom_tag, index) => {
-                            return <div key={`${symptom_tag}-${index}`}
-                                className="margin--small">
-                                {symptom_tag}
-                            </div>
-                        }) : null} 
-                    <SymptomInput selectedItems={maintenance_event.symptom_tags} onItemSelect={symptom_tag => handleSymptomSelect(symptom_tag)} />
-                </div>
+        <div >
+            <h4>Description</h4>
+                <p>{maintenance_event.description}</p>
+                
+            <div className="flex flex-column">
+                <div className="flex center-items"><div>Symptoms</div>
+                <SymptomInput selectedItems={maintenance_event.symptom_tags} onItemSelect={symptom_tag => handleSymptomSelect(symptom_tag)} /></div>
+                {_.isArray(maintenance_event.symptom_tags) && maintenance_event.symptom_tags.length > 0 ?
+                    maintenance_event.symptom_tags.map((symptom_tag, index) => {
+                        return <Symptom key={`${symptom_tag}-${index}`} tag={symptom_tag} />
+                    }) : null} 
+                
+            </div>
 
                 <MaintenanceProcedures maintenance_event={maintenance_event} refetch={refetch} />
                 <MaintenanceSpareParts maintenance_event={maintenance_event} refetch={refetch} />
@@ -128,22 +131,22 @@ export function MaintenanceView({ instrument_tag }) {
                 instrument_tag,
                 ...displayRange
             },
-        { enabled: !!instrument_tag })
+        { enabled: _.isString(instrument_tag) && instrument_tag.length > 0 })
     const { data : maintenance_total_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag})
     const { data : maintenance_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag, ...displayRange})
 
     return <div>
         {isLoading ? <Loading /> : <div>
-            <div> {[10,20,50,100].map(limit => {
-                return <Button small key={limit} onClick={() => setDisplayRange(prevValues => {
+            <div> Limit:  {[10,20,50,100].map(limit => {
+                return <OptionButton  isSelected={limit === displayRange.limit} key={limit} onClick={() => setDisplayRange(prevValues => {
                     return { ...prevValues, limit }
-                })}>{limit}</Button>
+                })}>{limit}</OptionButton>
             })}
             </div>
             <div className="font-size--small">
-                Total : {maintenance_total_counts} Filtered : {maintenance_counts}
+                Total : {maintenance_total_counts} Filtered : {maintenance_counts} for Instrument <strong><Trait trait_tag={instrument_tag}/></strong>
                 </div>
-            <div>
+            <div> 
             {_.isArray(maintenance_event_tags) && maintenance_event_tags.length > 0 ?
                 maintenance_event_tags.map(me_tag => {
                     return <div key={me_tag}>

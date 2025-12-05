@@ -64,14 +64,15 @@ export function MaintenanceProcedures({ maintenance_event, refetch }) {
 
     return (
         <div className="flex">
-            <div className="flex-column"><div>Procedures performed</div>
-                <div className="flex">
+            <div className="flex-column">
+                <div className="flex center-items"><div>Procedures</div>
+                    <MaintenanceProcedureInput selectedItems={maintenance_event.procedure_tags} onItemSelect={procedure_tag => handleProcedureSelect(procedure_tag)} />
+                    </div>
                 {_.isArray(maintenance_event.maintenance_procedure_tags) && maintenance_event.maintenance_procedure_tags.length > 0 ?
                     maintenance_event.maintenance_procedure_tags.map((procedure_tag, idx) => <MaintenanceProcedure key={`${idx}-${procedure_tag}`} tag={procedure_tag} onRemove={handleProcedureSelect}/>)
                         : null}
                     </div>
             </div>
-            <MaintenanceProcedureInput selectedItems={maintenance_event.procedure_tags} onItemSelect={procedure_tag => handleProcedureSelect(procedure_tag)} />
-        </div>
+
     )
 }

@@ -7,7 +7,7 @@ import APIError from "../../core/error/APIerror"
 import { Loading } from "../../core/base/states/Loading"
 import { InstrumentStateHistory } from "./StateHistory"
 import { InstrumentCosts } from "./Costs"
-import { MaintenanceEventDefinition } from "../maintenance/MaintenanceEvent"
+import { InsertMaintenanceEvent } from "../maintenance/InsertMaintenanceEvent"
 import { MaintenanceView } from "../maintenance/MaintenanceView"
 import { InstrumentStates } from "./States"
 
@@ -22,7 +22,13 @@ export function InstrumentView() {
 
     return <div>
         {isError ? <APIError error={error} /> : null} 
-        <InstrumentMenu open_instrument_tag={params.instrument_tag}/>
+        <div className="flex">
+            <InstrumentMenu open_instrument_tag={params.instrument_tag} />
+            <div>
+                <h4>Maintenance Events</h4>
+                <MaintenanceView instrument_tag={params.instrument_tag}  />
+            </div>
+        </div>
         {isLoading ? <Loading /> : null}
         {isSuccess && _.isObject(instrument) ? <div>
             <h3>{params.instrument_tag}</h3>
@@ -30,12 +36,9 @@ export function InstrumentView() {
             <div>{instrument.description}</div>
             <InstrumentCosts tag={params.instrument_tag} />
             <InstrumentStates instrument_tag={params.instrument_tag} />
-            {/* <MaintenanceEventDefinition instrument_tag={params.instrument_tag} /> */}
+            <InsertMaintenanceEvent instrument_tag={params.instrument_tag} />
 
-            {/* <div>
-                <h4>Maintenance Events</h4>
-                <MaintenanceView instrument_tag={params.instrument_tag}  />
-            </div> */}
+            
         </div> : null}
 
 
