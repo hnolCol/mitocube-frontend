@@ -16,7 +16,8 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
     
-    const { data: permissions, isSuccess } = hooks.maintenance.sparepartpermissions.useGetSparepartPermissions({ tag });
+    const { data: permissions, isSuccess } = hooks.maintenance.sparepartpermissions.useGetSparepartPermissions();
+    console.log(permissions)
 
     const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart({
         onSuccess: () => {
@@ -50,7 +51,7 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
 
 
             <EditSparepartDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
-            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} tag={tag}/>
+            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose}/>
 
             <div
             className="flex justify-space-between align-center"

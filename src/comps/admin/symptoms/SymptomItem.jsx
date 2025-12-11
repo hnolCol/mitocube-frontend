@@ -16,7 +16,7 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
 
-    const { data: permissions, isSuccess } = hooks.maintenance.symptomspermissions.useGetSymptomsPermissions({ tag});
+    const { data: permissions, isSuccess } = hooks.maintenance.symptomspermissions.useGetSymptomsPermissions();
     
     const { mutate: deleteSymptom } = hooks.maintenance.symptoms.useDeleteSymptom({
         onSuccess: () => {
@@ -50,7 +50,7 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
 
 
             <EditSymptomDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
-            <DeleteSymptomDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} tag={tag}/>
+            <DeleteSymptomDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} />
             
             <div
             className="flex justify-space-between align-center"
