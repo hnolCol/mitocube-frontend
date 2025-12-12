@@ -15,8 +15,10 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
 
-    const { data: permissions, isSuccess } = hooks.maintenance.procedurespermissions.useGetProcedurePermissions({ procedure_tag});
+    const { data: permissions, isSuccess } = hooks.maintenance.procedurespermissions.useGetProcedurePermissions();
     
+    console.log(permissions)
+
     const { mutate: deleteProcedure } = hooks.maintenance.procedures.useDeleteMaintenanceProcedure({
         onSuccess: () => {
             setIsDeleteOpen(true); 
@@ -49,7 +51,7 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
 
 
             <EditProcedureDialog isOpen={isOpen} onClose={() => handleEditClose()} procedure_tag = {procedure_tag}/>
-            <DeleteProcedureDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} tag={procedure_tag}/>
+            <DeleteProcedureDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose}/>
             
             <div
             className="flex justify-space-between align-center"
