@@ -9,7 +9,7 @@ import { InstrumentStateHistory } from "./StateHistory"
 import { InstrumentCosts } from "./Costs"
 import { InsertMaintenanceEvent } from "../maintenance/InsertMaintenanceEvent"
 import { MaintenanceView } from "../maintenance/MaintenanceView"
-import { InstrumentStates } from "./States"
+import { CurrentInstrumentState, InstrumentStates } from "./States"
 
 /**
  * @description Details view for a specific instrument. 
@@ -36,6 +36,7 @@ export function InstrumentView() {
             <div>{instrument.description}</div>
             <InstrumentCosts tag={params.instrument_tag} />
             <InstrumentStates instrument_tag={params.instrument_tag} />
+            <CurrentInstrumentState instrument_tag={params.instrument_tag} />
             <InsertMaintenanceEvent instrument_tag={params.instrument_tag} />
 
             

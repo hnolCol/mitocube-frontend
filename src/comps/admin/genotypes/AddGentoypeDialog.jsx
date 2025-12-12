@@ -21,7 +21,6 @@ export function AddGenotypeDialog({ isOpen, onClose }) {
 export function EditGenotypeDialog({ isOpen, onClose, tag }) { 
 
     const { data : selected_traits, isSuccess} = hooks.genotypes.condition_applications.useGetGenotypeConditionApplicationsData({tag}, { enabled : _.isString(tag) && isOpen})
-    console.log(selected_traits)
     const {data: text, isSuccess : isSuccessText} = hooks.genotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
     const {data : description, isSuccess : isSuccessDescription} = hooks.genotypes.useGetGenotypeDescription({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
 

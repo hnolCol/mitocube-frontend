@@ -9,7 +9,6 @@ import { FilterItem } from "./FilterItem"
 export function FilterSetView({ }) {
     
     const {data, isLoading, isFetching, isError, error, isSuccess } = useGetFilters({})
-    console.log(data)
     return (<div>
 
         {isError ? <APIError error={error} /> : isLoading || isFetching ? <Loading /> : <div>

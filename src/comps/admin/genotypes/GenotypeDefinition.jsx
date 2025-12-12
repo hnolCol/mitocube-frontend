@@ -105,31 +105,4 @@ export function GenotypeDefinition({ }) {
 }
 
 
-// class ProteinMutation(BaseModel):
-//     id : int 
-//     tag : Literal["att_protein_mutation:frameshift","att_protein_mutation:flag","att_protein_mutation:insertion","att_protein_mutation:truncation","att_protein_mutation:none","att_protein_mutation:gfp"]
-//     start : int|None #amino acid start,is always given in C-term direction, for N-term tag for example give 0, for C-term the end amino acid sequence, please note that is not the index and starts at 1 not at 0.  can only be  nOne, it tag is "att_protein_mutation:none"
-//     end : int|None #amino acid end 
-//     sequence : str|None #amino acids to be added or substituted (e.g. insertion or substitution)
-    
-// class GeneModificationModel(BaseModel):
-//     tag : str #feature tag (e.g. Uniprot ID )
-//     zygosity : Literal["att_gene_zygosity:(+/+)","att_gene_zygosity:(-/+)","att_gene_zygosity:(-/-)","att_gene_zygosity:unknown"] #traits from att_gene_zygosity 
-//     gene_engineering : Literal["att_gene_engineering:ko","att_gene_engineering:ki"] #traits from att_gene_engineering 
-//     editing_method : Literal["att_gene_editing_method:crispr","att_gene_editing_method:biggybac"] #traits from att_gene_editing_method 
-//     mutations : List[ProteinMutation]
-    
-
-// class GenotypeModel(BaseModel):
-//     id : int 
-//     created_at : int #timestamp 
-//     tag : str 
-//     text : str 
-//     description : str|None 
-//     publication : str|None #pubmed id 
-//     user_tag : str|None # user who created the genotype 
-//     features : List[str] #list of uniprot ids of the features that are affected by the genotype 
-//     proteome_tags : List[str] #list of proteomes that are affected, for example it might be a ko in a human cellline, but re-epxressing a mouse protein, this info could be retireved by the features itself 
-//     gene_modifications : List[GeneModificationModel]
-    
     

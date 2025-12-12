@@ -396,6 +396,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     const onSampleAttrRemove = (path, rowIdces) => {
         let d = submission.attributeTable.slice()
         //handles the removal of a samples attributes
+        if (!_.isArray(rowIdces)) return
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
             .forEach(rowIndex => {

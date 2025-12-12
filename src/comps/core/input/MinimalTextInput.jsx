@@ -17,6 +17,10 @@ MinimalTextInput.propTypes = {
     disabled: PropTypes.bool
 }
 
+MinimalTextInput.defaultProps = {
+    value: ""
+}
+
 /**
  * MinimalTextInput component for rendering a minimalistic text input field.
  * @param {Object} props - Component props.
@@ -41,10 +45,10 @@ export function MinimalTextInput({
     onChange,
     placeholder = "Type here...",
     style = {},
-    optional = false,
-    hint = "",
-    checkForMinLength = false,
-    minLength = 0,
+    // optional = false,
+    // hint = "",
+    // checkForMinLength = false,
+    // minLength = 0,
     prefix = "",
     suffix = "",
     suffix_trait_tag,
