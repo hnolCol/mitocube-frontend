@@ -25,7 +25,7 @@ MaintenanceSparePart.propTypes = {
  * It also allows the user to remove the spare part from the maintenance event.
  * @returns 
  */
-export function MaintenanceSparePart({ tag, onSparePartChange, maintenance_event_tag  }) {
+export function MaintenanceSparePart({ tag, onSparePartChange, maintenance_event_tag }) {
    
     const { data: sparepart, isSuccess } = hooks.maintenance.spareparts.useGetSparePartByTag({ tag })
     const { data: count, refetch : refetchCount } = hooks.maintenance.useGetSparePartCountByMaintenanceEvent({ maintenance_event_tag, sparepart_tag: tag })
@@ -59,7 +59,7 @@ MaintenanceSpareParts.propTypes = {
     refetch: PropTypes.func.isRequired
 }
 
-export function MaintenanceSpareParts({ maintenance_event, refetch }) {
+export function MaintenanceSpareParts({ maintenance_event, refetch, refetchCosts }) {
 
     const maintenance_event_tag = maintenance_event.tag
     const { mutate: deleteSparePart } = hooks.maintenance.useDeleteSparePartToMaintenanceEvent()
@@ -85,6 +85,7 @@ export function MaintenanceSpareParts({ maintenance_event, refetch }) {
                         onSuccessFunc()
                     }
                     refetch()
+                    if (refetchCosts) refetchCosts()
                     
                 },
                 onError: (error) => {
@@ -99,6 +100,7 @@ export function MaintenanceSpareParts({ maintenance_event, refetch }) {
                         onSuccessFunc()
                     }
                     refetch()
+                    if (refetchCosts) refetchCosts()
                     
                 }
             })

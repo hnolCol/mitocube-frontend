@@ -5,7 +5,7 @@ import { Tooltip } from "@blueprintjs/core"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 
 export function MaintenanceProcedure({ tag, onRemove }) {
-    const { data : procedure, isSuccess } =  hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({tag})
+    const { data : procedure, isSuccess } =  hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({procedure_tag : tag})
     return  <div>{isSuccess ?
         <Tooltip content={<div>{procedure.description}</div>}>
             <div className="flex margin--little padding--little bg--grey">
@@ -25,7 +25,7 @@ export function MaintenanceProcedure({ tag, onRemove }) {
  * @returns 
  */
 export function MaintenanceProcedures({ maintenance_event, refetch }) {
-
+    console.log(maintenance_event)
 
     const maintenance_event_tag = maintenance_event.tag
 
@@ -40,8 +40,11 @@ export function MaintenanceProcedures({ maintenance_event, refetch }) {
          * On Success, it will refetch the maintenance event to update the UI.
          * @returns {void}
          */
+    
     const handleProcedureSelect = (procedure_tag) => {
-
+        console.log(procedure_tag)
+        console.log(maintenance_event.maintenance_procedure_tags)
+        console.log(_.includes(maintenance_event.maintenance_procedure_tags, procedure_tag))
             if (_.includes(maintenance_event.maintenance_procedure_tags, procedure_tag)) {
                 // remove the procedure tag from the list
                 deleteProcedure({ maintenance_event_tag, procedure_tag }, {
@@ -61,6 +64,8 @@ export function MaintenanceProcedures({ maintenance_event, refetch }) {
                 })
             }
             }
+
+ 
 
     return (
         <div className="flex">
