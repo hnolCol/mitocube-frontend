@@ -21,7 +21,8 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "ShareToken", to: "/admin/sharetoken" },
                 { text: "Symptoms", to: "/admin/symptoms"},
                 { text: "Spare Parts", to : "/admin/spareparts"},
-                { text: "Procedures", to : "/admin/procedure"}]} />
+                { text: "Procedures", to : "/admin/procedure"},
+                { text: "External Services", to : "/admin/externalservice"}]} />
                 
                 <div className="no-scroll div--expand">
                 <Outlet />

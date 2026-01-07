@@ -13,6 +13,8 @@ import { MaintenanceEventState } from "./MaintenanceStates";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { Trait } from "../../core/base/traits/Trait";
 import { Symptom } from "./Symptom";
+import { MaintenanceEventCosts } from "./MaintenanceEventCost";
+import { MaintenanceExternalServices } from "./MaintenanceExternalService";
 
 
 
@@ -36,8 +38,14 @@ MaintenanceEventItem.defaultProps = {
  * @returns 
  */
 export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
-
+    console.log(maintenance_event_tag)
     const { data: maintenance_event, isLoading, isError, refetch } = hooks.maintenance.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
+    const {
+        refetch: refetchCosts,
+      } = hooks.maintenance.useGetMaintenanceEventCosts({
+        maintenance_event_tag,
+      })
+      
     const { isLoading: isLoadingAddingMaintenance, mutate: addSymptom } = hooks.maintenance.usePostSymptomToMaintenanceEvent()
     const { isLoading: isLoadingDeletingMaintenance, mutate: deleteSymptom } = hooks.maintenance.useDeleteSymptomToMaintenanceEvent() 
    
@@ -71,6 +79,7 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
             })
         }
     }
+
     
 
     if (isLoading) return <Loading />
@@ -84,8 +93,9 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
                 {showInstrument ? <div><Trait trait_tag={maintenance_event.instrument_tag} /></div>: null}
                 <CreatedAt createdat={maintenance_event.created_at} />
             <InstrumentState tag={maintenance_event.instrument_state_tag} />
+            <MaintenanceEventCosts maintenance_event_tag={maintenance_event_tag} />
+
         </div>
-            
         <div >
             <h4>Description</h4>
                 <p>{maintenance_event.description}</p>
@@ -101,8 +111,10 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
             </div>
 
                 <MaintenanceProcedures maintenance_event={maintenance_event} refetch={refetch} />
-                <MaintenanceSpareParts maintenance_event={maintenance_event} refetch={refetch} />
+                <MaintenanceSpareParts maintenance_event={maintenance_event} refetch={refetch} refetchCosts={refetchCosts}/>
+                <MaintenanceExternalServices maintenance_event={maintenance_event} refetch={refetch} refetchCosts={refetchCosts}/>
                 <MaintenanceEventState maintenance_event_tag={maintenance_event_tag} />
+
         </div>
         </div>
         </div>
@@ -143,7 +155,7 @@ export function MaintenanceView({ instrument_tag }) {
                 })}>{limit}</OptionButton>
             })}
             </div>
-            <div className="font-size--small">
+            <div className="font-size--small" style={{marginBottom : "10px"}}>
                 Total : {maintenance_total_counts} Filtered : {maintenance_counts} for Instrument <strong><Trait trait_tag={instrument_tag}/></strong>
                 </div>
             <div> 

@@ -6,9 +6,9 @@ import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 
 
-function MaintenanceProcedureMenuItem({ tag, handleClick, handleFocus, index, modifiers, query, selected}) {
+function MaintenanceProcedureMenuItem({ procedure_tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
-    const { data: mp, isSuccess, isLoading, isError } = hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({ tag })
+    const { data: mp, isSuccess, isLoading, isError } = hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({ procedure_tag })
     console.log
     if (isError) return null 
     return (<MenuItem
@@ -41,7 +41,6 @@ export function MaintenanceProcedureInput({ selectedItems = [], onItemSelect, is
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
     const { data: items, isLoading, isFetching } = hooks.maintenance.procedures.useGetMaintenanceProcedureByQuery({ search_string : debouncedString})
-    console.log(items)
     /**
      * @description Handles the item rendering
      * @param {*} item The MaintenanceProcedure item
@@ -50,8 +49,8 @@ export function MaintenanceProcedureInput({ selectedItems = [], onItemSelect, is
     const renderMaintenanceProcedure = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <MaintenanceProcedureMenuItem key={`${item}-${index}`}
             {...{
-                selected : _.includes(selectedItems, item.tag),
-                tag: item,
+                selected : _.includes(selectedItems, item.procedure_tag),
+                procedure_tag: item,
                 handleClick,
                 handleFocus,
                 index,
