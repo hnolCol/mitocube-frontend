@@ -322,7 +322,7 @@ async function getSubmissionSampleNames_API({ tag }) {
     return res.data 
 }
 
-export const useGetSubmissionSampleNames = (APIParams = {}, useQueryOptions = {}) => {
+export const useGetSubmissionSampleTags = (APIParams = {}, useQueryOptions = {}) => {
     return useQuery(["submission_samples",APIParams.tag], () => getSubmissionSampleNames_API({...APIParams}), useQueryOptions)
 }
 

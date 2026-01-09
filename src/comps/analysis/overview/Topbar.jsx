@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { copyTextToClipboard } from "../../../services/clipboard"
-import { useGetSubmissionSampleNames, useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionSampleTags, useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 
 import hooks from "@mitocube/api-hooks"
@@ -24,7 +24,7 @@ export function QuickAccessBar({ submission_tag }) {
         })
     
     
-    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = hooks.submissions.samples.useGetSubmissionSampleNames({tag : submission_tag},{enabled : false, onSuccess: data => {
+    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = hooks.submissions.samples.useGetSubmissionSampleTags({tag : submission_tag},{enabled : false, onSuccess: data => {
         copyTextToClipboard(data)
         setMsg("Samples names copied to clipboard.")
     }

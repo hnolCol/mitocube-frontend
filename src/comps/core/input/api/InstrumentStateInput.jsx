@@ -6,7 +6,7 @@ import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 
 
-function InstrumentStateItem({ tag, handleClick, handleFocus, index, modifiers, query }) {
+function InstrumentStateItem({ tag, handleClick, handleFocus, index, modifiers, query, showDescription = true }) {
     
     const { data: instrument_state, isSuccess, isLoading, isError } = hooks.instruments.states.useGetInstrumentState({ tag })
 
@@ -22,8 +22,7 @@ function InstrumentStateItem({ tag, handleClick, handleFocus, index, modifiers, 
             float: "right",
             textWrap: "wrap",
             marginRight: "1rem"
-        }}>{_.has(instrument_state,"description") ? instrument_state.description : "..."}</div>}>
-        
+        }}>{showDescription && _.has(instrument_state,"description") ? instrument_state.description : ""}</div>}>
     </MenuItem>
     )
 }

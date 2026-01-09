@@ -43,16 +43,20 @@ function TabItem({text,to, active = false, can_close = false, handleClose = unde
 }
 
 function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true, canClose = undefined, handleClose = undefined }) {
-    // Container for Tabs in the Topbar.
+  
     const location = useLocation()
-    const locationMatches = tabs.filter(tab => tab.to === location.pathname).length > 0 
+    let locationMatches = tabs.filter(tab => tab.to === location.pathname)
+    if (locationMatches.length === 0){
+        locationMatches = tabs.filter(tab => _.startsWith(location.pathname, tab.to))    
+    }
+
     return (
         <div className="flex tabs__container">
 
         {tabs.map((tab,tabIdx) => {
             return (
                 <TabItem key={`${tabIdx}-${tab.text}`}
-                    active={locationMatches?location.pathname === tab.to:selectFirstTabIfPathNameDoesNotMatch?tabIdx===0:false}
+                    active={locationMatches.length > 0? _.includes(locationMatches, tab) :selectFirstTabIfPathNameDoesNotMatch?tabIdx===0:false}
                     {...{ to: tab.to, text: tab.text, can_close : !_.isArray(canClose)?false:canClose[tabIdx], handleClose}} />
             )
         })}

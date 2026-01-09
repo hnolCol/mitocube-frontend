@@ -13,7 +13,7 @@ export function CopySubmissionSampleTags({ submission_tag }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     }
-    const { data: sample_tags, isLoading, refetch } = hooks.submissions.samples.useGetSubmissionSampleNames({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60 });
+    const { data: sample_tags, isLoading, refetch } = hooks.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60 });
     if (isLoading) return null
 
     return (

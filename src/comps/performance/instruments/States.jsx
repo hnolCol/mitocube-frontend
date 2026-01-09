@@ -28,10 +28,10 @@ export function InstrumentStates({ instrument_tag }) {
 
 export function CurrentInstrumentState({ instrument_tag }) {
     
-    const { data: instrument_state, isSuccess } = hooks.instruments.useGetStatesOfAnInstrument({ tag: instrument_tag }, { enabled: _.isString(instrument_tag) })
-
+    const { data: instrument_state, isSuccess } = hooks.instruments.useGetStatesOfAnInstrument({ tag: instrument_tag, limit : 1 }, { enabled: _.isString(instrument_tag) })
+    console.log(instrument_state)
     return <div>
-        <h3>Current Instrument State</h3>
-        {isSuccess ? <InstrumentState tag={instrument_state[0]} /> : null}
+       
+        {isSuccess && instrument_state.length > 0 ? <InstrumentState tag={instrument_state[0].tag} /> : <div>No state found.</div>}
     </div>
 }

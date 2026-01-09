@@ -15,9 +15,9 @@ import { Attribute } from "../../core/base/attributes/Attribute";
 
 export function SampleItem({ tag, display_condition_applications = true }) {
 
-    const { data: sample } = hooks.samples.useGetSample({ tag }, { enabled: !!tag });
+    const { data: sample } = hooks.samples.useGetSample({ tag }, { enabled: _.isString(tag) });
 
-    const { data : condition_applications} = hooks.samples.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : !!tag && display_condition_applications})
+    const { data : condition_applications} = hooks.samples.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications})
 
     return (
         <div
@@ -40,7 +40,7 @@ export function SampleItem({ tag, display_condition_applications = true }) {
                     <Attribute attribute_tag={ca_prop.attribute_tag} />
                 {
                     ca_prop.condition_application_tags.map(ca_tag => {
-                        return <ConditionApplicationsView tag={ca_tag} />
+                        return <ConditionApplicationsView key={ca_tag} tag={ca_tag} />
                     })
                 }
                 </div>
