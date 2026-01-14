@@ -38,7 +38,6 @@ MaintenanceEventItem.defaultProps = {
  * @returns 
  */
 export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
-    console.log(maintenance_event_tag)
     const { data: maintenance_event, isLoading, isError, refetch } = hooks.maintenance.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
     const {
         refetch: refetchCosts,

@@ -10,6 +10,7 @@ import { InstrumentCosts } from "./Costs"
 import { InsertMaintenanceEvent } from "../maintenance/InsertMaintenanceEvent"
 import { MaintenanceView } from "../maintenance/MaintenanceView"
 import { CurrentInstrumentState, InstrumentStates } from "./States"
+import { InstrumentSamplesCount } from "./Samples"
 
 /**
  * @description Details view for a specific instrument. 
@@ -24,23 +25,28 @@ export function InstrumentView() {
         {isError ? <APIError error={error} /> : null} 
         <div className="flex">
             <InstrumentMenu open_instrument_tag={params.instrument_tag} />
+
             <div>
+                {isLoading ? <Loading /> : null}
+                {isSuccess && _.isObject(instrument) ? <div>
+                    
+                    <h4>{instrument.text}</h4>
+                    <div className="font-size--small">{instrument.description}</div>
+                    <InstrumentCosts tag={params.instrument_tag} />
+                    <InstrumentSamplesCount tag={params.instrument_tag} />
+                    <InstrumentStates instrument_tag={params.instrument_tag} />
+                    <CurrentInstrumentState instrument_tag={params.instrument_tag} />
+                    <InsertMaintenanceEvent instrument_tag={params.instrument_tag} />
+
+                    
+                </div> : null}
+                <div className="margin-top--medium">
                 <h4>Maintenance Events</h4>
-                <MaintenanceView instrument_tag={params.instrument_tag}  />
+                    <MaintenanceView instrument_tag={params.instrument_tag} />
+                </div>
             </div>
         </div>
-        {isLoading ? <Loading /> : null}
-        {isSuccess && _.isObject(instrument) ? <div>
-            <h3>{params.instrument_tag}</h3>
-            <h4>{instrument.text}</h4>
-            <div>{instrument.description}</div>
-            <InstrumentCosts tag={params.instrument_tag} />
-            <InstrumentStates instrument_tag={params.instrument_tag} />
-            <CurrentInstrumentState instrument_tag={params.instrument_tag} />
-            <InsertMaintenanceEvent instrument_tag={params.instrument_tag} />
-
-            
-        </div> : null}
+        
 
 
     </div>

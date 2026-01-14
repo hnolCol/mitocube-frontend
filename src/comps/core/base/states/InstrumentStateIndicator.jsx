@@ -2,7 +2,7 @@ import _ from "lodash"
 import { isHexColorLight } from "../../../../services/checks/color"
 import { titleFormat } from "../../../../services/format/string"
 import hooks from "@mitocube/api-hooks"
-import { StateSelectionMenu } from "./StateSelectionMenu"
+
 
 /**
  * @description Indicates the state of a submission. Each state has different color and an associated name. The state itself is a simple integer. 
@@ -18,6 +18,8 @@ export function InstrumentStateIndicator({ instrument_tag, allowUpdate = true, p
     const { data: instrument_states, isSuccess } = hooks.instruments.useGetStatesOfAnInstrument({ tag: instrument_tag, limit: 1 })
     const { data: instrument_state, isSuccess: isSuccessInstrumentState } = hooks.instruments.states.useGetInstrumentState({ tag: instrument_states[0].tag }, { enabled: isSuccess && instrument_states.length > 0 && _.isString(instrument_states[0].tag) })
     const { data: permissions, isSuccess: isSuccessPermissions } = hooks.instruments.permissions.useGetInstrumentPermissions({ tag: instrument_tag }, { enabled: _.isString(instrument_tag) && instrument_tag.length > 0 })
+   
+   
     // const { data: state, isSuccess, refetch: refetchState } = hooks.submissions.states.useGetSubmissionState({ tag: submission_tag })
     // const { mutate: updateState } = hooks.submissions.states.usePatchSubmissionState()
     // const { data : stateName, isSuccess : isSuccessStateName} = hooks.states.useGetStateName({tag : state}, { enabled : _.isNumber(state) && isSuccess})
@@ -41,8 +43,8 @@ export function InstrumentStateIndicator({ instrument_tag, allowUpdate = true, p
         backgroundColor: instrument_state.color,
         fontSize : "1.1rem",
         color: isHexColorLight(instrument_state.color) ? "black" : "white"
-        }}><div className="flex"><div>{titleFormat(stateName)}</div>
-            <div>{isSuccessPermissions && allowUpdate && permissions.state_change ? <StateSelectionMenu current_state_tag={state} onSelection={handleStateChange} /> : null }</div></div>
+        }}><div className="flex"><div>{titleFormat(instrument_state.text)}</div>
+            <div>{isSuccessPermissions && allowUpdate && permissions.state_change ? <StateSelectionMenu current_state_tag={instrument_state.tag} onSelection={handleStateChange} /> : null }</div></div>
     </div></div>
 }
 

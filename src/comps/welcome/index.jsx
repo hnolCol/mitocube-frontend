@@ -7,12 +7,13 @@ import { LastViewed } from "./Views"
 
 import viz from "@mitocube/viz"
 import hooks from "@mitocube/api-hooks"
+import { AnnotationSelectionMenu } from "../core/base/annotations/AnnotationSelectionMenu"
 
 function Welcome() {
     const { isLoading: backendInfoLoading, data: backendInfo } = useGetBackendInfo()
     
-    const { data: submissionSampleConditionApplications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : "PjbzCDFFcd"})
-    console.log(submissionSampleConditionApplications, "Submission Sample CA")
+    // const { data: submissionSampleConditionApplications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : "PjbzCDFFcd"})
+    // console.log(submissionSampleConditionApplications, "Submission Sample CA")
     return (
         <div className="flex flex-column center-items div--expand">
             <div className="main-header">
@@ -26,7 +27,8 @@ function Welcome() {
             <div className="flex flex-wrap justify-flex-start" style={{width : "100%", gap : "2rem"}}>
                     <NewsView />
                     <LastViewed user_tag={null} type="submissions" />
-            </div>
+                </div>
+                <AnnotationSelectionMenu />
             </div>
             {/* <viz.charts.HeatmapGrouping data={submissionSampleConditionApplications} keyNames={["att_environment_treatment"]} is_condition_application={[true]} />
             <viz.charts.Heatmap /> */}

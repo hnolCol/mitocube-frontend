@@ -1,6 +1,7 @@
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import { Button } from "@blueprintjs/core"
+import { Costs } from "../instruments/Costs";
 
 export function MaintenanceEventCosts({ maintenance_event_tag }) {
 
@@ -9,13 +10,12 @@ export function MaintenanceEventCosts({ maintenance_event_tag }) {
         hooks.maintenance.useGetMaintenanceEventCosts({ maintenance_event_tag },{ enabled: _.isString(maintenance_event_tag) });
 
   if (isError) console.log(error);
-  console.log(maintenance_event_tag, maintenance_event_cost)
 
 
   return (
-            <div>
+            <div className="flex center-items padding--little">
                 <div>Cost:</div>
-                {isSuccess ? <div>{maintenance_event_cost} </div>:null}
+                {isSuccess ? <Costs amount={maintenance_event_cost} /> :null}
             </div>
         );
 
