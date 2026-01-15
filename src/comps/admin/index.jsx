@@ -22,7 +22,9 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Symptoms", to: "/admin/symptoms"},
                 { text: "Spare Parts", to : "/admin/spareparts"},
                 { text: "Procedures", to : "/admin/procedure"},
-                { text: "External Services", to : "/admin/externalservice"}]} />
+                { text: "External Services", to : "/admin/externalservice"},
+                { text: "Annotations", to: "/admin/annotations"}
+                ]} />
                 
                 <div className="no-scroll div--expand">
                 <Outlet />

@@ -79,6 +79,7 @@ import { AttributesAdminView } from "./comps/admin/attributes/index";
 import { AdminSymptoms } from "./comps/admin/symptoms/Symptoms";
 import { AdminSparepart } from "./comps/admin/spareparts/Sparepart";
 import { AdminExternalService } from "./comps/admin/externalservice/ExternalService";
+import { AdminAnnotations } from "./comps/admin/annotations/Annotations";
 
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
@@ -332,6 +333,7 @@ function App() {
             <Route path="/admin/spareparts" element={<AdminSparepart />} />
             <Route path="/admin/procedure" element={<AdminProcedure />} />
             <Route path="/admin/externalservice" element={<AdminExternalService />} />
+            <Route path="/admin/annotations" element={<AdminAnnotations />} />
           </Route>
 
           <Route
