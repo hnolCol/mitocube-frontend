@@ -2,6 +2,8 @@ import hooks from "@mitocube/api-hooks"
 import { useState } from "react"
 import { Dialog } from "@blueprintjs/core"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
+import { useEffect } from "react"
+import _ from "lodash"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -12,7 +14,7 @@ const INITIAL_ANNOTATION = {
   group_tag: "",
 }
 
-export function InsertAnnotations({ isOpen, onClose }) {
+export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
   const [annotation, setAnnotation] = useState(INITIAL_ANNOTATION)
 
   const {
@@ -27,7 +29,18 @@ export function InsertAnnotations({ isOpen, onClose }) {
     },
   })
 
-  if (!isOpen) return null
+  
+    useEffect(() => {
+        if (group_tag) {
+            setAnnotation(prev => ({
+            ...prev,
+            group_tag,
+            }))
+        }
+        }, [group_tag])
+
+        if (!isOpen) return null
+
 
   const insertAnnotation = () => {
           const data = {
@@ -64,10 +77,12 @@ export function InsertAnnotations({ isOpen, onClose }) {
 
       <AnnotationGroupInput
         selectedItem={annotation.group_tag}
+        disabled={!!group_tag}
         onItemSelect={(group_tag) =>
-          setAnnotation(prev => ({ ...prev, group_tag: group_tag }))
+            setAnnotation(prev => ({ ...prev, group_tag }))
         }
-      />
+        />
+
 
       <input
         className="text-input"
@@ -150,7 +165,7 @@ export function InsertAnnotations({ isOpen, onClose }) {
   )
 }
 
-export function AddAnnotationDialog({ isOpen, onClose }) {
+export function AddAnnotationDialog({ isOpen, onClose, group_tag }) {
   return (
     <Dialog
       isOpen={isOpen}
@@ -163,6 +178,7 @@ export function AddAnnotationDialog({ isOpen, onClose }) {
         <InsertAnnotations
           isOpen={isOpen}
           onClose={onClose}
+          group_tag={group_tag}
         />
       </div>
     </Dialog>

@@ -46,11 +46,11 @@ export function InsertAnnotationGroup({
         };
 
         postAnnotationGroup(data, {
-            onSuccess: (group_tag) => {
+            onSuccess: () => {
                 setAnnotationGroup(INITIAL_ANNOTATION_GROUP);
 
                 if (_.isFunction(onSuccess)) {
-                    onSuccess(group_tag);
+                    onSuccess();
                 }
 
                 onClose();

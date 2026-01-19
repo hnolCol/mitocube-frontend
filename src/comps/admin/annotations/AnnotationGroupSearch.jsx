@@ -22,33 +22,46 @@ export function AnnotationGroupSearch({ selectedGroup, onSelectGroup }) {
     }
   }, [isSuccess, data]);
 
-  return (
-    <div className="left-panel">
-      <div className="flex justify-space-between align-center">
-        <h4>Annotation Groups</h4>
+return (
+  <>
+        <div
+        style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "1rem",
+        }}
+        >
+        <div>
+        <h3 style={{ margin: 0 }}>Annotation Groups</h3>
+        </div>
+        <div>
         <button className="basic-button" onClick={() => setIsOpen(true)}>
-          + Add Group
+            + Add Group
         </button>
-      </div>
-
-      <input
-        className="search-input"
-        placeholder="Search annotation groups…"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-      />
-
-      <AnnotationGroupContainer
-        tags={groups}
-        selectedGroup={selectedGroup}
-        onSelectGroup={onSelectGroup}
-      />
-
-      <AddAnnotationGroupDialog
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        onSuccess={refetch}
-      />
+        </div>
     </div>
-  );
+    
+    <input
+  className="search-input"
+  placeholder="Search annotation groups…"
+  value={search}
+  onChange={(e) => setSearch(e.target.value)}
+  style={{ marginBottom: "1rem" }}
+/>
+
+
+    <AnnotationGroupContainer
+      tags={groups}
+      selectedGroup={selectedGroup}
+      onSelectGroup={onSelectGroup}
+    />
+
+    <AddAnnotationGroupDialog
+      isOpen={isOpen}
+      onClose={() => setIsOpen(false)}
+      onSuccess={refetch}
+    />
+  </>
+)
 }

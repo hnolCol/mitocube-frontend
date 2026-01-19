@@ -8,6 +8,10 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
       { enabled: _.isString(tag) }
     );
 
+  const { data: count } = hooks.annotations.useGetAnnotationGroupCount(
+    { tag },
+    { enabled: _.isString(tag) }
+  )
 
   if (!isSuccess) return null;
 
@@ -26,6 +30,9 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
       <strong>{group.text}</strong>
       <div style={{ fontSize: "0.75rem", color: "#666" }}>
         {group.description}
+      </div>
+      <div style={{ fontSize: "0.75rem", color: "#444", marginTop: "0.25rem" }}>
+        {count ?? 0} annotations
       </div>
     </div>
   );
