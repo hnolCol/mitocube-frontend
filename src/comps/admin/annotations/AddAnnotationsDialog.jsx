@@ -4,12 +4,14 @@ import { Dialog } from "@blueprintjs/core"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { useEffect } from "react"
 import _ from "lodash"
+import { AnnotationUpload } from "./AnnotationFileUpload"
 
 const INITIAL_ANNOTATION = {
   text: "",
   description: "",
   publication: "",
   pubmed_id: "",
+  source: "",
   protein_tags: [],
   group_tag: "",
 }
@@ -41,13 +43,21 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
 
         if (!isOpen) return null
 
-
+  const handleProteinIdsLoaded = (ids) => {
+    setAnnotation((prev) => ({
+      ...prev,
+      protein_tags: Array.from(
+        new Set([...prev.protein_tags, ...ids])
+      ),
+    }));
+  };
   const insertAnnotation = () => {
           const data = {
               text: annotation.text,
               description: annotation.description,
               publication: annotation.publication,
               pubmed_id: annotation.pubmed_id,
+              source: annotation.source,
               protein_tags: annotation.protein_tags,
               group_tag: annotation.group_tag,
           };
@@ -59,14 +69,13 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
                   setAnnotation(INITIAL_ANNOTATION);
   
                   if (_.isFunction(onSuccess)) {
-                      onSuccess(tag);
+                    onSuccess();                  
                   }
   
                   onClose();
               },
               onError: (err) => {
                   console.error("Failed to insert annotation", err);
-                  console.log(annotation);
               },
           });
       };
@@ -101,6 +110,15 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           setAnnotation(prev => ({ ...prev, description: e.target.value }))
         }
       />
+      <input
+        className="text-input"
+        placeholder="Source (e.g. UniProt, MitoCarta, Manual)"
+        value={annotation.source}
+        onChange={(e) =>
+          setAnnotation(prev => ({ ...prev, source: e.target.value }))
+        }
+      />
+
 
       <input
         className="text-input"
@@ -120,20 +138,29 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
         }
       />
 
-<textarea
-  className="text-input"
-  placeholder="Protein tags (newline or ; separated)"
-  defaultValue={annotation.protein_tags.join("\n")}
-  onBlur={e =>
-    setAnnotation(prev => ({
-      ...prev,
-      protein_tags: e.target.value
-        .split(/[\n;]+/)
-        .map(tag => tag.trim())
-        .filter(Boolean),
-    }))
-  }
-/>
+    <textarea
+        className="text-input"
+        placeholder="Protein tags (newline or ; separated)"
+        value={annotation.protein_tags.join("\n")}
+        onChange={(e) =>
+          setAnnotation((prev) => ({
+            ...prev,
+            protein_tags: e.target.value
+              .split(/[\n;]+/)
+              .map((tag) => tag.trim())
+              .filter(Boolean),
+          }))
+        }
+        style={{
+          maxHeight: "160px",
+          resize: "vertical",
+          overflowY: "auto",
+        }}
+      />
+
+      <AnnotationUpload
+        onProteinIdsLoaded={handleProteinIdsLoaded}
+          />
 
 
 
@@ -146,7 +173,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
 
       <div className="flex justify-end gap--small">
         <button className="dialog-button" onClick={onClose}>
-          Cancel
+          Close
         </button>
 
         <button
@@ -165,21 +192,31 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
   )
 }
 
-export function AddAnnotationDialog({ isOpen, onClose, group_tag }) {
+export function AddAnnotationDialog({ isOpen, onClose, group_tag, onSuccess }) {
   return (
     <Dialog
       isOpen={isOpen}
       title="Add Annotation"
       onClose={onClose}
-      style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }}
+      style={{ width: "min(600px,85vw)", height: "min(80vh, 900px)" }}
       canOutsideClickClose={false}
     >
-      <div className="padding--medium" style={{ height: "95%" }}>
+
+        <div
+          className="padding--medium"
+          style={{
+            height: "100%",
+            overflowY: "auto",
+          }}
+        >
+
         <InsertAnnotations
           isOpen={isOpen}
           onClose={onClose}
           group_tag={group_tag}
+          onSuccess={onSuccess}
         />
+
       </div>
     </Dialog>
   )

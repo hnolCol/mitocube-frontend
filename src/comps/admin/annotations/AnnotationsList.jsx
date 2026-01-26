@@ -1,10 +1,22 @@
 import { useState } from "react"
-import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
+import hooks from "@mitocube/api-hooks"
+import { EditAnnotationDialog } from "./EditAnnotationDialog"
+import { DeleteAnnotationsDialog } from "./DeleteAnnotationsDialog"
 import { AddAnnotationDialog } from "./AddAnnotationsDialog"
 
-function AnnotationItem({ tag }) {
-  const { data: annotation, isSuccess } =
+export function AnnotationItem({ tag, showDetails = false, updateAnnotationList }) {
+
+  const [isOpen, setIsOpen] = useState(false)
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [update, setUpdate] = useState(undefined)
+
+  const { data: permissions, isSuccess } =
+    hooks.annotationspermissions.useGetAnnotationPermissions();
+
+  const canShowRemoveButton = isSuccess && permissions.delete
+
+  const { data: annotation, isSuccess: isAnnotationSuccess, refetch: refetchAnnotations} =
     hooks.annotations.useGetAnnotationsByTag(
       { tag },
       { enabled: _.isString(tag) }
@@ -15,31 +27,119 @@ function AnnotationItem({ tag }) {
       { tag },
       { enabled: _.isString(tag) }
     )
-  console.log(tag, proteinCount)
-  if (!isSuccess) return null
+
+  const { mutate: deleteAnnotation } =
+    hooks.annotations.useDeleteAnnotations({
+      onSuccess: () => {
+        setIsDeleteOpen(true)
+      },
+    })
+
+  const handleRemove = (e) => {
+    e.stopPropagation()
+    deleteAnnotation({ tag })
+  }
+
+  const handleEditClose = () => {
+    setUpdate(Date.now())
+    setIsOpen(false)
+    updateAnnotationList()
+  }
+
+  const handleDeleteDialogClose = () => {
+    setIsDeleteOpen(false)
+    updateAnnotationList()
+  }
+
+  if (!isAnnotationSuccess) return null
 
   return (
-    <div 
-      style={{
-        padding: "0.6rem",
-        marginBottom: "0.4rem",
-        borderRadius: "6px",
-        backgroundColor: "#f7f7f7",
-        border: "1px solid #ddd",
-      }}
-    > 
+    <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
 
-      <strong>{annotation.text}</strong>
+      <EditAnnotationDialog
+        isOpen={isOpen}
+        onClose={handleEditClose}
+        tag={tag}
+        onSuccess={refetchAnnotations}
+      />
 
-      {annotation.description && (
-        <div style={{ fontSize: "0.75rem", color: "#666"}}>
-          {annotation.description}
+      <DeleteAnnotationsDialog
+        isOpen={isDeleteOpen}
+        onClose={handleDeleteDialogClose}
+        tag={tag}
+        onSuccess={refetchAnnotations}
+      />
+
+      <div
+        className="flex justify-space-between align-center"
+        style={{ width: "100%" }}
+      >
+        <div>
+          <strong>{annotation.text}</strong>
+
+          {annotation.description && (
+            <div style={{ fontSize: "0.75rem", color: "#666" }}>
+              {annotation.description}
+            </div>
+          )}
+
+          <div style={{ fontSize: "0.75rem", color: "#666" }}>
+            {proteinCount ?? 0} proteins
           </div>
-      )}
+        </div>
 
-      <div style={{ fontSize: "0.75rem", color: "#666"}}>
-        {proteinCount ?? 0 } proteins
+        <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+          <button
+            onClick={() => setIsOpen(true)}
+            className="basic-button"
+          >
+            Edit
+          </button>
+
+          {canShowRemoveButton && (
+            <button
+              onClick={handleRemove}
+              className="basic-button"
+            >
+              Delete
+            </button>
+          )}
+        </div>
       </div>
+
+      {showDetails ? (
+        <table
+          style={{
+            width: "fit-content",
+            fontSize: "0.75rem",
+            textAlign: "left",
+            marginTop: "0.25rem",
+          }}
+        >
+          <tbody>
+            <tr>
+              <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>
+                Publication
+              </th>
+              <td>{annotation.publication || "-"}</td>
+            </tr>
+
+            <tr>
+              <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>
+                PubMed ID
+              </th>
+              <td>{annotation.pubmed_id || "-"}</td>
+            </tr>
+
+            <tr>
+              <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>
+                Group
+              </th>
+              <td>{annotation.group_tag}</td>
+            </tr>
+          </tbody>
+        </table>
+      ) : null}
     </div>
   )
 }
@@ -53,10 +153,20 @@ export function AnnotationsList({ tag }) {
     isLoading,
     isError,
     error,
+    refetch: refetchAnnotations,
   } = hooks.annotations.useGetAnnotationsByGroupTag(
     { tag },
     { enabled: _.isString(tag) }
   )
+  const openEdit = (annotationTag) => {
+    setEditTag(annotationTag)
+    setIsEditOpen(true)
+  }
+
+  const closeEdit = () => {
+    setIsEditOpen(false)
+    setEditTag(null)
+  }
   
 
 
@@ -97,7 +207,10 @@ export function AnnotationsList({ tag }) {
         )}
 
         {annotationTags.map(tag => (
-          <AnnotationItem key={tag} tag={tag} />
+          <AnnotationItem 
+          key={tag} 
+          tag={tag}
+          updateAnnotationList={refetchAnnotations}  />
         ))}
       </div>
 
@@ -105,6 +218,7 @@ export function AnnotationsList({ tag }) {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         group_tag={tag}
+        onSuccess={refetchAnnotations}
       />
     </div>
   )

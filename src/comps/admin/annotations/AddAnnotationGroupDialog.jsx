@@ -6,6 +6,8 @@ import { Dialog } from "@blueprintjs/core";
 const INITIAL_ANNOTATION_GROUP = {
     text: "",
     description: "",
+    source: "",
+    url: "",
 };
 
 export function InsertAnnotationGroup({ 
@@ -14,6 +16,8 @@ export function InsertAnnotationGroup({
     isEditing = false,
     preText = "",
     preDescription = "",
+    preSource = "",
+    preUrl = "",
 }) {
 
     const [annotationGroup, setAnnotationGroup] = useState(INITIAL_ANNOTATION_GROUP);
@@ -35,6 +39,8 @@ export function InsertAnnotationGroup({
             setAnnotationGroup({
                 text: preText,
                 description: preDescription,
+                source: preSource,
+                url: preUrl,
             });
         }
     }, [isEditing, preText, preDescription]);
@@ -43,6 +49,8 @@ export function InsertAnnotationGroup({
         const data = {
             text: annotationGroup.text,
             description: annotationGroup.description,
+            source: annotationGroup.source,
+            url: annotationGroup.url,
         };
 
         postAnnotationGroup(data, {
@@ -101,6 +109,30 @@ export function InsertAnnotationGroup({
                         }))
                     }
                 />
+                <input
+                    className="text-input"
+                    placeholder="Source (e.g. UniProt, MitoCarta)"
+                    value={annotationGroup.source}
+                    onChange={(e) =>
+                        setAnnotationGroup(prev => ({
+                        ...prev,
+                        source: e.target.value,
+                        }))
+                    }
+                    />
+
+                <input
+                    className="text-input"
+                    placeholder="Enter url"
+                    value={annotationGroup.url}
+                    onChange={(e) =>
+                        setAnnotationGroup(prev => ({
+                        ...prev,
+                        url: e.target.value,
+                        }))
+                    }
+                    />
+
             </div>
 
             <div className="margin--medium">
@@ -151,7 +183,7 @@ export function InsertAnnotationGroup({
 export function AddAnnotationGroupDialog({ isOpen, onClose, onSuccess }) {
 
     return (
-        <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }} canOutsideClickClose={false}>
+        <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(80vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium" style={{ height: "95%" }}>
                 <div style={{ height: "100%", width: "95%" }}>
                     <InsertAnnotationGroup onClose={onClose} onSuccess={onSuccess} />

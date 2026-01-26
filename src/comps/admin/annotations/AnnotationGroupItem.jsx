@@ -1,5 +1,8 @@
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
+import { Tooltip } from "@blueprintjs/core"
+import { Button } from "@blueprintjs/core"
+
 
 export function AnnotationGroupItem({ tag, onClick, isSelected }) {
   const { data: group, isSuccess } =
@@ -12,6 +15,8 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
     { tag },
     { enabled: _.isString(tag) }
   )
+
+  const { mutate: updateGroup, isLoading } = hooks.annotations.useUpdateAnnotationGroup( { tag });
 
   if (!isSuccess) return null;
 
@@ -27,6 +32,30 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
         border: isSelected ? "1px solid #3f6ad8" : "1px solid #ddd",
       }}
     >
+      <Button
+            className="basic-button"
+            disabled={isLoading || !group.url}
+            onClick={(e) => {
+              e.stopPropagation();
+
+              updateGroup(
+                { tag },
+                {
+                  onSuccess: () => {
+                    console.log("Annotation group updated from URL");
+                  },
+                  onError: (err) => {
+                    console.error("Failed to update annotation group", err);
+                  },
+                }
+              );
+            }}
+            style={{ float: "right", fontSize: "0.75rem" }}
+          >
+            Update
+       </Button>
+
+
       <strong>{group.text}</strong>
       <div style={{ fontSize: "0.75rem", color: "#666" }}>
         {group.description}
