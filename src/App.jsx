@@ -39,7 +39,7 @@ import AddExistingSubmission from "./comps/submission/add";
 
 /* Analysis / dataset pages */
 import DatasetHeader from "./comps/analysis";
-import DatasetOverview from "./comps/analysis/overview";
+import SubmissionOverview from "./comps/analysis/overview";
 import DatasetSelection from "./comps/analysis/selection";
 import DatasetHeatmap from "./comps/analysis/heatmap";
 import DatasetVolcanoPlot from "./comps/analysis/volcano";
@@ -286,7 +286,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/submissions/:tag" element={<DatasetOverview {...{ logout }} />} />
+            <Route path="/submissions/:tag" element={<SubmissionOverview {...{ logout }} />} />
             <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{ logout }} />} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />

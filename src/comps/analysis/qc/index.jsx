@@ -7,6 +7,10 @@ import _ from "lodash"
 import ResultChart from "../../protein/charts/resultCard/chart";
 import { useEffect } from "react";
 
+import hooks from "@mitocube/api-hooks"
+import { SamplePGCounts } from "./PGCounts";
+
+
 
 
 
@@ -16,26 +20,36 @@ function DatasetQC() {
     /**
      * @type {import("../../../types/datasets").DatasetContextOutlet}
      */
-    const { submission_tag, metadata, setTabHeader } = useOutletContext()   
-    const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_tag : submission_tag})
+    const { submission_tag, setTabHeader } = useOutletContext()   
     
-    useEffect(() => {
-        if (_.isObject(metadata) && _.has(metadata, "title")) {
-            setTabHeader(metadata.title)
-        }
-    }, [_.isObject(metadata)])
 
-    if (isError) return <APIError error={error}/>
-    if (isLoading || isFetching) return <Loading />
-    if (!_.isObject(metadata)) return <Loading />
-    const featureCounts = _.keys(datatable.stats).map((sampleName, idx) => {
-        return {
-            "#valid": datatable.stats[sampleName].count,
-            idx,
-            sampleName,
-            "#valid (%)": _.toString(_.round(datatable.stats[sampleName].count / datatable.stats[sampleName].total * 1000) / 10)+" %"
-        }
-    })
+
+
+    
+    // const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_tag: submission_tag })
+    
+
+
+
+    // useEffect(() => {
+    //     if (_.isObject(metadata) && _.has(metadata, "title")) {
+    //         setTabHeader(metadata.title)
+    //     }
+    // }, [_.isObject(metadata)])
+
+    // if (isError) return <APIError error={error}/>
+    // if (isLoading || isFetching) return <Loading />
+    // if (!_.isObject(metadata)) return <Loading />
+    
+    
+    // const featureCounts = _.keys(datatable.stats).map((sampleName, idx) => {
+    //     return {
+    //         "#valid": datatable.stats[sampleName].count,
+    //         idx,
+    //         sampleName,
+    //         "#valid (%)": _.toString(_.round(datatable.stats[sampleName].count / datatable.stats[sampleName].total * 1000) / 10)+" %"
+    //     }
+    // })
     
 
     
@@ -47,15 +61,16 @@ function DatasetQC() {
             {/* <CategoricalBoxplot/> */}
             {/* <CategoricalBoxplot data={datatable} /> */}
             <h3>Number of valid values in each sample</h3>
-            <LineChart
+            <SamplePGCounts tag={submission_tag} />
+            {/* <LineChart
                 data={featureCounts}
                 xaxisName="idx"
                 yaxisNames={["#valid"]}
                 tooltipCircleNames={["#valid", "#valid (%)", "sampleName"]}
-                yaxisStartsAtZero={true} />
+                yaxisStartsAtZero={true} /> */}
             {/* <h2>Intensity Distributions</h2> */}
 
-            <h2>Protein of interest</h2>
+            {/* <h2>Protein of interest</h2>
             <div className="flex flex-wrap intent-margin-bottom--large">
             {_.map(datatable.poi_data, ({ data, samples_attributes, annotations, feature_key, feature_annotations }, idx) => {
                 return (
@@ -72,11 +87,10 @@ function DatasetQC() {
                             genotypesByLabel={metadata.genotypes}/>
                     </div>
                 )
-            })}
-            </div>
-
-            {/* <CategoricalBoxplot data={datatable.poi_data[0]} colorName={"Treatment"} yaxisName="value" splitName={"Gene Knock-down"}/> */}
+            })} */}
         </div>
+
+       
     )
 
 

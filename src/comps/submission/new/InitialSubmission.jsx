@@ -64,6 +64,7 @@ function InitialSubmission({
     const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : !_.isString(init_submission_tag)})
     const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.tag : undefined,[_.isObject(submission_tag),submission_tag])
     
+    console.log("InitialSubmission render", submission)
     
     useEffect(() => {
         loadSubmission()

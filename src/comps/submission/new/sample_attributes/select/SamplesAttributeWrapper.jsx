@@ -64,7 +64,8 @@ export const findAndInsertTree = (
     // console.log(data,single_child_type,forceInsert)
             if (path.length === 0) return;
             const [current, ...restPath] = path;
-            // Find node by type and id
+    // Find node by type and id
+            if (current.tag === undefined || current.id === undefined || current.type === undefined) return;
             let node = data.find(
             n =>  n.type === current.type && n.id === current.id && n.tag === current.tag
             );

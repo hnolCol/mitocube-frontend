@@ -53,7 +53,7 @@ function DatasetPCA({ }) {
     }
 
 
-    return (<div className="div--expand" style={{ overflowY: "scroll", height: "80vh " }}>
+    return (<div className="div--expand" style={{ overflowY: "scroll", height: "90vh " }}>
         <h2>Principal Component Analysis</h2>
         {_.isObject(pcaresults) && _.isArray(pcaresults.variance_explained) ? <span>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained) * 10000) / 100}% of the total variance.</span> : null}
 

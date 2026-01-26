@@ -16,6 +16,8 @@ import { SubmissionProteinGroupCount } from "../../submission/view/SubmissionPro
 import { SubmissionUpload } from "../../submission/upload/SubmissionFeatureUpload";
 import { SubmissionSampleCount } from "../../submission/view/SubmissionSampleCount";
 import { SubmissionPeptideCount } from "../../submission/view/SubmissionPeptideCount";
+import { SubmissionConditionApplicationView } from "./SubmissionConditionApplicationView";
+import { SubmissionDate } from "../../submission/view/SubmissionDate";
 
 
 /**
@@ -23,7 +25,7 @@ import { SubmissionPeptideCount } from "../../submission/view/SubmissionPeptideC
  * @param {Object} props  
  * @returns 
  */
-function DatasetOverview() {
+function SubmissionOverview() {
 
     const { submission_tag } = useOutletContext()    
 
@@ -34,6 +36,8 @@ function DatasetOverview() {
                 <div className="margin-top--little" style={{ maxWidth : "66vw"}}>
                     <h1><SubmissionTitle tag={submission_tag} /></h1>
                 </div>
+
+                <SubmissionDate submission_tag={submission_tag} />
                 
                 <div className="margin-top--little">
                     <StateIndicator submission_tag={submission_tag}/>
@@ -54,14 +58,16 @@ function DatasetOverview() {
                 
 
             </div>
-
+            <div className="flex flex-column center-items" style={{width : "100%"}}>
             <div className="flex">
                 <SubmissionTag {...{ submission_tag }} />
                 <SubmissionViews {...{ submission_tag }} />
+                <SubmissionSampleCount  {...{ submission_tag }} />
                 <SubmissionProteinGroupCount {...{ submission_tag }} />
                 <SubmissionPeptideCount {...{ submission_tag }} />
-                <SubmissionSampleCount  {...{ submission_tag }} />
+                
                 </div>
+            </div>
             <div>
                 <SubmissionUpload {...{ submission_tag }}/>
             </div>
@@ -71,9 +77,9 @@ function DatasetOverview() {
                     <h3>Sample Attributes</h3>
                     <SampleAttributesView submission_tag={submission_tag} minimal={false} />
                 </div> : null}
-            <div className="bg--lightgrey margin--medium padding--little" style={{maxWidth : "33vw", minWidth:"20vw", maxHeight: "min(50vh,500px)", overflowY:"scroll"}}>
-                    <h3>Dataset Attributes</h3>
-                    <ConditionApplicationsView />
+                <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
+                    <SubmissionConditionApplicationView {...{ submission_tag }}/>
+                    {/* <ConditionApplicationsView /> */}
                 {/* <StaticDatasetAttributesHierarchy submission_tag={submission_tag} /> */}
                 {/* <DatasetAttributeHierarchy {...{
                     selectedDasetAttributeValues: datasetAttributeValues,
@@ -101,4 +107,4 @@ function DatasetOverview() {
         </div>
         )}
 
-export default DatasetOverview
+export default SubmissionOverview

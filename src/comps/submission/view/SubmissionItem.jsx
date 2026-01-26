@@ -1,14 +1,6 @@
-import { ContextMenu, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
-import { TraitWithValueInput, SampleAttributeTagWithTooltip } from "../../core/base/tags/TagWithTooltip";
-import { UserIconWithTooltip } from "../../core/base/user";
-import { isHexColorLight } from "../../../services/colors";
-import { titleFormat } from "../../../services/format/string";
-import { copyTextToClipboard } from "../../../services/clipboard";
+
 import { useNavigate } from "react-router";
-import { AttributeFeatureTag } from "../new/sample_attributes/view/DatasetAttributesHierarchy";
-import { TitleText } from "../../core/metrics/ItemBasics";
 import { CreatedAt } from "../../core/metrics/CreatedAt";
-import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";
 import { motion } from "framer-motion";
 import PropTypes from "prop-types"
 import _ from "lodash"

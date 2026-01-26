@@ -20,6 +20,11 @@ import { localPoint } from '@visx/event';
 import AxisWithBackground from '../axis';
 import MetricTable from '../../base/metrictable';
 
+
+import viz from "@mitocube/viz"
+
+
+
 LineChart.propTypes = {
     xaxisName: PropTypes.string,
     yaxisNames: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -77,6 +82,9 @@ function LineChart({
     const sortedyaxisNames = lineHighlighted ? _.concat(yaxisNames.filter(yaxisName => yaxisName !== highlightedYAxisName), [highlightedYAxisName]) : yaxisNames //resort names to have highlighted line on top (e.g. last)
     const sortedData = useMemo(() => _.isArray(data) ? _.orderBy(data, xaxisName) : [], [xAxisIsTime, xaxisName])
     
+    console.log(data,sortedData, yaxisNames)
+
+
 
     const handleMouseOver = (event, datum) => {
         const coords = localPoint(event.target.ownerSVGElement, event);
@@ -97,6 +105,8 @@ function LineChart({
                 nice : true
             })
         }
+
+        // if (!_.isNumber(sortedData[0][xaxisName]))   
 
         const xDomain = getBoundariesFromArrayOfObjects({ data : sortedData, keyName: xaxisName })
         const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
@@ -139,7 +149,7 @@ function LineChart({
     return (
         <div>
             <SVG height={height} width={width} svgID={svgID} svgRef={containerRef}>
-                <AxisWithBackground
+                <viz.axis.XYaxis
                     {...{
                         margins,
                         chartWidth,

@@ -19,7 +19,7 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
     }
 
     const handleTraitSelectionHierarchy = (path, row_idcs, single_child_level, single_child_type) => {
-
+        
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
         const pathExists = checkPathExists(selected_traits, path)
@@ -29,7 +29,6 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
             deleteByPath(selected_traits, path)
         }
         else {
-            
             findAndInsertTree(selected_traits, path)
         }
         setSubmission(prevValues => { return {...prevValues, selected_traits}})
