@@ -20,18 +20,34 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
 
   if (!isSuccess) return null;
 
+  const hoverContent =
+  group.created_at && group.created_by ? (
+    <div style={{ fontSize: "0.75rem" }}>
+      Created by {group.created_by}
+      <br />
+      {new Date(group.created_at).toLocaleDateString()}
+    </div>
+  ) : null;
+
+
   return (
-    <div
-      onClick={onClick}
-      style={{
-        padding: "0.6rem",
-        marginBottom: "0.4rem",
-        borderRadius: "6px",
-        cursor: "pointer",
-        backgroundColor: isSelected ? "#e8f0ff" : "#f7f7f7",
-        border: isSelected ? "1px solid #3f6ad8" : "1px solid #ddd",
-      }}
-    >
+      <Tooltip
+        content={hoverContent}
+        hoverOpenDelay={300}
+        disabled={!hoverContent}
+      >
+        <div
+          onClick={onClick}
+          style={{
+            padding: "0.6rem",
+            marginBottom: "0.4rem",
+            borderRadius: "6px",
+            cursor: "pointer",
+            backgroundColor: isSelected ? "#e8f0ff" : "#f7f7f7",
+            border: isSelected ? "1px solid #3f6ad8" : "1px solid #ddd",
+          }}
+        >
+    
       <Button
             className="basic-button"
             disabled={isLoading || !group.url}
@@ -63,6 +79,7 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
       <div style={{ fontSize: "0.75rem", color: "#444", marginTop: "0.25rem" }}>
         {count ?? 0} annotations
       </div>
-    </div>
-  );
+      </div>
+  </Tooltip>
+);
 }
