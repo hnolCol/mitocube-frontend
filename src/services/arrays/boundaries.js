@@ -67,9 +67,7 @@ export function getDomainWithBoundaries({ data, keyName, frac = 0.08}) {
  * @returns {import("../../types/calculations").MinMaxResult} - The min max in the data array. 
  */
 export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], keyName = "x"}) {
-    console.log("getBoundariesFromArrayOfObjects", keyName)
     if (_.isArray(keyName)) {     
-        console.log("here?")
         return (
             {
                 min: _.min(data.map(d => _.min(_.filter(keyName, key => _.isNumber(d[key])).map(key => d[key])))),

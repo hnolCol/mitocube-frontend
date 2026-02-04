@@ -7,7 +7,7 @@ import { LastViewed } from "./Views"
 
 import viz from "@mitocube/viz"
 import hooks from "@mitocube/api-hooks"
-// import { AnnotationSelectionMenu } from "../core/base/annotations/AnnotationSelectionMenu"
+import { AnnotationSelectionMenu } from "../core/base/annotations/AnnotationSelectionMenu"
 
 function Welcome() {
     const { isLoading: backendInfoLoading, data: backendInfo } = useGetBackendInfo()
@@ -38,7 +38,7 @@ function Welcome() {
                     <NewsView />
                     <LastViewed user_tag={null} type="submissions" />
                 </div>
-                {/* <AnnotationSelectionMenu /> */}
+                <AnnotationSelectionMenu />
             </div>
             {/* <viz.charts.HeatmapGrouping data={submissionSampleConditionApplications} keyNames={["att_environment_treatment"]} is_condition_application={[true]} />
             <viz.charts.Heatmap /> */}

@@ -5,8 +5,7 @@ import { Button } from "@blueprintjs/core"
 
 
 export function AnnotationGroupItem({ tag, onClick, isSelected }) {
-  const { data: group, isSuccess } =
-    hooks.annotations.useGetAnnotationGroupByTag(
+  const { data: group, isSuccess } = hooks.annotations.useGetAnnotationGroupByTag(
       { tag },
       { enabled: _.isString(tag) }
     );
