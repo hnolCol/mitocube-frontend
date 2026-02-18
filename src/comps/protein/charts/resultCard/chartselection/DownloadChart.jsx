@@ -16,7 +16,7 @@ import { downloadSVG } from '../../../../../services/downloads/svg'
  * @param {String[]} props.fileNames - The actual file names.
  * @returns 
  */
-export function DownloadData({ elements, elementNames, elementTypes, fileNames }) {
+export function DownloadData({ elements, elementNames, elementTypes, fileNames, itemIsAttribute=true }) {
 
     const handleDownload = (elementName) => {
         const idx = elementNames.indexOf(elementName)
@@ -39,6 +39,7 @@ export function DownloadData({ elements, elementNames, elementTypes, fileNames }
             callbackValueOnly={true}
             callback={handleDownload}
             callbackKey={"download"}
+            itemIsAttribute={itemIsAttribute}
         />
     )
 }

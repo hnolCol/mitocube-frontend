@@ -26,7 +26,7 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
 }
 
 
-export function Protein({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", redirect_to_protein_site = true, minimal = false, onClick }) {
+export function Protein({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", redirect_to_protein_site = true, minimal = false, onClick, style }) {
     const redirect = useNavigate()
     const { data: feature, isSuccess, isLoading, isError } = useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     
@@ -50,7 +50,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
     if (minimal && isSuccess) return <div className="margin-right--little">{feature.gene_name}</div>
     return <div>
         {isSuccess ? <motion.div
-            style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem" }} //lighter ? "#efefef" :
+            style={{ ...style, backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem", } } //lighter ? "#efefef" :
             className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
             whileHover={{ backgroundColor: motionBackgroundColor, color: "#ffffff", scale: 1.05 }}
         >

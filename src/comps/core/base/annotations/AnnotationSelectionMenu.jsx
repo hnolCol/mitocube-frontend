@@ -41,9 +41,9 @@ export function AnnotationGroupInMenu({ tag, annotation_tags = [] }) {
 
     const { data : annotation_group, isSuccess, isLoading } = hooks.annotations.useGetAnnotationGroupByTag({ tag }, {enabled : _.isString(tag)})
     return (
-        <MenuItem text={`${isSuccess ? annotation_group.text : null} (${annotation_tags.length})`} style={{maxHeight : "15rem", overflowY : "scroll"}}>
-            <AnnotationsInMenu annotation_tags={annotation_tags} title={annotation_group.text} description={annotation_group.description} />
-        </MenuItem>
+        <MenuItem text = {`${isSuccess ? annotation_group.text : null} (${annotation_tags.length})`} style = {{ maxHeight: "15rem", overflowY : "scroll" }}>
+            { isSuccess? <AnnotationsInMenu annotation_tags={annotation_tags} title={annotation_group.text} description={annotation_group.description} />: null }
+        </MenuItem > 
     )
 }
 
@@ -58,7 +58,7 @@ export function AnnotationSelectionMenu() {
     const { data : annotation_search_results, isLoading, isError, isSuccess, refetch } = hooks.annotations.useGetAnnotationsBySearchString({ search_string : debouncedString, limit, group_by_group : true})
 
     useEffect(() => {
-        console.log("Refetching annotation search results")
+        //make sure there is something displayed when opening the menu, otherwise it looks weird.
         refetch()
     }, [] )
 

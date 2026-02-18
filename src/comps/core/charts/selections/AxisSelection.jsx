@@ -12,7 +12,7 @@ AxisSelection.defaultProps = {
     minimal: true
 }
 
-export function AxisSelection({ keyNames, selection, onSelectionChange, minimal }) {
+export function AxisSelection({ keyNames, selection, onSelectionChange, minimal, itemIsAttribute = true }) {
     return (
         <div className="flex">
             <XAxisName
@@ -21,14 +21,18 @@ export function AxisSelection({ keyNames, selection, onSelectionChange, minimal 
                 placeholder={selection.xaxisName}
                 callbackKey="xaxisName"
                 minimal={minimal}
-                callback={onSelectionChange} />
+                callback={onSelectionChange}
+                itemIsAttribute={itemIsAttribute}
+            />
             <YAxisName
                 items={keyNames}
                 placeholder={selection.yaxisName}
                 minimal={minimal}
                 selectedItems={[{text : selection.yaxisName}]}
                 callbackKey="yaxisName"
-                callback={onSelectionChange} />
+                callback={onSelectionChange}
+                itemIsAttribute={itemIsAttribute} 
+            />
         </div>
     )
 }

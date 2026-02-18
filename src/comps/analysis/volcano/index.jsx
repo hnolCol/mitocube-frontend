@@ -5,14 +5,16 @@ import { useGetDatasetVolcano } from "../../../hooks/queries/datasets.hooks";
 import { useEffect, useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
-import { Card } from "@blueprintjs/core";
+import { Card, Dialog } from "@blueprintjs/core";
 import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/groupby";
-import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise";
+import { AttributePairwiseSelection, ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 
+import hooks from "@mitocube/api-hooks"
 
-function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setIsFetching }) {
+
+function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setIsFetching, onError }) {
 
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
 
@@ -28,7 +30,6 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
         else {
             updatedData = data.stats
         }
-        console.log()
 
 
         setIsFetching(false)
@@ -39,7 +40,7 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
                 ...prevValues, data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
                 testParams: _.concat(prevValues.testParams, selectedTestParams),
-                selection : _.concat(prevValues.selection,{ xaxisName: `log2 FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `Significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, textSearchNames : ["genes"], filterSetNames : [] })
+                selection : _.concat(prevValues.selection,{ xaxisName: `log2FC`, yaxisName: `-log10 p-value`, colorName : `Significant`, tooltipNames : [], sizeName : undefined, textSearchNames : ["genes"], filterSetNames : [] })
             }
         })
     }
@@ -48,10 +49,11 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
     const handleError = (error) => {
         setIsFetching(false)
         console.log(error)
+        onError({ isOpen: true, message: error })
     }
 
     //fetch data
-    const { isSuccess, refetch} = useGetDatasetVolcano({ submission_tag, testParams: selectedTestParams,  }, {
+    const { isSuccess, refetch} = hooks.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right}, {
         enabled: false,
         onSuccess: handleSuccess,
         onError: handleError
@@ -85,12 +87,16 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
     useEffect(() => {setIsFetching(false)},[isSuccess])
     
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
-
+    console.log(numericKeyNames, "Numeric Key Names")
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-    console.log(volcanoData)
-    //console.log(volcanoData)
+   
+    
+    
     return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap: "0.5rem" }}> 
     
+        
+
+        
         <InteractiveChart
                         data={volcanoData.data}
                         extraLimitNames={extraLimits} 
@@ -104,6 +110,8 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
                 })
             } 
                     isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}>
+                    
+                    
                     {
                         /**
                          * 
@@ -117,6 +125,7 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
                             yaxisName,
                             valid,
                             limits,
+                            initialLayouts,
                             handleItemSelection,
                             findIndexInRectangle,
                             findDataInRectangle,
@@ -128,22 +137,29 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
                             findClosestPoint,
                             hoverProps,
                             filterProps,
-                            labelProps
+                            labelProps,
+                            triggerResetAxis,
+                            setTriggerResetAxisZoom
                         }, didx) => {
+                            console.log(triggerResetAxis)
                             return (
+                                //  <div key={chartIdx} data-grid={initialLayouts[chartIdx]}>
                                 <Card compact={true} style={{maxWidth: "700px", maxHeight : "500px"}}>
                                     <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                         {...{
-                                            title : "Volcano Plot",
+                                        // title : "Volcano Plot",
                                         numericKeyNames : numericKeyNames,
                                         selection : volcanoData.selection[didx],
                                         setSelection: handleSelection,
-                                        idx : didx,
+                                        idx: didx,
+                                        chartIdx, 
+                                        setTriggerResetAxisZoom,
                                         handleStringSearch,
                                         downloadElements: [`volcano-${didx}`, volcanoData.data],
                                         elementNames: ["SVG","DIVIDER",`Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
                                         fileNames: [`${submission_tag}-VolcanoPlot.svg`,`${submission_tag}-VolcanoPlot-Data.txt`],
-                                        elementTypes: ["svg", "data"]
+                                        elementTypes: ["svg", "data"],
+                                        itemIsAttribute: false
                                         }} />
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
@@ -162,7 +178,7 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
                                         yaxisName,
                                         limits,
                                         tooltipSmall: true,
-                                        tooltipNames: ["gene_name"],
+                                        tooltipNames: ["tag"],
                                         ...hoverProps,
                                         ...filterProps,
                                         ...labelProps,
@@ -172,12 +188,17 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
                                         legendWithAttributes: false,
                                         handleSearchByDataIndex,
                                         filterDataInKeyByValue,
-                                        svgID: `volcano-${didx}`
+                                        svgID: `volcano-${didx}`,
+                                        triggerResetAxis,
+                                        setTriggerResetAxisZoom,
                                     }} />
-                                </Card>)
+                                    </Card> 
+                                    // </div>
+                         
+                            )
                         })}
 
-                </InteractiveChart>
+            </InteractiveChart>
         </div>)
 }
 
@@ -185,14 +206,22 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
 function VolcanoPlotWrapper({submission_tag, metadata}) {
     const [testParams, setTestParams] = useState({})
     const [isFetching, setIsFetching] = useState(false)
+    const [error, setError] = useState({isOpen : false, message : ""})
 
     const handleVolcano = (props) => {
         setTestParams(props)
     }
     return (
         <div className="div--expand flex">
-            <AttributePairwiseSelection {...{submission_tag, metadata, callbackText : "Volcano plot.", callback : handleVolcano, isLoading : isFetching}} />
-            <VolcanoDataHandler {...{ submission_tag, selectedTestParams: testParams, metadata, setIsFetching }} />
+            <Dialog isOpen={error.isOpen} onClose={() => setError({isOpen : false, message : undefined})} title="Error in Volcano Plot Generation">
+                <div className="padding--medium">
+                    <span>The following error occurred while generating the volcano plot and was returned from the backend.</span>
+                    <APIError error={error.message} />
+                </div>
+            </Dialog>
+            <AttributePairwiseSelection {...{ submission_tag, callbackText: "Volcano plot.", callback: handleVolcano, isLoading: isFetching }} />
+            <ConditionApplicationSelection {...{submission_tag, onConfirm : handleVolcano, reset_after_confirm: true, isLoadingData : isFetching }}/>
+            <VolcanoDataHandler {...{ submission_tag, selectedTestParams: testParams, metadata, setIsFetching, onError: setError }} />
         </div>
     )
 }

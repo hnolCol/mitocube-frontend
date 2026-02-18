@@ -18,6 +18,7 @@ export function FeatureData({ feature_tag, submission_tag }) {
     const { data, isLoading } = hooks.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: !!feature_tag && !!submission_tag, staleTime: 60000 });
     const {data : feature} = hooks.features.useGetFeatureInfo({ tag : feature_tag }, { enabled : !!feature_tag})
 
+    const { data: attributes, isLoading : isSampleCAAttributeLoading } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
 
     const containerRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
@@ -35,17 +36,16 @@ export function FeatureData({ feature_tag, submission_tag }) {
     }, [containerRef]);
 
     
-    console.log(size)
     return (
         <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
-            {isLoading ? (
+            {isLoading || isSampleCAAttributeLoading ? (
                 <div>Loading...</div>
             ) : (
                 <ResultChart
                     yaxisName="value"
                     data={data?.data}
                     showMenu={true}
-                    attribute_tags={["att_environment_treatment"]}
+                    attribute_tags={attributes}
                     width={size.width || undefined}
                         height={size.height || undefined}
                         title={_.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}

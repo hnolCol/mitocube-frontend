@@ -14,7 +14,7 @@ import SizeIconWithName from "../../../../core/svg/icons/chartSelection/Size"
  * @param {Boolean} props.minimal If the minimal style should be used. The selection will then not be displayed next to the icon. 
  * @returns 
  */
-export function ScatterMarksSelection({keyNames, selection, onSelectionChange, minimal}) {
+export function ScatterMarksSelection({keyNames, selection, onSelectionChange, minimal, itemIsAttribute = true}) {
     return (
         <div className="flex">
             <ColorIconWithName
@@ -22,12 +22,14 @@ export function ScatterMarksSelection({keyNames, selection, onSelectionChange, m
                 placeholder={selection.colorName}
                 selectedItems={[{ text: selection.colorName }]}
                 minimal={minimal}
+                itemIsAttribute={itemIsAttribute}
                 callbackKey="colorName" callback={(key, value) => onSelectionChange(key, selection.colorName === value ? undefined : value)} />
             <SizeIconWithName
                 items={keyNames}
                 placeholder={selection.sizeName}
                 selectedItems={[{ text: selection.sizeName }]}
                 minimal={minimal}
+                itemIsAttribute={itemIsAttribute}
                 callbackKey="sizeName" callback={(key, value) => onSelectionChange(key, selection.sizeName === value ? undefined : value)} />
         </div>
     )

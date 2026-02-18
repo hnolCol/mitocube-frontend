@@ -1,14 +1,54 @@
-import { useState } from "react";
-import { OptionButton } from "../../core/base/buttons/OptionButton"
+import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { FeatureContainer } from "./FeatureContainer";
 import { useOutletContext } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { FeatureDataView } from "./DataView";
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms";
-const OPTIONS = ["All", "Protein Groups", "Precursors"]
-const LIMITS = [1, 20, 100, 200, 500]
+const OPTIONS = ["All", "Protein Groups", "Precursors"];
+const LIMITS = [20, 100, 200, 500];
 // Use a separator that won't conflict with ";" in tags, e.g. "|"
 const TAGS_SEPARATOR = "|";
+
+
+export function DeselectAllButton({ onClick, selectedItems }) {
+    const selectedItemsCount = selectedItems.length
+    return <OptionButton
+        isSelected={false}
+        onClick={() => {
+            if (selectedItemsCount === 0) return;
+            onClick([]);
+        }}
+    >
+                    
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <span
+                style={{
+                    fontWeight: 700,
+                    color: selectedItemsCount ? "#B42318" : "#667085",
+                }}
+            >
+                Deselect
+            </span>
+
+            <span
+                style={{
+                    fontSize: "0.75rem",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: selectedItemsCount ? "#FEE4E2" : "#F2F4F7",
+                    color: selectedItemsCount ? "#B42318" : "#667085",
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    userSelect: "none",
+                }}
+                title={selectedItemsCount ? "Clear selected tags" : "Nothing selected"}
+            >
+                {selectedItemsCount}
+            </span>
+        </span>
+    </OptionButton>
+}
+
 
 export function DatasetFeatureView() {
     const { submission_tag } = useOutletContext();
@@ -44,9 +84,16 @@ export function DatasetFeatureView() {
     return (
         <div>
             <h2>Dataset Features</h2>
-            <div className="flex">
-            <div className="flex flex-column padding-medium" style={{ width: "min(40vw,500px)"}}>
-                <div className="margin--medium">
+            <div
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "450px 1fr",
+                    gridTemplateRows: "auto 1fr",
+                    gap: "2rem",
+                }}
+            >
+            <div className="flex flex-column padding-medium" style={{width : "100%"}}>
+                <div className="margin--tiny">
                     <input
                         type="text"
                         className="search-input margin-right--little"
@@ -67,6 +114,10 @@ export function DatasetFeatureView() {
                             <span>{option}</span>
                         </OptionButton>
                     ))}
+                
+                <span>|</span>
+                <DeselectAllButton onClick={() => updateProteinGroupTags([])} selectedItems={proteinGroupTags} />
+                        
                 </div>
                 <div className="flex margin-top--little center-items" style={{ gap: "5px", width : "100%" }}>
                     <span>Limit | </span>
@@ -87,15 +138,17 @@ export function DatasetFeatureView() {
                     submission_tag={submission_tag}
                     selected_feature_tags={proteinGroupTags}
                     onClickFeature={(featureSearchResult) => {
-                        console.log({ featureSearchResult });
                         updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: featureSearchResult.tag }));
                     }}
                 />
                 
                 </div>
-                <FeatureDataView feature_tags={proteinGroupTags} submission_tag={submission_tag} />
+
+                {/* Column 2: FeatureDataView only */}
+                <div style={{marginLeft : "2rem"}}>
+                    <FeatureDataView feature_tags={proteinGroupTags} submission_tag={submission_tag} />
+                </div>
             </div>
-            
-            </div>
+        </div>
     );
 }

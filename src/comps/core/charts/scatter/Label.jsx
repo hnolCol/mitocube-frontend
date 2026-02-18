@@ -16,6 +16,12 @@ import { useGetFeatureByTag } from "../../../../hooks/queries/feature.hooks";
 function areEqual(prevProps, nextProps) {
     const labelNamesEqual = _.every(prevProps.labelNames, (text, idx) => nextProps.labelNames[idx] === text)
     if (!labelNamesEqual) return false 
+    const xDomain = prevProps.xScale.domain()
+    const yDomain = prevProps.yScale.domain()
+    if (_.some(prevProps.rerenderDependency, (value, idx) => nextProps.rerenderDependency[idx] !== value)) return false 
+    if (xDomain[0] !== nextProps.xScale.domain()[0] || xDomain[1] !== nextProps.xScale.domain()[1]) return false 
+    if (yDomain[0] !== nextProps.yScale.domain()[0] || yDomain[1] !== nextProps.yScale.domain()[1]) return false
+
     if (prevProps.index !== nextProps.index) return false 
     if (prevProps.xaxisName !== nextProps.xaxisName) return false 
     if (prevProps.yaxisName !== nextProps.yaxisName) return false 
@@ -37,6 +43,7 @@ const ScatterLabel = React.memo(
      * @param {Function} props.xScale - The scale to calculate the pixel position in the svg for the x-axis
      * @param {Function} props.yScale - The scale to calculate the pixel position in the svg for the y-axis
      * @param {Boolean} props.split - If the label should be split by the props.splitString and taking the desired props.splitIndex
+     * @param {String[] props.rerenderDependency - The list of props that should trigger a rerender if they change. This is important for performance reasons, because calculating the label can be expensive if there are many items.}
      * @returns 
      */
     function ScatterLabel({
@@ -53,20 +60,23 @@ const ScatterLabel = React.memo(
         splitIndex = 0,
         offset = 5,
         opacity = 1,
-        isFeature = true
+        isFeature = true,
+        rerenderDependency = []
     }) {
     
     const { data : feature, isLoading, isSuccess } = useGetFeatureByTag({tag : data[index]["tag"]}, {enabled : isFeature})
-    console.log(feature)
-    console.log(data[index]["tag"])
-    const labelStrings = labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text))
+ 
+    const labelStrings = _.uniq(_.concat(labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text)), labelNames.map(labelName => _.isObject(feature) ? feature[labelName] : undefined).filter(text => _.isString(text))))
     const labelText = _.join(labelStrings.map(labelString => split?_.split(labelString,splitString).at(splitIndex):labelString), joinString)
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 
     if (labelStrings.length === 0) return null 
-    if (!_.isNumber(data[index][xaxisName]) || !_.isNumber(data[index][yaxisName])) return null 
-
+    if (!_.isNumber(data[index][xaxisName]) || !_.isNumber(data[index][yaxisName])) return null 
+    
     const x = xScale(data[index][xaxisName])
     const y = yScale(data[index][yaxisName])
+    if (!_.inRange(data[index][xaxisName], xScale.domain()[0], xScale.domain()[1]) || !_.inRange(data[index][yaxisName], yScale.domain()[1], yScale.domain()[0])) return null
+
+
     const moveLeft = domainIsAroundZero && data[index][xaxisName] < 0
 
     return (
@@ -80,7 +90,6 @@ const ScatterLabel = React.memo(
             fillOpacity={opacity}
         >
             {labelText}
-            <span>hllo</span>
         </Text>
         
     )

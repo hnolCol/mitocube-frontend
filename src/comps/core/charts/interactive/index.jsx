@@ -7,6 +7,7 @@ import { getMinMaxForMultipleKeyNames } from "../../../../services/arrays/bounda
 import { filterArrayBySearchStringByMultipleKeys, filterArrayBySearchStringBySingleKey } from "../../../../services/arrays/filter";
 import { checkChartData } from "../../types/checks/data";
 import { checkInteractiveChartKeyNames } from "../../types/checks/chart";
+import { Responsive, WidthProvider } from "react-grid-layout"
 
 function makeid(length) {
     let result = '';
@@ -43,6 +44,8 @@ function InteractiveChart({
     extraLimitNames = [],
     dataName = "",
     children }) {
+    
+    const numberCharts = keyNames.length
 
     //hovering data 
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1})
@@ -51,8 +54,9 @@ function InteractiveChart({
     const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1, lastSelected : undefined})
     //background scatter indicates hovering over the data points. This allows quick rendering, as all chart components only rerender if the value rerender changes.
     const [backgroundScatter, setRerender] = useState({ rerender: [Math.random()], filterIndices: new Set(), filterRange: [0, 100], searchIndices: new Set(), searchString: "" })
-    const numberCharts = keyNames.length
-    
+
+    const [resetAxisZoom, setResetAxisZoom] = useState(_.range(numberCharts).map(idx => { return { chartIdx: undefined } }))
+
 
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
     const flattenKeyNames = _.join(keyNamesFlatten)
@@ -116,6 +120,10 @@ function InteractiveChart({
         setHoverData({data : arr, rerender : [Math.random()], idcs, hoverChart : chartIdx })
     }
 
+    const setTriggerResetAxisZoom = (chartIdx) => {
+        setResetAxisZoom(prevValues => {return {...prevValues, [chartIdx] : Math.random()}})
+    }
+
     const handleItemSelection = (itemIndex = undefined) => {
         //handle item selection by item Index
         let selectedItems = addItemToArrayIfNotPresent({array : data, item : data[itemIndex]})
@@ -175,13 +183,17 @@ function InteractiveChart({
         //find closest point 
     }
 
+
+
+
     
     const chartProps = _.range(numberCharts).map(chartIdx => {
         const {xaxisName, yaxisName } = keyNames[chartIdx]
         return {
             data,
             chartIdx,
-            valid : validIndices[chartIdx],
+            valid: validIndices[chartIdx],
+            // initialLayouts,
             xaxisName,
             yaxisName,
             limits,
@@ -193,17 +205,25 @@ function InteractiveChart({
             handleStringSearch,
             handleSearchByDataIndex,
             filterDataInKeyByValue,
+            setTriggerResetAxisZoom,
             setHoverDataByDataIndex,
             findClosestPoint,
+            triggerResetAxis : resetAxisZoom[chartIdx],
             hoverProps : {hoverData : hoverData.data, rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
             filterProps: { rerenderBackground: backgroundScatter.rerender, filterIndices: backgroundScatter.filterIndices, filterRange: backgroundScatter.filterRange, searchIndices: backgroundScatter.searchIndices, resetSearchIdcs, searchString : backgroundScatter.searchString },
             labelProps : {labelIndices : labelData.idcs, labelRerender : labelData.rerender, labelChart : labelData.labelChart, lastSelected : labelData.lastSelected}
         }
     })  
     
+
     
-    return(
-        <>{children(chartProps)}</>
+
+    
+    return (
+            <>
+            {children(chartProps)}
+            </>
+      
     )
 
 }

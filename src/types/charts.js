@@ -81,7 +81,9 @@
  * @property {Function} findClosestPoint 
  * @property {Function} handleItemSelection 
  * @property {Function} handleStringSearch Function that handles a string search event. This is intended to be used for visualizing the data that match the filtering
- * @property {Function} 
+ * @property {Object.<string, Number>} triggerResetAxis Trigger to reset the axis zoom. The value is not relevant, but it should be a new value each time the reset should be triggered. This is important to be able to reset the zoom from outside of the chart, e.g. when a user clicks on a "reset zoom" button.
+ * @property {Function} setTriggerResetAxisZoom Function to trigger the reset of the axis zoom. This is intended to be used in the InteractiveChartToolbar for a "reset zoom" button. It takes the chartIdx as an argument to identify which chart should reset its zoom. 
+* @property {Function} 
  *  */
 
 

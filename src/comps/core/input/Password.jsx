@@ -1,5 +1,4 @@
 import PropTypes from "prop-types"
-import { Tooltip2 } from "@blueprintjs/popover2"
 import { Button, InputGroup } from "@blueprintjs/core"
 import { useEffect, useState } from "react"
 import _ from "lodash"

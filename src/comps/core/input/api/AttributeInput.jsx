@@ -15,7 +15,7 @@ import PropTypes from "prop-types";
  * @param {Object} props.menuItemProps - The properties for a menu item (blueprint)
  * @returns
  */
-function AttributeMenuItem({ tag, menuItemProps, onItemSelect }) {
+export function AttributeMenuItem({ tag, menuItemProps, onItemSelect, selected = false}) {
 
     const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({ tag })
 
@@ -23,6 +23,7 @@ function AttributeMenuItem({ tag, menuItemProps, onItemSelect }) {
 
     return <MenuItem
         text={attribute.text}
+        icon={selected?"tick":"blank"}
         // labelElement={<div className="font-size--smallest"
         //     style={{ maxWidth: "8rem" }}>
         //     {trait.description}

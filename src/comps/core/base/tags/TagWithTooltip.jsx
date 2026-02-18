@@ -19,6 +19,7 @@ import { Loading } from '../states/Loading'
 import { FeatureInput } from '../../input/api/FeatureInput'
 import { Attribute } from '../attributes/Attribute'
 import { Trait } from '../traits/Trait'
+import { set } from 'lodash'
 
 
 TraitChildren.propTypes = {
@@ -83,6 +84,17 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     const selection = _.isFunction(getSelectionByPath) ? _.head(getSelectionByPath(track_path, rowIndex)) : undefined
     const has_selection = _.isObject(selection)
 
+
+    useEffect(() => {
+        if (has_selection && selection.type === "trait") {
+            const traitInSelection = selection.tag
+            if (_.isString(traitInSelection) && traitInSelection !== childTrait) {
+                setChildTrait(traitInSelection)
+            }
+
+        }
+    
+    },[has_selection])
 
     const handleTraitSelection = (trait_tag, single_child_level = 3, single_child_type = false, join_values = false, referenceID) => {
         const p_remove = _.concat(track_path, [{ "type": "trait", "tag": childTrait, "id": referenceID }])
@@ -155,15 +167,17 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                     attribute_tag={attribute_tag}
                                     onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, index + 3, true, false, referenceID)}
                                     selected_trait={_.isString(childTrait) ? childTrait : has_selection ? selection.tag : undefined}
-                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? setChildTrait(d[0]) : null} /> : null}
+                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? setChildTrait(d[0]) : null}
+                                /> : null}
                         </div>
                     </div> :
                     <div className='flex center-items'>
-                        <div>{_.isString(childTrait) ? <Trait trait_tag={childTrait}/> : null}</div>
-                    <TraitInput
-                        attribute_tag={attribute_tag}
-                        text={has_selection ? "" : attribute.text}
-                        onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, index + 3, true, false, referenceID)}
+                        <div>{_.isString(childTrait) ? <Trait trait_tag={childTrait} /> : null}</div>
+                        <div>?</div>
+                        <TraitInput
+                            attribute_tag={attribute_tag}
+                            text={has_selection || _.isString(childTrait) ? "" : attribute.text}
+                            onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, index + 3, true, false, referenceID)}
                             selected_trait={has_selection ? selection.tag : _.isString(childTrait) ? childTrait : undefined} />
                         
                         </div>
@@ -245,7 +259,6 @@ export function TraitWithValueInput({
         onChildrenSelection,
         getSelectionByPath,
         referenceID,
-        addIDToAttribute = false,
         checkAttributeRequiredTraits,
     sel }) {
     
@@ -256,8 +269,7 @@ export function TraitWithValueInput({
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
 
-    const traitPath = addIDToAttribute ? [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }] :
-        [{ "tag": attribute_tag, "type": "attribute" }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
+    const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : attribute_tag }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
 
     return (
         <div>

@@ -1,7 +1,7 @@
 import PropTypes from "prop-types"
 import AxisWithBackground from "../axis"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { addMarginToBoundaries, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
 import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
@@ -20,6 +20,23 @@ import { Protein, ProteinGroup } from "../../base/protein/Protein"
 import { checkFullMargin } from "../../types/checks/chart"
 import { Genotype } from "../../base/genotype/Genotype"
 import _ from "lodash"
+
+
+import viz from "@mitocube/viz"
+
+const initZoomState = {
+    active: false,
+    x: undefined,
+    y: undefined,
+    width: 4,
+    height: 4,
+    xDomain: undefined,
+    yDomain: undefined,
+    zoomed: false,
+    currentXDomain: undefined,
+    currentYDomain: undefined
+}
+
 
 ScatterPlot.propTypes = {
     svgID : PropTypes.string.isRequired, 
@@ -80,7 +97,8 @@ ScatterPlot.defaultProps = {
  * @param {Object} props.tooltipNameIsAttribute - The tooltip name that is an attribute, then attribute information are obtained from the backend. 
  * @param {Object} props.tooltipNameIsGenotype - The tooltipName that is a Genotype. Causes an API call to displayed the correct information. 
  * @param {Object} props.tooltipNameIsNumeric - If the tooltip is a numeric value. Here the value should a number and provides the number of digits to which the value should be rounded 
- * 
+ * @param {Function} props.setTriggerResetAxisZoom - Function to trigger the reset of the axis zoom. This is intended to be used in the InteractiveChartToolbar for a "reset zoom" button. It takes the chartIdx as an argument to identify which chart should reset its zoom.
+ * @param {Number} props.triggerResetAxis - Value to trigger the reset of the axis zoom. The value is not relevant, but it should be a new value each time the reset should be triggered. This is important to be able to reset the zoom from outside of the chart, e.g. when a user clicks on a "reset zoom" button.
  * @returns 
  */
 export function ScatterPlot({
@@ -124,16 +142,26 @@ export function ScatterPlot({
     tooltipNameIsAttribute = {}, 
     tooltipNameIsGenotype = {},
     tooltipNameIsFeature = {},
-    tooltipNameIsNumeric = {},
-    tooltipNameIsFeatures = {}//give number to be rounded to.
+    tooltipNameIsNumeric = {}, //provide number to be rounded to.
+    tooltipNameIsFeatures = {},
+    triggerResetAxis,
+    setTriggerResetAxisZoom
 }) {
-
+   
+    const [zoomActive, setZoomActive] = useState(initZoomState)
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
+    
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
+        if (keyName === xaxisName && _.isArray(zoomActive.currentXDomain)) {
+            keyNameLimits = { min: zoomActive.currentXDomain[0], max: zoomActive.currentXDomain[1] }
+        }
+        else if (keyName === yaxisName && _.isArray(zoomActive.currentYDomain)) {
+            keyNameLimits = { min: zoomActive.currentYDomain[0], max: zoomActive.currentYDomain[1] }
+            }
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.02
         return [keyName, dist]
     }))
@@ -147,32 +175,58 @@ export function ScatterPlot({
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
     })
+
+    useEffect(() => {
+        if (triggerResetAxis !== undefined) {
+            const xDomain = getXScaleDomain()
+            const yDomain = getYScaleDomain()
+            xScale.domain([xDomain.min, xDomain.max])
+            yScale.domain([yDomain.max, yDomain.min])
+            setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : undefined, currentYDomain : undefined}})
+            
+    }
+     }, [triggerResetAxis])
+
+    const getYScaleDomain = () => {
+        const yDomain = limits[yaxisName]
+        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain, frac: 0.1 })
+
+        return yDomainWithMargin
+    }
+
+    const getXScaleDomain = () => {
+        const xDomain = limits[xaxisName]
+        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain, frac: 0.1 })
+        if (centerXAxisAtZero) {
+            const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
+            return { min: -maxValue, max: maxValue }    
+        }
+        return xDomainWithMargin
+    }
+
     const yScale = useMemo(() => {
         // y scale for the scatter
-    
-        const yDomain = limits[yaxisName]
-        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain })
+        const yDomainWithMargin = getYScaleDomain()
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min],
                 range: [margins.top, margins.top + chartHeight],
-                nice: true
+                nice: false
             }
         )
-    }, [yaxisName, chartHeight, limits[yaxisName].min, limits[yaxisName].max])
+    }, [yaxisName, chartHeight, limits[yaxisName].min, limits[yaxisName].max, rerenderAxis])
 
 
     const xScale = useMemo(() => {
         // y scale for the scatter
-        const xDomain = limits[xaxisName]
-        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain })
-        const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
+        const xDomainWithMargin = getXScaleDomain()
+        
         
         return scaleLinear(
             {
-                domain: centerXAxisAtZero ? [-maxValue, maxValue] : [xDomainWithMargin.min, xDomainWithMargin.max],
+                domain: [xDomainWithMargin.min, xDomainWithMargin.max],
                 range: [margins.left, margins.left + chartWidth],
-                nice: true
+                nice: false
             }
         )
     }, [xaxisName, chartWidth, rerenderAxis, limits[xaxisName].min, limits[xaxisName].max])
@@ -224,6 +278,12 @@ export function ScatterPlot({
     }, [sizeName])
 
     const handleMouseUp = (event) => {
+        if (zoomActive.active && zoomActive.width > 10 && zoomActive.height > 10) { 
+
+            setZoomActive(prevValues => ({ ...prevValues, zoomed: true }))
+            return
+        }
+
         const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
         const y = yScale.invert(coords.y)
@@ -233,22 +293,106 @@ export function ScatterPlot({
             x + rectDist[xaxisName],
             y + rectDist[yaxisName])
     }    
+
+
+    const handleMouseDown = (event) => {
+        
+        console.log("=???mouse down")
+        const mouseCoord = localPoint(event)
+
+        setZoomActive(
+                prevValues => {
+                  return { 
+                        ...prevValues,
+                        "active":true,
+                        "x":mouseCoord.x,
+                        "y":mouseCoord.y,
+                        "width":0.1,
+                        "height":0.1,
+                       "origin": mouseCoord,
+                        "zoomed": false
+                        }}) //faster zoom function
+    }
+    
+
+
     const handleMouseHover = (event) => {
 
         const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
         const y = yScale.invert(coords.y)
-        setHoverDataInRectangle(chartIdx,
-            x - rectDist[xaxisName],
-            y - rectDist[yaxisName],
-            x + rectDist[xaxisName],
-            y + rectDist[yaxisName], [coords.x, coords.y])
-        //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
+
+
+         if (zoomActive.active && event.buttons === 1) {
+    
+            const origin = zoomActive.origin
+            var xZoom = zoomActive.x
+            var yZoom = zoomActive.y 
+            var dx = coords.x  - origin.x
+            var dy =  coords.y  - origin.y
+
+
+            if (dx < 0 & dy > 0) {
+                xZoom = coords.x
+                yZoom = origin.y
+                dx = origin.x - coords.x 
+            }
+
+            else if (dx > 0 && dy < 0){
+                xZoom = origin.x 
+                yZoom = coords.y 
+                dy = origin.y - coords.y
+
+            }
+            else if (dx < 0 && dy < 0){
+                xZoom = coords.x 
+                yZoom = coords.y 
+                dy = origin.y - coords.y
+                dx = origin.x - coords.x 
+
+            }
+           
+            
+            setZoomActive(
+                prevValues => {
+                  return { ...prevValues,"width":dx,"height":dy,"x":xZoom,"y":yZoom}}) 
+         }
+         else if (zoomActive.acitive) {
+             setZoomActive(initZoomState)
+        }
+         else {
+             setHoverDataInRectangle(chartIdx,
+                x - rectDist[xaxisName],
+                y - rectDist[yaxisName],
+                x + rectDist[xaxisName],
+                y + rectDist[yaxisName], [coords.x, coords.y])
+         }
+        
+        
     }
+    
+        useEffect(() => {
+            if (zoomActive.zoomed && zoomActive.width > 10 && zoomActive.height > 10) {
+                
+                xScale.domain([xScale.invert(zoomActive.x), xScale.invert(zoomActive.x + zoomActive.width)])
+                yScale.domain([yScale.invert(zoomActive.y), yScale.invert(zoomActive.y + zoomActive.height)])
+
+                setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : xScale.domain(), currentYDomain : yScale.domain()}})
+
+            }
+
+        }, [zoomActive.zoomed])
+
+
+        
+        //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
+    console.log(xScale.domain(), yScale.domain(),"domains")
     return (
         <div className="flex" ref={containerRef}>
-        <SVG {...{ width, height, svgID}}>
-            <AxisWithBackground
+            <SVG {...{ width, height, svgID }}>
+            
+            <viz.axis.XYaxis
+           
                 margins={margins}
                 leftScale={yScale}
                 bottomScale={xScale}
@@ -256,11 +400,13 @@ export function ScatterPlot({
                 leftHideTicks={false}
                 leftLabel={`${_.isString(yaxisLabel) ? yaxisLabel : yaxisName} ${suffix}`}
                 moveBottomToLeft={false}
-                findAttributesForBottomScale={false}
+                bottomTicksAreConditionApplicationLabels={false}
+                rerenderDependency={[zoomActive.currentXDomain, zoomActive.currentYDomain, xScale.domain(), yScale.domain()]}
+                // findAttributesForBottomScale={false}
                 {...{ chartHeight, chartWidth }} />
-            <g >
+                <g >
             {/* Render data points */}
-                    {validDataInput ? <ScatterPoints {...{
+                    {validDataInput ? <viz.primitives.ScatterPoints {...{
                         data,
                         valid,
                         xScale,
@@ -271,14 +417,15 @@ export function ScatterPlot({
                         sizeName,
                         colorName,
                         colorScale,
-                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain()),
                         filterIndices,
-                        searchIndices
+                        searchIndices,
+                        opacity : 0.75
                     }} /> : null}
             </g>
             <g>
             {/* Rerender hover points */}
-                    {validDataInput ? <ScatterPoints {...{
+                    {validDataInput ? <viz.primitives.ScatterPoints {...{
                         data: data,
                         indices : hoverIndices,
                         valid,
@@ -295,14 +442,39 @@ export function ScatterPlot({
                 </g>
                 {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${validPoints}`], textOffset: 3 }} /> : null}
                 <g>
+                    {/* Annotation of scatter points */}
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
-                        key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
-                        opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5}} />) : null}
+                        key: `${labelIndex}-${chartIdx}`, data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
+                        opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5
+                    }}
+                    rerenderDependency={[zoomActive.currentXDomain, zoomActive.currentYDomain]} />) : null}
                 </g>
 
                 {searchIndices.size > 0 ? <SearchIndicator {...{margins,width,searchIndices,searchString}} /> : null}
-                <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} onMouseUp = {handleMouseUp} fill="#ffffff" opacity={0.0}/>
-
+                
+               
+                {
+                    zoomActive.active?<rect 
+                        x = {zoomActive.x} 
+                        y ={zoomActive.y} 
+                        width={zoomActive.width}
+                        height={zoomActive.height}
+                        stroke="black" 
+                        strokeWidth={0.5} 
+                        fill={"transparent"}/>:null
+                }
+                <rect
+                    x={margins.left}
+                    y={margins.top}
+                    width={chartWidth}
+                    height={chartHeight}
+                    onMouseMove={handleMouseHover}
+                    onMouseDown={handleMouseDown}
+                    onMouseUp={handleMouseUp}
+                    onMouseUpCapture={console.log}
+                    fill="#ffffff"
+                    opacity={0.0} />
+        
             </SVG >
             
             {tooltipOpen && tooltipNames.length > 0 && hoverChart === chartIdx ?

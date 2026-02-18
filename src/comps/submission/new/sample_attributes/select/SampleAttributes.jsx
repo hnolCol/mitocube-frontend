@@ -175,7 +175,7 @@ function SamplesAttributes({
         
 
         if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
-        let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag }], rowIndex)
+        let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag, "id" : attribute_tag }], rowIndex)
         const attributeHasFeatures = false //attribute.has_features_value    
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>

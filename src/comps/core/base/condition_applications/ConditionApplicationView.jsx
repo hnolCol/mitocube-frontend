@@ -35,7 +35,7 @@ export function ConditionApplicationItem({tag, attribute_tag, trait_tag, childre
                 {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem" }}>
                     <div>(</div>
                     {children.map((child, idx) =>
-                        <ConditionApplicationItem key={child.trait_tag} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
+                        <ConditionApplicationItem key={`${child.trait_tag}-${tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
                 <div>)</div>
                 </div>
                     : null}
@@ -53,7 +53,7 @@ export function ConditionApplicationItem({tag, attribute_tag, trait_tag, childre
  */
 export function ConditionApplicationsView({ tag, show_attribute = false, add_separator = false }) { 
     const {data: condition_applications} = hooks.condition_applications.useGetConditionApplication({ tag }, { enabled: !!tag && _.isString(tag) })
-    return (<motion.div whileHover={{color:HIGHLIGHT_COLOR}} >  
+    return (<motion.div>  
         {_.isArray(condition_applications) ? condition_applications.map(ca => {
             return <div key={ca.tag} className="padding--little margin--small">
 

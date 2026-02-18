@@ -10,11 +10,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@blueprintjs/core": "^5.16.2",
+    "@blueprintjs/core": "^6.7.0",
     "@blueprintjs/datetime2": "^2.3.31",
-    "@blueprintjs/popover2": "^2.0.12",
-    "@blueprintjs/select": "^5.0.12",
-    "@blueprintjs/table": "^5.0.12",
+    "@blueprintjs/select": "^6.0.14",
+    "@blueprintjs/table": "^6.0.14",
     "@visx/axis": "^3.1.0",
     "@visx/curve": "^3.0.0",
     "@visx/event": "^3.0.1",

@@ -9,14 +9,14 @@ import { Alert } from "@blueprintjs/core"
 import { constructSampleNames } from "../../../../../services/samples"
 import { get_proteome_id } from "../../InitialSubmission"
 
-export function deleteByPath(data, path) {
+export function deleteByPath(data, path, ignore_id = false) {
     if (path.length === 0) return false; // Nothing to delete
   
     const [current, ...restPath] = path;
   
     // Find the index of the node at this level
     const idx = data.findIndex(
-      n => n.type === current.type && n.tag === current.tag && n.id === current.id
+      n => n.type === current.type && n.tag === current.tag && (ignore_id || n.id === current.id)
     );
   
     if (idx === -1) return false; // Node not found
@@ -28,7 +28,7 @@ export function deleteByPath(data, path) {
     } else {
       // Recurse into children
       if (data[idx].children) {
-        return deleteByPath(data[idx].children, restPath);
+        return deleteByPath(data[idx].children, restPath, ignore_id);
       } else {
         return false; // Path does not exist
       }
@@ -111,13 +111,13 @@ export const findAndInsertTree = (
 
 
 
-export const checkPathExists = (data, path) => {
+export const checkPathExists = (data, path, ignore_id = false) => {
     if (!_.isArray(data) || data.length === 0) return false; // No data to search
     if (path.length === 0) return false; // Nothing to find
     const [current, ...restPath] = path;
     // Find node by type and tag
     let node = data.find(
-        n => n.type === current.type && n.tag === current.tag && n.id === current.id
+        n => n.type === current.type && n.tag === current.tag && (ignore_id || n.id === current.id)
     );  
     // If not found, return false   
     if (!node) return false;
@@ -129,7 +129,7 @@ export const checkPathExists = (data, path) => {
     if (!node.children || node.children.length === 0) {
         return false;
     }
-    return checkPathExists(node.children, restPath);
+    return checkPathExists(node.children, restPath, ignore_id);
 }
 
 
@@ -435,6 +435,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      */
     const onSampleTraitSelection = (path, rowIdces, single_child_level = 3 , single_child_type = false, join_values = false, forceInsert = false) => {
         let d = submission.attributeTable.slice()
+        console.log(path)
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
             .forEach(rowIndex => {

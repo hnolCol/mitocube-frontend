@@ -7,6 +7,7 @@ import hooks from "@mitocube/api-hooks"
 import useDebounce from "../../../../hooks/useDebounce";
 import { AttributeWithTraitsMenuItem } from "./DatasetAttributeInput";
 import _ from "lodash"
+import { getRandomID } from "../../../../services/random"
 
 function TraitTag({ tag }) {
     const { data: trait , isSuccess} = hooks.traits.useGetTraitByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
@@ -40,7 +41,7 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
             if (_.isFunction(e.stopPropagation)) {
                 e.stopPropagation()
             }
-            onItemSelect(_.concat(path, [{"type": "trait", "tag": trait_tag}]))
+            onItemSelect(_.concat(path, [{"type": "trait", "tag": trait_tag, id : getRandomID()}]))
         }
     
     

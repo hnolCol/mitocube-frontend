@@ -49,7 +49,8 @@ ScatterDataSelection.defaultProps = {
 
  * @returns 
  */
-export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, selection, setSelection, minimal, handleStringSearch, downloadElements, elementNames, elementTypes, fileNames}) {
+export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, selection, setSelection, minimal, handleStringSearch, downloadElements, elementNames, elementTypes, fileNames, itemIsAttribute = true, chartIdx, 
+                                        setTriggerResetAxisZoom}) {
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
 
@@ -62,29 +63,32 @@ export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, se
             <AxisSelection keyNames={numericKeyNames}
                 selection={selection}
                 onSelectionChange={onSelection}
-                    minimal={minimal} />
+                    minimal={minimal}
+                itemIsAttribute={itemIsAttribute}/>
             <ScatterMarksSelection
                 keyNames={keyNames}
                 selection={selection}
                 onSelectionChange={onSelection}
-                    minimal={minimal} />
+                    minimal={minimal} itemIsAttribute={itemIsAttribute}/>
             <TextSelection 
                 keyNames={nonNumericKeyNames}
                 selection={selection}
                 onSelectionChange={onSelection}
-                minimal={minimal} />
+                    minimal={minimal}
+                itemIsAttribute={itemIsAttribute}/>
         
                 {_.isFunction(handleStringSearch) ? <StringSearch
                     idx = {idx}
                     keyNames={nonNumericKeyNames}
                     selection={selection}
                     onSelectionChange={onSelection}
-                    minimal={minimal} handleStringSearch={handleStringSearch} /> : null }
+                    minimal={minimal} handleStringSearch={handleStringSearch} itemIsAttribute={itemIsAttribute}/> : null }
                 
      
             <div className="flex">
                     <Divider />
-                    <DownloadData elements={downloadElements} elementNames={elementNames} elementTypes={elementTypes} fileNames={fileNames} />
+                    <DownloadData elements={downloadElements} elementNames={elementNames} elementTypes={elementTypes} fileNames={fileNames} itemIsAttribute={itemIsAttribute} />
+                    <button onClick={() => setTriggerResetAxisZoom(chartIdx)}>Reset zoom</button>
             </div>
 
             </div>

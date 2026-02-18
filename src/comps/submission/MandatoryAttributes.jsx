@@ -14,7 +14,7 @@ export function MandatoryAttributes({ onAttributeValueSelect, submission_state =
             {isLoading || isFetching ? <Loading /> :
                 _.isArray(attribute_tags) ?
                     attribute_tags.map(attribute_tag => {
-                        let p = [{ type: "attribute", tag: attribute_tag }]
+                        let p = [{ type: "attribute", tag: attribute_tag, "id" : attribute_tag }]
                         let selection = findPath(p) 
                         return <TraitsInput
                             key={attribute_tag}

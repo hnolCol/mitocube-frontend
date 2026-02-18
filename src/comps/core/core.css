@@ -512,6 +512,18 @@ h5 {
     font-weight: 500;
 }
 
+
+.basic-button--highlighted {
+    background: #f3f4f63a;
+}
+
+.basic-button--excluded{
+    background: #f3d4d63a;
+    color: #000;
+    opacity: 0.2;
+    
+}
+
 .dialog-button {
     background: #f3f4f6;
     color: #374151;

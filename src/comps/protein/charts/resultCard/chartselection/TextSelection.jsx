@@ -12,12 +12,13 @@ import _ from 'lodash'
  * @param {Boolean} props.minimal If the minimal style should be used. The selection will then not be displayed next to the icon. 
  * @returns 
  */
-export function TextSelection({ keyNames, selection, onSelectionChange, minimal }) {
+export function TextSelection({ keyNames, selection, onSelectionChange, minimal, itemIsAttribute = true }) {
     return (
         <div className="flex">
             <TextIconWithName
                 items={keyNames}
                 minimal={minimal}
+                itemIsAttribute={itemIsAttribute}
                 selectedItems={_.map(selection.tooltipNames, text => { return { text } })}
                 placeholder={selection.tooltipNames.length === 1 ? selection.tooltipNames[0] : `${selection.tooltipNames.length} items`}
                 callbackKey="tooltipNames" callback={(key, item) => onSelectionChange(key, addItemToArrayOrRemoveItIfPresent({ array: selection.tooltipNames, item }))} />

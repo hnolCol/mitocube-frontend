@@ -59,6 +59,7 @@ function AxisWithBackground({
     moveBottomToLeft = true,
     leftTickLabelProps,
     bottomTickLabelProps = {},
+    bottomTicksAreConditionApplications = true,
     bandwidth,
     chartHeight,
     chartWidth,
@@ -95,7 +96,7 @@ function AxisWithBackground({
         
             <AxisBottom
                 left={moveBottomToLeft ? leftStart : 0}
-                tickComponent={({x,y,formattedValue}) => bottomHideTickLabels ? null : <ConditionApplicationLabel x={x} y={y} tag={formattedValue} tickProps={bottomTickLabelProps} />}
+                tickComponent={({x,y,formattedValue}) => bottomHideTickLabels ? null : bottomTicksAreConditionApplications ? <ConditionApplicationLabel x={x} y={y} tag={formattedValue} tickProps={bottomTickLabelProps} /> : <Text x={x} y={y} {...bottomTickLabelProps}>{formattedValue}</Text>}
                 top={topStart}
                 label={bottomLabel}
                 hideTicks={bottomHideTicks}

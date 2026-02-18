@@ -1,15 +1,14 @@
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
-function DownloadIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true}) {
+function DownloadIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,callbackValueOnly = false, minimal = true, itemIsAttribute = false}) {
     
     const arrowWidth = width / 5
     const halfWidth = width / 2
     const arrowEnd = height / 1.5
     const arrowHeight = height/5
-    console.log(height,width,"2")
     return (
-        <ComboboxIconBase {...{width, height, placeholder, items, callback, callbackKey, callbackValueOnly, minimal, filterable : false}}>
+        <ComboboxIconBase {...{width, height, placeholder, items, callback, callbackKey, callbackValueOnly, minimal, filterable : false, itemIsAttribute}}>
             <g>
                 <line x1={width/2} x2={width/2} y1={height/5} y2={arrowEnd} strokeWidth={1.5} stroke={"#000"} />
                 <polyline points={`${halfWidth - arrowWidth},${arrowEnd - arrowHeight} ${halfWidth},${arrowEnd} ${halfWidth + arrowWidth},${arrowEnd - arrowHeight}`}

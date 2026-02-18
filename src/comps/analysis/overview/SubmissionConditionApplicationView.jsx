@@ -14,7 +14,7 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
                 <h3>Condition Applications</h3>
             {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
                 submission_ca_tags.map(ca_tag => {
-                    return <div>
+                    return <div key ={ca_tag} className="padding--tiny margin--tiny">
                         <div><ConditionApplicationsView key={ca_tag} tag={ca_tag} /></div></div>
                 }) : <div>No condition applications found for this submission.</div>}
              </div>
