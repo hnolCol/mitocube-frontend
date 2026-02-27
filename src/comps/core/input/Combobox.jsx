@@ -13,8 +13,8 @@ Combobox.propTypes = {
     fill : PropTypes.bool,
     disabled: PropTypes.bool,
     buttonProps: PropTypes.object,
-    onChange : PropTypes.func.isRequired
-    
+    onChange : PropTypes.func.isRequired,
+    colorKey: PropTypes.string
 }
 
 /**
@@ -31,6 +31,7 @@ Combobox.propTypes = {
  * @param {Boolean} props.disabled - If true, the combobox is disabled. 
  * @param {String} props.textKey - The ```keyName``` used to display the item in items to the user. 
  * @param {String} props.labelKey - The ```keyName``` that is used to display in the label MenuItem
+ * @param {String} props.colorKey - The ```keyName``` that contains the color value for the menu item
  * @param {Number} props.minQueryLength - The minimal length of a filter query. Defaults to 2. 
  * @param {String} props.value_suffix A string that is added to the value. 
  * @returns {import("react").ReactElement} The JSX element for a combobox. 
@@ -40,16 +41,14 @@ export function Combobox({
     onChange,
     value,
     selectedItems = [],
-    placeholder = "Plase select",
-    isRequired = true,
-    hint = "",
+    placeholder = "Please select",
     callbackKey,
     includeKey = "tag",
     textKey = "text",
     labelKey = undefined,
+    colorKey = "color",
     disabled = false,
     small = false,
-    formGroupMargin = true,
     matchTargetWidth = false,
     minQueryLength = 2,
     value_suffix = "",
@@ -63,7 +62,7 @@ export function Combobox({
     const sortedItems = selectedItems.length > 0 ? [...items.filter(i => selectedItems.includes(i[includeKey])),
         ...items.filter(i => !selectedItems.includes(i[includeKey]))] : items
     
-    const renderItems = (item, { handleClick, modifiers, query }) => {
+    const renderItems = (item) => {
         //render items as a Menu item. 
         let selected = false
         if (_.isString(value)) {
@@ -71,16 +70,36 @@ export function Combobox({
         }
         else if (selectedItems.length > 0) {
             selected = selectedItems.length > 0 && selectedItems.includes(item["tag"])
+
         }
+
+
+        const itemColor = colorKey && item[colorKey] ? item[colorKey] : undefined;
+        
         return(
             <MenuItem 
                 key = {item[textKey]} 
-                text={item[textKey]} 
+                text={
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {itemColor && (
+                            <div 
+                                style={{ 
+                                    width: '12px', 
+                                    height: '12px', 
+                                    borderRadius: '50%', 
+                                    backgroundColor: itemColor,
+                                    border: '1px solid #ccc'
+                                }}
+                            />
+                        )}
+                        {item[textKey]}
+                    </div>
+                }
                 labelElement={<div style={{ maxWidth: "10rem", fontSize: "0.75rem" }}>
                     {_.isString(labelKey) ? item[labelKey] : ""}</div>}
                 onClick={e => {
                     e.stopPropagation()
-                    handleClick(e)
+                    onItemSelection(item)
                 }}
                 multiline={true}
                 intent={selected? "primary" : "blank"} 
@@ -96,35 +115,26 @@ export function Combobox({
     const onItemSelection = (item) => {
         //handles item selection
         if (isFunction(onChange) && callbackKey === undefined) onChange(item)
-
         else if (isFunction(onChange) && callbackKey !==undefined) onChange(callbackKey,item)
-
     }
 
     return (
-        // <FormGroup
-        //     style={formGroupMargin ? {} : {marginBottom : "0px"}}
-        //     label={hint}
-        //     labelInfo={isRequired ? "(required)" : "(optional)"}
-        //     inline={false}
-        //     helperText={undefined}>
-            <Select
-                fill={true}
-                noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
-                filterable={items.length > 5 ? true : false}
-                items={sortedItems}
-                resetOnSelect={true}
-                itemListPredicate={filterItems}
-                itemRenderer={renderItems}
-                onItemSelect={onItemSelection}
-                inputProps={{small:small}}
-                popoverProps={{ matchTargetWidth, minimal: true }}
-                popoverContentProps={{
-                    onWheelCapture: (event) => event.stopPropagation()
-                }}
-                disabled={disabled}>
-                <Button text={value !== undefined ? `${value} ${value_suffix}` : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
-            </Select>
-        // </FormGroup>
+        <Select
+            fill={true}
+            noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
+            filterable={items.length > 5 ? true : false}
+            items={sortedItems}
+            resetOnSelect={true}
+            itemListPredicate={filterItems}
+            itemRenderer={renderItems}
+            onItemSelect={onItemSelection}
+            inputProps={{small:small}}
+            popoverProps={{ matchTargetWidth, minimal: true }}
+            popoverContentProps={{
+                onWheelCapture: (event) => event.stopPropagation()
+            }}
+            disabled={disabled}>
+            <Button text={value !== undefined ? `${value} ${value_suffix}` : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
+        </Select>
     )
 }

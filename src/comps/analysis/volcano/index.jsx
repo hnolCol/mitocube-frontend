@@ -14,13 +14,12 @@ import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSe
 import hooks from "@mitocube/api-hooks"
 
 
-function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setIsFetching, onError }) {
+function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, onError }) {
 
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
 
     const handleSuccess = (data) => {
         //merge data to get super fast split
-        console.log(data)
         let updatedData = []
         let prevData = volcanoData.data
         if (prevData.length > 1) {
@@ -31,16 +30,16 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
             updatedData = data.stats
         }
 
+        
+
 
         setIsFetching(false)
-
-
         setVolcanoData(prevValues => {
             return {
                 ...prevValues, data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
                 testParams: _.concat(prevValues.testParams, selectedTestParams),
-                selection : _.concat(prevValues.selection,{ xaxisName: `log2FC`, yaxisName: `-log10 p-value`, colorName : `Significant`, tooltipNames : [], sizeName : undefined, textSearchNames : ["genes"], filterSetNames : [] })
+                selection : _.concat(prevValues.selection,{ xaxisName: `log2FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `Significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, textSearchNames : ["genes"], filterSetNames : [] })
             }
         })
     }
@@ -53,7 +52,7 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
     }
 
     //fetch data
-    const { isSuccess, refetch} = hooks.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right}, {
+    const { isSuccess, refetch} = hooks.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
         enabled: false,
         onSuccess: handleSuccess,
         onError: handleError
@@ -87,7 +86,6 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams, metadata, setI
     useEffect(() => {setIsFetching(false)},[isSuccess])
     
     const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
-    console.log(numericKeyNames, "Numeric Key Names")
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
    
     
@@ -219,7 +217,6 @@ function VolcanoPlotWrapper({submission_tag, metadata}) {
                     <APIError error={error.message} />
                 </div>
             </Dialog>
-            <AttributePairwiseSelection {...{ submission_tag, callbackText: "Volcano plot.", callback: handleVolcano, isLoading: isFetching }} />
             <ConditionApplicationSelection {...{submission_tag, onConfirm : handleVolcano, reset_after_confirm: true, isLoadingData : isFetching }}/>
             <VolcanoDataHandler {...{ submission_tag, selectedTestParams: testParams, metadata, setIsFetching, onError: setError }} />
         </div>

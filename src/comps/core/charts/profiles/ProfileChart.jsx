@@ -1,23 +1,18 @@
-import { addMarginToBoundaries, getQuantilesInArrayByKeyNames } from "../../../../services/arrays/boundaries";
+import { getQuantilesInArrayByKeyNames } from "../../../../services/arrays/boundaries";
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size";
 import { SVG } from "../SVGHeader";
 import AxisWithBackground from "../axis";
 import { useMemo, useRef } from "react";
-import { localPoint } from "@visx/event";
 import { scaleBand, scaleLinear } from "@visx/scale";
 
 import ProfileLine from "./Line"
 import ProfileBars from "./Bars"
-import { getQuantiles } from "../../../../services/statistics/quantiles";
-import { getQuantilesByGroups } from "../../../../services/arrays/groupby";
+
 import { QuantileBackground } from "./QuantileBackground";
-import FilterIcon, { FilterSVG } from "../../svg/icons/chartSelection/Filter";
 import { Group } from "@visx/group";
 import { Text } from "@visx/text";
 import { FilterIndicator } from "../annotations/Filter";
 import _ from "lodash"
-
-
 
 export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14, color = ["#00000"]}) {
     return (<Group left={margins.left} top={margins.top + totalYOffset}>
@@ -50,14 +45,22 @@ export function ProfileChart({
     rerenderHover,
     rerenderBackground,
     hoverData,
-    hoverIndices,
     profileAsLine = true,
     profileAsBar = false,
     subsetIndices = new Set(), // subset the data to only plot those 
     searchIndices = new Set(),
-}) {
-    //console.log(subsetIndices,hoverIndices)
-    let hoverIdcsInSubset = hoverIndices.size > 0 ? Array.from([...hoverIndices].filter(idx => subsetIndices.size > 0 && subsetIndices.has(idx))) : []
+    hoverIndices = new Set(),
+    mergeHoverWithSearch = true
+}) {    
+    let hoverIdcsInSubset = []
+    if (mergeHoverWithSearch && (hoverIndices.size > 0 || searchIndices.size > 0)) {
+
+        hoverIdcsInSubset = Array.from([...hoverIndices, ...searchIndices].filter(idx => subsetIndices.has(idx)))
+    } else {
+        hoverIdcsInSubset = hoverIndices.size > 0 ? Array.from([...hoverIndices].filter(idx => subsetIndices.has(idx))) : []
+    }
+
+
     let searchIndicesInSubset = searchIndices.size > 0 ? new Set(Array.from([...searchIndices]).filter(idx => subsetIndices.has(idx))) : new Set()
     const hoverDataInSubset = hoverIdcsInSubset.map(idx => data[idx])
     const svgRef = useRef(null);
@@ -66,11 +69,16 @@ export function ProfileChart({
     const q = useMemo(() => getQuantilesInArrayByKeyNames({ data : data.filter((_,idx) => subsetIndices.has(idx)), keyNames: yaxisName }), [yaxisName])
     
     const yScale = useMemo(() => {
+
         const limitValues = yaxisName.map(yName => limits[yName])
         const minLimit = _.minBy(limitValues, "min")
         const maxLimit = _.minBy(limitValues, "max")
-        const yDomain = { min : minLimit.min, max : maxLimit.max }//limits[yaxisName]
-        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
+        
+        const yDomain = {
+            min: minLimit.min,
+            max: maxLimit.max
+        }
+        
         return scaleLinear(
             {
                 domain: [yDomain.max, yDomain.min],
@@ -106,11 +114,23 @@ export function ProfileChart({
                 moveBottomToLeft={false}
                 bottomHideTickLabels={true}
                 findAttributesForBottomScale={false}
+            
                 {...{ chartHeight, chartWidth }} />
         
             <QuantileBackground {...{xScale, yScale, data : q, keyNames : yaxisName, rerenderDependency: rerenderBackground}} />
             {profileAsLine ? <g >
-                <ProfileLine {...{ valid, data: hoverDataInSubset, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover, labelNames, showPoints : !yaxisName.length > 30, stroke}} />
+                <ProfileLine {...{
+                    valid,
+                    data: hoverDataInSubset,
+                    xScale,
+                    yScale,
+                    yaxisName,
+                    xaxisName,
+                    rerenderDependency: _.concat(rerenderHover, rerenderBackground),
+                    labelNames,
+                    showPoints: yaxisName.length <= 20,
+                    stroke
+                }} />
             </g> : null}
             {profileAsBar ? <g>
                 <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
@@ -122,11 +142,6 @@ export function ProfileChart({
             
             {<ChartTopLeftLabel {...{ margins, labelTexts: [`C${chartIdx}`,`n=${subsetIndices.size}`], textOffset: 3, color : [stroke,"#00000"] }} />}
             
-            {/* {
-                searchIndices.size > 0 ? <ProfileLine {...{ valid, data: searchData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderBackground, stroke : "blue" }} /> : null} */}
-
-
-            {/* <rect x={0} y={0} width={width} height={height} onMouseMove={handeMouseHover} fill="transparent"/> */}
         </SVG >
     )
 }

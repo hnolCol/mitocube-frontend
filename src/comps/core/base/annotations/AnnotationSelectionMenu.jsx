@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import useDebounce from "../../../../hooks/useDebounce";
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
+import { Annotation } from "./Annotation";
+import { TagLike } from "../tags/TagLike";
 
 export function AnnotationMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem" }) {
 
@@ -22,7 +24,7 @@ export function AnnotationMenuItem({ tag, menuItemProps, selected, descriptionWi
         onClick={(e) => menuItemProps.handleClick(e,tag)} />
 }
 
-export function AnnotationsInMenu({ annotation_tags = [], title, description }) {
+export function AnnotationsInMenu({ annotation_tags = [], title, description, selected_tags = [], onSelection }) {
     return (
         <div>
             <div><strong>{title}:</strong>{description}</div>
@@ -30,25 +32,25 @@ export function AnnotationsInMenu({ annotation_tags = [], title, description }) 
                             <Divider/>
 
             {annotation_tags.map((tag) => (
-                <AnnotationMenuItem key={tag} tag={tag} menuItemProps={{}} selected={false} />
+                <AnnotationMenuItem key={tag} tag={tag} menuItemProps={{handleClick: onSelection}} selected={selected_tags.includes(tag)} />
             ))}
             </div>
             </div>
     )
 }   
 
-export function AnnotationGroupInMenu({ tag, annotation_tags = [] }) {
+export function AnnotationGroupInMenu({ tag, annotation_tags = [], selected_tags = [], onSelection }) {
 
     const { data : annotation_group, isSuccess, isLoading } = hooks.annotations.useGetAnnotationGroupByTag({ tag }, {enabled : _.isString(tag)})
     return (
         <MenuItem text = {`${isSuccess ? annotation_group.text : null} (${annotation_tags.length})`} style = {{ maxHeight: "15rem", overflowY : "scroll" }}>
-            { isSuccess? <AnnotationsInMenu annotation_tags={annotation_tags} title={annotation_group.text} description={annotation_group.description} />: null }
+            { isSuccess? <AnnotationsInMenu annotation_tags={annotation_tags} title={annotation_group.text} description={annotation_group.description} selected_tags={selected_tags} onSelection={onSelection} />: null }
         </MenuItem > 
     )
 }
 
 
-export function AnnotationSelectionMenu() {
+export function AnnotationSelectionMenu({placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true}) {
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchString, setSearchString] = useState("")
@@ -62,19 +64,25 @@ export function AnnotationSelectionMenu() {
         refetch()
     }, [] )
 
-    console.log(annotation_search_results, "Annotation Search Results")
+    // console.log(annotation_search_results, "Annotation Search Results")
 
     const annotation_results_ok = isSuccess && _.isArray(annotation_search_results) && annotation_search_results.length > 0 
+    
     return (
+        <div>
         <Popover
+            
             content={<div className="padding--medium margin--little" style={{ minWidth: "30rem" }}>
-                <h2>Annotation Group Selection</h2>
-                <input type="text" placeholder="Search in annotation groups and annotations..." value={searchString} onChange={e => setSearchString(e.target.value)} className="search-input" />
+                <h4>Annotation Group Selection</h4>
+                <input type="text"
+                    placeholder="Search in annotation groups and annotations..."
+                    value={searchString}
+                    onChange={e => setSearchString(e.target.value)}
+                    className="search-input" />
                 <Menu>
                     
-                    <h3>Annotation Groups</h3>
+                    <h4>Annotation Groups</h4>
                     {annotation_results_ok ? <Divider /> : null}
-
                     {isLoading ? <MenuItem text="Loading..." /> : null}
                     {isError ? <MenuItem text="Error loading annotations" /> : null}
                     {annotation_results_ok ?
@@ -82,7 +90,8 @@ export function AnnotationSelectionMenu() {
                         annotation_search_results.map((annotation) => {
                             
                             return <AnnotationGroupInMenu
-                            
+                                selected_tags={selected_tags}
+                                onSelection={onSelection}
                                 key={annotation.group_tag}
                                 tag={annotation.group_tag}
                                 annotation_tags={annotation.annotation_tags} />
@@ -92,15 +101,20 @@ export function AnnotationSelectionMenu() {
                     }
 
                     <Divider />
-                    <MenuItem text="Deselect All Annotations" />
+                    <MenuItem text="Deselect All Annotations" onClick={(e) => onSelection(e,[])} />
                 </Menu></div>}
             minimal={true}
             isOpen={isOpen}
-            placement="bottom">
+            onInteraction={(nextOpenState) => setIsOpen(nextOpenState)}
+            placement="bottom-start">
             
-            <button onClick={() => setIsOpen(!isOpen)}> Selection</button>
+            <button className="basic-button" onClick={() => setIsOpen(!isOpen)}>{showTags ? placeholder : selected_tags.length > 0 ? <Annotation tag={selected_tags[0]} /> : placeholder   }</button>
 
-        </Popover>
+            </Popover>
+            {showTags && selected_tags.length > 0 ? <div>
+                {selected_tags.map(tag => <TagLike key={tag} onRemove={(e => onRemove(e,tag))}><Annotation tag={tag} /></TagLike>)}
+            </div> : null}
+            </div>
     )
 }
 

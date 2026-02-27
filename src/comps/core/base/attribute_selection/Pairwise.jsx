@@ -21,6 +21,7 @@ import { arraysEqual } from "../../../../services/arrays/equal"
 import { motion } from "framer-motion"
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette"
 import { Cell, Column, ColumnHeaderCell, EditableName, Table2 } from "@blueprintjs/table"
+import { AnnotationSelectionMenu } from "../annotations/AnnotationSelectionMenu"
 
 
 CAGroupSelection.propTypes = {
@@ -29,15 +30,11 @@ CAGroupSelection.propTypes = {
 
 
 function AttributeColumn({ columnIndex, attribute_tag }) { 
-    console.log(columnIndex)
     const { data: attribute } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
-    console.log(attribute)
     return <span>{_.isObject(attribute) ? attribute.text : "..."}</span>
 }
 
 function CACellRenderer({ rowIndex, columnIndex, ca_tags, attribute_tag, children }) {
-    console.log(rowIndex,columnIndex)
-    console.log(ca_tags, "CA TAGS"  )
     return <div className="flex margin--little">{ca_tags.map(tag => <ConditionApplicationsView key={tag} tag={tag} />)}</div>
 
 }
@@ -48,7 +45,7 @@ export function SampleSelectionTableView({ submission_tag, attribute_tags = [], 
 
     const { data : condition_applications} = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
 
-    console.log(condition_applications, "Condition applications")
+    // console.log(condition_applications, "Condition applications")
 
     return (<div>
 
@@ -196,7 +193,7 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
 export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false }) {
     
     const [attribute, setAttribute] = useState(undefined)
-    const [pairwiseComp,setPairwiseComp] = useState({left : [], right : [], impute : false})
+    const [pairwiseComp,setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const {data : ca_attributes, isLoading, isSuccess } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
 
     const inputIsSufficient = _.isString(attribute)
@@ -226,31 +223,14 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             sample_attribute_tag: attribute,
             ca_tag_left: _.join(pairwiseComp.left, ";"),
             ca_tag_right: _.join(pairwiseComp.right, ";"),
-            impute: pairwiseComp.impute || false
+            impute: pairwiseComp.impute || false,
+            annotation_tag: pairwiseComp.annotation_tag
         })
         if (reset_after_confirm) {
             handleReset()
         }
 
     }
-    
-    // const onSave = () => {
-    //     if (!_.isFunction(callback)) return null 
-    //     const props = {
-    //         impute: selection.impute,
-    //         filter_tag: _.isObject(selection.filter) && _.has(selection.filter, "tag") ?  selection.filter.tag : undefined,
-    //         sample_attribute_tag: selection.sample_attribute_tag.tag,
-    //         attribute_value_tag_left: getTagKeyLabel (selection.sample_attribute_tag,selection.attribute_value_tag_left),
-    //         attribute_value_tag_right: getTagKeyLabel (selection.sample_attribute_tag,selection.attribute_value_tag_right),
-    //         within_attribute_tag: _.isEmpty(selection.within_attribute_value_tag) ? undefined : _.join(selection.within_attribute_tag
-    //             .filter(attribute => _.isObject(selection.within_attribute_value_tag[attribute.tag]))
-    //             .map(attribute => attribute.tag), ";"),
-    //         within_attribute_value_tag: _.isEmpty(selection.within_attribute_value_tag) ? undefined :  _.join(selection.within_attribute_tag
-    //             .filter(attribute => _.isObject(selection.within_attribute_value_tag[attribute.tag]))
-    //             .map(attribute =>getTagKeyLabel(attribute, selection.within_attribute_value_tag[attribute.tag])),";")
-    //     }
-    //     callback(props)
-
 
     return <div>
         <h4>Define pairwise comparison</h4>
@@ -289,6 +269,9 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             </div> : null}
 
         <div className="margin-top--little">
+            <h3>Annotation Selection</h3>
+            <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" />
+            <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
         {inputIsSufficient ? <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{ maxWidth: "14rem", textJustify: "inter-word" }}>Imputation is performed by filtering for proteins that are fully quantified in one group.
             Then NaNs are replaced by random data taken from a downshifted gaussian distribution.
             The downshift equals 1.8 x standard deviation of all features in a sample.

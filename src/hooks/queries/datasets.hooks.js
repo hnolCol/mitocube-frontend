@@ -95,16 +95,6 @@ export const useGetDatasetInfo = (datasetInfo = {}, useQueryOptions = {}) => {
     return useQuery(["getDatasetInfo",datasetInfo.dataID],() => getDatasetInfo_API(datasetInfo), useQueryOptions)
 }
 
-// Heatmap for dataset
-
-async function getDatasetHeatmap_API({ submission_tag }) {
-    const res = await axios.get(`/api/datasets/${submission_tag}/heatmap`, { params: { }})
-    return res.data 
-}
-
-export const useGetDatasetHeatmap = (APIParams = { submission_tag}, useQueryOptions = {staleTime : Infinity}) => {
-    return useQuery(["getHeatmap", APIParams.submission_tag], () => getDatasetHeatmap_API({ ...APIParams }), useQueryOptions)
-}
 
 
 // Volcano for dataset

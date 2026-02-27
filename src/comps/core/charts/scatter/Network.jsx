@@ -1,11 +1,13 @@
 import PropTypes from "prop-types"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
-import { useMemo, useRef } from "react"
+import { useMemo, useRef, useState, useEffect } from "react"
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
 import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
 import { useTooltip, useTooltipInPortal, TooltipWithBounds, Tooltip } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
+
+
 
 import _ from "lodash"
 import ScatterPoints from "./ScatterPoints"
@@ -20,7 +22,25 @@ import { SearchIndicator } from "../annotations/Search"
 import { ChartTopLeftLabel } from "../profiles/ProfileChart"
 import { NetworkLinks } from "./Links"
 import { Subsetboxplot } from "../boxplot/Subsetboxplot"
+import { Protein, ProteinGroup } from "../../base/protein/Protein"
+import { Genotype } from "../../base/genotype/Genotype"
+import { Attribute } from "../../base/attributes/Attribute"
+import { AnnotationGroup } from "../../base/annotations/AnnotationGroup"
+import { Annotation } from "../../base/annotations/Annotation"
 
+
+const initZoomState = {
+    active: false,
+    x: undefined,
+    y: undefined,
+    width: 4,
+    height: 4,
+    xDomain: undefined,
+    yDomain: undefined,
+    zoomed: false,
+    currentXDomain: undefined,
+    currentYDomain: undefined
+}
 
 Network.propTypes = {
 
@@ -67,6 +87,7 @@ export function Network({
     hoverData = [],
     linkIdcs,
     limits,
+    rerenderAxis,
     xaxisName,
     yaxisName,
     colorName = "x",
@@ -101,17 +122,26 @@ export function Network({
     suffix = "",
     indicateDataSize = true,
     legendWithAttributes = false,
-    genotypesByLabel = {}
+    genotypesByLabel = {},
+    tooltipNameIsAttribute = {}, 
+    tooltipNameIsGenotype = {},
+    tooltipNameIsFeature = {},
+    tooltipNameIsNumeric = {}, //provide number to be rounded to.
+    tooltipNameIsFeatures = {},
+    triggerResetAxis,
+    setTriggerResetAxisZoom
 }) {
     //console.log(colorName)
-    // Plots an array of points. Each item in the array 
+    // Plots an array of points. Each item in the array
     // must be an object including the following keys: x, y, r
+ 
+    const [zoomActive, setZoomActive] = useState(initZoomState)    
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
     const linkMaps = useMemo(() => _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)])),[rerenderBackground,svgID,hoverIndices])
-    useMemo( () => _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx)))), [linkMaps])
+        useMemo( () => _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx)))), [linkMaps])
     
-    const hoverIndcsArray = Array.from(hoverIndices)
+    // const hoverIndcsArray = Array.from(hoverIndices)
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.007
@@ -127,35 +157,17 @@ export function Network({
         // when tooltip containers are scrolled, this will correctly update the Tooltip position
         scroll: true,
     })
-    const yScale = useMemo(() => {
-        // y scale for the scatter
-    
-        const yDomain = limits[yaxisName]
-        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain, frac: 0 })
-        return scaleLinear(
-            {
-                domain: [yDomainWithMargin.max, yDomainWithMargin.min],
-                range: [margins.top, margins.top + chartHeight],
-                nice: true
-            }
-        )
-    }, [yaxisName, chartHeight, svgID])
 
-
-    const xScale = useMemo(() => {
-        // y scale for the scatter
-        const xDomain = limits[xaxisName]
-        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain, frac : 0 })
-        const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
-        
-        return scaleLinear(
-            {
-                domain: centerXAxisAtZero ? [-maxValue, maxValue] : [xDomainWithMargin.min, xDomainWithMargin.max],
-                range: [margins.left, margins.left + chartWidth],
-                nice: true
-            }
-        )
-    }, [xaxisName, chartWidth,svgID])
+    useEffect(() => {
+        if (triggerResetAxis !== undefined) {
+            const xDomain = getXScaleDomain()
+            const yDomain = getYScaleDomain()
+            xScale.domain([xDomain.min, xDomain.max])
+            yScale.domain([yDomain.max, yDomain.min])
+            setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : undefined, currentYDomain : undefined}})
+            
+    }
+        }, [triggerResetAxis])
 
     const colorScale = useMemo(() => {
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
@@ -203,9 +215,62 @@ export function Network({
                 range: _.range(3,10,(10-3)/uniqueValues.length)
             })
         }
-    }, [sizeName,svgID])
+    }, [sizeName, svgID])
+    
+
+ const getYScaleDomain = () => {
+        const yDomain = limits[yaxisName]
+        const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain, frac: 0.1 })
+
+        return yDomainWithMargin
+    }
+
+    const getXScaleDomain = () => {
+        const xDomain = limits[xaxisName]
+        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain, frac: 0.1 })
+        if (centerXAxisAtZero) {
+            const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
+            return { min: -maxValue, max: maxValue }    
+        }
+        return xDomainWithMargin
+    }
+
+
+    const yScale = useMemo(() => {
+        // y scale for the scatter
+        const yDomainWithMargin = getYScaleDomain()
+        return scaleLinear(
+            {
+                domain: [yDomainWithMargin.max, yDomainWithMargin.min],
+                range: [margins.top, margins.top + chartHeight],
+                nice: false
+            }
+        )
+    }, [yaxisName, chartHeight, limits[yaxisName].min, limits[yaxisName].max, rerenderAxis])
+
+
+    const xScale = useMemo(() => {
+        // y scale for the scatter
+        const xDomainWithMargin = getXScaleDomain()
+        
+        
+        return scaleLinear(
+            {
+                domain: [xDomainWithMargin.min, xDomainWithMargin.max],
+                range: [margins.left, margins.left + chartWidth],
+                nice: false
+            }
+        )
+    }, [xaxisName, chartWidth, rerenderAxis, limits[xaxisName].min, limits[xaxisName].max])
+
 
     const handleMouseUp = (event) => {
+        if (zoomActive.active && zoomActive.width > 10 && zoomActive.height > 10) { 
+
+            setZoomActive(prevValues => ({ ...prevValues, zoomed: true }))
+            return
+        }
+
         const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
         const y = yScale.invert(coords.y)
@@ -215,33 +280,112 @@ export function Network({
             x + rectDist[xaxisName],
             y + rectDist[yaxisName])
     }    
-    const handleMouseHover = (event) => {
 
-        const coords = localPoint(event.target.ownerSVGElement, event);
-        const x = xScale.invert(coords.x)
-        const y = yScale.invert(coords.y)
-        setHoverDataInRectangle(chartIdx,
-            x - rectDist[xaxisName],
-            y - rectDist[yaxisName],
-            x + rectDist[xaxisName],
-            y + rectDist[yaxisName], [coords.x, coords.y])
-        //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
-    }
+
+    const handleMouseDown = (event) => {
+        const mouseCoord = localPoint(event)
+
+        setZoomActive(
+                prevValues => {
+                  return { 
+                        ...prevValues,
+                        "active":true,
+                        "x":mouseCoord.x,
+                        "y":mouseCoord.y,
+                        "width":0.1,
+                        "height":0.1,
+                       "origin": mouseCoord,
+                        "zoomed": false
+                        }}) //faster zoom function
+    }  
+    
+    const handleMouseHover = (event) => {
+    
+            const coords = localPoint(event.target.ownerSVGElement, event);
+            const x = xScale.invert(coords.x)
+            const y = yScale.invert(coords.y)
+    
+    
+             if (zoomActive.active && event.buttons === 1) {
+        
+                const origin = zoomActive.origin
+                var xZoom = zoomActive.x
+                var yZoom = zoomActive.y 
+                var dx = coords.x  - origin.x
+                var dy =  coords.y  - origin.y
+    
+    
+                if (dx < 0 & dy > 0) {
+                    xZoom = coords.x
+                    yZoom = origin.y
+                    dx = origin.x - coords.x 
+                }
+    
+                else if (dx > 0 && dy < 0){
+                    xZoom = origin.x 
+                    yZoom = coords.y 
+                    dy = origin.y - coords.y
+    
+                }
+                else if (dx < 0 && dy < 0){
+                    xZoom = coords.x 
+                    yZoom = coords.y 
+                    dy = origin.y - coords.y
+                    dx = origin.x - coords.x 
+    
+                }
+               
+                
+                setZoomActive(
+                    prevValues => {
+                      return { ...prevValues,"width":dx,"height":dy,"x":xZoom,"y":yZoom}}) 
+             }
+             else if (zoomActive.active) {
+                 setZoomActive(initZoomState)
+            }
+             else {
+                 setHoverDataInRectangle(chartIdx,
+                    x - rectDist[xaxisName],
+                    y - rectDist[yaxisName],
+                    x + rectDist[xaxisName],
+                    y + rectDist[yaxisName], [coords.x, coords.y])
+             }
+            
+            
+        }
+        
+        useEffect(() => {
+            if (zoomActive.zoomed && zoomActive.width > 10 && zoomActive.height > 10) {
+                
+                xScale.domain([xScale.invert(zoomActive.x), xScale.invert(zoomActive.x + zoomActive.width)])
+                yScale.domain([yScale.invert(zoomActive.y), yScale.invert(zoomActive.y + zoomActive.height)])
+
+                setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : xScale.domain(), currentYDomain : yScale.domain()}})
+            }
+
+        }, [zoomActive.zoomed])
+
+        
+        
+        console.log(xScale.domain(), yScale.domain(),"domains", zoomActive.zoomed)
+
     return (
         <div className="flex" ref={containerRef}>
-        <SVG {...{ width, height, svgID}}>
-            {/* <AxisWithBackground
-                margins={margins}
-                leftScale={yScale}
-                bottomScale={xScale}
-                bottomLabel={`${xaxisName} ${suffix}`}
-                leftHideTicks={false}
-                leftLabel={`${yaxisName} ${suffix}`}
-                moveBottomToLeft={false}
-                findAttributesForBottomScale={false}
-                    {...{ chartHeight, chartWidth }} /> */}
-            
-                {_.isArray(linkIdcs) ? <NetworkLinks nodes={data} {...{ linkIdcs, xScale, yScale, rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]), }} /> : null}
+            <SVG {...{ width, height, svgID }}>
+                 <rect x={margins.left}
+                    y={margins.top}
+                    width={chartWidth}
+                    height={chartHeight}
+                    fill="#ffffff"
+                    opacity={0.0} />
+                {_.isArray(linkIdcs) ?
+                    <NetworkLinks nodes={data}
+                        {...{
+                            linkIdcs,
+                        xScale,
+                        yScale,
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain()),
+                        }} /> : null}
                 <g>
                     {/* Render background data points to hide link lines */}
                 {validDataInput ? <ScatterPoints {...{
@@ -253,11 +397,11 @@ export function Network({
                         xaxisName,
                         yaxisName,
                         sizeName,
-                        glyphMap : { "pathway": "rect", "localization" : "rect"},
+                        glyphMap : { "annotation": "rect"},
                         checkPolyMap : true,
-                        polyMapKeyName : "node_type",
+                        polyMapKeyName : "type",
                         fill : "#efefef",
-                        rerenderDependency: _.concat(rerenderBackground, [sizeName]),
+                        rerenderDependency: _.concat(rerenderBackground, [sizeName], xScale.domain(), yScale.domain()),
                     }} /> : null}
             {/* Render data points */}
                     {validDataInput ? <ScatterPoints {...{
@@ -271,13 +415,13 @@ export function Network({
                         sizeName,
                         colorName,
                         checkColorMap: true, 
-                        colorMap : { "pathway": "#e6d7ba", "localization" : "#e6d7ba","main" : "#e7ad00"}, // "feature" : "#79c29e""#466688"#79c29e#e7ad00#79c29e
-                        colorMapKeyName : "node_type",
+                        colorMap : { "annotation": "#e6d7ba","main" : "#e7ad00"}, // "feature" : "#79c29e""#466688"#79c29e#e7ad00#79c29e
+                        colorMapKeyName : "type",
                         colorScale,
-                        glyphMap : { "pathway": "rect", "localization" : "rect"},
+                        glyphMap : { "annotation": "rect"},
                         checkPolyMap : true,
-                        polyMapKeyName : "node_type",
-                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName]),
+                        polyMapKeyName : "type",
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain()),
                         searchStrokeWidth : 1.5,
                         filterIndices,
                         searchIndices
@@ -297,9 +441,9 @@ export function Network({
                         sizeName,
                         colorName: undefined,
                         colorScale,
-                        glyphMap : { "pathway": "rect", "localization" : "rect" },
+                        glyphMap : { "annotation": "rect"},
                         checkPolyMap : true,
-                        polyMapKeyName : "node_type",
+                        polyMapKeyName : "type",
                         fill: "red",
                         rerenderDependency: rerenderHover
                     }} /> : null}
@@ -308,12 +452,32 @@ export function Network({
                 <g>
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
                         key: `${labelIndex}-${chartIdx}`,data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex, split : data[labelIndex]["node_type"] === "feature",
-                        opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5}} />) : null}
+                        opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5
+                    }}
+                    rerenderDependency={[zoomActive.currentXDomain, zoomActive.currentYDomain]}/>) : null}
                 </g>
 
                 {searchIndices.size > 0 ? <SearchIndicator {...{margins,width,searchIndices,searchString}} /> : null}
-                <rect x={margins.left} y={margins.top} width={chartWidth} height={chartHeight} onMouseMove={handleMouseHover} onMouseUp = {handleMouseUp} fill="#ffffff" opacity={0.0}/>
             
+                {zoomActive.active ? <rect  
+                        x = {zoomActive.x} 
+                        y ={zoomActive.y} 
+                        width={zoomActive.width}
+                        height={zoomActive.height}
+                        stroke="black" 
+                        strokeWidth={0.5} 
+                        fill={"transparent"}/>:null
+                }
+               
+                <rect x={margins.left}
+                    y={margins.top}
+                    width={chartWidth}
+                    height={chartHeight}
+                    onMouseMove={handleMouseHover}
+                    onMouseUp={handleMouseUp}
+                    onMouseDown={handleMouseDown}
+                    fill="transparent"
+                    opacity={0.0} />
             </SVG >
             {tooltipOpen && tooltipNames.length > 0 && hoverChart === chartIdx ?
                 <TooltipInPortal
@@ -322,21 +486,37 @@ export function Network({
                     
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
-                    <div className="flex flex-column justify-start" >
-                        {hoverIndcsArray.map((idx, ii) => _.isObject(data[idx]) ? <div key={`${idx}-hover`}>
-                            {<div>
-                                {ii === 0 ? <h4>{data[hoverIndcsArray[ii]][tooltipNames[0]]} {_.isNumber(data[idx][colorName]) ? `(${_.round(data[idx][colorName], 2)})` : null} ({hoverIndcsArray.length} links)</h4> : 
-                                    ii > 10 ? null : ii === 10 ? <div>...</div> : 
-                                    tooltipNames.map(tooltipName => <div key={`${idx}-${tooltipName}`}
-                                        style={{ maxWidth: "min(30vw, 600px)" }}>
-                                        {data[idx][tooltipName]} {_.isNumber(data[idx][colorName]) ? `(${_.round(data[idx][colorName], 2)})`: ""}
-                                    </div>)
-                                }
-                                {_.isString(colorName) && _.has(data[0],colorName) && ii === hoverIndcsArray.length - 1 && data[hoverIndcsArray[0]]["node_type"] !== "feature" ? <Subsetboxplot {...{data, yaxisName : colorName , subsetIndices : [hoverIndcsArray], subsetNames : [data[hoverIndcsArray[0]]["id"]]}} /> : null}
-                                {tooltipNames.length > 1 && hoverData.length > 1 ? <Divider /> : null}
+                    <div className="flex flex-column justify-start" style={{gap : "0.5px"}}>
+                        {hoverIndices.size > 0 ? Array.from(hoverIndices).map((index, i) => {
+                            if (i == 10) return <div>...</div>
+                            if (i > 10) return null
+
+                            const hoverIndexData = data[index]
+                            console.log(hoverIndexData)
+                                return <div
+                                    className={tooltipSmall ? "" : "flex flex-column bg--lightgrey padding--medium margin--little"}
+                                    key={`${index}-hover`}
+                                    style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
+                                    {_.has(hoverIndexData, "type") && hoverIndexData["type"] === "annotation" ? <Annotation tag={hoverIndexData["tag"]} /> : null}
+                                        
+                       
+                                {tooltipNames.map(tooltipName =>
+                                {
+                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} />
+                                    if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} />
+                                    else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
+                                    else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
+                                    else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
+                                    else {
+                                        return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
+                                    }
+
+                                })}
+
                             </div>
-                            }
-                        </div> : null)}
+                        })
+                    : null}
+                
                         
                     </div>
                 </TooltipInPortal> : null} 

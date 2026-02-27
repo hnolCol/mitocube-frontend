@@ -46,13 +46,16 @@ function NumericValueInput({ callbackKey,
         fill = true, 
         buttonPosition = "none", 
         submitButton = false, 
-        onButtonClick = undefined, 
+    onButtonClick = undefined, 
+    stepSize = 0.1,
+        minorStepSize = 0.01,
     buttonProps = {}, 
         id = undefined,
         ...rest}) {
             
     const [valueString, setValue] = useState("")
-    const valueInRange = _.inRange(_.toNumber(valueString), minValue, maxValue + 1)
+    const numericValue = _.toNumber(valueString)
+    const valueInRange = numericValue >= minValue && numericValue <= maxValue
     return (
         <FormGroup
             label={hint}
@@ -61,7 +64,9 @@ function NumericValueInput({ callbackKey,
             helperText={""}>
             <div className="flex center-items">
                 <NumericInput
-                    id = {id}
+                    id={id}
+                    stepSize={stepSize}
+                    minorStepSize={minorStepSize}
                     value={submitButton ? valueString : value} 
                     onKeyUp={submitButton && valueString !== "" && valueInRange? (e) => {
                         if (e.key === "Enter") {
@@ -69,12 +74,12 @@ function NumericValueInput({ callbackKey,
                         }
                     }:undefined}
                     {...{placeholder,fill, buttonPosition}}
-                    onValueChange={submitButton ? (value,valueAsString) => setValue(valueAsString) : _.isFunction(onChange) ? (value, valueAsString) => onChange(callbackKey, valueAsString, "text") : undefined}
+                    onValueChange={submitButton ? (_value, valueAsString) => setValue(valueAsString) : _.isFunction(onChange) ? (_value, valueAsString) => onChange(callbackKey, valueAsString, "text") : undefined}
                     { ...rest}
                 />
             {submitButton ? <div className="flex center-items">
                 <Button
-                    onClick={(e) => onButtonClick(callbackKey, valueString, "text")}
+                    onClick={() => onButtonClick(callbackKey, valueString, "text")}
                     {...buttonProps}
                     disabled={valueString === "" || !valueInRange}
                         text="Save" />

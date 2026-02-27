@@ -9,56 +9,57 @@ import { SegmentedControl } from "@blueprintjs/core"
 import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise"
 import APIError from "../../core/error/APIerror"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
+import hooks from "@mitocube/api-hooks"
+
+
 
 export function MitomapNetwork({ }) {
-    const { submission_tag, metadata, setTabHeader, tabHeader, attributesByTag } = useOutletContext() 
-    const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type : "pairwise", statProps : {} })
-    //const [network_data, setnetwork_data] = useState({})
-       
-    const { data: network_data, isLoading, isFetching, isSuccess, isError, error } = useGetNetwork({ network_type: networkProps.type, submission_tag, statProps : networkProps.statProps }, {enabled : !_.isEmpty(networkProps.statProps)})
+
+    const { submission_tag } = useOutletContext() 
+    const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type: "pairwise", statProps: {} })
     
-    const valueNameFound = _.isObject(network_data) && _.has(network_data,"value_keyName")
-    const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["id"], sizeName : undefined, textSearchNames : ["id"] })
+    const { data : network_data, isLoading, isFetching, isSuccess, isError, error } = hooks.submissions.analysis.useGetSubmissionAnnotationNetwork({tag : submission_tag, annotation_group_tag : "6OKeO"}, {enabled : !_.isEmpty(submission_tag)})
+
+
+    const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["tag"], sizeName : undefined, textSearchNames : ["tag"] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }
-    /**
-     * 
-     * @param {Object} props 
-     */
-    const handleSelection = (props) => {
-        setNetworkProps(prevValues => {return {...prevValues,statProps : props}})
-    }
+    // /**
+    //  *
+    //  * @param {Object} props
+    //  */
+    // const handleSelection = (props) => {
+    //     setNetworkProps(prevValues => {return {...prevValues,statProps : props}})
+    // }
 
-    //console.log(network_data)
-    // useEffect(() => {setnetwork_data(network_data)},[isSuccess,networkProps.type])
+    // //console.log(network_data)
+    // // useEffect(() => {setnetwork_data(network_data)},[isSuccess,networkProps.type])
     
-    const network_dataValid = _.isObject(network_data) && _.has(network_data,"nodes")
-    let numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []
-    if (valueNameFound) {
-        numericKeyNames  = _.concat(numericKeyNames,[network_data["value_keyName"]])
+    // const network_dataValid = _.isObject(network_data) && _.has(network_data,"nodes")
+    
+    // if (valueNameFound) {
+    //     numericKeyNames  = _.concat(numericKeyNames,[network_data["value_keyName"]])
+    // }
+
+    const network_dataValid = isSuccess && _.isObject(network_data) && _.has(network_data, "nodes")
+    const numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []
+
+    
+    if (isLoading || isFetching) {
+        return <div>Loading...</div>
     }
 
     return (<div className="div--expand" style={{overflowY:"scroll"}}>
         <div className="flex">
         <div>
-            <h3>Settings</h3>
-            <h4>MitoCarta Network</h4>
-            <SegmentedControl
-                    options={[{ label: "Pathway", value: "pathway" }, { label: "Localization", value: "localization" }]}
-                    small={true}
-                    fill={false}
-                    value={networkProps.type}
-                    onValueChange={(value) => setNetworkProps(prevValues => { return { ...prevValues, type : value } })}
-                    intent="primary"
-                    defaultValue="pathway"
-                />
-                {_.isObject(metadata) ? 
-                    <AttributePairwiseSelection {...{metadata,callbackText : "Map Network Nodes.", callback : handleSelection, isLoading : isError ? false : (isFetching || isLoading)}} /> : null}
+            
             {isError ? <APIError error={error}/> : null}
             </div>
-            {isSuccess && _.isObject(metadata) && network_dataValid ? 
-        <InteractiveChart
+            {isSuccess && network_dataValid ? 
+       
+                
+            <InteractiveChart
                 data={network_data.nodes}
                 extraLimitNames={numericKeyNames}
                 dataName={networkProps.type}
@@ -92,49 +93,59 @@ export function MitomapNetwork({ }) {
                     filterDataInKeyByValue,
                     hoverProps,
                     filterProps,
-                    labelProps
+                    labelProps,
+                    rerenderAxis,
+                    triggerResetAxis,
+                    setTriggerResetAxisZoom
                         }, didx) => {
                     return (
                         <div>
                             <ScatterDataSelection keyNames={_.keys(network_data.nodes[0])}
                                         {...{
-                                            title : "MitoCarta 3.0 Network Map",
-                                        numericKeyNames,
-                                        idx : 1,
+                                            title : "Annotation Group Network",
+                                numericKeyNames,
+                                        itemIsAttribute : false,    
+                                idx: 1,
+                                        chartIdx,
+                                        setTriggerResetAxisZoom,
                                         selection,
                                         setSelection : handleScatterSelection,
                                         handleStringSearch,
                                         downloadElements: ["network-scatter" + networkProps.type, network_data.nodes],
                                         elementNames: ["SVG","DIVIDER",`Nodes (n = ${network_data.nodes.length})`],
-                                        fileNames: [`${metadata.label}-MitoMap.svg`,`${metadata.label}-Mitomap.txt`],
+                                        fileNames: [`${submission_tag}-MitoMap.svg`,`${submission_tag}-Mitomap.txt`],
                                         elementTypes: ["svg", "data"]
                                         }} />
                             <Network key={`${chartIdx}`}{...{
                                 width: 1100,
                                 height : 1100,
                                 chartIdx,
-                                colorName: valueNameFound ? network_data["value_keyName"] : "node_type",
+                                colorName:  "type", //valueNameFound ? network_data["value_keyName"] :
                                 sizeName: undefined,
                                 // tooltipNames : selection.tooltipNames,
                                 data,
-                                linkIdcs : network_data.link_idcs,
+                                linkIdcs : network_data.links,
                                 valid,
                                 findDataInRectangle,
                                 setHoverDataInRectangle,
                                 xaxisName,
                                 yaxisName,
                                 limits,
+                                rerenderAxis,
                                 findClosestPoint,
                                 tooltipSmall : true,
-                                tooltipNames: ["id"],
-                                labelNames : ["id"],
+                                tooltipNames: ["tag"],
+                                labelNames : ["tag"],
                                 dataRerender : [networkProps.type],
                                 ...hoverProps,
                                 ...filterProps,
                                 ...labelProps,
-                                attributeValuesByTag: metadata.attribute_values_by_tag,
-                                attributesByTag: metadata.attributes,
-                                genotypesByLabel : metadata.genotypes,
+                                triggerResetAxis,
+                                setTriggerResetAxisZoom,
+                                tooltipNameIsFeature: { "tag": true },
+                                // attributeValuesByTag: metadata.attribute_values_by_tag,
+                                // attributesByTag: metadata.attributes,
+                                // genotypesByLabel : metadata.genotypes,
                                 legend: true,
                                     handleSearchByDataIndex,
                                     filterDataInKeyByValue,

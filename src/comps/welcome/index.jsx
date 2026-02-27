@@ -40,6 +40,9 @@ function Welcome() {
                 </div>
                 <AnnotationSelectionMenu />
             </div>
+
+            <viz.charts.Network /> 
+
             {/* <viz.charts.HeatmapGrouping data={submissionSampleConditionApplications} keyNames={["att_environment_treatment"]} is_condition_application={[true]} />
             <viz.charts.Heatmap /> */}
         </div>

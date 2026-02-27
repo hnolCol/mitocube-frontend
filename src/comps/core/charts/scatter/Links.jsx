@@ -44,12 +44,12 @@ function areEqual(prevProps, nextProps) {
 
 
   const NetworkLinks = React.memo(function NetworkLinks({linkIdcs,nodes,xScale,yScale}) {
-    
+
     return (
     <g>
             {linkIdcs.map(linkIdc => {
                 const source = nodes[linkIdc[0]]
-              const target = nodes[linkIdc[1]]
+                const target = nodes[linkIdc[1]]
               if (!_.isObject(source) || !_.isObject(target)) {
                 return null
               }

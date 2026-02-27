@@ -9,7 +9,7 @@ export function MultiProfiles({chartIdx,
     width = 220,
     height = 180,
     margins = {
-        left: 20,
+        left: 25,
         top: 5,
         right: 5,
         bottom: 5
@@ -31,7 +31,9 @@ export function MultiProfiles({chartIdx,
     profileAsBar = false,
     subsetIndices = {}, // subset the data to only plot those chartIdx / indices
     searchIndices = new Set(),
-    hoverIndices = new Set() }) {
+    hoverIndices = new Set(),
+    mergeHoverWithSearch = true
+}) {
 
     const uniqueColorValues = useMemo(() => getUniqueValuesInArrayOfObjects({ data, keyName : colorName }).filter(v => v!==undefined), [colorName])
     /** 
@@ -72,7 +74,8 @@ export function MultiProfiles({chartIdx,
             profileAsBar,
             subsetIndices: new Set(subsetIndices[subsetKey]), // subset the data to only plot those chartIdx / indices
             searchIndices,
-            hoverIndices
+            hoverIndices,
+            mergeHoverWithSearch
         }}
         />)}
         

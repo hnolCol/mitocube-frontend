@@ -323,7 +323,7 @@ export function ScatterPlot({
         const y = yScale.invert(coords.y)
 
 
-         if (zoomActive.active && event.buttons === 1) {
+        if (zoomActive.active && event.buttons === 1) {
     
             const origin = zoomActive.origin
             var xZoom = zoomActive.x
@@ -357,7 +357,7 @@ export function ScatterPlot({
                 prevValues => {
                   return { ...prevValues,"width":dx,"height":dy,"x":xZoom,"y":yZoom}}) 
          }
-         else if (zoomActive.acitive) {
+         else if (zoomActive.active) {
              setZoomActive(initZoomState)
         }
          else {
