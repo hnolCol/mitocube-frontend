@@ -5,9 +5,10 @@ import { isHexColorLight } from "../../../../services/checks/color"
 import { Popover } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 
+import hooks from "@mitocube/api-hooks"
+import { Text } from "@visx/text"
 
-
-export function ProteinGroup({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", minimal = false, redirect_to_protein_site = true, onClick }) {
+export function ProteinGroup({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", minimal = false, redirect_to_protein_site = true, onClick}) {
 
     const tags = _.isString(tag) ? tag.split(";").map(t => t.trim()) : []
     return <div className="flex">
@@ -26,9 +27,9 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
 }
 
 
-export function Protein({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", redirect_to_protein_site = true, minimal = false, onClick, style }) {
+export function Protein({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", redirect_to_protein_site = true, minimal = false, onClick, style, inSVG = false, svgTextProps = {} }) {
     const redirect = useNavigate()
-    const { data: feature, isSuccess, isLoading, isError } = useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: feature, isSuccess, isLoading, isError } = hooks.features.useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     
     
     const backgroundColor = highlight ? "#466688" : "#efefef"
@@ -47,6 +48,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
     }
 
     if (isError || isLoading) return null
+    if (inSVG) return <Text {...svgTextProps}>feature.gene_name</Text>
     if (minimal && isSuccess) return <div className="margin-right--little">{feature.gene_name}</div>
     return <div>
         {isSuccess ? <motion.div

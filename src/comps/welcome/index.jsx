@@ -34,17 +34,15 @@ function Welcome() {
             </div>
             <KeyFigure />
             <div>
-            <div className="flex flex-wrap justify-flex-start" style={{width : "100%", gap : "2rem"}}>
+            <div className="flex flex-wrap justify-flex-start" style={{width : "93vw", gap : "2rem",marginTop: "3rem"}}>
                     <NewsView />
+                    
                     <LastViewed user_tag={null} type="submissions" />
+                    
                 </div>
-                <AnnotationSelectionMenu />
+     
             </div>
 
-            <viz.charts.Network /> 
-
-            {/* <viz.charts.HeatmapGrouping data={submissionSampleConditionApplications} keyNames={["att_environment_treatment"]} is_condition_application={[true]} />
-            <viz.charts.Heatmap /> */}
         </div>
     )
 }

@@ -2,18 +2,18 @@ import { useGetFeatureByTag, useGetPairwiseFeatureQuant } from "../../../../hook
 import { Loading } from "../../base/states/Loading";
 import InteractiveChart from "../interactive";
 import { ScatterPlot } from "../scatter";
-import { SVG } from "../SVGHeader";
 import _ from "lodash"
+import hooks from "@mitocube/api-hooks"
 
-
-export function FeatureCorrelationPlot({ width = 200, height = 200, margin = {top : 5, left : 10, right : 10, bottom : 20}, feature_tag_x, feature_tag_y }) {
+export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 200, height = 200, margin = {top : 5, left : 10, right : 10, bottom : 20}}) {
     
     
-    const { data: feature_x, isSuccess: isSuccessFeatureX } = useGetFeatureByTag({ tag: feature_tag_x })
-    const {data : feature_y, isSuccess : isSuccessFeatureY } = useGetFeatureByTag({tag : feature_tag_y})
-    const { data : correlationData, isLoading, isFetching } = useGetPairwiseFeatureQuant({feature_tag_x,feature_tag_y},{enabled : _.isString(feature_tag_x) && _.isString(feature_tag_y)})
+    const { data: feature_x, isSuccess: isSuccessFeatureX } = hooks.features.useGetFeatureByTag({ tag: feature_tag_x })
+    const {data : feature_y, isSuccess : isSuccessFeatureY } = hooks.features.useGetFeatureByTag({tag : feature_tag_y})
+    const { data: correlationData, isLoading, isFetching } = hooks.features.data.useGetPairwiseFeatureQuant({ feature_tag_x, feature_tag_y }, { enabled: _.isString(feature_tag_x) && _.isString(feature_tag_y) })
+    
     return (
-        <div>
+        <div className="flex flex-wrap" style={{width : "500px", backgroundColor : "yellow"}}>
         {isLoading || isFetching ? <Loading /> : null}
         {_.isArray(correlationData) && correlationData.length > 0 ? <InteractiveChart
                 data={correlationData}

@@ -13,13 +13,38 @@ import { Group } from "@visx/group";
 import { Text } from "@visx/text";
 import { FilterIndicator } from "../annotations/Filter";
 import _ from "lodash"
+import { Protein } from "../../base/protein/Protein";
 
-export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14, color = ["#00000"]}) {
+export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYOffset = 4, fontSize = 14, color = ["#00000"], isFeature = [false]}) {
+
     return (<Group left={margins.left} top={margins.top + totalYOffset}>
-        {labelTexts.map((text, textIdx) => <Text key={`${text}-${textIdx}`} fill={color[textIdx]} x={0} dx={textOffset} fontSize={fontSize} y={fontSize * textIdx} verticalAnchor="start" textAnchor="start">
-            {text}
-        </Text>)}
-    </Group>) 
+
+        {labelTexts.map((text, textIdx) => {
+            const textProps = {
+                key: `${text}-${textIdx}`,
+                fill : color[textIdx],
+                x : 0,
+                dx : textOffset,
+                fontSize,
+                y : fontSize * textIdx,
+                verticalAnchor : "start",
+                textAnchor : "start"
+            }
+            if (isFeature[textIdx]) return <Protein tag={text} inSVG={true} svgTextProps={textProps}/>
+            return <Text
+                    key={`${text}-${textIdx}`}
+                    fill={color[textIdx]}
+                    x={0}
+                    dx={textOffset}
+                    fontSize={fontSize}
+                    y={fontSize * textIdx}
+                    verticalAnchor="start"
+                    textAnchor="start" >
+                    {text}
+                </Text>
+        })}
+        
+        </Group>) 
 }
 
 export function ProfileChart({

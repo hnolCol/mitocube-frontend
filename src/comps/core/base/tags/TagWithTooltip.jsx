@@ -152,7 +152,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                         <div className='flex center-items'>
 
                             {attribute.tag === "att_protein" ?
-
+                            
                                 <FeatureInput onItemSelect={(a, tag) => handleFeatureSelection(tag)} selectedItems={getFeatureInput()} /> :
                         
                         <MinimalTextInput
@@ -296,7 +296,6 @@ export function TraitWithValueInput({
                         </div>
                         {_.isFunction(onRemove) ?
                             <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}>
-
                                 <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(traitPath, [rowIndex])} />
                             </div>
                             : null}

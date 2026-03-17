@@ -1,18 +1,15 @@
 
 import _, { isError } from "lodash"
 
-import ResultChart from "../resultCard/chart"
-import { useGetDataByFeatureID, useGetFeatureByTag, useGetFeatureSampleQuants } from "../../../../hooks/queries/feature.hooks"
 import { useOutletContext } from "react-router"
 import APIError from "../../../core/error/APIerror"
-import { DialogBody, Drawer } from "@blueprintjs/core"
+import { Drawer } from "@blueprintjs/core"
 import { useGetMetadata } from "../../../../hooks/queries/datasets.hooks"
 import Loading from "../../../core/base/loading"
 import { useMemo, useState } from "react"
 import DatasetAttributeHierarchy from "../../../submission/new/sample_attributes/view/DatasetAttributesHierarchy"
 import { getFormatDateFromTimestamp } from "../../../../services/date/format"
 import MultipleMetrices from "../../../core/metrics/collection"
-import { useGetFilters } from "../../../../hooks/queries/filter.hooks"
 import { FilterSummary } from "../../../core/filters/FilterSummary"
 import { AuthorList } from "../../../core/authors/AuthorList"
 import { Metatexts } from "../../../core/metatext/SubmissionMetatext"
@@ -29,6 +26,12 @@ import { useSearchParams } from "react-router-dom"
 import { OpenAiPublicationSummary } from "../../../core/openai/OpenAiPublicationSummary"
 import { ProteinOverview } from "./ProteinOverview"
 import { ProteinFilter } from "../../../core/filters/ProteinFilters"
+import { AnnotationSelectionMenu } from "../../../core/base/annotations/AnnotationSelectionMenu"
+
+
+import viz  from "@mitocube/viz" 
+import { ProteinCorrelation } from "../../correlation"
+
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
     const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({tag : dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
@@ -94,95 +97,6 @@ function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
 
 
 
-
-/**
- * @description The protein correlation visualization of a feature tag. 
- * @param {Object} param0 
- * @returns 
- */
-function ProteinCorrelation({ tag, proteome_tag }) {
-
-    const [featureYTag, setFeatureYTag] = useState(undefined)
-    const {data : feature, isSuccess} = useGetFeatureByTag({tag : tag})
-    const { data, isLoading, isFetching } = useGetProteomeFeatureCorrelation({ tag: proteome_tag, feature_tag: tag, limit: 100 }, { enabled: _.isString(tag) && _.isString(proteome_tag) })
-
-
-    const handleFeautureSelection = (labelIndices) => {
-
-        if (!_.isSet(labelIndices)) return 
-        if (labelIndices.size === 0) return 
-        const selectedFeatureIdc = _.first(Array.from(labelIndices))
-        const featureTag = data[selectedFeatureIdc].tag
-        if (featureTag !==featureYTag) setFeatureYTag(featureTag)
-
-    }
-
-
-    return <div>
-        <h3>Correlation to {isSuccess ? feature.gene_name : null}</h3>
-
-        {isLoading || isFetching ? <Loading /> : null }
-        {_.isArray(data) && data.length > 0 ? <InteractiveChart
-            data={data}
-            keyNames={[
-                {
-                    xaxisName: "t",
-                    yaxisName: "pearson",
-                }]}
-            isPointChart={[true]}>
-            {
-                /**
-                 * 
-                 * @param {import("../../../types/charts").InteractiveChartResponse[]} chartData 
-                 * @returns 
-                 */
-                (chartData) => chartData.map(({
-                    data,
-                    chartIdx,
-                    xaxisName,
-                    yaxisName,
-                    valid,
-                    limits,
-                    findDataInRectangle,
-                    setHoverDataInRectangle,
-                    hoverProps,
-                    filterProps,
-                    findClosestPoint,
-                    labelProps
-                }, didx) => {
-                    handleFeautureSelection(labelProps.lastSelected)
-                    return (
-                        <ScatterPlot key={`correlation_over-view-${chartIdx}`}{...{
-                            chartIdx,
-                            //colorName: "",
-                            //sizeName: selection.sizeName,
-                            // tooltipNames : selection.tooltipNames,
-
-                            data,
-                            valid,
-                            findClosestPoint,
-                            findDataInRectangle,
-                            setHoverDataInRectangle,
-                            xaxisName,
-                            yaxisName,
-                            limits,
-                            tooltipSmall: true,
-                            tooltipNames: ["tag","pearson", "t", "N"],
-                            ...hoverProps,
-                            ...filterProps,
-                            legend: true,
-                            svgID: "scatter_plot-corr",
-                            tooltipNameIsFeature: { "tag" : true },
-                            tooltipNameIsNumeric : {"pearson" : 2, "t" : 2, "N" : 0}
-                        }} />
-                    )
-                })
-            }
-        </InteractiveChart> : null }
-        
-        <FeatureCorrelationPlot feature_tag_x={tag}  feature_tag_y={featureYTag}/>
-    </div>
-}
 export function ProteinPage() {
     
     const { feature_tag } = useOutletContext()
@@ -219,13 +133,12 @@ export function ProteinPage() {
                 </OptionButton>
                 )}
                 </div>
-            <h2>{selectedView}</h2>
             {/* <ProteinFilter tag={feature_tag} /> */}
             <div className="flex flex-column div--expand padding--little" style={{overflowY:"scroll", height : "88vh"}}>
 
             {selectedView === "overview" ? <ProteinOverview feature_tag={feature_tag} /> : null }
 
-            
+            {selectedView === "correlation" ? < ProteinCorrelation tag={feature_tag} /> : null }
 
             {selectedView == "literature" ? <div style={{paddingLeft : "3rem", paddingRight : "3rem"}}><OpenAiPublicationSummary feature_tag={feature_tag} /></div> : null }
 

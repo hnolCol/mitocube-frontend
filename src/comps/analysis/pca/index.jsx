@@ -1,9 +1,7 @@
 import _ from "lodash"
 import { useOutletContext } from "react-router";
-import APIError from "../../core/error/APIerror";
 import { useEffect, useState } from "react";
-import { useGetDatasetPCA } from "../../../hooks/queries/datasets.hooks";
-import Loading from "../../core/base/loading";
+
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { getNumericKeysFromArrayOfObjects } from "../../../services/arrays/filter";

@@ -1,0 +1,26 @@
+name: Chat AI
+version: 1.0.0
+schema: v1
+models:
+  - name: QwenCoder
+    provider: openai
+    model: qwen3-coder-30b-a3b-instruct
+    apiBase: https://chat-ai.academiccloud.de/v1
+    apiKey: 7e9c0b7772c88e1efb7d75df5de70dcb
+    defaultCompletionOptions:
+      temperature: 0.2
+      topP: 0.1
+    roles:
+      - autocomplete
+      - chat
+      - edit
+
+  - name: Accurate code model
+    provider: openai
+    model: codestral-22b
+    apiBase: https://chat-ai.academiccloud.de/v1
+    apiKey: 7e9c0b7772c88e1efb7d75df5de70dcb
+    defaultCompletionOptions:
+      temperature: 0.2
+      topP: 0.1
+    roles: [chat, autocomplete]

@@ -3,10 +3,14 @@
 import { TraitWithValueInput } from '../base/tags/TagWithTooltip';
 import { AttributeTraitSelection } from '../base/attributes/AttributeTraitSelection';
 import _ from 'lodash'; 
+
 export function InsertGeneticApplication({selectedTraits, handleTraitSelection, getSelectionByPath, handleSelection, getTraitSelection, checkAttributeRequiredTraits, referenceID, handleRemoveByPath}) {
 
     const trait_selection = getSelectionByPath([{ "type": "attribute", "tag": 'att_gene_engineering', "id": referenceID }])
     const selected = _.isString(getTraitSelection(referenceID))
+
+    
+
     return (<div>
         
         <AttributeTraitSelection

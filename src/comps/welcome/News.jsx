@@ -79,19 +79,23 @@ export function NewsItem({ news_tag, showDelete = false, onDeleteSuccess = () =>
 export function NewsView() {
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false })
+
     const { data: news, isLoading, isFetching, isError, error, refetch } = hooks.news.useFindNews({ limit: 5 }, {
         staleTime: 1000 * 60 * 5,
         placeHolderData: (prev) => prev || []
     }) //5 minutes
 
     const { data: newsPermissions, isSuccess: permissionIsSuccess } = hooks.news.permissions.useGetNewsPermissions({}, { staleTime: 1000 * 60 * 5 })
-    console.log(newsPermissions)
     const permissionLoaded = _.isObject(newsPermissions) && permissionIsSuccess
-    return (<div style={{
-        width: "max(33vw, 500px)",
-        minHeight: "max(20vh,300px)",
-        float: "left",
-        overflowY: "scroll"
+    return (
+        
+        <div
+            className="bg--lightgrey padding--medium"
+            style={{
+            minWidth: "max(33vw, 500px)",
+            minHeight: "max(20vh,300px)",
+            float: "left",
+            overflowY: "scroll"
     }}>
 
         <Dialog isOpen={dialogProps.isOpen}
@@ -104,9 +108,14 @@ export function NewsView() {
                 refetch()
             }}/>
         </Dialog>
-        <div>
-            <h3>Latest News</h3>
-            
+        <div className = "flex justify-space-between">
+            <div>
+                    <h3>Latest News</h3>
+                </div>
+             <div>
+            {permissionLoaded  && newsPermissions.create ?
+                <AddButton onSelect={() => setDialogProps({ isOpen: true })} /> : null}
+        </div>
         </div>
         
 
@@ -119,9 +128,6 @@ export function NewsView() {
                             <NewsItem key={news_tag} news_tag={news_tag} showDelete={permissionLoaded &&newsPermissions.delete} onDeleteSuccess={refetch} />) : null}
                         {_.isArray(news) && news.length === 0 ? <div>No news available.</div> : null}
                 </div> }
-        <div>
-            {permissionLoaded  && newsPermissions.create ?
-                <AddButton onSelect={() => setDialogProps({ isOpen: true })} /> : null}
-            </div>
+       
         </div>)
 }

@@ -99,7 +99,8 @@ ScatterPlot.defaultProps = {
  * @param {Object} props.tooltipNameIsNumeric - If the tooltip is a numeric value. Here the value should a number and provides the number of digits to which the value should be rounded 
  * @param {Function} props.setTriggerResetAxisZoom - Function to trigger the reset of the axis zoom. This is intended to be used in the InteractiveChartToolbar for a "reset zoom" button. It takes the chartIdx as an argument to identify which chart should reset its zoom.
  * @param {Number} props.triggerResetAxis - Value to trigger the reset of the axis zoom. The value is not relevant, but it should be a new value each time the reset should be triggered. This is important to be able to reset the zoom from outside of the chart, e.g. when a user clicks on a "reset zoom" button.
- * @returns 
+ * @param {Boolean} props.legendWithAttributes - If the legends are made up by attributes (triggers an API call.) 
+* @returns 
  */
 export function ScatterPlot({
     chartIdx,
@@ -145,9 +146,9 @@ export function ScatterPlot({
     tooltipNameIsNumeric = {}, //provide number to be rounded to.
     tooltipNameIsFeatures = {},
     triggerResetAxis,
-    setTriggerResetAxisZoom
+    setTriggerResetAxisZoom,
+    labelRenderer
 }) {
-   
     const [zoomActive, setZoomActive] = useState(initZoomState)
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
@@ -367,26 +368,19 @@ export function ScatterPlot({
                 x + rectDist[xaxisName],
                 y + rectDist[yaxisName], [coords.x, coords.y])
          }
-        
-        
     }
     
-        useEffect(() => {
+    useEffect(() => {
             if (zoomActive.zoomed && zoomActive.width > 10 && zoomActive.height > 10) {
                 
                 xScale.domain([xScale.invert(zoomActive.x), xScale.invert(zoomActive.x + zoomActive.width)])
                 yScale.domain([yScale.invert(zoomActive.y), yScale.invert(zoomActive.y + zoomActive.height)])
 
                 setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : xScale.domain(), currentYDomain : yScale.domain()}})
-
             }
 
         }, [zoomActive.zoomed])
-
-
-        
-        //const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
-    console.log(xScale.domain(), yScale.domain(),"domains")
+    
     return (
         <div className="flex" ref={containerRef}>
             <SVG {...{ width, height, svgID }}>
@@ -443,16 +437,18 @@ export function ScatterPlot({
                 {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${validPoints}`], textOffset: 3 }} /> : null}
                 <g>
                     {/* Annotation of scatter points */}
-                    {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => <ScatterLabel {...{
-                        key: `${labelIndex}-${chartIdx}`, data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
-                        opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5
-                    }}
-                    rerenderDependency={[zoomActive.currentXDomain, zoomActive.currentYDomain]} />) : null}
+                    {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => {
+                        return <ScatterLabel {...{
+                            key: `${labelIndex}-${chartIdx}`, data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
+                            opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
+                            rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRenderer]
+                        }} />
+                    }) : null}
                 </g>
 
                 {searchIndices.size > 0 ? <SearchIndicator {...{margins,width,searchIndices,searchString}} /> : null}
                 
-               
+                    
                 {
                     zoomActive.active?<rect 
                         x = {zoomActive.x} 

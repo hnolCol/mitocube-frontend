@@ -35,6 +35,8 @@ let dataTest = _.range(2000).map(idx => {return {x : Math.random() * 1000, y : M
  * This might accelerate the interactivity when switching between xaxis and yaxis names. 
  * @param {String} props.dataName A name of the dataset when changing this the graph is updated. Usually given as the data id/tag to make the graph update if the
  * dataset is changed. 
+ * @param {Number} props.dataUpdateTrigger - A trigger to update the data. If the value changes the chart is updated. 
+ * @param {Function} props.onLabelDataChange  - Called if defined as afunction upon labelData change (returns the selected indices in the data.)
  * @returns {Array.<import("../../../../types/charts").InteractiveChartResponse>} Returns the interactive response including function to identify points below the mouse using KDBush. 
  */
 function InteractiveChart({
@@ -43,7 +45,9 @@ function InteractiveChart({
     isPointChart = [true, false],
     extraLimitNames = [],
     dataName = "",
-    children }) {
+    children,
+    dataUpdateTrigger = undefined,
+    onLabelDataChange}) {
     
     const numberCharts = keyNames.length
 
@@ -60,15 +64,14 @@ function InteractiveChart({
 
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
     const flattenKeyNames = _.join(keyNamesFlatten)
-    const limits  = useMemo(() => getMinMaxForMultipleKeyNames({data, keyNames : _.concat(keyNamesFlatten,extraLimitNames)}), [numberCharts,flattenKeyNames,dataName,_.join(extraLimitNames)])
-    
+    const limits  = useMemo(() => getMinMaxForMultipleKeyNames({data, keyNames : _.concat(keyNamesFlatten,extraLimitNames)}), [numberCharts,flattenKeyNames,dataName,_.join(extraLimitNames),data.length, dataUpdateTrigger])
     //get the indices in the data array that are valid (e.g. have valid numbers for xaxisName and yaxisName)
     const validIndices = useMemo(() => {
         const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
         return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {
             return([chartIdx, _.map(isNumber, d => isPointChart[chartIdx] ? d[xaxisName] && d[yaxisName ] : _.every(yaxisName, yName => d[yName]))])
         }))
-    },[flattenKeyNames, dataName, data.length])
+    },[flattenKeyNames, dataName, data.length, dataUpdateTrigger])
 
     //create search trees for fast point finding in the array
     const searchTrees = useMemo(() => {
@@ -82,12 +85,12 @@ function InteractiveChart({
             index.finish()
             return [chartIdx, {tree : index, xaxisName, yaxisName , limits, data_index}]
         }))
-    },[flattenKeyNames, numberCharts, dataName, data.length])
+    },[flattenKeyNames, numberCharts, dataName, data.length, dataUpdateTrigger])
 
 
     useEffect(() => {
         setRerender(prevValues => { return {...prevValues, rerender: [Math.random()]}})
-    },[flattenKeyNames,numberCharts,_.join(extraLimitNames),dataName])
+    },[flattenKeyNames,numberCharts,_.join(extraLimitNames),dataName,data.length, dataUpdateTrigger])
 
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         // finds the index in a rectangle
@@ -175,6 +178,9 @@ function InteractiveChart({
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         let labelIdcs = labelData.idcs
         _.forEach(Array.from(idcs), idx => labelIdcs.has(idx) ? labelIdcs.delete(idx) : labelIdcs.add(idx))
+
+        if (_.isFunction(onLabelDataChange)) onLabelDataChange(idcs)
+
         setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()], lastSelected : idcs})
         
     }

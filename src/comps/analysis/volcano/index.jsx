@@ -1,7 +1,6 @@
 import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
 import _ from "lodash"
-import { useGetDatasetVolcano } from "../../../hooks/queries/datasets.hooks";
 import { useEffect, useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
