@@ -123,7 +123,7 @@ export function InsertAnnotationGroup({
 
                 <input
                     className="text-input"
-                    placeholder="Enter url"
+                    placeholder="API URL (e.g. UniProt REST endpoint)"
                     value={annotationGroup.url}
                     onChange={(e) =>
                         setAnnotationGroup(prev => ({
@@ -132,6 +132,18 @@ export function InsertAnnotationGroup({
                         }))
                     }
                     />
+                    <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
+                        Update Annotation
+                    </h3>
+                    <p>
+                    API URL used for automated updates.
+                    This URL is executed by the backend and must return structured data
+                    (TSV or JSON) containing protein identifiers.
+                    </p>
+                    <p>
+                    Do not enter a publication or website link here.
+                    </p>
+
 
             </div>
 
@@ -183,7 +195,7 @@ export function InsertAnnotationGroup({
 export function AddAnnotationGroupDialog({ isOpen, onClose, onSuccess }) {
 
     return (
-        <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(80vh, 900px)" }} canOutsideClickClose={false}>
+        <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(85vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium" style={{ height: "95%" }}>
                 <div style={{ height: "100%", width: "95%" }}>
                     <InsertAnnotationGroup onClose={onClose} onSuccess={onSuccess} />

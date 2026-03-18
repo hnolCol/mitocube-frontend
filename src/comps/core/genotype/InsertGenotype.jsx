@@ -112,20 +112,21 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     const insertGenotype = () => {
 
         const data = {
-            tag: tag, 
+            tag: tag,
             text: genotype.text,
             description: genotype.description,
             publication: genotype.publication,
-            components: selectedTraits.slice()
+            components: selectedTraits
         }
-
         postGenotype(data, {
             onSuccess: (response) => {
-                // reset form state on success
+                const genotype_tag = response?.tag
+            
                 setGenotype(INITIAL_GENOTYPE)
                 setSelectedTraits([])
-                // optionally show a toast or close a dialog here
-   
+            
+                onClose()
+
             },
             onError: (error) => {
                 console.error("Failed to insert genotype", error)
@@ -138,7 +139,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
 
     const editGenotype = () => {
         const data = {
-            tag: tag, 
+            tag: tag,
             text: genotype.text,
             description: genotype.description,
             publication: genotype.publication,
@@ -148,10 +149,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
 
         updateGenotype(data, {
             onSuccess: () => {
-                onClose()
-            },
-            onError: (error) => {
-                console.error("Failed to edit genotype", error)
+                onClose(true)
             }
         })
     }

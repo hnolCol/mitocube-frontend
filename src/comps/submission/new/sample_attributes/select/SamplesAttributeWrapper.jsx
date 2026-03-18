@@ -2,7 +2,7 @@
 import _ from "lodash"
 import Loading from "../../../../core/base/loading"
 import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent } from "../../../../../services/arrays/transforms"
+import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent, addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useState } from "react"
 import { Alert } from "@blueprintjs/core"
@@ -184,11 +184,11 @@ export const findChildrenByPath = (data, path) => {
  * @param {Number} props.numberReplicates - The number of replicates for the submission
  * @returns 
 */
-export function SampleAttributeTableWrapper({ submission, updateSubmission, numberReplicates, genotypes }) {
+export function SampleAttributeTableWrapper({ submission, updateSubmission, numberReplicates}) {
     // wrapper to the sample attributes table
     const [alertProps, setAlertProps] = useState({ isOpen: false, children: <div></div> })
     const proteome_ids = get_proteome_id(submission.datasetAttributeValues)
-
+    console.log(submission)
     const addSampleAttr = () => {
         //adds a new sample attribute
         updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, [[]]) } })
@@ -228,26 +228,26 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     /**
      * 
      * @param {Number[]} rowIdcs The selected table rowIndex
-     * @param {Object} genotype - The selected genotype.
+     * @param {String} genotype_tag - The selected genotype tag to be added or removed from the selected rows
      */
-    const handleGenotypeSelection = (rowIdcs, genotype) => {
-        let genotypeAttributes = submission.genotypeAttributes
-        _.forEach(rowIdcs, rowIdx => {
-            genotypeAttributes[rowIdx] = addItemToArrayOrRemoveItIfPresent({ array: genotypeAttributes[rowIdx], item: genotype })
-        })
+    const handleGenotypeSelection = (rowIdces, genotype_tag) => {
+        let genotype_tags = submission.genotypes
+        console.log("HANDLE GENOTYPE SELECTION", rowIdces, genotype_tag)
+
+        
+        rowIdces
+            .filter(rowIndex => rowIndex < submission.sampleNames.length)
+            .forEach(rowIndex => {
+                genotype_tags[rowIndex] = addStringToArrayOrRemove({array: genotype_tags[rowIndex], string : genotype_tag})
+            })
         updateSubmission(prevValues => {
             return {
-                ...prevValues, genotypeAttributes, rerenderTableDependency: [Math.random()],
-                sampleNames:
-                constructSampleNames({
-                    submission_tag: prevValues.tag,
-                    sampleNumber: prevValues.sampleNames.length,
-                    sampleAttributes: prevValues.attributeTable,
-                    sampleGenotypes: genotypeAttributes,
-                    include_sample_attributes : prevValues.samplesAttributes.map(a => a.tag) })
+                ...prevValues, genotypes : genotype_tags, rerenderTableDependency: [Math.random()]
             }
         })
     }
+    
+    
 
     const clearGenotypeColumn = (rowIdcs) => {
         if (_.isArray(rowIdcs)) {
@@ -548,7 +548,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 onTagRemove={onSampleAttrRemove}
                     {...{
                         // attributes: attributesAllowedForDataset,
-                    genotypes,
+                    genotypes : submission.genotypes,
                     getSelectionByPath,
                         addSampleAttr,
                         clearColumnByAttributeTag,

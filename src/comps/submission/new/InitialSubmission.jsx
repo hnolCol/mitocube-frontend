@@ -37,7 +37,7 @@ const initSubmissionState = {
             collaborators : [],
             attributeTable: [],
             metatext: {},
-            genotypes: {},
+            genotypes: [],
             links : [{id : randomInitLinkID, link : "", comment : ""}],
             selected_traits: [], // the dataset traits,
             rerenderTableDependency: 0,

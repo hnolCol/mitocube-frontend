@@ -25,10 +25,11 @@ export function SparepartContainer({ tags, updateSparepartList }) {
                     onClick={(e) => handleClick(e, tag)}
                     style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%"}}
                 >
-                    <SparepartItem 
-                    tag={tag}
-                    updateSparpartList={updateSparepartList}
-                    showDetails={showDetailTags.includes(tag)} />
+                  <SparepartItem 
+                        tag={tag}
+                        updateSparepartList={updateSparepartList}
+                        showDetails={showDetailTags.includes(tag)} 
+                    />
                 </motion.button>
                 </div>
             ))}

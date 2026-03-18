@@ -1,6 +1,6 @@
 import hooks from "@mitocube/api-hooks"
 import { useState } from "react"
-import { Dialog } from "@blueprintjs/core"
+import { Dialog, H3 } from "@blueprintjs/core"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { useEffect } from "react"
 import _ from "lodash"
@@ -157,7 +157,14 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           overflowY: "auto",
         }}
       />
-
+   
+      <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
+          Upload File
+      </h3>
+      <p>
+          Upload a file containing protein identifiers (e.g. UniProt accessions).
+          Supported formats: TSV, CSV, TXT.
+      </p>
       <AnnotationUpload
         onProteinIdsLoaded={handleProteinIdsLoaded}
           />
@@ -198,7 +205,7 @@ export function AddAnnotationDialog({ isOpen, onClose, group_tag, onSuccess }) {
       isOpen={isOpen}
       title="Add Annotation"
       onClose={onClose}
-      style={{ width: "min(600px,85vw)", height: "min(80vh, 900px)" }}
+      style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }}
       canOutsideClickClose={false}
     >
 

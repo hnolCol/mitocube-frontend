@@ -21,7 +21,7 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
 
     const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart({
         onSuccess: () => {
-            setIsDeleteOpen(true); 
+            setIsDeleteOpen(true);
         },
     });
   
@@ -35,10 +35,10 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
       
     
 
-    const handleEditClose = () => {
+      const handleEditClose = () => {
         setUpdate(Date.now())
         setIsOpen()
-      }
+    }
 
     const handleDeleteDialogClose = () => {
         setIsDeleteOpen(false);
@@ -51,7 +51,7 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
 
 
             <EditSparepartDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
-            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose}/>
+            <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} />
 
             <div
             className="flex justify-space-between align-center"

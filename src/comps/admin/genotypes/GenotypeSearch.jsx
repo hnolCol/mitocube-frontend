@@ -29,7 +29,7 @@ export function GenotypeSearch({ }) {
     const [genotypesToDisplay, setGenotypesToDisplay] = useState([]) // array of genotype tags to be displayed, saving them allows to have no blinking when typing in search box.
     const [searchParams, setSearchParams] = useSearchParams(); 
 
-    const { data: genotype_tags, isLoading, isSuccess, isError, error } = hooks.genotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 20 }, { staleTime: 2000 });
+    const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = hooks.genotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 20 }, { staleTime: 2000 });
     console.log(genotype_tags)
     // Determine selected limit from URL params
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) ? _.toNumber(searchParams.get("limit")) : LIMIT_OPTIONS[0];
@@ -52,13 +52,18 @@ export function GenotypeSearch({ }) {
         setSearchParams(newParams, { replace: true });
     };
 
+    const handleClose = (updateGenotypes = false) => {
+        setHotkeysDialogProps({ isOpen: false });
+        if (updateGenotypes) updateGenotypeList();
+    };
+
     return (
         <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem"}}>
             <div><input className="search-input" type="text" placeholder="Search Genotypes..." value={searchString} onChange={(e) => setSearchString(e.target.value)} /></div>
             <div className="flex">{LIMIT_OPTIONS.map(option => <OptionButton key={option} onClick={() => updateParam("limit", option)} isSelected={option === selectedLimit}>{option}</OptionButton> )}</div>
             <div style={{height : "2rem"}}>{isError ? <span>Error in searching for genotypes..</span> : isLoading ? <Loading /> : null}</div>
             {/* Display genotypes  */}
-            <GenotypeContainer tags={genotypesToDisplay} />
+            <GenotypeContainer tags={genotypesToDisplay} updateGenotypeList={updateGenotypeList} />
         </div>
     )
 }

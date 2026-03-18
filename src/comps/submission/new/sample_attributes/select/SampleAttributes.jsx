@@ -1,4 +1,3 @@
-
 import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
@@ -14,8 +13,8 @@ import { TraitWithValueInput } from "../../../../core/base/tags/TagWithTooltip"
 
 import hooks from "@mitocube/api-hooks"
 import { AttributeInput } from "../../../../core/input/api/AttributeInput"
-
-
+import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
+import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
 
 SamplesAttributes.propTypes = {
     sampleNames: PropTypes.arrayOf(PropTypes.string),
@@ -79,7 +78,18 @@ function SamplesAttributes({
     repeatSelection,
     genotypeAttributes = []
     }) {
+
+    console.log(genotypes)
     const [selectedRows, setSelectedRows] = useState([])
+    const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
+
+
+    const getSelectedSampleTags = () => {
+        return selectedRows.map(
+            row => `${submission_tag}|${sampleNames[row]}`
+        )
+    }
+    
     /**
      * 
      * @param {Number} columnIndex 
@@ -91,6 +101,8 @@ function SamplesAttributes({
         return [true, groupingAttribute]
     }
     
+    const insertSampleGenotype = hooks.samples.useInsertSampleGenotype()
+
     const getGroupingInfoByColumnIndex = (columnIndex) => groupings[getSampleAttrIndex(columnIndex)];
 
     const getGroupingAttributeByColumnIndex = (columnIndex) => getGroupingInfoByColumnIndex(columnIndex);
@@ -142,12 +154,15 @@ function SamplesAttributes({
      */
     const renderGenotype = (rowIndex, columnIndex) => {
         const cellKey = `${rowIndex}-${columnIndex}-genotype`
-        if (!_.isArray(genotypeAttributes) || genotypeAttributes[rowIndex] === undefined) return <Cell key={cellKey}></Cell>
-        let selectedGenotypes = genotypeAttributes[rowIndex]
-        if (!_.isArray(selectedGenotypes)) return null
-        return <Cell key={cellKey}><div className="flex flex--wrap center-items">{selectedGenotypes.map(genotype => {
-            return <div><Tag minimal={true} onRemove={() => handleGenotypeSelection([rowIndex], genotype)}>
-                {genotype.text}
+        if (!_.isArray(genotypes) || genotypes[rowIndex] === undefined) return <Cell key={cellKey}></Cell>
+        const selected_genotype_tags = genotypes[rowIndex]
+        if (!_.isArray(selected_genotype_tags)) return null
+        return <Cell key={cellKey}><div className="flex flex--wrap center-items">
+                {selected_genotype_tags.map(genotype_tag => {
+            return <div>
+                <Tag 
+                    minimal={true} onRemove={() => handleGenotypeSelection([rowIndex], genotype_tag)}>
+                 <GenotypeText tag={genotype_tag} />
             </Tag></div>
         })}</div>
         </Cell>
@@ -284,18 +299,31 @@ function SamplesAttributes({
         setSelectedRows(rows)
     }
 
-    const genotypeHeaderMenu = () => {
-        return <Menu small={true}>
-            <MenuItem text="Genotypes" disabled={true} />
-            <MenuDivider />
-            <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={_.isObject(genotypeAttributes)} />
-        </Menu>
-    }
+    // const genotypeHeaderMenu = () => {
+    //     return <Menu small={true}>
+    //         <MenuItem text="Genotypes" disabled={true} />
+    //         <MenuDivider />
+    //         <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={_.isObject(genotypeAttributes)} />
+    //     </Menu>
+    // }
+
+    const renderGenotypeHeader = () => (
+        <ColumnHeaderCell>
+            <div style={{ minHeight: "50px", maxHeight: "50px", display: "flex", alignItems: "center", justifyContent: "space-between", paddingLeft: "8px", paddingRight: "4px" }}>
+                <h4 style={{ margin: 0 }}>Genotype</h4>
+    
+                <Button
+                    icon="plus"
+                    onClick={() => setIsGenotypeDialogOpen(true)}
+                />
+            </div>
+        </ColumnHeaderCell>
+    )
 
     const renderDefaultHeader = (headerName, menuRenderer) => {
 
         return <ColumnHeaderCell menuRenderer={menuRenderer}>
-            <div className="margin--little" style={{ minHeight: "50px", maxHeight : "50px" }}>
+            <div className="margin--little" style={{minHeight: "50px", maxHeight: "50px", display: "flex", alignItems: "center"}}>
                 <h4>{headerName}</h4></div>
         </ColumnHeaderCell>
     }
@@ -331,7 +359,8 @@ function SamplesAttributes({
                         columnHeaderCellRenderer={() => renderDefaultHeader("Replicates")} />
                     <Column
                         cellRenderer={renderGenotype}
-                        columnHeaderCellRenderer={() => renderDefaultHeader("Genotype",genotypeHeaderMenu)} />
+                        columnHeaderCellRenderer={renderGenotypeHeader}
+                    />
                     {groupings.map((groupInfo,groupIdx) =>
                         <Column key={`${groupInfo.text}-${groupIdx}`} columnHeaderCellRenderer={renderAttributeHeader} cellRenderer={renderCell} />)}
                     
@@ -340,6 +369,29 @@ function SamplesAttributes({
                                 <Button icon="plus" onClick={addSampleAttr} /></div>
                         </ColumnHeaderCell>} />
             </Table2>
+            <AddGenotypeDialog
+                isOpen={isGenotypeDialogOpen}
+                onClose={(genotype_tag) => {
+
+                    const sample_tags = getSelectedSampleTags()
+                
+                    if (genotype_tag && sample_tags.length > 0) {
+                
+                        insertSampleGenotype.mutate(
+                            { sample_tags, genotype_tag },
+                            {
+                                onSuccess: () => refetchGenotypes()
+                            }
+                        )
+                    }
+                
+                    setIsGenotypeDialogOpen(false)
+                }}
+                
+                selectedRows={selectedRows}
+                submission_tag={submission_tag}
+            />
+
             </HotkeysProvider>
         </div>
     )

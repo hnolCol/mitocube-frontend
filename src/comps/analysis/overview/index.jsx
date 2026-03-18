@@ -30,7 +30,7 @@ function SubmissionOverview() {
     const { submission_tag } = useOutletContext()    
 
     return (
-        <div style={{ overflowY: "scroll", height: "100%" }}>
+        <div style={{ overflowY: "scroll", height: "85vh", padding: "1rem" }} className="flex flex-column">
             <div className="flex justify-end margin-right--little"><QuickAccessBar submission_tag={submission_tag}/></div>
              <div id="top" className="flex flex-column center-items">
                 <div className="margin-top--little" style={{ maxWidth : "66vw"}}>
@@ -71,7 +71,7 @@ function SubmissionOverview() {
             <div>
                 <SubmissionUpload {...{ submission_tag }}/>
             </div>
-            <div className="flex flex--wrap">
+            <div className="flex flex--wrap align-start ">
 
                 {_.isString(submission_tag) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Sample Attributes</h3>
