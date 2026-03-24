@@ -18,7 +18,11 @@ export function FeatureProfile({ tag, data, xaxisName, yaxisName, hoverProps, wi
 
     return <div>
         {isLoading || isFetching ? <Loading /> : null}
-        {isSuccess ? <InteractiveChart data={featureDataToPlot} dataName={`${tag}-${_.isArray(tags) && tags.length >0 ? tags[0] : ''}`} keyNames={[{ xaxisName: "sample_tag", yaxisName: "value" }]}> 
+        {isSuccess ?
+            <InteractiveChart
+                data={featureDataToPlot}
+                dataName={`${tag}-${_.isArray(tags) && tags.length > 0 ? tags[0] : ''}`}
+                keyNames={[{ xaxisName: "sample_tag", yaxisName: "value" }]}> 
             {
                 /**
                  * 

@@ -11,6 +11,8 @@ export function ProteinQuantCounts({ tag }) {
     if (!_.isNumber(sampleCounts) || !_.isNumber(featureSampleCounts)) return null
 
 
+    
+
     const rel = featureSampleCounts / sampleCounts
 
     const percent = +(rel * 100).toFixed(1);

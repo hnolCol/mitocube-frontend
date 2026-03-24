@@ -1,6 +1,6 @@
 
 
-import _, { isError } from "lodash" 
+import _, { findLastKey, isError } from "lodash" 
 
 // import ResultChart from "../resultCard/chart"
 
@@ -22,6 +22,7 @@ const LIMITS = [5, 10, 20, 100, "None"];
 const MIN_DATA_POINTS = [8, 10, 50, 100, 500]
 const DIRECTIONS = ["positive", "negative", "both"]
 const VIEW_OPTIONS = ["scatter", "sample"]
+const FDR_CUTOFFS = ["0.001", "0.01", "0.05"]
 /**
  * @description The protein correlation visualization of a feature tag. 
  * @param {Object} param0 
@@ -36,18 +37,20 @@ export function ProteinCorrelation({ tag }) {
     const direction = DIRECTIONS.includes(searchParams.get("direction")) ? searchParams.get("direction") : DIRECTIONS[2]
     const selected_annotation_tags = searchParams.get("annotation_tag") ? searchParams.get("annotation_tag").split(";") : []
     const selectedProteinTags = searchParams.get("selected_protein_tags") ? searchParams.get("selected_protein_tags").split("|") : []
-    const view = searchParams.get("view") && VIEW_OPTIONS.includes(searchParams.get("view")) ? searchParams.get("view") : VIEW_OPTIONS[0] 
+    const fdr_cutoff = searchParams.get("fdr") && FDR_CUTOFFS.includes(searchParams.get("fdr")) ? searchParams.get("fdr") : FDR_CUTOFFS[0] 
+    const annotation_tags = selected_annotation_tags.length > 0 ? _.join(selected_annotation_tags, ";") : undefined
+
     const { data: feature, isSuccess } = hooks.features.proteins.useGetProteinByTag({ tag }, { enabled: _.isString(tag) })
 
     const { data, isLoading, isFetching, isError, error } = hooks.features.correlations.useGetFeatureCorrelation({
         tag,
-        annotation_tags: selected_annotation_tags.length > 0 ? _.join(selected_annotation_tags, ";") : undefined,
+        annotation_tags,
         min_data_points,
         limit: limit === "None" ? undefined : limit,
-        direction
+        direction,
+        fdr : fdr_cutoff
     }, { enabled: _.isString(tag), onSuccess : (data) => setDataUpdated(Math.random()) })
 
-    console.log(data)
 
     const updateParam = (key, value) => {
         const newParams = new URLSearchParams(searchParams);
@@ -88,28 +91,17 @@ export function ProteinCorrelation({ tag }) {
     }
 
 
-    return <div style={{width : "90vw", display : "grid", gridTemplateColumns : "min(25vw,800px) 1fr"}}>
+    return <div style={{width : "95vw", height : "90vh", display : "grid", overflow: "hidden", gridTemplateColumns : "max(15vw,400px) 1fr"}}>
         
-        <div className="flex">
-            <div style={{ width}}>
+        
+        <div style={{ width : "100%"}}>
         <h3>Correlation to {isSuccess ? feature.gene_name : null}</h3>
-        <h4>Correlation setting</h4>
+        <h4>Setting</h4>
         <div className="flex flex-column" style={{gap : "0.75rem"}}>
-        <div>
-            <span>Limit | </span>
-            {LIMITS.map(option => (
-            <OptionButton
-                key={option}
-                isSelected={option === limit}
-                onClick={() => updateParam("limit", option)}
-            >
-                <span>{option}</span>
-            </OptionButton>
-        ))} 
-        </div>
+        
         
         <div>
-            <span>Min Pairwise data points| </span>
+            <span>Min data points| </span>
             {MIN_DATA_POINTS.map(option => (
             <OptionButton
                 key={option}
@@ -137,28 +129,40 @@ export function ProteinCorrelation({ tag }) {
         </div>
 
         <div>
-            <span>View Options | </span>
-            {VIEW_OPTIONS.map(option => (
+            <span>FDR | </span>
+            {FDR_CUTOFFS.map(option => (
             <OptionButton
                 key={option}
-                isSelected={option === view}
-                onClick={() => updateParam("view", option)}
+                isSelected={option === fdr_cutoff}
+                onClick={() => updateParam("fdr", option)}
             >
                 <span>{option}</span>
             </OptionButton>
         ))} 
         
         </div>
+        <div>
+            <span>Limit | </span>
+            {LIMITS.map(option => (
+            <OptionButton
+                key={option}
+                isSelected={option === limit}
+                onClick={() => updateParam("limit", option)}
+            >
+                <span>{option}</span>
+            </OptionButton>
+        ))} 
+        </div>
        
 
         <div className="flex center-items" style={{gap : "1rem"}}>
             <span>Annotations |  </span>
             <AnnotationSelectionMenu placeholder="Select annotation" selected_tags={selected_annotation_tags}  showTags={true} onSelection={(e,tag) => updateParam("annotation_tag", tag)} onRemove={() => updateParam("annotation_tag",undefined)}/>
-            </div>
+        </div>
         </div>
         </div>
 
-        <div>
+        <div style = {{marginRight : "2rem"}}>
         {isLoading || isFetching ? <Loading /> : null}
         {isError ? <APIError error={error} /> : null}
         {isSuccess && _.isArray(data) && data.length == 0? <div><h2>No correlation data found.</h2></div> : null }
@@ -170,8 +174,9 @@ export function ProteinCorrelation({ tag }) {
                     xaxisName: "t",
                     yaxisName: "pearson",
                 }]}
-                    dataUpdateTrigger={dataUpdated}
-                    onLabelDataChange={(idcs => handleFeatureSelection(idcs))}
+                dataName={`${fdr_cutoff}-${tag}-${direction}-${limit}-${min_data_points}-${annotation_tags}`}
+                dataUpdateTrigger={dataUpdated}
+                onLabelDataChange={(idcs => handleFeatureSelection(idcs))}
             isPointChart={[true]}>
             {
                 /**
@@ -228,20 +233,19 @@ export function ProteinCorrelation({ tag }) {
                     }
                 
         </InteractiveChart> : null}
-        <div className="flex flex-wrap" style={{width : "100%"}}>
+        <div className="flex" style={{flexWrap : "wrap", justifyContent : "flex-start",  width : "100%", height : "50vh", alignItems : "flex-start", overflowY : "scroll"}}>
                     {_.isArray(selectedProteinTags) && selectedProteinTags.length > 0 ?
                         selectedProteinTags.map(proteinTag => (
 
                             <FeatureCorrelationPlot
-                                
-                                key={proteinTag}
+                                key={`${tag}-${proteinTag}-feature-corr`}
                                 feature_tag_x={tag}
-                                feature_tag_y={proteinTag} />
+                                feature_tag_y={proteinTag}
+                                 />
             )) : null}
             </div>
             </div>
             </div>
-    </div>
 }
 
 

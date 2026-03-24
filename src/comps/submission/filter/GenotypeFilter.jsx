@@ -21,7 +21,7 @@ export function GenotypeDatasetFilter({ setSubmissionFilter }) {
         <div className="margin-top--little" style={{ width: "100%", paddingRight : "0.1rem"}}>
             <h4>Genotypes</h4>
             <div className="flex flex-column" >
-                <GenotypeInput selectedItems={genotypeSelection.selectedGenotypes} onItemSelect={onGenotypeSelection}/>
+                <GenotypeInput selectedGenotypes={genotypeSelection.selectedGenotypes} onItemSelect={onGenotypeSelection}/>
             <div className="font-size--smallest">Datasets in which the genotype was utilized will be displayed.</div>
             </div>
         </div>

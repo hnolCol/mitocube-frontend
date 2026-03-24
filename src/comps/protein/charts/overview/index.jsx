@@ -31,6 +31,7 @@ import { AnnotationSelectionMenu } from "../../../core/base/annotations/Annotati
 
 import viz  from "@mitocube/viz" 
 import { ProteinCorrelation } from "../../correlation"
+import { ProteinSubmissionRanking } from "../../data/ProteinSubmissionRanking"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
@@ -137,6 +138,8 @@ export function ProteinPage() {
             <div className="flex flex-column div--expand padding--little" style={{overflowY:"scroll", height : "88vh"}}>
 
             {selectedView === "overview" ? <ProteinOverview feature_tag={feature_tag} /> : null }
+
+                {selectedView === "data" ? <ProteinSubmissionRanking tag={feature_tag} /> : null     }
 
             {selectedView === "correlation" ? < ProteinCorrelation tag={feature_tag} /> : null }
 

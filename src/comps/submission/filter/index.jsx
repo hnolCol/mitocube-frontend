@@ -7,7 +7,7 @@ import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { Button, InputGroup } from "@blueprintjs/core"
 import { useEffect, useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
-import { GenotypeDatasetFilter } from "../filter/GenotypeSelection"
+import { GenotypeDatasetFilter } from "./GenotypeFilter"
 import { groupListByProperty } from "../../../services/arrays/groupby"
 
 

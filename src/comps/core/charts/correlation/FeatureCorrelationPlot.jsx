@@ -1,21 +1,33 @@
-import { useGetFeatureByTag, useGetPairwiseFeatureQuant } from "../../../../hooks/queries/feature.hooks";
 import { Loading } from "../../base/states/Loading";
 import InteractiveChart from "../interactive";
 import { ScatterPlot } from "../scatter";
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
+import viz from "@mitocube/viz"
+import { useMemo } from "react";
 
-export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 200, height = 200, margin = {top : 5, left : 10, right : 10, bottom : 20}}) {
+
+export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 500, height = 400, margin = {top : 5, left : 10, right : 10, bottom : 20}}) {
     
     
     const { data: feature_x, isSuccess: isSuccessFeatureX } = hooks.features.useGetFeatureByTag({ tag: feature_tag_x })
     const {data : feature_y, isSuccess : isSuccessFeatureY } = hooks.features.useGetFeatureByTag({tag : feature_tag_y})
-    const { data: correlationData, isLoading, isFetching } = hooks.features.data.useGetPairwiseFeatureQuant({ feature_tag_x, feature_tag_y }, { enabled: _.isString(feature_tag_x) && _.isString(feature_tag_y) })
-    
+    const { data: correlationData, isLoading, isFetching, isSuccess } = hooks.features.data.useGetPairwiseFeatureQuant({ feature_tag_x, feature_tag_y }, { enabled: _.isString(feature_tag_x) && _.isString(feature_tag_y) })
+
+
+    const r = useMemo(() => {
+        if (isSuccess && _.isString(feature_tag_x) && _.isString(feature_tag_y) && correlationData.length > 4) {
+            console.log("calculate ones!!")
+            return viz.utils.linearRegression({ x: correlationData.map(d => d.x), y: correlationData.map(d => d.y) })
+        }
+        
+    }, [feature_tag_x, feature_tag_y, isSuccess])
+
+
     return (
-        <div className="flex flex-wrap" style={{width : "500px", backgroundColor : "yellow"}}>
+        <div style={{width : width + margin.left + margin.right, height : margin.top + margin.bottom + height}}>
         {isLoading || isFetching ? <Loading /> : null}
-        {_.isArray(correlationData) && correlationData.length > 0 ? <InteractiveChart
+        {isSuccessFeatureX && isSuccessFeatureY && _.isArray(correlationData) && correlationData.length > 0 ? <InteractiveChart
                 data={correlationData}
             dataName={`${feature_tag_x}-${feature_tag_y}`}
             keyNames={[
@@ -46,6 +58,8 @@ export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 20
                     return (
                         <ScatterPlot key={`${chartIdx}`}{...{
                             chartIdx,
+                            width,
+                            height,
                             //colorName: "",
                             //sizeName: selection.sizeName,
                             // tooltipNames : selection.tooltipNames,
@@ -65,7 +79,8 @@ export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 20
                             ...filterProps,
                             rerenderBackground: `${filterProps.rerenderBackground}-${feature_tag_y}-${feature_tag_x}}`,
                             legend: true,
-                            svgID: "scatter_plot-corr"
+                            svgID: "scatter_plot-corr",
+                            linesBySlopeAndIntercept: [r]
                         }} />
                     )
                 })

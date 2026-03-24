@@ -41,7 +41,7 @@ function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem
  * an item has been already selected.  
  * @returns 
  */
-export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess }) {
+export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess, descriptionWidth = "240px" }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 30)
     
@@ -60,7 +60,7 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
     }
     
     const renderItem = (item, itemProps) => {
-        return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={_.isString(selected_trait) && item === selected_trait}  descriptionWidth="450px"/>
+        return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={_.isString(selected_trait) && item === selected_trait}  descriptionWidth={descriptionWidth}/>
     }
     const handleQueryChange = (query) => {
         setQuery(query)

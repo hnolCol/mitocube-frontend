@@ -47,7 +47,7 @@ function DatasetHeatmap() {
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
-            <p>Analysis of Variance was performed on. The FDR cutoff was to {_.round(heatmapData.fdr*100,2)}% and <strong>{heatmapData.data.length}</strong> features were found significantly different.</p>
+            <p>The FDR cutoff was to {_.round(heatmapData.fdr*100,2)}% and <strong>{heatmapData.data.length}</strong> features were found significantly different.</p>
             <p>The data are divided into a total number of <strong>{heatmapData.n_clusters}</strong> clusters.</p>
             <div className="flex flex-column">
                 <AnnotationSelectionMenu

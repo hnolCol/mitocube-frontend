@@ -58,9 +58,9 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         return undefined
     }
 
-    const handleSelection = (path) => {
+    const handleSelection = (path, _ , single_child_level = 5) => {
         let selected_traits = selectedTraits.slice() //mission.selected_traits
-        findAndInsertTree(selected_traits, path, 3, true, true, false, 0)
+        findAndInsertTree(selected_traits, path, single_child_level, true, true, true, 0)
         setSelectedTraits(selected_traits)
     }
 
@@ -133,9 +133,6 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         })
     }
 
-    console.log(selectedTraits)
-    console.log(genotype)
-
     const editGenotype = () => {
         const data = {
             tag: tag, 
@@ -156,6 +153,8 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         })
     }
 
+
+    console.log(selectedTraits)
 
     
     return (

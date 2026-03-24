@@ -4,13 +4,15 @@ import { SubmissionFilterSelection } from "../filter"
 import _ from "lodash"
 
 import hooks from "@mitocube/api-hooks"
-
+import viz from "@mitocube/viz"
+import { SubmissionDuration } from "./SubmissionDuration"
+import { QuantifiedProteinGroupsStatistics } from "./QuantifiedProteins"
 
 
 function SubmissionStatistics({ submissionsQuery, setSubmissionQuery, submissionFilter, setSubmissionFilter }) {        
         
 
-    const { data: submissionDuration, isLoading: isLoadingDuration } = hooks.stats.submissions.useGetSubmissionDuration({})
+    
 
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
     // console.log(submissionFilter)
@@ -48,7 +50,11 @@ function SubmissionStatistics({ submissionsQuery, setSubmissionQuery, submission
         children={<div><h3>Statistics</h3><p>The statistic view is currently under development, but you will soon be able to explore number of submission per attribute (such as instrument, organs, cell line),
             users, and research groups.</p>
         
-            {console.log(submissionDuration)}
+            
+
+            <SubmissionDuration />
+            <QuantifiedProteinGroupsStatistics />
+
         </div>} />
 }
 

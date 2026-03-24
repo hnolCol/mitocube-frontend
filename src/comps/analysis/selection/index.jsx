@@ -13,7 +13,7 @@ import TooltipButton from "../../core/base/buttons/TooltipButton";
 import { AttributeSubmissionFilter } from "../../submission/filter/AttributeSelection";
 import { UserFilter } from "../../submission/filter/UserSelection";
 import "../../submission/submission.css"
-import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeSelection";
+import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeFilter";
 
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     

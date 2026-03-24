@@ -100,6 +100,7 @@ ScatterPlot.defaultProps = {
  * @param {Function} props.setTriggerResetAxisZoom - Function to trigger the reset of the axis zoom. This is intended to be used in the InteractiveChartToolbar for a "reset zoom" button. It takes the chartIdx as an argument to identify which chart should reset its zoom.
  * @param {Number} props.triggerResetAxis - Value to trigger the reset of the axis zoom. The value is not relevant, but it should be a new value each time the reset should be triggered. This is important to be able to reset the zoom from outside of the chart, e.g. when a user clicks on a "reset zoom" button.
  * @param {Boolean} props.legendWithAttributes - If the legends are made up by attributes (triggers an API call.) 
+ * @param {Object[]} props.linesBySlopeAndIntercept - Adding lines providing the slope and intercept. 
 * @returns 
  */
 export function ScatterPlot({
@@ -147,7 +148,9 @@ export function ScatterPlot({
     tooltipNameIsFeatures = {},
     triggerResetAxis,
     setTriggerResetAxisZoom,
-    labelRenderer
+    labelRenderer,
+    linesBySlopeAndIntercept = [],
+    plotLinesAfterPoints = false
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
     // Plots an array of points. Each item in the array 
@@ -257,7 +260,11 @@ export function ScatterPlot({
             })
         }
         
-    }, [colorName])
+    }, [colorName,
+        _.has(limits, colorName) ? limits[colorName].min : undefined,
+        _.has(limits, colorName) ? limits[colorName].max : undefined,
+        ])
+    
 
     const sizeScale = useMemo(() => {
         if (sizeName === undefined || !_.has(data[0], sizeName)) return () => defaultRadius
@@ -298,7 +305,6 @@ export function ScatterPlot({
 
     const handleMouseDown = (event) => {
         
-        console.log("=???mouse down")
         const mouseCoord = localPoint(event)
 
         setZoomActive(
@@ -369,6 +375,39 @@ export function ScatterPlot({
                 y + rectDist[yaxisName], [coords.x, coords.y])
          }
     }
+
+    const getLines = () => {
+        if (linesBySlopeAndIntercept.length > 0)
+            return <g>
+                
+                {linesBySlopeAndIntercept.map((lineProps, lineIndex) => {
+                    let x1 = xScale.domain()[0]
+                    let x2 = xScale.domain()[1]
+                    let y_min = yScale.domain()[1]
+                    let y_max = yScale.domain()[0] 
+
+              
+                    let y1 = lineProps.slope * x1 + lineProps.intercept
+                    let y2 = lineProps.slope * x2 + lineProps.intercept
+                    
+                    if (lineProps.slope < 0) {
+
+
+                        if (y1 > y_max) {
+
+                            x1 = (yScale.domain()[0] - lineProps.intercept) / lineProps.slope
+                            y1 = y_max
+
+                        }
+
+                    }
+
+
+                    return <viz.primitives.Line key={`line-${lineIndex}`} {...{x1 : xScale(x1),x2 : xScale(x2),y1 : yScale(y1), y2 : yScale(y2)}} />
+                })}
+                    
+                </g>
+    }
     
     useEffect(() => {
             if (zoomActive.zoomed && zoomActive.width > 10 && zoomActive.height > 10) {
@@ -397,7 +436,11 @@ export function ScatterPlot({
                 bottomTicksAreConditionApplicationLabels={false}
                 rerenderDependency={[zoomActive.currentXDomain, zoomActive.currentYDomain, xScale.domain(), yScale.domain()]}
                 // findAttributesForBottomScale={false}
-                {...{ chartHeight, chartWidth }} />
+                    {...{ chartHeight, chartWidth }} />
+                
+
+                {!plotLinesAfterPoints && getLines()}
+
                 <g >
             {/* Render data points */}
                     {validDataInput ? <viz.primitives.ScatterPoints {...{
@@ -416,7 +459,10 @@ export function ScatterPlot({
                         searchIndices,
                         opacity : 0.75
                     }} /> : null}
-            </g>
+                </g>
+                
+
+                {plotLinesAfterPoints && getLines()}
             <g>
             {/* Rerender hover points */}
                     {validDataInput ? <viz.primitives.ScatterPoints {...{

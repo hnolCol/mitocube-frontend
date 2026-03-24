@@ -5,19 +5,36 @@ import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 import { useGetGenotypesByQuery } from "../../../../hooks/queries/genotype.hooks"
+import hooks from "@mitocube/api-hooks" 
 
-export function GenotypeInput({selectedItems = [], attribute = {tag : "att_genotype"}, onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true}) {
-    const [queryString,setQueryString] = useState("")
-    const debouncedString = useDebounce(queryString,200)
-    const { data: items, isLoading, isFetching } = useGetGenotypesByQuery({ query: debouncedString },
-        { enabled: debouncedString.length > 0 })
-    const disabled =  false //allowUndefinedProteomes ? false : !_.isArray(proteome_ids) ||  !proteome_ids.filter(proteome_id => _.isString(proteome_id)).length > 0
+export function GenotypeMenuItem({ tag, selected }) {
     
+    const { data : genotype_text } = hooks.genotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag), staleTime: Infinity })
+    console.log(genotype_text, "GENOTYPE ITEM")
+    return <MenuItem text={genotype_text} /> 
+}
+
+
+export function GenotypeInput({
+        selectedGenotypes = [],
+        attribute = { tag: "att_genotype" },
+        onItemSelect,
+        isRequired = true,
+        helperText = "",
+        inline = false,
+        showLabel = true, disabled = false }) {
+        
+    const [queryString, setQueryString] = useState("")
+    const debouncedString = useDebounce(queryString, 200)
     
+
+    const { data: items, isLoading, isFetching } = hooks.genotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { enabled: debouncedString.length > 0 })    
+    console.log(items)
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <MenuItem key={`${item.tag}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-            labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}>{item.proteome_id}</div>}/>
+        return <GenotypeMenuItem tag={item} selected={selectedGenotypes.includes(item)} />
+        // <MenuItem key={`${item.tag}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
+        //     labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}>{item.proteome_id}</div>}/>
     }
     /**
      * @description Handles the item selection 
@@ -52,7 +69,7 @@ export function GenotypeInput({selectedItems = [], attribute = {tag : "att_genot
             itemRenderer={renderFeature}
             items={_.isArray(items) ? items : []}
             tagRenderer={renderValue}
-            selectedItems={selectedItems}
+            selectedItems={selectedGenotypes}
             onItemSelect={handleItemSelection}
             onRemove={handleItemSelection}
             resetOnSelect={true}
@@ -66,7 +83,7 @@ export function GenotypeInput({selectedItems = [], attribute = {tag : "att_genot
                 inputProps : {intent : "primary"},
                 tagProps: { minimal: true }
             }}
-            initialContent={_.isArray(items) && selectedItems.length === 0 ? <MenuItem text="Search starts on typing.." disabled={true} /> : null }
+            initialContent={_.isArray(items) && selectedGenotypes.length === 0 ? <MenuItem text="Search starts on typing.." disabled={true} /> : null }
             />
         </FormGroup>
 }

@@ -9,8 +9,6 @@ export function InsertGeneticApplication({selectedTraits, handleTraitSelection, 
     const trait_selection = getSelectionByPath([{ "type": "attribute", "tag": 'att_gene_engineering', "id": referenceID }])
     const selected = _.isString(getTraitSelection(referenceID))
 
-    
-
     return (<div>
         
         <AttributeTraitSelection
@@ -29,7 +27,9 @@ export function InsertGeneticApplication({selectedTraits, handleTraitSelection, 
                 referenceID={referenceID}
                 onRemove={handleRemoveByPath}
                 checkAttributeRequiredTraits={checkAttributeRequiredTraits}
-                addIDToAttribute={true}
+                addIDToAttribute={false}
+                respect_single_child_level={true}
+                
             /> : null}
 
     </div >)

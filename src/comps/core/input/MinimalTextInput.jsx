@@ -2,12 +2,18 @@ import hooks from "@mitocube/api-hooks";
 import _ from "lodash";
 import PropTypes from "prop-types";
 
+
+const AMINO_ACIDS = new Set(["A", "R", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"])
+const DNA_BASES = new Set(["A", "T", "C", "G"])
+
+
 MinimalTextInput.propTypes = {
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
     style: PropTypes.object,
     optional: PropTypes.bool,
+    allowAminoAcidsOnly: PropTypes.bool,
     hint: PropTypes.string,
     checkForMinLength: PropTypes.bool,
     minLength: PropTypes.number,
@@ -18,7 +24,10 @@ MinimalTextInput.propTypes = {
 }
 
 MinimalTextInput.defaultProps = {
-    value: ""
+    value: "",
+    disabled : false,
+    allowAminoAcidsOnly: false,
+    allowDNAOnly: false
 }
 
 /**
@@ -36,6 +45,8 @@ MinimalTextInput.defaultProps = {
  * @param {String} [props.suffix=""] - Text to display after the input field.   
  * @param {String} [props.suffix_trait_tag=""] - Trait tag to fetch and display as suffix.
  * @param {Boolean} [props.disabled=false] - Whether the input field is disabled.
+ * @param {Boolean} [props.allowAminoAcidsOnly=false] - Whether to allow only amino acid characters.
+ * @param {Boolean} [props.allowDNAOnly=false] - Whether to allow only DNA base characters.
  * @returns {JSX.Element} The minimal text input component.
  */
 
@@ -52,13 +63,25 @@ export function MinimalTextInput({
     prefix = "",
     suffix = "",
     suffix_trait_tag,
-    disabled = false
+    disabled,
+    allowAminoAcidsOnly,
+    allowDNAOnly
 }) {
     const { data: suffixTrait } = hooks.traits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
 
     const handleValueChange = (e) => {
         const newValue = e.target.value;
-        onChange(newValue);
+        if (allowAminoAcidsOnly) {
+            if ([...newValue].every(char => AMINO_ACIDS.has(char.toUpperCase()))) {
+                onChange(newValue);
+            }
+        } else if (allowDNAOnly) {
+            if ([...newValue].every(char => DNA_BASES.has(char.toUpperCase()))) {
+                onChange(newValue);
+            }
+        } else {
+            onChange(newValue);
+        }
     };
 
     return (

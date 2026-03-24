@@ -18,7 +18,6 @@ function DatasetPCA({ }) {
     const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
     const { data : pcaresults, isSuccess } = hooks.submissions.analysis.useGetSubmissionPCA({tag : submission_tag, filter_tag : selection.filterTag}, {enabled : _.isString(submission_tag), staleTime: Infinity})
     
-    console.log(pcaresults, "PCA DATA??")
 
     // const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ submission_tag })
     

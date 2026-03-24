@@ -77,9 +77,9 @@ export const findAndInsertTree = (
                 if (single_child_type && level >= single_child_level) {
                 // Remove all nodes of the same type at this level
                 for (let i = data.length - 1; i >= 0; i--) {
-                if (data[i].type === current.type && data[i].id === current.id) {
-                    data.splice(i, 1);
-                }
+                    if (data[i].type === current.type && data[i].id === current.id) {
+                        data.splice(i, 1);
+                    }
                 }
                 }
             data.push(node);
@@ -295,12 +295,10 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         let attributeTable = submission.attributeTable.slice()
         const n_samples = attributeTable.length
         const selection = rowIdcs.map(rowIdx => attributeTable[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
-        console.log("REPEAT SELECTION", rowIdcs, selection, "SELECTION", attribute_tag, "TAG")
         const lastIdx = rowIdcs.at(-1)
         const diff = (n_samples+1) - lastIdx
         const n_repeat = _.toInteger((diff) / rowIdcs.length+0.5)
         const values = Array(n_repeat).fill(selection).flat();
-        console.log("VALUES", values, "DIFF", diff, "N_REPEAT", n_repeat, "LAST IDX", lastIdx)
         _.forEach(_.range(diff), idx => attributeTable[lastIdx + 1 + idx] = [...attributeTable[lastIdx + 1 + idx],...values.at(idx % rowIdcs.length)])
         
         console.log(attributeTable)
@@ -550,21 +548,21 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                         // attributes: attributesAllowedForDataset,
                     genotypes,
                     getSelectionByPath,
-                        addSampleAttr,
-                        clearColumnByAttributeTag,
-                        clearGenotypeColumn,
-                        clearAttributeTableByRowIndex,
-                        onSampleAttributeSelect,
-                        removeSampleAttrByIndex,
-                        groupings: submission.samplesAttributes,
-                        genotypeAttributes : submission.genotypeAttributes,
-                        onFeatureSelection,
-                        proteome_ids,
-                        numberReplicates: numberReplicates !==undefined? _.toNumber(numberReplicates) :_.uniq(submission.replicates).length,
-                        replicates: submission.replicates,
-                        onReplicateChange,
-                        handleGenotypeSelection,
-                        repeatSelection,
+                    addSampleAttr,
+                    clearColumnByAttributeTag,
+                    clearGenotypeColumn,
+                    clearAttributeTableByRowIndex,
+                    onSampleAttributeSelect,
+                    removeSampleAttrByIndex,
+                    groupings: submission.samplesAttributes,
+                    genotypeAttributes : submission.genotypeAttributes,
+                    onFeatureSelection,
+                    proteome_ids,
+                    numberReplicates: numberReplicates !==undefined? _.toNumber(numberReplicates) :_.uniq(submission.replicates).length,
+                    replicates: submission.replicates,
+                    onReplicateChange,
+                    handleGenotypeSelection,
+                    repeatSelection
                         }} />
             </div>
     )

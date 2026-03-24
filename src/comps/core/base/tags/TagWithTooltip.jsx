@@ -1,4 +1,3 @@
-import PropType from 'prop-types'
 import { Menu, MenuDivider, MenuItem, Popover } from "@blueprintjs/core"
 import { motion } from "framer-motion"
 import _, { has } from "lodash"
@@ -9,7 +8,6 @@ import { useEffect, useState } from "react"
 import { isHexColorLight } from "../../../../services/colors"
 import { RemoveButton } from '../buttons/RemoveButton'
 import PropTypes from 'prop-types'
-import NumericValueInput from '../../input/Numeric'
 
 import hooks from "@mitocube/api-hooks"
 import { TraitInput } from '../../input/api/TraitInput'
@@ -19,9 +17,10 @@ import { Loading } from '../states/Loading'
 import { FeatureInput } from '../../input/api/FeatureInput'
 import { Attribute } from '../attributes/Attribute'
 import { Trait } from '../traits/Trait'
-import { set } from 'lodash'
 
 
+const AMINO_ACID_ATTRIBUTES = new Set(["att_aa_substitution"])
+const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr"])
 TraitChildren.propTypes = {
     children_tags : PropTypes.array 
 }
@@ -31,7 +30,7 @@ TraitChildren.propTypes = {
  * @param {String[]} props.children_tags The tags of the children.  
  * @returns 
  */
-export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection = true }) {
+export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection = true, respect_single_child_level = true }) {
     return (<div>
         {
             _.isArray(children_tags) && children_tags.length ?
@@ -48,7 +47,8 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
                         onRemove,
                         referenceID,
                         checkAttributeRequiredTraits,
-                        displayChildrenUponSelection
+                        displayChildrenUponSelection,
+                        respect_single_child_level
                     }} />)
                 : null
         }
@@ -68,9 +68,10 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
  * @param {Number} props.rowIndex The index of the row in the table.
  * @param {Number} props.index The index of the current attribute in the hierarchy. 
  * @param {String} props.referenceID The reference ID for the current selection.
+ * @param {Boolean} props.respect_single_child_level Whether to respect the single child level.
  * @returns 
  */
-export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection }) {
+export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection}) {
 
     const [childTrait, setChildTrait] = useState(undefined) 
 
@@ -82,8 +83,10 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     const attributeHasTraits = isSuccessTraitCount && traitCount > 0
     let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }])
     const selection = _.isFunction(getSelectionByPath) ? _.head(getSelectionByPath(track_path, rowIndex)) : undefined
-    const has_selection = _.isObject(selection)
+    const has_selection = _.isObject(selection) 
 
+
+    // console.log(getSelectionByPath(track_path, rowIndex), "THIS IS THE REAL SELECTION!!")
 
     useEffect(() => {
         if (has_selection && selection.type === "trait") {
@@ -91,7 +94,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
             if (_.isString(traitInSelection) && traitInSelection !== childTrait) {
                 setChildTrait(traitInSelection)
             }
-
         }
     
     },[has_selection])
@@ -100,18 +102,22 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         const p_remove = _.concat(track_path, [{ "type": "trait", "tag": childTrait, "id": referenceID }])
         if (_.isFunction(onRemove)) onRemove(p_remove)
         const p = _.concat(track_path, [{ "type": "trait", "tag": trait_tag, "id": referenceID }])
-        onSelection(p, [rowIndex], single_child_level, single_child_type, join_values)
+        
+        const num_children = _.isArray(children) ? children.length : 0
+        const respect_single_child_level = num_children === 1 ? false : true //if there is only one child, we do not want to respect the single child level, as the child should be displayed regardless.
+
+        onSelection(p, [rowIndex], respect_single_child_level ? index + single_child_level : Infinity, single_child_type, join_values)
         setChildTrait(trait_tag)
     }
 
     const handleTraitValueInput = (value) => {
         const p = _.concat(track_path, [{ "type": "trait", "value": value, "tag": childTrait, "id": referenceID }])
-        onSelection(p, [rowIndex], index + 3, false, false, false)
+        onSelection(p, [rowIndex], Infinity, false, false, false) //adding the value should not have an effect on the single child level or type, as the value is not relevant for the children display.
     }
 
     const handleFeatureSelection = (tag) => {
-
-        onSelection(_.concat(track_path, [{ "type": "trait", "value": tag, "tag" : childTrait, "id" :  referenceID }]), [rowIndex], index + 3, false, false)
+        console.log(tag, "slected feature tag", referenceID)
+        onSelection(_.concat(track_path, [{ "type": "trait", "value": tag, "tag" : childTrait, "id" :  referenceID }]), [rowIndex], Infinity, true, false)
     }
     /**
      * @description Get the input value for the text input. The given path is screened to match and the value is returned.
@@ -158,10 +164,12 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                         <MinimalTextInput
                             value={getInput()}
                             disabled={(attributeHasTraits && childTrait === null)}
-                            callbackKey={attribute_tag}
+                                    callbackKey={attribute_tag}
+                                    allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
+                                    allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
                             onChange={(value) => handleTraitValueInput(value)}
                             suffix_trait_tag={childTrait} />}
-                            {(attributeHasTraits) ?
+                            {attributeHasTraits ?
                                 
                                 <TraitInput
                                     attribute_tag={attribute_tag}
@@ -173,7 +181,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                     </div> :
                     <div className='flex center-items'>
                         <div>{_.isString(childTrait) ? <Trait trait_tag={childTrait} /> : null}</div>
-                        <div>?</div>
+                        {/* <div>?</div> */}
                         <TraitInput
                             attribute_tag={attribute_tag}
                             text={has_selection || _.isString(childTrait) ? "" : attribute.text}
@@ -260,8 +268,9 @@ export function TraitWithValueInput({
         getSelectionByPath,
         referenceID,
         checkAttributeRequiredTraits,
-    sel }) {
-    
+        respect_single_child_level = true,
+        sel }) {
+    console.log(respect_single_child_level,"RESPECT IN TRAIT WITH VALUE!")
     const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = hooks.traits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag), staleTime: Infinity})
     const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && traitIsSuccess})
     const hasChildren = childrenIsSuccess && _.isArray(children) && children.length > 0
@@ -269,7 +278,7 @@ export function TraitWithValueInput({
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
 
-    const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : attribute_tag }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
+    const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
 
     return (
         <div>
@@ -291,7 +300,8 @@ export function TraitWithValueInput({
                                     selectedRows: sel,
                                     onRemove,
                                     referenceID,
-                                    checkAttributeRequiredTraits
+                                    checkAttributeRequiredTraits,
+                                    respect_single_child_level
                                 }} /> : null}
                         </div>
                         {_.isFunction(onRemove) ?
