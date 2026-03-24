@@ -28,7 +28,8 @@ export function InsertEditExternalService({
     const {mutate : postExternalService, isLoading, isError, error, isSuccess } = hooks.maintenance.externalservice.usePostExternalService({
         onSuccess: () => {
             setExternalService(INITIAL_EXTERNAL_SERVICE);
-        },
+            onClose(true);   
+        }
     });
     const { mutate : updateExternalService, isLoading : isUpdateLoading } = hooks.maintenance.externalservice.useUpdateExternalService()
 
@@ -56,10 +57,12 @@ export function InsertEditExternalService({
             name: externalservice.name,
             company: externalservice.company,
             email: externalservice.email,
-            costs: externalservice.costs,
+            costs: Number(externalservice.costs) || 0,
             billing_number: externalservice.billing_number,
             internal_id: externalservice.internal_id
         };
+
+        console.log("externalservice:", externalservice)
 
         postExternalService(data, {
             onSuccess: (external_service_tag) => {
@@ -87,7 +90,7 @@ export function InsertEditExternalService({
             name: externalservice.name,
             company: externalservice.company,
             email: externalservice.email,
-            costs: externalservice.costs,
+            costs: Number(externalservice.costs) || 0,
             billing_number: externalservice.billing_number,
             internal_id: externalservice.internal_id
         };
@@ -112,7 +115,7 @@ export function InsertEditExternalService({
                 <input className="text-input" type="text" value={externalservice.name} placeholder="Enter name of person performing the external service" onChange={(e) => setExternalService((prev) => ({ ...prev, name: e.target.value }))} />
                 <input className="text-input" type="text" value={externalservice.company} placeholder="Enter company name" onChange={(e) => setExternalService((prev) => ({ ...prev, company: e.target.value }))} />
                 <input className="text-input" type="text" value={externalservice.email} placeholder="Enter contact email" onChange={(e) => setExternalService((prev) => ({ ...prev, email: e.target.value }))} />
-                <input className="number-input" type="number" value={externalservice.costs} placeholder="Enter costs" onChange={(e) => setExternalService((prev) => ({ ...prev, costs: e.target.value }))} />
+                <input className="number-input" type="number" value={externalservice.costs ?? "" } placeholder="Enter costs" onChange={(e) => setExternalService((prev) => ({ ...prev, costs: e.target.value }))} />
                 <input className="text-input" type="text" value={externalservice.billing_number} placeholder="Enter billing number" onChange={(e) => setExternalService((prev) => ({ ...prev, billing_number: e.target.value }))} />
                 <input className="text-input" type="text" value={externalservice.internal_id} placeholder="Enter internal ID" onChange={(e) => setExternalService((prev) => ({ ...prev, internal_id: e.target.value }))} />
             </div>

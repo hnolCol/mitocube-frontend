@@ -28,8 +28,16 @@ export function ProteinQuantificationUploader({ submission_tag }) {
     const [file, setFile] = useState(null);
     const [headers, setHeaders] = useState([]);
     const [progress, setProgress] = useState(0);
+    const [overwriteChecked, setOverwriteChecked] = useState(false);
 
     const { mutateAsync } = hooks.submissions.quantifications.usePostProteinQuantification();
+
+    // Check if quantification data already exists for this submission
+    const { data: quantificationExists } = hooks.submissions.quantifications.useGetSubmissionQuantificationExists( 
+        { tag: submission_tag, quantification_type: "protein_groups" },
+        { staleTime: 30000 }
+    );
+
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
@@ -84,7 +92,8 @@ export function ProteinQuantificationUploader({ submission_tag }) {
     const canUpload =
         file &&
         headers.length > 0 &&
-        REQUIRED_COLUMNS.every((col) => columnIndex[col.key] !== undefined);
+        REQUIRED_COLUMNS.every((col) => columnIndex[col.key] !== undefined) &&
+        (!quantificationExists || overwriteChecked); // require overwrite confirmation if data exists
 
     const uploadFileInChunks = async () => {
         if (!file || !canUpload) return;
@@ -237,6 +246,14 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                     ))}
                 </div>
             )}
+            {quantificationExists && (
+    <div style={{ width: "100%", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
+        <input type="checkbox" id="overwrite" checked={overwriteChecked} onChange={(e) => setOverwriteChecked(e.target.checked)} />
+        <label htmlFor="overwrite" style={{ fontSize: 14, color: "#111827", fontWeight: 600, cursor: "pointer" }}>
+            Overwrite existing quantification data
+        </label>
+    </div>
+)}
             <button
                 onClick={uploadFileInChunks}
                 disabled={!canUpload}

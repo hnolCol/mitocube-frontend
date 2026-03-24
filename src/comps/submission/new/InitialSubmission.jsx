@@ -37,7 +37,7 @@ const initSubmissionState = {
             collaborators : [],
             attributeTable: [],
             metatext: {},
-            genotypes: {},
+            genotypes: [],
             links : [{id : randomInitLinkID, link : "", comment : ""}],
             selected_traits: [], // the dataset traits,
             rerenderTableDependency: 0,
@@ -176,6 +176,7 @@ function InitialSubmission({
         }
 
         else {
+        
             let submissionDetails = { } // ...submission 
             // delete rendering float
             submissionDetails["title"] = submission.title 
@@ -183,10 +184,12 @@ function InitialSubmission({
             submissionDetails["replicates"] = validReplicates
             submissionDetails["samples_attributes"] = attributeTable
             submissionDetails["dataset_attributes"] = submission.selected_traits
+            submissionDetails["genotypes"] = submission.genotypes
             submissionDetails["collaborators"] = submission.collaborators.slice()
             submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
             submissionDetails["tag"] = tag 
             submissionDetails["metatext"] = submission.metatext
+            
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
 
@@ -195,6 +198,7 @@ function InitialSubmission({
             
             
             submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
+            submissionDetails["genotypes"] = submission.genotypes
 
             postSubmission({ submission: submissionDetails },
                 {

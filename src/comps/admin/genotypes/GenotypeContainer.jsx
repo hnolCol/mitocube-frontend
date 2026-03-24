@@ -8,7 +8,7 @@ import { motion } from "framer-motion"
 
 
 
-export function GenotypeContainer({ tags }) {
+export function GenotypeContainer({ tags, UpdateGenotypeList }) {
 
   const [showDetailTags, setShowDetailsTags] = useState([])
 
@@ -20,15 +20,17 @@ const handleClick = (e, tag) => {
 }
 
   return (
-    <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }} flex flex-column>
+    <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }} classsName="flex flex-column">
       {tags.map((tag,idx) => (
-        <div  key={`${tag}-${idx}`} className="flex">
+        <div  key={`${tag}-${idx}`} className="flex" style={{ marginBottom: "0.8rem" }}>
             <motion.button
                 className="flex"
                 whileHover={{backgroundColor : "#efefef"}}
                 onClick={(e) => handleClick(e,tag)}
                 style={{backgroundColor : "#fff", borderRadius : "6px", border : "none", width : "100%"}}>
-            <GenotypeItem tag={tag} showDetails={showDetailTags.includes(tag)} />
+            <GenotypeItem tag={tag} 
+                          UpdateGenotypeList={UpdateGenotypeList}
+                          showDetails={showDetailTags.includes(tag)} />
         </motion.button>
         </div>
       ))}

@@ -19,7 +19,7 @@ export function SparepartSearch() {
     const [sparepartToDisplay, setSparepartToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { data: tag, isLoading, isSuccess, isError, refetch: updateSparpartList } =
+    const { data: tag, isLoading, isSuccess, isError, refetch: updateSparepartList } =
         hooks.maintenance.spareparts.useGetSparePartByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }
@@ -44,7 +44,7 @@ export function SparepartSearch() {
 
     const handleClose = (updateSpareparts = false) => {
         setDialogProps({ isOpen: false });
-        if (updateSpareparts) updateSparpartList();
+        if (updateSpareparts) updateSparepartList();
     }
 
     return (
@@ -89,7 +89,7 @@ export function SparepartSearch() {
 
             <SparepartContainer 
                 tags={sparepartToDisplay}
-                updateSparpartList={updateSparpartList}
+                updateSparepartList={updateSparepartList}
             />
         </div>
     )
