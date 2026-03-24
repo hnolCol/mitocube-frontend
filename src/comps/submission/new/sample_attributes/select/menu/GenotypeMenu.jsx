@@ -109,17 +109,17 @@ export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, pro
                             handleGenotypeSelection(rows, genotype_tag)
                             
                             
-                            const sample_tags = selectedRows.map(row => `${submission_tag}|${sampleNames[row]}`)
+                            // const sample_tags = selectedRows.map(row => `${submission_tag}|${sampleNames[row]}`) 
                             
-                            if (sample_tags.length > 0) {
-                                insertSampleGenotype.mutate(
-                                    { sample_tags, genotype_tag },
-                                    {
-                                        onSuccess: () => setTimeout(() => refetch(), 100),
-                                        onError: (error) => console.error("Failed:", error)
-                                    }
-                                )
-                            }
+                            // if (sample_tags.length > 0) {
+                            //     insertSampleGenotype.mutate(
+                            //         { sample_tags, genotype_tag },
+                            //         {
+                            //             onSuccess: () => setTimeout(() => refetch(), 100),
+                            //             onError: (error) => console.error("Failed:", error)
+                            //         }
+                            //     )
+                            // }
                         }} 
                         selectedRows={selectedRows}
                     />

@@ -66,7 +66,7 @@ export function UsersAdminView() {
                             ) : null}
                                 
                             </div>
-                            <div className="flex flex-column">
+                            <div className="flex flex-column" style={{height : "65vh", overflowY: "scroll"}}>
                                 {user_tags.map((user_tag, idx) => (
                                     <div key={`${user_tag}-${idx}`} className="margin-right--little margin-bottom--little">
                                         <UserItem  tag={user_tag} />
