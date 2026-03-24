@@ -79,7 +79,7 @@ export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, pro
         el.focus()
     },[])
 
-
+    
     return (
         <Menu style={{minWidth : "500px"}} onWheelCapture={e => e.stopPropagation()}>
             <MenuItem text="Genotypes" disabled={true} />
@@ -104,12 +104,26 @@ export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, pro
                     <GenotypeMenuItem
                         key={genotype_tag}
                         genotype_tag={genotype_tag}
-                        handleClick={(rows, tag) => {
-                            handleGenotypeSelection(rows, tag)
-                            setTimeout(() => refetch(), 100)
+                        handleClick={(rows, genotype_tag) => {
+                            
+                            handleGenotypeSelection(rows, genotype_tag)
+                            
+                            
+                            const sample_tags = selectedRows.map(row => `${submission_tag}|${sampleNames[row]}`)
+                            
+                            if (sample_tags.length > 0) {
+                                insertSampleGenotype.mutate(
+                                    { sample_tags, genotype_tag },
+                                    {
+                                        onSuccess: () => setTimeout(() => refetch(), 100),
+                                        onError: (error) => console.error("Failed:", error)
+                                    }
+                                )
+                            }
                         }} 
                         selectedRows={selectedRows}
                     />
+
   ))
   : null}
             </Menu>
