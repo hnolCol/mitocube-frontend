@@ -26,7 +26,6 @@ SamplesAttributes.propTypes = {
 function AttributeSelectionHeader({
     selected_attribute_tag,
     sampleAttrIndex,
-    attributesTagsInUse = [],
     onSampleAttributeSelect,
     disabled = false }) {
    
@@ -51,12 +50,11 @@ SamplesAttributes.propTypes = {
     replicates: PropTypes.arrayOf(PropTypes.number),
     rerenderTableDependency: PropTypes.oneOfType([PropTypes.number, PropTypes.arrayOf(PropTypes.number)]),
     numberReplicates: PropTypes.number.isRequired,
-    proteome_ids : PropTypes.arrayOf(PropTypes.string)
 }
 
 function SamplesAttributes({
     submission_tag,
-    proteome_ids,
+    referenceIDs,
     sampleNames,
     attributeTable = [],
     getSelectionByPath,
@@ -76,10 +74,8 @@ function SamplesAttributes({
     genotypes,
     handleGenotypeSelection,
     repeatSelection,
-    genotypeAttributes = []
     }) {
 
-    console.log(genotypes)
     const [selectedRows, setSelectedRows] = useState([])
     const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
 
@@ -120,7 +116,7 @@ function SamplesAttributes({
             case 1:
                 return <ReplicateMenu {...{ numberReplicates, onReplicateChange, selectedRows }} />;
             case 2:
-                return <GenotypeContextMenu {...{ genotypes, selectedRows, handleGenotypeSelection, proteome_ids, clearGenotypeColumn }} />;
+                return <GenotypeContextMenu {...{ genotypes, selectedRows, handleGenotypeSelection, clearGenotypeColumn }} />;
             default: {
 
                 //let sampleAttribute = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
@@ -190,16 +186,16 @@ function SamplesAttributes({
         
 
         if (!attributeDefined || attributeTable.length <= rowIndex) return <Cell key={cellKey}></Cell>
-        let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag, "id" : attribute_tag }], rowIndex)
-        const attributeHasFeatures = false //attribute.has_features_value    
+        const referenceID = referenceIDs[rowIndex]
+        let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag, "id": referenceID }], rowIndex, false)
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey}>
             <div className="flex flex--wrap center-items">
                 {cellData.map(child => {
                     return <div
-                        key={`${rowIndex}-${columnIndex}-${child.tag}-${child.id}`}
+                        key={`${rowIndex}-${columnIndex}-${child.tag}-${referenceID}`}
                         className="padding--little">
-                        <TraitWithValueInput //consider changing to sampleTraitWithvalue? 
+                        <TraitWithValueInput 
                             rowIndex={rowIndex}
                             attribute_tag={attribute_tag}
                             getSelectionByPath = {getSelectionByPath}
@@ -207,8 +203,7 @@ function SamplesAttributes({
                             submission_tag={submission_tag}
                             sel={selectedRows}
                             onChildrenSelection={onSampleTraitSelection}
-                            valueIsFeature={attributeHasFeatures}
-                            referenceID={child.id}
+                            referenceID={referenceID}
                             onRemove={onTagRemove} />
                     </div>})}
             </div>
@@ -338,7 +333,7 @@ function SamplesAttributes({
 
     return (
     
-        <div style={{paddingTop:"1rem",paddingBottom:"1rem",height:"500px",overflowY:"hidden"}}>
+        <div style={{paddingTop:"1rem",paddingBottom:"1rem", height : "75vh", overflowY: "scroll"}}>
             <HotkeysProvider>
                 <Table2
                     //enableColumnInteractionBar = {false}

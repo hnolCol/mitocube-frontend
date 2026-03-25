@@ -12,8 +12,7 @@ export function ConnectPhenotype({ }) {
     const [phenotype, setPhenotype] = useState({attributes : {}})
 
     const handleChange = (key, value) => {
-        
-        console.log(value)
+    
         setPhenotype(prevValues => { return { ...prevValues, [key]: addStringToArrayOrRemove({ array: prevValues[key], string: value }) } })
     }
 

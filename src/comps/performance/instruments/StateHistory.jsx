@@ -3,10 +3,13 @@
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 import { Tooltip } from "@blueprintjs/core"
+import { useEffect } from "react"
 
 
 export function InstrumentState({ tag }) {
-    const { data: instrument_state, isSuccess } = hooks.instruments.states.useGetInstrumentState({ tag }, { enabled: !!tag, stateTime: "Infinity" })
+    const { data: instrument_state, isSuccess, refetch } = hooks.instruments.states.useGetInstrumentState({ tag }, { enabled: !!tag, stateTime: 6000 })
+    
+
     return <div>
         {isSuccess ?
             <Tooltip content={instrument_state.description} position="top" >

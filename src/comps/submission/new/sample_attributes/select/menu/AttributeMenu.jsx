@@ -2,11 +2,8 @@ import { Menu, MenuDivider, MenuItem } from "@blueprintjs/core"
 import { Loading } from "../../../../../core/base/states/Loading"
 import { TraitMenuItem } from "../../../../../core/input/items/AttributeValueMenu"
 import TextInput from "../../../../../core/input/Text"
-import { useEffect, useMemo, useState } from "react"
-import { useGetValueForAttributeByTag } from "../../../../../../hooks/queries/attribute.hooks"
+import { useEffect, useState } from "react"
 import _ from "lodash"
-import { filterArrayBySearchString } from "../../../../../../services/arrays/filter"
-import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../../../../services/arrays/transforms"
 
 import hooks from "@mitocube/api-hooks"
 import useDebounce from "../../../../../../hooks/useDebounce"
@@ -61,7 +58,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
                                 tag={trait_tag}
                                 attribute_tag={attribute_tag}
                                 selected={_.includes(currentSelection, trait_tag)}
-                                onClick={(p) => onSampleTraitSelection(p, rowIdces, 3, false, false, true)} />
+                                onClick={(p) => onSampleTraitSelection(p, rowIdces, 3, false, false, false)} />
                         </div>
                     })}
                 </Menu>

@@ -1,6 +1,7 @@
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 import { InstrumentState } from "./StateHistory"
+import { useEffect } from "react"
 
 
 
@@ -26,12 +27,17 @@ export function InstrumentStates({ instrument_tag }) {
 
 
 
-export function CurrentInstrumentState({ instrument_tag }) {
+export function CurrentInstrumentState({ instrument_tag, refetchInstrumentStateTrigger }) {
+    const { data: instrument_state, isSuccess, refetch } = hooks.instruments.useGetStatesOfAnInstrument({ tag: instrument_tag, limit: 1 }, { enabled: _.isString(instrument_tag) })
+    useEffect(() => {
+        if (_.isString(instrument_tag) && _.isNumber(refetchInstrumentStateTrigger)) {
+            refetch()
+        }
+    }, [refetchInstrumentStateTrigger])
     
-    const { data: instrument_state, isSuccess } = hooks.instruments.useGetStatesOfAnInstrument({ tag: instrument_tag, limit : 1 }, { enabled: _.isString(instrument_tag) })
-    console.log(instrument_state)
-    return <div>
-       
-        {isSuccess && instrument_state.length > 0 ? <InstrumentState tag={instrument_state[0].tag} /> : <div>No state found.</div>}
+
+    return <div className="flex center-items">
+        <span>Current State : </span>
+        {isSuccess && instrument_state.length > 0 ? <InstrumentState tag={instrument_state[0]} /> : <div>No state found.</div>}
     </div>
 }

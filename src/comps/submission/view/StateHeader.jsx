@@ -6,7 +6,7 @@ import hooks from "@mitocube/api-hooks"
 
 
 StateHeader.propTypes = {
-    tag: PropTypes.string.isRequired
+    tag: PropTypes.number.isRequired
 }
 
 /**

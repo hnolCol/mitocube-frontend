@@ -45,6 +45,10 @@ PerformanceOverview.propTypes = {
 }
 
 
+
+
+
+
 function PerformanceOverview({ }) {
 
     // const { data, isLoading } = useGetDendro()
@@ -55,6 +59,8 @@ function PerformanceOverview({ }) {
             {/* {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null} */}
             <h3>Instruments</h3>
             {/* <Instruments /> */}
+
+
 
 {/* 
             <Maintenance />

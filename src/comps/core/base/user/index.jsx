@@ -76,19 +76,6 @@ export function UserIcon({text, fillColor, strokeWidth}) {
 }
 
 
-// export function UserIconWithTooltip({text}) {
-//     return (
-//         <Popover content={<div>User detials</div>} interactionKind="hover" position="top">
-//         <button>
-//         <BaseDashboardIcon width={30} height={30}>
-//             <UserDashboardIcon {...{ text }} />   
-//             </BaseDashboardIcon>
-        
-//             </button>
-//             </Popover>
-//     )
-// }
-
 
 User.propTypes = {
     id: PropTypes.any,

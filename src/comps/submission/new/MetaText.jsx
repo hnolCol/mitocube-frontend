@@ -5,15 +5,17 @@ import TextFieldInput from "../../core/input/TextArea"
 import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks"
 import _ from "lodash"
 import Loading from "../../core/base/loading"
+import { MetaTextDialog } from "../../core/dialogs/MetaText"
+import { useState } from "react"
 
 MetaText.propTypes = {
     onMetaTextChange: PropTypes.func.isRequired,
     metatextValues: PropTypes.object}
 
 
-function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0, allowTextBelowState = false }){
+function MetaText({ onMetaTextChange, metatextValues, allowTextForState = 0, allowTextBelowState = false }) {
+ 
     const {data : metatext, isLoading : metatextIsLoading} = useGetSubmissionMetatext()
-    
     return (
         <div>
             {metatextIsLoading ? <Loading /> : null}
@@ -29,7 +31,8 @@ function MetaText({onMetaTextChange, metatextValues, allowTextForState = 0, allo
                         hint={metatextTitle}
                         callbackKey={metatextTag}
                         onChange={onMetaTextChange} />}
-                    ) : null}
+            ) : null}
+            
             </div>
     )
 }

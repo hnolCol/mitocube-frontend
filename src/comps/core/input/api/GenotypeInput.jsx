@@ -10,7 +10,6 @@ import hooks from "@mitocube/api-hooks"
 export function GenotypeMenuItem({ tag, selected }) {
     
     const { data : genotype_text } = hooks.genotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag), staleTime: Infinity })
-    console.log(genotype_text, "GENOTYPE ITEM")
     return <MenuItem text={genotype_text} /> 
 }
 

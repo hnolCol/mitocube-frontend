@@ -6,6 +6,7 @@ import { getUserFullName } from "../../../../services/format/user"
 import { MultiSelect } from "@blueprintjs/select"
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
+import { use } from "react"
 
 
 export function UserFullName({ tag }) {
@@ -34,8 +35,7 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
 
-    const { data : user_tags, isLoading, isFetching } = hooks.users_query.useGetUserByQuery({query : debouncedString, limit})
-    
+    const { data : user_tags, isLoading, isFetching } = hooks.users_query.useGetUserByQuery({search_string : debouncedString, limit})
     /**
      * 
      * @param {} user 

@@ -37,7 +37,8 @@ MaintenanceEventItem.defaultProps = {
  * It also allows to add or remove symptoms and procedures from the maintenance event. 
  * @returns 
  */
-export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
+export function MaintenanceEventItem({ maintenance_event_tag, instrument_tag, showInstrument, setRefetchInstrumentStateTrigger }) {
+    
     const { data: maintenance_event, isLoading, isError, refetch } = hooks.maintenance.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
     const {
         refetch: refetchCosts,
@@ -48,6 +49,8 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
     const { isLoading: isLoadingAddingMaintenance, mutate: addSymptom } = hooks.maintenance.usePostSymptomToMaintenanceEvent()
     const { isLoading: isLoadingDeletingMaintenance, mutate: deleteSymptom } = hooks.maintenance.useDeleteSymptomToMaintenanceEvent() 
    
+
+
     /**
      * 
      * @param {String} symptom_tag The symptom to be added or removed
@@ -90,8 +93,8 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
         <div>
             
                 {showInstrument ? <div><Trait trait_tag={maintenance_event.instrument_tag} /></div>: null}
-                <CreatedAt createdat={maintenance_event.created_at} />
-            <InstrumentState tag={maintenance_event.instrument_state_tag} />
+            <CreatedAt createdat={maintenance_event.created_at} />
+            <InstrumentState tag={maintenance_event.instrument_state_tag}/>
             <MaintenanceEventCosts maintenance_event_tag={maintenance_event_tag} />
 
         </div>
@@ -112,7 +115,7 @@ export function MaintenanceEventItem({ maintenance_event_tag, showInstrument}) {
                 <MaintenanceProcedures maintenance_event={maintenance_event} refetch={refetch} />
                 <MaintenanceSpareParts maintenance_event={maintenance_event} refetch={refetch} refetchCosts={refetchCosts}/>
                 <MaintenanceExternalServices maintenance_event={maintenance_event} refetch={refetch} refetchCosts={refetchCosts}/>
-                <MaintenanceEventState maintenance_event_tag={maintenance_event_tag} />
+                <MaintenanceEventState instrument_tag={instrument_tag} maintenance_event_tag={maintenance_event_tag}  onEventChange={() => setRefetchInstrumentStateTrigger(Math.random())}/>
 
         </div>
         </div>
@@ -135,7 +138,7 @@ MaintenanceView.propTypes = {
  * It fetches the maintenance events for the instrument and displays them in a list. 
  * @returns 
  */
-export function MaintenanceView({ instrument_tag }) {
+export function MaintenanceView({ instrument_tag, setRefetchInstrumentStateTrigger }) {
     const [displayRange, setDisplayRange] = useState({limit : 10 , timestamp_min : undefined, timestamp_max : undefined})
     const { data: maintenance_event_tags, isLoading } = hooks.maintenance.useGetQueryMaintenanceEvents(
             {
@@ -161,7 +164,7 @@ export function MaintenanceView({ instrument_tag }) {
             {_.isArray(maintenance_event_tags) && maintenance_event_tags.length > 0 ?
                 maintenance_event_tags.map(me_tag => {
                     return <div key={me_tag}>
-                        <MaintenanceEventItem maintenance_event_tag={me_tag} />
+                        <MaintenanceEventItem maintenance_event_tag={me_tag} instrument_tag={instrument_tag} setRefetchInstrumentStateTrigger={setRefetchInstrumentStateTrigger} />
                     </div>
                 }) : <div>No maintenance events found for this instrument.</div>}
                 </div>

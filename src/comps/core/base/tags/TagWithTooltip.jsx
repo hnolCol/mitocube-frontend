@@ -11,11 +11,9 @@ import PropTypes from 'prop-types'
 
 import hooks from "@mitocube/api-hooks"
 import { TraitInput } from '../../input/api/TraitInput'
-import { findChildrenByPath } from '../../../submission/new/sample_attributes/select/SamplesAttributeWrapper'
 import { MinimalTextInput } from '../../input/MinimalTextInput'
 import { Loading } from '../states/Loading'
 import { FeatureInput } from '../../input/api/FeatureInput'
-import { Attribute } from '../attributes/Attribute'
 import { Trait } from '../traits/Trait'
 
 
@@ -116,7 +114,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     }
 
     const handleFeatureSelection = (tag) => {
-        console.log(tag, "slected feature tag", referenceID)
         onSelection(_.concat(track_path, [{ "type": "trait", "value": tag, "tag" : childTrait, "id" :  referenceID }]), [rowIndex], Infinity, true, false)
     }
     /**
@@ -210,32 +207,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
 
 
 
-export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false }) {
-    
-    return (
-        
-        <Popover content={<div className="padding--little">
-            <Menu>
-                {tooltipText.split("\n").map(splitString => <MenuItem key={splitString} text={splitString} />)}
-            </Menu>
-        </div>}
-            minimal={false}
-            compact={true}
-            popoverClassName = ""
-            interactionKind="hover"
-            inheritDarkTheme={false}
-            hoverOpenDelay={100}
-            position="top">
-            <motion.div
-                style={{backgroundColor : lighter ? "#efefef" :"#d1d1d1", color:"#000000", fontSize:"0.75rem"}}
-                className="padding--little cursor--default div--round margin-right--tiny"
-                whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
-                            {tagText}</motion.div>
-            </Popover>
-    )
-}
-
-
 TraitWithValueInput.propTypes = {
     attribute_tag : PropTypes.string.isRequired,
     trait_tag: PropTypes.string.isRequired,
@@ -260,17 +231,16 @@ export function TraitWithValueInput({
         rowIndex,
         trait_tag, 
         attribute_tag = "",
-        disableTooltip = false,
+        // disableTooltip = false,
         onRemove = undefined,
-        popoverPosition = "top",
+        // popoverPosition = "top",
         highlight = false,
         onChildrenSelection,
         getSelectionByPath,
         referenceID,
         checkAttributeRequiredTraits,
-        respect_single_child_level = true,
         sel }) {
-    console.log(respect_single_child_level,"RESPECT IN TRAIT WITH VALUE!")
+    
     const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = hooks.traits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag), staleTime: Infinity})
     const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && traitIsSuccess})
     const hasChildren = childrenIsSuccess && _.isArray(children) && children.length > 0
@@ -279,7 +249,6 @@ export function TraitWithValueInput({
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
 
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
-
     return (
         <div>
             { traitIsLoading || childrenIsLoading ? <Loading /> : traitIsSuccess && childrenIsSuccess?
@@ -301,7 +270,6 @@ export function TraitWithValueInput({
                                     onRemove,
                                     referenceID,
                                     checkAttributeRequiredTraits,
-                                    respect_single_child_level
                                 }} /> : null}
                         </div>
                         {_.isFunction(onRemove) ?
@@ -399,6 +367,34 @@ export function SampleAttributeTagWithTooltip({ name, values, sampleNames, attrV
                 className="padding--little cursor--default div--round margin-right--tiny"
                 whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
                             {name}</motion.div>
+            </Popover>
+    )
+}
+
+
+
+
+export function TagWithTooltip({ tooltipText = "", tagText = "", lighter = false }) {
+    
+    return (
+        
+        <Popover content={<div className="padding--little">
+            <Menu>
+                {tooltipText.split("\n").map(splitString => <MenuItem key={splitString} text={splitString} />)}
+            </Menu>
+        </div>}
+            minimal={false}
+            compact={true}
+            popoverClassName = ""
+            interactionKind="hover"
+            inheritDarkTheme={false}
+            hoverOpenDelay={100}
+            position="top">
+            <motion.div
+                style={{backgroundColor : lighter ? "#efefef" :"#d1d1d1", color:"#000000", fontSize:"0.75rem"}}
+                className="padding--little cursor--default div--round margin-right--tiny"
+                whileHover={{backgroundColor : "#466688", color:"#ffffff"}}>
+                            {tagText}</motion.div>
             </Popover>
     )
 }

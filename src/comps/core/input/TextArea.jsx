@@ -17,13 +17,14 @@ function TextFieldInput({callbackKey, value, hint = "", onChange, placeholder = 
     const lengthHint = minLength > 0?value===""?`(min. ${minLength} characters)`:inputCharLength > minLength?"":`(${inputCharLength}/${minLength} characters)`: ""
     return (
         <FormGroup
+            style={{height : "200px"}}
             label={hint}
             labelInfo={isRequired ? "(required) "+lengthHint : "(optional) "}
             inline={false}
             helperText={""}>
-            <div style={{backgroundColor:"#ffffff"}}>
-            <EditableText onChange={value => onChange(callbackKey, value, "text")} multiline={true} minLines={6} {...{placeholder,value}} />
-            </div>
+           
+            <textarea className="textarea" onChange={e => onChange(callbackKey, e.target.value, "text")} multiline={true} rows={10} {...{placeholder,value}} />
+        
             </FormGroup>
     )
 }

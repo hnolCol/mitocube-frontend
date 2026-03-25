@@ -7,9 +7,7 @@ import { get_proteome_id } from "../InitialSubmission"
 
 export function SamplesTab({ submission, setSubmission, setComponentKey, componentKey,  }) {
     
-    const proteome_tags = get_proteome_id(submission.datasetAttributeValues)
-    console.log(proteome_tags)
-    const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_tags},{enabled : proteome_tags.length > 0})
+    // const {data : genotypes, isLoading : genotypeIsLoading, error : genotypeError, isError : genotypeIsError, refetch : refetchGenotypes } = useGetGenotypes({proteome_tags},{enabled : proteome_tags.length > 0})
     
 
     const onInputChange = (inputTag, inputValue) => {
@@ -46,7 +44,6 @@ export function SamplesTab({ submission, setSubmission, setComponentKey, compone
                             value={submission.sampleNumber===0?"":_.toString(submission.sampleNumber)} onChange={(callbackKey, value) => onInputChange(callbackKey, value)} />
                     <SampleAttributeTableWrapper {...{
                             submission,
-                            genotypes,
                             updateSubmission: setSubmission,
                             numberReplicates: submission.numberReplicates
                         }} />

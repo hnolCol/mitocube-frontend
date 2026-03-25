@@ -24,12 +24,33 @@ export function get_proteome_id(datasetAttributeValues) {
     
 }
 
+
+export function ensureRandomIDArray(existingArray, requiredLength) {
+    // If array doesn't exist or is not an array, create empty array
+    const currentArray = Array.isArray(existingArray) ? existingArray : []
+    
+    // If required length is less than or equal to current length, return as is
+    if (requiredLength <= currentArray.length) {
+        return currentArray
+    }
+    
+    // Calculate how many new IDs we need to add
+    const newIDsNeeded = requiredLength - currentArray.length
+    
+    // Generate new random IDs and append to existing array
+    const newIDs = Array.from({ length: newIDsNeeded }, () => getRandomID(5))
+    
+    return [...currentArray, ...newIDs]
+}
+
+
 const randomInitLinkID = getRandomID(5)
 const initSubmissionState = {
             tag: "",
             numberReplicates: 0,
             sampleNumber: 0, 
             research_aim: "", 
+            referenceIDs : [], // the referenceIDs of the traits selected in the submission.
             replicates : [],
             sampleNames: [],
             sampleNamesFixed: false,
@@ -37,6 +58,7 @@ const initSubmissionState = {
             collaborators : [],
             attributeTable: [],
             metatext: {},
+            extraMetaText : [],
             genotypes: [],
             links : [{id : randomInitLinkID, link : "", comment : ""}],
             selected_traits: [], // the dataset traits,
@@ -64,6 +86,7 @@ function InitialSubmission({
     const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : !_.isString(init_submission_tag)})
     const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.tag : undefined,[_.isObject(submission_tag),submission_tag])
     
+
     console.log("InitialSubmission render", submission)
     
     useEffect(() => {
@@ -85,6 +108,7 @@ function InitialSubmission({
         //adjust attribute table 
         let attributeTable = submission.attributeTable
             
+        const sampleReferenceIDs  = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
 
 
         if (sampleNumber > attributeTable.length) {
@@ -96,12 +120,13 @@ function InitialSubmission({
                 attributeTable.push( [] ) //Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
         }
-        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : tag, sampleNumber : sampleNumber, sampleAttributes : attributeTable, sampleGenotypes : [], include_sample_attributes : submission.samplesAttributes}) : sampleNames
+        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : tag, sampleNumber : sampleNumber, referenceIDs : sampleReferenceIDs}) : sampleNames
 
         setSubmission(prevValues => {
             return {
                 ...prevValues,
                 sampleNames: constructedSampleNames,
+                referenceIDs : sampleReferenceIDs,
                 attributeTable,
                 tag, rerenderTableDependency: [Math.random()]
             }
@@ -188,7 +213,7 @@ function InitialSubmission({
             submissionDetails["collaborators"] = submission.collaborators.slice()
             submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
             submissionDetails["tag"] = tag 
-            submissionDetails["metatext"] = submission.metatext
+            submissionDetails["metatext"] = _.concat(submission.metatext, submission.extraMetaText)
             
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]

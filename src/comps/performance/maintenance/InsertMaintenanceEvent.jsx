@@ -62,10 +62,10 @@ return (
             isOpen={isOpen}
             onClose={() => setIsOpen(false)}
             title={`Create Maintenance event for ${instrument?.text ?? ""}`}
-            style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }} 
+            style={{ width: "min(600px,85vw)", }} 
             canOutsideClickClose={false}
         >
-            <div className="bp5-dialog-body">
+            <div className="bp5-dialog-body margin--medium padding--medium" style = {{height: "min(70vh, 900px)", overflowY : "scroll"}} >
 
                 <div>
                     A maintenance event defines the symptom/issue for a one or multiple instruments.
@@ -126,7 +126,7 @@ return (
                 />
             </div>
 
-            <div className="bp5-dialog-footer">
+            <div className="bp5-dialog-footer margin--medium padding--medium">
                 <div className="bp5-dialog-footer-actions">
                     <Button
                         onClick={() => setIsOpen(false)}
