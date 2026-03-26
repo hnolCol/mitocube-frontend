@@ -62,7 +62,7 @@ function CorrelationDefinition({ submission_tag, onChange, selection }) {
  * within(!) a given dataset. 
  * @returns
  */
-function DatasetFeatureCorrelation({ }) {
+function SubmissionFeatureCorrelation({ }) {
     
     const { submission_tag, metadata, } = useOutletContext()  
     const [correlation, setCorrelation] = useState({limit : 20, direction : {text : "positive"}})
@@ -124,4 +124,4 @@ function DatasetFeatureCorrelation({ }) {
 
 
 
-export default DatasetFeatureCorrelation
+export default SubmissionFeatureCorrelation

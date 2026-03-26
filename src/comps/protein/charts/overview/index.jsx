@@ -144,7 +144,7 @@ export function ProteinPage() {
             {selectedView === "correlation" ? < ProteinCorrelation tag={feature_tag} /> : null }
 
             {selectedView == "literature" ? <div style={{paddingLeft : "3rem", paddingRight : "3rem"}}><OpenAiPublicationSummary feature_tag={feature_tag} /></div> : null }
-
+            {selectedView === "abundance" ? <ProteinAbundance tag={feature_tag} /> : null }
             </div>
             {/* <BoxplotWithValue/>
             <div> Color : </div>

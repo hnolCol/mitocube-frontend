@@ -2,7 +2,6 @@
 
 
 
-import PropTypes from "prop-types"
 import _ from "lodash"
 import { Text } from "@visx/text"
 import { motion } from "framer-motion"
@@ -16,7 +15,6 @@ import { useState } from "react"
 import CollapsableAxes from ".."
 import { SVG } from "../../SVGHeader"
 import { getDomainWithBoundaries } from "../../../../../services/arrays/boundaries"
-import { getDefaultStrokeProps } from "../../../svg/styles/strokes"
 import AxisBackground from "../../background"
 import MetricTable from "../../../base/metrictable"
 import DownloadIcon from "../../../svg/icons/chartSelection/Download"
@@ -24,7 +22,6 @@ import { downloadTxtFile } from "../../../../../services/downloads/txt"
 import { arrayOfObjectsToString } from "../../../../../services/arrays/transforms"
 import { downloadSVG } from "../../../../../services/downloads/svg"
 import AnimatedPoint from "../../scatter/AnimatedPoint"
-import { Combobox } from "../../../input/Combobox"
 import TagBasedSearch from "../../../base/search/TagSearch"
 import GroupingSelection from "../../../base/attribute_selection/Selection"
 

@@ -6,16 +6,7 @@ import _ from "lodash"
 import Loading from "../../../core/base/loading";
 import { usePostSubmissionOwner } from "../../../../hooks/queries/submission.hooks";
 import { useState } from "react";
-// AttributeSelectionDialog.propTypes = {
-//     authenticationStatus: PropTypes.object.isRequired,
-//     attributesByTag: PropTypes.object.isRequired,
-//     attributeFilter: PropTypes.object.isRequired,
-//     prevSelectedAttributes: PropTypes.object,
-//     isOpen: PropTypes.bool.isRequired,
-//     onSubmit: PropTypes.func.isRequired,
-//     isLoading: PropTypes.bool,
-//     success : PropTypes.bool
-// }
+
 
 /**
  * @description A controlled attribute selection dialog (@blueprintjs) that is used to enter dataset attributes upon a state change.

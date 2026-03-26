@@ -151,3 +151,5 @@ cython_debug/
 #.idea/
 node_modules
 node_modules
+src/hooks/queries/.DS_Store
+src/hooks/.DS_Store

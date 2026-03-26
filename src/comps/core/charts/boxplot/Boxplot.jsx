@@ -5,6 +5,8 @@ import { useMemo } from "react";
 import _ from "lodash"
 
 import viz from "@mitocube/viz"
+import { addMarginToBoundaries, getChartWidthAndHeightWithMargins } from "@mitocube/viz/src/utils/border";
+import { ConditionApplicationLabel } from "@mitocube/viz/src/axis/ConditionApplicationLabel";
 
 /**
  * @description Data are assume to be a list of objects with the calculated quantiles. 
@@ -14,28 +16,27 @@ import viz from "@mitocube/viz"
 export function Boxplot({
     data,
     textKey = "text",
-    width = 200,
-    height = 200,
+    xaxis_ca_tags = [],
+    width = 250,
+    height = 300,
     rerender, 
     yAxisLabel = "log2 Abundance",
     margin = {
         top: 15,
-        left: 40,
-        bottom: 25,
+        left: 45,
+        bottom: 82,
         right : 10
     }
     }) {
     
-    const xAxisTickLabels = data.map(d => d[textKey])
-
-        
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins: margin })
     console.log(data)
     
     const xScale = useMemo(() => {
         const domain = _.range(data.length)
         return scaleBand({
             domain,
-            range: [margin.left, width-margin.left-margin.right],
+            range: [margin.left, margin.left + chartWidth],
             paddingInner: 0.1,
             paddingOuter: 0.1
         })
@@ -43,16 +44,16 @@ export function Boxplot({
 
     const yScale = useMemo(() => {
         
-        
+     
         const minValue = _.min(data.map(qs => qs.min))
         const maxValue = _.max(data.map(qs => qs.max))
-        console.log(minValue)
+        const { min, max } = addMarginToBoundaries({domain : { min: minValue, max: maxValue }, frac :  0.15})
         return scaleLinear({
-            domain: [maxValue, minValue],
-            range: [margin.top, height - margin.bottom- margin.top],
+            domain: [ max, min],
+            range: [margin.top, margin.top + chartHeight],
             nice: true
         })
-    }, [rerender,margin.bottom, margin.top, height])
+    }, [rerender,chartHeight, margin.top])
     const bw = xScale.bandwidth()
 
     return (
@@ -62,11 +63,11 @@ export function Boxplot({
                 top={height - margin.bottom}
                 label={""}
                 tickLength={1.5}
-                labelOffset={20}
+                labelOffset={25}
                 numTicks={6}
-                tickFormat={(tickLabel) => xAxisTickLabels[tickLabel]} />
+                tickComponent={({ x, y, formattedValue }) => <ConditionApplicationLabel x={x} y={y} tag={formattedValue} textProps={{textAnchor: "end", verticalAnchor: "end", angle: -90}} />}
+                tickFormat={(tickLabel) => xaxis_ca_tags[tickLabel]} />
             {data.map((qs, i) => {
-                
                 return <viz.primitives.Box
                     key={`${i}-boxplot-box`}
                     x={xScale(i)+bw/2}

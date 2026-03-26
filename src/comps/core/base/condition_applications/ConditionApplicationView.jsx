@@ -4,6 +4,7 @@ import hooks from "@mitocube/api-hooks";
 import _ from "lodash";
 import { motion } from "framer-motion";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
+import { Protein } from "../protein/Protein";
 
 /**
  * @description Component to display individual condition application item.
@@ -17,17 +18,18 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @param {boolean} props.show_attribute If the attribute should be displayed
  * @returns 
  */
-export function ConditionApplicationItem({tag, attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false}) { 
+export function ConditionApplicationItem({ tag, attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false }) { 
    
     const { data: trait_text } = hooks.traits.useGetTraitText({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity });
-    const {data : attribute} = hooks.attributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && show_attribute, staleTime : Infinity})
+    const { data: attribute } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    const is_protein = _.isObject(attribute) && attribute.tag=== "att_protein"
     return (
         <div className="flex" style={{ gap: "0.1rem" }}>
             <div className="flex center-items">
                 {/* <div> */}
                     {show_attribute && _.isObject(attribute) ? <span><strong>{attribute.text}:</strong>&nbsp;</span> : null}
-                        {value ? <div>{value}</div> : null} 
-                    {trait_text}
+                        {value ? is_protein ? <Protein minimal tag={value}/> : <div>{value}</div> : null} 
+                    {is_protein ? null : trait_text} 
                     {add_separator ? <div>,</div> : null}
                 {/* </div> */}
                 </div>

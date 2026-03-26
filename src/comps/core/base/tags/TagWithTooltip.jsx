@@ -166,6 +166,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                     allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
                             onChange={(value) => handleTraitValueInput(value)}
                             suffix_trait_tag={childTrait} />}
+                           
                             {attributeHasTraits ?
                                 
                                 <TraitInput

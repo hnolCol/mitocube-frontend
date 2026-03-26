@@ -58,20 +58,6 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
 
                 <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>
                     
-                    {/* {_.isObject(submissionQuery) && _.isArray(submissionQuery.submissions) ? submissionQuery.submissions.length === 0 ? <p>No submissions match the filter...</p> :
-                        submissionQuery.submissions.map(submission => <SubmissionItem
-                                    key={submission.label}
-                                    {...{
-                                    stateName : states.states_inv[submission.state], 
-                                    states,
-                                    usersByLabel,
-                                    submission,
-                                    contextMenuEnabled : false,
-                                    //setAttributeSelectionDialog,
-                            minimalView: submissionsQuery.minimalView,
-                                    
-                                    
-                                }} borderColor={states.colors_inv[submission.state]} />) : null } */}
             
             </div>
             </div>

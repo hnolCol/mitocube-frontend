@@ -21,14 +21,11 @@ export function GenotypeInput({
         isRequired = true,
         helperText = "",
         inline = false,
-        showLabel = true, disabled = false }) {
+        disabled = false }) {
         
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    
-
     const { data: items, isLoading, isFetching } = hooks.genotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { enabled: debouncedString.length > 0 })    
-    console.log(items)
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <GenotypeMenuItem tag={item} selected={selectedGenotypes.includes(item)} />

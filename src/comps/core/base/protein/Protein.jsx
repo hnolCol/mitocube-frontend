@@ -49,7 +49,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
 
     if (isError || isLoading) return null
     if (inSVG) return <Text {...svgTextProps}>feature.gene_name</Text>
-    if (minimal && isSuccess) return <div className="margin-right--little">{feature.gene_name}</div>
+    if (minimal && isSuccess) return <div>{feature.gene_name}</div>
     return <div>
         {isSuccess ? <motion.div
             style={{ ...style, backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem", } } //lighter ? "#efefef" :

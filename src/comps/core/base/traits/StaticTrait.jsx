@@ -1,9 +1,11 @@
 import PropType from "prop-types"
-import { useGetAttribute, useGetTrait } from "../../../../hooks/queries/attribute.hooks"
 import { isHexColorLight } from "../../../../services/checks/color"
 import _ from "lodash"
 import { motion } from "framer-motion"
 import { Popover } from "@blueprintjs/core"
+
+
+import hooks from "@mitocube/api-hooks"
 
 
 StaticTrait.propTypes = {
@@ -49,8 +51,8 @@ export function StaticTrait({
 }) {
 
     
-    const { data: attribute, isSuccess } = useGetAttribute({ tag: attribute_tag })
-    const { data : trait, isSuccess : traitIsSuccess} = useGetTrait({tag : trait_tag, include_input : true, submission_tag})
+    const { data: attribute, isSuccess } =  hooks.attributes.useGetAttribute(({ tag: attribute_tag }))
+    const { data : trait, isSuccess : traitIsSuccess} = hooks.traits.useGetTraitByTag({tag : trait_tag})
     //handle colors
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"

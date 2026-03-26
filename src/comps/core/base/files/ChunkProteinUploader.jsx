@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import hooks from "@mitocube/api-hooks";
-import { CopySubmissionSampleTags } from "../../../submission/samples/SampleTags";
+import { CopySubmissionSampleTags } from "../../../submission/samples/CopySampleTags";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
 const CHUNK_SIZE = 1024 * 10; // 10KB per chunk (adjust as needed)

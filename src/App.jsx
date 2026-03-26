@@ -16,7 +16,7 @@ import { useEffect, useState } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router";
 
 import { getItemFromLocalStorage, removeItemFromLocalStorage } from "./services/localstorage";
-import { useTokenValid } from "./hooks/queries/login.hooks";
+
 
 /* Core layout / navigation */
 import Leftbar from "./comps/core/navigation/dashboard/Leftbar";
@@ -47,7 +47,7 @@ import DatasetQC from "./comps/analysis/qc";
 import DatasetPCA from "./comps/analysis/pca";
 import DatasetHelp from "./comps/analysis/help";
 import Runlist from "./comps/analysis/runlist";
-import DatasetFeatureCorrelation from "./comps/analysis/correlation";
+import SubmissionFeatureCorrelation from "./comps/analysis/correlation";
 import {SubmissionSamples} from "./comps/analysis/samples";
 import {DatasetFeatureView} from "./comps/analysis/features";
 import Timeline from "./comps/analysis/timeline";
@@ -87,6 +87,8 @@ import Welcome from "./comps/welcome";
 import {AIPage} from "./comps/ai";
 import { AdminProcedure } from "./comps/admin/procedure/Procedure";
 
+
+import hooks from "@mitocube/api-hooks" 
 /* axios defaults */
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
@@ -127,13 +129,14 @@ function App() {
     isFetching: tokenValidIsFetching,
     isError: tokenValidIsError,
     error: tokenValidError,
-  } = useTokenValid(
+  } = hooks.authorization.token.useGetTokenValid(
     { tokenString: tokenFromStorage.token },
     {
       // if a token is found in local storage, then check it only if authenticationStatus.isAuth is not yet true.
       enabled: _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth,
     }
-  );
+    );
+  
 
   useEffect(() => {
     // Check for token in local storage and validate if present
@@ -149,6 +152,7 @@ function App() {
 
   useEffect(() => {
     // Use effect if token string was found in storage.
+    
     if (tokenValidIsError && tokenValidError.response.status === 401) {
       logout();
     } else if (_.isObject(isTokenValid) && isTokenValid.success) {
@@ -265,7 +269,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<NewSubmission {...{ authenticationStatus, logout }} />} />
+            <Route index element={<SubmissionView {...{ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} />} />
             <Route path="/submissions/new" element={<InitialSubmission {...{ authenticationStatus, logout }} />} />
             <Route
               path="/submissions/view"
@@ -291,7 +295,7 @@ function App() {
             <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{ logout }} />} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />
-            <Route path="/submissions/:tag/correlation" element={<DatasetFeatureCorrelation {...{ logout }} />} />
+            <Route path="/submissions/:tag/correlation" element={<SubmissionFeatureCorrelation {...{ logout }} />} />
             <Route path="/submissions/:tag/heatmap" element={<DatasetHeatmap {...{}} />} />
             <Route path="/submissions/:tag/pca" element={<DatasetPCA {...{ logout }} />} />
             <Route path="/submissions/:tag/qc" element={<DatasetQC {...{ logout }} />} />

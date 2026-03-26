@@ -143,7 +143,7 @@ async function getFeatureCorrelationsInDataset_API({ submission_tag, feature_tag
 }
 
 export const useGetFeatureCorrelationInDataset = (APIParams = { submission_tag, feature_tag, filter_tag, direction, limit, min_data_points }, useQueryOptions = {}) => {
-    return useQuery(["getDatasetFeatureCorrelation",_.join(_.values(APIParams))],() => getFeatureCorrelationsInDataset_API({...APIParams}), useQueryOptions)
+    return useQuery(["getSubmissionFeatureCorrelation",_.join(_.values(APIParams))],() => getFeatureCorrelationsInDataset_API({...APIParams}), useQueryOptions)
 }
 
 

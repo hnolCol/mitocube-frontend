@@ -9,7 +9,6 @@ import { SampleItem } from './SampleItem';
 export function SamplesContainer({ submission_tag }) {
     const { data: sample_tags, } = hooks.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
 
-    console.log(sample_tags, submission_tag);
     return (
         <div
             style={{

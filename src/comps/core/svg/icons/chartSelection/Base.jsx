@@ -10,9 +10,7 @@ import { Group } from "@visx/group"
 function IconBase({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,children }) {
     const [mouseOver, setMouseOver] = useState(false)
     
-    console.log(width, height)
     const handleSelection = (e) => {
-        console.log(e)
         e.stopPropagation()
         if (_.isFunction(callback)) {
             callback(callbackKey)

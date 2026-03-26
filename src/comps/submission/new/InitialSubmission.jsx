@@ -213,7 +213,7 @@ function InitialSubmission({
             submissionDetails["collaborators"] = submission.collaborators.slice()
             submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
             submissionDetails["tag"] = tag 
-            submissionDetails["metatext"] = _.concat(submission.metatext, submission.extraMetaText)
+            submissionDetails["metatext"] = { ...submission.metatext, ...submission.extraMetaText }
             
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]

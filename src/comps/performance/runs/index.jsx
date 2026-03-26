@@ -7,7 +7,7 @@ function PerformanceRuns({ }) {
 
     // const { data, isLoading } = useGetDendro()
 
-    const [dialogProps, setDialogProps] = useState({isOpen : true})
+    const [dialogProps, setDialogProps] = useState({isOpen : false})
     return (
         <div>
             {/* {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null} */}

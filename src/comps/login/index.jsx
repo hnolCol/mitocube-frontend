@@ -1,17 +1,16 @@
 
-import { InputGroup, Button } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
 import { useEffect, useState } from "react"
 import { useNavigate} from "react-router-dom"
-import { useLoginUser, useVerifyToken } from "../../hooks/queries/login.hooks"
+import { useLoginUser  } from "../../hooks/queries/login.hooks"
 import APIError from "../core/error/APIerror"
 import axios from "axios"
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
 import { saveInLocalStorage } from "../../services/localstorage"
-
+import hooks from "@mitocube/api-hooks"
 
 Login.propTypes = {
     setAuthenticationStatus: PropTypes.func.isRequired,
@@ -41,7 +40,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
         error: verfiyTokenError,
         isFetching: verifyTokenIsFetching,
         isLoading: verifyTokenIsLoading,
-        refetch: verifyToken } = useVerifyToken({verificationCode: userInput.verificationCode, tokenString : userLoginResponse.token},{enabled : false})
+        refetch: verifyToken } = hooks.authorization.token.useVerifyToken({verificationCode: userInput.verificationCode, tokenString : userLoginResponse.token},{enabled : false})
     
     
     useEffect(() => {

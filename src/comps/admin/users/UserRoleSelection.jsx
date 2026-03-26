@@ -2,7 +2,14 @@ import { OptionButton } from "../../core/base/buttons/OptionButton";
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 
-export function UserRoleSelection({ user, selectedRole, onRoleChange }) {
+/**
+ * 
+ * @param {Object} props 
+ * @param {String} props.selectedRole - selectedd role tag
+ * @param {Function} props.onRoleChange - function that is called when the user selects a role. The new role tag is passed as an argument. 
+ * @returns 
+ */
+export function UserRoleSelection({ selectedRole, onRoleChange }) {
 
    const { data: userRoles } = hooks.users.useGetUserRoles();
     return (
