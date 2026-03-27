@@ -62,6 +62,13 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
         }
     })
 
+    const { data: permissions } = hooks.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) }
+    )
+    
+    const canEdit = permissions?.edit === true
+
     const handleOpen = () => {
         if (_.isArray(submission_ca_data)) {
             // replace backend random ids with submission_tag so deleteByPath can match them
@@ -124,7 +131,9 @@ const handleSubmit = () => {
             <div className="flex flex-column">
                 <div className="flex center-items justify-space-between">
                     <h3>Condition Applications</h3>
+                    {canEdit && (
                     <button className="dialog-button" onClick={handleOpen}>+</button>
+                    )}
                 </div>
 
                 {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
