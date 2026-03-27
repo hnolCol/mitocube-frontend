@@ -4,6 +4,7 @@ import hooks from "@mitocube/api-hooks"
 import { EditAnnotationDialog } from "./EditAnnotationDialog"
 import { DeleteAnnotationsDialog } from "./DeleteAnnotationsDialog"
 import { AddAnnotationDialog } from "./AddAnnotationsDialog"
+import { OptionButton } from "../../core/base/buttons/OptionButton"
 
 export function AnnotationItem({ tag, showDetails = false, updateAnnotationList }) {
 
@@ -144,82 +145,59 @@ export function AnnotationItem({ tag, showDetails = false, updateAnnotationList 
   )
 }
 
+const LIMIT_OPTIONS = [20, 50, 100, 200, 500, 1000]
 
 export function AnnotationsList({ tag }) {
-  const [isOpen, setIsOpen] = useState(false)
+    const [isOpen, setIsOpen] = useState(false)
+    const [limit, setLimit] = useState(20)
 
-  const {
-    data: annotationTags = [],
-    isLoading,
-    isError,
-    error,
-    refetch: refetchAnnotations,
-  } = hooks.annotations.useGetAnnotationsByGroupTag(
-    { tag },
-    { enabled: _.isString(tag) }
-  )
-  const openEdit = (annotationTag) => {
-    setEditTag(annotationTag)
-    setIsEditOpen(true)
-  }
+    const {
+        data: annotationTags = [],
+        isLoading,
+        isError,
+        error,
+        refetch: refetchAnnotations,
+    } = hooks.annotations.useGetAnnotationsByGroupTag(
+        { tag, limit },
+        { enabled: _.isString(tag) }
+    )
 
-  const closeEdit = () => {
-    setIsEditOpen(false)
-    setEditTag(null)
-  }
-  
+    const { data: totalCount } = hooks.annotations.useGetAnnotationGroupCount(
+        { tag },
+        { enabled: _.isString(tag) }
+    )
 
+    return (
+        <div className="right-panel">
 
-  return (
-    <div className="right-panel">
-      <div
-        className="panel-header"
-        style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-        }}
-        >
-        <h4 style={{ margin: 0 }}>Annotations</h4>
+            <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h4 style={{ margin: 0 }}>Annotations {totalCount != null ? `(${totalCount})` : ""}</h4>
+                <button className="basic-button" onClick={() => setIsOpen(true)}>+ Add Annotation</button>
+            </div>
 
-        <button
-            className="basic-button"
-            onClick={() => setIsOpen(true)}
-        >
-            + Add Annotation
-        </button>
+            <div className="flex" style={{ marginBottom: "0.75rem" }}>
+                {LIMIT_OPTIONS.map(option => (
+                    <OptionButton key={option} onClick={() => setLimit(option)} isSelected={option === limit}>
+                        {option}
+                    </OptionButton>
+                ))}
+            </div>
+
+            <div className="annotation-list">
+                {isLoading && <div>Loading annotations…</div>}
+                {isError && <div style={{ color: "red" }}>{error?.message ?? "Failed to load annotations"}</div>}
+                {!isLoading && !annotationTags.length && <div className="muted">No annotations found.</div>}
+                {annotationTags.map(t => (
+                    <AnnotationItem key={t} tag={t} updateAnnotationList={refetchAnnotations} />
+                ))}
+            </div>
+
+            <AddAnnotationDialog
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                group_tag={tag}
+                onSuccess={refetchAnnotations}
+            />
         </div>
-
-
-      <div className="annotation-list">
-        {isLoading && <div>Loading annotations…</div>}
-
-        {isError && (
-          <div style={{ color: "red" }}>
-            {error?.message ?? "Failed to load annotations"}
-          </div>
-        )}
-        
-
-        {!isLoading && !annotationTags.length && (
-          <div className="muted">No annotations found.</div>
-        )}
-
-        {annotationTags.map(tag => (
-          <AnnotationItem 
-          key={tag} 
-          tag={tag}
-          updateAnnotationList={refetchAnnotations}  />
-        ))}
-      </div>
-
-      <AddAnnotationDialog
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-        group_tag={tag}
-        onSuccess={refetchAnnotations}
-      />
-    </div>
-  )
+    )
 }
