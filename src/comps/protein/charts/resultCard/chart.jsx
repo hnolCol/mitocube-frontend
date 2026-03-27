@@ -41,6 +41,7 @@ function ResultChart({
         { "y": 23.2, Genotype: "WT", Treatment: "Treat", Time: "15min" },
         { "y": 23.5, Genotype: "WT", Treatment: "Treat", Time: "00min" }],
     yaxisName = "y",
+    yAxisLabel = undefined,
     attribute_tags = [],
     submission_tag = "",
     featureID = "",
@@ -133,7 +134,7 @@ function ResultChart({
             
 
             <div className="flex center-items">
-                <h5>{title}</h5>
+                <h4>{title}</h4>
             </div>
             <div className="flex">
 
@@ -143,7 +144,7 @@ function ResultChart({
                 {...selectionTags}
                 data={groupedAggratedData}
                 errorName="e"
-                yaxisLabel={_.join([NormalizationPrefixes[normalization], yaxisName, normalization !== "raw" ? `(${_.join(Object.values(normalizeDialog.normalizeToSelection), ", ")})` : ""], " ")}
+                yaxisLabel={_.isString(yAxisLabel) ? yAxisLabel : yaxisName}
                 yaxisName={yaxisName}
                 minMaxYDomain={minMaxYDomain}
                 svgID={svgID}

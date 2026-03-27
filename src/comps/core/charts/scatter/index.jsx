@@ -537,11 +537,11 @@ export function ScatterPlot({
                                 
                                 {tooltipNames.map(tooltipName =>
                                 {
-                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} />
-                                                if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
+                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} minimal={true} />
+                                                if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein key={`${index}-${tooltipName}`}tag={hoverIndexData[tooltipName]} />
+                                                else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
+                                                else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
+                                                else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
                                                 else {
                                                     return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
                                                 }

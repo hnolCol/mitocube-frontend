@@ -2,7 +2,6 @@ import React from "react";
 import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend";
 import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
-import { roundNumber } from "../../../../services/format/number";
 
 /**
  * @description Checks if the legend should rerender. basically only a change in colorName or sizeName causes a rerender. 

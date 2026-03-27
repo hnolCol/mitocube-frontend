@@ -19,14 +19,6 @@ export function InstrumentStateIndicator({ instrument_tag, allowUpdate = true, p
     const { data: instrument_state, isSuccess: isSuccessInstrumentState } = hooks.instruments.states.useGetInstrumentState({ tag: instrument_states[0].tag }, { enabled: isSuccess && instrument_states.length > 0 && _.isString(instrument_states[0].tag) })
     const { data: permissions, isSuccess: isSuccessPermissions } = hooks.instruments.permissions.useGetInstrumentPermissions({ tag: instrument_tag }, { enabled: _.isString(instrument_tag) && instrument_tag.length > 0 })
    
-   
-    // const { data: state, isSuccess, refetch: refetchState } = hooks.submissions.states.useGetSubmissionState({ tag: submission_tag })
-    // const { mutate: updateState } = hooks.submissions.states.usePatchSubmissionState()
-    // const { data : stateName, isSuccess : isSuccessStateName} = hooks.states.useGetStateName({tag : state}, { enabled : _.isNumber(state) && isSuccess})
-    // const { data : stateColor, isSuccess : isSuccessStateColor} = hooks.states.useGetStateColor({tag : state}, { enabled : _.isNumber(state) && isSuccess})
-
-    // const { data: permissions, isSuccess: isSuccessPermissions } = hooks.submissions.permissions.useGetSubmissionPermissionsByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
-    
     const handleStateChange = (newState) => {
         if (!_.isNumber(newState) || !_.isString(submission_tag)) return
         updateState({ tag: submission_tag, state: newState }, {
@@ -47,16 +39,3 @@ export function InstrumentStateIndicator({ instrument_tag, allowUpdate = true, p
             <div>{isSuccessPermissions && allowUpdate && permissions.state_change ? <StateSelectionMenu current_state_tag={instrument_state.tag} onSelection={handleStateChange} /> : null }</div></div>
     </div></div>
 }
-
-
-
-//    const { data: instrument_state, isSuccess } = hooks.instruments.states.useGetInstrumentState({ tag }, { enabled: !!tag, stateTime: "Infinity" })
-//     return <div>
-//         {isSuccess ?
-//             <Tooltip content={instrument_state.description} position="top" >
-//             <div style={{ backgroundColor: instrument_state.color, padding: "0.5rem", borderRadius: "0.25rem" }} >
-//                 {instrument_state.text }
-//                 </div >
-//             </Tooltip> :
-//             null
-//         }

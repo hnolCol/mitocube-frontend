@@ -87,10 +87,6 @@ export const findAndInsertTree = (
             else if (forceInsert && restPath.length === 0) {
                     data.push(current)
             }
-            if (_.has(current, "value")) {
-                console.log("VALUE FOUND", current.value)
-                
-                    }
 
             if (_.has(current, "value") && current.value !== node.value) {
                 node.value = current.value; // Update the value if it has changed
@@ -119,15 +115,20 @@ export const checkPathExists = (data, path, ignore_id = false) => {
     if (path.length === 0) return false; // Nothing to find
     const [current, ...restPath] = path;
     // Find node by type and tag
+    // data.map(d => console.log( d.type == current.type, d.tag == current.tag, d.id === current.id, d.value === current.value, (ignore_id || d.id === current.id), d.tag, d.id, current.type, current.tag, current.id, _.toNumber(current.value) , _.toNumber(d.value)))
+
     let node = data.find(
-        n => n.type === current.type && n.tag === current.tag && (ignore_id || n.id === current.id) && n.value === current.value
+        n => n.type === current.type && n.tag === current.tag && (ignore_id || n.id === current.id) && n.value == current.value //keep == here so that null and undefined return true 
     );  
-    // If not found, return false   
+
+    // If not found, return false  
+    console.log(node,"CHECK PATH EXISTS NODE")
     if (!node) return false;
+    console.log(restPath, "rest path")
     if (restPath.length === 0) {    
         return true; // Found the node
     }
-
+    console.log(node,"FOUND?")
     // Recurse into children
     if (!node.children || node.children.length === 0) {
         return false;

@@ -18,11 +18,13 @@ function SymptomMenuItem({ tag, handleClick, handleFocus, index, modifiers, quer
         onFocus={handleFocus}
         active={modifiers.active}
         labelElement={<div style={{
-            maxWidth: "24rem",
+            maxWidth: "18rem",
             textAlign: "right",
             float: "right",
             textWrap: "wrap",
-            marginRight: "1rem"
+            marginRight: "1rem",
+            fontSize: "0.8rem",
+            color : "gray"
         }}>{_.has(symptom,"description") ? symptom.description : "..."}</div>}>
         
     </MenuItem>
@@ -66,8 +68,9 @@ export function SymptomInput({ selectedItems = [], onItemSelect, isRequired = tr
             items={_.isArray(items) ? items : []}
             itemRenderer={renderSymptom}
             onQueryChange={queryString => setQueryString(queryString)}
-            onItemSelect={symptom_tag => onItemSelect(symptom_tag)}>
-            
+            onItemSelect={symptom_tag => onItemSelect(symptom_tag)}    
+            menuProps={{style : {minWidth : "750px", minHeight : "50vh"}}}
+            >
             <Button icon={"plus"} minimal={true} intent="primary" />
             </Select>
         )

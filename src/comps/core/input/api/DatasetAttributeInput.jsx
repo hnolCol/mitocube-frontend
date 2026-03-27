@@ -116,7 +116,7 @@ export function AttributesInput({
         // if (isLoading || isFetching) return <div className="padding--medium"><p>Loading...</p></div>
         if (query.length > 0 &&  _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/traits match the search string ...</p></div>
         if (!itemsLoaded || items.length === 0)  return <div className = "padding--medium"><p>Start typing...</p></div>
-        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh" }}>
+        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh", backgroundColor : "#efefef" }}>
 
             {items.map(attributeWithTraits => {
                 return < AttributeWithTraitsMenuItem

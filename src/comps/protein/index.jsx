@@ -30,12 +30,15 @@ function ProteinHeader({ }) {
         redirect(featureList.items.at(0).to)
     }, [isFeatureInList])
 
-    const handleFeatureList = (item) => {
+    const handleFeatureList = (item, redirect_to_feature_page = true) => {
+        
         if (!_.isObject(item)) return 
         if (!featureList.items.includes(item)) {
             //item not in list
             setFeatureList(prevValues => {return {...prevValues,items : _.concat([item],prevValues.items)}})
         }    
+        if (redirect_to_feature_page) redirect(item.to)
+        
     }
 
     const handleFeatureRemove = (link_to) => {

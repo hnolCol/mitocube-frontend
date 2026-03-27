@@ -53,6 +53,8 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
         { enabled: _.isString(submission_tag) }
     )
 
+    console.log(submission_ca_data)
+
     const { mutate: updateCA, isLoading } = hooks.submissions.condition_applications.useUpdateSubmissionCA({
         onSuccess: () => {
             queryClient.invalidateQueries(["getSubmissionConditionApplication", submission_tag])
@@ -90,30 +92,27 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
     }
 
     const handleTraitSelection = (path) => {
-        path = path.map(p => ({ value: null, ...p }))
+        // path = path.map(p => ({ value: null, ...p }))
         path = addIDToPath(path, submission_tag)
-        
         let traits = selected_traits.slice()
-        const pathExists = checkPathExists(traits, path, true)
+        const pathExists = checkPathExists(traits, path, false)
         const isValueInput = _.last(path).type === "trait" && _.has(_.last(path), "value") && _.isString(_.last(path).value)
-        
     
         if (pathExists && !isValueInput) {
             deleteByPath(traits, path, true)
         } else {
-            findAndInsertTree(traits, path, 3, false)
+            findAndInsertTree(traits, path, 3, true)
         }
         setSelectedTraits([...traits])
     }
     const cleanForBackend = (traits) => {
-    return traits.map(item => ({
-        type: item.type,
-        tag: item.tag,
-        value: item.value ?? null,
-        children: _.isArray(item.children) ? cleanForBackend(item.children) : []
-    }))
-}
-
+        return traits.map(item => ({
+            type: item.type,
+            tag: item.tag,
+            value: item.value ?? undefined,
+            children: _.isArray(item.children) ? cleanForBackend(item.children) : []
+        }))
+    }
 const handleSubmit = () => {
     const cleaned = cleanForBackend(selected_traits)
     updateCA({ tag: submission_tag, selected_traits: cleaned })
@@ -130,7 +129,7 @@ const handleSubmit = () => {
                 {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
                     submission_ca_tags.map(ca_tag => (
                         <div key={ca_tag} className="padding--tiny margin--tiny">
-                            <ConditionApplicationsView tag={ca_tag} />
+                            <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
                         </div>
                     )) : <div>No condition applications found for this submission.</div>}
             </div>

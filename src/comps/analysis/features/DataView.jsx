@@ -5,6 +5,7 @@ import hooks from "@mitocube/api-hooks"
 import ResultChart from "../../protein/charts/resultCard/chart";
 import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
+import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 
 FeatureDataView.propTypes = {
     features : PropTypes.arrayOf(PropTypes.string).isRequired
@@ -16,7 +17,7 @@ FeatureDataView.defaultProps = {
 export function FeatureData({ feature_tag, submission_tag }) {
 
     const { data, isLoading } = hooks.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: !!feature_tag && !!submission_tag, staleTime: 60000 });
-    const {data : feature} = hooks.features.useGetFeatureInfo({ tag : feature_tag }, { enabled : !!feature_tag})
+    const {data : feature} = hooks.features.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
 
     const { data: attributes, isLoading : isSampleCAAttributeLoading } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
 
@@ -41,15 +42,19 @@ export function FeatureData({ feature_tag, submission_tag }) {
             {isLoading || isSampleCAAttributeLoading ? (
                 <div>Loading...</div>
             ) : (
+                    <div>
+                        <SubmissionTitle tag={submission_tag} showEdit={false} />
                 <ResultChart
-                    yaxisName="value"
+                        yaxisName="value"
+                        yAx
                     data={data?.data}
                     showMenu={true}
                     attribute_tags={attributes}
                     width={size.width || undefined}
                         height={size.height || undefined}
                         title={_.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
-                />
+                        />
+                    </div>
             )}
         </div>
     );
@@ -59,7 +64,7 @@ export function FeatureDataView({ feature_tags, submission_tag }) {
 
         // build a simple initial layout (you can adjust sizing/positions as needed)
         const initialLayouts = feature_tags.map((ft, i) => ({
-            i: `${ft}-${i}`,
+            i: `${ft}-${i}-${_.isArray(submission_tag) ? submission_tag[i] : submission_tag}`,
             x: (i % 3) * 2,
             y: Math.floor(i / 3) * 6,
             w: 2,
@@ -91,10 +96,10 @@ export function FeatureDataView({ feature_tags, submission_tag }) {
                             useCSSTransforms={true}
                         >
                             {feature_tags.map((feature_tag, i) => (
-                                <div key={`${feature_tag}-${i}`} data-grid={initialLayouts[i]}>
+                                <div key={`${feature_tag}-${i}-${_.isArray(submission_tag) ? submission_tag[i] : submission_tag}`} data-grid={initialLayouts[i]}>
                                     <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%", marginBottom: "100px" }}>
                                         
-                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tag} />
+                                        <FeatureData feature_tag={feature_tag} submission_tag={_.isArray(submission_tag) ? submission_tag[i] : submission_tag} />
                                     </div>
                                 </div>
                             ))}

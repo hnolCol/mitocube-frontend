@@ -6,27 +6,36 @@ import { useState } from "react";
 import { MinimalAttributeSelection } from "../../core/base/attributes/MinimalAttributeSelection";
 
 import hooks from "@mitocube/api-hooks"
+import { OptionButton } from "../../core/base/buttons/OptionButton";
+
+const VALUE_TYPES = [{ value: "raw", label: "Raw" }, { value: "z_score_sample", label: "Z Score " }]
 
 export function ProteinAbundance({ tag }) {
-    console.log(tag, "feature abundance tag")
-    const [abundanceProps, setAbundanceProps] = useState({ attribute: undefined, rerender: undefined }) 
+    const [abundanceProps, setAbundanceProps] = useState({ attribute_tag: undefined, rerender: undefined, value_type: "z_score_sample" }) 
     
-    const attributeDefined = _.has(abundanceProps,"attribute.tag")
+    const attributeDefined = _.has(abundanceProps,"attribute_tag")
     const proteome_abundance = {}
     // const { data: proteome_abundance } = useGetProteomeAbundaneDist({ tag: "UP000005640" },{enabled : _.isString(proteome_tag), staleTime : Infinity})
     // const { data: feature_abundance } = useGetFeatureAbundanceByTag({ tag: tag , attribute_tag :  attributeDefined?abundanceProps.attribute:undefined }, {enabled : _.isString(tag), staleTime : 30000000})
     
-    const { data : sample_feature_abundance } = hooks.features.quantification.useGetSampleFeatureAbundanceDistribution({tag, attribute_tag : "att_subcellular_compartment", value : "raw"}, {enabled : _.isString(tag), staleTime : 3000000})
-   console.log(sample_feature_abundance)
+    const { data: sample_feature_abundance } = hooks.features.quantification.useGetSampleFeatureAbundanceDistribution({
+        tag,
+        attribute_tag: abundanceProps.attribute_tag,
+        value: abundanceProps.value_type
+    },
+        {
+            enabled: _.isString(tag),
+            staleTime: 3000000,
+            onSuccess: (d) => setAbundanceProps(prevValues => { return { ...prevValues, rerender: Math.random() } })
+        })
    
-   
-    const handleAttributeSelection = (attribute) => {
-        // if (attributeDefined && attribute.tag === abundanceProps.attribute.tag) {
-        //     setAbundanceProps(prevValues => {return {...prevValues, attribute : undefined, rerender : Math.random()}})
-        // } 
-        // else {
-        //     setAbundanceProps(prevValues => {return {...prevValues, attribute, rerender : Math.random()}})
-        // }
+    const handleAttributeSelection = (attribute_tag) => {
+        if (attributeDefined && attribute_tag === abundanceProps.attribute_tag) {
+            setAbundanceProps(prevValues => {return {...prevValues, attribute_tag : undefined, rerender : Math.random()}})
+        } 
+        else {
+            setAbundanceProps(prevValues => {return {...prevValues, attribute_tag : attribute_tag, rerender : Math.random()}})
+        }
         
 
 
@@ -34,13 +43,18 @@ export function ProteinAbundance({ tag }) {
 
     // const boxplotData = _.flatten([proteome_abundance, feature_abundance]).filter(d => !_.isEmpty(d))
     const boxplotData = _.isObject(sample_feature_abundance) ? _.keys(sample_feature_abundance).map(k => sample_feature_abundance[k] ) : []
-    console.log(boxplotData, "boxplot data")
     return <div>
         
-        <MinimalAttributeSelection onAttributeSelect={handleAttributeSelection} selectedItem={{}}/>
+        <MinimalAttributeSelection onAttributeSelect={handleAttributeSelection} selectedItem={abundanceProps.attribute_tag}/>
+        <div>
+            {VALUE_TYPES.map(value_type => <OptionButton
+                key={value_type.value}
+                isSelected={abundanceProps.value_type === value_type.value}
+                onClick={() => setAbundanceProps(prevValues => ({ ...prevValues, value_type: value_type.value, rerender: Math.random() }))}
+                children={<span>{value_type.label}</span>} />)}
+        </div>
         
-        
-        <Boxplot width={30+(55*(boxplotData.length+1))} data={boxplotData} rerender={Math.random()} xaxis_ca_tags={_.keys(sample_feature_abundance)}   />
+        <Boxplot width={30 + (55 * (boxplotData.length + 1))} data={boxplotData} rerender={abundanceProps.rerender} xaxis_ca_tags={_.keys(sample_feature_abundance)} yAxisLabel={abundanceProps.value_type === "raw" ? "log2 intensity" : "Z Score"} />
     
     </div>
 }

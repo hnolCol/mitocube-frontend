@@ -55,13 +55,12 @@ export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index
     
     const {data : genotype_text, isSuccess} = hooks.genotypes.useGetGenotypeText({ genotype_tag })
     const {data : proteome_tag} = hooks.genotypes.useGetGenotypeProteome({ genotype_tag })
-    
     const {data : proteome_name} = hooks.proteomes.useGetProteomeText({ tag: proteome_tag }, { enabled: !!proteome_tag })
 
     return <MenuItem text={isSuccess ? genotype_text : ""} 
         {...{onClick : (e) => handleClick(selectedRows, genotype_tag), onFocus : handleFocus}} 
         labelElement = {
-        <div>
+        <div className="flex flex-column" style ={{maxWidth : "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem"}}>
             {proteome_name && <div style={{fontSize: "0.8rem", fontWeight: "bold", color: "#106ba3", marginBottom: "4px"}}>{proteome_name}</div>}
             <GenotypeDescription tag={genotype_tag} />
         </div>}/>

@@ -1,35 +1,25 @@
 
-import _, { isError } from "lodash"
+import _ from "lodash"
 
 import { useOutletContext } from "react-router"
 import APIError from "../../../core/error/APIerror"
 import { Drawer } from "@blueprintjs/core"
 import { useGetMetadata } from "../../../../hooks/queries/datasets.hooks"
 import Loading from "../../../core/base/loading"
-import { useMemo, useState } from "react"
+import { useMemo } from "react"
 import DatasetAttributeHierarchy from "../../../submission/new/sample_attributes/view/DatasetAttributesHierarchy"
 import { getFormatDateFromTimestamp } from "../../../../services/date/format"
 import MultipleMetrices from "../../../core/metrics/collection"
-import { FilterSummary } from "../../../core/filters/FilterSummary"
 import { AuthorList } from "../../../core/authors/AuthorList"
 import { Metatexts } from "../../../core/metatext/SubmissionMetatext"
-import { GenePublications } from "../../../core/publications/GenePublications"
 import { ProteinAbundance } from "../FeatureAbundance"
-import { useGetProteomeFeatureCorrelation } from "../../../../hooks/queries/proteome.hooks"
-import InteractiveChart from "../../../core/charts/interactive"
-import { ScatterPlot } from "../../../core/charts/scatter"
-import { FeatureCorrelationPlot } from "../../../core/charts/correlation/FeatureCorrelationPlot"
 
-import hooks from "@mitocube/api-hooks";
 import { OptionButton } from "../../../core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom"
 import { OpenAiPublicationSummary } from "../../../core/openai/OpenAiPublicationSummary"
 import { ProteinOverview } from "./ProteinOverview"
-import { ProteinFilter } from "../../../core/filters/ProteinFilters"
-import { AnnotationSelectionMenu } from "../../../core/base/annotations/AnnotationSelectionMenu"
 
 
-import viz  from "@mitocube/viz" 
 import { ProteinCorrelation } from "../../correlation"
 import { ProteinSubmissionRanking } from "../../data/ProteinSubmissionRanking"
 

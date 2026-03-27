@@ -6,12 +6,9 @@ import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 import { useGetGenotypesByQuery } from "../../../../hooks/queries/genotype.hooks"
 import hooks from "@mitocube/api-hooks" 
+import { GenotypeMenuItem } from "../../../submission/new/sample_attributes/select/menu/GenotypeMenu"
 
-export function GenotypeMenuItem({ tag, selected }) {
-    
-    const { data : genotype_text } = hooks.genotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag), staleTime: Infinity })
-    return <MenuItem text={genotype_text} /> 
-}
+
 
 
 export function GenotypeInput({
@@ -25,10 +22,10 @@ export function GenotypeInput({
         
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = hooks.genotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { enabled: debouncedString.length > 0 })    
+    const { data: items, isLoading, isFetching } = hooks.genotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { staleTime : 6000 })    
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <GenotypeMenuItem tag={item} selected={selectedGenotypes.includes(item)} />
+        return <GenotypeMenuItem genotype_tag={item} selected={selectedGenotypes.includes(item)} />
         // <MenuItem key={`${item.tag}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
         //     labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}>{item.proteome_id}</div>}/>
     }
@@ -73,13 +70,13 @@ export function GenotypeInput({
             fill = {true}
             onQueryChange={(query) => setQueryString(query)}
             popoverProps={{ minimal: true, matchTargetWidth: false }}
-            menuProps={{style : {minWidth:"700px"}}}
+            menuProps={{style : {minWidth:"700px", maxHeight : "50vh"}}}
             tagInputProps={{
                 rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
                 inputProps : {intent : "primary"},
                 tagProps: { minimal: true }
             }}
-            initialContent={_.isArray(items) && selectedGenotypes.length === 0 ? <MenuItem text="Search starts on typing.." disabled={true} /> : null }
+            // initialContent={_.isArray(items) && selectedGenotypes.length === 0 ? <MenuItem text="Search starts on typing.." disabled={true} /> : null }
             />
         </FormGroup>
 }

@@ -15,7 +15,6 @@ import { ConditionApplicationLabel } from "@mitocube/viz/src/axis/ConditionAppli
  */
 export function Boxplot({
     data,
-    textKey = "text",
     xaxis_ca_tags = [],
     width = 250,
     height = 300,
@@ -24,14 +23,12 @@ export function Boxplot({
     margin = {
         top: 15,
         left: 45,
-        bottom: 82,
+        bottom: 95,
         right : 10
     }
     }) {
     
-    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins: margin })
-    console.log(data)
-    
+    const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins: margin })    
     const xScale = useMemo(() => {
         const domain = _.range(data.length)
         return scaleBand({
@@ -58,14 +55,14 @@ export function Boxplot({
 
     return (
         <SVG {...{ width, height }}>
-            <AxisLeft scale={yScale} top={margin.top} left={margin.left} label={yAxisLabel} tickLength={1.5} labelOffset={20} numTicks={6} />
+            <AxisLeft scale={yScale} left={margin.left} label={yAxisLabel} tickLength={3} labelOffset={30} numTicks={6} />
             <AxisBottom scale={xScale}
-                top={height - margin.bottom}
+                top={margin.top + chartHeight}
                 label={""}
-                tickLength={1.5}
+                tickLength={3}
                 labelOffset={25}
                 numTicks={6}
-                tickComponent={({ x, y, formattedValue }) => <ConditionApplicationLabel x={x} y={y} tag={formattedValue} textProps={{textAnchor: "end", verticalAnchor: "end", angle: -90}} />}
+                tickComponent={({ x, y, formattedValue }) => <ConditionApplicationLabel x={x} y={y} tag={formattedValue} textProps={{textAnchor: "end", verticalAnchor: "end", angle: -40}} />}
                 tickFormat={(tickLabel) => xaxis_ca_tags[tickLabel]} />
             {data.map((qs, i) => {
                 return <viz.primitives.Box

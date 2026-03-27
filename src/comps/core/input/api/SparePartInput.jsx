@@ -102,7 +102,8 @@ export function SparePartInput({ selectedItems = [], onItemSelect, isRequired = 
             items={_.isArray(items) ? items : []}
             itemRenderer={renderSparePart}
             onQueryChange={queryString => setQueryString(queryString)}
-            onItemSelect={sparepart_tag => onItemSelect(sparepart_tag)}>
+            onItemSelect={sparepart_tag => onItemSelect(sparepart_tag)}
+             menuProps={{style : {minWidth : "750px", minHeight : "50vh"}}}>
             
             <Button icon={"plus"} minimal={true} intent="primary" />
             </Select>

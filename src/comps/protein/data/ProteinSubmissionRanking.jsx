@@ -6,16 +6,25 @@ import viz from "@mitocube/viz"
 import _ from "lodash"
 import InteractiveChart from "../../core/charts/interactive"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { ScatterPlot } from "../../core/charts/scatter"
 
+import { FeatureDataView } from "../../analysis/features/DataView"
 
 
 
-export function ProteinSubmissionRanking({ tag }) {
+
+export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [selection, setSelection] = useState({ xaxisName: "F", yaxisName: "p_value", colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
     const {data : submissionStats} = hooks.features.protein_groups.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
     console.log(submissionStats)
+
+    const topSubmissionStats = useMemo(() => {
+        if (_.isArray(submissionStats)) {
+            return _.slice(_.orderBy(submissionStats, ["score"], ["desc"]), 0, N)
+        }
+        return []
+    }, [_.isArray(submissionStats) && submissionStats.length > 0, tag, N])
 
     const numericKeyNames = _.isArray(submissionStats) && submissionStats.length > 0 ? _.filter(_.keys(submissionStats[0]), keyName => _.isNumber(submissionStats[0][keyName])) : []
     const handleSelection = (idx, selectionKey, keyName) => {
@@ -116,7 +125,19 @@ export function ProteinSubmissionRanking({ tag }) {
                         })}
 
         
-            </InteractiveChart>
+    </InteractiveChart>
+        
+
+
+        <div>
+
+
+            
+                {_.isArray(topSubmissionStats) ? <FeatureDataView feature_tags={topSubmissionStats.map(i => tag)} submission_tag={topSubmissionStats.map(d => d.submission_tag)} /> : null}
+
+    
+
+        </div>
         
 
     </div>

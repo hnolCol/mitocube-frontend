@@ -65,7 +65,8 @@ export function MaintenanceProcedureInput({ selectedItems = [], onItemSelect, is
             items={_.isArray(items) ? items : []}
             itemRenderer={renderMaintenanceProcedure}
             onQueryChange={queryString => setQueryString(queryString)}
-            onItemSelect={procedure_tag => onItemSelect(procedure_tag)}>
+            onItemSelect={procedure_tag => onItemSelect(procedure_tag)}
+            menuProps={{style : {minWidth : "750px", minHeight : "50vh"}}}>
             
             <Button icon={"plus"} minimal={true} intent="primary" loading={isLoading} />
             </Select>

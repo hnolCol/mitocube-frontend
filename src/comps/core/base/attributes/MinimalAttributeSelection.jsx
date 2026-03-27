@@ -6,17 +6,24 @@ import { Button, MenuItem } from "@blueprintjs/core"
 import _ from "lodash"
 import { AttributeMenuItem } from "../../input/api/AttributeInput"
 import hooks from "@mitocube/api-hooks"
+import { Attribute } from "./Attribute"
 
 MinimalAttributeSelection.propTypes = {
     onAttributeSelect: PropTypes.func.isRequired,
-    selectedItem: PropTypes.object,
+    selectedItem: PropTypes.string,
     debounce: PropTypes.number,
 
 }
+MinimalAttributeSelection.defaultProps = {
+    debounce: 100
+}
+
 /**
  * 
  * @param {Object} props 
- * @param {String} props.selectedItem - attribute tag
+ * @param {String} props.selectedItem - attribute tag of the currently selected item. This is required to display the selected item as well as to unselect it when the same item is selected again.
+ * @param {Function} props.onAttributeSelect - callback function that is called when an item is selected. The selected attribute tag is passed as an argument to the function.
+ * @param {Number} props.debounce - debounce time for the search input. Default is 100ms.
  * @returns 
  */
 export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, selectedItem}) {
@@ -24,7 +31,7 @@ export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, se
     const [query, setQuery] = useState()
     const debouncedQuery = useDebounce(query, debounce)
 
-    const { data: attribute_tags, isLoading, isFetching, isSuccess } = hooks.attributes_query.useGetAttributesByQuery({search_string : debouncedQuery, include_traits : false, limit : 30}) 
+    const { data: attribute_tags,isSuccess } = hooks.attributes_query.useGetAttributesByQuery({search_string : debouncedQuery, include_traits : false, limit : 30}) 
     
     /**
      * 
@@ -51,11 +58,7 @@ export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, se
             items={isSuccess && attribute_tags.length > 0 ? attribute_tags : []}
             onItemSelect={handleItemSelection}> 
             
-            <Button intent="primary"
-                text={"Select"}
-                small
-                minimal
-                rightIcon="double-caret-vertical" />
+            <button className="basic-button"><span>{selectedItem ? <Attribute attribute_tag={selectedItem} /> : "Select attribute"}</span></button>
             </Select>
     </div>)
 
