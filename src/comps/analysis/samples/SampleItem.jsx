@@ -15,9 +15,9 @@ import { Attribute } from "../../core/base/attributes/Attribute";
 
 export function SampleItem({ tag, display_condition_applications = true }) {
 
-    const { data: sample } = hooks.samples.useGetSample({ tag }, { enabled: _.isString(tag) });
+    const { data: sample } = hooks.samples.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 0 });
 
-    const { data : condition_applications} = hooks.samples.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications})
+    const { data : condition_applications} = hooks.samples.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 0})
 
     return (
         <div
