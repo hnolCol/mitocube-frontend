@@ -9,7 +9,7 @@ export function AddExternalServiceDialog({ isOpen, onClose, onSuccess }) {
         <Dialog isOpen={isOpen} title="Add External Service" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium" style={{ height: "95%" }}>
                 <div style={{ height: "100%", width: "95%" }}>
-                    <InsertEditExternalService onClose={onClose} />
+                    <InsertEditExternalService onClose={onClose} onSuccess={onSuccess} />
                 </div>
             </div>
         </Dialog>

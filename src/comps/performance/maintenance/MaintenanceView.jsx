@@ -15,8 +15,7 @@ import { Trait } from "../../core/base/traits/Trait";
 import { Symptom } from "./Symptom";
 import { MaintenanceEventCosts } from "./MaintenanceEventCost";
 import { MaintenanceExternalServices } from "./MaintenanceExternalService";
-
-
+import { useEffect } from "react";
 
 MaintenanceEventItem.propTypes = {
     maintenance_event_tag: PropTypes.string.isRequired,
@@ -138,14 +137,18 @@ MaintenanceView.propTypes = {
  * It fetches the maintenance events for the instrument and displays them in a list. 
  * @returns 
  */
-export function MaintenanceView({ instrument_tag, setRefetchInstrumentStateTrigger }) {
+export function MaintenanceView({ instrument_tag, setRefetchInstrumentStateTrigger, onRefetchReady }) {
     const [displayRange, setDisplayRange] = useState({limit : 10 , timestamp_min : undefined, timestamp_max : undefined})
-    const { data: maintenance_event_tags, isLoading } = hooks.maintenance.useGetQueryMaintenanceEvents(
+    const { data: maintenance_event_tags, isLoading, refetch } = hooks.maintenance.useGetQueryMaintenanceEvents(
             {
                 instrument_tag,
                 ...displayRange
             },
         { enabled: _.isString(instrument_tag) && instrument_tag.length > 0 })
+
+        useEffect(() => {
+            if (_.isFunction(onRefetchReady)) onRefetchReady(() => refetch)
+        }, [])
     const { data : maintenance_total_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag})
     const { data : maintenance_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag, ...displayRange})
 

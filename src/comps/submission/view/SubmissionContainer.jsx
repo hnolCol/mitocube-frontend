@@ -38,7 +38,7 @@ export function SubmissionsByState({ submissionFilter, submissionsQuery, minimal
             user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
             attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
             attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" })
-        })
+            }, { staleTime: 0 })
 
     return (
 

@@ -63,7 +63,7 @@ export function GenotypeSearch({ }) {
             <div className="flex">{LIMIT_OPTIONS.map(option => <OptionButton key={option} onClick={() => updateParam("limit", option)} isSelected={option === selectedLimit}>{option}</OptionButton> )}</div>
             <div style={{height : "2rem"}}>{isError ? <span>Error in searching for genotypes..</span> : isLoading ? <Loading /> : null}</div>
             {/* Display genotypes  */}
-            <GenotypeContainer tags={genotypesToDisplay} updateGenotypeList={updateGenotypeList} />
+            <GenotypeContainer tags={genotypesToDisplay} UpdateGenotypeList={updateGenotypeList} />
         </div>
     )
 }
