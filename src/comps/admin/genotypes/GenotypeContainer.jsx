@@ -28,9 +28,7 @@ const handleClick = (e, tag) => {
                 whileHover={{backgroundColor : "#efefef"}}
                 onClick={(e) => handleClick(e,tag)}
                 style={{backgroundColor : "#fff", borderRadius : "6px", border : "none", width : "100%"}}>
-            <GenotypeItem tag={tag} 
-                          UpdateGenotypeList={UpdateGenotypeList}
-                          showDetails={showDetailTags.includes(tag)} />
+            <GenotypeItem tag={tag} updateGenotypeList={UpdateGenotypeList} showDetails={showDetailTags.includes(tag)} />
         </motion.button>
         </div>
       ))}

@@ -21,7 +21,7 @@ export function SubmissionUpload({ submission_tag, feature_type = "protein" }) {
     return (
         <div>
 
-            <Dialog isOpen={dialogIsOpen} title="Upload Protein Quantifications" onClose={() => setDialogOpen(false)} canEscapeKeyClose={true} canOutsideClickClose={true} >
+            <Dialog isOpen={dialogIsOpen} title="Upload Protein Quantifications" onClose={() => setDialogOpen(false)} canEscapeKeyClose={true} canOutsideClickClose={false} >
             <ProteinQuantificationUploader submission_tag={submission_tag}/>
             </Dialog>
             <motion.button className="upload-button bg--blue-light"  whileHover={{ scale: 1.04, boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}

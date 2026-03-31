@@ -17,11 +17,12 @@ import { useState } from "react"
  * @description Details view for a specific instrument. 
  * @param {*} param0 
  */
-export function InstrumentView() {
+export function InstrumentView(refetch) {
     
     const [refetchInstrumentStateTrigger, setRefetchInstrumentStateTrigger] = useState(undefined)
     const params = useParams() // get the instrument tag from the URL
     const {data : instrument, isSuccess, error, isError, isLoading} = hooks.instruments.useGetInstrument({tag : params.instrument_tag}, {enabled : _.isObject(params) && _.has(params,"instrument_tag")})
+    const [maintenanceRefetch, setMaintenanceRefetch] = useState(null)
 
     return <div>
         {isError ? <APIError error={error} /> : null} 
@@ -39,13 +40,13 @@ export function InstrumentView() {
                     <InstrumentSamplesCount tag={params.instrument_tag} />
                     {/* <InstrumentStates instrument_tag={params.instrument_tag} /> */}
                     <CurrentInstrumentState instrument_tag={params.instrument_tag} refetchInstrumentStateTrigger={refetchInstrumentStateTrigger} />
-                    <InsertMaintenanceEvent instrument_tag={params.instrument_tag} />
+                    <InsertMaintenanceEvent instrument_tag={params.instrument_tag} refetch={maintenanceRefetch}/>
 
                     
                 </div> : null}
                 <div className="margin-top--medium">
                 <h4>Maintenance Events</h4>
-                    <MaintenanceView instrument_tag={params.instrument_tag} setRefetchInstrumentStateTrigger={setRefetchInstrumentStateTrigger} />
+                    <MaintenanceView instrument_tag={params.instrument_tag} setRefetchInstrumentStateTrigger={setRefetchInstrumentStateTrigger} onRefetchReady={setMaintenanceRefetch} />
                 </div>
             </div>
         </div>

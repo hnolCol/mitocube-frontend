@@ -10,7 +10,7 @@ import { Dialog, Button } from "@blueprintjs/core"
 
 
 
-export function InsertMaintenanceEvent({instrument_tag}) {
+export function InsertMaintenanceEvent({instrument_tag, refetch}) {
 
     const [isOpen, setIsOpen] = useState(false)
         
@@ -40,6 +40,9 @@ export function InsertMaintenanceEvent({instrument_tag}) {
                 onSuccess: (data) => {
                     console.log("Maintenance event created successfully", data)
                     setMaintenanceEvent({description : "", instrument_state_tag : undefined, instrument_tag : instrument_tag}) // reset form
+                    setIsOpen(false)
+                    if (_.isFunction(refetch))
+                    refetch() 
                 },
                 onError: (error) => {
                     console.error("Error creating maintenance event", error)
