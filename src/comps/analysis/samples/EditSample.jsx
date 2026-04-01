@@ -3,6 +3,7 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { Button, Spinner } from "@blueprintjs/core";
 import { SampleAttributeTableWrapper } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
+import { render } from "react-dom";
 
 function buildReferenceIDs(n) {
     return _.range(n);
@@ -83,6 +84,7 @@ export function EditSample({ submission_tag, onClose, refetch }) {
                         data: {
                             genotype_tag: submissionState.genotypes[idx]?.[0] || null,
                             condition_applications: submissionState.attributeTable[idx].map(toAttributeTree),
+                            replicate: submissionState.replicates[idx] ?? null,
                         }
                     })
                 )
@@ -99,15 +101,24 @@ export function EditSample({ submission_tag, onClose, refetch }) {
     return (
         <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
             <div style={{ flex: 1, overflow: "auto" }}>
-                <SampleAttributeTableWrapper
-                    submission={submissionState}
-                    updateSubmission={(updater) => {
-                        setSubmissionState(prev => {
-                            const next = typeof updater === "function" ? updater(prev) : updater;
-                            return { ...next, sampleNames: prev.sampleNames };
-                        });
-                    }}
-                />
+            <SampleAttributeTableWrapper
+                submission={submissionState}
+                updateSubmission={(updater) => {
+                    setSubmissionState(prev => {
+                        const next = typeof updater === "function" ? updater(prev) : updater;
+                        const fixedReplicates = next.replicates.map((rep, idx) => 
+                            rep === undefined ? prev.replicates[idx] : rep
+                        );
+                        return {
+                            ...next,
+                            sampleNames: prev.sampleNames,
+                            replicates: fixedReplicates,
+                            rerenderTableDependency: [Math.random()]
+                        };
+                    });
+                }}
+                numberReplicates={submissionState.n_replicates}
+            />
             </div>
             <div style={{ display: "flex", gap: "0.5rem", padding: "1rem", justifyContent: "flex-end", borderTop: "1px solid #e0e0e0" }}>
             <Button text="Save" intent="primary" loading={isSaving} disabled={isSaving} onClick={handleSave} />                
