@@ -145,8 +145,8 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
 
 
         updateGenotype(data, {
-            onSuccess: (newTag) => {
-                onClose(true, newTag)
+            onSuccess: () => {
+                onClose(true)
             }
         })
     }

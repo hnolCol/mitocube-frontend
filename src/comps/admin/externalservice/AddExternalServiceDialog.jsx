@@ -19,7 +19,7 @@ export function AddExternalServiceDialog({ isOpen, onClose, onSuccess }) {
 export function EditExternalServiceDialog({ isOpen, onClose, tag }) {
 
     const {data: externalservice, isSuccess : isExternalServiceSuccess} = hooks.maintenance.externalservice.useGetExternalServiceByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
-    // console.log("externalservice:", externalservice)
+    console.log("externalservice:", externalservice)
     return (
         <Dialog  isOpen={isOpen} title="Edit External Service" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium" style={{ height: "95%" }}>

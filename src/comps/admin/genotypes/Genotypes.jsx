@@ -5,23 +5,45 @@ import { AddButton } from "../../core/base/buttons/AddButton"
 import { AddGenotypeDialog } from "./AddGentoypeDialog"
 import { GenotypeSearch } from "./GenotypeSearch"
 
+
+// export function AdminGenotypes() {
+    
+//     const [dialogProps, setDialogProps] = useState({isOpen : false})
+
+//     return (
+//         <div className="div--expand" >
+            
+//             <AddGenotypeDialog 
+//                 isOpen={dialogProps.isOpen} 
+//                 onClose={() => {
+//                     setDialogProps(prevValues => ({ ...prevValues, isOpen: false }))
+//                     console.log("calling updateGenotypeList")
+
+//                     updateGenotypeList()
+//                 }} 
+//             />
+//             <h3>Genotypes</h3>
+//             <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
+//                 <AddButton onSelect={() => setDialogProps(prevValues => { return { ...prevValues, isOpen: true } })} />
+
+                
+//                 <GenotypeSearch />
+
+
+
+
+//             </div>
+//         </div>
+//     )
+// }
+
+
 export function AdminGenotypes() {
     const [dialogProps, setDialogProps] = useState({ isOpen: false })
     const [refreshKey, setRefreshKey] = useState(0)
 
     return (
-        <div
-            className="div--expand padding--medium"
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                height: "100%",
-                minHeight: 0,
-            }}
-        ><div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
-        <h3>Genotypes</h3>
-        <div className="flex">
-        
+        <div className="div--expand">
             <AddGenotypeDialog
                 isOpen={dialogProps.isOpen}
                 onClose={() => {
@@ -29,14 +51,11 @@ export function AdminGenotypes() {
                     setRefreshKey(k => k + 1)
                 }}
             />
+            <h3>Genotypes</h3>
+            <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "2rem" }}>
                 <AddButton onSelect={() => setDialogProps(prevValues => ({ ...prevValues, isOpen: true }))} />
-                    
-            </div>
-                <div className="div--expand padding--medium">
                 <GenotypeSearch key={refreshKey} />
-                </div>
-
-             </div>
+            </div>
         </div>
     )
 }

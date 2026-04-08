@@ -55,17 +55,8 @@ export function AnnotationItem({ tag, showDetails = false, updateAnnotationList 
   if (!isAnnotationSuccess) return null
 
   return (
-    <div
-      className="flex flex-column padding--medium"
-      style={{
-        width: "100%",
-        background: "#fff",
-        border: "1px solid #e5e7eb",
-        borderRadius: 6,
-        padding: 12,
-        marginBottom: 8,
-      }}
-    >
+    <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+
       <EditAnnotationDialog
         isOpen={isOpen}
         onClose={handleEditClose}
@@ -177,61 +168,36 @@ export function AnnotationsList({ tag }) {
     )
 
     return (
-      <div
-          className="right-panel"
-          style={{
-              display: "flex",
-              flexDirection: "column",
-              height: "100%",
-              minHeight: 0,
-          }}
-      >
-          <div
-              className="panel-header"
-              style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: "1rem",
-                  flexShrink: 0,
-              }}
-          >
-              <h4 style={{ margin: 0 }}>Annotations {totalCount != null ? `(${totalCount})` : ""}</h4>
-              <button className="basic-button" onClick={() => setIsOpen(true)}>+ Add Annotation</button>
-          </div>
-  
-          <div className="flex" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
-              {LIMIT_OPTIONS.map(option => (
-                  <OptionButton key={option} onClick={() => setLimit(option)} isSelected={option === limit}>
-                      {option}
-                  </OptionButton>
-              ))}
-          </div>
-  
-          <div
-              className="annotation-list"
-              style={{
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: "auto",
-                  paddingRight: 6,
-                  paddingBottom: 30,
-              }}
-          >
-              {isLoading && <div>Loading annotations…</div>}
-              {isError && <div style={{ color: "red" }}>{error?.message ?? "Failed to load annotations"}</div>}
-              {!isLoading && !annotationTags.length && <div className="muted">No annotations found.</div>}
-              {annotationTags.map(t => (
-                  <AnnotationItem key={t} tag={t} updateAnnotationList={refetchAnnotations} />
-              ))}
-          </div>
-  
-          <AddAnnotationDialog
-              isOpen={isOpen}
-              onClose={() => setIsOpen(false)}
-              group_tag={tag}
-              onSuccess={refetchAnnotations}
-          />
-      </div>
-  )
+        <div className="right-panel">
+
+            <div className="panel-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+                <h4 style={{ margin: 0 }}>Annotations {totalCount != null ? `(${totalCount})` : ""}</h4>
+                <button className="basic-button" onClick={() => setIsOpen(true)}>+ Add Annotation</button>
+            </div>
+
+            <div className="flex" style={{ marginBottom: "0.75rem" }}>
+                {LIMIT_OPTIONS.map(option => (
+                    <OptionButton key={option} onClick={() => setLimit(option)} isSelected={option === limit}>
+                        {option}
+                    </OptionButton>
+                ))}
+            </div>
+
+            <div className="annotation-list">
+                {isLoading && <div>Loading annotations…</div>}
+                {isError && <div style={{ color: "red" }}>{error?.message ?? "Failed to load annotations"}</div>}
+                {!isLoading && !annotationTags.length && <div className="muted">No annotations found.</div>}
+                {annotationTags.map(t => (
+                    <AnnotationItem key={t} tag={t} updateAnnotationList={refetchAnnotations} />
+                ))}
+            </div>
+
+            <AddAnnotationDialog
+                isOpen={isOpen}
+                onClose={() => setIsOpen(false)}
+                group_tag={tag}
+                onSuccess={refetchAnnotations}
+            />
+        </div>
+    )
 }

@@ -20,7 +20,6 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   const [isOpen, setIsOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [update, setUpdate] = useState(undefined)
-  const [currentTag, setCurrentTag] = useState(tag)
 
   const { data: permissions, isSuccess } = hooks.genotypes.useGetGenotypePermissions();
 
@@ -35,14 +34,11 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
 
   const handleRemove = (e) => {
     e.stopPropagation();
-    deleteGenotype({ currentTag });
+    deleteGenotype({ tag });
   };
 
 
-  const handleEditClose = (success, newTag) => {
-    if (success && newTag) {
-      setCurrentTag(newTag)  // update tag when edit succeeds
-  }
+  const handleEditClose = () => {
       setUpdate(Date.now())
       setIsOpen()
     }
@@ -57,7 +53,7 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   return (
     <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
       
-      <EditGenotypeDialog isOpen={isOpen} onClose={handleEditClose} tag={currentTag} />
+      <EditGenotypeDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag} />
       <DeleteGenotypeDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose}  />
 
       <div
@@ -65,7 +61,7 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
         style={{ width: "100%" }}
       >
        
-        <GenotypeText tag={currentTag} update={update} />
+        <GenotypeText tag={tag} update={update} />
         <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit
@@ -92,7 +88,7 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
         <tbody>
           <tr>
           <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
-            <td><GenotypeDescription tag={currentTag} update={update}/></td>
+            <td><GenotypeDescription tag={tag} update={update}/></td>
           </tr>
         </tbody>
         </table>

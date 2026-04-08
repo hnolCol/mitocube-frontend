@@ -65,7 +65,7 @@ export function InsertAnnotationGroup({
             },
             onError: (err) => {
                 console.error("Failed to insert annotation group", err);
-                // console.log(annotationGroup);
+                console.log(annotationGroup);
             },
         });
     };

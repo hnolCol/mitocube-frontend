@@ -14,7 +14,7 @@ export function SparepartLink({tag, update}) {
         if (update) refetch()
         
     }, [update])
-    // console.log(sparepartLink)
+    console.log(sparepartLink)
     if (isError) console.log(error)
 
 

@@ -17,7 +17,7 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
 
     const { data: permissions, isSuccess } = hooks.maintenance.procedurespermissions.useGetProcedurePermissions();
     
-    // console.log(permissions)
+    console.log(permissions)
 
     const { mutate: deleteProcedure } = hooks.maintenance.procedures.useDeleteMaintenanceProcedure({
         onSuccess: () => {
@@ -26,7 +26,7 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
     });
     
     const canShowRemoveButton = isSuccess && permissions.delete
-    // console.log(canShowRemoveButton)
+    console.log(canShowRemoveButton)
 
     const handleRemove = (e) => {
         e.stopPropagation();
