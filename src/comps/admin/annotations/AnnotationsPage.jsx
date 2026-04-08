@@ -4,24 +4,24 @@ import { AnnotationsList } from "./AnnotationsList"
 
 export function AnnotationsPage() {
   const [selectedGroup, setSelectedGroup] = useState(null)
-  
-
   return (
-        <div
+    <div
       style={{
         display: "flex",
         width: "100%",
         height: "100%",
+        minHeight: 0,
       }}
     >
- 
       <div
         style={{
           width: 320,
           minWidth: 320,
           borderRight: "1px solid #e5e7eb",
           padding: 12,
-          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
         }}
       >
         <AnnotationGroupSearch
@@ -29,17 +29,16 @@ export function AnnotationsPage() {
           onSelectGroup={setSelectedGroup}
         />
       </div>
-
-
       <div
         style={{
           flex: 1,
           padding: 16,
-          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
         }}
       >
-          <AnnotationsList tag={selectedGroup} />
-
+        <AnnotationsList tag={selectedGroup} />
       </div>
     </div>
   )

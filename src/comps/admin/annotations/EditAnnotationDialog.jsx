@@ -25,7 +25,7 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
     { tag },
     { enabled: _.isString(tag) && isOpen }
   )
-  console.log("Existing Annotation:", existingAnnotation)
+  // console.log("Existing Annotation:", existingAnnotation)
 
   const {
     mutate: updateAnnotation,

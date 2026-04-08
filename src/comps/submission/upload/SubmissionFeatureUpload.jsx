@@ -25,7 +25,27 @@ export function SubmissionUpload({ submission_tag, feature_type = "protein" }) {
             <ProteinQuantificationUploader submission_tag={submission_tag}/>
             </Dialog>
             <motion.button className="upload-button bg--blue-light"  whileHover={{ scale: 1.04, boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
-            whileTap={{ scale: 0.97 }} onClick={() => setDialogOpen(true)}>
+            whileTap={{ scale: 0.97 }} onClick={() => setDialogOpen(true)}
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                padding: "10px 16px",
+                width: "auto",
+                height: "auto",
+                minHeight: 0,
+                maxWidth: "none",
+                border: "none",
+                borderRadius: 6,
+                color: "white",
+                cursor: "pointer",
+                fontSize: 14,
+                fontWeight: 500,
+                lineHeight: 1.3,
+                whiteSpace: "normal",
+                textAlign: "left",
+            }}>
                 <span
                     style={{
                         marginRight: 8,
