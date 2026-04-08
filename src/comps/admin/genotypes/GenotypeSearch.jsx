@@ -1,4 +1,3 @@
-
 import hooks from "@mitocube/api-hooks"
 import PropTypes from "prop-types"
 import useDebounce from "../../../hooks/useDebounce"
@@ -29,7 +28,7 @@ export function GenotypeSearch({ }) {
     const [genotypesToDisplay, setGenotypesToDisplay] = useState([]) // array of genotype tags to be displayed, saving them allows to have no blinking when typing in search box.
     const [searchParams, setSearchParams] = useSearchParams(); 
 
-    const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = hooks.genotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 20 }, { staleTime: 2000 });
+    const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = hooks.genotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 10 }, { staleTime: 2000 });
     console.log(genotype_tags)
     // Determine selected limit from URL params
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) ? _.toNumber(searchParams.get("limit")) : LIMIT_OPTIONS[0];
@@ -58,11 +57,41 @@ export function GenotypeSearch({ }) {
     };
 
     return (
-        <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem"}}>
-            <div><input className="search-input" type="text" placeholder="Search Genotypes..." value={searchString} onChange={(e) => setSearchString(e.target.value)} /></div>
-            <div className="flex">{LIMIT_OPTIONS.map(option => <OptionButton key={option} onClick={() => updateParam("limit", option)} isSelected={option === selectedLimit}>{option}</OptionButton> )}</div>
-            <div style={{height : "2rem"}}>{isError ? <span>Error in searching for genotypes..</span> : isLoading ? <Loading /> : null}</div>
-            {/* Display genotypes  */}
+        <div
+            className="flex flex-column padding--medium"
+            style={{
+                gap: "0.4rem",
+                flex: 1,
+                minHeight: 0,
+            }}
+        >
+    
+            <div>
+                <input
+                    className="search-input"
+                    type="text"
+                    placeholder="Search Genotypes..."
+                    value={searchString}
+                    onChange={(e) => setSearchString(e.target.value)}
+                />
+            </div>
+    
+            <div className="flex" >
+                {LIMIT_OPTIONS.map(option => (
+                    <OptionButton
+                        key={option}
+                        onClick={() => updateParam("limit", option)}
+                        isSelected={option === selectedLimit}
+                    >
+                        {option}
+                    </OptionButton>
+                ))}
+            </div>
+    
+            <div style={{ height: "2rem"}}>
+                {isError ? <span>Error in searching for genotypes..</span> : isLoading ? <Loading /> : null}
+            </div>
+    
             <GenotypeContainer tags={genotypesToDisplay} UpdateGenotypeList={updateGenotypeList} />
         </div>
     )

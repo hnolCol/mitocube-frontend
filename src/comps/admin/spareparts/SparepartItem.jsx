@@ -17,7 +17,7 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
     const [update, setUpdate] = useState(undefined);
     
     const { data: permissions, isSuccess } = hooks.maintenance.sparepartpermissions.useGetSparepartPermissions();
-    console.log(permissions)
+    // console.log(permissions)
 
     const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart({
         onSuccess: () => {
@@ -26,7 +26,7 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
     });
   
     const canShowRemoveButton = isSuccess && permissions.delete
-      console.log(canShowRemoveButton)
+    //   console.log(canShowRemoveButton)
 
       const handleRemove = (e) => {
         e.stopPropagation();

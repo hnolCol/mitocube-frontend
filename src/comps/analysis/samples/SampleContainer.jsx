@@ -16,7 +16,8 @@ export function SamplesContainer({ submission_tag }) {
                 alignItems: 'flex-start',
                 height: '85vh',
                 width: '100%',
-                overflowY: 'scroll'
+                overflowY: 'scroll',
+                paddingBottom: '8rem',
             }}
         >
             <div
