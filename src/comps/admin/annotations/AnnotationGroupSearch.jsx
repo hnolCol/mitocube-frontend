@@ -22,46 +22,63 @@ export function AnnotationGroupSearch({ selectedGroup, onSelectGroup }) {
     }
   }, [isSuccess, data]);
 
-return (
-  <>
-        <div
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+      }}
+    >
+      <div
         style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: "1rem",
+          flexShrink: 0,
         }}
-        >
+      >
         <div>
-        <h3 style={{ margin: 0 }}>Annotation Groups</h3>
+          <h3 style={{ margin: 0 }}>Annotation Groups</h3>
         </div>
         <div>
-        <button className="basic-button" onClick={() => setIsOpen(true)}>
+          <button className="basic-button" onClick={() => setIsOpen(true)}>
             + Add Group
-        </button>
+          </button>
         </div>
+      </div>
+  
+      <input
+        className="search-input"
+        placeholder="Search annotation groups..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        style={{ marginBottom: "1rem", flexShrink: 0 }}
+      />
+  
+      <div
+      style={{
+        flex: 1,
+        minHeight: 0,
+        overflowY: "auto",
+        paddingRight: 6,
+        paddingBottom: 30,
+      }}
+    >
+        <AnnotationGroupContainer
+          tags={groups}
+          selectedGroup={selectedGroup}
+          onSelectGroup={onSelectGroup}
+        />
+      </div>
+  
+      <AddAnnotationGroupDialog
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        onSuccess={refetch}
+      />
     </div>
-    
-    <input
-  className="search-input"
-  placeholder="Search annotation groups…"
-  value={search}
-  onChange={(e) => setSearch(e.target.value)}
-  style={{ marginBottom: "1rem" }}
-/>
-
-
-    <AnnotationGroupContainer
-      tags={groups}
-      selectedGroup={selectedGroup}
-      onSelectGroup={onSelectGroup}
-    />
-
-    <AddAnnotationGroupDialog
-      isOpen={isOpen}
-      onClose={() => setIsOpen(false)}
-      onSuccess={refetch}
-    />
-  </>
-)
+  );
 }

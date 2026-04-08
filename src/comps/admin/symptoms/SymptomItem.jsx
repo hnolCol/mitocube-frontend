@@ -25,7 +25,7 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
     });
     
     const canShowRemoveButton = isSuccess && permissions.delete
-    console.log(canShowRemoveButton)
+    // console.log(canShowRemoveButton)
 
     const handleRemove = (e) => {
         e.stopPropagation();

@@ -18,7 +18,7 @@ export function ExternalServiceItem({ tag, showDetails = false, updateExternalSe
     const [update, setUpdate] = useState(undefined);
     
     const { data: permissions, isSuccess } = hooks.maintenance.externalservicepermissions.useGetExternalServicePermissions();
-    console.log(permissions)
+    // console.log(permissions)
 
     const { mutate: deleteExternalService } = hooks.maintenance.externalservice.useDeleteExternalService({
         onSuccess: () => {
@@ -27,7 +27,7 @@ export function ExternalServiceItem({ tag, showDetails = false, updateExternalSe
     });
   
     const canShowRemoveButton = isSuccess && permissions.delete
-      console.log(canShowRemoveButton)
+    //   console.log(canShowRemoveButton)
 
       const handleRemove = (e) => {
         e.stopPropagation();
