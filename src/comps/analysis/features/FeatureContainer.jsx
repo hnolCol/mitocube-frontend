@@ -10,6 +10,7 @@ export function PeptideFeatureItem({ peptide_tag }) {
 }
 
 
+
 /**
  * 
  * @param {Object} props 

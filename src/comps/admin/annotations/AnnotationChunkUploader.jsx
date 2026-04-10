@@ -85,7 +85,6 @@ export function AnnotationsChunkUploader({ onProteinIdsLoaded }) {
           return cols[columnIndex.protein_id]?.trim();
         })
         .filter(Boolean);
-        // console.log(proteinIds)
       onProteinIdsLoaded(proteinIds);
     };
 

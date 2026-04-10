@@ -10,14 +10,14 @@ import { useMemo, useState } from "react"
 import { ScatterPlot } from "../../core/charts/scatter"
 
 import { FeatureDataView } from "../../analysis/features/DataView"
+import { RankingStats } from "../../core/base/submissions/RankingStats"
 
 
 
 
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
-    const [selection, setSelection] = useState({ xaxisName: "F", yaxisName: "p_value", colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
+    const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "cohen_f", colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
     const {data : submissionStats} = hooks.features.protein_groups.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
-    console.log(submissionStats)
 
     const topSubmissionStats = useMemo(() => {
         if (_.isArray(submissionStats)) {
@@ -36,7 +36,17 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
     }
         console.log(numericKeyNames, "numeric key names")
 
-        
+    
+    const getSubmissionStats = (tag) => {
+        if (!_.isArray(submissionStats)) return null
+        if (!_.isString(tag)) return null
+        const stats = submissionStats.filter(stat => stat.tag === tag)[0]
+        if (!_.isObject(stats)) return null 
+    
+        const metrices = Object.keys(stats).filter(key => key !== "attribute_tag" && key !== "submission_tag" && key !== "tag").map(keyStat => { return { text: keyStat, value: stats[keyStat] } })
+        return <RankingStats attribute_tag={stats.attribute_tag} submission_tag={stats.submission_tag}  stats={metrices}/>
+    }
+    
     return <div><InteractiveChart
             data={submissionStats}
             keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}>
@@ -70,7 +80,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                         triggerResetAxis,
                         setTriggerResetAxisZoom
                             }, didx) => {
-                                console.log(valid, hoverProps)
+                                console.log(valid, hoverProps.hoverIndices)
                         return (
                             <div>
                                 
@@ -107,7 +117,8 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                                                 yaxisName,
                                                 limits,
                                                 tooltipSmall: true,
-                                                tooltipNames: ["attribute_tag"],
+                                                tooltipNames: ["tag"],
+                                                tooltipNameIsStats: {"tag" : getSubmissionStats},
                                                 ...hoverProps,
                                                 ...filterProps,
                                                 ...labelProps,
@@ -120,6 +131,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                                                 svgID: `submissionsFeatureStats-${didx}`,
                                                 triggerResetAxis,
                                                 setTriggerResetAxisZoom,
+                                                
                                             }} />
                             </div>)
                         })}

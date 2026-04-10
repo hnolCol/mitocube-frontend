@@ -23,7 +23,7 @@ import Leftbar from "./comps/core/navigation/dashboard/Leftbar";
 import Topbar from "./comps/core/navigation/dashboard/Topbar";
 
 /* Routes / route guards */
-import { ProtectedAdminRoute, ProtectedRoute } from "./comps/core/routes/ProtectedRoute";
+import { ProtectedRoute } from "./comps/core/routes/ProtectedRoute";
 
 /* Authentication / Login */
 import Login from "./comps/login";
@@ -89,6 +89,7 @@ import { AdminProcedure } from "./comps/admin/procedure/Procedure";
 
 
 import hooks from "@mitocube/api-hooks" 
+import { SubmissionExclusivelyQuantified } from "./comps/analysis/exclusively";
 /* axios defaults */
 axios.defaults.headers.common["Content-Type"] = "application/json";
 
@@ -199,10 +200,6 @@ function App() {
             element={<Login {...{ setAuthenticationStatus, redirectedFrom: tokenFromStorage.locationPathName }} />}
           />
 
-          {/* <Route path="/register" element={
-              <Register />
-            } /> */}
-
           {/* Redirected after successful login */}
           <Route
             path="/index"
@@ -296,10 +293,11 @@ function App() {
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />
             <Route path="/submissions/:tag/correlation" element={<SubmissionFeatureCorrelation {...{ logout }} />} />
+            <Route path="/submissions/:tag/exclusively" element={<SubmissionExclusivelyQuantified {...{ logout }} />} />
             <Route path="/submissions/:tag/heatmap" element={<DatasetHeatmap {...{}} />} />
             <Route path="/submissions/:tag/pca" element={<DatasetPCA {...{ logout }} />} />
             <Route path="/submissions/:tag/qc" element={<DatasetQC {...{ logout }} />} />
-            <Route path="/submissions/:tag/mitomap" element={<MitomapNetwork />} />
+            <Route path="/submissions/:tag/annotationmap" element={<MitomapNetwork />} />
             <Route path="/submissions/:tag/timeline" element={<Timeline {...{ logout }} />} />
             <Route path="/submissions/:tag/runlist" element={<Runlist />} />
             <Route path="/submissions/:tag/help" element={<div><DatasetHelp /></div>} />

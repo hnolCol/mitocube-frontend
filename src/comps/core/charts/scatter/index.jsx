@@ -97,10 +97,12 @@ ScatterPlot.defaultProps = {
  * @param {Object} props.tooltipNameIsAttribute - The tooltip name that is an attribute, then attribute information are obtained from the backend. 
  * @param {Object} props.tooltipNameIsGenotype - The tooltipName that is a Genotype. Causes an API call to displayed the correct information. 
  * @param {Object} props.tooltipNameIsNumeric - If the tooltip is a numeric value. Here the value should a number and provides the number of digits to which the value should be rounded 
+ * @param {Object<String,Object[]>|Function} props.tooltipNameIsStats - If the tooltip is stats, the value should be an object with the stats values, and this will trigger the rendering of the RankingStats component in the tooltip. Can also be a function taht the tooltipName given in tooltipNames => data as an argument
  * @param {Function} props.setTriggerResetAxisZoom - Function to trigger the reset of the axis zoom. This is intended to be used in the InteractiveChartToolbar for a "reset zoom" button. It takes the chartIdx as an argument to identify which chart should reset its zoom.
  * @param {Number} props.triggerResetAxis - Value to trigger the reset of the axis zoom. The value is not relevant, but it should be a new value each time the reset should be triggered. This is important to be able to reset the zoom from outside of the chart, e.g. when a user clicks on a "reset zoom" button.
  * @param {Boolean} props.legendWithAttributes - If the legends are made up by attributes (triggers an API call.) 
  * @param {Object[]} props.linesBySlopeAndIntercept - Adding lines providing the slope and intercept. 
+ * @param 
 * @returns 
  */
 export function ScatterPlot({
@@ -146,6 +148,7 @@ export function ScatterPlot({
     tooltipNameIsFeature = {},
     tooltipNameIsNumeric = {}, //provide number to be rounded to.
     tooltipNameIsFeatures = {},
+    tooltipNameIsStats = {},
     triggerResetAxis,
     setTriggerResetAxisZoom,
     labelRenderer,
@@ -164,11 +167,16 @@ export function ScatterPlot({
             keyNameLimits = { min: zoomActive.currentXDomain[0], max: zoomActive.currentXDomain[1] }
         }
         else if (keyName === yaxisName && _.isArray(zoomActive.currentYDomain)) {
+
             keyNameLimits = { min: zoomActive.currentYDomain[0], max: zoomActive.currentYDomain[1] }
             }
         let dist = Math.sqrt(Math.pow(keyNameLimits.max - keyNameLimits.min, 2)) * 0.02
+        if (dist === 0 || !_.isFinite(dist)) {
+            dist = keyNameLimits.max * 0.02      }
         return [keyName, dist]
     }))
+
+
     const validPoints = useMemo(() => _.sum(valid), [chartIdx,data.length,valid.length,suffix])
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins })
 
@@ -541,7 +549,8 @@ export function ScatterPlot({
                                                 if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein key={`${index}-${tooltipName}`}tag={hoverIndexData[tooltipName]} />
                                                 else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
                                                 else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
+                                                else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
+                                                else if (_.has(tooltipNameIsStats, tooltipName)) return tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])
                                                 else {
                                                     return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
                                                 }

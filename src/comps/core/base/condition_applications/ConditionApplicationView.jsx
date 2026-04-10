@@ -18,7 +18,7 @@ import { Protein } from "../protein/Protein";
  * @param {boolean} props.show_attribute If the attribute should be displayed
  * @returns 
  */
-export function ConditionApplicationItem({ tag, attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false }) { 
+export function ConditionApplicationItem({ attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false }) { 
    
     const { data: trait_text } = hooks.traits.useGetTraitText({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity });
     const { data: attribute } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
@@ -37,7 +37,7 @@ export function ConditionApplicationItem({ tag, attribute_tag, trait_tag, childr
                 {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem" }}>
                     <div>(</div>
                     {children.map((child, idx) =>
-                        <ConditionApplicationItem key={`${child.trait_tag}-${tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
+                        <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
                 <div>)</div>
                 </div>
                     : null}
@@ -57,7 +57,7 @@ export function ConditionApplicationsView({ tag, show_attribute = false, add_sep
     const {data: condition_applications} = hooks.condition_applications.useGetConditionApplication({ tag }, { enabled: !!tag && _.isString(tag) })
     return (<motion.div>  
         {_.isArray(condition_applications) ? condition_applications.map(ca => {
-            return <div key={ca.tag} className="padding--little margin--small">
+            return <div key={`${ca.trait_tag}-${ca.attribute_tag}-${ca.value}`} className="padding--little margin--small">
 
                 <ConditionApplicationItem {...ca} add_separator={add_separator} show_attribute={show_attribute} />
 

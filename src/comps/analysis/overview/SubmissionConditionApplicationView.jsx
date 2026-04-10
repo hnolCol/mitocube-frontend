@@ -53,8 +53,6 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
         { enabled: _.isString(submission_tag) }
     )
 
-    console.log(submission_ca_data)
-
     const { mutate: updateCA, isLoading } = hooks.submissions.condition_applications.useUpdateSubmissionCA({
         onSuccess: () => {
             queryClient.invalidateQueries(["getSubmissionConditionApplication", submission_tag])

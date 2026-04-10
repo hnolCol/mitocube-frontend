@@ -492,7 +492,6 @@ export function Network({
                             if (i > 10) return null
 
                             const hoverIndexData = data[index]
-                            console.log(hoverIndexData)
                                 return <div
                                     className={tooltipSmall ? "" : "flex flex-column bg--lightgrey padding--medium margin--little"}
                                     key={`${index}-hover`}

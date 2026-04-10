@@ -202,7 +202,7 @@ function InitialSubmission({
 
         else {
 
-            console.log(submission.extraMetaText, submission.metatext)
+            // console.log(submission.extraMetaText, submission.metatext)
         
             let submissionDetails = { } // ...submission 
             // delete rendering float
@@ -216,7 +216,6 @@ function InitialSubmission({
             submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
             submissionDetails["tag"] = tag 
             submissionDetails["metatext"] = { ...submission.metatext, ...submission.extraMetaText.reduce((acc, meta) => { acc[meta.title] = meta.text; return acc }, {}) }
-            console.log(submissionDetails["metatext"])
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
 

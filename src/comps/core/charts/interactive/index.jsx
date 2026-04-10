@@ -99,7 +99,6 @@ function InteractiveChart({
 
     const findDataInRectangle = (chartIdx,minX,minY,maxX,maxY, ignoreFilterAndSearchIdcs = false) => {
         // returns the data that are in a rectangle. 
-        
         const searchIdx = searchTrees[chartIdx].tree.range(minX, minY, maxX, maxY)
         //transfer back to original data index
         const idcs = new Set(searchIdx.map(idx => searchTrees[chartIdx].data_index[idx]))

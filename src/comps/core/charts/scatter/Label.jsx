@@ -65,9 +65,7 @@ const ScatterLabel = React.memo(
         isFeature = true,
         rerenderDependency = []
     }) {
-    console.log("LABEL!!", data[index], labelNames)
     const { data : feature, isLoading, isSuccess } = hooks.features.useGetFeatureByTag({tag : data[index]["tag"]}, {enabled : isFeature})
-        console.log(feature)
     const labelStrings = _.uniq(_.concat(labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text)), labelNames.map(labelName => _.isObject(feature) ? feature[labelName] : undefined).filter(text => _.isString(text))))
     const labelText = _.join(labelStrings.map(labelString => split?_.split(labelString,splitString).at(splitIndex):labelString), joinString)
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 

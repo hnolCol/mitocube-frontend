@@ -12,7 +12,7 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
 
     const tags = _.isString(tag) ? tag.split(";").map(t => t.trim()) : []
     return <div className="flex">
-        {tags.slice(1).map((t, i) => (
+        {tags.map((t, i) => (
             <div key={`protein-${i}-${t}`} className="flex" >
                 <Protein tag={t}
                     minimal={minimal}
@@ -20,6 +20,7 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
                     disableTooltip={disableTooltip}
                     popoverPosition={popoverPosition}
                     redirect_to_protein_site={redirect_to_protein_site} onClick={onClick} />
+                <span>{i < tags.length - 1 ? ";" : null}</span>
                 
             </div>
         ))}
@@ -30,12 +31,12 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
 export function Protein({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", redirect_to_protein_site = true, minimal = false, onClick, style, inSVG = false, svgTextProps = {} }) {
     const redirect = useNavigate()
     const { data: feature, isSuccess, isLoading, isError } = hooks.features.useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
-    
+
     
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
-    const motionFontColor = isHexColorLight(motionBackgroundColor) ? "#000000" : "#fff"
+    // const motionFontColor = isHexColorLight(motionBackgroundColor) ? "#000000" : "#fff"
 
 
     const handleClick = () => {

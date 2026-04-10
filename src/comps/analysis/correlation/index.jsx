@@ -6,10 +6,10 @@ import { Combobox } from "../../core/input/Combobox"
 import { FilterInput } from "../../core/input/api/Filter"
 import { useOutletContext } from "react-router"
 import NumericValueInput from "../../core/input/Numeric"
-import { Button, FormGroup } from "@blueprintjs/core"
+import { Button } from "@blueprintjs/core"
 import { useGetFeatureCorrelationInDataset } from "../../../hooks/queries/datasets.hooks"
 import { Protein } from "../../core/base/protein/Protein"
-import { addItemsToArrayByTag, addItemToArrayOrRemoveIfPresentByTag } from "../../../services/arrays/transforms"
+import { addItemToArrayOrRemoveIfPresentByTag } from "../../../services/arrays/transforms"
 
 
 
@@ -71,7 +71,6 @@ function SubmissionFeatureCorrelation({ }) {
     const { data, isLoading, isFetching, isSuccess, refetch } = useGetFeatureCorrelationInDataset({
                                 submission_tag,
                                 direction: _.has(correlation,"direction.text") ? correlation.direction.text : undefined,
-                                submission_tag,
                                 feature_tag: featureDefined ? correlation.feature[0].tag : undefined,
                                 filter_tag: _.has(correlation,"filter") && _.isObject(correlation.filter) ? correlation.filter.tag : undefined,
                                 limit: correlation.limit}, { enabled : false})

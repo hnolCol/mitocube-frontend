@@ -18,7 +18,7 @@ export function MitomapNetwork({ }) {
     const { submission_tag } = useOutletContext() 
     const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type: "pairwise", statProps: {} })
     
-    const { data : network_data, isLoading, isFetching, isSuccess, isError, error } = hooks.submissions.analysis.useGetSubmissionAnnotationNetwork({tag : submission_tag, annotation_group_tag : "6OKeO"}, {enabled : !_.isEmpty(submission_tag)})
+    const { data : network_data, isLoading, isFetching, isSuccess, isError, error } = hooks.submissions.analysis.useGetSubmissionAnnotationNetwork({tag : submission_tag, annotation_group_tag : "LK9p5"}, {enabled : !_.isEmpty(submission_tag)})
 
 
     const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["tag"], sizeName : undefined, textSearchNames : ["tag"] })
@@ -82,12 +82,9 @@ export function MitomapNetwork({ }) {
                     yaxisName,
                     valid,
                     limits,
-                    handleItemSelection,
-                    findIndexInRectangle,
                     findDataInRectangle,
                     setHoverDataInRectangle,
                     findClosestPoint,
-                    handleNumericFilter,
                     handleStringSearch,
                     handleSearchByDataIndex,
                     filterDataInKeyByValue,

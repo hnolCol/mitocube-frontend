@@ -12,21 +12,23 @@ import { Combobox } from "../../core/input/Combobox";
 import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../services/arrays/transforms";
 import NumericValueInput from "../../core/input/Numeric";
 import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationSelectionMenu";
+import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 
 function DatasetHeatmap() {
 
     const { submission_tag } = useOutletContext()   
-    const [testProps, setTestProps] = useState({ fdr: 0.05, selected_annotation_tags: [] })
+    const [testProps, setTestProps] = useState({ fdr: 0.05, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
     const [viewProps, setViewProps] = useState({showSearchInProfile : true, selectedCluster : []})
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
     const { data: heatmapData, isLoading, isError, isFetching, error } = hooks.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
     const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
-
+    const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+    
     if (isError) return <APIError error={error} />
-    if (isLoading || isFetching || sampleCaIsLoading) return <div>Loading...</div>
+    if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div>Loading...</div>
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
     
-    const sample_ca_attribute_tags = _.keys(submissionSampleConditionApplications[0]).filter(k => k !== "tag")
+    // const sample_ca_attribute_tags = _.keys(submissionSampleConditionApplications[0]).filter(k => k !== "tag")
     
     const handleAnnotationSelection = (e, tag) => {
         if (_.isArray(tag)) {
@@ -47,9 +49,16 @@ function DatasetHeatmap() {
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
-            <p>The FDR cutoff was to {_.round(heatmapData.fdr*100,2)}% and <strong>{heatmapData.data.length}</strong> features were found significantly different.</p>
-            <p>The data are divided into a total number of <strong>{heatmapData.n_clusters}</strong> clusters.</p>
-            <div className="flex flex-column">
+            <h3>Settings</h3>
+            <span>Select an annotation to subset the data.</span>
+            <div>
+                <span>Select a condition application attribute to perform the statistical analysis. By default the all attributes are considered.</span>
+                {sample_ca_attribute_tags.length > 1 ? <AttributeSelection
+                    attribute_tags={sample_ca_attribute_tags}
+                    selected={testProps.selected_ca_attribute_tags}
+                    onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> : null}
+                </div>
+             <div className="flex flex-column">
                 <AnnotationSelectionMenu
                     placeholder={testProps.selected_annotation_tags.length === 0? "Select annotations" : `${testProps.selected_annotation_tags.length} selected`}
                     onSelection={handleAnnotationSelection}
@@ -57,6 +66,12 @@ function DatasetHeatmap() {
                     selected_tags={testProps.selected_annotation_tags} />
                 <span className="font-size--smallest">Data will be filtered after statistical analysis to be part of the given annotation. For example : MitoCarta 3.0</span>
             </div>
+            <div>
+            <p>The FDR cutoff was to {_.round(heatmapData.fdr*100,2)}% and <strong>{heatmapData.data.length}</strong> features were found significantly different.</p>
+            <p>The data are divided into a total number of <strong>{heatmapData.n_clusters}</strong> clusters.</p>
+            
+            </div>
+           
             <div className="flex center-items" style={{ gap: "10px" }}>
                                 <div className="flex flex-column center-items"><div>FDR cutoff:</div></div>
                                  <NumericValueInput minValue={-0.01} maxValue={1.0} placeholder="Enter FDR cutoff" label="FDR Cutoff" value={testProps.fdr} onValueChange={(_,value) => setTestProps({...testProps, fdr: value})} />

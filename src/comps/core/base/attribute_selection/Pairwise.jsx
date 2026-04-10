@@ -31,7 +31,7 @@ CAGroupSelection.propTypes = {
 
 function AttributeColumn({ columnIndex, attribute_tag }) { 
     const { data: attribute } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
-    return <span>{_.isObject(attribute) ? attribute.text : "..."}</span>
+    return <span style={{textWrap : "pretty"}}>{_.isObject(attribute) ? attribute.text : "..."}</span>
 }
 
 function CACellRenderer({ rowIndex, columnIndex, ca_tags, attribute_tag, children }) {
@@ -47,7 +47,7 @@ export function SampleSelectionTableView({ submission_tag, attribute_tags = [], 
 
     // console.log(condition_applications, "Condition applications")
 
-    return (<div>
+    return (<div style={{maxHeight : "20vh", overflowY: "scroll", maxWidth : "500px", overflowX : "scroll"}}>
 
         {_.isArray(condition_applications) && condition_applications.length > 0 && _.isArray(ca_attributes) ?
             

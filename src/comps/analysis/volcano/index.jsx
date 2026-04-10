@@ -138,7 +138,6 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
                             triggerResetAxis,
                             setTriggerResetAxisZoom
                         }, didx) => {
-                            console.log(triggerResetAxis)
                             return (
                                 //  <div key={chartIdx} data-grid={initialLayouts[chartIdx]}>
                                 <Card compact={true} style={{maxWidth: "700px", maxHeight : "500px"}}>

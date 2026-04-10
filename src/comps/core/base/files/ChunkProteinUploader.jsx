@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import hooks from "@mitocube/api-hooks";
 import { CopySubmissionSampleTags } from "../../../submission/samples/CopySampleTags";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
-const CHUNK_SIZE = 1024 * 10; // 10KB per chunk (adjust as needed)
+const CHUNK_SIZE = 1024 * 500; // 1MB per chunk (adjust as needed)
 
 const REQUIRED_COLUMNS = [
     { key: "sample_tag", label: "Sample Name" },
@@ -30,8 +30,8 @@ export function ProteinQuantificationUploader({ submission_tag }) {
     const [progress, setProgress] = useState(0);
     const [overwriteChecked, setOverwriteChecked] = useState(false);
 
-    const { mutateAsync } = hooks.submissions.quantifications.usePostProteinQuantification();
-
+    const { mutateAsync, isLoading: isUploading,  } = hooks.submissions.quantifications.usePostProteinQuantification();
+    const { mutate: updateStats, isLoading : isUpdatingStats, isSuccess : isUpdatingStatsSuccess } = hooks.submissions.statistics.useUpdateSubmissionStats()
     // Check if quantification data already exists for this submission
     const { data: quantificationExists } = hooks.submissions.quantifications.useGetSubmissionQuantificationExists( 
         { tag: submission_tag, quantification_type: "protein_groups" },
@@ -120,15 +120,22 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                             tag: cols[columnIndex.tag],
                         };
                     });
-                await mutateAsync({ tag: submission_tag, quantifications: chunk });
+                await mutateAsync({ tag: submission_tag, quantifications: chunk }, {
+                    onSuccess: () => {
+                        if (lines.length - 1 < i +CHUNK_SIZE/100) {
+                            updateStats({ tag: submission_tag });
+                        }
+                    }
+                })
                 setProgress(Math.round(((i + chunkLines.length) / lines.length) * 100));
             }
 
-            alert("Upload complete!");
+            alert(`Upload complete! ${lines.length} quantifications uploaded.`);
         };
 
         reader.readAsText(file);
     };
+
 
     return (
         <div
@@ -256,10 +263,10 @@ export function ProteinQuantificationUploader({ submission_tag }) {
 )}
             <button
                 onClick={uploadFileInChunks}
-                disabled={!canUpload}
+                disabled={!canUpload || isUploading}
                 style={{
                     padding: "12px 28px",
-                    background: canUpload ? HIGHLIGHT_COLOR : "#d1d5db",
+                    background: canUpload || isUploading ? HIGHLIGHT_COLOR : "#d1d5db",
                     color: "#fff",
                     border: "none",
                     borderRadius: 8,
@@ -270,7 +277,7 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                     marginTop: 6,
                 }}
             >
-                Upload
+                {isUploading ? "Uploading..." : "Upload"}
             </button>
             {progress > 0 && (
                 <div
@@ -294,9 +301,10 @@ export function ProteinQuantificationUploader({ submission_tag }) {
                     ></div>
                 </div>
             )}
-            {progress > 0 && (
+            {(progress > 0 || isUploading) && (
                 <p style={{ marginTop: 10, fontSize: 14, color: "#374151" }}>
-                    {progress}% uploaded
+                    {isUpdatingStats ? "Updating statistics..." : `${progress}% uploaded`}
+                    {isUpdatingStatsSuccess ? " - Statistics updated!" : null}
                 </p>
             )}
         </div>

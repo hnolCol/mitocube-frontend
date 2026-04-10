@@ -41,7 +41,6 @@ function ShareToken({ authenticationStatus }) {
                 'Authorization': 'Bearer ${isSuccess ? data.token : null}'
                 } }
             )
-        console.log(res.data)
         `
     return (
         <div className="margin--medium">
