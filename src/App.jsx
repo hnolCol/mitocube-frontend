@@ -76,6 +76,7 @@ import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
 import { UsersAdminView } from "./comps/admin/users/index";
 import { UserView } from "./comps/admin/users/View";
 import { AttributesAdminView } from "./comps/admin/attributes/index";
+import { AttributeDetailView } from "./comps/admin/attributes/AttributeDetailView";
 import { AdminSymptoms } from "./comps/admin/symptoms/Symptoms";
 import { AdminSparepart } from "./comps/admin/spareparts/Sparepart";
 import { AdminExternalService } from "./comps/admin/externalservice/ExternalService";
@@ -345,7 +346,7 @@ function App() {
             }
           />
 
-          <Route
+          {/* <Route
             path="/admin/attributes/:tag"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
@@ -353,7 +354,19 @@ function App() {
                 <div>THis is attributes</div>
               </ProtectedRoute>
             }
-          />
+          /> */}
+          <Route
+            path="/admin/attributes/:tag"
+            element={
+                <ProtectedRoute
+                    isAuthenticated={authenticationStatus.isAuth}
+                    isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}
+                >
+                    <AttributeDetailView />
+                </ProtectedRoute>
+            }
+        />
+          
 
           <Route
             path="/contact"
