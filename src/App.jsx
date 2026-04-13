@@ -153,17 +153,18 @@ function App() {
     if (tokenValidIsError && tokenValidError.response.status === 401) {
       logout();
     } else if (_.isObject(isTokenValid) && isTokenValid.success) {
-      setAuthenticationStatus({
-        isAuth: true,
-        token: tokenFromStorage.token,
-        verified: isTokenValid.verified,
-        tag: isTokenValid.tag,
-        role: isTokenValid.role,
-      });
-      axios.defaults.headers.common["Authorization"] = `Bearer ${tokenFromStorage.token}`;
-      const redirectPath = tokenFromStorage.locationPathName === "/" ? "/index" : tokenFromStorage.locationPathName;
-      const redirectSearch = tokenFromStorage.locationSearch || "";
-      redirect(redirectPath + redirectSearch);
+        setAuthenticationStatus({
+          isAuth: true,
+          token: tokenFromStorage.token,
+          verified: isTokenValid.verified,
+          tag: isTokenValid.tag,
+          role: isTokenValid.role,
+        });
+      
+        axios.defaults.headers.common["Authorization"] = `Bearer ${tokenFromStorage.token}`;
+        const redirectPath = tokenFromStorage.locationPathName === "/" ? "/index" : tokenFromStorage.locationPathName;
+        const redirectSearch = tokenFromStorage.locationSearch || "";
+        redirect(redirectPath + redirectSearch);
     }
   }, [tokenValidSuccess, _.isObject(isTokenValid), tokenValidIsError]);
 

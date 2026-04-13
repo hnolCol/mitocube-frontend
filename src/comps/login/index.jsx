@@ -37,6 +37,8 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
             enabled: false
         })
     
+    console.log(loginData, "LOGIN DATA")
+    
     useEffect(() => {
         if (loginIsSuccess) setUserLoginResponse(loginData)
     },[loginIsSuccess])
@@ -60,7 +62,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                 tag : verifiedToken.tag
             })
             saveInLocalStorage({itemName : "token", itemValue : verifiedToken.token})
-            axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
+            // axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
             if (redirectedFrom === "/") {
                 redirect("/index")
             }
