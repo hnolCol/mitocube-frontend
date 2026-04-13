@@ -1,5 +1,5 @@
 import axios from "axios";
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 
 
 /**
@@ -30,8 +30,11 @@ async function getPubmedIDByQuery_API({ query, limit = 5, field }) {
 }
 
 export const useGetPubmedArticlesByQuery_EX = (APIParams = { query, limit : 5, field }, useQueryOptions = {}) => {
-    return useQuery(["getPubmedArtikles",APIParams.query, APIParams.limit],
-        () => getPubmedIDByQuery_API({ ...APIParams }), useQueryOptions)
+    return useQuery({
+        queryKey: ["getPubmedArtikles",APIParams.query, APIParams.limit],
+        queryFn: () => getPubmedIDByQuery_API({ ...APIParams }),
+        ...useQueryOptions
+    })
 }
 
 
@@ -42,6 +45,9 @@ async function getPubmedArticle_API({pubmedid}) {
     return res.data 
 }
 export const useGetPubmedPublication_EX = (APIParams = { pubmedid }, useQueryOptions = { staleTime: Infinity }) => {
-    return useQuery(["getPubmedArticle",APIParams.pubmedid],
-        () => getPubmedArticle_API({ ...APIParams }), useQueryOptions)
+    return useQuery({
+        queryKey: ["getPubmedArticle", APIParams.pubmedid],
+        queryFn: () => getPubmedArticle_API({ ...APIParams }),
+        ...useQueryOptions
+    })
 }

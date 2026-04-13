@@ -11,7 +11,6 @@ import { getItemFromLocalStorage, removeItemFromLocalStorage, saveInLocalStorage
 import { getRandomID } from "../../../services/random"
 import { constructSampleNames } from "../../../services/samples"
 
-import { useGetGenotypes } from "../../../hooks/queries/genotype.hooks"
 import { useNavigate } from "react-router"
 import { AxiosError } from "axios"
 import { indexStrings } from "../../../services/arrays"

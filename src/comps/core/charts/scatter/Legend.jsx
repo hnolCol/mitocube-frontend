@@ -3,8 +3,6 @@ import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from
 import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
-import { useGetAttribute } from "../../../../hooks/queries/attribute.hooks";
-import { useGetGenotypeByTag } from "../../../../hooks/queries/genotype.hooks";
 import hooks from "@mitocube/api-hooks"
 
 function ConditionApplicationLegendLabel({ tag, handleTooltip, hideTooltip }) {
@@ -82,8 +80,6 @@ const ScatterLegend = React.memo(
 
     console.log(colorAttribute, colorNameIsAttribute, colorName)
         
-    const {data : colorGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : colorNameIsGenotype})
-    const {data : sizeGenotype } = useGetGenotypeByTag({tag : colorName}, {enabled : sizeNameIsGenotype})
 
     /**
      * 

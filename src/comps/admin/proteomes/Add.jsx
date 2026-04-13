@@ -1,12 +1,12 @@
 import { Button, Checkbox, InputGroup } from "@blueprintjs/core";
 import { useState } from "react";
 import _ from "lodash"
-import { usePostProteome } from "../../../hooks/queries/proteome.hooks";
 import APIError from "../../core/error/APIerror";
+import hooks from "@mitocube/api-hooks"
 
 export function AddProteome({ can_insert = false}) {
     const [proteomes, setProteomes] = useState({proteome_tag : "", reviewed : true})
-    const { mutate, isLoading, isError, error } = usePostProteome()
+    const { mutate, isLoading, isError, error } = hooks.proteomes.usePostProteome()
     
     console.log(proteomes)
 

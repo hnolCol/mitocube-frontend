@@ -1,22 +1,10 @@
-import PropTypes from "prop-types"
 import Categorical from "../../core/metrics/Categorical"
 import { Header } from "../../core/base/Header"
 import ElectrosrayPerformanceIcon from "../../core/svg/icons/performance/ElectroSpray"
 
 import _ from "lodash"
-import { useGetInstruments } from "../../../hooks/queries/instrument.hooks"
-import { InstrumentCart } from "../../core/instruments/InstrumentCard"
-import APIError from "../../core/error/APIerror"
 
 
-function Instruments({ }) {
-
-    const { data: instruments, isError, error } = useGetInstruments()    
-    return (<div className="flex flex--wrap">
-        {isError?<APIError error={error}/>:null}
-        {_.isArray(instruments) ? instruments.map(instrument => <InstrumentCart key={instrument.tag} {...{instrument}} />):null}
-    </div>)
-}
 
 
 function System({items = [{label : "Liquid Chromatography", metric : "nanoLC 1200 #2323"}, {label : "Column", metric : "Aurora Column"},{label : "Mass spectrometer", metric : "Exploris 480 #1"}]}) {

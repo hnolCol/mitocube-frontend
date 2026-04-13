@@ -1,14 +1,10 @@
-import {  useGetSubmissionStates} from "../../../hooks/queries/submission.hooks"
 import _ from "lodash"
 import { UserFilter } from "../filter/UserSelection"
-import { AttributeSubmissionFilter } from "../filter/AttributeSelection"
 import { StateSelection } from "../filter/StateSelection"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
-import { Button, InputGroup } from "@blueprintjs/core"
 import { useEffect, useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
 import { GenotypeDatasetFilter } from "./GenotypeFilter"
-import { groupListByProperty } from "../../../services/arrays/groupby"
 
 
 
@@ -37,7 +33,6 @@ export function SubmissionFilterSelection({ submissionsQuery, submissionQueryRes
             </div>
             <StateSelection {...{ submissionFilter, setSubmissionFilter }} /> 
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
-                {/* <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQueryResult.tags : []} {...{ setSubmissionFilter, submissionFilter, attributeValuesByAttributeTag }} /> */}
             <GenotypeDatasetFilter {...{setSubmissionFilter}} />
             <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [] }} />
             </div>

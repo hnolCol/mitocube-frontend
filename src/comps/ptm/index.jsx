@@ -2,12 +2,9 @@
 
 
 
-import PropTypes from "prop-types"
+
 import _ from "lodash"
-import { useGetDatasetMitoLoc } from "../../hooks/queries/datasets.hooks"
-import APIError from "../core/error/APIerror"
-import CollapsableScatter from "../core/charts/collapsableCharts/scatter"
-import Loading from "../core/base/loading"
+
 
 function PTM({}) {
 

@@ -1,12 +1,9 @@
 
 import _ from "lodash"
-import { useGetNetwork } from "../../../hooks/queries/network.hooks"
 import InteractiveChart from "../../core/charts/interactive"
 import { useOutletContext } from "react-router"
 import { Network } from "../../core/charts/scatter/Network"
 import { useState } from "react"
-import { SegmentedControl } from "@blueprintjs/core"
-import { AttributePairwiseSelection } from "../../core/base/attribute_selection/Pairwise"
 import APIError from "../../core/error/APIerror"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
 import hooks from "@mitocube/api-hooks"

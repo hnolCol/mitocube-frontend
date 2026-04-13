@@ -1,28 +1,15 @@
 
-import { useGetBackendInfo } from "../../hooks/queries/welcome.hooks"
 import { KeyFigure } from "./Keyfigures"
 import _ from "lodash"
 import { NewsView } from "./News"
 import { LastViewed } from "./Views"
 
-import viz from "@mitocube/viz"
 import hooks from "@mitocube/api-hooks"
-import { AnnotationSelectionMenu } from "../core/base/annotations/AnnotationSelectionMenu"
+
 
 function Welcome() {
-    const { isLoading: backendInfoLoading, data: backendInfo } = useGetBackendInfo()
-    
-    // const { data: submissionSampleConditionApplications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : "PjbzCDFFcd"})
-    // console.log(submissionSampleConditionApplications, "Submission Sample CA")
+    const { isLoading: backendInfoLoading, data: backendInfo } = hooks.info.useGet
 
-    const { data: sample_pg_counts } = hooks.submissions.counts.useGetSubmissionSampleProteinGroupCount({ tag: "PjbzCDFFcd" })
-    
-    // const { data: volcanoData } = hooks.submissions.analysis.useGetSubmissionVolcano({
-    //     tag: "PjbzCDFFcd",
-    //     ca_tag_left: "af10991b2a03b46c6158a889110d67c13f8b6ba4137bb1c40b45af9c33f340df",
-    //     ca_tag_right: "c605ee027607bc30bf5ec1329dc7f43e5eff2a2f3f7f3781ba2d633a3b98d8f8"
-    // })
-    console.log(sample_pg_counts, "Sample PG Counts")
 
     return (
         <div className="flex flex-column center-items div--expand">

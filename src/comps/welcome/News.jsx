@@ -1,8 +1,7 @@
-import { useGetNews } from "../../hooks/queries/welcome.hooks"
 import APIError from "../core/error/APIerror"
 import Loading from "../core/base/loading"
 import _, { set } from "lodash"
-import { Content, SubmissionLink, TitleText } from "../core/metrics/ItemBasics"
+import { Content, TitleText } from "../core/metrics/ItemBasics"
 import { CreatedAt } from "../core/metrics/CreatedAt"
 import { FeatureLink } from "../core/links/Feature"
 import hooks from "@mitocube/api-hooks"
@@ -12,6 +11,7 @@ import { useState } from "react"
 import { MinimalUserIcon } from "../core/base/user"
 import { AddButton } from "../core/base/buttons/AddButton"
 import { RemoveButton } from "../core/base/buttons/RemoveButton"
+import { SubmissionLink } from "../core/links/Submission"
 /**
  * 
  * @param {Object} props 

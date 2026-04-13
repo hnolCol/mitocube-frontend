@@ -36,7 +36,7 @@ import { ConditionApplicationsView } from "../../core/base/condition_application
 import { AttributesInput } from "../../core/input/api/DatasetAttributeInput";
 import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttributeView";
 import { findAndInsertTree, findChildrenByPath, deleteByPath, checkPathExists, addIDToPath } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
-import { useQueryClient } from "react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 export function SubmissionConditionApplicationView({ submission_tag }) {
     const queryClient = useQueryClient()

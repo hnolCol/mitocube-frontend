@@ -1,8 +1,4 @@
 import { useOutletContext } from "react-router";
-import APIError from "../../core/error/APIerror";
-import { useGetDataQC } from "../../../hooks/queries/datasets.hooks";
-import LineChart from "../../core/charts/linechart";
-import Loading from "../../core/base/loading";
 import _ from "lodash"
 import ResultChart from "../../protein/charts/resultCard/chart";
 import { useEffect } from "react";
@@ -24,33 +20,6 @@ function DatasetQC() {
     
 
 
-
-    
-    // const { data: datatable, isLoading, isFetching, isError, error } = useGetDataQC({ dataset_tag: submission_tag })
-    
-
-
-
-    // useEffect(() => {
-    //     if (_.isObject(metadata) && _.has(metadata, "title")) {
-    //         setTabHeader(metadata.title)
-    //     }
-    // }, [_.isObject(metadata)])
-
-    // if (isError) return <APIError error={error}/>
-    // if (isLoading || isFetching) return <Loading />
-    // if (!_.isObject(metadata)) return <Loading />
-    
-    
-    // const featureCounts = _.keys(datatable.stats).map((sampleName, idx) => {
-    //     return {
-    //         "#valid": datatable.stats[sampleName].count,
-    //         idx,
-    //         sampleName,
-    //         "#valid (%)": _.toString(_.round(datatable.stats[sampleName].count / datatable.stats[sampleName].total * 1000) / 10)+" %"
-    //     }
-    // })
-    
 
     
     return (

@@ -7,10 +7,7 @@ import _ from "lodash"
 
 export function ResearchGroupItem({ tag, setEditUsersDialog }) {
     
-    const { data: research_group, isSuccess, isLoading, isFetching } = useGetResearchGroupByTag({ tag })
-    
-    
- 
+    const { data: research_group, isSuccess, isLoading, isFetching } = useGetResearchGroupByTag({ tag }) 
     return (<div>
 
     {isSuccess && _.isObject(research_group) ?<ContextMenu content={<Menu>
@@ -19,7 +16,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
             <MenuItem text="Block all users" label="Not implemented yet." />
             <MenuItem text="Delete" intent="danger" label="Not implemented yet."/>
         </Menu>}>
-            <motion.div style={{
+            {/* <motion.div style={{
                 backgroundColor: "#ffffff",
                 color: "#00000"
             }}
@@ -36,7 +33,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
                     <div className="font-size--smallest">{research_group.address}</div>
                     </div> 
                 
-            </motion.div>
+            </motion.div> */}
         </ContextMenu> : isLoading || isFetching ? <Loading /> : null}
         
     </div>)

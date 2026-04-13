@@ -1,28 +1,7 @@
-import PropTypes from "prop-types"
-import Point from "./Point"
-import AxisWithBackground from "../axis"
-import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
-import { useMemo, useRef } from "react"
-import { addMarginToBoundaries, getBoundariesFromArrayOfObjects, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
-import { scaleLinear, scaleOrdinal } from "@visx/scale"
-import { SVG } from "../SVGHeader"
-import { useTooltip, useTooltipInPortal, TooltipWithBounds, Tooltip } from '@visx/tooltip';
-import { localPoint } from '@visx/event';
+
 import React from "react"
 import _ from "lodash"
-import MetricTable from "../../base/metrictable"
-import ScatterPoints from "./ScatterPoints"
-import { getUniqueSetsOfAllValuesinArrayOfObjects, getUniqueValuesFromArrayOfObjectsByKey } from "../../../../services/arrays/groupby"
-import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import { getColorPalette } from "../../colors/colorPalette"
-import { mapAttributeValueTagsToAttributes } from "../../../../services/attributes"
-import { Divider, H4 } from "@blueprintjs/core"
-import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
-import { roundNumber } from "../../../../services/format/number"
-import { ScatterLegend, TextScatterLegend } from "./Legend"
-import { ScatterLabel } from "./Label"
-import { SearchIndicator } from "../annotations/Search"
-import { ChartTopLeftLabel } from "../profiles/ProfileChart"
+
 
 
 

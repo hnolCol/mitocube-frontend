@@ -1,12 +1,10 @@
-import PropTypes from "prop-types"
+
 import _ from "lodash"
-import TimelineChart from "../../core/charts/timeline"
 import { useOutletContext } from "react-router"
-import { StateIndicator, StaticStateIndicator } from "../../core/base/states/SubmssionState"
-import { useGetTimelineBySubmissionTag } from "../../../hooks/queries/timeline.hooks"
+import { StaticStateIndicator } from "../../core/base/states/SubmssionState"
+
 import { CreatedAt } from "../../core/metrics/CreatedAt"
-import { useEffect } from "react"
-import { Loading } from "../../core/base/states/Loading"
+
 import hooks from "@mitocube/api-hooks"
 
 

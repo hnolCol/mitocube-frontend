@@ -1,10 +1,8 @@
 import _ from "lodash"
 import { motion } from "framer-motion"
 import { useState } from "react"
-import { titleFormat } from "../../../services/format/string"
 import { isHexColorLight } from "../../../services/colors"
 import { Divider } from "@blueprintjs/core"
-import { useGetSubmissionsCount } from "../../../hooks/queries/submission.hooks"
 
 import hooks from "@mitocube/api-hooks"
 

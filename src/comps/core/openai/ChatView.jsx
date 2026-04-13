@@ -23,7 +23,7 @@ OpenAIChatView.propTypes = {
         })
     ).isRequired,
 };  
-// make sure to: import { useEffect, useRef } from 'react'
+
 export function OpenAIChatView({ session_messages, session_id }) {
     const containerRef = useRef(null);
     const lastAssistantMessageIndex = _.findLastIndex(session_messages, { role: 'assistant' });

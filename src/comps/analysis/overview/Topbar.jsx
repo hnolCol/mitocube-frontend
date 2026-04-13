@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { copyTextToClipboard } from "../../../services/clipboard"
-import { useGetSubmissionSampleTags, useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
+import { useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 
 import hooks from "@mitocube/api-hooks"

@@ -7,7 +7,7 @@ import { ScatterPlot } from "../../core/charts/scatter";
 import { Card, Dialog } from "@blueprintjs/core";
 import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/groupby";
-import { AttributePairwiseSelection, ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
+import { ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 
 import hooks from "@mitocube/api-hooks"

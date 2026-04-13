@@ -4,7 +4,6 @@
 
 import PropTypes from "prop-types"
 import { MultiSelect } from "@blueprintjs/select";
-import { useGetAttributes } from "../../../../hooks/queries/attribute.hooks";
 import _ from "lodash"
 import { useState } from "react";
 import { Button } from "@blueprintjs/core";

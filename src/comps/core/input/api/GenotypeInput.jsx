@@ -1,10 +1,8 @@
 import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
-import { MultiSelect, Suggest } from "@blueprintjs/select"
-import { useGetFeatureByQuery } from "../../../../hooks/queries/feature.hooks"
+import { MultiSelect } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import { useGetGenotypesByQuery } from "../../../../hooks/queries/genotype.hooks"
 import hooks from "@mitocube/api-hooks" 
 import { GenotypeMenuItem } from "../../../submission/new/sample_attributes/select/menu/GenotypeMenu"
 

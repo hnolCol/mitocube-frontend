@@ -1,7 +1,5 @@
-import { useQuery } from "react-query";
+import { useQuery } from "@tanstack/react-query";
 import axios from "axios"
-
-
 
 /**
  * @description Retrieves the use of terms from the backend.
@@ -12,6 +10,10 @@ async function getTerms_API({}) {
     return res.data 
 }
 
-export const useGetTermsOfUse = (APIParams = {},useQueryOptions = {}) => {
-    return useQuery(["getTermsOfUse"],() =>  getTerms_API({...APIParams}), useQueryOptions)
+export const useGetTermsOfUse = (APIParams = {}, useQueryOptions = {}) => {
+    return useQuery({
+        queryKey: ["getTermsOfUse"],
+        queryFn: () => getTerms_API({...APIParams}),
+        ...useQueryOptions
+    })
 }

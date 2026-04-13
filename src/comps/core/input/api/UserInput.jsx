@@ -1,6 +1,5 @@
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
-import { useGetPublicUserByQuery } from "../../../../hooks/queries/user.hooks"
 import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
 import { getUserFullName } from "../../../../services/format/user"
 import { MultiSelect } from "@blueprintjs/select"

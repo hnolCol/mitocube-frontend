@@ -1,4 +1,4 @@
-import React from 'react';
+
 import hooks from "@mitocube/api-hooks";
 import _ from "lodash";
 import { SampleItem } from './SampleItem';

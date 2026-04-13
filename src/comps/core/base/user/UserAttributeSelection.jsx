@@ -1,10 +1,5 @@
 import _ from "lodash"
-import { useEffect } from "react"
 import UserAttributes from "../../../admin/users/UserAttributes"
-import { useGetUserAttributes } from "../../../../hooks/queries/user.hooks"
-import APIError from "../../error/APIerror"
-
-
 
 
 export function UserAttributeSelection({attributes, attributeValues, refetchUsers, userProps, setUserProps, ...rest }) {

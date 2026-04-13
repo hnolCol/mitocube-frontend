@@ -10,7 +10,6 @@ import { FeatureDatasetFilter } from "../../submission/filter/FeatureSelection";
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms";
 import useDebounce from "../../../hooks/useDebounce";
 import TooltipButton from "../../core/base/buttons/TooltipButton";
-import { AttributeSubmissionFilter } from "../../submission/filter/AttributeSelection";
 import { UserFilter } from "../../submission/filter/UserSelection";
 import "../../submission/submission.css"
 import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeFilter";
@@ -49,7 +48,6 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
             <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
                     </div>
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
-            {/* <AttributeSubmissionFilter attributesByTag={attributesByTag.attributes} tags={isSuccess ? submissionQuery.tags : []} {...{ setSubmissionFilter, submissionFilter }} /> */}
                     <FeatureDatasetFilter  {...{ setSubmissionFilter }} />
                     <GenotypeDatasetFilter {...{ setSubmissionFilter }}/>
             <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQuery.tags : [] }} />

@@ -3,7 +3,7 @@ import _ from "lodash"
 import { motion } from "framer-motion"
 import PropTypes from "prop-types"
 import { useState } from "react"
-import { useQueryClient } from "react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { Dialog } from "@blueprintjs/core"
 import { EditTraitDialog } from "./EditTraitDialog"
 

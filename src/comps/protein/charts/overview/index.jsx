@@ -2,16 +2,6 @@
 import _ from "lodash"
 
 import { useOutletContext } from "react-router"
-import APIError from "../../../core/error/APIerror"
-import { Drawer } from "@blueprintjs/core"
-import { useGetMetadata } from "../../../../hooks/queries/datasets.hooks"
-import Loading from "../../../core/base/loading"
-import { useMemo } from "react"
-import DatasetAttributeHierarchy from "../../../submission/new/sample_attributes/view/DatasetAttributesHierarchy"
-import { getFormatDateFromTimestamp } from "../../../../services/date/format"
-import MultipleMetrices from "../../../core/metrics/collection"
-import { AuthorList } from "../../../core/authors/AuthorList"
-import { Metatexts } from "../../../core/metatext/SubmissionMetatext"
 import { ProteinAbundance } from "../FeatureAbundance"
 
 import { OptionButton } from "../../../core/base/buttons/OptionButton"
@@ -23,68 +13,6 @@ import { ProteinOverview } from "./ProteinOverview"
 import { ProteinCorrelation } from "../../correlation"
 import { ProteinSubmissionRanking } from "../../data/ProteinSubmissionRanking"
 import { ProteinHelp } from "./ProteinHelp"
-
-
-function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
-    const {data : metadata, isLoading, isError, error, isFetching, isSuccess} = useGetMetadata({tag : dataset_label},{enabled : _.isString(dataset_label) && dataset_label.length > 1})
-    
-    const metdataIsObject = _.isObject(metadata)
-    
-    
-    //TODO put in service file ... redundant with dataset overview
-    
-    const { datasetMetrices, m, formatedTime } = useMemo(() => {
-        if (!metdataIsObject) return []
-        //get metrices available at any state of the project
-        const [m, formatedTime] =  getFormatDateFromTimestamp(metadata.created_on) 
-        let datasetMetrices = [
-            { label : "Label", metric : metadata.label},
-            { label: "Samples", metric: metadata.n_samples },
-            { label: "Replicates", metric: metadata.n_replicates},
-            // { label: "Genotypes", metric : 2},
-            // { label: "Sample Attributes", metric: Object.keys(metadata.samples_attributes).length },
-        ]
-        //add others / optional 
-        return { datasetMetrices , m ,formatedTime}
-    }, [dataset_label, metdataIsObject])
-
-    return <Drawer {...{
-        isOpen,
-        isCloseButtonShown: true,
-        title: "Metadata Overview",
-        onClose : () => setIsOpen(prevValues => { return { ...prevValues, isOpen: false } })
-    }}>
-    
-        
-        {isLoading || isFetching ? <Loading /> : isError ? <APIError error={error} /> : 
-            metdataIsObject ? <div className="div--expand padding--little" style={{overflowY:"scroll"}}>
-                
-                <div className="flex flex-column center-items ">
-                <h1>{metadata.title}</h1>
-                    <AuthorList {...{
-                        submission_tag : metadata.tag,
-                        emailSubject: `Related to dataset ${metadata.title} (${metadata.label})`
-                    }} />
-                <div className="font-size--small margin-top--little">
-                    {`${m.fromNow()} (${formatedTime})`}
-                    </div>
-                    <div className="margin-top--little">
-                <MultipleMetrices metrices={datasetMetrices} />
-                </div>
-                </div>
-                <div className="margin--medium">
-                <h2>Dataset Attributes</h2>
-                <DatasetAttributeHierarchy {...{
-                    selectedDasetAttributeValues: metadata.dataset_attributes,
-                    selectedAttributes: _.values(metadata.attributes)
-                }} />
-                <h2>Metatext</h2>
-                <Metatexts submission_tag={metadata.tag} fill={true} />
-                </div>
-            </div> : null}
-    </Drawer>
-}
-
 
 
 

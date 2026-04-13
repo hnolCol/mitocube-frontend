@@ -8,7 +8,7 @@ import "@blueprintjs/datetime2/lib/css/blueprint-datetime2.css";
 import "@blueprintjs/table/lib/css/table.css";
 
 import "react-grid-layout/css/styles.css";
-import "react-resizable/css/styles.css";
+// import "react-resizable/css/styles.css";
 
 import axios from "axios";
 import _ from "lodash";
@@ -40,7 +40,6 @@ import AddExistingSubmission from "./comps/submission/add";
 /* Analysis / dataset pages */
 import DatasetHeader from "./comps/analysis";
 import SubmissionOverview from "./comps/analysis/overview";
-import DatasetSelection from "./comps/analysis/selection";
 import DatasetHeatmap from "./comps/analysis/heatmap";
 import DatasetVolcanoPlot from "./comps/analysis/volcano";
 import DatasetQC from "./comps/analysis/qc";
@@ -67,12 +66,9 @@ import { InstrumentView } from "./comps/performance/instruments/View";
 
 /* Admin area */
 import AdminHeader from "./comps/admin";
-import ShareToken from "./comps/admin/ShareToken";
 import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
 import { AdminProteomes } from "./comps/admin/proteomes/Proteomes";
-import { AdminFilterSets } from "./comps/admin/filters";
 import { AdminResearchGroup } from "./comps/admin/researchgroup/ResearchGroups";
-import { AdminPhenotype } from "./comps/admin/phenotypes/Phenotypes";
 import { UsersAdminView } from "./comps/admin/users/index";
 import { UserView } from "./comps/admin/users/View";
 import { AttributesAdminView } from "./comps/admin/attributes/index";
@@ -236,7 +232,7 @@ function App() {
             path="/datasets"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-                <DatasetSelection {...{ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} />
+                {/* <DatasetSelection {...{ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} /> */}
               </ProtectedRoute>
             }
           />
@@ -325,13 +321,13 @@ function App() {
             {/* <Route index element={<div>Admin Settings</div>} />  */}
             <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
             <Route path="/admin/users" element={<UsersAdminView />} />
-            <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} />
+            {/* <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} /> */}
             <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
-            <Route path="/admin/sets" element={<AdminFilterSets />} />
+            {/* <Route path="/admin/sets" element={<AdminFilterSets />} /> */}
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
-            <Route path="/admin/phenotypes" element={<AdminPhenotype />} />
+            {/* <Route path="/admin/phenotypes" element={<AdminPhenotype />} /> */}
             <Route path="/admin/symptoms" element={<AdminSymptoms />} />
             <Route path="/admin/spareparts" element={<AdminSparepart />} />
             <Route path="/admin/procedure" element={<AdminProcedure />} />

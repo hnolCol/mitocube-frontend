@@ -1,5 +1,5 @@
 
-import { useQuery, useMutation } from "react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import axios from "axios"
 import _ from "lodash"
 

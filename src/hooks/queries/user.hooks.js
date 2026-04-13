@@ -1,23 +1,6 @@
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios"
 import _ from "lodash"
-
-// get users
-
-// async function getUsers_API({ tokenString }) {
-//     const res = await axios.get('/api/users/full',
-//       {
-//           headers: {
-//               "Authorization": `Bearer ${tokenString}`,
-//               'Content-Type': 'application/json'
-//           }
-//         })
-//     return res.data
-// }
-
-// export const useGetUsers = (APIParams = {}, useQueryOptions = {}) => {
-//     return useQuery(["getUsers"],() =>  getUsers_API({...APIParams}), useQueryOptions)
-// }
 
 
 async function getUsers_API({limit}) {
@@ -27,19 +10,14 @@ async function getUsers_API({limit}) {
 
 
 export const useGetAllUserTags = (APIParams = { limit : 99999}, useQueryOptions = {}) => {
-    return useQuery(["getUsersTags", APIParams.limit],() =>  getUsers_API({...APIParams}), useQueryOptions)
+    return useQuery({
+        queryKey: ["getUsersTags", APIParams.limit],
+        queryFn: () => getUsers_API({...APIParams}),
+        ...useQueryOptions
+    })
 }
 
 
-
-
-
-
-
-/**
- * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
- * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
- */
 async function getPublicUsers_API({ tags }) {
     const res = await axios.get('/api/users/public', {params : {tags}})
     return res.data
@@ -47,121 +25,85 @@ async function getPublicUsers_API({ tags }) {
 
 export const useGetPublicUserInfo = (APIParams = { tags: undefined }, useQueryOptions = { staleTime: Infinity }) => {
     const ts = APIParams.tags !== undefined ? APIParams.tags : ""
-    return useQuery(["getPublicUserInfo",ts],() =>  getPublicUsers_API({...APIParams}), useQueryOptions)
+    return useQuery({
+        queryKey: ["getPublicUserInfo", ts],
+        queryFn: () => getPublicUsers_API({...APIParams}),
+        staleTime: Infinity,
+        ...useQueryOptions
+    })
 }
 
 
-/**
- * @description Returns the public information about a user by its label. Still requires a valid token string. Public indicates here that it is available to all registered users. 
- * @returns {import("../../types/users").PublicUser} The public information about the users in the database as an array.
- */
 async function getPublicUsersByLabel_API({tag}) {
     const res = await axios.get('/api/users/'+tag)
     return res.data
 }
 
 export const useGetPublicUserByTag = (APIParams = {}, useQueryOptions = {staleTime: Infinity}) => {
-    return useQuery(["getPublicUserByLabel",APIParams.tag],() =>  getPublicUsersByLabel_API({...APIParams}), useQueryOptions)
+    return useQuery({
+        queryKey: ["getPublicUserByLabel", APIParams.tag],
+        queryFn: () => getPublicUsersByLabel_API({...APIParams}),
+        staleTime: Infinity,
+        ...useQueryOptions
+    })
 }
 
 
-
-
- 
-//query user
-
-
-/**
- * @description Returns the public information about the users. Still requires a valid token string. Public indicates here that it is available to all registered users. 
- * @returns {import("../../types/users").PublicUser[]} The public information about the users in the database as an array.
- */
 async function getPublicUsersByQuery_API({ query, }) {
     const res = await axios.get('/api/users/q', {params : {query}})
     return res.data
 }
 
 export const useGetPublicUserByQuery = (APIParams = {}, useQueryOptions = {staleTime: 500000}) => {
-    return useQuery(["getPublicUserInfoQuery",APIParams.query],() =>   getPublicUsersByQuery_API({...APIParams}), useQueryOptions)
+    return useQuery({
+        queryKey: ["getPublicUserInfoQuery", APIParams.query],
+        queryFn: () => getPublicUsersByQuery_API({...APIParams}),
+        staleTime: 500000,
+        ...useQueryOptions
+    })
 }
 
 
-
-
-
-// get user roles
-
-
-// get user registration information 
 async function getUserRoles_API({ }) {
     const res = await axios.get('/api/users/roles')
     return res.data.roles
 }
 
 export const useGetUserRoles = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getUserRoles"], () => getUserRoles_API({...APIParams}), useQueryOptions)
+    return useQuery({
+        queryKey: ["getUserRoles"],
+        queryFn: () => getUserRoles_API({...APIParams}),
+        ...useQueryOptions
+    })
 }
 
 
-// get user registration information 
 async function getUserAttributes_API({}) {
     const res = await axios.get('/api/attributes/user')
     return res.data 
 }
 
 export const useGetUserAttributes = (APIParams = {}, useQueryOptions = {}) => {
-    return useQuery(["getUserAttributes"], () => getUserAttributes_API({...APIParams}), useQueryOptions)
+    return useQuery({
+        queryKey: ["getUserAttributes"],
+        queryFn: () => getUserAttributes_API({...APIParams}),
+        ...useQueryOptions
+    })
 }
 
-async function postUser_API({ userProps }) {
-    const res = await axios.post('/api/users',
-    userProps
-        )
-}
 
-export const usePostUser = (useMutationOptions = {}) => {
-    return useMutation((APIParams) => postUser_API({...APIParams}), useMutationOptions)
-}
-
-// block user
 async function postChangePasswordUser_API({ updated_pw }) {
-    const res = await axios.post('/api/users/pw',
-    updated_pw,
-        )
+    const res = await axios.post('/api/users/pw', updated_pw)
+    return res.data
 }
 
 export const usePostPasswordChange = (useMutationOptions = {}) => {
-    return useMutation((APIParams) => postChangePasswordUser_API({...APIParams}), useMutationOptions)
+    return useMutation({
+        mutationFn: (APIParams) => postChangePasswordUser_API({...APIParams}),
+        ...useMutationOptions
+    })
 }
 
-
-
-
-// block user
-async function postBlockUser_API({ userProps }) {
-    const res = await axios.post('/api/users/user/block',
-    userProps,
-        )
-}
-
-export const usePostBlockUser = (useMutationOptions = {}) => {
-    return useMutation((APIParams) => postBlockUser_API({...APIParams}), useMutationOptions)
-}
-
-
-
-// delete user
-async function deleteUser_API({ userProps }) {
-    const res = await axios.delete('/api/users/'+userProps.label,
-    userProps,
-        )
-}
-
-export const useDeleteUser = (useMutationOptions = {}) => {
-    return useMutation((APIParams) => deleteUser_API({...APIParams}), useMutationOptions)
-}
-
-
-// patch user details
 
 async function patchUser_API({ tokenString, userProps }) {
     const res = await axios.patch('/api/users/user',
@@ -172,12 +114,12 @@ async function patchUser_API({ tokenString, userProps }) {
                 'Content-Type': 'application/json'
             }
         })
+    return res.data
 }
 
 export const usePatchUser = (useMutationOptions = {}) => {
-    return useMutation((APIParams) => patchUser_API({...APIParams}), useMutationOptions)
+    return useMutation({
+        mutationFn: (APIParams) => patchUser_API({...APIParams}),
+        ...useMutationOptions
+    })
 }
-
-
-
-

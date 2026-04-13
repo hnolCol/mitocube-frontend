@@ -1,13 +1,10 @@
 
 
 
-import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
-import { MultiSelect, Suggest } from "@blueprintjs/select"
-import { useGetFeatureByQuery } from "../../../../hooks/queries/feature.hooks"
+
 import { useEffect, useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import { ProteinMenuItem } from "../items/FeatureMenu"
 import hooks from "@mitocube/api-hooks"
 
 
@@ -15,7 +12,6 @@ export function FeatureSearch({ compare_to_list = [], onIndexFind, searchIndices
     const [searchString,setSearchString] = useState("")
     const debouncedString = useDebounce(searchString,100)
     const { data : feature_tags, isLoading, isFetching, } =  hooks.features.useGetFeaturesByQuery({search_string : debouncedString, limit : 200}, {enabled : debouncedString.length > 0, onSuccess : (data) => handleSuccess(data), staleTime : 5 * 60 * 1000})
-
 
     useEffect(() => {
         if (debouncedString.length === 0) {

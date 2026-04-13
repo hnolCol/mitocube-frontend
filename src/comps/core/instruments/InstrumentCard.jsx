@@ -1,12 +1,8 @@
-import { Card, Divider, Tooltip } from "@blueprintjs/core";
-import { useGetInstrumentStatsByTag } from "../../../hooks/queries/instrument.hooks";
+import { Divider, Tooltip } from "@blueprintjs/core";
 import { getFormatDateFromTimestamp } from "../../../services/date/format";
 import MetricTable from "../base/metrictable";
 import _ from "lodash"
-import Loading from "../base/loading"
-import APIError from "../error/APIerror"
-import { getUserFullName } from "../../../services/format/user";
-import { useNavigate } from "react-router";
+
 import { StateIndicator } from "../base/states/SubmssionState";
 import { AuthorList } from "../authors/AuthorList";
 
@@ -46,33 +42,5 @@ function InstrumentStats({stats}) {
     )
 }
 
-
-/**
- * 
- * @param {Object} props 
- * @param {import("../../../types/attributes").AttributeValue} props.instrument 
- * @returns 
- */
-export function InstrumentCart({instrument}) {
-    const redirect = useNavigate()
-    
-    const {data : stats, isLoading, isFetching, isError, error} = useGetInstrumentStatsByTag({tag : instrument.tag})
-    return (
-        <Card compact={true} interactive={true} elevation={1} style={{maxWidth : "min(700px,33vw)"}} onClick={() => redirect(`/performance/instruments/${instrument.value}`)}>
-            <h3>{instrument.text}</h3>
-            <p>{instrument.description}</p>
-            
-            <div >
-                {isError ? <APIError error={error} /> :
-                    isLoading || isFetching ?
-                        <Loading /> :
-                        <InstrumentStats {...{ stats }} />}
-                
-            </div>
-
-
-        </Card>
-    )
-}
 
 

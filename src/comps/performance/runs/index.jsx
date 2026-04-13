@@ -1,6 +1,5 @@
 import { Button } from "@blueprintjs/core"
 import Maintenance from "../../core/svg/icons/performance/Maintenance"
-import { AddQCRunDialog } from "./dialogs/AddQCRun"
 import { useState } from "react"
 
 function PerformanceRuns({ }) {
@@ -12,7 +11,7 @@ function PerformanceRuns({ }) {
         <div>
             {/* {_.isObject(data) ? <Example data={data["lines"]} width={500} height={600} /> : null} */}
             <h3>Quality Control Runs</h3>
-            <AddQCRunDialog {...dialogProps} />
+            {/* <AddQCRunDialog {...dialogProps} /> */}
 
             <Button icon="plus" intent="primary" small minimal text="Add"/>
 

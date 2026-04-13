@@ -1,5 +1,4 @@
-import { useGetFeatureAbundanceByTag } from "../../../hooks/queries/feature.hooks";
-import { useGetProteomeAbundaneDist } from "../../../hooks/queries/proteome.hooks";
+
 import _ from "lodash"
 import { Boxplot } from "../../core/charts/boxplot/Boxplot";
 import { useState } from "react";
@@ -15,8 +14,7 @@ export function ProteinAbundance({ tag }) {
     
     const attributeDefined = _.has(abundanceProps,"attribute_tag")
     const proteome_abundance = {}
-    // const { data: proteome_abundance } = useGetProteomeAbundaneDist({ tag: "UP000005640" },{enabled : _.isString(proteome_tag), staleTime : Infinity})
-    // const { data: feature_abundance } = useGetFeatureAbundanceByTag({ tag: tag , attribute_tag :  attributeDefined?abundanceProps.attribute:undefined }, {enabled : _.isString(tag), staleTime : 30000000})
+
     
     const { data: sample_feature_abundance } = hooks.features.quantification.useGetSampleFeatureAbundanceDistribution({
         tag,

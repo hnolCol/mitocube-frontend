@@ -6,8 +6,6 @@ import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
 import { SubmissionContainer } from "./SubmissionContainer"
 
-import { EditDatasetAttributeDialog } from "./dialogs/EditDatasetAttributes"
-import { RunlistCreatorDialog } from "./dialogs/RunlistDialog"
 
 
 function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {

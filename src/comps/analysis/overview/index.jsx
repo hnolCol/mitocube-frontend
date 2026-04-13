@@ -4,7 +4,6 @@ import _ from "lodash"
 import { QuickAccessBar } from "./Topbar";
 import { ResearchAim } from "./Researchaim";
 import { StateIndicator } from "../../core/base/states/SubmssionState";
-import { SampleAttributesView } from "../../core/base/attributes/SampleAttributesView";
 import { AuthorList } from "../../core/authors/AuthorList";
 import { Metatexts } from "../../core/metatext/SubmissionMetatext";
 import { SubmissionComments } from "../../submission/comments";
@@ -74,8 +73,6 @@ function SubmissionOverview() {
             <div className="flex flex--wrap align-start ">
 
                 {_.isString(submission_tag) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
-                    <h3>Sample Attributes</h3>
-                    <SampleAttributesView submission_tag={submission_tag} minimal={false} />
                 </div> : null}
                 <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>

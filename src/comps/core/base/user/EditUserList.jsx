@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useGetAllUserTags, useGetPublicUserByQuery, useGetPublicUserByTag } from "../../../../hooks/queries/user.hooks";
+import { useGetPublicUserByQuery, useGetPublicUserByTag } from "../../../../hooks/queries/user.hooks";
 import useDebounce from "../../../../hooks/useDebounce";
 import TextInput from "../../input/Text";
 import _ from "lodash"

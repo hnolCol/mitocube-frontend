@@ -1,9 +1,11 @@
-import { useGetGenotypeByTag } from "../../../../hooks/queries/genotype.hooks"
 import { isHexColorLight } from "../../../../services/checks/color"
+
+import hooks from "@mitocube/api-hooks"
+
 
 export function Genotype({ tag, highlight }) {
 
-    const { data: genotype, isLoading, isFetching } = useGetGenotypeByTag({ tag })
+    const { data: genotype_text, isLoading, isFetching } = hooks.genotypes.useGetGenotypeText({ tag })
 
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"
@@ -26,7 +28,7 @@ export function Genotype({ tag, highlight }) {
                 disabled={disableTooltip}
                 content={
                 <div className="padding--little bg--grey margin--little padding--little" style={{ maxWidth: "24rem" }}>
-                        <h4>{genotype.text}</h4>
+                        <h4>{genotype_text}</h4>
                     <div className="div--expand">
                             <div>
                                 
@@ -42,7 +44,7 @@ export function Genotype({ tag, highlight }) {
                 position={popoverPosition}>
                 <button className="flex" style={{ border: "none", backgroundColor: "transparent" }} >
                 {/* onClick={() => redirect(`/protein/${tag}`)} */}
-                        <div>{genotype.text}</div>
+                        <div>{genotype_text}</div>
                 </button>
             </Popover>
     </motion.div>

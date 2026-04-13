@@ -9,11 +9,16 @@
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview"
   },
+  "resolutions": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
   "dependencies": {
     "@blueprintjs/core": "^6.7.0",
     "@blueprintjs/datetime2": "^2.3.31",
     "@blueprintjs/select": "^6.0.14",
     "@blueprintjs/table": "^6.0.14",
+    "@tanstack/react-query": "^5.99.0",
     "@visx/axis": "^3.1.0",
     "@visx/curve": "^3.0.0",
     "@visx/event": "^3.0.1",
@@ -40,7 +45,6 @@
     "react-grid-layout": "^1.5.2",
     "react-json-view": "^1.21.3",
     "react-markdown": "^10.1.0",
-    "react-query": "^3.39.3",
     "react-router": "^6.10.0",
     "react-router-dom": "^6.10.0",
     "react-syntax-highlighter": "^15.5.0",
@@ -56,6 +60,6 @@
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.3.4",
-    "vite": "^4.3.2"
+    "vite": "^8.0.8"
   }
 }

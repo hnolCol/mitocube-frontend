@@ -1,5 +1,4 @@
-import { Icon } from "@blueprintjs/core"
-import { useGetPublicUserForSubmission } from "../../../hooks/queries/submission.hooks"
+
 import { getUserFullName } from "../../../services/format/user"
 import _ from "lodash"
 

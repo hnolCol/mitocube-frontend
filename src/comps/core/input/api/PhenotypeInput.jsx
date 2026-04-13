@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useGetPhenotypes } from "../../../../hooks/queries/phenotype.hooks";
+// import { useGetPhenotypes } from "../../../../hooks/queries/phenotype.hooks";
 import useDebounce from "../../../../hooks/useDebounce";
 import { MultiSelect } from "@blueprintjs/select";
 import { Button, MenuItem } from "@blueprintjs/core";

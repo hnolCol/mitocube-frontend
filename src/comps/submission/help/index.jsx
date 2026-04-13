@@ -1,4 +1,3 @@
-import { useGetSubmissionHelp } from "../../../hooks/queries/submission.hooks"
 import PropTypes from "prop-types"
 import { Header } from "../../core/base/Header"
 

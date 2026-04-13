@@ -2,13 +2,12 @@ import { Button, Dialog, DialogBody, DialogFooter } from "@blueprintjs/core";
 import TextInput from "../../core/input/Text";
 import { useState } from "react";
 import _ from "lodash"
-import { usePostResearchGroup } from "../../../hooks/queries/researchgroup.hooks";
 
 
 const research_group_input = ["name","abbreviation","institute","profile_text","address","email","url"]
 export function AddResearchGroupDialog({ isOpen, onClose }) {
     
-    const { mutate, isLoading } = usePostResearchGroup()
+    
     const [researchGroup, setResearchGroup] = useState()
     
     const onChange = (key,value) => {
@@ -33,7 +32,7 @@ export function AddResearchGroupDialog({ isOpen, onClose }) {
             })}
         </DialogBody>
         <DialogFooter>
-            <Button text="Add" loading={isLoading} onClick={() => mutate(researchGroup, {onSuccess : () => onClose()})}/>
+            <Button text="Add" loading={isLoading} />
             <Button text="Close" onClick={onClose}/>
         </DialogFooter>
     </Dialog>

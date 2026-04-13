@@ -1,18 +1,9 @@
-import PropTypes from 'prop-types'
-import { Link } from "react-router-dom"
-import { getFormatDateFromTimestamp } from "../../../services/date/format"
-import { useGetMetadata } from "../../../hooks/queries/datasets.hooks"
-import { Tooltip } from "@blueprintjs/core"
-import { useState } from "react"
-import Loading from "../base/loading"
-import { useGetFeatureInfo } from "../../../hooks/queries/feature.hooks"
-import { TagWithTooltip } from "../base/tags/TagWithTooltip"
-import { useGetPublicUserByTag } from "../../../hooks/queries/user.hooks"
+
 import _ from "lodash"  
 import { CreatedAt } from './CreatedAt'
 import { StateIndicator } from '../base/states/SubmssionState'
 
-
+import hooks from "@mitocube/api-hooks"
 
 export function TitleText({title}) {
     return <h4>{title}</h4>
@@ -39,7 +30,8 @@ export function Content({ text }) {
  * @returns 
  */
 export function UserName({ tag }) {
-    const { isFetched, data: user, isSuccess, isLoading} = useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
+
+    const { isFetched, data: user, isSuccess, isLoading } = hooks.users.useGetPublicUserByTag({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
 
     return (
         <div>
@@ -59,27 +51,6 @@ function SubmissionSummary({ meta_data }) {
             <TitleText title={meta_data.title} />
             <UserName tag={meta_data.user_tag} />
             <p>Samples: {meta_data.n_samples} ({meta_data.n_replicates} Replicates)</p>
-        </div>
-    )
-}
-
-export function SubmissionLink({ tag }) {
-
-    const [openedState, setOpenedState] = useState({hasOpened : false})
-    const { data, isLoading, isFetching, isError, error, isSuccess } = useGetMetadata({ tag }, { enabled: openedState.hasOpened })
-
-    
-    return (
-        <div className="flex">
-            <div className="flex flex-column" style={{justifyContent:"center"}}>
-                <div>Datasets:</div></div>
-        <Tooltip inheritDarkTheme={false} content={
-            <div className="padding--little">
-                {isLoading || isFetching ?
-                <Loading /> :
-                isSuccess ? <SubmissionSummary meta_data={data}/> : null}</div>} onOpening={() => setOpenedState(true)}>
-                <div className="padding--tiny"><Link to={`/datasets/${tag}`}>{tag}</Link></div>
-            </Tooltip>
         </div>
     )
 }

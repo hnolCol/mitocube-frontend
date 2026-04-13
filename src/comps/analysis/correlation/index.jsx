@@ -3,7 +3,7 @@ import PropType from "prop-types"
 import { FeatureInput } from "../../core/input/api/FeatureInput"
 import _ from "lodash"
 import { Combobox } from "../../core/input/Combobox"
-import { FilterInput } from "../../core/input/api/Filter"
+
 import { useOutletContext } from "react-router"
 import NumericValueInput from "../../core/input/Numeric"
 import { Button } from "@blueprintjs/core"
@@ -44,12 +44,12 @@ function CorrelationDefinition({ submission_tag, onChange, selection }) {
         </div>
         <div>Apply protein filter</div>
         <div className="flex">
-        <FilterInput {...{
+        {/* <FilterInput {...{
                 submission_tag,
                 minimal : false,
                 selectedItems: hasFilter ? [selection.filter] : [],
                 onItemSelect : (cb,filter) => onChange(cb,filter)
-            }} />
+            }} /> */}
         <Button minimal icon={"reset"} onClick={() => onChange("filter",undefined)}/>
         </div>
         <NumericValueInput hint="Top N Correlated features" minValue={0} maxValue={400} value={selection.limit} callbackKey="limit" placeholder="Top N correlated features" onChange={(cb,value) => onChange(cb,value)}/>

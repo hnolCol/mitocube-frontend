@@ -1,15 +1,10 @@
 
-import axios from "axios";
 import { useState, useEffect } from "react";
 import { Omnibar } from "@blueprintjs/select";
-import { useQuery } from "react-query"
 import useDebounce from "../../../hooks/useDebounce";
-import { filterArrayBySearchString } from "../../../services/arrays/filter";
-import { OmnibarItem } from "./OmnibarItem";
 import _ from "lodash"
 
 import "./OmnibarStyles.css"
-import { useGetFeatureByQuery, useGetFeatures } from "../../../hooks/queries/feature.hooks";
 import Loading from "../../core/base/loading";
 import { ProteinMenuItem } from "../../core/input/items/FeatureMenu";
 import hooks from "@mitocube/api-hooks";
