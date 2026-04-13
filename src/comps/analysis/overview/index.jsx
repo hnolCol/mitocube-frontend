@@ -9,7 +9,6 @@ import { AuthorList } from "../../core/authors/AuthorList";
 import { Metatexts } from "../../core/metatext/SubmissionMetatext";
 import { SubmissionComments } from "../../submission/comments";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
-import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView";
 import { SubmissionTag } from "../../submission/view/SubmissionTag";
 import { SubmissionViews } from "../../submission/view/SubmissionViews";
 import { SubmissionProteinGroupCount } from "../../submission/view/SubmissionProteinGroupCount";
@@ -18,6 +17,7 @@ import { SubmissionSampleCount } from "../../submission/view/SubmissionSampleCou
 import { SubmissionPeptideCount } from "../../submission/view/SubmissionPeptideCount";
 import { SubmissionConditionApplicationView } from "./SubmissionConditionApplicationView";
 import { SubmissionDate } from "../../submission/view/SubmissionDate";
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 
 /**
@@ -28,7 +28,7 @@ import { SubmissionDate } from "../../submission/view/SubmissionDate";
 function SubmissionOverview() {
 
     const { submission_tag } = useOutletContext()    
-
+    const fontColors = getColorPalette(5)
     return (
         <div style={{ overflowY: "scroll", height: "85vh", padding: "1rem" }} className="flex flex-column">
             <div className="flex justify-end margin-right--little"><QuickAccessBar submission_tag={submission_tag}/></div>
@@ -60,11 +60,11 @@ function SubmissionOverview() {
             </div>
             <div className="flex flex-column center-items" style={{width : "100%"}}>
             <div className="flex">
-                <SubmissionTag {...{ submission_tag }} />
-                <SubmissionViews {...{ submission_tag }} />
-                <SubmissionSampleCount  {...{ submission_tag }} />
-                <SubmissionProteinGroupCount {...{ submission_tag }} />
-                <SubmissionPeptideCount {...{ submission_tag }} />
+                <SubmissionTag {...{ submission_tag, fontColor: fontColors[0] }} />
+                <SubmissionViews {...{ submission_tag, fontColor: fontColors[1] }} />
+                <SubmissionSampleCount  {...{ submission_tag, fontColor: fontColors[2] }} />
+                <SubmissionProteinGroupCount {...{ submission_tag, fontColor: fontColors[3] }} />
+                <SubmissionPeptideCount {...{ submission_tag, fontColor: fontColors[4] }} />
                 
                 </div>
             </div>

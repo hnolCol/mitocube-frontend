@@ -5,6 +5,7 @@ import _ from "lodash";
 import { motion } from "framer-motion";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 import { Protein } from "../protein/Protein";
+import { GenotypeText } from "../../../admin/genotypes/GentotypeText";
 
 /**
  * @description Component to display individual condition application item.
@@ -54,14 +55,17 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
  * @returns 
  */
 export function ConditionApplicationsView({ tag, show_attribute = false, add_separator = false }) { 
-    const {data: condition_applications} = hooks.condition_applications.useGetConditionApplication({ tag }, { enabled: !!tag && _.isString(tag) })
-    return (<motion.div>  
-        {_.isArray(condition_applications) ? condition_applications.map(ca => {
-            return <div key={`${ca.trait_tag}-${ca.attribute_tag}-${ca.value}`} className="padding--little margin--small">
+    const { data : isGenotype, isSuccess } = hooks.genotypes.useGetGenotypeExists({tag}, { enabled: _.isString(tag) && tag.length > 0 })
+    const { data: condition_applications } = hooks.condition_applications.useGetConditionApplication({ tag }, { enabled: !!tag && _.isString(tag) && isSuccess && !isGenotype })
+    
 
+    return (<motion.div>  
+        {_.isArray(condition_applications) && !isGenotype ? condition_applications.map(ca => {
+            return <div key={`${ca.trait_tag}-${ca.attribute_tag}-${ca.value}`} className="padding--little margin--small">
+                
                 <ConditionApplicationItem {...ca} add_separator={add_separator} show_attribute={show_attribute} />
 
             </div>
-        }) : null}
+        }) : isGenotype ? <div className="padding--little margin--small"><GenotypeText tag={tag} /></div> : null}
     </motion.div>)
 }   

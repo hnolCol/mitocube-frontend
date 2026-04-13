@@ -4,7 +4,7 @@ import { Loading } from "../../core/base/states/Loading";
 import { motion } from "framer-motion";
 
 
-export function SubmissionProteinGroupCount({ submission_tag }) {
+export function SubmissionProteinGroupCount({ submission_tag, fontColor = "#000000" }) {
 
 
     const { data : protein_count, isLoading } = hooks.submissions.counts.useGetSubmissionProteinGroupCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
@@ -19,7 +19,7 @@ export function SubmissionProteinGroupCount({ submission_tag }) {
         >
             <div>
                 <h4>Protein Groups</h4>
-                {isLoading ? <Loading /> : <span>{protein_count}</span>}
+                {isLoading ? <Loading /> : <span style={{ color: fontColor }}>{protein_count}</span>}
             </div>
         </motion.button>
     );

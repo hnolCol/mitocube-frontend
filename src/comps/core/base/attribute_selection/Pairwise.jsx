@@ -127,7 +127,6 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
 
     const [rerender, setRerender] = useState(undefined)
     const { data: condition_applications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag, attribute_tags: attribute_tag }, { enabled: _.isString(submission_tag) && _.isString(attribute_tag) })
-
     useEffect(() => {
 
             setRerender([Math.random()])
@@ -172,7 +171,8 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
                     onConfirm={(ca_tags) => onConfirm(ca_tags, "left")} />
                 
                 <CAGroupSelection
-                    ca_tags={uniqueCAValues}
+                        ca_tags={uniqueCAValues}
+
                     exclude_tags={pairwiseComp.left}
                     selected={pairwiseComp.right}
                     backgroundColor={"#edf8b1"}

@@ -3,7 +3,7 @@ import _ from "lodash";
 import hooks from "@mitocube/api-hooks"
 import { EditSparepartDialog } from "./AddSparepartDialog";
 import { DeleteSparepartDialog } from "./DeleteSparepartDialog";
-import { SparepartText } from "./sparepartText";
+import { SparepartText } from "./SparepartText";
 import { SparepartDescription } from "./SparepartDescription";
 import { SparepartCompany } from "./SparepartCompany";
 import { SparepartProductID } from "./SparepartProductID";

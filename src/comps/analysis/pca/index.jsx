@@ -102,7 +102,7 @@ function DatasetPCA({ }) {
                                     hoverProps,
                                     filterProps
                                 }, didx) => {
-                                    console.log(findDataInRectangle,data,xaxisName,yaxisName, limits, "FIND DATA IN RECTANGLE??")
+                                    // console.log(findDataInRectangle,data,xaxisName,yaxisName, limits, "FIND DATA IN RECTANGLE??")
                                     return (
                                         <div>
                                             

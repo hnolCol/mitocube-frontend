@@ -45,6 +45,7 @@
     "react-router-dom": "^6.10.0",
     "react-syntax-highlighter": "^15.5.0",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "vite-plugin-require": "^1.1.10"
   },
   "devDependencies": {

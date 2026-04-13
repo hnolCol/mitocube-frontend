@@ -46,7 +46,6 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
 
     const handleError = (error) => {
         setIsFetching(false)
-        console.log(error)
         onError({ isOpen: true, message: error })
     }
 
@@ -82,9 +81,9 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
         }
     }, [testParamsUpdate])
     
-    useEffect(() => {setIsFetching(false)},[isSuccess])
+    useEffect(() => {setIsFetching(false)},[isSuccess])        
     
-    const numericKeyNames = _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName]))
+    const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
    
     

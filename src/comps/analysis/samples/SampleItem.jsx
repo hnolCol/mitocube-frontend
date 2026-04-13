@@ -4,6 +4,7 @@ import {motion} from "framer-motion"
 import _ from "lodash"
 import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView";
 import { Attribute } from "../../core/base/attributes/Attribute";
+import { SampleGenotype } from "./SampleGenotype";
 
 /**
  * SampleItem component to display individual sample information. 
@@ -31,6 +32,10 @@ export function SampleItem({ tag, display_condition_applications = true }) {
             {tag}
             {_.isObject(sample) && sample.text ? <div>{sample.text}</div> : null}
 
+            <div>
+                <Attribute attribute_tag={'att_genotype'} />
+                <SampleGenotype tag={tag} />
+            </div>
             
             {/* Display the condition application */}
             {_.isArray(condition_applications) && display_condition_applications && condition_applications.map(ca_prop => {

@@ -47,7 +47,10 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         return <RankingStats attribute_tag={stats.attribute_tag} submission_tag={stats.submission_tag}  stats={metrices}/>
     }
     
-    return <div><InteractiveChart
+    return <div>
+        
+        <span>Features are ranked by statistic approaches. Find more information in the documentation.</span>
+        <InteractiveChart
             data={submissionStats}
             keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}>
             

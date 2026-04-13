@@ -1,5 +1,6 @@
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
+import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView"
 
 /**
  * Query to get the genotype of the sample
@@ -11,9 +12,9 @@ import _ from "lodash"
 
 export function SampleGenotype({tag}) {
 
-    const { data : sampleGenotype, isError, error, isSuccess} = hooks.samples.useGetSampleGenotype({sample_tag : tag})
-
+    const { data : sampleGenotypeTags, isError, error, isSuccess} = hooks.samples.useGetSampleGenotype({tag},{ enabled : _.isString(tag) && tag.length > 0, staleTime: Infinity})
+    console.log(sampleGenotypeTags)
     if (isError) console.log(error)
 
-    return <span>{isSuccess && _.isString(sampleGenotype)?sampleGenotype:null}</span>
+    return <div className="flex">{_.isArray(sampleGenotypeTags) ? sampleGenotypeTags.map(tag => <ConditionApplicationsView key={tag} tag={tag} />) : null}</div>
 }

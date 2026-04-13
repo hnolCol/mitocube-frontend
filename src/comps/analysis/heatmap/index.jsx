@@ -50,15 +50,16 @@ function DatasetHeatmap() {
         <div>
             <h2>Hierarchical Clustering</h2>
             <h3>Settings</h3>
-            <span>Select an annotation to subset the data.</span>
-            <div>
-                <span>Select a condition application attribute to perform the statistical analysis. By default the all attributes are considered.</span>
-                {sample_ca_attribute_tags.length > 1 ? <AttributeSelection
+            
+            
+                {sample_ca_attribute_tags.length > 1 ? <div>
+                <span>Select a condition application attribute to perform the statistical analysis. By default the all attributes are considered.</span><AttributeSelection
                     attribute_tags={sample_ca_attribute_tags}
                     selected={testProps.selected_ca_attribute_tags}
-                    onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> : null}
-                </div>
-             <div className="flex flex-column">
+                    onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> </div>: null}
+                
+            <div className="flex flex-column">
+                <span>Select an annotation to subset the data.</span>
                 <AnnotationSelectionMenu
                     placeholder={testProps.selected_annotation_tags.length === 0? "Select annotations" : `${testProps.selected_annotation_tags.length} selected`}
                     onSelection={handleAnnotationSelection}

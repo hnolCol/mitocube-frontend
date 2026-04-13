@@ -82,7 +82,7 @@ export function SubmissionExclusivelyQuantified() {
 
         {_.isArray(ca_attributes) && _.isArray(exclusivelyQuantified) ? <div>
             
-            <div style={{ display: "grid", gridTemplateColumns: `150px ${_.join(_.map(ca_attributes, (attribute_tag) => '200px'), " ")}` }}>
+            <div style={{ display: "grid", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '250px'), " ")}` }}>
 
                 <div style={{ gridColumn: "1", border: "0.5px solid black"}}>Protein Group</div>
                 {ca_attributes.map((attribute_tag, idx) => <div key={attribute_tag} style={{ gridColumn: idx + 2, border: "0.5px solid black", width : "100%" }} className="flex flex-column center-items">
@@ -93,17 +93,18 @@ export function SubmissionExclusivelyQuantified() {
             </div>
 
             
-            <div style={{ display: "grid", overflowY : "scroll", height : "80vh", gridTemplateColumns: `150px ${_.join(_.map(ca_attributes, (attribute_tag) => '200px'), " ")}` }}>
+            <div style={{ display: "grid", alignContent: "start", overflowY : "scroll", height : "75vh", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '250px'), " ")}` }}>
             {_.isArray(exclusivelyQuantified) && exclusivelyQuantified.map((protein_group, idx) => {
-                return <div key={protein_group.tag} style={{ display: "contents" }}>
-                    <div style={{
+                return <div key={protein_group.tag} style={{
                         gridRow: idx + 2,
                         gridColumn: "1",
                         border: "0.5px solid black",
-                        paddingLeft: "0.5rem"
+                        paddingLeft: "0.5rem",
+                        
                     }}>
-                        <ProteinGroup tag={protein_group.tag} minimal={true} redirect_to_protein_site={false} /></div>
+                    <ProteinGroup tag={protein_group.tag} minimal={true} redirect_to_protein_site={false} />
                 </div>
+                
             })}
 
 

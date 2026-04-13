@@ -4,7 +4,7 @@ import { useState } from "react";
 import { copyTextToClipboard } from "../../../services/clipboard";
 import { HIGHLIGHT_COLOR } from "../../core/colors/colorPalette";
 
-export function SubmissionTag({ submission_tag }) { 
+export function SubmissionTag({ submission_tag, fontColor = "#000000" }) { 
     const [copied, setCopied] = useState(false);
 
     const handleCopy = async () => {
@@ -26,7 +26,7 @@ export function SubmissionTag({ submission_tag }) {
         >
             <div>
                 <h4>Tag</h4>
-                {!copied ? <div>{submission_tag}</div> : null}
+                {!copied ? <div style={{ color: fontColor }}>{submission_tag}</div> : null}
             {copied && (
                 <span
                     style={{

@@ -22,6 +22,7 @@ import { ProteinOverview } from "./ProteinOverview"
 
 import { ProteinCorrelation } from "../../correlation"
 import { ProteinSubmissionRanking } from "../../data/ProteinSubmissionRanking"
+import { ProteinHelp } from "./ProteinHelp"
 
 
 function MetaDataDrawer({ dataset_label, isOpen, setIsOpen }) {
@@ -98,7 +99,8 @@ export function ProteinPage() {
         { tag: "correlation", text: "Correlation" },
         { tag: "abundance", text: "Abundance" },
         { tag: "literature", text: "Literature (AI)" },
-        { tag: "publications", text: "Publications" }];
+        { tag: "publications", text: "Publications" },
+        {tag : "documentation", text : "Documentation"}];
     
     const viewParam = searchParams.get("view");
     const selectedView = viewParam && viewOptions.some(o => o.tag === viewParam) ? viewParam : viewOptions[0].tag;
@@ -134,7 +136,8 @@ export function ProteinPage() {
             {selectedView === "correlation" ? < ProteinCorrelation tag={feature_tag} /> : null }
 
             {selectedView == "literature" ? <div style={{paddingLeft : "3rem", paddingRight : "3rem"}}><OpenAiPublicationSummary feature_tag={feature_tag} /></div> : null }
-            {selectedView === "abundance" ? <ProteinAbundance tag={feature_tag} /> : null }
+                {selectedView === "abundance" ? <ProteinAbundance tag={feature_tag} /> : null}
+                {selectedView === "documentation" ? <ProteinHelp /> : null  }
             </div>
             {/* <BoxplotWithValue/>
             <div> Color : </div>

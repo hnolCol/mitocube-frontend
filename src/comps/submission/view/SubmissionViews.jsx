@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 
 
-export function SubmissionViews({ submission_tag }) {
+export function SubmissionViews({ submission_tag, fontColor = "#000000" }) {
     const { data: views } = hooks.submissions.views.useGetSubmissionViews({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
     return (
@@ -16,7 +16,7 @@ export function SubmissionViews({ submission_tag }) {
         >
             <div>
                 <h4>Views</h4>
-                <div>{views}</div>
+                <div style={{ color: fontColor }}>{views}</div>
             </div>
         </motion.button>
     );
