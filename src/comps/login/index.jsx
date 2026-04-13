@@ -29,9 +29,17 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
     const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
     const [userLoginResponse, setUserLoginResponse] = useState({success : false, token : "", msg : ""})
     const {
+        data : loginData,
+        isSuccess: loginIsSuccess,
         isError: loginIsError,
         error: loginError,
-        refetch: handleLoginAttempt } = useLoginUser(userInput, { enabled: false, onSuccess : (data) => setUserLoginResponse(data)})
+        refetch: handleLoginAttempt } = useLoginUser(userInput, {
+            enabled: false
+        })
+    
+    useEffect(() => {
+        if (loginIsSuccess) setUserLoginResponse(loginData)
+    },[loginIsSuccess])
 
     const {
         data: verifiedToken,

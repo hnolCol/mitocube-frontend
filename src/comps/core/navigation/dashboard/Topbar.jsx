@@ -4,7 +4,6 @@ import UserDashboardIcon from "../../svg/icons/dashboard/User"
 import BasicMenu from "../../menu"
 import { openInNewTab } from "../../../../services/tabs/newtab"
 import { Header } from "../../base/Header"
-import { useGetBackendInfo } from "../../../../hooks/queries/welcome.hooks"
 import _ from "lodash"
 import { BaseDialog } from "../dialogs/BaseDialog"
 import { useState } from "react"
@@ -23,7 +22,7 @@ import hooks from "@mitocube/api-hooks"
 function Topbar({authenticationStatus,logout, user_tag}) {
 
     const [dialogProps, setDialogProps] = useState({isOpen : false})
-    const { isSuccess: backendInfoIsSucces, data: backendInfo } = useGetBackendInfo({},{enabled: authenticationStatus.isAuth, staleTime : Infinity})
+    const { isSuccess: backendInfoIsSucces, data: backendInfo } = hooks.info.useGetBackendInfo({},{staleTime : Infinity})
 
     const { data : userRole } =  hooks.users.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const { data : user, isSuccess} = hooks.users.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})

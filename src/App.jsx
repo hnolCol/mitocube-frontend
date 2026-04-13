@@ -134,7 +134,6 @@ function App() {
       enabled: _.isString(tokenFromStorage.token) && !authenticationStatus.isAuth,
     }
     );
-  
 
   useEffect(() => {
     // Check for token in local storage and validate if present
