@@ -16,7 +16,7 @@ import { motion } from "framer-motion"
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette"
 import { Cell, Column, ColumnHeaderCell, EditableName, Table2 } from "@blueprintjs/table"
 import { AnnotationSelectionMenu } from "../annotations/AnnotationSelectionMenu"
-
+import { api } from "@/api"
 
 CAGroupSelection.propTypes = {
     ca_tags : PropTypes.arrayOf(PropTypes.string).isRequired
@@ -24,7 +24,7 @@ CAGroupSelection.propTypes = {
 
 
 function AttributeColumn({ columnIndex, attribute_tag }) { 
-    const { data: attribute } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
     return <span style={{textWrap : "pretty"}}>{_.isObject(attribute) ? attribute.text : "..."}</span>
 }
 

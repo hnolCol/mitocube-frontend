@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Dialog, Tag } from "@blueprintjs/core"
 import PropTypes from "prop-types"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import APIError from "../../core/error/APIerror"
 
 EditTraitDialog.propTypes = {
@@ -26,7 +26,7 @@ export function EditTraitDialog({
     })
 
     const { mutate: updateTrait, isLoading, isError, error } =
-        hooks.traits.useUpdateTrait()
+        api.traits.modifyTraits.useUpdateTrait()
 
     useEffect(() => {
         if (isOpen && trait) {

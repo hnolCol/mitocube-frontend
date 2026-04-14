@@ -1,6 +1,5 @@
 import { useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
-import hooks from "@mitocube/api-hooks"
 import { AttributeGroupSelection } from "./Groups"
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 import _ from "lodash"
@@ -8,12 +7,12 @@ import { AttributeCount } from "./Count"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { AttributeContainer } from "./AttributeContainer"
 
-
+import { api } from "@/api"
 
 
 export function AttributeQueryContainer({ search_string, limit = 50, attribute_groups = [] }) {
 
-    const { data: attribute_tags, isError, isFetching } = hooks.attributes_query.useGetAttributesByQuery({
+    const { data: attribute_tags, isError, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery({
         search_string,
         limit: limit === Infinity ? 1E5 : limit,
         include_traits: false,

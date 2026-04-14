@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { motion } from "framer-motion"
 import PropTypes from "prop-types"
@@ -20,20 +20,20 @@ export function TraitItem({ tag, attribute_tag }) {
     const [errorMessage, setErrorMessage] = useState(null)
     const queryClient = useQueryClient()
 
-    const { data: trait, isSuccess } = hooks.traits.useGetTraitByTag(
+    const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag(
         { tag },
         { enabled: !!tag }
     )
 
     const { data: permissions, isSuccess: permissionsLoaded } =
-    hooks.traits.useGetTraitPermissions()
+    api.traits.queryTraits.useGetTraitPermissions()
 
     const canEdit = permissionsLoaded && permissions?.edit
     const canDelete = permissionsLoaded && permissions?.delete
     const showActions = canEdit || canDelete
 
     const { mutate: deleteTrait, isLoading: isDeleting } =
-        hooks.traits.useDeleteTrait({
+        api.traits.modifyTraits.useDeleteTrait({
             onSuccess: () => {
                 setConfirmOpen(false)
                 queryClient.invalidateQueries(["traitsByTag", attribute_tag])

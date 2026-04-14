@@ -3,14 +3,14 @@ import { useState } from "react";
 import { Button } from "@blueprintjs/core";
 import "./style.css"
 
-import hooks from "@mitocube/api-hooks"
 import useDebounce from "../../../../hooks/useDebounce";
 import { AttributeWithTraitsMenuItem } from "./DatasetAttributeInput";
 import _ from "lodash"
 import { getRandomID } from "../../../../services/random"
+import { api } from "@/api";
 
 function TraitTag({ tag }) {
-    const { data: trait , isSuccess} = hooks.traits.useGetTraitByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: trait , isSuccess} = api.traits.queryTraits.useGetTraitByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     
     return <span>{isSuccess && _.isString(trait.tag)?trait.text:""}</span>
 }
@@ -26,8 +26,8 @@ function TraitTag({ tag }) {
 export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 2)
-    const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({tag : attribute_tag})
-    const { data: trait_tags, isError, isLoading, isFetching } = hooks.traits.useGetTraitBySearchString({
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag})
+    const { data: trait_tags, isError, isLoading, isFetching } = api.traits.queryTraits.useGetTraitBySearchString({
         search_string: debouncedString,
         attribute_tag,
         limit: 20

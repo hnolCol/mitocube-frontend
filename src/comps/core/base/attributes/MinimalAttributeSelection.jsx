@@ -7,6 +7,7 @@ import _ from "lodash"
 import { AttributeMenuItem } from "../../input/api/AttributeInput"
 import hooks from "@mitocube/api-hooks"
 import { Attribute } from "./Attribute"
+import { api } from "@/api"
 
 MinimalAttributeSelection.propTypes = {
     onAttributeSelect: PropTypes.func.isRequired,
@@ -31,7 +32,7 @@ export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, se
     const [query, setQuery] = useState()
     const debouncedQuery = useDebounce(query, debounce)
 
-    const { data: attribute_tags,isSuccess } = hooks.attributes_query.useGetAttributesByQuery({search_string : debouncedQuery, include_traits : false, limit : 30}) 
+    const { data: attribute_tags,isSuccess } = api.attributes.queryAttributes.useGetAttributesByQuery({search_string : debouncedQuery, include_traits : false, limit : 30}) 
     
     /**
      * 

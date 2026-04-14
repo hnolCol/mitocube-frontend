@@ -2,10 +2,11 @@ import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import { StateIndicator } from "../../core/base/states/SubmssionState"
 import PropTypes from "prop-types";
+import { api } from "@/api"
 
 export function AttributeMinState({ tag }) {
    
-    const { data: min_state, isSuccess } = hooks.attributes.useGetAttributeMinState({ tag }, { enabled: tag && tag.length > 0 });
+    const { data: min_state, isSuccess } = api.attributes.queryAttributes.useGetAttributeMinState({ tag }, { enabled: tag && tag.length > 0 });
     const { data: state_color } = hooks.states.useGetStateColor({ tag: min_state }, { enabled: _.isNumber(min_state) && isSuccess , staleTime : Infinity});
     
     return (

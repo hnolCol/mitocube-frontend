@@ -5,7 +5,7 @@ import { useState } from "react";
 import useDebounce from "../../../../hooks/useDebounce";
 import { Button, MenuItem } from "@blueprintjs/core";
 import PropTypes from "prop-types";
-
+import { api } from "@/api";
 
 
 /**
@@ -17,7 +17,7 @@ import PropTypes from "prop-types";
  */
 export function AttributeMenuItem({ tag, menuItemProps, onItemSelect, selected = false}) {
 
-    const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({ tag })
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag })
 
     if (!isSuccess) return null 
 
@@ -62,7 +62,7 @@ export function AttributeInput({ text, min_state, attribute_group, onItemSelect,
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 50)
     
-    const { data: attribute_tags, isError, isLoading, isFetching } = hooks.attributes_query.useGetAttributesByQuery({
+    const { data: attribute_tags, isError, isLoading, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery({
         search_string: debouncedString,
         min_state,
         attribute_group,

@@ -9,6 +9,7 @@ import { isHexColorLight } from "../../../../services/colors"
 import { RemoveButton } from '../buttons/RemoveButton'
 import PropTypes from 'prop-types'
 
+import { api } from "@/api";
 import hooks from "@mitocube/api-hooks"
 import { TraitInput } from '../../input/api/TraitInput'
 import { MinimalTextInput } from '../../input/MinimalTextInput'
@@ -73,10 +74,10 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
 
     const [childTrait, setChildTrait] = useState(undefined) 
 
-    const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag)})
-    const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = hooks.attributes.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess })
-    const {data : children, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
-    const {data : traitCount, isSuccess : isSuccessTraitCount} = hooks.traits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag)})
+    const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = api.attributes.queryAttributes.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess })
+    const {data : children, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
+    const {data : traitCount, isSuccess : isSuccessTraitCount} = api.traits.queryTraits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
 
     const attributeHasTraits = isSuccessTraitCount && traitCount > 0
     let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }])
@@ -242,8 +243,8 @@ export function TraitWithValueInput({
         checkAttributeRequiredTraits,
         sel }) {
     
-    const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = hooks.traits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag), staleTime: Infinity})
-    const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = hooks.attributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && traitIsSuccess})
+    const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = api.traits.queryTraits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag), staleTime: Infinity})
+    const {data : children, isLoading : childrenIsLoading, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && traitIsSuccess})
     const hasChildren = childrenIsSuccess && _.isArray(children) && children.length > 0
     //handle colors 
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"

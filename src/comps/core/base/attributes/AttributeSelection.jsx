@@ -3,7 +3,8 @@ import { AttributeMenuItem } from "../../input/api/AttributeInput";
 import { Button } from "@blueprintjs/core";
 import PropTypes from "prop-types";
 import _ from "lodash";
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
+
 AttributeSelection.propTypes = {
     attribute_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
     selected: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -16,7 +17,7 @@ AttributeSelection.defaultProps = {
 }
 
 export function AttributeButton({ tag }) {
-    const { data: attribute } = hooks.attributes.useGetAttribute({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
     return <button className="basic-button"> {_.isObject(attribute) ? attribute.text : "Select Attribute"} </button>
 }

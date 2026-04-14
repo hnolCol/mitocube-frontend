@@ -8,7 +8,6 @@ import { Protein } from "../protein/Protein";
 import { GenotypeText } from "../../../admin/genotypes/GentotypeText";
 import { api } from "@/api";
 
-
 /**
  * @description Component to display individual condition application item.
  * @param {Object} props 
@@ -23,8 +22,8 @@ import { api } from "@/api";
  */
 export function ConditionApplicationItem({ attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false }) { 
    
-    const { data: trait_text } = hooks.traits.useGetTraitText({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity });
-    const { data: attribute } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    const { data: trait_text } = api.traits.queryTraits.useGetTraitText({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity });
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
     const is_protein = _.isObject(attribute) && attribute.tag=== "att_protein"
     return (
         <div className="flex" style={{ gap: "0.1rem" }}>

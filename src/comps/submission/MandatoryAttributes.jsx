@@ -1,14 +1,14 @@
 import _, { find } from "lodash"
 import { TraitsInput } from "../core/input/api/TraitsInput"
 import Loading from "../core/base/loading"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 export function MandatoryAttributes({ onAttributeValueSelect, submission_state = 0, getSelectionByPath, findPath}) {
     
     const {
         data: attribute_tags,
         isLoading,
-        isFetching } = hooks.attributes.groups.useGetAttributeByGroup({ tag: "mandatory", min_state: submission_state })
+        isFetching } = api.attributes.queryAttributes.useGetAttributeByGroup({ tag: "mandatory", min_state: submission_state })
     return (
         <div>
             {isLoading || isFetching ? <Loading /> :
