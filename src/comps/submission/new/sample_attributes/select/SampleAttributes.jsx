@@ -10,7 +10,7 @@ import { AttributeContextMenuSearch } from "./menu/AttributeMenu"
 import { GenotypeContextMenu } from "./menu/GenotypeMenu"
 import { TraitWithValueInput } from "../../../../core/base/tags/TagWithTooltip"
 
-
+import { api } from "@/api"
 import hooks from "@mitocube/api-hooks"
 import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
@@ -29,7 +29,7 @@ function AttributeSelectionHeader({
     onSampleAttributeSelect,
     disabled = false }) {
    
-    const {data : attribute} = hooks.attributes.useGetAttribute({tag : selected_attribute_tag},{enabled : _.isString(selected_attribute_tag)})
+    const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : _.isString(selected_attribute_tag)})
     const attributeSelected = _.isObject(attribute) && _.has(attribute,"text")
     return (
         <div style={{marginRight : "2rem"}}>

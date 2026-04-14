@@ -6,9 +6,7 @@ import "./style.css"
 import { Select } from "@blueprintjs/select"
 import { filterArrayBySearchStringBySingleKey } from "../../../../../services/arrays/filter"
 import { isItemInArrayDeepComp } from "../../../../../services/arrays/transforms"
-
-
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 /**
  * 
@@ -22,7 +20,7 @@ import hooks from "@mitocube/api-hooks"
  */
 function AttributeMenuItem({ attribute_tag, handleClick, active = false, selected = false, disabled = false }) {
 
-    const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
     return (
     <div>
             {isSuccess ? <MenuItem

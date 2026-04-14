@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+
 import _ from "lodash"
 import { useParams, useNavigate } from "react-router"
 import { Button, Code, Intent } from "@blueprintjs/core"
@@ -9,6 +9,7 @@ import APIError from "../../core/error/APIerror"
 import { AttributeMinState } from "./AttributeMinState"
 import { TraitItem } from "./TraitItem"
 import { InsertTraitDialog } from "./InsertTraitDialog"
+import { api } from "@/api"
 
 export function AttributeDetailView() {
     const { tag } = useParams()
@@ -21,14 +22,14 @@ export function AttributeDetailView() {
         isLoading: attributeLoading,
         isError: attributeIsError,
         error: attributeError,
-    } = hooks.attributes.useGetAttribute({ tag }, { enabled: !!tag })
+    } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: !!tag })
 
     const {
         data: trait_tags,
         isLoading: traitsLoading,
         isError: traitsIsError,
         error: traitsError,
-    } = hooks.traits.useGetTraitsByAttributeTag(
+    } = api.traits.queryTraits.useGetTraitsByAttributeTag(
         { tag },
         { enabled: !!tag, staleTime: 0 }
     )

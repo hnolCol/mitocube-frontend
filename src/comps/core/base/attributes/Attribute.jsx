@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
-import hooks from "@mitocube/api-hooks"
-
+import {api} from "@/api"
 
 
 Attribute.propTypes = {
@@ -14,7 +13,7 @@ Attribute.propTypes = {
  * @returns 
  */
 export function Attribute({ attribute_tag }) {
-    const {data : attribute, isSuccess } = hooks.attributes.useGetAttribute({tag : attribute_tag})
+    const {data : attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag})
     return (<div
         style={{ fontSize: "0.75rem" }} 
         className="flex center-items padding--tiny cursor--default div--round margin-right--tiny">

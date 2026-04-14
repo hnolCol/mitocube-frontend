@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Dialog, Tag } from "@blueprintjs/core"
 import PropTypes from "prop-types"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import APIError from "../../core/error/APIerror"
 
 InsertTraitDialog.propTypes = {
@@ -22,7 +22,7 @@ export function InsertTraitDialog({
     const [trait, setTrait] = useState(INITIAL_TRAIT)
 
     const { mutate: postTrait, isLoading, isError, error } =
-        hooks.traits.usePostTrait()
+        api.traits.modifyTraits.usePostTrait()
 
     useEffect(() => {
         if (isOpen) setTrait(INITIAL_TRAIT)

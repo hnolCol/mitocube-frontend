@@ -5,7 +5,7 @@ import TextInput from "../../../../../core/input/Text"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import useDebounce from "../../../../../../hooks/useDebounce"
 
 export function AttributeContextMenuSearch({ attribute_tag,
@@ -20,7 +20,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
 
     const debouncedString = useDebounce(searchString,30)
     
-    const { data : trait_tags, isLoading, isSuccess, isFetching } = hooks.traits.useGetTraitBySearchString({search_string : debouncedString, limit : 30, attribute_tag})
+    const { data : trait_tags, isLoading, isSuccess, isFetching } = api.traits.queryTraits.useGetTraitBySearchString({search_string : debouncedString, limit : 30, attribute_tag})
     
     
 

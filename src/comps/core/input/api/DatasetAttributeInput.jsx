@@ -12,6 +12,7 @@ import useDebounce from "../../../../hooks/useDebounce";
 import { TraitMenuItem } from "../items/AttributeValueMenu";
 
 import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 /**
  * 
@@ -23,7 +24,7 @@ import hooks from "@mitocube/api-hooks"
  * @returns 
  */
 export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits }) {
-    const { data: attribute, isLoading, isSuccess } = hooks.attributes.useGetAttribute({ tag }, {enabled : _.isArray(trait_tags) && trait_tags.length > 0})
+    const { data: attribute, isLoading, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, {enabled : _.isArray(trait_tags) && trait_tags.length > 0})
     return <div>
         {isSuccess ? <div className="menu_item_header"> {attribute.text }</div>: null}
         {_.isArray(trait_tags) ? trait_tags.map(trait_tag => {
@@ -81,7 +82,7 @@ export function AttributesInput({
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
     const [itemsLoaded, setItemsLoaded] = useState(false)
-    const { data: queried_attributes, isLoading, isFetching } = hooks.attributes_query.useGetAttributesByQuery(
+    const { data: queried_attributes, isLoading, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery(
         {
             search_string: debouncedSearchString,
             limit: 50,

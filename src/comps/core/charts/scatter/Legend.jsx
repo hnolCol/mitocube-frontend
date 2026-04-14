@@ -4,6 +4,7 @@ import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
 import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 function ConditionApplicationLegendLabel({ tag, handleTooltip, hideTooltip }) {
 
@@ -74,8 +75,8 @@ const ScatterLegend = React.memo(
         } = useTooltip();
 
 
-    const { data: colorAttribute } = hooks.attributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute, staleTime: Infinity })
-    const { data: sizeAttribute } = hooks.attributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute, staleTime: Infinity })
+    const { data: colorAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute, staleTime: Infinity })
+    const { data: sizeAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute, staleTime: Infinity })
 
 
     console.log(colorAttribute, colorNameIsAttribute, colorName)

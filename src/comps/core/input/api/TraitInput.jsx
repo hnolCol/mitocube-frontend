@@ -1,5 +1,5 @@
 import { Suggest, Select} from "@blueprintjs/select";
-import  hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { useEffect, useState } from "react";
 import useDebounce from "../../../../hooks/useDebounce";
@@ -16,7 +16,7 @@ import { Button, Menu, MenuItem } from "@blueprintjs/core";
  */
 function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem" }) {
 
-    const { data: trait, isSuccess } = hooks.traits.useGetTraitByTag({ tag } , { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag({ tag } , { enabled: _.isString(tag), staleTime: Infinity })
 
     if (!isSuccess) return null 
 
@@ -45,7 +45,7 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 30)
     
-    const { data: traits, isError, isLoading, isSuccess } = hooks.traits.useGetTraitBySearchString({ search_string: debouncedString, attribute_tag, limit: 50 }, {
+    const { data: traits, isError, isLoading, isSuccess } = api.traits.queryTraits.useGetTraitBySearchString({ search_string: debouncedString, attribute_tag, limit: 50 }, {
         enabled: _.isString(attribute_tag)
     })
 

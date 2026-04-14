@@ -3,7 +3,7 @@ import { isHexColorLight } from "../../../../services/checks/color"
 import _ from "lodash"
 import { motion } from "framer-motion"
 import { Popover } from "@blueprintjs/core"
-
+import { api } from "@/api";
 
 import hooks from "@mitocube/api-hooks"
 
@@ -51,8 +51,8 @@ export function StaticTrait({
 }) {
 
     
-    const { data: attribute, isSuccess } =  hooks.attributes.useGetAttribute(({ tag: attribute_tag }))
-    const { data : trait, isSuccess : traitIsSuccess} = hooks.traits.useGetTraitByTag({tag : trait_tag})
+    const { data: attribute, isSuccess } =  api.attributes.queryAttributes.useGetAttribute(({ tag: attribute_tag }))
+    const { data : trait, isSuccess : traitIsSuccess} = api.traits.queryTraits.useGetTraitByTag({tag : trait_tag})
     //handle colors
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"

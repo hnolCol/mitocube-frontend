@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash" 
 import { motion } from "framer-motion"
 import PropTypes from "prop-types";
@@ -23,7 +23,7 @@ AdminAttributeItem.propTypes = {
 export function AdminAttributeItem({ tag }) {
     const redirect = useNavigate()
     const [mouseIsOver, setMouseIsOver] = useState(false)
-    const { data: attribute, isSuccess } = hooks.attributes.useGetAttribute({ tag }, { enabled: tag && tag.length > 0 });
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: tag && tag.length > 0 });
     return (
         <motion.button
             className="items-center"

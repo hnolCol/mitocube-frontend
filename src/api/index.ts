@@ -11,8 +11,17 @@ import { newsAPI } from "./news";
 import { usersViewsAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
+import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
 
 export const api = {
+    attributes : { 
+        queryAttributes : attributesQueryAPI,
+        modifyAttributes : attributesModifyAPI
+    },
+    traits : {
+        queryTraits : traitsQueryAPI,
+        modifyTraits : traitsModifyAPI
+    },
     submissions: {
         core : submissionCoreAPI,
         title : submissionTitleAPI,

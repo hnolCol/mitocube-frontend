@@ -1,6 +1,6 @@
-import hooks from "@mitocube/api-hooks";
 import _ from "lodash";
 import PropTypes from "prop-types";
+import { api } from "@/api"
 
 
 const AMINO_ACIDS = new Set(["A", "R", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"])
@@ -67,7 +67,7 @@ export function MinimalTextInput({
     allowAminoAcidsOnly,
     allowDNAOnly
 }) {
-    const { data: suffixTrait } = hooks.traits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
+    const { data: suffixTrait } = api.traits.queryTraits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
 
     const handleValueChange = (e) => {
         const newValue = e.target.value;

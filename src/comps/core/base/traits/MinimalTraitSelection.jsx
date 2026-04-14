@@ -1,6 +1,6 @@
 import { Combobox } from "../../input/Combobox"
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 /**
  * 
@@ -10,7 +10,7 @@ import hooks from "@mitocube/api-hooks"
  * @returns 
  */
 export function MinimalTraitSelection({attribute_tag, onChange, selected_traits}) {
-    const { data : traits, isLoading, isFetching} = hooks.traits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0})
+    const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0})
 
     if (isLoading || isFetching) return null 
     return <div>

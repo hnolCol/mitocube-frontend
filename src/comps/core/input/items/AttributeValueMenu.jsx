@@ -1,6 +1,6 @@
 import "../api/style.css"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { getRandomID } from "../../../../services/random"
 
 
@@ -13,7 +13,7 @@ import { getRandomID } from "../../../../services/random"
  * @param {Boolean} props.selected  
  */
 export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, selected = false }) {
-    const { data: trait, isSuccess } = hooks.traits.useGetTraitByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
     return (
     <div>
