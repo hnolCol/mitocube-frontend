@@ -4,29 +4,11 @@ import { getAxisStrokeColor } from "../../colors/colorPalette"
 import AxisBackground from "../background"
 import _ from "lodash"
 import React from "react"
-import hooks from "@mitocube/api-hooks"
-import { getConditionApplicationText } from "./ConditionApplicationString"
 import { Text } from "@visx/text"
+import { api } from "@/api"
 
 function ConditionApplicationLabel({ x, y, tag, tickProps }) {
-    const ca_tags = _.split(tag, ";");
-    const text = tag
-
-
-    const { data : condition_application_text } =  hooks.condition_applications.useGetConditionApplicationText({ tag }, { enabled: !!tag })
-    // // Fetch all condition applications for all tags at once
-    // const results = ca_tags.map(ca_tag =>
-    //     hooks.condition_applications.useGetConditionApplication(
-    //         { tag: ca_tag },
-    //         { enabled: !!ca_tag }
-    //     )
-    // );
-
-    // const text = results.map(({ data: condition_applications }) =>
-    //     getConditionApplicationText({ condition_applications })
-    // );
-
-    // console.log(text)
+    const { data : condition_application_text } =  api.condition_applications.useGetConditionApplicationText({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
 
     return (
         <Text

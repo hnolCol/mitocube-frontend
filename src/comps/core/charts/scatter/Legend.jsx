@@ -5,10 +5,12 @@ import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
 import hooks from "@mitocube/api-hooks"
 import { api } from "@/api";
+import { api } from "@/api"
+
 
 function ConditionApplicationLegendLabel({ tag, handleTooltip, hideTooltip }) {
 
-    const { data: conditionApplicationText } = hooks.condition_applications.useGetConditionApplicationText({ tag }, { enabled: _.isString(tag) })
+    const { data: conditionApplicationText } = api.condition_applications.useGetConditionApplicationText({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
 
     return (
         <LegendLabel align="left" margin={"0 0px"} onMouseEnter={(e) => handleTooltip(e, tag)} onMouseLeave={hideTooltip}>

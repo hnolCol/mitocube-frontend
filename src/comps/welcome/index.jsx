@@ -4,12 +4,11 @@ import _ from "lodash"
 import { NewsView } from "./News"
 import { LastViewed } from "./Views"
 
-import hooks from "@mitocube/api-hooks"
-
+import { api } from "@/api"
 
 function Welcome() {
 
-    const { isLoading: backendInfoLoading, data: backendInfo } = hooks.info.useGetBackendInfo({staleTime : Infinity})
+    const { isLoading: backendInfoLoading, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
 
     return (
         <div className="flex flex-column center-items div--expand">

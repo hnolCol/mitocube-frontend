@@ -1,11 +1,9 @@
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
-
-
+import { api } from "@/api"
 
 export function ConditionApplicationInput({ }) {
 
-    hooks.condition_applications.useGetConditionApplicationByQuery({search_string: ""}, { enabled: false })
+    api.condition_applications.useGetConditionApplicationByQuery({search_string: ""}, { enabled: false })
 
     return <div></div>
 }
