@@ -11,6 +11,8 @@ import { newsAPI } from "./news";
 import { usersViewsAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
+import { backendInfoAPI } from "./info";
+import { conditionApplicationAPI } from "./condition_applications";
 
 export const api = {
     submissions: {
@@ -24,10 +26,14 @@ export const api = {
         login: userLogin,
         token: tokenAuthentication
     },
+    condition_applications: conditionApplicationAPI,
     news: newsAPI,
     users: {
         views : usersViewsAPI
     },
     metatexts: metatextAPI,
-    states : stateAPI
+    states: stateAPI,
+    info: { 
+        backend : backendInfoAPI
+    }
 };
