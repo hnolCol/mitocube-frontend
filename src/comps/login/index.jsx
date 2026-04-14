@@ -4,13 +4,13 @@ import { Header } from "../core/base/Header"
 
 import { useEffect, useState } from "react"
 import { useNavigate} from "react-router-dom"
-import { useLoginUser  } from "../../hooks/queries/login.hooks"
 import APIError from "../core/error/APIerror"
 import axios from "axios"
 import _ from "lodash"
 import { checkBasicEmailPattern } from "../../services/checks/email"
 import { saveInLocalStorage } from "../../services/localstorage"
-import hooks from "@mitocube/api-hooks"
+import { api } from "../../api"
+
 
 Login.propTypes = {
     setAuthenticationStatus: PropTypes.func.isRequired,
@@ -28,16 +28,23 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
     const redirect = useNavigate()
     const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
     const [userLoginResponse, setUserLoginResponse] = useState({success : false, token : "", msg : ""})
+    
+    
+    
     const {
         data : loginData,
         isSuccess: loginIsSuccess,
         isError: loginIsError,
         error: loginError,
-        refetch: handleLoginAttempt } = useLoginUser(userInput, {
+        refetch: handleLoginAttempt } = api.authentication.login.useLoginUser(userInput, {
             enabled: false
         })
     
-    console.log(loginData, "LOGIN DATA")
+    
+    console.log(loginData, "login data")
+    
+    
+    
     
     useEffect(() => {
         if (loginIsSuccess) setUserLoginResponse(loginData)
@@ -50,19 +57,20 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
         error: verfiyTokenError,
         isFetching: verifyTokenIsFetching,
         isLoading: verifyTokenIsLoading,
-        refetch: verifyToken } = hooks.authorization.token.useVerifyToken({verificationCode: userInput.verificationCode, tokenString : userLoginResponse.token},{enabled : false})
+        refetch: verifyToken } = api.authentication.token.useVerifyToken({verificationCode: userInput.verificationCode, tokenString : userLoginResponse.token},{enabled : false})
     
     
     useEffect(() => {
        
         if (verifyTokenIsSuccess && verifiedToken.success) {
+            console.log(verifiedToken,"VERIFIED TOKEN")
+            saveInLocalStorage({itemName : "token", itemValue : verifiedToken.token})
             setAuthenticationStatus({
                 isAuth: verifiedToken.verified,
                 token: verifiedToken.token,
                 tag : verifiedToken.tag
             })
-            saveInLocalStorage({itemName : "token", itemValue : verifiedToken.token})
-            // axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
+            axios.defaults.headers.common['Authorization'] = `Bearer ${verifiedToken.token}`;
             if (redirectedFrom === "/") {
                 redirect("/index")
             }

@@ -8,8 +8,8 @@ import hooks from "@mitocube/api-hooks"
 
 
 function Welcome() {
-    
-    const { isLoading: backendInfoLoading, data: backendInfo } = hooks.info.useGetBackendInfo({},{staleTime : Infinity})
+
+    const { isLoading: backendInfoLoading, data: backendInfo } = hooks.info.useGetBackendInfo({staleTime : Infinity})
 
     return (
         <div className="flex flex-column center-items div--expand">
@@ -17,7 +17,7 @@ function Welcome() {
                 {backendInfoLoading || !_.isObject(backendInfo) ? null : `Welcome to ${backendInfo.app_name}`}
             </div>
             <div>
-                <p>{backendInfoLoading || !_.isObject(backendInfo) && _.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
+                <p>{backendInfoLoading || !_.isObject(backendInfo) || !_.isString(backendInfo.app_description)? null : `${backendInfo.app_description}`}</p>
             </div>
             <KeyFigure />
             <div>

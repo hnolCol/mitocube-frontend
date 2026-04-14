@@ -85,10 +85,15 @@ import {AIPage} from "./comps/ai";
 import { AdminProcedure } from "./comps/admin/procedure/Procedure";
 
 
-import hooks from "@mitocube/api-hooks" 
+
+
 import { SubmissionExclusivelyQuantified } from "./comps/analysis/exclusively";
 /* axios defaults */
-axios.defaults.headers.common["Content-Type"] = "application/json";
+
+import hooks from "@mitocube/api-hooks" 
+
+import { api } from "./api";
+
 
 const initAuthenticationStatus = {
   isAuth: false,
@@ -119,7 +124,6 @@ function App() {
   const redirect = useNavigate();
   const basePathName = location.pathname.split("/")[1];
 
-  // check if token is valid, if a token is found in storage.
   const {
     data: isTokenValid,
     isSuccess: tokenValidSuccess,
@@ -127,7 +131,7 @@ function App() {
     isFetching: tokenValidIsFetching,
     isError: tokenValidIsError,
     error: tokenValidError,
-  } = hooks.authorization.token.useGetTokenValid(
+  } = api.authentication.token.useGetTokenValid(
     { tokenString: tokenFromStorage.token },
     {
       // if a token is found in local storage, then check it only if authenticationStatus.isAuth is not yet true.

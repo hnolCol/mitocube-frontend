@@ -12,6 +12,9 @@ import { MinimalUserIcon } from "../core/base/user"
 import { AddButton } from "../core/base/buttons/AddButton"
 import { RemoveButton } from "../core/base/buttons/RemoveButton"
 import { SubmissionLink } from "../core/links/Submission"
+
+import { api } from "../../api"
+
 /**
  * 
  * @param {Object} props 
@@ -21,11 +24,11 @@ import { SubmissionLink } from "../core/links/Submission"
  */
 export function NewsItem({ news_tag, showDelete = false, onDeleteSuccess = () => {}, onDeleteError = console.log }) {
 
-    const { data: news, isLoading, isFetching, isError, error } = hooks.news.useGetNewsByTag({ tag: news_tag }, {
+    const { data: news, isLoading, isFetching, isError, error } = api.news.useGetNewsByTag({ tag: news_tag }, {
         staleTime: 1000 * 60 * 5,
     }) //5 minutes
 
-    const { mutate : deleteNews } = hooks.news.useDeleteNews()
+    const { mutate : deleteNews } = api.news.useDeleteNews
 
     console.log(news)
 
@@ -80,12 +83,12 @@ export function NewsView() {
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false })
 
-    const { data: news, isLoading, isFetching, isError, error, refetch } = hooks.news.useFindNews({ limit: 5 }, {
+    const { data: news, isLoading, isFetching, isError, error, refetch } = api.news.useFindNews({ limit: 5 }, {
         staleTime: 1000 * 60 * 5,
         placeHolderData: (prev) => prev || []
     }) //5 minutes
 
-    const { data: newsPermissions, isSuccess: permissionIsSuccess } = hooks.news.permissions.useGetNewsPermissions({}, { staleTime: 1000 * 60 * 5 })
+    const { data: newsPermissions, isSuccess: permissionIsSuccess } = api.news.useGetNewsPermissions({}, { staleTime: 1000 * 60 * 5 })
     const permissionLoaded = _.isObject(newsPermissions) && permissionIsSuccess
     return (
         
