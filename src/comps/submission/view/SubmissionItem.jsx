@@ -6,9 +6,11 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 
 
-import hooks from "@mitocube/api-hooks"
 import { SubmissionTitle } from "./SubmissionTitle";
 
+
+
+import { api } from "@/api";
 
 MinimalSubmissionItem.propTypes = {
     tag: PropTypes.string.isRequired
@@ -27,7 +29,7 @@ MinimalSubmissionItem.propTypes = {
  */
 export function MinimalSubmissionItem({ tag, onClick, redirectOnClick = true, showCreatedAt = true }) {
     const redirect = useNavigate()
-    const { data: created_at } = hooks.submissions.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
     return (
         <motion.button style={{ backgroundColor: "#efefef", border: "none" }} whileHover={{ backgroundColor: "#e0e0e0" }}
             onClick={(e) => {

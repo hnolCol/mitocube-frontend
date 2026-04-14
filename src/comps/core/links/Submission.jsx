@@ -1,6 +1,6 @@
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
 import { Link } from "react-router-dom"
+import { api } from "@/api"
 /**
  * Highlights occurrences of search_string in text. Only works on exact matches.
  * @param {Object} props 
@@ -44,7 +44,7 @@ export function HighlightText({ text, search_string }) {
  */
 export function SubmissionLink({ tag, search_string}) {
     
-    const { data : submission_title, isSuccess } = hooks.submissions.title.useGetSubmissionTitle({tag},{enabled : _.isString(tag) && tag.length > 0})
+    const { data : submission_title, isSuccess } = api.submissions.title.useGetSubmissionTitle({tag},{enabled : _.isString(tag) && tag.length > 0})
 
     return <div>
         {isSuccess && _.isString(submission_title) ?

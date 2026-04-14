@@ -1,11 +1,9 @@
 import { Dialog } from "@blueprintjs/core"
 import { useEffect, useState } from "react"
 import PropTypes from "prop-types";
-import { HIGHLIGHT_COLOR } from "../colors/colorPalette";
-import hooks from "@mitocube/api-hooks";
-import _, { set }  from "lodash";
+import _ from "lodash";
 import { MetaTextInput } from "./MetaTextInput";
-
+import { api } from "@/api";
 
 MetaTextDialog.propTypes = {
     submission_tag : PropTypes.string.isRequired,
@@ -39,8 +37,8 @@ MetaTextDialog.defaultProps = {
 export function MetaTextDialog({submission_tag, isOpen = false, tag, title, text, edit, onClose }) {
     const [metatext, setMetatext] = useState({ title: "", text: "", disabled: false });
     
-    const {mutate : postMetatext, isLoading } = hooks.submissions.metatexts.usePostMetatext()
-    const {mutate : patchMetatext, isLoading : isLoadingPatch} = hooks.metatexts.usePatchMetatext()
+    const {mutate : postMetatext, isLoading } = api.submissions.metatexts.usePostMetatext()
+    const {mutate : patchMetatext, isLoading : isLoadingPatch} = api.metatexts.usePatchMetatext()
 
     useEffect(() => {
         if (edit) {

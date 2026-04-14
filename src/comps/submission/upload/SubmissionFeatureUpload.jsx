@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import _ from "lodash"
 import { ProteinQuantificationUploader } from "../../core/base/files/ChunkProteinUploader";
 import { useState } from "react";
+import { api } from "@/api";
 /**
  * Uploads a protein/peptides file to a submission. 
  * @param {*} param0 
@@ -13,7 +14,7 @@ import { useState } from "react";
 export function SubmissionUpload({ submission_tag, feature_type = "protein" }) {
     const [dialogIsOpen, setDialogOpen] = useState(false);
     
-    const { data: permissions, isSuccess } = hooks.submissions.permissions.useGetSubmissionPermissionsByTag({tag : submission_tag}, { staleTime: 60000 });
+    const { data: permissions, isSuccess } = api.submissions.permissions.useGetSubmissionPermissionsByTag({tag : submission_tag}, { staleTime: 60000 });
     
     if (!isSuccess) return null
     if (_.isObject(permissions) && !permissions.upload) return null 

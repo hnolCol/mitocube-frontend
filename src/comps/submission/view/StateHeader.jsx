@@ -2,9 +2,8 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import { isHexColorLight } from "../../../services/colors"
 import { titleFormat } from "../../../services/format/string"
-import hooks from "@mitocube/api-hooks"
 
-
+import { api } from "@/api"
 StateHeader.propTypes = {
     tag: PropTypes.number.isRequired
 }
@@ -21,8 +20,8 @@ StateHeader.propTypes = {
  */
 
 export function StateHeader({ tag }) {
-    const { data: stateName } = hooks.states.useGetStateName({ tag })
-    const { data: stateColor } = hooks.states.useGetStateColor({ tag })
+    const { data: stateName } = api.states.useGetStateName({ tag })
+    const { data: stateColor } = api.states.useGetStateColor({ tag })
     if (!_.isString(stateName) || !_.isString(stateColor)) return null
     return <div className="submission__state__header"
         style={{

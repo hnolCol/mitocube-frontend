@@ -38,7 +38,7 @@ import InitialSubmission from "./comps/submission/new/InitialSubmission";
 import AddExistingSubmission from "./comps/submission/add";
 
 /* Analysis / dataset pages */
-import DatasetHeader from "./comps/analysis";
+import SubmissionAnalysisHeader from "./comps/analysis";
 import SubmissionOverview from "./comps/analysis/overview";
 import DatasetHeatmap from "./comps/analysis/heatmap";
 import DatasetVolcanoPlot from "./comps/analysis/volcano";
@@ -93,6 +93,7 @@ import { SubmissionExclusivelyQuantified } from "./comps/analysis/exclusively";
 import hooks from "@mitocube/api-hooks" 
 
 import { api } from "./api";
+
 
 
 const initAuthenticationStatus = {
@@ -285,7 +286,7 @@ function App() {
             path="/submissions/:tag"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-                <DatasetHeader {...{ authenticationStatus, logout }} />
+                <SubmissionAnalysisHeader {...{ authenticationStatus, logout }} />
               </ProtectedRoute>
             }
           >

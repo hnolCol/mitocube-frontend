@@ -3,13 +3,13 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { isHexColorLight } from "../../../services/colors"
 import { Divider } from "@blueprintjs/core"
-
+import { api } from "@/api"
 import hooks from "@mitocube/api-hooks"
 
 export function StateFilterButton({ tag, setSubmissionFilter, submissionFilter, onHoverStart }) {
 
-    const { data: stateName } = hooks.states.useGetStateName({ tag })
-    const { data: stateColor } = hooks.states.useGetStateColor({ tag })
+    const { data: stateName } = api.states.useGetStateName({ tag })
+    const { data: stateColor } = api.states.useGetStateColor({ tag })
     
     const stateFilterActive = _.has(submissionFilter, "states") && submissionFilter.states.size > 0
     const isStateFilter = stateFilterActive ? submissionFilter.states.has(tag) : false
@@ -47,14 +47,7 @@ export function StateFilterButton({ tag, setSubmissionFilter, submissionFilter, 
             {stateName[0].toUpperCase()}
             {/* {_.isNumber(numberSubmissionWithTag)?` (${numberSubmissionWithTag})`:"" */}
         </div>
-        {/* <motion.div style={{opacity : 0, width : "0rem"}} onAnimationComplete={() => {
-            setIsAnimationPlaying(false)
-            }} animate={divAnimationControls}>
-                <div className="flex center-items" style={{ height: "100%" }}>
-                    <div><Icon icon={isStateFilter ? "filter-remove" : "filter-keep"}/>
-                    </div>
-                </div>
-        </motion.div> */}
+
        
     </motion.button> : null
 

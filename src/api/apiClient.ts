@@ -4,7 +4,6 @@ export function createApiClient({ baseURL, getToken }) {
   const instance = axios.create({
     baseURL,
   });
-  console.log(baseURL,"baseurl")
   // Attach token dynamically on every request
   instance.interceptors.request.use((config) => {
     const token = getToken?.();

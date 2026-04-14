@@ -3,8 +3,8 @@ import { Loading } from "../../core/base/states/Loading"
 import _ from "lodash"
 import { Content, TitleText } from "../../core/metrics/ItemBasics"
 import { useState } from "react"
-import hooks from "@mitocube/api-hooks"
 import { HIGHLIGHT_COLOR } from '../../core/colors/colorPalette'
+import { api } from "@/api"
 
 ResearchAim.propTypes = {
     submission_tag : PropType.string.isRequired
@@ -20,8 +20,8 @@ export function ResearchAim({ submission_tag, showEdit = true }) {
     const [editing, setEditing] = useState(false)
     const [inputValue, setInputValue] = useState("")
 
-    const { data: research_aim, isSuccess, isLoading, isFetching, isError, refetch, error } = hooks.submissions.researchaim.useGetResearchAim({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 && !editing, staleTime: 5 * 60 * 1000 }) //5 minutes
-    const { mutate, isLoading : patchIsLoading }  = hooks.submissions.researchaim.usePatchResearchAim()
+    const { data: research_aim, isLoading, isFetching, isError, refetch, error } = api.submissions.metatexts.useGetResearchAim({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 && !editing, staleTime: 5 * 60 * 1000 }) //5 minutes
+    const { mutate, isLoading : patchIsLoading }  = api.submissions.metatexts.usePatchResearchAim()
 
     const handleEditClick = () => {
         setInputValue(research_aim|| "")

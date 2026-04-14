@@ -5,6 +5,7 @@ import _ from "lodash"
 import hooks from "@mitocube/api-hooks";
 import { useEffect } from "react";
 
+import { api } from "@/api";
     
 
 
@@ -13,12 +14,12 @@ import { useEffect } from "react";
  * @param {*} param0 
  * @returns 
  */
-function DatasetHeader({ }) {
+function SubmissionAnalysisHeader({ }) {
     
     const params = useParams()
     const submission_tag = params.tag
     const urlStart = `/submissions/${submission_tag}`
-    const { data: submissionExists, isLoading: submissionExistsLoading } = hooks.submissions.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const { data: submissionExists, isLoading: submissionExistsLoading } = api.submissions.core.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
     const { mutate: insertSubmissionView } = hooks.submissions.views.usePostSubmissionView()
 
 
@@ -64,4 +65,4 @@ function DatasetHeader({ }) {
     )
 }
 
-export default DatasetHeader
+export default SubmissionAnalysisHeader

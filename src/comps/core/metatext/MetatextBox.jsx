@@ -4,15 +4,15 @@ import { useEffect, useState } from "react"
 import { copyTextToClipboard } from "../../../services/clipboard"
 import { Button } from "@blueprintjs/core"
 import Markdown from "react-markdown"
-import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import remarkGfm from 'remark-gfm'
 import { CreatedAt } from "../metrics/CreatedAt"
 import { MinimalUserIcon } from "../base/user"
+import { api } from "@/api"
 
 export function MetatextBox({ tag, onEdit, onDelete, width = "25vw", showEdit = false, showDelete = false, forceUpdate = undefined }) {
     const [mouseIn, setMouseIn] = useState(false)
-    const { data: metatext, refetch : update } = hooks.metatexts.useGetMetatext({ tag }, { enabled: !!tag })
+    const { data: metatext, refetch : update } = api.metatexts.useGetMetatext({ tag }, { enabled: !!tag })
 
     useEffect(() => {
         if(_.isNumber(forceUpdate)) {

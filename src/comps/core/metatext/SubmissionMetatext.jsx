@@ -3,7 +3,7 @@ import { MetaTextDialog } from "../dialogs/MetaText"
 import { MetatextBox } from "./MetatextBox"
 import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
-
+import { api } from "@/api"
 import { AddButton } from "../base/buttons/AddButton"
 
 
@@ -19,9 +19,10 @@ export function Metatexts({ submission_tag, fill = false }) {
     const [dialogState, setDialogState] = useState({isOpen : false, title : "", text : "", tag : "", edit : false})
 
     // Get submission permissions and metatexts
-    const { data : permissions, isSuccess : isSuccessPermissions} = hooks.submissions.permissions.useGetSubmissionPermissionsByTag({tag : submission_tag}, { enabled : _.isString(submission_tag) && submission_tag.length > 0})
-    const { data: metatexts, isError, refetch } = hooks.submissions.metatexts.useGetMetatexts({ submission_tag }, { enabled: !!submission_tag })
-    const { mutate: deleteMetatext } = hooks.metatexts.useDeleteMetatext()
+    const { data : permissions, isSuccess : isSuccessPermissions} = api.submissions.permissions.useGetSubmissionPermissionsByTag({tag : submission_tag}, { enabled : _.isString(submission_tag) && submission_tag.length > 0})
+    const { data: metatexts, isError, refetch } = api.submissions.metatexts.useGetMetatexts({ tag : submission_tag }, { enabled: _.isString(submission_tag) })
+    
+    const { mutate: deleteMetatext } = api.metatexts.useDeleteMetatext()
 
     const handleClose = (edited = false, tag = undefined) => {
         setDialogState({ isOpen: false, title: "", text: "", edit: false })
@@ -44,8 +45,8 @@ export function Metatexts({ submission_tag, fill = false }) {
             }
         })
     }
-
-    if (isError) return <p>Invalid response when getting metadata...</p>    
+    console.log(isError, metatexts, permissions)
+    // if (isError) return <p>Invalid response when getting metadata...</p>    
 
     return (
         <div>

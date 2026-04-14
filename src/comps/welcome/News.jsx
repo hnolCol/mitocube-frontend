@@ -4,7 +4,6 @@ import _, { set } from "lodash"
 import { Content, TitleText } from "../core/metrics/ItemBasics"
 import { CreatedAt } from "../core/metrics/CreatedAt"
 import { FeatureLink } from "../core/links/Feature"
-import hooks from "@mitocube/api-hooks"
 import { Dialog } from "@blueprintjs/core"
 import { InsertNews } from "./dialog/InsertNews"
 import { useState } from "react"
@@ -13,7 +12,9 @@ import { AddButton } from "../core/base/buttons/AddButton"
 import { RemoveButton } from "../core/base/buttons/RemoveButton"
 import { SubmissionLink } from "../core/links/Submission"
 
-import { api } from "../../api"
+import { api } from "@/api"
+
+
 
 /**
  * 
@@ -29,8 +30,6 @@ export function NewsItem({ news_tag, showDelete = false, onDeleteSuccess = () =>
     }) //5 minutes
 
     const { mutate : deleteNews } = api.news.useDeleteNews
-
-    console.log(news)
 
     const handleDelete = (e) => {
         e.stopPropagation()

@@ -3,7 +3,7 @@ import { isHexColorLight } from "../../../../services/checks/color"
 import { titleFormat } from "../../../../services/format/string"
 import hooks from "@mitocube/api-hooks"
 import { StateSelectionMenu } from "./StateSelectionMenu"
-
+import { api } from "@/api"
 /**
  * @description Indicates the state of a submission. Each state has different color and an associated name. The state itself is a simple integer. 
  * @param {Object} props 
@@ -16,10 +16,10 @@ export function StateIndicator({ submission_tag, allowUpdate = true, padding = "
 
     const { data: state, isSuccess, refetch: refetchState } = hooks.submissions.states.useGetSubmissionState({ tag: submission_tag })
     const { mutate: updateState } = hooks.submissions.states.usePatchSubmissionState()
-    const { data : stateName, isSuccess : isSuccessStateName} = hooks.states.useGetStateName({tag : state}, { enabled : _.isNumber(state) && isSuccess})
-    const { data : stateColor, isSuccess : isSuccessStateColor} = hooks.states.useGetStateColor({tag : state}, { enabled : _.isNumber(state) && isSuccess})
+    const { data : stateName, isSuccess : isSuccessStateName} = api.states.useGetStateName({tag : state}, { enabled : _.isNumber(state) && isSuccess})
+    const { data : stateColor, isSuccess : isSuccessStateColor} = api.states.useGetStateColor({tag : state}, { enabled : _.isNumber(state) && isSuccess})
 
-    const { data: permissions, isSuccess: isSuccessPermissions } = hooks.submissions.permissions.useGetSubmissionPermissionsByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
     
     const handleStateChange = (newState) => {
         if (!_.isNumber(newState) || !_.isString(submission_tag)) return
@@ -55,8 +55,8 @@ export function StateIndicator({ submission_tag, allowUpdate = true, padding = "
  */
 export function StaticStateIndicator({ state_tag, padding = "little" }) {
 
-    const { data : stateName, isSuccess : isSuccessStateName} = hooks.states.useGetStateName({tag : state_tag}, { enabled : _.isNumber(state_tag) })
-    const { data : stateColor, isSuccess : isSuccessStateColor} = hooks.states.useGetStateColor({tag : state_tag}, { enabled : _.isNumber(state_tag) })
+    const { data : stateName, isSuccess : isSuccessStateName} = api.states.useGetStateName({tag : state_tag}, { enabled : _.isNumber(state_tag) })
+    const { data : stateColor, isSuccess : isSuccessStateColor} = api.states.useGetStateColor({tag : state_tag}, { enabled : _.isNumber(state_tag) })
 
 
 

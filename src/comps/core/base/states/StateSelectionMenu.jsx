@@ -4,7 +4,7 @@ import { Select } from "@blueprintjs/select";
 import hooks from "@mitocube/api-hooks";
 import _ from "lodash"; 
 import PropTypes from "prop-types"
-
+import { api } from "@/api";
 
 /**
  * StateMenuItem component for rendering a single state item in the selection menu.
@@ -13,8 +13,8 @@ import PropTypes from "prop-types"
  * @returns {JSX.Element} The rendered state menu item.
  */
 export function StateMenuItem({state_tag, handleClick, modifiers, query, current_state_tag}) {
-    const { data: stateName } = hooks.states.useGetStateName({ tag: state_tag })
-    const { data: stateColor } = hooks.states.useGetStateColor({ tag: state_tag })
+    const { data: stateName } = api.states.useGetStateName({ tag: state_tag })
+    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag })
 
     return (
         <MenuItem
@@ -29,7 +29,7 @@ export function StateMenuItem({state_tag, handleClick, modifiers, query, current
 }
 
 StateMenuItem.propTypes = {
-    state_tag: PropTypes.string.isRequired,
+    state_tag: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     handleClick: PropTypes.func.isRequired,
     modifiers: PropTypes.object.isRequired,
     query: PropTypes.string

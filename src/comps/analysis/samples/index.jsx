@@ -5,13 +5,15 @@ import { Button } from "@blueprintjs/core";
 import { SamplesContainer } from "./SampleContainer";
 import { EditSubmissionSamplesDialog } from "./EditSampleDialog";
 import _ from "lodash";
+import { api } from "@/api";
+
 
 export function SubmissionSamples() {
     const { submission_tag } = useOutletContext();
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [containerKey, setContainerKey] = useState(0);
 
-    const { data: permissions } = hooks.submissions.permissions.useGetSubmissionPermissionsByTag(
+    const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     );

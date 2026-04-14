@@ -1,12 +1,12 @@
 import { Button } from "@blueprintjs/core"
-import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import { useState, useEffect } from "react"
+import { api } from "@/api"
 
 export function SubmissionTitle({ tag, showEdit = true, showCopyToClipboard = true }) {
 
-    const { data: submission_title, refetch : refetchTitle } = hooks.submissions.title.useGetSubmissionTitle({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
-    const { mutate: updateTitle } = hooks.submissions.title.usePatchSubmissionTitle()
+    const { data: submission_title, refetch : refetchTitle } = api.submissions.title.useGetSubmissionTitle({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const { mutate: updateTitle } = api.submissions.title.usePatchSubmissionTitle()
     const [copied, setCopied] = useState(false)
     const [mouseIn, setMouseIn] = useState(false)
     const [editing, setEditing] = useState(false)
@@ -28,7 +28,6 @@ export function SubmissionTitle({ tag, showEdit = true, showCopyToClipboard = tr
         if (value !== submission_title && _.isString(tag) && tag.length > 0) {
             updateTitle({ tag, title: value }, {
                 onSuccess: () => {
-                    console.log("Successfully updated title")
                     refetchTitle()
                 }
             })

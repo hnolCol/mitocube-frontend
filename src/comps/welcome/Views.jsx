@@ -1,10 +1,10 @@
 import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import { MinimalSubmissionItem } from "../submission/view/SubmissionItem";
-
+import { api } from "@/api";
 
 export function LastViewed({user_tag, type, limit}) {
-    const { data: userSubmissionViews, isLoading, isError } = hooks.users.views.useGetUserViews({tag : user_tag, type, limit }, {staleTime: 60000 });
+    const { data: userSubmissionViews, isLoading, isError } = api.users.views.useGetUserViews({tag : user_tag, type, limit }, {staleTime: 60000 });
     return (
         <div className="bg--lightgrey padding--medium"
          style = {{
