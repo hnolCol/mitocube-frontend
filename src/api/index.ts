@@ -23,6 +23,7 @@ import { sparepartsModifyAPI, sparepartsQueryAPI } from "./maintenance/sparepart
 import { proceduresModifyAPI, proceduresQueryAPI } from "./maintenance/procedures";
 import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance/externalservice";
 import { sampleCoreAPI, sampleCountAPI } from "./samples";
+import { researchGroupsQueryAPI } from "./researchgroups";
 
 export const api = {
     annotations : {
@@ -85,5 +86,6 @@ export const api = {
             queryExternalService : externalserviceQueryAPI,
             modifyExternalService : externalserviceModifyAPI
         }
-    }
+    },
+    researchgroups : researchGroupsQueryAPI
 };
