@@ -47,10 +47,10 @@ export function FeatureData({ feature_tag, submission_tag }) {
                 <ResultChart
                         yaxisName="value"
                         yAx
-                    data={data?.data}
-                    showMenu={true}
-                    attribute_tags={attributes}
-                    width={size.width || undefined}
+                        data={data?.data}
+                        showMenu={true}
+                        attribute_tags={attributes}
+                        width={size.width || undefined}
                         height={size.height || undefined}
                         title={_.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
                         />

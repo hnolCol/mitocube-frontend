@@ -11,14 +11,14 @@ import { downloadTxtFile } from "../../../../services/downloads/txt"
 import { arrayOfObjectsToString } from "../../../../services/arrays/transforms"
 import { downloadSVG } from "../../../../services/downloads/svg"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
-import { Card } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 import { CategoricalChartSelection } from "./chartselection/CategoricalSelection"
 
 import viz from "@mitocube/viz"
-import { getConditionApplicationLabel} from "@/api/fetch/conditionApplications"
 
-import { api } from "@/api"
+import { usePrefetchConditionApplicationTexts } from "@/api/orchestrated/conditionApplications"
+import { usePrefetchAttributes } from "@/api/orchestrated/attributes"
+
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
@@ -52,21 +52,50 @@ function ResultChart({
 }) {
 
 
-    
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
-    const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
+    // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
     const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
     const selectionTags = selection
 
-    const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
-    const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
+    // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())
+    
+    const ca_tags = useMemo(() => {
+        if (data.length === 0 || _.isEmpty(selection)) return []
+        return _.uniq(
+            _.values(selection)
+            .filter(attr => _.isString(attr) && _.has(data[0], attr))
+            .flatMap(attr => data.map(d => d[attr]))
+            .filter(Boolean)
+        );
+        }, [data, selection]);
+
+    const { isReady, tagQueries } = usePrefetchConditionApplicationTexts(ca_tags)
+
+    const map = new Map()
+    tagQueries.forEach((q, idx) => {
+        const ca_tag = ca_tags[idx]
+        if (q.data) map.set(ca_tag, q.data)
+    })
+
+
+    const { isReady: attributesReady, tagQueries: attributeQueries } = usePrefetchAttributes(attribute_tags)
+    const attributeMap = new Map()
+    attributeQueries.forEach((q, idx) => {
+        const attr_tag = attribute_tags[idx]
+        if (q.data) attributeMap.set(attr_tag, q.data.text)
+    })
+
+    console.log("attributeMap", attributeMap)
+
+    // const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
+    // const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const svgID = `${featureID}-svg-id${submission_tag}`
     const redirect = useNavigate()
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
-        const chartData = showNormalizedData ? normalizedData : data
+        const chartData = data
         if (chartType === "boxplot") {
             return getQuantilesByGroups(
                 chartData,
@@ -88,30 +117,30 @@ function ResultChart({
        
         if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureID}-${submission_tag}.txt`)
         else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureID}-${submission_tag}.txt`)
-        else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureID}.txt`)
+        // else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureID}.txt`)
         else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
         else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureID}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
     }
 
-    const handleNormalizationGroupSelection = (groupingName, groupName) => {
-        var normalizeSelection = { ...normalizeDialog.normalizeToSelection }
-        normalizeSelection[groupingName] = groupName
-        setNormalizeDialog(prevValues => {return {...prevValues,normalizeToSelection : normalizeSelection}})
-    }
-    const checkNormalizeToSelection = () => {
-        return _.every(keyNamesForSplitting, i => Object.keys(normalizeDialog.normalizeToSelection).includes(i))
-    }
+    // const handleNormalizationGroupSelection = (groupingName, groupName) => {
+    //     var normalizeSelection = { ...normalizeDialog.normalizeToSelection }
+    //     normalizeSelection[groupingName] = groupName
+    //     setNormalizeDialog(prevValues => {return {...prevValues,normalizeToSelection : normalizeSelection}})
+    // }
+    // const checkNormalizeToSelection = () => {
+    //     return _.every(keyNamesForSplitting, i => Object.keys(normalizeDialog.normalizeToSelection).includes(i))
+    // }
 
-    const handleNormalization = (normMode) => {
-        if (NormalizationModes.includes(normMode)) setNormalization(normMode)
-        else {
-            setNormalizeDialog(prevValues => { return { ...prevValues, isOpen : true}})
-        }
-    }
+    // const handleNormalization = (normMode) => {
+    //     if (NormalizationModes.includes(normMode)) setNormalization(normMode)
+    //     else {
+    //         setNormalizeDialog(prevValues => { return { ...prevValues, isOpen : true}})
+    //     }
+    // }
 
-    const applyNormalization = () => {
-        setNormalizeDialog(prevValues => { return { ...prevValues, isOpen: false } })
-    }
+    // const applyNormalization = () => {
+    //     setNormalizeDialog(prevValues => { return { ...prevValues, isOpen: false } })
+    // }
     
 
     const handleInfo = (infoType) => {
@@ -139,8 +168,8 @@ function ResultChart({
             </div>
             <div className="flex">
 
-                <viz.charts.Categorical
-                    getConditionApplicationText = {getConditionApplicationLabel}
+                {isReady && attributesReady? <viz.charts.Categorical
+                    getConditionApplicationText={({ x, y, tag, textProps }) => <ConditionApplicationText x={x} y={y} tag={tag} textProps={textProps} />}
                     width={width - 40 || undefined}
                     height={height - 50 || undefined}
                     {...selectionTags}
@@ -151,8 +180,10 @@ function ResultChart({
                     minMaxYDomain={minMaxYDomain}
                     svgID={svgID}
                     chartType={chartType}
+                    caTagToText={map}
+                    attributeTagToText={attributeMap}
                     tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
-                />
+                /> : null}
 
             {showMenu && (
                 <div className="flex flex-column justify-flex-start">
@@ -161,7 +192,7 @@ function ResultChart({
                         {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
                     />
 
-                    <div>
+                    {/* <div>
                         <NormalizeIcon
                             placeholder=""
                             colorIdx={NormalizationModes.indexOf(normalization)}
@@ -174,13 +205,13 @@ function ResultChart({
                             callbackValueOnly={true}
                             callback={handleNormalization}
                         />
-                    </div>
+                    </div> */}
                     <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
                     <InfoIcon items={["Metadata", "Dataset view"]} callback={handleInfo} callbackValueOnly={true} />
 
                     <DownloadIcon
-                        items={["Raw", "Aggregated", "Normalized", "DIVIDER", "PNG", "SVG"].map((dataType) => {
-                            return { text: dataType, disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0) : false }
+                        items={["Raw", "Aggregated", "DIVIDER", "PNG", "SVG"].map((dataType) => {
+                            return { text: dataType } //disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0) : false
                         })}
                         placeholder=""
                         callback={handleDataDownload}
