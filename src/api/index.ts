@@ -27,7 +27,7 @@ export const api = {
         modifyTraits : traitsModifyAPI
     },
     genotypes : {
-        queryGenotpes : genotypesQueryAPI,
+        queryGenotypes : genotypesQueryAPI,
         modifyGenotypes : genotypesModifyAPI,
         queryConditionApplications : genotypesCAQueryAPI
     },
