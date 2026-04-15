@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -9,7 +9,7 @@ import { useEffect } from "react"
  */
 export function SymptomPriority({tag, update}) {
 
-    const {data : symptomPriority, isError, error, isSuccess, refetch} = hooks.maintenance.symptoms.useGetSymptomPriority({tag : tag})
+    const {data : symptomPriority, isError, error, isSuccess, refetch} = api.maintenance.symptoms.querySymptoms.useGetSymptomPriority({tag : tag})
     
     if (isError) console.log(error)
     useEffect(() =>{

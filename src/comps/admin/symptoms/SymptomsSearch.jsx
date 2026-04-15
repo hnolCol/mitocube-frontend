@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import useDebounce from "../../../hooks/useDebounce"
 import { useEffect, useState } from "react"
 import _ from "lodash"
@@ -20,7 +20,7 @@ export function SymptomsSearch() {
     const [searchParams, setSearchParams] = useSearchParams()
 
     const { data: tag, isLoading, isSuccess, isError, refetch : updateSymptomList } =
-        hooks.maintenance.symptoms.useGetSymptomByQuery(
+        api.maintenance.symptoms.querySymptoms.useGetSymptomByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }
         )

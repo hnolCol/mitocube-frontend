@@ -1,6 +1,6 @@
 import { useState } from "react"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { EditAnnotationDialog } from "./EditAnnotationDialog"
 import { DeleteAnnotationsDialog } from "./DeleteAnnotationsDialog"
 import { AddAnnotationDialog } from "./AddAnnotationsDialog"
@@ -13,24 +13,24 @@ export function AnnotationItem({ tag, showDetails = false, updateAnnotationList 
   const [update, setUpdate] = useState(undefined)
 
   const { data: permissions, isSuccess } =
-    hooks.annotationspermissions.useGetAnnotationPermissions();
+    api.annotations.queryAnnotations.useGetAnnotationPermissions();
 
   const canShowRemoveButton = isSuccess && permissions.delete
 
   const { data: annotation, isSuccess: isAnnotationSuccess, refetch: refetchAnnotations} =
-    hooks.annotations.useGetAnnotationsByTag(
+    api.annotations.queryAnnotations.useGetAnnotationsByTag(
       { tag },
       { enabled: _.isString(tag) }
     )
 
   const { data: proteinCount } =
-    hooks.annotations.useGetAnnotationProteinCount(
+    api.annotations.queryAnnotations.useGetAnnotationProteinCount(
       { tag },
       { enabled: _.isString(tag) }
     )
 
   const { mutate: deleteAnnotation } =
-    hooks.annotations.useDeleteAnnotations({
+    api.annotations.modifyAnnotations.useDeleteAnnotations({
       onSuccess: () => {
         setIsDeleteOpen(true)
       },
@@ -166,12 +166,12 @@ export function AnnotationsList({ tag }) {
         isError,
         error,
         refetch: refetchAnnotations,
-    } = hooks.annotations.useGetAnnotationsByGroupTag(
+    } = api.annotations.queryAnnotations.useGetAnnotationsByGroupTag(
         { tag, limit },
         { enabled: _.isString(tag) }
     )
 
-    const { data: totalCount } = hooks.annotations.useGetAnnotationGroupCount(
+    const { data: totalCount } = api.annotations.queryAnnotations.useGetAnnotationGroupCount(
         { tag },
         { enabled: _.isString(tag) }
     )

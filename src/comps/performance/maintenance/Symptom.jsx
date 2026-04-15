@@ -1,7 +1,7 @@
 
 
 import { Tooltip } from "@blueprintjs/core"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 import PropTypes from "prop-types"
@@ -17,7 +17,7 @@ import PropTypes from "prop-types"
 
 export function Symptom({ tag, onRemove }) {
     
-    const { data: symptom, isSuccess } = hooks.maintenance.symptoms.useGetSymptomByTag({ tag })
+    const { data: symptom, isSuccess } = api.maintenance.symptoms.querySymptoms.useGetSymptomByTag({ tag })
     return  <div>{isSuccess ?
         <Tooltip content={<div style={{maxWidth : "30rem"}}>{symptom.description}</div>}>
             <div className="flex margin--little padding--little bg--grey">

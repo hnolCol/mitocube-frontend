@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import { useEffect, useState } from "react";
 import _ from "lodash";
 import { Dialog } from "@blueprintjs/core";
@@ -28,7 +28,7 @@ export function InsertAnnotationGroup({
         isError,
         error,
         isSuccess,
-    } = hooks.annotations.usePostAnnotationGroup({
+    } = api.annotations.modifyAnnotations.usePostAnnotationGroup({
         onSuccess: () => {
             setAnnotationGroup(INITIAL_ANNOTATION_GROUP);
         },

@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import { useEffect, useState } from "react";
 import _ from "lodash";
 import APIError from "../error/APIerror";
@@ -19,12 +19,12 @@ export function InsertEditProcedure({
     
    
     const [procedure, setProcedure] = useState(INITIAL_PROCEDURE);
-    const {mutate : postProcedure, isLoading, isError, error, isSuccess } = hooks.maintenance.procedures.usePostMaintenanceProcedure({
+    const {mutate : postProcedure, isLoading, isError, error, isSuccess } = api.maintenance.procedures.modifyMaintenanceProcedures.usePostMaintenanceProcedure({
         onSuccess: () => {
             setProcedure(INITIAL_PROCEDURE);
         },
     });
-    const { mutate : updateProcedure, isLoading : isUpdateLoading } = hooks.maintenance.procedures.useEditMaintenanceProcedure()
+    const { mutate : updateProcedure, isLoading : isUpdateLoading } = api.maintenance.procedures.modifyMaintenanceProcedures.useEditMaintenanceProcedure()
 
 
     useEffect(() => {

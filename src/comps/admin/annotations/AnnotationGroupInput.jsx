@@ -3,12 +3,12 @@ import { Select, MultiSelect } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 
 function AnnotationGroupMenuItem({ tag, handleClick, handleFocus, modifiers, selected }) {
   
-  const { data: group, isLoading, isError } = hooks.annotations.useGetAnnotationGroupByTag({ tag })
+  const { data: group, isLoading, isError } = api.annotations.queryAnnotations.useGetAnnotationGroupByTag({ tag })
   if (isError) return null
 
       return (<MenuItem
@@ -46,7 +46,7 @@ export function AnnotationGroupInput({ selectedItem = [], onItemSelect, disabled
   const debounced = useDebounce(query, 200)
 
   const { data: items = [] } =
-    hooks.annotations.useGetAnnotationGroupByQuery(
+    api.annotations.queryAnnotations.useGetAnnotationGroupByQuery(
       { search_string: debounced },
       { staleTime: 2000 }
     )

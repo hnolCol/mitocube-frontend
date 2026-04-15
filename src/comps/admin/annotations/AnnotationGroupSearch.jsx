@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import useDebounce from "../../../hooks/useDebounce";
 import { AnnotationGroupContainer } from "./AnnotationGroupContainer";
 import { AddAnnotationGroupDialog } from "./AddAnnotationGroupDialog";
@@ -11,7 +11,7 @@ export function AnnotationGroupSearch({ selectedGroup, onSelectGroup }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data, isSuccess, refetch } =
-    hooks.annotations.useGetAnnotationGroupByQuery(
+    api.annotations.queryAnnotations.useGetAnnotationGroupByQuery(
       { search_string: debounced },
       { staleTime: 2000 }
     );

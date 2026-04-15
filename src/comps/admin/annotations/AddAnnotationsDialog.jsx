@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { useState } from "react"
 import { Dialog, H3 } from "@blueprintjs/core"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
@@ -24,7 +24,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
     isLoading,
     isError,
     error,
-  } = hooks.annotations.usePostAnnotations({
+  } = api.annotations.modifyAnnotations.usePostAnnotations({
     onSuccess: () => {
       setAnnotation(INITIAL_ANNOTATION)
       onClose()

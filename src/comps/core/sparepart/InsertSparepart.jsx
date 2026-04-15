@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import { useEffect, useState } from "react";
 import _ from "lodash";
 import APIError from "../error/APIerror";
@@ -21,12 +21,12 @@ export function InsertEditSparePart({
 }) {
     
     const [sparepart, setSparepart] = useState(INITIAL_SPAREPART);
-    const {mutate : postSparePart, isLoading, isError, error, isSuccess} = hooks.maintenance.spareparts.usePostSparePart({
+    const {mutate : postSparePart, isLoading, isError, error, isSuccess} = api.maintenance.spareparts.modifySpareParts.usePostSparePart({
         onSuccess: () => {
             setSparepart(INITIAL_SPAREPART);
         },
     });
-    const {mutate : updateSparePart, isLoading : isUpdateLoading} = hooks.maintenance.spareparts.useUpdateSparePart()
+    const {mutate : updateSparePart, isLoading : isUpdateLoading} = api.maintenance.spareparts.modifySpareParts.useUpdateSparePart()
 
     useEffect(() => {
         if (isEditing) {

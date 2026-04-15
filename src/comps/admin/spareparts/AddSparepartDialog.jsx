@@ -1,5 +1,5 @@
 import { InsertEditSparePart } from "../../core/sparepart/InsertSparepart";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import _ from "lodash";
 import { Dialog } from "@blueprintjs/core";
 
@@ -18,7 +18,7 @@ export function AddSparepartDialog({ isOpen, onClose }) {
 
 export function EditSparepartDialog({ isOpen, onClose, tag }) {
 
-    const {data: sparepart, isSuccess : isSparepartSuccess} = hooks.maintenance.spareparts.useGetSparePartByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
+    const {data: sparepart, isSuccess : isSparepartSuccess} = api.maintenance.spareparts.querySpareParts.useGetSparePartByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
     
     return (
         <Dialog  isOpen={isOpen} title="Edit Sparepart" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }} canOutsideClickClose={false}>

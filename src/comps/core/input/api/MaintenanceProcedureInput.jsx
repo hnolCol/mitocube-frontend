@@ -3,12 +3,12 @@ import { MultiSelect, Select } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 
 function MaintenanceProcedureMenuItem({ procedure_tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
-    const { data: mp, isSuccess, isLoading, isError } = hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({ procedure_tag })
+    const { data: mp, isSuccess, isLoading, isError } = api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByTag({ procedure_tag })
     console.log
     if (isError) return null 
     return (<MenuItem
@@ -40,7 +40,7 @@ function MaintenanceProcedureMenuItem({ procedure_tag, handleClick, handleFocus,
 export function MaintenanceProcedureInput({ selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false }) {
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.procedures.useGetMaintenanceProcedureByQuery({ search_string : debouncedString})
+    const { data: items, isLoading, isFetching } = api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByQuery({ search_string : debouncedString})
     /**
      * @description Handles the item rendering
      * @param {*} item The MaintenanceProcedure item

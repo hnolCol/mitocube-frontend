@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import { useEffect, useState } from "react";
 import _ from "lodash";
 import APIError from "../error/APIerror";
@@ -18,12 +18,12 @@ export function InsertEditSymptom({
 }) {
     
     const [symptom, setSymptom] = useState(INITIAL_SYMPTOM);
-    const {mutate : postSymptom, isLoading, isError, error, isSuccess } = hooks.maintenance.symptoms.usePostSymptom({
+    const {mutate : postSymptom, isLoading, isError, error, isSuccess } = api.maintenance.symptoms.modifySymptoms.usePostSymptom({
         onSuccess: () => {
             setSymptom(INITIAL_SYMPTOM);
         },
     });
-    const { mutate : updateSymptom, isLoading : isUpdateLoading } = hooks.maintenance.symptoms.useEditSymptom()
+    const { mutate : updateSymptom, isLoading : isUpdateLoading } = api.maintenance.symptoms.modifySymptoms.useEditSymptom()
 
 
     useEffect(() => {

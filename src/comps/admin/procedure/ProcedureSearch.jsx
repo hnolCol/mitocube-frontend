@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import useDebounce from "../../../hooks/useDebounce"
 import { useEffect, useState } from "react"
 import _ from "lodash"
@@ -20,7 +20,7 @@ export function ProcedureSearch() {
     const [searchParams, setSearchParams] = useSearchParams()
 
     const { data: tag, isLoading, isSuccess, isError, refetch : updateProcedureList } =
-        hooks.maintenance.procedures.useGetMaintenanceProcedureByQuery(
+        api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }
         )

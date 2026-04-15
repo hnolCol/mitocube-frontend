@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import { EditSymptomDialog } from "./AddSymptomsDialog";
 import { DeleteSymptomDialog } from "./DeleteSymptomDialog";
 import _ from "lodash"; 
@@ -16,9 +16,9 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
 
-    const { data: permissions, isSuccess } = hooks.maintenance.symptomspermissions.useGetSymptomsPermissions();
+    const { data: permissions, isSuccess } = api.maintenance.symptoms.querySymptoms.useGetSymptomsPermissions();
     
-    const { mutate: deleteSymptom } = hooks.maintenance.symptoms.useDeleteSymptom({
+    const { mutate: deleteSymptom } = api.maintenance.symptoms.modifySymptoms.useDeleteSymptom({
         onSuccess: () => {
             setIsDeleteOpen(true); 
           },

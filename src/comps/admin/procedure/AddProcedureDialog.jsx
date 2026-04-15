@@ -1,5 +1,5 @@
 import { InsertEditProcedure } from "../../core/procedure/InsertProcedure.jsx";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import _ from "lodash";
 import { Dialog } from "@blueprintjs/core";
 
@@ -18,7 +18,7 @@ export function AddProcedureDialog({ isOpen, onClose }) {
 
 export function EditProcedureDialog({ isOpen, onClose, procedure_tag }) {
 
-    const {data: procedure, isSuccess : isProcedureSuccess} = hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({ procedure_tag}, { enabled : _.isString(procedure_tag) && isOpen})    
+    const {data: procedure, isSuccess : isProcedureSuccess} = api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByTag({ procedure_tag}, { enabled : _.isString(procedure_tag) && isOpen})    
   
 
     return (

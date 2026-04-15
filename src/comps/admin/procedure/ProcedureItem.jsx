@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import { EditProcedureDialog } from "./AddProcedureDialog";
 import { DeleteProcedureDialog } from "./DeleteProcedureDialog";
 import _ from "lodash"; 
@@ -15,11 +15,11 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
 
-    const { data: permissions, isSuccess } = hooks.maintenance.procedurespermissions.useGetProcedurePermissions();
+    const { data: permissions, isSuccess } = api.maintenance.procedures.queryMaintenanceProcedures.useGetProcedurePermissions();
     
     // console.log(permissions)
 
-    const { mutate: deleteProcedure } = hooks.maintenance.procedures.useDeleteMaintenanceProcedure({
+    const { mutate: deleteProcedure } = api.maintenance.procedures.modifyMaintenanceProcedures.useDeleteMaintenanceProcedure({
         onSuccess: () => {
             setIsDeleteOpen(true); 
           },

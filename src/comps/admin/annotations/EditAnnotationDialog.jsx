@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
@@ -21,7 +21,7 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
   const {
     data: existingAnnotation,
     isSuccess,
-  } = hooks.annotations.useGetAnnotationsByTag(
+  } = api.annotations.queryAnnotations.useGetAnnotationsByTag(
     { tag },
     { enabled: _.isString(tag) && isOpen }
   )
@@ -32,7 +32,7 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
     isLoading,
     isError,
     error,
-  } = hooks.annotations.useUpdateAnnotations()
+  } = api.annotations.modifyAnnotations.useUpdateAnnotations()
 
   useEffect(() => {
     if (isSuccess && existingAnnotation) {

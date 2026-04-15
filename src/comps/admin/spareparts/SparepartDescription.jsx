@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -9,7 +9,7 @@ import { useEffect } from "react"
  */
 export function SparepartDescription({tag, update}) {
 
-    const {data : sparepartDescription, isError, error, isSuccess, refetch} = hooks.maintenance.spareparts.useGetSparePartDescription({tag : tag})
+    const {data : sparepartDescription, isError, error, isSuccess, refetch} = api.maintenance.spareparts.querySpareParts.useGetSparePartDescription({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         

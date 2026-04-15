@@ -3,7 +3,7 @@ import { MultiSelect, Select } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import "./style.css"
 
 import {copyTextToClipboard} from "../../../../services/clipboard"
@@ -11,7 +11,7 @@ import {copyTextToClipboard} from "../../../../services/clipboard"
 import {openInNewTab} from "../../../../services/tabs/newtab"
 function SparePartMenuItem({ tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
-    const { data: sparepart, isSuccess, isLoading, isError } = hooks.maintenance.spareparts.useGetSparePartByTag({ tag })
+    const { data: sparepart, isSuccess, isLoading, isError } = api.maintenance.spareparts.querySpareParts.useGetSparePartByTag({ tag })
     if (isError) return null 
     return (<MenuItem
         icon={selected ? "tick" : "blank"}
@@ -76,7 +76,7 @@ function SparePartMenuItem({ tag, handleClick, handleFocus, index, modifiers, qu
 export function SparePartInput({ selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false }) {
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.spareparts.useGetSparePartByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = api.maintenance.spareparts.querySpareParts.useGetSparePartByQuery({ search_string: debouncedString })    
 
     /**
      * @description Handles the item rendering
@@ -117,7 +117,7 @@ export function SparePartsInput({selectedItems = [], onItemSelect, isRequired = 
     
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.spareparts.useGetSparePartByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = api.maintenance.spareparts.querySpareParts.useGetSparePartByQuery({ search_string: debouncedString })    
     
     const renderSparePart = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <SparePartMenuItem key={`${item}-${index}`}
