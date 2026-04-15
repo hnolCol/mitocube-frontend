@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -10,7 +10,7 @@ import { useEffect } from "react"
  */
 export function GenotypeProteome({tag, update}) {
 
-    const {data : genotypeProteome, isError, error, isSuccess, refetch} = hooks.genotypes.useGetGenotypeProteome({genotype_tag : tag})
+    const {data : genotypeProteome, isError, error, isSuccess, refetch} = api.genotypes.queryGenotypes.useGetGenotypeProteome({genotype_tag : tag})
     
     if (isError) console.log(error)
     useEffect(() =>{

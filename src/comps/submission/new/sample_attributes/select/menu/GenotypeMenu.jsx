@@ -7,7 +7,7 @@ import { GenotypeContainer } from "../../../../../admin/genotypes/GenotypeContai
 import hooks from "@mitocube/api-hooks"
 import useDebounce from "../../../../../../hooks/useDebounce"
 import { GenotypeDescription } from "../../../../../admin/genotypes/GentotypeDescription"
-
+import { api } from "@/api"
 
 function getPositionString(positionAttrValue) {
 
@@ -53,8 +53,8 @@ function extractGenotypeRepresentation(genotype) {
 
 export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index, modifiers, selectedRows }) {
     
-    const {data : genotype_text, isSuccess} = hooks.genotypes.useGetGenotypeText({ genotype_tag })
-    const {data : proteome_tag} = hooks.genotypes.useGetGenotypeProteome({ genotype_tag })
+    const {data : genotype_text, isSuccess} = api.genotypes.queryGenotypes.useGetGenotypeText({ genotype_tag })
+    const {data : proteome_tag} = api.genotypes.queryGenotypes.useGetGenotypeProteome({ genotype_tag })
     const {data : proteome_name} = hooks.proteomes.useGetProteomeText({ tag: proteome_tag }, { enabled: !!proteome_tag })
 
     return <MenuItem text={isSuccess ? genotype_text : ""} 
@@ -71,7 +71,7 @@ export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, pro
     
     const [queryString, setQueryString] = useState("")
     const search_string = useDebounce(queryString, 200)
-    const {data : genotype_tags, refetch } = hooks.genotypes.useGetGenotypesBySearchString({search_string, limit : 20},{})
+    const {data : genotype_tags, refetch } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString({search_string, limit : 20},{})
     
     useEffect(() => {
         const el = document.getElementById("genotype-input")

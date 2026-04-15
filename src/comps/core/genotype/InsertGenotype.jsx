@@ -1,5 +1,4 @@
-
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { useEffect, useState } from "react"
 import { AddButton } from "../base/buttons/AddButton"
 import { getRandomID } from "../../../services/random"
@@ -22,8 +21,8 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
-    const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = hooks.genotypes.usePostGenotype()
-    const { mutate : updateGenotype, isLoading : isUpdateLoading } = hooks.genotypes.useEditGenotype()
+    const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = api.genotypes.modifyGenotypes.usePostGenotype()
+    const { mutate : updateGenotype, isLoading : isUpdateLoading } = api.genotypes.modifyGenotypes.useEditGenotype()
 
 
     useEffect(() => {

@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { GenotypeText } from "./GentotypeText"
 import { GenotypeDescription } from "./GentotypeDescription"
@@ -22,9 +22,9 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   const [update, setUpdate] = useState(undefined)
   const [currentTag, setCurrentTag] = useState(tag)
 
-  const { data: permissions, isSuccess } = hooks.genotypes.useGetGenotypePermissions();
+  const { data: permissions, isSuccess } = api.genotypes.queryGenotypes.useGetGenotypePermissions();
 
-  const { mutate: deleteGenotype } = hooks.genotypes.useDeleteGenotype({
+  const { mutate: deleteGenotype } = api.genotypes.modifyGenotypes.useDeleteGenotype({
     onSuccess: () => {
         setIsDeleteOpen(true); 
       },

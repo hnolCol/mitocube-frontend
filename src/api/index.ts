@@ -14,6 +14,8 @@ import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
 import { backendInfoAPI } from "./info";
 import { conditionApplicationAPI } from "./condition_applications";
+import genotypes from "@/types/genotypes";
+import { genotypesQueryAPI, genotypesModifyAPI, genotypesCAQueryAPI } from "./genotypes";
 
 export const api = {
     attributes : { 
@@ -23,6 +25,11 @@ export const api = {
     traits : {
         queryTraits : traitsQueryAPI,
         modifyTraits : traitsModifyAPI
+    },
+    genotypes : {
+        queryGenotpes : genotypesQueryAPI,
+        modifyGenotypes : genotypesModifyAPI,
+        queryConditionApplications : genotypesCAQueryAPI
     },
     submissions: {
         core : submissionCoreAPI,

@@ -1,11 +1,11 @@
 import { isHexColorLight } from "../../../../services/checks/color"
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 
 export function Genotype({ tag, highlight }) {
 
-    const { data: genotype_text, isLoading, isFetching } = hooks.genotypes.useGetGenotypeText({ tag })
+    const { data: genotype_text, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypeText({ tag })
 
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"

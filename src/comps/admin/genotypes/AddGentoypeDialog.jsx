@@ -1,6 +1,6 @@
 import { Dialog, DialogBody } from "@blueprintjs/core";
 import { InsertEditGenotype } from "../../core/genotype/InsertGenotype";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import _ from "lodash";
 
 export function AddGenotypeDialog({ isOpen, onClose }) {
@@ -32,9 +32,9 @@ export function AddGenotypeDialog({ isOpen, onClose }) {
 
 export function EditGenotypeDialog({ isOpen, onClose, tag }) { 
 
-    const { data : selected_traits, isSuccess} = hooks.genotypes.condition_applications.useGetGenotypeConditionApplicationsData({tag}, { enabled : _.isString(tag) && isOpen})
-    const {data: text, isSuccess : isSuccessText} = hooks.genotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
-    const {data : description, isSuccess : isSuccessDescription} = hooks.genotypes.useGetGenotypeDescription({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
+    const { data : selected_traits, isSuccess} = api.genotypes.queryGenotypeConditionApplications.useGetGenotypeConditionApplicationsData({tag}, { enabled : _.isString(tag) && isOpen})
+    const {data: text, isSuccess : isSuccessText} = api.genotypes.queryGenotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
+    const {data : description, isSuccess : isSuccessDescription} = api.genotypes.queryGenotypes.useGetGenotypeDescription({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
 
     return (
         <Dialog

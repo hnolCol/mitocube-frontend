@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 
 
@@ -9,7 +9,7 @@ import _ from "lodash"
  */
 export function GenotypeProteins({tag}) {
 
-    const {data : genotypeProteins, isError, error, isSuccess} = hooks.genotypes.useGetGenotypeProteins({genotype_tag : tag})
+    const {data : genotypeProteins, isError, error, isSuccess} = api.genotypes.queryGenotypes.useGetGenotypeProteins({genotype_tag : tag})
 
     if (isError) console.log(error)
 

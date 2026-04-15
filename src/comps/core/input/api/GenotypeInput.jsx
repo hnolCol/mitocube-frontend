@@ -3,7 +3,7 @@ import { MultiSelect } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks" 
+import { api } from "@/api"
 import { GenotypeMenuItem } from "../../../submission/new/sample_attributes/select/menu/GenotypeMenu"
 
 
@@ -20,7 +20,7 @@ export function GenotypeInput({
         
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = hooks.genotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { staleTime : 6000 })    
+    const { data: items, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { staleTime : 6000 })    
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <GenotypeMenuItem genotype_tag={item} selected={selectedGenotypes.includes(item)} />

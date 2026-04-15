@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -9,7 +9,7 @@ import { useEffect } from "react"
  */
 export function GenotypeText({tag, update}) {
 
-    const {data : genotypeText, isError, error, isSuccess, refetch} = hooks.genotypes.useGetGenotypeText({genotype_tag : tag})
+    const {data : genotypeText, isError, error, isSuccess, refetch} = api.genotypes.queryGenotypes.useGetGenotypeText({genotype_tag : tag})
     useEffect(() =>{
         if (_.isNumber(update)) refetch()
         
