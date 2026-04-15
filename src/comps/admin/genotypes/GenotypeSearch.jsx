@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import PropTypes from "prop-types"
 import useDebounce from "../../../hooks/useDebounce"
 import { useEffect, useState } from "react"
@@ -7,6 +7,8 @@ import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom";
+
+
 GenotypeSearch.propTypes = {
 }
 
@@ -28,7 +30,7 @@ export function GenotypeSearch({ }) {
     const [genotypesToDisplay, setGenotypesToDisplay] = useState([]) // array of genotype tags to be displayed, saving them allows to have no blinking when typing in search box.
     const [searchParams, setSearchParams] = useSearchParams(); 
 
-    const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = hooks.genotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 10 }, { staleTime: 2000 });
+    const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString({ search_string: debouncedSearchString, limit: 10 }, { staleTime: 2000 });
     console.log(genotype_tags)
     // Determine selected limit from URL params
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) ? _.toNumber(searchParams.get("limit")) : LIMIT_OPTIONS[0];
