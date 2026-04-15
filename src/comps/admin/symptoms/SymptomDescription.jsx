@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -10,7 +10,7 @@ import { useEffect } from "react"
  */
 export function SymptomDescription({tag, update}) {
 
-    const {data : symptomDescription, isError, error, isSuccess, refetch} = hooks.maintenance.symptoms.useGetSymptomDescription({tag : tag})
+    const {data : symptomDescription, isError, error, isSuccess, refetch} = api.maintenance.symptoms.querySymptoms.useGetSymptomDescription({tag : tag})
     
     if (isError) console.log(error)
     useEffect(() =>{

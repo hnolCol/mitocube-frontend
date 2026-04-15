@@ -1,21 +1,21 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { Tooltip } from "@blueprintjs/core"
 import { Button } from "@blueprintjs/core"
 
 
 export function AnnotationGroupItem({ tag, onClick, isSelected }) {
-  const { data: group, isSuccess } = hooks.annotations.useGetAnnotationGroupByTag(
+  const { data: group, isSuccess } = api.annotations.queryAnnotations.useGetAnnotationGroupByTag(
       { tag },
       { enabled: _.isString(tag) }
     );
 
-  const { data: count } = hooks.annotations.useGetAnnotationGroupCount(
+  const { data: count } = api.annotations.queryAnnotations.useGetAnnotationGroupCount(
     { tag },
     { enabled: _.isString(tag) }
   )
 
-  const { mutate: updateGroup, isLoading } = hooks.annotations.useUpdateAnnotationGroup( { tag });
+  const { mutate: updateGroup, isLoading } = api.annotations.modifyAnnotations.useUpdateAnnotationGroup( { tag });
 
   if (!isSuccess) return null;
 

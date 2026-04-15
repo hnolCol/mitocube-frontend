@@ -1,6 +1,6 @@
 import { useState } from "react";
 import _ from "lodash"; 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { EditExternalServiceDialog } from "./AddExternalServiceDialog";
 import { DeleteExternalServiceDialog } from "./DeleteExternalServiceDialog";
 import { ExternalServiceDescription } from "./ExternalServiceComponents";
@@ -17,10 +17,10 @@ export function ExternalServiceItem({ tag, showDetails = false, updateExternalSe
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
     
-    const { data: permissions, isSuccess } = hooks.maintenance.externalservicepermissions.useGetExternalServicePermissions();
+    const { data: permissions, isSuccess } = api.maintenance.externalservice.queryExternalService.useGetExternalServicePermissions();
     // console.log(permissions)
 
-    const { mutate: deleteExternalService } = hooks.maintenance.externalservice.useDeleteExternalService({
+    const { mutate: deleteExternalService } = api.maintenance.externalservice.modifyExternalService.useDeleteExternalService({
         onSuccess: () => {
             setIsDeleteOpen(true); 
         },

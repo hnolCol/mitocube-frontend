@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -9,7 +9,7 @@ import { useEffect } from "react"
  */
 export function ExternalServiceDescription({tag, update}) {
 
-    const {data : ExternalServiceDescription, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceDescription({tag : tag})
+    const {data : ExternalServiceDescription, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceDescription({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         
@@ -28,7 +28,7 @@ export function ExternalServiceDescription({tag, update}) {
  */
 export function ExternalServiceName({tag, update}) {
 
-    const {data : ExternalServiceName, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceName({tag : tag})
+    const {data : ExternalServiceName, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceName({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         
@@ -48,7 +48,7 @@ export function ExternalServiceName({tag, update}) {
  */
 export function ExternalServiceCompany({tag, update}) {
 
-    const {data : ExternalServiceCompany, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceCompany({tag : tag})
+    const {data : ExternalServiceCompany, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceCompany({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         
@@ -67,7 +67,7 @@ export function ExternalServiceCompany({tag, update}) {
  */
 export function ExternalServiceEmail({tag, update}) {
 
-    const {data : ExternalServiceEmail, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceEmail({tag : tag})
+    const {data : ExternalServiceEmail, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceEmail({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         
@@ -86,7 +86,7 @@ export function ExternalServiceEmail({tag, update}) {
  */
 export function ExternalServiceCosts({tag, update}) {
 
-    const {data : ExternalServiceCosts, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceCosts({tag : tag})
+    const {data : ExternalServiceCosts, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceCosts({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         
@@ -107,7 +107,7 @@ export function ExternalServiceCosts({tag, update}) {
 
 export function ExternalServiceBillingNumber({tag, update}) {
 
-    const {data : ExternalServiceBillingNumber, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceBillingNumber({tag : tag})
+    const {data : ExternalServiceBillingNumber, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceBillingNumber({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         
@@ -127,7 +127,7 @@ export function ExternalServiceBillingNumber({tag, update}) {
 
 export function ExternalServiceInternalID({tag, update}) {
 
-    const {data : ExternalServiceInternalID, isError, error, isSuccess, refetch} = hooks.maintenance.externalservice.useGetExternalServiceInternalID({tag : tag})
+    const {data : ExternalServiceInternalID, isError, error, isSuccess, refetch} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceInternalID({tag : tag})
     useEffect(() =>{
         if (update) refetch()
         

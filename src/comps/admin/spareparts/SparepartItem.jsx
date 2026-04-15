@@ -1,6 +1,6 @@
 import { useState } from "react";
 import _ from "lodash"; 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import { EditSparepartDialog } from "./AddSparepartDialog";
 import { DeleteSparepartDialog } from "./DeleteSparepartDialog";
 import { SparepartText } from "./SparepartText";
@@ -16,10 +16,10 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
     
-    const { data: permissions, isSuccess } = hooks.maintenance.sparepartpermissions.useGetSparepartPermissions();
+    const { data: permissions, isSuccess } = api.maintenance.spareparts.querySpareParts.useGetSparepartPermissions();
     // console.log(permissions)
 
-    const { mutate: deleteSparepart } = hooks.maintenance.spareparts.useDeleteSparePart({
+    const { mutate: deleteSparepart } = api.maintenance.spareparts.modifySpareParts.useDeleteSparePart({
         onSuccess: () => {
             setIsDeleteOpen(true);
         },

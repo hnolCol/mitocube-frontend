@@ -3,12 +3,12 @@ import { MultiSelect, Select } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 
 function SymptomMenuItem({ tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
-    const { data: symptom, isSuccess, isLoading, isError } = hooks.maintenance.symptoms.useGetSymptomByTag({ tag })
+    const { data: symptom, isSuccess, isLoading, isError } = api.maintenance.symptoms.querySymptoms.useGetSymptomByTag({ tag })
 
     if (isError) return null 
     return (<MenuItem
@@ -42,7 +42,7 @@ function SymptomMenuItem({ tag, handleClick, handleFocus, index, modifiers, quer
 export function SymptomInput({ selectedItems = [], onItemSelect, isRequired = true, helperText = "", inline = false, showLabel = true, disabled = false }) {
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.symptoms.useGetSymptomByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = api.maintenance.symptoms.querySymptoms.useGetSymptomByQuery({ search_string: debouncedString })    
 
     /**
      * @description Handles the item rendering
@@ -83,7 +83,7 @@ export function SymptomsInput({selectedItems = [], onItemSelect, isRequired = tr
     
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,200)
-    const { data: items, isLoading, isFetching } = hooks.maintenance.symptoms.useGetSymptomByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = api.maintenance.symptoms.querySymptoms.useGetSymptomByQuery({ search_string: debouncedString })    
     
     const renderSymptom = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <SymptomMenuItem key={`${item}-${index}`}

@@ -5,6 +5,7 @@ import hooks from "@mitocube/api-hooks"
 import { SparePartInput } from "../../core/input/api/SparePartInput"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 import { IncreaseButton, ReduceButton } from "../../core/base/buttons/ReduceButton"
+import { api } from "@/api"
 
 
 
@@ -27,7 +28,7 @@ MaintenanceSparePart.propTypes = {
  */
 export function MaintenanceSparePart({ tag, onSparePartChange, maintenance_event_tag }) {
    
-    const { data: sparepart, isSuccess } = hooks.maintenance.spareparts.useGetSparePartByTag({ tag })
+    const { data: sparepart, isSuccess } = api.maintenance.spareparts.querySpareParts.useGetSparePartByTag({ tag })
     const { data: count, refetch : refetchCount } = hooks.maintenance.useGetSparePartCountByMaintenanceEvent({ maintenance_event_tag, sparepart_tag: tag })
     
     const handleChange = (force_increase = false, force_decrease = false) => {

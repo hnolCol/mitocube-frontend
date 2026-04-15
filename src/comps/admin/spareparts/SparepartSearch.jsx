@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import useDebounce from "../../../hooks/useDebounce"
 import { useEffect, useState } from "react"
 import _ from "lodash"
@@ -20,7 +20,7 @@ export function SparepartSearch() {
     const [searchParams, setSearchParams] = useSearchParams()
 
     const { data: tag, isLoading, isSuccess, isError, refetch: updateSparepartList } =
-        hooks.maintenance.spareparts.useGetSparePartByQuery(
+        api.maintenance.spareparts.querySpareParts.useGetSparePartByQuery(
             { search_string: debouncedSearchString, limit: 20 },
             { staleTime: 2000 }
         )

@@ -1,5 +1,5 @@
 import { InsertEditSymptom } from "../../core/symptoms/InsertSymptoms";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import _ from "lodash";
 import { Dialog } from "@blueprintjs/core";
 
@@ -18,7 +18,7 @@ export function AddSymptomDialog({ isOpen, onClose }) {
 
 export function EditSymptomDialog({ isOpen, onClose, tag }) {
 
-    const {data: symptom, isSuccess : isSymptomSuccess} = hooks.maintenance.symptoms.useGetSymptomByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
+    const {data: symptom, isSuccess : isSymptomSuccess} = api.maintenance.symptoms.querySymptoms.useGetSymptomByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
     
     return (
         <Dialog  isOpen={isOpen} title="Edit Symptom" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(55vh, 900px)" }} canOutsideClickClose={false}>

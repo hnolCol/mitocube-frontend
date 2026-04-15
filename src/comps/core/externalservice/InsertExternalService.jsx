@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import { useEffect, useState } from "react";
 import _ from "lodash";
 import APIError from "../error/APIerror";
@@ -25,13 +25,13 @@ export function InsertEditExternalService({
     console.log(onSuccess, _.isFunction(onSuccess));
     
     const [externalservice, setExternalService] = useState(INITIAL_EXTERNAL_SERVICE);
-    const {mutate : postExternalService, isLoading, isError, error, isSuccess } = hooks.maintenance.externalservice.usePostExternalService({
+    const {mutate : postExternalService, isLoading, isError, error, isSuccess } = api.maintenance.externalservice.modifyExternalService.usePostExternalService({
         onSuccess: () => {
             setExternalService(INITIAL_EXTERNAL_SERVICE);
             onClose(true);   
         }
     });
-    const { mutate : updateExternalService, isLoading : isUpdateLoading } = hooks.maintenance.externalservice.useUpdateExternalService()
+    const { mutate : updateExternalService, isLoading : isUpdateLoading } = api.maintenance.externalservice.modifyExternalService.useUpdateExternalService()
 
 
     useEffect(() => {

@@ -1,14 +1,14 @@
 import { Divider, Menu, MenuItem, Popover, Tooltip } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import useDebounce from "../../../../hooks/useDebounce";
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { Annotation } from "./Annotation";
 import { TagLike } from "../tags/TagLike";
 
 export function AnnotationMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem" }) {
 
-    const { data: annotation, isSuccess } = hooks.annotations.useGetAnnotationsByTag({ tag }, { enabled: Boolean(tag), staleTime: Infinity })
+    const { data: annotation, isSuccess } = api.annotations.queryAnnotations.useGetAnnotationsByTag({ tag }, { enabled: Boolean(tag), staleTime: Infinity })
 
     if (!isSuccess) return null
     
@@ -41,7 +41,7 @@ export function AnnotationsInMenu({ annotation_tags = [], title, description, se
 
 export function AnnotationGroupInMenu({ tag, annotation_tags = [], selected_tags = [], onSelection }) {
 
-    const { data : annotation_group, isSuccess, isLoading } = hooks.annotations.useGetAnnotationGroupByTag({ tag }, {enabled : _.isString(tag)})
+    const { data : annotation_group, isSuccess, isLoading } = api.annotations.queryAnnotations.useGetAnnotationGroupByTag({ tag }, {enabled : _.isString(tag)})
     return (
         <MenuItem text = {`${isSuccess ? annotation_group.text : null} (${annotation_tags.length})`} style = {{ maxHeight: "15rem", overflowY : "scroll" }}>
             { isSuccess? <AnnotationsInMenu annotation_tags={annotation_tags} title={annotation_group.text} description={annotation_group.description} selected_tags={selected_tags} onSelection={onSelection} />: null }
@@ -57,7 +57,7 @@ export function AnnotationSelectionMenu({placeholder = "Select annotations", onS
     const debouncedString = useDebounce(searchString, 50)
     const [limit, setLimit] = useState(50)
 
-    const { data : annotation_search_results, isLoading, isError, isSuccess, refetch } = hooks.annotations.useGetAnnotationsBySearchString({ search_string : debouncedString, limit, group_by_group : true})
+    const { data : annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({ search_string : debouncedString, limit, group_by_group : true})
 
     useEffect(() => {
         //make sure there is something displayed when opening the menu, otherwise it looks weird.

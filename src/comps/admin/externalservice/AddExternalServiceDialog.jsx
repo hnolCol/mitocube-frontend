@@ -1,5 +1,5 @@
 import { InsertEditExternalService } from "../../core/externalservice/InsertExternalService";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import _ from "lodash";
 import { Dialog } from "@blueprintjs/core";
 
@@ -18,7 +18,7 @@ export function AddExternalServiceDialog({ isOpen, onClose, onSuccess }) {
 
 export function EditExternalServiceDialog({ isOpen, onClose, tag }) {
 
-    const {data: externalservice, isSuccess : isExternalServiceSuccess} = hooks.maintenance.externalservice.useGetExternalServiceByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
+    const {data: externalservice, isSuccess : isExternalServiceSuccess} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
     // console.log("externalservice:", externalservice)
     return (
         <Dialog  isOpen={isOpen} title="Edit External Service" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }} canOutsideClickClose={false}>

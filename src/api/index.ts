@@ -16,8 +16,17 @@ import { backendInfoAPI } from "./info";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
 import { genotypesQueryAPI, genotypesModifyAPI, genotypesCAQueryAPI } from "./genotypes";
+import { annotationsModifyAPI, annotationsQueryAPI } from "./annotations";
+import { symptomsModifyAPI, symptomsQueryAPI } from "./maintenance/symptoms";
+import { sparepartsModifyAPI, sparepartsQueryAPI } from "./maintenance/spareparts";
+import { proceduresModifyAPI, proceduresQueryAPI } from "./maintenance/procedures";
+import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance/externalservice";
 
 export const api = {
+    annotations : {
+        queryAnnotations : annotationsQueryAPI,
+        modifyAnnotations : annotationsModifyAPI
+    },
     attributes : { 
         queryAttributes : attributesQueryAPI,
         modifyAttributes : attributesModifyAPI
@@ -51,5 +60,23 @@ export const api = {
     states: stateAPI,
     info: { 
         backend : backendInfoAPI
+    },
+    maintenance : {
+        symptoms : {
+            querySymptoms : symptomsQueryAPI,
+            modifySymptoms : symptomsModifyAPI
+        },
+        spareparts : {
+            querySpareParts : sparepartsQueryAPI,
+            modifySpareParts : sparepartsModifyAPI
+        },
+        procedures : {
+            queryMaintenanceProcedures : proceduresQueryAPI,
+            modifyMaintenanceProcedures : proceduresModifyAPI
+        },
+        externalservice : {
+            queryExternalService : externalserviceQueryAPI,
+            modifyExternalService : externalserviceModifyAPI
+        }
     }
 };

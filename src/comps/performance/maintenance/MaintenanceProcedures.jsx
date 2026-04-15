@@ -1,11 +1,12 @@
 import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { MaintenanceProcedureInput } from "../../core/input/api/MaintenanceProcedureInput"
 import _ from "lodash"
 import { Tooltip } from "@blueprintjs/core"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 
 export function MaintenanceProcedure({ tag, onRemove }) {
-    const { data : procedure, isSuccess } =  hooks.maintenance.procedures.useGetMaintenanceProcedureByTag({procedure_tag : tag})
+    const { data : procedure, isSuccess } =  api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByTag({procedure_tag : tag})
     return  <div>{isSuccess ?
         <Tooltip content={<div>{procedure.description}</div>}>
             <div className="flex margin--little padding--little bg--grey">

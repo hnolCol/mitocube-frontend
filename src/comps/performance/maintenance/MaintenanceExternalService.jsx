@@ -6,10 +6,11 @@ import { Trait } from "../../core/base/traits/Trait"
 import { AddExternalServiceDialog } from "../../admin/externalservice/AddExternalServiceDialog"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 import _ from "lodash"
+import { api } from "@/api"
 
 function ExternalService({ tag, onRemove }) {
     const { data: service, isSuccess } =
-        hooks.maintenance.externalservice.useGetExternalServiceByTag({ tag })
+        api.maintenance.externalservice.queryExternalService.useGetExternalServiceByTag({ tag })
 
     if (!isSuccess) return null
 

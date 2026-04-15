@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import { useEffect } from "react"
 
@@ -11,7 +11,7 @@ import { useEffect } from "react"
 export function ProcedureDescription({ procedure_tag, update }) {
 
     const { data: procedureDescription, isError, isSuccess, error, refetch } =
-        hooks.maintenance.procedures.useGetMaintenanceProcedureDescription({ procedure_tag });
+        api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureDescription({ procedure_tag });
 
     useEffect(() => {
         if (update) refetch();
