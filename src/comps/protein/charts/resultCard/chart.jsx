@@ -15,11 +15,10 @@ import { Card } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 import { CategoricalChartSelection } from "./chartselection/CategoricalSelection"
 
-
-
 import viz from "@mitocube/viz"
+import { getConditionApplicationLabel} from "@/api/fetch/conditionApplications"
 
-
+import { api } from "@/api"
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
@@ -52,6 +51,8 @@ function ResultChart({
     openMetadataDrawer
 }) {
 
+
+    
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
@@ -138,19 +139,20 @@ function ResultChart({
             </div>
             <div className="flex">
 
-            <viz.charts.Categorical
-                width={width - 40 || undefined}
-                height={height - 50 || undefined}
-                {...selectionTags}
-                data={groupedAggratedData}
-                errorName="e"
-                yaxisLabel={_.isString(yAxisLabel) ? yAxisLabel : yaxisName}
-                yaxisName={yaxisName}
-                minMaxYDomain={minMaxYDomain}
-                svgID={svgID}
-                chartType={chartType}
-                tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
-            />
+                <viz.charts.Categorical
+                    getConditionApplicationText = {getConditionApplicationLabel}
+                    width={width - 40 || undefined}
+                    height={height - 50 || undefined}
+                    {...selectionTags}
+                    data={groupedAggratedData}
+                    errorName="e"
+                    yaxisLabel={_.isString(yAxisLabel) ? yAxisLabel : yaxisName}
+                    yaxisName={yaxisName}
+                    minMaxYDomain={minMaxYDomain}
+                    svgID={svgID}
+                    chartType={chartType}
+                    tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
+                />
 
             {showMenu && (
                 <div className="flex flex-column justify-flex-start">

@@ -1,16 +1,15 @@
-import { useGetResearchGroups } from "../../../../hooks/queries/researchgroup.hooks";
 import ResearchGroupIcon from "../../svg/icons/chartSelection/ResearchGroup";
 
-
+import {api} from "@/api"
 
 export function ResearchGroupInput({selectedItems, onItemSelect, minimal = true }) {
 
-    const { data : researchgroups, isSuccess } = useGetResearchGroups()
+    // const { data : researchgroups, isSuccess } = api.research_groups.useGetResearchGroups()
 
     return (
         <ResearchGroupIcon 
             placeholder="Research Group.."
-            items={isSuccess && _.isArray(researchgroups) ? researchgroups : []}
+            items={[]} //research groups
             textKey="name"
             labelKey=""
             minimal={minimal}
