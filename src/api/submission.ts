@@ -5,3 +5,4 @@ export const submissionTitleAPI = hooks.submissions.title.createSubmissionTitleA
 export const submissionCoreAPI = hooks.submissions.core.createSubmissionCoreAPI(apiClient);
 export const submissionMetatextAPI = hooks.submissions.metatexts.createSubmissionMetatextAPI(apiClient);
 export const submissionPermissionsAPI = hooks.submissions.permissions.createSubmissionPermissionsAPI(apiClient);
+export const submissionStateAPI = hooks.submissions.states.createSubmissionStateAPI(apiClient);

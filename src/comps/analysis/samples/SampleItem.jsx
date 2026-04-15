@@ -1,11 +1,9 @@
 
-import hooks from "@mitocube/api-hooks"
-import {motion} from "framer-motion"
 import _ from "lodash"
 import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView";
 import { Attribute } from "../../core/base/attributes/Attribute";
 import { SampleGenotype } from "./SampleGenotype";
-
+import { api } from "@/api";
 /**
  * SampleItem component to display individual sample information. 
  * The information of the sample are retrieved from the database. 
@@ -16,9 +14,9 @@ import { SampleGenotype } from "./SampleGenotype";
 
 export function SampleItem({ tag, display_condition_applications = true }) {
 
-    const { data: sample } = hooks.samples.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 0 });
+    const { data: sample } = api.samples.core.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 0 });
 
-    const { data : condition_applications} = hooks.samples.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 0})
+    const { data : condition_applications} = api.samples.core.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 0})
 
     return (
         <div

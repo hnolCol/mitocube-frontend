@@ -3,9 +3,8 @@ import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from
 import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api";
-import { api } from "@/api"
+
 
 
 function ConditionApplicationLegendLabel({ tag, handleTooltip, hideTooltip }) {

@@ -119,25 +119,6 @@ export const usePathSubmissionSampleAttributes = (useMutationOptions = {}) => {
 
 
 
-/**
- * 
- * @param {Object} props 
- * @param {String} props.submission_tag 
- * @returns 
- */
-async function getSampleAttributes_API({ submission_tag }) {
-    const res = await axios.get('/api/submissions/' + submission_tag + '/sampleattributes')
-    return res.data
-}
-
-export const useGetSampleAttributes = (APIParams = { submission_tag }, useQueryOptions = {}) => {
-    return useQuery(["getSubmissionSampleAttributes",APIParams.submission_tag], () => getSampleAttributes_API({...APIParams}), useQueryOptions)
-}
-
-
-
-
-
 // submission help 
 
 async function getSubmissionHelp_API(token) {
