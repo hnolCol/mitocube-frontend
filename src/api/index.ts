@@ -4,7 +4,8 @@ import {
     submissionAnalysisAPI,
     submissionTitleAPI,
     submissionCoreAPI,
-    submissionMetatextAPI, submissionPermissionsAPI
+    submissionMetatextAPI, submissionPermissionsAPI,
+    submissionStateAPI
 } from "./submission";
 import { tokenAuthentication, userLogin } from "./authentication";
 import { newsAPI } from "./news";
@@ -16,6 +17,7 @@ import { backendInfoAPI } from "./info";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
 import { genotypesQueryAPI, genotypesModifyAPI, genotypesCAQueryAPI } from "./genotypes";
+import { sampleCoreAPI, sampleCountAPI } from "./samples";
 
 export const api = {
     attributes : { 
@@ -36,7 +38,8 @@ export const api = {
         title : submissionTitleAPI,
         analysis: submissionAnalysisAPI,
         metatexts: submissionMetatextAPI,
-        permissions : submissionPermissionsAPI
+        permissions: submissionPermissionsAPI,
+        states : submissionStateAPI
     },
     authentication: {
         login: userLogin,
@@ -49,6 +52,10 @@ export const api = {
     },
     metatexts: metatextAPI,
     states: stateAPI,
+    samples: {
+        count: sampleCountAPI,
+        core : sampleCoreAPI
+    },
     info: { 
         backend : backendInfoAPI
     }

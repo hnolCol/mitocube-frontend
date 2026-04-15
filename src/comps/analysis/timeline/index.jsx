@@ -5,14 +5,13 @@ import { StaticStateIndicator } from "../../core/base/states/SubmssionState"
 
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 
-import hooks from "@mitocube/api-hooks"
-
+import { api } from "@/api"
 
 function Timeline() {
     const { submission_tag } = useOutletContext()   
 
-    const { data: created_at, isSuccess : isCreatedAtSuccess } = hooks.submissions.useGetSubmissionCreatedAt({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
-    const { data: state, isSuccess } = hooks.submissions.states.useGetSubmissionState({ tag: submission_tag })
+    const { data: created_at, isSuccess : isCreatedAtSuccess } = api.submissions.core.useGetSubmissionCreatedAt({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
+    const { data: state, isSuccess } = api.submissions.states.useGetSubmissionState({ tag: submission_tag })
     // const { data : timeline, isLoading : timelineIsLoading, isFetching : timelineIsFetching, isSuccess : timelineIsSuccess } = useGetTimelineBySubmissionTag({submission_tag})
     //map the submission_state(int) to the submission name
     // const timeline_data = timelineIsSuccess && _.isArray(timeline) ?

@@ -148,7 +148,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
 
 
             
-                {_.isArray(topSubmissionStats) ? <FeatureDataView feature_tags={topSubmissionStats.map(i => tag)} submission_tag={topSubmissionStats.map(d => d.submission_tag)} /> : null}
+                {_.isArray(topSubmissionStats) ? <FeatureDataView feature_tags={topSubmissionStats.map(i => tag)} submission_tags={topSubmissionStats.map(d => d.submission_tag)} /> : null}
 
     
 

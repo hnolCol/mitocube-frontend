@@ -1,7 +1,6 @@
 
 import { MenuItem, Button } from "@blueprintjs/core";
 import { Select } from "@blueprintjs/select";
-import hooks from "@mitocube/api-hooks";
 import _ from "lodash"; 
 import PropTypes from "prop-types"
 import { api } from "@/api";
@@ -43,7 +42,7 @@ StateMenuItem.propTypes = {
  */
 export function StateSelectionMenu({ onSelection, current_state_tag }) {
 
-    const { data: submissionStates } = hooks.submissions.states.useGetStates()
+    const { data: submissionStates } = api.submissions.states.useGetStates()
 
     return (
 

@@ -8,19 +8,18 @@ import { useEffect, useRef, useState } from "react";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 
 FeatureDataView.propTypes = {
-    features : PropTypes.arrayOf(PropTypes.string).isRequired
+    feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
+    submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired
 }
 FeatureDataView.defaultProps = {
     features: []
 };
 
-export function FeatureData({ feature_tag, submission_tag }) {
+export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
 
-    const { data, isLoading } = hooks.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: !!feature_tag && !!submission_tag, staleTime: 60000 });
+    const { data, isLoading } = hooks.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
     const {data : feature} = hooks.features.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
-
     const { data: attributes, isLoading : isSampleCAAttributeLoading } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
-
     const containerRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
 
@@ -43,10 +42,10 @@ export function FeatureData({ feature_tag, submission_tag }) {
                 <div>Loading...</div>
             ) : (
                     <div>
-                        <SubmissionTitle tag={submission_tag} showEdit={false} />
+                        {showTitle && <SubmissionTitle tag={submission_tag} showEdit={false} />}
                 <ResultChart
                         yaxisName="value"
-                        yAx
+                        featureTag={feature_tag}
                         data={data?.data}
                         showMenu={true}
                         attribute_tags={attributes}
@@ -60,11 +59,11 @@ export function FeatureData({ feature_tag, submission_tag }) {
     );
 }
 
-export function FeatureDataView({ feature_tags, submission_tag }) {
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true }) {
 
         // build a simple initial layout (you can adjust sizing/positions as needed)
         const initialLayouts = feature_tags.map((ft, i) => ({
-            i: `${ft}-${i}-${_.isArray(submission_tag) ? submission_tag[i] : submission_tag}`,
+            i: `${ft}-${i}-${submission_tags[i]}`,
             x: (i % 3) * 2,
             y: Math.floor(i / 3) * 6,
             w: 2,
@@ -80,8 +79,6 @@ export function FeatureDataView({ feature_tags, submission_tag }) {
 
                 const ResponsiveGridLayout = WidthProvider(Responsive);
 
-
-
                 return (
                     <div style={{ width: "80vw", height : "90vh" }}>
                         <ResponsiveGridLayout
@@ -96,10 +93,10 @@ export function FeatureDataView({ feature_tags, submission_tag }) {
                             useCSSTransforms={true}
                         >
                             {feature_tags.map((feature_tag, i) => (
-                                <div key={`${feature_tag}-${i}-${_.isArray(submission_tag) ? submission_tag[i] : submission_tag}`} data-grid={initialLayouts[i]}>
+                                <div key={`${feature_tag}-${i}-${submission_tags[i]}`} data-grid={initialLayouts[i]}>
                                     <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%", marginBottom: "100px" }}>
                                         
-                                        <FeatureData feature_tag={feature_tag} submission_tag={_.isArray(submission_tag) ? submission_tag[i] : submission_tag} />
+                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tags[i]} showTitle={showTitle} />
                                     </div>
                                 </div>
                             ))}

@@ -146,7 +146,7 @@ export function DatasetFeatureView() {
 
                 {/* Column 2: FeatureDataView only */}
                 <div style={{marginLeft : "2rem"}}>
-                    <FeatureDataView feature_tags={proteinGroupTags} submission_tag={submission_tag} />
+                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} />
                 </div>
             </div>
         </div>

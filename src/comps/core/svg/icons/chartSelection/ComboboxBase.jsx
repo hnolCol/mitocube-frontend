@@ -49,7 +49,7 @@ function ComboboxIconBase({
     height = 25,
     width = 25,
     placeholder = "",
-    items = [{ text: "Menu1" }],
+    items = [""],
     textKey = "text",
     labelKey = undefined,
     selectedItems = [],
@@ -60,6 +60,7 @@ function ComboboxIconBase({
     filterable = false,
     itemIsAttribute = true,
     children }) {
+    
     
     const itemsAreObjects = _.isObject(items[0])
     const checkedItems = _.isString(items[0])?items.map(v => {return {[textKey] : v}}):items
@@ -90,7 +91,7 @@ function ComboboxIconBase({
      * @returns {React.ReactElement}
      */
     const renderItem = (item, { handleClick, handleFocus, index, modifiers, query, ref }) => {
-        const selected = isItemInArrayDeepComp({array : selectedItems, item})
+        const selected = selectedItems.includes(item[textKey])
         if (item[textKey] === "DIVIDER") return <MenuDivider key={`${index}-comboMenuDiv`} />
         if (itemIsAttribute) {
             return <AttributeMenuItem

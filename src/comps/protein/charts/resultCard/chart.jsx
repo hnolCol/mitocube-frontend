@@ -43,7 +43,7 @@ function ResultChart({
     yAxisLabel = undefined,
     attribute_tags = [],
     submission_tag = "",
-    featureID = "",
+    featureTag = "",
     width,
     height,
     title,
@@ -69,7 +69,7 @@ function ResultChart({
             .flatMap(attr => data.map(d => d[attr]))
             .filter(Boolean)
         );
-        }, [data, selection]);
+        }, [_.join(_.values(selection), "-"), featureTag, submission_tag, _.isArray(data) ? data.length : 0]) // we need to include featureTag and submission_tag in the dependency array, because the CA tags are derived from the selection which is reset when feature or submission changes.;
 
     const { isReady, tagQueries } = usePrefetchConditionApplicationTexts(ca_tags)
 
@@ -84,14 +84,15 @@ function ResultChart({
     const attributeMap = new Map()
     attributeQueries.forEach((q, idx) => {
         const attr_tag = attribute_tags[idx]
-        if (q.data) attributeMap.set(attr_tag, q.data.text)
+        if (q.data) attributeMap.set(attr_tag, q.data.text) // we only need the text for attributes, as they are used for labelling and not for grouping like CA tags.
     })
 
-    console.log("attributeMap", attributeMap)
 
     // const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     // const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
-    const svgID = `${featureID}-svg-id${submission_tag}`
+
+
+    const svgID = `${featureTag}-svg-id${submission_tag}`
     const redirect = useNavigate()
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
@@ -115,11 +116,11 @@ function ResultChart({
 
     const handleDataDownload = (dataType) => {
        
-        if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureID}-${submission_tag}.txt`)
-        else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureID}-${submission_tag}.txt`)
-        // else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureID}.txt`)
-        else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
-        else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureID}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
+        if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureTag}-${submission_tag}.txt`)
+        else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureTag}-${submission_tag}.txt`)
+        // else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureTag}.txt`)
+        // else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
+        else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureTag}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
     }
 
     // const handleNormalizationGroupSelection = (groupingName, groupName) => {

@@ -56,7 +56,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
  * @returns 
  */
 export function ConditionApplicationsView({ tag, show_attribute = false, add_separator = false }) { 
-    const { data : isGenotype, isSuccess } = api.genotypes.queryGenotpes.useGetGenotypeExists({tag}, { enabled: _.isString(tag) && tag.length > 0 })
+    const { data : isGenotype, isSuccess } = api.genotypes.queryGenotypes.useGetGenotypeExists({tag}, { enabled: _.isString(tag) && tag.length > 0 })
     const { data: condition_applications } = api.condition_applications.useGetConditionApplication({ tag }, { enabled: !!tag && _.isString(tag) && isSuccess && !isGenotype })
     
 

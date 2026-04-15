@@ -4,7 +4,6 @@ import { useState } from "react"
 import { isHexColorLight } from "../../../services/colors"
 import { Divider } from "@blueprintjs/core"
 import { api } from "@/api"
-import hooks from "@mitocube/api-hooks"
 
 export function StateFilterButton({ tag, setSubmissionFilter, submissionFilter, onHoverStart }) {
 
@@ -59,7 +58,7 @@ export function StateSelection({ setSubmissionFilter, submissionFilter}) {
     const [hoverState, setHoverState] = useState("")
    
 
-    const { data: submissionStates } = hooks.submissions.states.useGetStates()
+    const { data: submissionStates } = api.submissions.states.useGetStates()
     
 
     return (

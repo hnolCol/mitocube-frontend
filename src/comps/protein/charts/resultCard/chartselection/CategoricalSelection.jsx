@@ -19,7 +19,7 @@ export function CategoricalChartSelection({ keyNames, selection, onSelectionChan
         onSelectionChange(prevValues => {
             return {
                 ...prevValues,
-                [key]: _.isObject(prevValues[key]) ? prevValues[key] === item ? undefined : item : item
+                [key]: _.isString(prevValues[key]) ? prevValues[key] === item ? undefined : item : item
             }
         })
     }
