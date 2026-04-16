@@ -3,7 +3,7 @@ import _ from "lodash"
 import { CreatedAt } from './CreatedAt'
 import { StateIndicator } from '../base/states/SubmssionState'
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"; 
 
 export function TitleText({title}) {
     return <h4>{title}</h4>
@@ -31,7 +31,7 @@ export function Content({ text }) {
  */
 export function UserName({ tag }) {
 
-    const { isFetched, data: user, isSuccess, isLoading } = hooks.users.useGetPublicUserByTag({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const { isFetched, data: user, isSuccess, isLoading } = api.users.modify.useGetPublicUserByTag({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
 
     return (
         <div>

@@ -3,12 +3,12 @@ import { getUserFullName } from "../../../services/format/user"
 import _ from "lodash"
 
 import hooks from "@mitocube/api-hooks"
-
+import { api } from "@/api"; 
 
 
 export function Author({ user_tag }) { 
 
-    const { data: user } = hooks.users.useGetPublicUserByTag({ tag: user_tag }, { enabled: !!user_tag, staleTime: 1000 * 60 * 5 }) //5 minutes
+    const { data: user } = api.users.modify.useGetPublicUserByTag({ tag: user_tag }, { enabled: !!user_tag, staleTime: 1000 * 60 * 5 }) //5 minutes
     return (<div>
         {user ? getUserFullName(user) : "Loading..."}
     </div>)

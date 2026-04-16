@@ -1,5 +1,5 @@
 
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"; 
 import { useState } from "react";
 import useDebounce from "../../../hooks/useDebounce";
 import { UserCount } from "./Count";
@@ -12,7 +12,7 @@ export function UsersAdminView() {
     const [dialogState, setDialogState] = useState({ isOpen: false })
     const [searchString, setSearchString] = useState()
     const debouncedSearchString = useDebounce(searchString, 30)
-    const { data: user_tags } = hooks.users_query.useGetUserByQuery({ search_string: debouncedSearchString, limit: 50 })
+    const { data: user_tags } = api.users.queryByQuery.useGetUserByQuery({ search_string: debouncedSearchString, limit: 50 })
 
     return (
         <div style={{

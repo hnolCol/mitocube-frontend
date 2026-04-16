@@ -1,5 +1,5 @@
 import { OptionButton } from "../../core/base/buttons/OptionButton";
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"; 
 import _ from "lodash"
 
 /**
@@ -11,7 +11,7 @@ import _ from "lodash"
  */
 export function UserRoleSelection({ selectedRole, onRoleChange }) {
 
-   const { data: userRoles } = hooks.users.useGetUserRoles();
+   const { data: userRoles } = api.users.roles.useGetUserRoles();
     return (
         <div>
             {_.isObject(userRoles) ? _.keys(userRoles.roles).map(role_tag => {

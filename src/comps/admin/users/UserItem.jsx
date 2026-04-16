@@ -1,6 +1,6 @@
 
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"; 
 import { useNavigate } from "react-router"
 import { motion } from "framer-motion"
 import _ from "lodash"
@@ -9,8 +9,8 @@ import { CreatedAt } from "../../core/metrics/CreatedAt"
 
 export function UserItem({ tag, redirectOnClick = true, onClick }) {
     const redirect = useNavigate()
-    const {data : user, isLoading, isError, error} = hooks.users.useGetPublicUserByTag({tag}, {enabled: tag && tag.length > 0})
-    const { data: isUserActive } = hooks.users.useGetUserIsActive({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const {data : user, isLoading, isError, error} = api.users.modify.useGetPublicUserByTag({tag}, {enabled: tag && tag.length > 0})
+    const { data: isUserActive } = api.users.active.useGetUserIsActive({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
     
     if (isLoading) return <div>Loading user...</div>
     if (isError) return <div>Error loading user: {error.message}</div>

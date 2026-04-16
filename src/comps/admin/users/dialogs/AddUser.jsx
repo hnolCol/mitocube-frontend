@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { MinimalTextInput } from "../../../core/input/MinimalTextInput";
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks" 
+import { api } from "@/api"; 
 import { UserRoleSelection } from "../UserRoleSelection";
 
 const USER_INPUT = [
@@ -14,7 +14,7 @@ const USER_INPUT = [
 export function AddUserDialog({onCancel}) {
 
 
-    const { mutate: postUser, isLoading } = hooks.users.usePostUser()
+    const { mutate: postUser, isLoading } = api.users.modify.usePostUser()
 
     const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group : "", institute : "", role : 1})
     const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
