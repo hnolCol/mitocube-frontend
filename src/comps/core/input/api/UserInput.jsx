@@ -4,18 +4,18 @@ import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
 import { getUserFullName } from "../../../../services/format/user"
 import { MultiSelect } from "@blueprintjs/select"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"; 
 import { use } from "react"
 
 
 export function UserFullName({ tag }) {
-    const { data: user, isSuccess } = hooks.users.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.modify.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
     return isSuccess ? <span>{getUserFullName(user)}</span> : null 
 }
 
 export function UserMenuItem({ tag, handleClick, handleFocus, modifiers }) {
     
-    const { data: user, isSuccess } = hooks.users.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.modify.museGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
     return isSuccess ? <MenuItem
         key={tag}
         text={getUserFullName(user)}
@@ -34,7 +34,7 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
 
-    const { data : user_tags, isLoading, isFetching } = hooks.users_query.useGetUserByQuery({search_string : debouncedString, limit})
+    const { data : user_tags, isLoading, isFetching } = api.users.queryByQuery.useGetUserByQuery({search_string : debouncedString, limit})
     /**
      * 
      * @param {} user 

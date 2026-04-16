@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"; 
 
 /**
  * 
@@ -10,7 +10,7 @@ import hooks from "@mitocube/api-hooks";
  * @returns 
  */
 export function UserCount({ exclude_inactive = true }) {
-    const { data: userCount, isLoading } = hooks.users.useGetUserCount({ exclude_inactive });
+    const { data: userCount, isLoading } = api.users.count.useGetUserCount({ exclude_inactive });
 
     return (
         <span>{isLoading ? "Loading..." : userCount}</span>

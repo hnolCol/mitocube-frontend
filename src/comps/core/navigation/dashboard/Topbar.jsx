@@ -10,8 +10,6 @@ import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
 import { Link } from "react-router-dom"
 import { TermsOfUse } from "../../documents/TermsOfUse"
-import hooks from "@mitocube/api-hooks"
-
 import { api } from "@/api"
 
 /**
@@ -25,8 +23,8 @@ function Topbar({authenticationStatus,logout, user_tag}) {
 
     const [dialogProps, setDialogProps] = useState({isOpen : false})
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
-    const { data : userRole } =  hooks.users.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
-    const { data : user, isSuccess} = hooks.users.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
+    const { data : userRole } =  api.users.roles.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
+    const { data : user, isSuccess} = api.users.modify.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const initials = isSuccess ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`.toUpperCase() : ""
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
     

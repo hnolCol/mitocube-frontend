@@ -8,7 +8,7 @@ import { getFormatDateFromTimestamp } from "../../../../services/date/format";
 import moment from "moment";
 import { TagWithTooltip } from "../tags/TagWithTooltip";
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"; 
 
 
 /**
@@ -20,7 +20,7 @@ import hooks from "@mitocube/api-hooks"
  */
 export function MinimalUserIcon({ user_tag, tooltip_enabled = true }) {
 
-    const { data : user, isSuccess} = hooks.users.useGetPublicUserByTag({tag : user_tag})
+    const { data : user, isSuccess} = api.users.modify.useGetPublicUserByTag({tag : user_tag})
     return <div>
         {isSuccess ?
         <Popover
