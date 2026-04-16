@@ -8,7 +8,7 @@ import {
 } from "./submission";
 import { tokenAuthentication, userLogin } from "./authentication";
 import { newsAPI } from "./news";
-import { usersViewsAPI, userActiveAPI, userCountAPI, userModifyAPI, userRolesAPI, queryUserByQueryAPI } from "./users";
+import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
@@ -16,11 +16,16 @@ import { backendInfoAPI } from "./info";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
 import { genotypesQueryAPI, genotypesModifyAPI, genotypesCAQueryAPI } from "./genotypes";
+import { proteomesQueryAPI, proteomesPostAPI, proteomesCountAPI } from "./proteomes";
 import { annotationsModifyAPI, annotationsQueryAPI } from "./annotations";
 import { symptomsModifyAPI, symptomsQueryAPI } from "./maintenance/symptoms";
 import { sparepartsModifyAPI, sparepartsQueryAPI } from "./maintenance/spareparts";
 import { proceduresModifyAPI, proceduresQueryAPI } from "./maintenance/procedures";
 import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance/externalservice";
+import { sampleCoreAPI, sampleCountAPI } from "./samples";
+import { researchGroupsQueryAPI } from "./researchgroups";
+import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
+
 
 export const api = {
     annotations : {
@@ -40,6 +45,11 @@ export const api = {
         modifyGenotypes : genotypesModifyAPI,
         queryConditionApplications : genotypesCAQueryAPI
     },
+    proteomes : {
+        queryProteomes : proteomesQueryAPI,
+        postProteome : proteomesPostAPI,
+        countProteomes : proteomesCountAPI  
+    },
     submissions: {
         core : submissionCoreAPI,
         title : submissionTitleAPI,
@@ -57,9 +67,10 @@ export const api = {
         views : usersViewsAPI,
         active : userActiveAPI,
         count : userCountAPI,
-        modify : userModifyAPI,
+        modify : userCoreAPI,
         roles : userRolesAPI,
-        queryByQuery : queryUserByQueryAPI
+        queryByQuery : queryUserByQueryAPI,
+        edit : userEditAPI
 
     },
     metatexts: metatextAPI,
@@ -68,6 +79,9 @@ export const api = {
         backend : backendInfoAPI
     },
     maintenance : {
+        core : maintenanceCoreAPI,
+        states : maintenanceStatesAPI,
+        
         symptoms : {
             querySymptoms : symptomsQueryAPI,
             modifySymptoms : symptomsModifyAPI

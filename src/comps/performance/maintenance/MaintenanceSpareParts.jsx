@@ -1,11 +1,10 @@
 import { Tooltip } from "@blueprintjs/core"
 import _ from "lodash"
 import PropTypes from "prop-types"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { SparePartInput } from "../../core/input/api/SparePartInput"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 import { IncreaseButton, ReduceButton } from "../../core/base/buttons/ReduceButton"
-import { api } from "@/api"
 
 
 
@@ -29,7 +28,7 @@ MaintenanceSparePart.propTypes = {
 export function MaintenanceSparePart({ tag, onSparePartChange, maintenance_event_tag }) {
    
     const { data: sparepart, isSuccess } = api.maintenance.spareparts.querySpareParts.useGetSparePartByTag({ tag })
-    const { data: count, refetch : refetchCount } = hooks.maintenance.useGetSparePartCountByMaintenanceEvent({ maintenance_event_tag, sparepart_tag: tag })
+    const { data: count, refetch : refetchCount } = api.maintenance.core.useGetSparePartCountByMaintenanceEvent({ maintenance_event_tag, sparepart_tag: tag })
     
     const handleChange = (force_increase = false, force_decrease = false) => {
         onSparePartChange(tag, force_increase, force_decrease, refetchCount)
@@ -63,8 +62,8 @@ MaintenanceSpareParts.propTypes = {
 export function MaintenanceSpareParts({ maintenance_event, refetch, refetchCosts }) {
 
     const maintenance_event_tag = maintenance_event.tag
-    const { mutate: deleteSparePart } = hooks.maintenance.useDeleteSparePartToMaintenanceEvent()
-    const { mutate: addSparePart } = hooks.maintenance.usePostSparePartToMaintenanceEvent()
+    const { mutate: deleteSparePart } = api.maintenance.core.useDeleteSparePartToMaintenanceEvent()
+    const { mutate: addSparePart } = api.maintenance.core.usePostSparePartToMaintenanceEvent()
     /**
      * 
      * @param {String} sparepart_tag 

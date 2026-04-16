@@ -4,7 +4,7 @@ import _ from "lodash";
 
 import Loading from "../../core/base/loading";
 import { CreatedAt } from "../../core/metrics/CreatedAt";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 
 
 
@@ -15,7 +15,7 @@ function ProteomeUpdating({ tag, can_update = false }) {
     // useInView returns a boolean, not an object
     const inView = useInView(ref, { amount: 0.2 });
     // use inView in the query options to enable polling only when visible
-    const { data: isUpdating } = hooks.proteomes.useGetProteomeIsUpdating({tag}, { enabled: _.isString(tag) && inView, refetchInterval : inView ? 7500 : false});
+    const { data: isUpdating } = api.proteomes.queryProteomes.useGetProteomeIsUpdating({tag}, { enabled: _.isString(tag) && inView, refetchInterval : inView ? 7500 : false});
     return (<div ref={ref} className="flex flex-column center-items">
         {isUpdating ? <span className="text--warning">Updating...</span> : <span className="text--success">Up to date</span>}
         {can_update && !isUpdating && <button  className="dialog-button">Update</button>}
@@ -25,9 +25,9 @@ function ProteomeUpdating({ tag, can_update = false }) {
 function ProteomeItem({ tag, can_update = false }) {
     
 
-    const { data: proteinCount } = hooks.proteomes.useGetProteomeProteinCount({ tag }, { enabled: _.isString(tag) });
-    const { data: proteomeText } = hooks.proteomes.useGetProteomeText({ tag }, { enabled: _.isString(tag) });
-    const { data: createdAt } = hooks.proteomes.useGetProteomeCreatedAt({ tag }, { enabled: _.isString(tag) });
+    const { data: proteinCount } = api.proteomes.countProteomes.useGetProteomeProteinCount({ tag }, { enabled: _.isString(tag) });
+    const { data: proteomeText } = api.proteomes.queryProteomes.useGetProteomeText({ tag }, { enabled: _.isString(tag) });
+    const { data: createdAt } = api.proteomes.queryProteomes.useGetProteomeCreatedAt({ tag }, { enabled: _.isString(tag) });
 
 
     return <div className="flex justify-space-between padding--little margin--little bg--white div--round">
@@ -53,9 +53,9 @@ function ProteomeItem({ tag, can_update = false }) {
 
 export function ProteomesView() {
     
-    const { data : proteomes, isLoading } = hooks.proteomes.useGetProteomeBySearchString({search_string : "", limit : 20});
-    const {data : count} = hooks.proteomes.useGetProteomeCount();
-    const { data: proteomePermissions, isSuccess} = hooks.proteomes.useGetProteomePermissions({});
+    const { data : proteomes, isLoading } = api.proteomes.queryProteomes.useGetProteomeBySearchString({search_string : "", limit : 20});
+    const {data : count} = api.proteomes.countProteomes.useGetProteomeCount();
+    const { data: proteomePermissions, isSuccess} = api.proteomes.queryProteomes.useGetProteomePermissions({});
     
 
     return (

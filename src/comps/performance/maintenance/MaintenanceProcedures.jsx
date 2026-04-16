@@ -1,4 +1,3 @@
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api"
 import { MaintenanceProcedureInput } from "../../core/input/api/MaintenanceProcedureInput"
 import _ from "lodash"
@@ -30,8 +29,8 @@ export function MaintenanceProcedures({ maintenance_event, refetch }) {
 
     const maintenance_event_tag = maintenance_event.tag
 
-    const { mutate : deleteProcedure} = hooks.maintenance.useDeleteMaintenanceProcedureToMaintenanceEvent()
-    const { mutate : addProcedure } = hooks.maintenance.usePostMaintenanceProcedureToMaintenanceEvent()
+    const { mutate : deleteProcedure} = api.maintenance.core.useDeleteMaintenanceProcedureToMaintenanceEvent()
+    const { mutate : addProcedure } = api.maintenance.core.usePostMaintenanceProcedureToMaintenanceEvent()
     
     /**
          * 

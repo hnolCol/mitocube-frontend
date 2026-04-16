@@ -1,7 +1,7 @@
 import { Button, Callout, Divider, InputGroup, Tab, Tabs } from "@blueprintjs/core";
 import { useState } from "react";
 import PasswordInput from "../../input/Password";
-import { useGetUserAttributes, usePatchUser, usePostPasswordChange } from "../../../../hooks/queries/user.hooks";
+import { api } from "@/api";
 import APIError from "../../error/APIerror";
 import _ from "lodash"
 import { UserAttributeSelection } from "./UserAttributeSelection";
@@ -12,7 +12,6 @@ function PWChangeUser({ onSuccess }) {
     const [newPassword, setNewPassword] = useState(undefined)
     const [showOld, setShowOld] = useState(false)
     const [infoText, setInfoText] = useState("")
-    const { mutate, isPending, isError, error } = usePostPasswordChange()
 
     const hasOld = oldPassword.length > 0
     const hasNew = _.isString(newPassword) && newPassword.length >= 8
@@ -22,6 +21,9 @@ function PWChangeUser({ onSuccess }) {
     const errorMessage = isError
         ? (error?.response?.data?.detail || "Current password is incorrect.")
         : null
+
+    const { mutate, isLoading, isError, error } = api.users.edit.usePostPasswordChange()
+
 
     const handlePasswordChange = () => {
         if (!isValid) return
@@ -128,8 +130,8 @@ function PWChangeUser({ onSuccess }) {
 function EditAffiliation({ }) {
     
     const [userProps, setUserProps] = useState({})
-    const { data, isLoading, isFetching, isSuccess, isFetched, isError, error } = useGetUserAttributes({},{staleTime:30000000})
-    const {mutate : patchUser, isLoading : patchUserIsLoading, iserror : patchUserIsError, error : patchUserError} = usePatchUser()
+    const { data, isLoading, isFetching, isSuccess, isFetched, isError, error } = api.users.edit.useGetUserAttributes({},{staleTime:30000000})
+    const {mutate : patchUser, isLoading : patchUserIsLoading, iserror : patchUserIsError, error : patchUserError} = api.users.edit.usePatchUser()
     return (
         <div>
             <h4>Change affiliation</h4>
