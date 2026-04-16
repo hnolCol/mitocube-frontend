@@ -2,6 +2,7 @@ import { Button } from "@blueprintjs/core";
 import { AddResearchGroupDialog } from "./AddGroup";
 import { useState } from "react";
 import { ResearchGroupView } from "./View";
+import { EditResearchGroupUsersDialog } from "./EditGroupUsers";
 
 
 /**
@@ -22,11 +23,11 @@ export function AdminResearchGroup({ }) {
         <AddResearchGroupDialog
             isOpen={isAddDialogOpen}
             onClose={handleAddDialogClose} />
-        {/* <EditResearchGroupUsersDialog
+        <EditResearchGroupUsersDialog
             isOpen={editUsersDialog.isOpen}
             tag={editUsersDialog.tag}
             title={editUsersDialog.title}
-            onClose={() => setEditUsersDialog({ isOpen: false, tag: undefined, title : undefined })} /> */}
+            onClose={() => setEditUsersDialog({ isOpen: false, tag: undefined, title : undefined })} />
 
         <h2>Research Groups</h2>
 

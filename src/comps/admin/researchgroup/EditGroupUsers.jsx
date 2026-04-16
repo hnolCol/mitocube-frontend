@@ -1,12 +1,14 @@
 import { Dialog, DialogBody } from "@blueprintjs/core";
-import { useDeleteResearchGroupUsers, useGetResearchGroupUsers, usePostResearchGroupUsers } from "../../../hooks/queries/researchgroup.hooks";
 import _ from "lodash"
 import { EditableUserList } from "../../core/base/user/EditUserList";
+import { api } from "@/api"; 
+
+
 export function EditResearchGroupUsersDialog({ isOpen, tag, onClose, title }) {
     
-    const { data: users, isLoading: userIsLoading, isSuccess: userIsSuccess, refetch } = useGetResearchGroupUsers({ tag }, { enabled: _.isString(tag) && isOpen })
-    const { mutate: postUser, isLoading: postUserIsLoading } = usePostResearchGroupUsers()
-    const { mutate: deleteUser, isLoading: deleteUserIsLoading } = useDeleteResearchGroupUsers()
+    const { data: user_tags, isLoading: userIsLoading, isSuccess: userIsSuccess, refetch } = api.researchgroups.useGetResearchGroupUsers({ tag }, { enabled: _.isString(tag) && isOpen })
+    const { mutate: postUser, isLoading: postUserIsLoading } = api.researchgroups.usePostResearchGroupUsers()
+    const { mutate: deleteUser, isLoading: deleteUserIsLoading } = api.researchgroups.useDeleteResearchGroupUsers()
 
     const addUser = (user_tag) => {
         postUser({tag, user_tags : [user_tag]}, {onSuccess : () =>  refetch()})
@@ -18,9 +20,9 @@ export function EditResearchGroupUsersDialog({ isOpen, tag, onClose, title }) {
 
 
     return <Dialog isOpen={isOpen} canEscapeKeyClose title={title} onClose={onClose}>
-        <div>Changes are automatically saved.</div>
+        
         <DialogBody>
-            {_.isArray(users) ? <EditableUserList selected_user_tags={users} title={""} onSelect={addUser} onRemove={removeUser} isLoading={postUserIsLoading || deleteUserIsLoading} /> : null }
+            {_.isArray(user_tags) ? <EditableUserList selected_user_tags={user_tags} title={""} onSelect={addUser} onRemove={removeUser} isLoading={postUserIsLoading || deleteUserIsLoading} /> : null }
         </DialogBody>
     </Dialog>
 }

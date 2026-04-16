@@ -61,13 +61,14 @@ export function EditableUserList({ selected_user_tags, title = "User Selected", 
 
     const [query, setQuery] = useState()
     const debounceQuery = useDebounce(query, 500)
+    
     const { data: users, isSuccess : isUserSuccess } = useGetPublicUserByQuery({ query: debounceQuery })
     
     return (<div>
         
         {_.isString(title) && title.length > 0 ? <h3>{title}</h3> : null}
         
-        <TextInput placeholder="Search user" isRequired={false} onChange={(cbkey, value) => setQuery(value)} />
+        <input type="text" className="search-input" placeholder="Search user" isRequired={false} onChange={(cbkey, value) => setQuery(value)} />
         
         <div className="font-size--smallest margin-left--little">
             {_.isObject(users) && isUserSuccess ?
@@ -75,12 +76,12 @@ export function EditableUserList({ selected_user_tags, title = "User Selected", 
         </div>
         
         <div className="flex flex-column container--scroll-y-hide-x" style={{ height: "35vh" }}>
-            {isUserSuccess ? users.user_tags.map(user_tag => <SelectableUser
+            {/* {isUserSuccess ? users.user_tags.map(user_tag => <SelectableUser
                 isSelected={selected_user_tags.includes(user_tag)}
                 tag={user_tag}
                 isLoading={isLoading}
                 onSelect={onSelect}
-                onRemove={onRemove} />) : null}
+                onRemove={onRemove} />) : null} */}
             
         </div>
         {/* <Button text="Save" onClick={() => onSave(selectedUsers)}/> */}
