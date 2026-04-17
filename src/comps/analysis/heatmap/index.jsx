@@ -5,7 +5,7 @@ import { Checkbox, InputGroup } from "@blueprintjs/core";
 import _, { set } from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 import viz from "@mitocube/viz"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import { FeatureSearch } from "../../core/input/api/FeatureSearch";
 import { useState } from "react";
 import { Combobox } from "../../core/input/Combobox";
@@ -20,9 +20,9 @@ function DatasetHeatmap() {
     const [testProps, setTestProps] = useState({ fdr: 0.05, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
     const [viewProps, setViewProps] = useState({showSearchInProfile : true, selectedCluster : []})
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
-    const { data: heatmapData, isLoading, isError, isFetching, error } = hooks.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
-    const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
-    const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+    const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
+    const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
+    const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
     
     if (isError) return <APIError error={error} />
     if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div>Loading...</div>

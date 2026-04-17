@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import { CopySubmissionSampleTags } from "../../../submission/samples/CopySampleTags";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
@@ -30,10 +30,10 @@ export function ProteinQuantificationUploader({ submission_tag }) {
     const [progress, setProgress] = useState(0);
     const [overwriteChecked, setOverwriteChecked] = useState(false);
 
-    const { mutateAsync, isLoading: isUploading,  } = hooks.submissions.quantifications.usePostProteinQuantification();
-    const { mutate: updateStats, isLoading : isUpdatingStats, isSuccess : isUpdatingStatsSuccess } = hooks.submissions.statistics.useUpdateSubmissionStats()
+    const { mutateAsync, isLoading: isUploading,  } = api.submissions.quantifications.usePostProteinQuantification();
+    const { mutate: updateStats, isLoading : isUpdatingStats, isSuccess : isUpdatingStatsSuccess } = api.submissions.ranking.useUpdateSubmissionStats()
     // Check if quantification data already exists for this submission
-    const { data: quantificationExists } = hooks.submissions.quantifications.useGetSubmissionQuantificationExists( 
+    const { data: quantificationExists } = api.submissions.quantifications.useGetSubmissionQuantificationExists( 
         { tag: submission_tag, quantification_type: "protein_groups" },
         { staleTime: 30000 }
     );

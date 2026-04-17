@@ -3,6 +3,7 @@ import { motion } from "framer-motion"
 import { isHexColorLight } from "../../../../services/checks/color"
 import { Popover } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
+import { api } from "@/api";
 
 import hooks from "@mitocube/api-hooks"
 import { Text } from "@visx/text"
@@ -29,7 +30,7 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
 
 export function Protein({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", redirect_to_protein_site = true, minimal = false, onClick, style, inSVG = false, svgTextProps = {} }) {
     const redirect = useNavigate()
-    const { data: feature, isSuccess, isLoading, isError } = hooks.features.useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: feature, isSuccess, isLoading, isError } = api.features.tag.useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
     
     const backgroundColor = highlight ? "#466688" : "#efefef"

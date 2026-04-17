@@ -3,7 +3,7 @@ import { copyTextToClipboard } from "../../../services/clipboard"
 import { useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 /**
  * @param {Object} props
@@ -24,7 +24,7 @@ export function QuickAccessBar({ submission_tag }) {
         })
     
     
-    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = hooks.submissions.samples.useGetSubmissionSampleTags({tag : submission_tag},{enabled : false, onSuccess: data => {
+    const {isLoading : sampleNamesIsLoading,isFetching : sampleNamesIsFetching, refetch : fetchSampleNames, isError : isSampleNamesError} = api.submissions.samples.useGetSubmissionSampleTags({tag : submission_tag},{enabled : false, onSuccess: data => {
         copyTextToClipboard(data)
         setMsg("Samples names copied to clipboard.")
     }

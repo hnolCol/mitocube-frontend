@@ -3,7 +3,7 @@ import _ from "lodash"
 import { Boxplot } from "../../core/charts/boxplot/Boxplot";
 import { useState } from "react";
 import { MinimalAttributeSelection } from "../../core/base/attributes/MinimalAttributeSelection";
-
+import { api } from "@/api";
 import hooks from "@mitocube/api-hooks"
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 
@@ -16,7 +16,7 @@ export function ProteinAbundance({ tag }) {
     const proteome_abundance = {}
 
     
-    const { data: sample_feature_abundance } = hooks.features.quantification.useGetSampleFeatureAbundanceDistribution({
+    const { data: sample_feature_abundance } = api.features.quantifications.useGetSampleFeatureAbundanceDistribution({
         tag,
         attribute_tag: abundanceProps.attribute_tag,
         value: abundanceProps.value_type

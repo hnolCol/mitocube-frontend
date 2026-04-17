@@ -5,7 +5,16 @@ import {
     submissionTitleAPI,
     submissionCoreAPI,
     submissionMetatextAPI, submissionPermissionsAPI,
-    submissionStateAPI
+    submissionStateAPI,
+    submissionCAAPI,
+    submissionCommentAPI,
+    submissionCountAPI,
+    submissionQuantificationsAPI,
+    submissionQueryAPI,
+    submissionRankingAPI,
+    submissionSamplesAPI,
+    submissionUserAPI,
+    submissionViewsAPI
 } from "./submission";
 import { tokenAuthentication, userLogin } from "./authentication";
 import { newsAPI } from "./news";
@@ -13,7 +22,7 @@ import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, 
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
-import { backendInfoAPI } from "./info";
+import { backendInfoAPI, statisticsInfoAPI, termsInfoAPI } from "./info";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
 import { genotypesQueryAPI, genotypesModifyAPI, genotypesCAQueryAPI } from "./genotypes";
@@ -27,6 +36,9 @@ import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
+import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI } from "./features";
+import { statsAPI } from "./stats";
+import { cyperOpenAIAPI } from "./openai";
 
 export const api = {
     annotations : {
@@ -51,13 +63,33 @@ export const api = {
         postProteome : proteomesPostAPI,
         countProteomes : proteomesCountAPI  
     },
+    features : {
+        correlations : featuresCorelationsAPI,
+        data : featuresDataAPI,
+        info : featuresInfoAPI,
+        pairwiseQuant : featuresPairwiseQuantAPI,
+        proteinsQuery : featuresProteinsQueryAPI,
+        quantifications : featuresQuantificationsAPI,
+        ranking : featuresRankingAPI,
+        sequence : featuresSequenceAPI,
+        tag : featuresTagAPI
+    },
     submissions: {
         core : submissionCoreAPI,
         title : submissionTitleAPI,
         analysis: submissionAnalysisAPI,
         metatexts: submissionMetatextAPI,
         permissions: submissionPermissionsAPI,
-        states : submissionStateAPI
+        states : submissionStateAPI,
+        condition_applications : submissionCAAPI,
+        comments : submissionCommentAPI,
+        counts : submissionCountAPI,
+        quantifications : submissionQuantificationsAPI,
+        query : submissionQueryAPI,
+        ranking : submissionRankingAPI,
+        samples : submissionSamplesAPI,
+        users : submissionUserAPI,
+        views : submissionViewsAPI
     },
     authentication: {
         login: userLogin,
@@ -83,7 +115,9 @@ export const api = {
         core : sampleCoreAPI
     },
     info: { 
-        backend : backendInfoAPI
+        backend : backendInfoAPI,
+        statistics : statisticsInfoAPI,
+        terms : termsInfoAPI
     },
     maintenance : {
         core : maintenanceCoreAPI,
@@ -111,5 +145,12 @@ export const api = {
         count : instrumentsCountAPI,
         permissions : instrumentsPermissionsAPI
     },
+    stats : {
+        submissionDurations : statsAPI
+    },
+    openai : {
+        cyper : cyperOpenAIAPI
+    },
+        
     researchgroups : researchGroupsQueryAPI
 };

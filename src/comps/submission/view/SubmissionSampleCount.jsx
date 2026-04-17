@@ -1,11 +1,11 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash";
 import { motion } from "framer-motion";
 
 
 
 export function SubmissionSampleCount({ submission_tag, fontColor = "#000000" }) {
-    const { data: sampleCount } = hooks.submissions.samples.useGetSubmissionSampleCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
+    const { data: sampleCount } = api.submissions.samples.useGetSubmissionSampleCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
     return (
         <motion.button

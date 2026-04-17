@@ -1,11 +1,10 @@
 
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks" 
 import { api } from "@/api"
 
 export function ProteinQuantCounts({ tag }) {
     
-    const { data : feature} = hooks.features.proteins.useGetProteinByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data : feature} = api.features.proteinsQuery.useGetProteinByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
     
     const { data: sampleCounts } = api.samples.count.useGetSampleCount({ has_protein_quantification: true })
     const { data: featureSampleCounts } = api.samples.count.useGetSampleCount({ protein_group_tag: tag, has_protein_quantification: true })

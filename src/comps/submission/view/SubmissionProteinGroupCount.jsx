@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash" 
 import { Loading } from "../../core/base/states/Loading";
 import { motion } from "framer-motion";
@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 export function SubmissionProteinGroupCount({ submission_tag, fontColor = "#000000" }) {
 
 
-    const { data : protein_count, isLoading } = hooks.submissions.counts.useGetSubmissionProteinGroupCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
+    const { data : protein_count, isLoading } = api.submissions.counts.useGetSubmissionProteinGroupCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
 
     return (

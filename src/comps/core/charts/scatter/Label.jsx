@@ -5,7 +5,7 @@ import _ from "lodash"
 import { roundNumber } from "../../../../services/format/number";
 import { Text } from "@visx/text";
 import hooks from "@mitocube/api-hooks"
-
+import { api } from "@/api";
 
 
 /**
@@ -65,7 +65,7 @@ const ScatterLabel = React.memo(
         isFeature = true,
         rerenderDependency = []
     }) {
-    const { data : feature, isLoading, isSuccess } = hooks.features.useGetFeatureByTag({tag : data[index]["tag"]}, {enabled : isFeature})
+    const { data : feature, isLoading, isSuccess } = api.features.tag.useGetFeatureByTag({tag : data[index]["tag"]}, {enabled : isFeature})
     const labelStrings = _.uniq(_.concat(labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text)), labelNames.map(labelName => _.isObject(feature) ? feature[labelName] : undefined).filter(text => _.isString(text))))
     const labelText = _.join(labelStrings.map(labelString => split?_.split(labelString,splitString).at(splitIndex):labelString), joinString)
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 

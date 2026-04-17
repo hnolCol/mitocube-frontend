@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { HIGHLIGHT_COLOR } from "../../core/colors/colorPalette"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import PropTypes from "prop-types"
 
 
@@ -19,7 +19,7 @@ InsertNews.defaultProps = {
  */
 export function InsertNews({onSuccess}) {
     const [formData, setFormData] = useState({ title: "", content: "", submission_tags: [], feature_tags: [] })
-    const { mutate : postNews, isLoading } = hooks.news.usePostNews()
+    const { mutate : postNews, isLoading } = api.news.usePostNews()
     
     const handleSubmit = (e) => {
         e.preventDefault()

@@ -1,10 +1,10 @@
 import { Dialog } from "@blueprintjs/core";
 import _ from "lodash";
 import { EditSample } from "./EditSample";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 
 export function EditSubmissionSamplesDialog({ submission_tag, isOpen, onClose }) {
-    const { refetch } = hooks.submissions.samples.useGetSubmissionSamplesFull(
+    const { refetch } = api.submissions.samples.useGetSubmissionSamplesFull(
         { tag: submission_tag },
         { enabled: false } 
     );

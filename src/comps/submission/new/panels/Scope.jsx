@@ -2,14 +2,14 @@ import _ from "lodash"
 import TextInput from "../../../core/input/Text"
 import useDebounce from "../../../../hooks/useDebounce"
 import { useState } from "react"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import { SubmissionLink } from "../../../core/links/Submission"
 
 export function ScopePanel({submission, setSubmission, setComponentKey}) {
     const [submissionTitle, setSubmissionTitle] = useState()
     const debouncedTitle = useDebounce(submissionTitle,20)
 
-    const { data: submission_tags } = hooks.submissions.query.useGetSubmissionByQuery({ search_string: debouncedTitle, limit: 10, group_by_state : false },
+    const { data: submission_tags } = api.submissions.query.useGetSubmissionByQuery({ search_string: debouncedTitle, limit: 10, group_by_state : false },
         {enabled: debouncedTitle.length > 0, staleTime: 300000, placeholderData: (prev) => prev || []})
     
     

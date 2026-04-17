@@ -2,7 +2,6 @@
 import { getUserFullName } from "../../../services/format/user"
 import _ from "lodash"
 
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api"; 
 
 
@@ -26,7 +25,7 @@ export function Author({ user_tag }) {
 export function AuthorList({ submission_tag, emailSubject = "" }) {
     
 
-    const { data: users, isLoading, isFetching } = hooks.submissions.users.useGetSubmissionUsers({ tag: submission_tag })
+    const { data: users, isLoading, isFetching } = api.submissions.users.useGetSubmissionUsers({ tag: submission_tag })
     const n_users = _.isArray(users) ? users.length : 0
     return (
         <div className="flex flex-column center-items">

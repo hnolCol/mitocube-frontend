@@ -9,7 +9,7 @@ import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/groupby";
 import { ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
-
+import { api } from "@/api";
 import hooks from "@mitocube/api-hooks"
 
 
@@ -50,7 +50,7 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
     }
 
     //fetch data
-    const { isSuccess, refetch} = hooks.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
+    const { isSuccess, refetch} = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
         enabled: false,
         onSuccess: handleSuccess,
         onError: handleError

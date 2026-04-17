@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button, Spinner } from "@blueprintjs/core";
 import { SampleAttributeTableWrapper } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
 import { render } from "react-dom";
+import { api } from "@/api";
 
 function buildReferenceIDs(n) {
     return _.range(n);
@@ -11,12 +12,12 @@ function buildReferenceIDs(n) {
 
 export function EditSample({ submission_tag, onClose, refetch }) {
 
-    const { data: samplesData, isLoading, isSuccess } = hooks.submissions.samples.useGetSubmissionSamplesFull(
+    const { data: samplesData, isLoading, isSuccess } = api.submissions.samples.useGetSubmissionSamplesFull(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag), staleTime: 0 }
     );
 
-    const updateSample = hooks.samples.useUpdateSample();
+    const updateSample = api.samples.core.useUpdateSample();
     const [submissionState, setSubmissionState] = useState(null);
 
     useEffect(() => {

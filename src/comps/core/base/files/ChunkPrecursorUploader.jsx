@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
 const CHUNK_SIZE = 1024 * 1024 * 2; // 2MB per chunk
@@ -40,7 +40,7 @@ export function PrecursorQuantificationUploader({ submission_tag }) {
     const [headers, setHeaders] = useState([]);
     const [progress, setProgress] = useState(0);
 
-    const { mutateAsync } = hooks.submissions.quantifications.usePostPrecursorQuantification();
+    const { mutateAsync } = api.submissions.quantifications.usePostPrecursorQuantification();
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {

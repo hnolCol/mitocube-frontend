@@ -1,9 +1,9 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import viz from "@mitocube/viz"
 import _ from "lodash"
 
 export function SubmissionDuration({ }) {
-    const { data: submissionDuration, isLoading: isLoadingDuration } = hooks.stats.submissions.useGetSubmissionDuration({})
+    const { data: submissionDuration, isLoading: isLoadingDuration } = api.stats.submissionDurations.useGetSubmissionDuration({})
 
     
 

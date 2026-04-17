@@ -5,14 +5,14 @@ import _ from "lodash"
 import hooks from "@mitocube/api-hooks"
 import viz from "@mitocube/viz"
 import { useMemo } from "react";
-
+import { api } from "@/api";
 
 export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 500, height = 400, margin = {top : 5, left : 10, right : 10, bottom : 20}}) {
     
     
-    const { data: feature_x, isSuccess: isSuccessFeatureX } = hooks.features.useGetFeatureByTag({ tag: feature_tag_x })
-    const {data : feature_y, isSuccess : isSuccessFeatureY } = hooks.features.useGetFeatureByTag({tag : feature_tag_y})
-    const { data: correlationData, isLoading, isFetching, isSuccess } = hooks.features.data.useGetPairwiseFeatureQuant({ feature_tag_x, feature_tag_y }, { enabled: _.isString(feature_tag_x) && _.isString(feature_tag_y) })
+    const { data: feature_x, isSuccess: isSuccessFeatureX } = api.features.tag.useGetFeatureByTag({ tag: feature_tag_x })
+    const {data : feature_y, isSuccess : isSuccessFeatureY } = api.features.tag.useGetFeatureByTag({tag : feature_tag_y})
+    const { data: correlationData, isLoading, isFetching, isSuccess } = api.features.pairwiseQuant.useGetPairwiseFeatureQuant({ feature_tag_x, feature_tag_y }, { enabled: _.isString(feature_tag_x) && _.isString(feature_tag_y) })
 
 
     const r = useMemo(() => {

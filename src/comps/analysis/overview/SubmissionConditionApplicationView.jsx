@@ -15,17 +15,17 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
     const [dialogOpen, setDialogOpen] = useState(false)
     const [selected_traits, setSelectedTraits] = useState([])
 
-    const { data: submission_ca_tags } = hooks.submissions.condition_applications.useGetSubmissionConditionApplication(
+    const { data: submission_ca_tags } = api.submissions.condition_applications.useGetSubmissionConditionApplication(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
 
-    const { data: submission_ca_data } = hooks.submissions.condition_applications.useGetSubmissionConditionApplicationData(
+    const { data: submission_ca_data } = api.submissions.condition_applications.useGetSubmissionConditionApplicationData(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
 
-    const { mutate: updateCA, isLoading } = hooks.submissions.condition_applications.useUpdateSubmissionCA({
+    const { mutate: updateCA, isLoading } = api.submissions.condition_applications.useUpdateSubmissionCA({
         onSuccess: () => {
             queryClient.invalidateQueries(["getSubmissionConditionApplication", submission_tag])
             queryClient.invalidateQueries(["getSubmissionConditionApplicationData", submission_tag])

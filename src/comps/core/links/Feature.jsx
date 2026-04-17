@@ -1,6 +1,6 @@
 import { useState } from "react"
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 
 /**
@@ -12,7 +12,7 @@ import hooks from "@mitocube/api-hooks"
 export function FeatureLink({ tag }) {
     
     const [openedState, setOpenedState] = useState({hasOpened : false})
-    const { data, isLoading, isFetching, isError, error, isSuccess } = hooks.features.useGetFeatureInfo({ tag }, { enabled: openedState.hasOpened })
+    const { data, isLoading, isFetching, isError, error, isSuccess } = api.features.info.useGetFeatureInfo({ tag }, { enabled: openedState.hasOpened })
 
     return (
         <Tooltip inheritDarkTheme={false} content={

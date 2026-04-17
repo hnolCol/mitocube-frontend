@@ -5,11 +5,12 @@ import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 import { ProteinMenuItem } from "../items/FeatureMenu"
 import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, attribute, isRequired = true, helperText = "", inline = false, showLabel = true, debounceDelay = 200, disabled = false, rightElement}) {
     const [queryString,setQueryString] = useState("")
     const debouncedString = useDebounce(queryString,debounceDelay)
-    const { data: items, isLoading, isFetching } = hooks.features.proteins.useGetProteinFeatureByQuery({ search_string: debouncedString, limit: 20 }, { enabled: debouncedString.length > 0, staleTime: 5 * 60 * 1000 })
+    const { data: items, isLoading, isFetching } = api.features.proteinsQuery.useGetProteinFeatureByQuery({ search_string: debouncedString, limit: 20 }, { enabled: debouncedString.length > 0, staleTime: 5 * 60 * 1000 })
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
 
         return <ProteinMenuItem key={item} {...{tag : item, onClick : handleClick, active : modifiers.active}} />

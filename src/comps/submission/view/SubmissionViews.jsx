@@ -1,11 +1,11 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash";
 import { motion } from "framer-motion";
 
 
 
 export function SubmissionViews({ submission_tag, fontColor = "#000000" }) {
-    const { data: views } = hooks.submissions.views.useGetSubmissionViews({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
+    const { data: views } = api.submissions.views.useGetSubmissionViews({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
     return (
         <motion.button

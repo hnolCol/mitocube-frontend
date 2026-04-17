@@ -2,7 +2,6 @@ import { Outlet, useParams } from "react-router";
 import Tabs from "../core/navigation/tabs";
 import Loading from "../core/base/loading";
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks";
 import { useEffect } from "react";
 
 import { api } from "@/api";
@@ -20,7 +19,7 @@ function SubmissionAnalysisHeader({ }) {
     const submission_tag = params.tag
     const urlStart = `/submissions/${submission_tag}`
     const { data: submissionExists, isLoading: submissionExistsLoading } = api.submissions.core.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
-    const { mutate: insertSubmissionView } = hooks.submissions.views.usePostSubmissionView()
+    const { mutate: insertSubmissionView } = api.submissions.views.usePostSubmissionView()
 
 
     useEffect(() => {

@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import {  Checkbox, Tooltip } from "@blueprintjs/core"
 import Loading from "../loading"
 
-import hooks from "@mitocube/api-hooks" 
 import { MinimalAttributeSelection } from "../attributes/MinimalAttributeSelection"
 import { AttributeSelection } from "../attributes/AttributeSelection"
 import { Attribute } from "../attributes/Attribute"
@@ -35,9 +34,9 @@ function CACellRenderer({ rowIndex, columnIndex, ca_tags, attribute_tag, childre
 
 export function SampleSelectionTableView({ submission_tag, attribute_tags = [], dependency = [], highlightSampleTagByColor = {"PjbzCDFFcd|20251009_PjbzCDFFcd_01" : "red"} }) {
     
-    const { data: ca_attributes, isLoading, isSuccess } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const { data: ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
 
-    const { data : condition_applications} = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
+    const { data : condition_applications} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
 
     // console.log(condition_applications, "Condition applications")
 
@@ -120,7 +119,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
 export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp }) {  
 
     const [rerender, setRerender] = useState(undefined)
-    const { data: condition_applications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag, attribute_tags: attribute_tag }, { enabled: _.isString(submission_tag) && _.isString(attribute_tag) })
+    const { data: condition_applications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag, attribute_tags: attribute_tag }, { enabled: _.isString(submission_tag) && _.isString(attribute_tag) })
     useEffect(() => {
 
             setRerender([Math.random()])
@@ -188,7 +187,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
     
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp,setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
-    const {data : ca_attributes, isLoading, isSuccess } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+    const {data : ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
 
     const inputIsSufficient = _.isString(attribute)
         && _.isArray(pairwiseComp.left) && pairwiseComp.left.length > 0
