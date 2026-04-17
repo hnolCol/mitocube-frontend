@@ -1,6 +1,5 @@
-import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
-
+import { api } from "@/api"
 
 /**
  * React component to count relationships of a genotype
@@ -8,7 +7,7 @@ import _ from "lodash"
  * @param {String} props.tag The tag of the genotype to display the relationship count
  */
 export function GenotypeCount({tag}) {
-    const {data : sampleCount} = hooks.samples.useGetSampleCount({genotype_tag : tag})
+    const {data : sampleCount} = api.samples.count.useGetSampleCount({genotype_tag : tag})
 
     if (isError) console.log(error)
 

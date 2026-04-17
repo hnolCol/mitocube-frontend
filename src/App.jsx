@@ -154,6 +154,7 @@ function App() {
 
   useEffect(() => {
     // Use effect if token string was found in storage.
+    console.log((tokenValidError && !_.has(tokenValidError, "response.status")))
     if (tokenValidError && !_.has(tokenValidError, "response.status")) logout();
     if (tokenValidIsError && tokenValidError.response.status === 401) {
       logout();

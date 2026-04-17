@@ -6,7 +6,6 @@
  * @property {String} tag 
  * @property {String} name 
  * @property {String} abbreviation 
- * @property {Number} n_users 
  * @property {String} email 
  * @property {String} address 
  */

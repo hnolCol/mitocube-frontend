@@ -32,7 +32,7 @@ export function AddGenotypeDialog({ isOpen, onClose }) {
 
 export function EditGenotypeDialog({ isOpen, onClose, tag }) { 
 
-    const { data : selected_traits, isSuccess} = api.genotypes.queryGenotypeConditionApplications.useGetGenotypeConditionApplicationsData({tag}, { enabled : _.isString(tag) && isOpen})
+    const { data : selected_traits, isSuccess} = api.genotypes.queryConditionApplications.useGetGenotypeConditionApplicationsData({tag}, { enabled : _.isString(tag) && isOpen})
     const {data: text, isSuccess : isSuccessText} = api.genotypes.queryGenotypes.useGetGenotypeText({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
     const {data : description, isSuccess : isSuccessDescription} = api.genotypes.queryGenotypes.useGetGenotypeDescription({genotype_tag : tag}, { enabled : _.isString(tag) && isOpen}) // to
 

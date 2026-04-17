@@ -1,7 +1,6 @@
 import _ from "lodash"
 import { isHexColorLight } from "../../../../services/checks/color"
 import { titleFormat } from "../../../../services/format/string"
-import hooks from "@mitocube/api-hooks"
 import { StateSelectionMenu } from "./StateSelectionMenu"
 import { api } from "@/api"
 /**
@@ -14,8 +13,8 @@ import { api } from "@/api"
  */
 export function StateIndicator({ submission_tag, allowUpdate = true, padding = "little" }) {
 
-    const { data: state, isSuccess, refetch: refetchState } = hooks.submissions.states.useGetSubmissionState({ tag: submission_tag })
-    const { mutate: updateState } = hooks.submissions.states.usePatchSubmissionState()
+    const { data: state, isSuccess, refetch: refetchState } = api.submissions.states.useGetSubmissionState({ tag: submission_tag })
+    const { mutate: updateState } = api.submissions.states.usePatchSubmissionState()
     const { data : stateName, isSuccess : isSuccessStateName} = api.states.useGetStateName({tag : state}, { enabled : _.isNumber(state) && isSuccess})
     const { data : stateColor, isSuccess : isSuccessStateColor} = api.states.useGetStateColor({tag : state}, { enabled : _.isNumber(state) && isSuccess})
 
