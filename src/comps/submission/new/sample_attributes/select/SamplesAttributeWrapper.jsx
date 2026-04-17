@@ -1,5 +1,5 @@
 
-import _ from "lodash"
+import _, { update } from "lodash"
 import Loading from "../../../../core/base/loading"
 import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
 import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent, addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
@@ -210,10 +210,9 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     const clearAttributeTableByRowIndex = (rowIdces, attribute_tag) => {
         //clear rows in table for specific attribute by its tg
         let attributeTable = submission.attributeTable.slice()
-        let path = [{ type: "attribute", tag: attribute_tag }]
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
-            .forEach((rowIndex) => deleteByPath(attributeTable[rowIndex], path))
+            .forEach((rowIndex) => deleteByPath(attributeTable[rowIndex],[{ type: "attribute", tag: attribute_tag, id : submission.referenceIDs[rowIndex] }], true))
         
         
         updateSubmission(prevValues => {
@@ -230,7 +229,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         let attributeTable = submission.attributeTable.slice()
         let path = [{ type: "attribute", tag: attribute_tag }]
 
-        _.range(attributeTable.length).forEach(rowIndex => deleteByPath(attributeTable[rowIndex], path))        
+        _.range(attributeTable.length).forEach(rowIndex => deleteByPath(attributeTable[rowIndex], path, true))        
 
         updateSubmission(prevValues => {
             return {
@@ -291,20 +290,37 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     }
 
     const repeatSelection = (rowIdcs, attribute_tag) => {
-        let attributeTable = submission.attributeTable.slice()
-        const n_samples = attributeTable.length
-        const selection = rowIdcs.map(rowIdx => attributeTable[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
+
+        let d = submission.attributeTable.slice()
+        const n_samples = d.length
+        const selection = rowIdcs.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
         const lastIdx = rowIdcs.at(-1)
         const diff = (n_samples + 1) - lastIdx
         const n_repeat = _.toInteger((diff) / rowIdcs.length + 0.5)
         const values = Array(n_repeat).fill(selection).flat();
-        _.forEach(_.range(diff), idx => attributeTable[lastIdx + 1 + idx] = [...attributeTable[lastIdx + 1 + idx], ...values.at(idx % rowIdcs.length)])
-            
-        updateSubmission(prevValues => {
-            return {
-                ...prevValues, attributeTable, rerenderTableDependency: [Math.random()]
+        _.forEach(_.range(diff), idx => {  
+            const rowIndex = lastIdx + 1 + idx 
+            const id = submission.referenceIDs[rowIndex] 
+            if (id !== undefined) { 
+                const v = addIDToPath(values.at(idx % rowIdcs.length), id)
+                d[rowIndex] = [...d[rowIndex], ...v]
             }
         })
+
+        updateSubmission(prevValues => {
+            return {
+                ...prevValues,
+                attributeTable: d,
+                rerenderTableDependency: [Math.random()]
+            }
+        })
+        // _.forEach(_.range(diff), idx => attributeTable[lastIdx + 1 + idx] = [...attributeTable[lastIdx + 1 + idx], ...values.at(idx % rowIdcs.length)])
+            
+        // updateSubmission(prevValues => {
+        //     return {
+        //         ...prevValues, attributeTable, rerenderTableDependency: [Math.random()]
+        //     }
+        // })
     }
 
     const onReplicateChange = (rowIdcs, replicate, patternIndex) => {

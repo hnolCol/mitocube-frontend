@@ -12,6 +12,9 @@ import { UserIcon } from ".";
 import { Button } from "@blueprintjs/core";
 import { motion } from "framer-motion";
 import { isHexColorLight } from "../../../../services/checks/color";
+import { api } from "@/api";
+
+
 
 SelectableUser.propTypes = {
     tag: PropTypes.string.isRequired,
@@ -30,13 +33,12 @@ SelectableUser.defaultProps = {
  * @returns 
  */
 function SelectableUser({ tag, onRemove, onSelect, isSelected, isLoading }) {
-
     //get public user data
-    const { data: user, isSuccess } = useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.modify.useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
 
     return (<motion.div className="padding--little div--round" style={{backgroundColor : "#fefefe"}} whileHover={{backgroundColor : "#efefef"}}>
         {isSuccess && _.isObject(user) ? <div className="flex padding--little center-items" style={{justifyContent: "space-between"}}>
-            <div><UserIcon text={""} /></div>
+            <div><UserIcon text={user.firstname.charAt(0) + user.lastname.charAt(0)} /></div>
             <div style={{ justifyContent: "center" }} className="flex flex-column"><div>{user.firstname} {user.lastname}</div></div>
             <div style={{float: "right"}}>
             {isSelected ?
@@ -62,26 +64,28 @@ export function EditableUserList({ selected_user_tags, title = "User Selected", 
     const [query, setQuery] = useState()
     const debounceQuery = useDebounce(query, 500)
     
-    const { data: users, isSuccess : isUserSuccess } = useGetPublicUserByQuery({ query: debounceQuery })
+    const { data: user_tags, isSuccess : isUserSuccess } = api.users.queryByQuery.useGetUserByQuery({ search_string: debounceQuery })
     
+    console.log(user_tags)
+
     return (<div>
         
         {_.isString(title) && title.length > 0 ? <h3>{title}</h3> : null}
         
-        <input type="text" className="search-input" placeholder="Search user" isRequired={false} onChange={(cbkey, value) => setQuery(value)} />
+        <input type="text" className="search-input" placeholder="Search user" isRequired={false} onChange={(e) => setQuery(e.target.value)} />
         
         <div className="font-size--smallest margin-left--little">
-            {_.isObject(users) && isUserSuccess ?
-                `Selection ${selected_user_tags.length} users. ${_.isString(query) && query.length > 0 ? `Querying '${query}' results in ${users.query_count}/${users.total_count} ` : ""} ` : null}
+            {_.isObject(user_tags) && isUserSuccess ?
+                <span>Selected users: <strong>{selected_user_tags.length}</strong>. {_.isString(query) && query.length > 0 ? `Querying '${query}' results in ${user_tags.length} users. ` : ""} </span> : null}
         </div>
         
-        <div className="flex flex-column container--scroll-y-hide-x" style={{ height: "35vh" }}>
-            {/* {isUserSuccess ? users.user_tags.map(user_tag => <SelectableUser
+        <div className="flex flex-column container--scroll-y-hide-x padding--medium" style={{ height: "35vh", gap : "0.5rem" }}>
+            {isUserSuccess ? user_tags.map(user_tag => <SelectableUser
                 isSelected={selected_user_tags.includes(user_tag)}
                 tag={user_tag}
                 isLoading={isLoading}
                 onSelect={onSelect}
-                onRemove={onRemove} />) : null} */}
+                onRemove={onRemove} />) : null}
             
         </div>
         {/* <Button text="Save" onClick={() => onSave(selectedUsers)}/> */}

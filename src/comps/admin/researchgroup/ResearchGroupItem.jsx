@@ -1,22 +1,24 @@
-import { ContextMenu, Menu, MenuItem } from "@blueprintjs/core";
+import { ContextMenu, Menu, MenuDivider, MenuItem } from "@blueprintjs/core";
 import { Loading } from "../../core/base/states/Loading";
 import _ from "lodash"
 import { api } from "@/api";
 import { CreatedAt } from "@/comps/core/metrics/CreatedAt";
 import { ResearchGroupUsersCount } from "./ResearchGroupUsersCount";
+import { ResearchGroupSubmissionsCount } from "./ResearchGroupSubmissionCount";
 
 export function ResearchGroupItem({ tag, setEditUsersDialog }) {
     
     const { data: research_group, isSuccess, isLoading, isFetching } = api.researchgroups.useGetResearchGroupByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
-    return (<div>
+    return (<div className="div--round padding--medium" style={{ backgroundColor: "#fefefe", width: "100%" }}>
 
     {isSuccess && _.isObject(research_group) ?<ContextMenu content={<Menu>
-            <MenuItem text={`${research_group.name}`} disabled/>
-            <MenuItem text="Users" label="Add/Remove users." onClick={() => setEditUsersDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit users for ${research_group.name}.` } })} />
-            <MenuItem text="Block all users" label="Not implemented yet." />
-            <MenuItem text="Delete" intent="danger" label="Not implemented yet."/>
+            <MenuItem text={`${research_group.text}`} disabled />
+            <MenuDivider />
+            <MenuItem text="Edit users" label="" onClick={() => setEditUsersDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit users for ${research_group.name}.` } })} />
+            <MenuItem text="Block all users" label="" disabled />
+            <MenuItem text="Delete" intent="danger" label="" disabled/>
         </Menu>}>
-            <div className="flex justify-space-between" style={{width : "100%"}}>
+            <div className="flex justify-space-between" style={{width : "100%"}} >
                  <div className="flex flex-column justify-flex-start" style={{ gap: "0.2rem" }}>
             
                     <CreatedAt createdat={research_group.created_at} addFromNow={false} />
@@ -28,9 +30,9 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
                     </div>
                     
                     </div> 
-                <div>
-                    <span>Statistics</span>
+                <div className="flex">
                     <ResearchGroupUsersCount tag={tag} />
+                    <ResearchGroupSubmissionsCount  tag={tag} />
                 </div>
             </div>
         </ContextMenu> : isLoading || isFetching ? <Loading /> : null}
