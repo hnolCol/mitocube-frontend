@@ -1,10 +1,10 @@
 import { Button } from "@blueprintjs/core";
 import { AddProteome } from "./Add";
 import { ProteomesView } from "./Table";
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 export function AdminProteomes({ }) {
     
-    const { data: proteomePermissions, isSuccess } = hooks.proteomes.useGetProteomePermissions({});
+    const { data: proteomePermissions, isSuccess } = api.proteomes.queryProteomes.useGetProteomePermissions({});
 
     return (
         <div style={{ display: "grid", gridTemplateColumns : "300px 1fr", gridTemplateRows : "1fr", height : "100%", gap : "2rem", marginTop : "2rem"}}>

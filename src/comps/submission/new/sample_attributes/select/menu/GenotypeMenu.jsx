@@ -55,7 +55,7 @@ export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index
     
     const {data : genotype_text, isSuccess} = api.genotypes.queryGenotypes.useGetGenotypeText({ genotype_tag })
     const {data : proteome_tag} = api.genotypes.queryGenotypes.useGetGenotypeProteome({ genotype_tag })
-    const {data : proteome_name} = hooks.proteomes.useGetProteomeText({ tag: proteome_tag }, { enabled: !!proteome_tag })
+    const {data : proteome_name} = api.proteomes.queryProteomes.useGetProteomeText({ tag: proteome_tag }, { enabled: !!proteome_tag })
 
     return <MenuItem text={isSuccess ? genotype_text : ""} 
         {...{onClick : (e) => handleClick(selectedRows, genotype_tag), onFocus : handleFocus}} 

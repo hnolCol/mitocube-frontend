@@ -1,10 +1,10 @@
 
-import hooks from "@mitocube/api-hooks"; 
+import { api } from "@/api" 
 import _ from "lodash" 
 
 export function InstrumentSamplesCount({ tag }) {
 
-    const { data: samplesCount, isLoading, isSuccess } = hooks.instruments.samples.useGetInstrumentSamplesCount({ tag }, { enabled: _.isString(tag), staleTime: 300000 })
+    const { data: samplesCount, isLoading, isSuccess } = api.instruments.count.useGetInstrumentSamplesCount({ tag }, { enabled: _.isString(tag), staleTime: 300000 })
 
     return (
         <div>

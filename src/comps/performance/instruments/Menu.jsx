@@ -1,6 +1,6 @@
 
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { useNavigate } from "react-router"
 import { InstrumentCosts } from "./Costs"
 import { Trait } from "../../core/base/traits/Trait"
@@ -14,7 +14,7 @@ import { Attribute } from "../../core/base/attributes/Attribute"
  */
 function Instrument({tag, isOpen = false}) {
     const redirect = useNavigate()
-    const {data : instrument} = hooks.instruments.useGetInstrument({tag})
+    const {data : instrument} = api.instruments.core.useGetInstrument({tag})
 
     return (
         <div>{_.isObject(instrument) ?
@@ -35,7 +35,7 @@ function Instrument({tag, isOpen = false}) {
 
 function Instruments({instrument_type,open_instrument_tag}) {
 
-    const { data: instruments } = hooks.instruments.useGetInstrumentsByType({ tag: instrument_type })
+    const { data: instruments } = api.instruments.core.useGetInstrumentsByType({ tag: instrument_type })
     return (<div>
         <h4><Attribute attribute_tag={instrument_type} /></h4>
         
@@ -46,7 +46,7 @@ function Instruments({instrument_type,open_instrument_tag}) {
 
 
 export function InstrumentMenu({open_instrument_tag}) {
-    const { data: instrument_types } = hooks.instruments.useGetInstrumentTypes()
+    const { data: instrument_types } = api.instruments.core.useGetInstrumentTypes()
     return <div>
     <h3>Instruments</h3>
 

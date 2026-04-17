@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+
 import { useEffect, useState } from "react"
 import { SymptomsInput } from "../../core/input/api/SymptomInput"
 import { InstrumentStateInput } from "../../core/input/api/InstrumentStateInput"
@@ -6,7 +6,7 @@ import { TextArea } from "@blueprintjs/core"
 import _ from "lodash"
 import {addStringToArrayOrRemove} from "../../../services/arrays/transforms"
 import { Dialog, Button } from "@blueprintjs/core"
-
+import { api } from "@/api"
 
 
 
@@ -15,9 +15,9 @@ export function InsertMaintenanceEvent({instrument_tag, refetch}) {
     const [isOpen, setIsOpen] = useState(false)
         
     const [me, setMaintenanceEvent] = useState({description : "", instrument_state_tag : undefined, instrument_tag : instrument_tag, symptom_tags : []}) //me = MaintenanceEvent 
-    const { data: instrument, isSuccess } = hooks.instruments.useGetInstrument({ tag: instrument_tag }, { enabled: !!instrument_tag, stateTime: "Infinity" })    
+    const { data: instrument, isSuccess } = api.instruments.core.useGetInstrument({ tag: instrument_tag }, { enabled: !!instrument_tag, stateTime: "Infinity" })    
     
-    const { isLoading, mutate : submit} = hooks.maintenance.usePostMaintenanceEvent({...me}, {enabled : false})
+    const { isLoading, mutate : submit} = api.maintenance.core.usePostMaintenanceEvent({...me}, {enabled : false})
 
     useEffect(() => {
         setMaintenanceEvent(prevValues => {

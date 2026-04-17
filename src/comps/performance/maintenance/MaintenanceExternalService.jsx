@@ -1,12 +1,11 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import { Button } from "@blueprintjs/core"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { Trait } from "../../core/base/traits/Trait"
 import { AddExternalServiceDialog } from "../../admin/externalservice/AddExternalServiceDialog"
 import { RemoveButton } from "../../core/base/buttons/RemoveButton"
 import _ from "lodash"
-import { api } from "@/api"
 
 function ExternalService({ tag, onRemove }) {
     const { data: service, isSuccess } =
@@ -36,10 +35,10 @@ export function MaintenanceExternalServices({ maintenance_event, refetch, refetc
     const [isDialogOpen, setDialogOpen] = useState(false)
 
     const { mutate: addExternalService } =
-        hooks.maintenance.usePostExternalServiceToMaintenanceEvent()
+        api.maintenance.core.usePostExternalServiceToMaintenanceEvent()
 
     const { mutate: deleteExternalService } =
-        hooks.maintenance.useDeleteExternalServiceFromMaintenanceEvent()
+        api.maintenance.core.useDeleteExternalServiceFromMaintenanceEvent()
     
     
     const handleRemoveService = (external_service_tag) => {

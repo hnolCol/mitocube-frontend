@@ -5,13 +5,14 @@ import _ from "lodash";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { useState } from "react";
 import { InstrumentStateInput } from "../../core/input/api/InstrumentStateInput";
+import { api } from "@/api";
 
 export function MaintenanceEventState({ maintenance_event_tag, instrument_tag, onEventChange }) {
     const [instrumentStateDialog, setInstrumentStateDialog] =  useState({ isOpen: false, me_state_tag : null})
-    const { mutate : changeEventState } = hooks.maintenance.usePostMaintenanceEventState()
-    const { data } = hooks.maintenance.states.useGetMaintenanceEventStates({}, {  })
-    const { data: maintenance_event_state, refetch: updateMaintenanceEventState } = hooks.maintenance.useGetMaintenanceEventState({ maintenance_event_tag }, { enabled: !!maintenance_event_tag })
-    const { mutate: updateInstrumentState } = hooks.instruments.states.usePostInstrumentState()
+    const { mutate : changeEventState } = api.maintenance.core.usePostMaintenanceEventState()
+    const { data } = api.maintenance.states.useGetMaintenanceEventStates({}, {  })
+    const { data: maintenance_event_state, refetch: updateMaintenanceEventState } = api.maintenance.states.useGetMaintenanceEventStates({ maintenance_event_tag }, { enabled: !!maintenance_event_tag })
+    const { mutate: updateInstrumentState } = api.instruments.core.usePostInstrumentState()
     const handleStateChange = (event_state_tag, instrument_state_tag) => { 
             changeEventState({ maintenance_event_tag, event_state_tag }, {
                 onSuccess: () => {

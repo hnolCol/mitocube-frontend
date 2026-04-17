@@ -1,5 +1,5 @@
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import { Loading } from "../../core/base/states/Loading"
 import { InstrumentState } from "../instruments/StateHistory"
 import { CreatedAt } from "../../core/metrics/CreatedAt";
@@ -38,15 +38,15 @@ MaintenanceEventItem.defaultProps = {
  */
 export function MaintenanceEventItem({ maintenance_event_tag, instrument_tag, showInstrument, setRefetchInstrumentStateTrigger }) {
     
-    const { data: maintenance_event, isLoading, isError, refetch } = hooks.maintenance.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
+    const { data: maintenance_event, isLoading, isError, refetch } = api.maintenance.core.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
     const {
         refetch: refetchCosts,
-      } = hooks.maintenance.useGetMaintenanceEventCosts({
+      } = api.maintenance.core.useGetMaintenanceEventCosts({
         maintenance_event_tag,
       })
       
-    const { isLoading: isLoadingAddingMaintenance, mutate: addSymptom } = hooks.maintenance.usePostSymptomToMaintenanceEvent()
-    const { isLoading: isLoadingDeletingMaintenance, mutate: deleteSymptom } = hooks.maintenance.useDeleteSymptomToMaintenanceEvent() 
+    const { isLoading: isLoadingAddingMaintenance, mutate: addSymptom } = api.maintenance.core.usePostSymptomToMaintenanceEvent()
+    const { isLoading: isLoadingDeletingMaintenance, mutate: deleteSymptom } = api.maintenance.core.useDeleteSymptomToMaintenanceEvent() 
    
 
 
@@ -139,7 +139,7 @@ MaintenanceView.propTypes = {
  */
 export function MaintenanceView({ instrument_tag, setRefetchInstrumentStateTrigger, onRefetchReady }) {
     const [displayRange, setDisplayRange] = useState({limit : 10 , timestamp_min : undefined, timestamp_max : undefined})
-    const { data: maintenance_event_tags, isLoading, refetch } = hooks.maintenance.useGetQueryMaintenanceEvents(
+    const { data: maintenance_event_tags, isLoading, refetch } = api.maintenance.core.useGetQueryMaintenanceEvents(
             {
                 instrument_tag,
                 ...displayRange
@@ -149,8 +149,8 @@ export function MaintenanceView({ instrument_tag, setRefetchInstrumentStateTrigg
         useEffect(() => {
             if (_.isFunction(onRefetchReady)) onRefetchReady(() => refetch)
         }, [])
-    const { data : maintenance_total_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag})
-    const { data : maintenance_counts } = hooks.maintenance.useGetMaintenanceEventCount({instrument_tag, ...displayRange})
+    const { data : maintenance_total_counts } = api.maintenance.core.useGetMaintenanceEventCount({instrument_tag})
+    const { data : maintenance_counts } = api.maintenance.core.useGetMaintenanceEventCount({instrument_tag, ...displayRange})
 
     return <div>
         {isLoading ? <Loading /> : <div>

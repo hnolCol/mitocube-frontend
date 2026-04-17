@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api"
 import { abbreviateNumber } from "../../../services/format/number";
 import { HIGHLIGHT_COLOR } from "../../core/colors/colorPalette";
 
@@ -16,7 +16,7 @@ export function Costs({ amount, currency = "€" }) {
 
 export function InstrumentCosts({ tag }) {
     
-    const { data : costs, isLoading, isSuccess } = hooks.maintenance.costs.useGetMaintenanceCosts({ instrument_tag : tag });
+    const { data : costs, isLoading, isSuccess } = api.maintenance.core.useGetMaintenanceCosts({ instrument_tag : tag });
     return (
         <div>
             <h4>Maintenance Costs</h4>
