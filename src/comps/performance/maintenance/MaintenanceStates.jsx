@@ -12,7 +12,7 @@ export function MaintenanceEventState({ maintenance_event_tag, instrument_tag, o
     const { mutate : changeEventState } = api.maintenance.core.usePostMaintenanceEventState()
     const { data } = api.maintenance.states.useGetMaintenanceEventStates({}, {  })
     const { data: maintenance_event_state, refetch: updateMaintenanceEventState } = api.maintenance.states.useGetMaintenanceEventStates({ maintenance_event_tag }, { enabled: !!maintenance_event_tag })
-    const { mutate: updateInstrumentState } = hooks.instruments.states.usePostInstrumentState()
+    const { mutate: updateInstrumentState } = api.instruments.core.usePostInstrumentState()
     const handleStateChange = (event_state_tag, instrument_state_tag) => { 
             changeEventState({ maintenance_event_tag, event_state_tag }, {
                 onSuccess: () => {

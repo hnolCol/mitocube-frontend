@@ -1,7 +1,6 @@
 import { useParams } from "react-router"
 import { InstrumentMenu } from "./Menu"
-import hooks from "@mitocube/api-hooks"
-
+import { api } from "@/api"
 import _ from "lodash"
 import APIError from "../../core/error/APIerror"
 import { Loading } from "../../core/base/states/Loading"
@@ -21,7 +20,7 @@ export function InstrumentView(refetch) {
     
     const [refetchInstrumentStateTrigger, setRefetchInstrumentStateTrigger] = useState(undefined)
     const params = useParams() // get the instrument tag from the URL
-    const {data : instrument, isSuccess, error, isError, isLoading} = hooks.instruments.useGetInstrument({tag : params.instrument_tag}, {enabled : _.isObject(params) && _.has(params,"instrument_tag")})
+    const {data : instrument, isSuccess, error, isError, isLoading} = api.instruments.core.useGetInstrument({tag : params.instrument_tag}, {enabled : _.isObject(params) && _.has(params,"instrument_tag")})
     const [maintenanceRefetch, setMaintenanceRefetch] = useState(null)
 
     return <div>

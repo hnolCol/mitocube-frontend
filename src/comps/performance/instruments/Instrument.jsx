@@ -1,7 +1,7 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 export function Instrument({ instrument_tag }) {
-    const { data: instrument, isSuccess } = hooks.instruments.useGetInstrument({ tag: instrument_tag }, { enabled: !!instrument_tag, stateTime : "Infinity" })    
+    const { data: instrument, isSuccess } = api.instruments.core.useGetInstrument({ tag: instrument_tag }, { enabled: !!instrument_tag, stateTime : "Infinity" })    
     return <div>
         {isSuccess && instrument ?
             <div className="flex flex-column">

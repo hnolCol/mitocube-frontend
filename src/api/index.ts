@@ -26,7 +26,7 @@ import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance
 import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
-
+import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
 
 export const api = {
     annotations : {
@@ -104,6 +104,11 @@ export const api = {
             queryExternalService : externalserviceQueryAPI,
             modifyExternalService : externalserviceModifyAPI
         }
+    },
+    instruments : {
+        core : instrumentsCoreAPI,
+        count : instrumentsCountAPI,
+        permissions : instrumentsPermissionsAPI
     },
     researchgroups : researchGroupsQueryAPI
 };

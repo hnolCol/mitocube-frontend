@@ -3,12 +3,12 @@ import { MultiSelect, Suggest } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 
 function InstrumentStateItem({ tag, handleClick, handleFocus, index, modifiers, query, showDescription = true }) {
     
-    const { data: instrument_state, isSuccess, isLoading, isError } = hooks.instruments.states.useGetInstrumentState({ tag })
+    const { data: instrument_state, isSuccess, isLoading, isError } = api.instruments.core.useGetInstrumentState({ tag })
 
     if (isError) return null 
     return (<MenuItem
@@ -34,7 +34,7 @@ export function InstrumentStateInput({selectedItems = [], onItemSelect, isRequir
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
     
-    const { data: items, isLoading, isFetching } = hooks.instruments.states.useGetInstrumentStateByQuery({ search_string: debouncedString })    
+    const { data: items, isLoading, isFetching } = api.instruments.core.useGetInstrumentStateByQuery({ search_string: debouncedString })    
     const renderSymptom = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <InstrumentStateItem key={`${item}-${index}`}
             {...{

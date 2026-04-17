@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { isHexColorLight } from "../../../../services/checks/color"
 import { titleFormat } from "../../../../services/format/string"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 
 
 /**
@@ -15,9 +15,9 @@ import hooks from "@mitocube/api-hooks"
 export function InstrumentStateIndicator({ instrument_tag, allowUpdate = true, padding = "little" }) {
 
 
-    const { data: instrument_states, isSuccess } = hooks.instruments.useGetStatesOfAnInstrument({ tag: instrument_tag, limit: 1 })
-    const { data: instrument_state, isSuccess: isSuccessInstrumentState } = hooks.instruments.states.useGetInstrumentState({ tag: instrument_states[0].tag }, { enabled: isSuccess && instrument_states.length > 0 && _.isString(instrument_states[0].tag) })
-    const { data: permissions, isSuccess: isSuccessPermissions } = hooks.instruments.permissions.useGetInstrumentPermissions({ tag: instrument_tag }, { enabled: _.isString(instrument_tag) && instrument_tag.length > 0 })
+    const { data: instrument_states, isSuccess } = api.instruments.core.useGetStatesOfAnInstrument({ tag: instrument_tag, limit: 1 })
+    const { data: instrument_state, isSuccess: isSuccessInstrumentState } = api.instruments.core.useGetInstrumentState({ tag: instrument_states[0].tag }, { enabled: isSuccess && instrument_states.length > 0 && _.isString(instrument_states[0].tag) })
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.instruments.permissions.useGetInstrumentPermissions({ tag: instrument_tag }, { enabled: _.isString(instrument_tag) && instrument_tag.length > 0 })
    
     const handleStateChange = (newState) => {
         if (!_.isNumber(newState) || !_.isString(submission_tag)) return
