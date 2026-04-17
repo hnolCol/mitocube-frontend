@@ -8,7 +8,7 @@ import { api } from "@/api";
 
 export function Author({ user_tag }) { 
 
-    const { data: user } = api.users.modify.useGetPublicUserByTag({ tag: user_tag }, { enabled: !!user_tag, staleTime: 1000 * 60 * 5 }) //5 minutes
+    const { data: user } = api.users.core.useGetPublicUserByTag({ tag: user_tag }, { enabled: !!user_tag, staleTime: 1000 * 60 * 5 }) //5 minutes
     return (<div>
         {user ? getUserFullName(user) : "Loading..."}
     </div>)

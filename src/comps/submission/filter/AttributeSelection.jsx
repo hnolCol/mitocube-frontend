@@ -1,10 +1,6 @@
 import _ from "lodash"
 import { motion } from "framer-motion"
-import { useState } from "react"
-import { Divider } from "@blueprintjs/core"
-import { useGetSubmissionsCount } from "../../../hooks/queries/submission.hooks"
 import Loading from "../../core/base/loading"
-import { groupListByProperty } from "../../../services/arrays/groupby"
 import { useGetAttributeValues } from "../../../hooks/queries/attribute.hooks"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 
@@ -110,54 +106,10 @@ export function ExpandableButton({isOpen = false, text = "" , count = 0,showCoun
  */
 export function AttributeSubmissionFilter({ setSubmissionFilter, submissionFilter, attributesByTag, tags }) {
 
-    const [openGroups, setOpenGroup] = useState({})
-    const { data : allSubmissionAttributes, isLoading : asIsLoading, isFetching : asIsFetching, isSuccess : asIsSuccess } = useGetSubmissionsCount({ group: "attribute"}, {staleTime : Infinity})
-    const { data } = useGetSubmissionsCount({ group: "attribute", tags : _.join(tags,";") }, {enabled : tags.length > 0})
-    const attributeTags = asIsSuccess ? _.keys(allSubmissionAttributes) : []
-    const attributes = _.isArray(attributeTags) ? _.sortBy(attributeTags.map(attributeTag => attributesByTag[attributeTag]).filter(attribute => _.isObject(attribute) && attribute.allow_as_filter && attribute.allow_for_dataset),"min_state") : []
-    const order = _.uniqBy(attributes,"group_tag").map(attribute => attribute.group_tag)
-    const groupedAttributes = groupListByProperty(attributes, "group_tag")
    
-    const handleOpenGroupTag = (group_tag) => {
-        setOpenGroup(prevValues => {
-            return {
-                ...prevValues, [group_tag]: _.has(prevValues, group_tag) ?
-                    { ...prevValues[group_tag], isOpen: !prevValues[group_tag].isOpen } :
-                    { attributeIsOpen: {}, isOpen: true }
-            }
-        })
-    }
     return (
         <div className="margin-top--little" style={{width : "100%"}}>
-            <h4>Attributes</h4>
-            <div> 
-                {asIsLoading || asIsFetching ? <Loading /> : asIsSuccess ?  <div>
-                    {order.map(group_tag => {
-                        let isOpen = _.has(openGroups, group_tag) && openGroups[group_tag].isOpen
-                        return <div key={group_tag} className="flex flex-column" style={{flexGrow:1, width : "100%"}}> 
-                            <ExpandableButton
-                                isOpen={isOpen}
-                                text={group_tag}
-                                showCount={false}
-                                count={groupedAttributes[group_tag].length}
-                                handleClick={() => handleOpenGroupTag(group_tag)}
-                                handleOpen={() => handleOpenGroupTag(group_tag)}/>
-                            {isOpen ? groupedAttributes[group_tag].map(attribute => {
-                                const showAttributeValues = _.has(openGroups, [group_tag, "attributeIsOpen", attribute.tag]) ?
-                                openGroups[group_tag]["attributeIsOpen"][attribute.tag] : false 
-                                return (
-                                    <div key={`${attribute.tag}`} style={{marginLeft : "0.8rem", width : "100%"}}>
-                                        <AttributeButton {...{ attribute, setOpenGroup, group_tag, count : _.has(data,attribute.tag)?data[attribute.tag].count:0, showAttributeValues, setSubmissionFilter, submissionFilter }} />
-                                        {showAttributeValues ? 
-                                            <AttributeValues {...{attribute, tags, submissionFilter, setSubmissionFilter}} />: null}
-                                    </div>)
-                            }) : null}
-                            <Divider style={{margin:"1px"}}/>
-                        </div>
-                    })}
-                    
-                </div> : null}
-            </div>
+           
         </div>
     )
 }

@@ -16,11 +16,6 @@ import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
 import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
 
-SamplesAttributes.propTypes = {
-    sampleNames: PropTypes.arrayOf(PropTypes.string),
-    attributes: PropTypes.arrayOf(PropTypes.object),
-    attributeValuesByID : PropTypes.object
-}
 
 
 function AttributeSelectionHeader({
@@ -97,7 +92,7 @@ function SamplesAttributes({
         return [true, groupingAttribute]
     }
     
-    const insertSampleGenotype = hooks.samples.useInsertSampleGenotype()
+    const { mutate } = api.samples.core.useInsertSampleGenotype()
 
     const getGroupingInfoByColumnIndex = (columnIndex) => groupings[getSampleAttrIndex(columnIndex)];
 
@@ -372,7 +367,7 @@ function SamplesAttributes({
                 
                     if (genotype_tag && sample_tags.length > 0) {
                 
-                        insertSampleGenotype.mutate(
+                        mutate(
                             { sample_tags, genotype_tag },
                             {
                                 onSuccess: () => refetchGenotypes()

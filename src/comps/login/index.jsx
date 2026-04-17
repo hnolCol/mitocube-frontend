@@ -38,12 +38,8 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
         error: loginError,
         refetch: handleLoginAttempt } = api.authentication.login.useLoginUser(userInput, {
             enabled: false
-        })
-    
-    
-    console.log(loginData, "login data")
-    
-    
+        })  
+
     
     
     useEffect(() => {
