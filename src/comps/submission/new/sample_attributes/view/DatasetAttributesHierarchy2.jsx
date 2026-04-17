@@ -1,9 +1,8 @@
 import _ from "lodash"
-import PropTypes from "prop-types"
 import { Divider } from "@blueprintjs/core"
 import TooltipButton from "../../../../core/base/buttons/TooltipButton"
 import { objectHasKey } from "../../../../../services/objects/checks"
-import { TraitWithValueInput, FeatureTagWithTooltip } from "../../../../core/base/tags/TagWithTooltip"
+import { TraitWithValueInput } from "../../../../core/base/tags/TagWithTooltip"
 import { useGetAttribute, useGetAttributeHierarchy, useGetAttributeValues } from "../../../../../hooks/queries/attribute.hooks"
 import { useGetSubmissionDatasetAttributesByTag } from "../../../../../hooks/queries/submission.hooks"
 import Loading from "../../../../core/base/loading"
@@ -12,32 +11,6 @@ import { StaticTrait } from "../../../../core/base/traits/StaticTrait"
 
 
 
-
-
-
-/**
- * 
- * @param {Object} props 
- * @property {Attribute} props.attribute
- * @property {String[]} props.attributeValueTags 
- * @property {Object.<String,Attributevalue|Feature} props.attributeValuesByTag
- * @returns 
- */
-export function AttributeWithValues({ attribute, attributeValueTags, attributeValuesByTag}) {
-    return (
-        <div>
-            <TitleText title={attribute.text} />
-            <div className="flex">
-                {attributeValueTags.map(attribute_value_tag => {
-                    return <AttributeFeatureTag
-                        attribute={attribute}
-                        value={attributeValuesByTag[attribute_value_tag]}
-                        valueIsFeature={attribute.has_features_value} />
-                })}
-            </div></div>
-        
-    )
-}
 
 
 /**

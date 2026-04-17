@@ -9,7 +9,7 @@ import {
 } from "./submission";
 import { tokenAuthentication, userLogin } from "./authentication";
 import { newsAPI } from "./news";
-import { usersViewsAPI, userActiveAPI, userCountAPI, userModifyAPI, userRolesAPI, queryUserByQueryAPI } from "./users";
+import { usersViewsAPI, userActiveAPI, userCountAPI, userModifyAPI, userRolesAPI, queryUserByQueryAPI, userCoreAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
@@ -58,6 +58,7 @@ export const api = {
     condition_applications: conditionApplicationAPI,
     news: newsAPI,
     users: {
+        core : userCoreAPI,
         views : usersViewsAPI,
         active : userActiveAPI,
         count : userCountAPI,

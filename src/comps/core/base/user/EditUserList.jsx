@@ -1,17 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
-import { useGetPublicUserByQuery, useGetPublicUserByTag } from "../../../../hooks/queries/user.hooks";
+import { useState } from "react";
 import useDebounce from "../../../../hooks/useDebounce";
-import TextInput from "../../input/Text";
 import _ from "lodash"
-import { UserName } from "../../metrics/ItemBasics";
 import { RemoveButton } from "../buttons/RemoveButton";
 import PropTypes from "prop-types"
 import { AddButton } from "../buttons/AddButton";
-import { addStringToArrayOrRemove } from "../../../../services/arrays/transforms";
 import { UserIcon } from ".";
-import { Button } from "@blueprintjs/core";
 import { motion } from "framer-motion";
-import { isHexColorLight } from "../../../../services/checks/color";
 import { api } from "@/api";
 
 
@@ -34,7 +28,7 @@ SelectableUser.defaultProps = {
  */
 function SelectableUser({ tag, onRemove, onSelect, isSelected, isLoading }) {
     //get public user data
-    const { data: user, isSuccess } = api.users.modify.useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
 
     return (<motion.div className="padding--little div--round" style={{backgroundColor : "#fefefe"}} whileHover={{backgroundColor : "#efefef"}}>
         {isSuccess && _.isObject(user) ? <div className="flex padding--little center-items" style={{justifyContent: "space-between"}}>

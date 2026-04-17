@@ -24,7 +24,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
     const [dialogProps, setDialogProps] = useState({isOpen : false})
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
     const { data : userRole } =  api.users.roles.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
-    const { data : user, isSuccess} = api.users.modify.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
+    const { data : user, isSuccess} = api.users.core.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const initials = isSuccess ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`.toUpperCase() : ""
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
     

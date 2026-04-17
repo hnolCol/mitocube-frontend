@@ -51,13 +51,7 @@ const CategoricalLegend = React.memo(
 
         const findAttributeValues = (attribute, attributeValueTagsString) => {
             return []
-            // there might be multiple tags which are separated by a space. 
-            // if (attribute.tag === "att_genotype") {
-            //     const genotypeLabels = _.split(attributeValueTagsString, " ")
-            //     return genotypeLabels.map(genotypeLabel => genotypesByLabel[genotypeLabel]).filter(genotypeLabel => _.isObject(genotypeLabel))
-            // }
-            // const attributeValueTags = _.split(attributeValueTagsString, " ")
-            // return attributeValueTags.map(attributeValueTag => attributeValuesByTag[attributeValueTag]).filter(attributeValue => _.isObject(attributeValue))
+           
         }
     
 
