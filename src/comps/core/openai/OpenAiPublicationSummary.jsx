@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api"
 import _ from "lodash"
 import Markdown from "react-markdown";
 import remarkGfm from 'remark-gfm'
@@ -15,7 +15,7 @@ export function OpenAiPublicationSummary({ feature_tag }) {
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedLimit = LIMITS.includes(Number(searchParams.get("limit"))) ? Number(searchParams.get("limit")) : LIMITS[0];
     const selectedSortBy = SORT_BY_OPTIONS.includes(searchParams.get("sort_by")) ? searchParams.get("sort_by") : SORT_BY_OPTIONS[0];
-    const { data: summary, isLoading, isError, error, refetch } = hooks.openai.useGetPublicationSummaryForProtein({ tag: feature_tag, limit : selectedLimit, sort_by: selectedSortBy }, { enabled: !!feature_tag && _.isString(feature_tag), staleTime: 60 * 60 * 1000 });
+    const { data: summary, isLoading, isError, error, refetch } = api.openai.cyper.useGetPublicationSummaryForProtein({ tag: feature_tag, limit : selectedLimit, sort_by: selectedSortBy }, { enabled: !!feature_tag && _.isString(feature_tag), staleTime: 60 * 60 * 1000 });
 
     const updateParam = (key, value) => {
         const newParams = new URLSearchParams(searchParams);

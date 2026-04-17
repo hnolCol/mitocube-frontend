@@ -1,12 +1,12 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import LineChart from "../../core/charts/linechart"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { useEffect, useState } from "react"
 export function SamplePGCounts({ tag }) { 
     const [plotData, setPlotData] = useState([])
-    const {data : pgCount} = hooks.submissions.counts.useGetSubmissionProteinGroupCount({ tag })
-    const { data : samplePGCounts, isSuccess, isLoading } = hooks.submissions.counts.useGetSubmissionSampleProteinGroupCount({ tag })
+    const {data : pgCount} = api.submissions.counts.useGetSubmissionProteinGroupCount({ tag })
+    const { data : samplePGCounts, isSuccess, isLoading } = api.submissions.counts.useGetSubmissionSampleProteinGroupCount({ tag })
 
     console.log(samplePGCounts, "Sample PG Counts inside component")
     console.log(pgCount, "PG Count inside component")

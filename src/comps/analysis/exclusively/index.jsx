@@ -1,5 +1,5 @@
 import { useOutletContext } from "react-router";
-import hooks from "@mitocube/api-hooks"; 
+import { api } from "@/api";
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 
 import _ from "lodash";
@@ -12,7 +12,7 @@ import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 export function AttributeConditionApplicationHighlight({ submission_tag, attribute_tag, text = " ", highlight_ca_tags = [] }) {
     
-    const { data: conditionApplicationTags, isLoading: isLoadingConditionApplications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) ,  staleTime : Infinity}    )
+    const { data: conditionApplicationTags, isLoading: isLoadingConditionApplications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) ,  staleTime : Infinity}    )
     const ca_attribute_unique_count = _.isObject(conditionApplicationTags) && _.has(conditionApplicationTags, attribute_tag) ? conditionApplicationTags[attribute_tag].length : 0
     const colors = getColorPalette(ca_attribute_unique_count)
     return <div className="flex justify-space-around" style={{ width: "100%" }}>
@@ -40,7 +40,7 @@ export function AttributeConditionApplicationHighlight({ submission_tag, attribu
 
 export function AttributeConditionApplicationView({ submission_tag, attribute_tag, }) {
     
-    const { data: conditionApplicationTags, isLoading: isLoadingConditionApplications } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) ,  staleTime : Infinity}    )
+    const { data: conditionApplicationTags, isLoading: isLoadingConditionApplications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) ,  staleTime : Infinity}    )
     const ca_attribute_unique_count = _.isObject(conditionApplicationTags) && _.has(conditionApplicationTags, attribute_tag) ? conditionApplicationTags[attribute_tag].length : 0
     return <div className="flex justify-space-around" style={{width : "100%"}}>
         {ca_attribute_unique_count > 0 ?
@@ -68,9 +68,9 @@ export function SubmissionExclusivelyQuantified() {
 
 
     const { submission_tag } = useOutletContext();
-    const {data : ca_attributes, isLoading : isLoadingCaAttributes} = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
-    const { data: exclusivelyQuantified, isLoading, isSuccess } = hooks.submissions.statistics.useGetSubmissionExclusivelyQuantifiedProteinGroups({ tag: submission_tag }, { enabled: typeof submission_tag === "string" && submission_tag.length > 0 })
-    const {data : sample_count} = hooks.submissions.counts.useGetSubmissionSampleCount({tag : submission_tag}, {enabled : _.isString(submission_tag)})
+    const {data : ca_attributes, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+    const { data: exclusivelyQuantified, isLoading, isSuccess } = api.submissions.ranking.useGetSubmissionExclusivelyQuantifiedProteinGroups({ tag: submission_tag }, { enabled: typeof submission_tag === "string" && submission_tag.length > 0 })
+    const {data : sample_count} = api.submissions.samples.useGetSubmissionSampleCount({tag : submission_tag}, {enabled : _.isString(submission_tag)})
 
     return <div className="flex flex-column">
         <span>This shows the exclusively quantified proteins in the submission which may escape the regular  statistical analysis.</span>

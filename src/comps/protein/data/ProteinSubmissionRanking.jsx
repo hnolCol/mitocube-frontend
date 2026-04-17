@@ -11,13 +11,13 @@ import { ScatterPlot } from "../../core/charts/scatter"
 
 import { FeatureDataView } from "../../analysis/features/DataView"
 import { RankingStats } from "../../core/base/submissions/RankingStats"
-
+import { api } from "@/api";
 
 
 
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "cohen_f", colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
-    const {data : submissionStats} = hooks.features.protein_groups.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
+    const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
 
     const topSubmissionStats = useMemo(() => {
         if (_.isArray(submissionStats)) {

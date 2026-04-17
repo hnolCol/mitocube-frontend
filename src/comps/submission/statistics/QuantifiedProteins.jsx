@@ -1,5 +1,5 @@
 
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import viz from "@mitocube/viz" 
 import { getQuantiles } from "@mitocube/viz/src/utils/stats"
 import _ from "lodash"
@@ -10,7 +10,7 @@ import _ from "lodash"
  */
 export function QuantifiedProteinGroupsStatistics() {
 
-    const { data } = hooks.submissions.counts.useGetSubmissionProteinGroupCount({})
+    const { data } = api.submissions.counts.useGetSubmissionProteinGroupCount({})
     if (!data) {
         return <div>Loading...</div>
     }

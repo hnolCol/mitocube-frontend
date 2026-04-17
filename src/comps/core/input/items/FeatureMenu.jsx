@@ -1,4 +1,4 @@
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 import _ from "lodash"
 /**
  * 
@@ -11,7 +11,7 @@ import _ from "lodash"
  */
 export function ProteinMenuItem({ tag, onClick, active = false, selected = false }) {
 
-    const { data : protein, isSuccess } = hooks.features.proteins.useGetProteinByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data : protein, isSuccess } = api.features.proteinsQuery.useGetProteinByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
     return (
         <div className="flex flex-column">

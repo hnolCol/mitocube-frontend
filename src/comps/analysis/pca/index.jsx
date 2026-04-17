@@ -7,7 +7,7 @@ import { ScatterPlot } from "../../core/charts/scatter";
 import { getNumericKeysFromArrayOfObjects } from "../../../services/arrays/filter";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 
 function DatasetPCA({ }) {
 
@@ -16,7 +16,7 @@ function DatasetPCA({ }) {
      */
     const { submission_tag } = useOutletContext()   
     const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
-    const { data : pcaresults, isSuccess } = hooks.submissions.analysis.useGetSubmissionPCA({tag : submission_tag, filter_tag : selection.filterTag}, {enabled : _.isString(submission_tag), staleTime: Infinity})
+    const { data : pcaresults, isSuccess } = api.submissions.analysis.useGetSubmissionPCA({tag : submission_tag, filter_tag : selection.filterTag}, {enabled : _.isString(submission_tag), staleTime: Infinity})
     
 
     // const { data : pcaresults, isLoading, isFetching, isError, error, isSuccess } = useGetDatasetPCA({ submission_tag })

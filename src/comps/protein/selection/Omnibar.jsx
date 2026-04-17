@@ -8,14 +8,14 @@ import "./OmnibarStyles.css"
 import Loading from "../../core/base/loading";
 import { ProteinMenuItem } from "../../core/input/items/FeatureMenu";
 import hooks from "@mitocube/api-hooks";
-
+import { api } from "@/api";
 
 export function OmnibarSearch(props) {
     // handle search for proteins in the protein centric view.
     const { isOpen, onClose, onSelect} = props
     const [featureDeatails, setFeatureDetails] = useState({items : [], featureLabels : {}, itemsToShow : [], searchString : "", sortBy : ""})
     const debounceSearchString = useDebounce(featureDeatails.searchString, 400)
-    const { data : features, isLoading, isSuccess, isError, isFetching} = hooks.features.proteins.useGetProteinFeatureByQuery({ search_string: debounceSearchString, limit: 50 }, { staleTime: 5 * 60 * 1000 })
+    const { data : features, isLoading, isSuccess, isError, isFetching} = api.features.proteinsQuery.useGetProteinFeatureByQuery({ search_string: debounceSearchString, limit: 50 }, { staleTime: 5 * 60 * 1000 })
     // const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
  
 

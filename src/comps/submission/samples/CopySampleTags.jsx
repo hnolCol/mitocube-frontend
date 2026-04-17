@@ -1,5 +1,5 @@
 import { Button } from "@blueprintjs/core";
-import hooks from "@mitocube/api-hooks" 
+import { api } from "@/api";
 import { Tooltip } from "@visx/tooltip";
 import _ from "lodash"
 import { copyTextToClipboard } from "../../../services/clipboard";
@@ -13,7 +13,7 @@ export function CopySubmissionSampleTags({ submission_tag }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     }
-    const { data: sample_tags, isLoading, refetch } = hooks.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60 });
+    const { data: sample_tags, isLoading, refetch } = api.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60 });
     if (isLoading) return null
 
     return (

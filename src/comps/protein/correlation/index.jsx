@@ -4,9 +4,8 @@ import _, { findLastKey, isError } from "lodash"
 
 // import ResultChart from "../resultCard/chart"
 
-import hooks from "@mitocube/api-hooks"
 import viz from "@mitocube/viz"
-
+import { api } from "@/api";
 import { useSearchParams } from "react-router-dom";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { FeatureProfile } from "./FeatureProfile";
@@ -40,9 +39,9 @@ export function ProteinCorrelation({ tag }) {
     const fdr_cutoff = searchParams.get("fdr") && FDR_CUTOFFS.includes(searchParams.get("fdr")) ? searchParams.get("fdr") : FDR_CUTOFFS[0] 
     const annotation_tags = selected_annotation_tags.length > 0 ? _.join(selected_annotation_tags, ";") : undefined
 
-    const { data: feature, isSuccess } = hooks.features.proteins.useGetProteinByTag({ tag }, { enabled: _.isString(tag) })
+    const { data: feature, isSuccess } = api.features.proteinsQuery.useGetProteinByTag({ tag }, { enabled: _.isString(tag) })
 
-    const { data, isLoading, isFetching, isError, error } = hooks.features.correlations.useGetFeatureCorrelation({
+    const { data, isLoading, isFetching, isError, error } = api.features.correlations.useGetFeatureCorrelation({
         tag,
         annotation_tags,
         min_data_points,

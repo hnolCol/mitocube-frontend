@@ -5,7 +5,6 @@ import { MinimalSubmissionItem } from "./SubmissionItem"
 import { getValueByKeyAndMergeToString } from "../../../services/arrays/transforms"
 import { SubmissionFilterSelection } from "../filter"
 
-import hooks from "@mitocube/api-hooks"
 import { StateHeader } from "./StateHeader"
 import { api } from "@/api" 
 SubmissionsByState.propTypes = {
@@ -30,7 +29,7 @@ export function SubmissionsByState({ submissionFilter, submissionsQuery, minimal
 
     const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states),";") : null
     const { data: submissionStates } = api.submissions.states.useGetStates()
-    const { data: submission_by_state, isLoading, isFetching, isSuccess, isError, error } = hooks.submissions.query.useGetSubmissionByQuery({
+    const { data: submission_by_state, isLoading, isFetching, isSuccess, isError, error } = api.submissions.query.useGetSubmissionByQuery({
             search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
             group_by_state : true,
             state: stateFilter,

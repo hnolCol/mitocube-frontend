@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types"; 
 import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 import ResultChart from "../../protein/charts/resultCard/chart";
 import {Responsive, WidthProvider } from "react-grid-layout"
@@ -17,9 +18,9 @@ FeatureDataView.defaultProps = {
 
 export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
 
-    const { data, isLoading } = hooks.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
-    const {data : feature} = hooks.features.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
-    const { data: attributes, isLoading : isSampleCAAttributeLoading } = hooks.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
+    const { data, isLoading } = api.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
+    const {data : feature} = api.features.tag.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
+    const { data: attributes, isLoading : isSampleCAAttributeLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
     const containerRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
 

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import hooks from "@mitocube/api-hooks"
+import { api } from '@/api';
 import { Loading } from '../base/states/Loading';
 import _ from 'lodash';
 import { OpenAIWarning } from './OpenAIWarning';
@@ -8,7 +8,7 @@ import { HIGHLIGHT_COLOR } from '../colors/colorPalette';
 
 export function OpenAIChat() {
     const [prompt, setPrompt] = useState({ prompt: '', session_id: undefined, response: '', session_messages: [] });
-    const { isLoading, refetch, isError, error } = hooks.openai.useGetCypherQuery({ prompt: prompt.prompt, session_id: prompt.session_id },
+    const { isLoading, refetch, isError, error } = api.openai.cyper.useGetCypherQuery({ prompt: prompt.prompt, session_id: prompt.session_id },
         {
             enabled: false,
             onSuccess: (data) => {

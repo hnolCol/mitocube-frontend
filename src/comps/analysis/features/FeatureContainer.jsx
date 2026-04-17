@@ -8,6 +8,7 @@ import { useState } from "react";
 export function PeptideFeatureItem({ peptide_tag }) {
     return <div>{peptide_tag}</div>
 }
+import { api } from "@/api";
 
 
 
@@ -26,7 +27,7 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
    
     const [savedData, setSavedData] = useState([]);
 
-    const { data: query_features, isLoading } = hooks.features.useGetFeaturesByQuery(
+    const { data: query_features, isLoading } = api.features.info.useGetFeaturesByQuery(
         { search_string, limit, submission_tag },
         {
             staleTime: 60000,

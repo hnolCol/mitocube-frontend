@@ -1,5 +1,5 @@
 
-import hooks from "@mitocube/api-hooks";
+import { api } from "@/api";
 import _ from "lodash";
 import { SampleItem } from './SampleItem';
 // Placeholder for SampleItems component
@@ -7,7 +7,7 @@ import { SampleItem } from './SampleItem';
 // import SampleItems from './SampleItems';
 
 export function SamplesContainer({ submission_tag }) {
-    const { data: sample_tags, } = hooks.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
+    const { data: sample_tags, } = api.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
 
     return (
         <div

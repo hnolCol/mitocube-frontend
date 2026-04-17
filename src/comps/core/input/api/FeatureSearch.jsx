@@ -5,13 +5,13 @@
 import { useEffect, useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
+import { api } from "@/api";
 
 
 export function FeatureSearch({ compare_to_list = [], onIndexFind, searchIndices = new Set() }) {
     const [searchString,setSearchString] = useState("")
     const debouncedString = useDebounce(searchString,100)
-    const { data : feature_tags, isLoading, isFetching, } =  hooks.features.useGetFeaturesByQuery({search_string : debouncedString, limit : 200}, {enabled : debouncedString.length > 0, onSuccess : (data) => handleSuccess(data), staleTime : 5 * 60 * 1000})
+    const { data : feature_tags, isLoading, isFetching, } =  api.features.info.useGetFeaturesByQuery({search_string : debouncedString, limit : 200}, {enabled : debouncedString.length > 0, onSuccess : (data) => handleSuccess(data), staleTime : 5 * 60 * 1000})
 
     useEffect(() => {
         if (debouncedString.length === 0) {
