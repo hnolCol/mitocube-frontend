@@ -1,15 +1,22 @@
 import _ from "lodash"
-import { api } from "@/api"; 
+import { api } from "@/api"
 import { useParams } from "react-router"
 
-export function UserView({ }) {
-    const { tag } = useParams()
+function ResearchGroupLabel({ tag }) {
+    const { data: rg } = api.researchgroups.useGetResearchGroupByTag(
+        { tag },
+        { enabled: _.isString(tag) && tag.length > 0 }
+    )
+    return <span>{rg?.text || tag}</span>
+}
 
+export function UserView() {
+    const { tag } = useParams()
     const { data: user, isLoading, isError, error } = api.users.modify.useGetPublicUserByTag({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const { data: researchGroupTags = [] } = api.researchgroups.useGetResearchGroupsByQuery({ user_tags: tag }, { enabled: _.isString(tag) && tag.length > 0 })
 
     if (isLoading) return <div>Loading user...</div>
     if (isError) return <div>Error loading user: {error.message}</div>
-
     return (
         <div className="user-view">
             <h2>User Details</h2>
@@ -17,7 +24,10 @@ export function UserView({ }) {
             <p><strong>First Name:</strong> {user.firstname}</p>
             <p><strong>Last Name:</strong> {user.lastname}</p>
             <p><strong>Email:</strong> {user.email}</p>
-            {/* Add more user details as needed */}
+            <p><strong>Research Group:</strong> {researchGroupTags.length > 0
+                ? researchGroupTags.map((rgTag) => <ResearchGroupLabel key={rgTag} tag={rgTag} />)
+                : "None"}
+            </p>
         </div>
     )
 }
