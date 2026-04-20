@@ -11,11 +11,21 @@ const USER_INPUT = [
 
 
 
+
+function ResearchGroupOption({ tag }) {
+    const { data: rg } = api.researchgroups.useGetResearchGroupByTag(
+        { tag },
+        { enabled: _.isString(tag) && tag.length > 0 }
+    );
+    return <option value={tag}>{rg?.text || tag}</option>;
+}
+
 export function AddUserDialog({onCancel}) {
 
 
     const { mutate: postUser, isLoading } = api.users.modify.usePostUser()
 
+    const { data: researchGroups = [] } = api.researchgroups.useGetResearchGroups()
     const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group : "", institute : "", role : 1})
     const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
     
@@ -53,6 +63,29 @@ export function AddUserDialog({onCancel}) {
                         />
                     </div>
                 ))}
+                    <div className="margin-top--little">
+                        <select
+                            className="text-input"
+                            style={{
+                                width: "100%",
+                                cursor: "pointer",
+                                color: formData.research_group ? "inherit" : "#999",
+                            }}
+                            value={formData.research_group}
+                            onChange={(e) =>
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    research_group: e.target.value,
+                                }))
+                            }
+                        >
+                            <option value="" disabled hidden>Select research group</option>
+                            <option value="">None</option>
+                            {researchGroups.map((tag) => (
+                                <ResearchGroupOption key={tag} tag={tag} />
+                            ))}
+                        </select>
+                    </div>
                 <div className="font-size--small color--grey">
                     A verification email will be sent to the user containing a randomly created password.
                 </div>
