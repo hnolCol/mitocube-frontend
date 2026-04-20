@@ -11,12 +11,21 @@ const USER_INPUT = [
 
 
 
+
+function ResearchGroupOption({ tag }) {
+    const { data: rg } = api.researchgroups.useGetResearchGroupByTag(
+        { tag },
+        { enabled: _.isString(tag) && tag.length > 0 }
+    );
+    return <option value={tag}>{rg?.text || tag}</option>;
+}
+
 export function AddUserDialog({onCancel}) {
 
 
     const { mutate: postUser, isLoading } = api.users.modify.usePostUser()
 
-    const { data: researchGroups = [] } = api.researchgroups.useGetResearchGroupsDetails();
+    const { data: researchGroups = [] } = api.researchgroups.useGetResearchGroups()
     const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group : "", institute : "", role : 1})
     const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
     
@@ -72,10 +81,8 @@ export function AddUserDialog({onCancel}) {
                         >
                             <option value="" disabled hidden>Select research group</option>
                             <option value="">None</option>
-                            {researchGroups.map((rg) => (
-                                <option key={rg.tag} value={rg.tag}>
-                                    {rg.text}
-                                </option>
+                            {researchGroups.map((tag) => (
+                                <ResearchGroupOption key={tag} tag={tag} />
                             ))}
                         </select>
                     </div>
