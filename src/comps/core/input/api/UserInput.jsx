@@ -9,7 +9,7 @@ import { use } from "react"
 
 
 export function UserFullName({ tag }) {
-    const { data: user, isSuccess } = api.users.modify.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
     return isSuccess ? <span>{getUserFullName(user)}</span> : null 
 }
 

@@ -98,6 +98,7 @@ export const api = {
     condition_applications: conditionApplicationAPI,
     news: newsAPI,
     users: {
+        core : userCoreAPI,
         views : usersViewsAPI,
         active : userActiveAPI,
         count : userCountAPI,
