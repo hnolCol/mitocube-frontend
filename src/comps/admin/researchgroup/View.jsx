@@ -1,13 +1,21 @@
 import _ from "lodash"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { api } from "@/api"
 import { ResearchGroupContainer } from "./ResearchGroupContainer"
+import { OptionButton } from "../../core/base/buttons/OptionButton"
+import useDebounce from "../../../hooks/useDebounce"
 
-export function ResearchGroupView({ refetchTrigger, setEditUsersDialog }) {    
+const LIMIT_OPTIONS = [20, 50, 100, 200]
 
-    const { data : research_group_tags, refetch } = api.researchgroups.useGetResearchGroups({}, { staleTime : Infinity })
+export function ResearchGroupView({ refetchTrigger, setEditUsersDialog }) {
+    const [limit, setLimit] = useState(20)
+    const [searchString, setSearchString] = useState("")
+    const debounced = useDebounce(searchString, 300)
 
-    console.log(research_group_tags)
+    const { data: research_group_tags, refetch } = api.researchgroups.useGetResearchGroups(
+        { limit, search_string: debounced || undefined },
+        { staleTime: 0 }
+    )
 
     useEffect(() => {
         if (refetchTrigger !== undefined) {
@@ -15,14 +23,28 @@ export function ResearchGroupView({ refetchTrigger, setEditUsersDialog }) {
         }
     }, [refetchTrigger])
 
+    return (
+        <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem", overflowY: "scroll" }}>
+            <input
+                className="search-input"
+                placeholder="Search research groups..."
+                value={searchString}
+                onChange={(e) => setSearchString(e.target.value)}
+            />
 
-    return <div>
+            <div className="flex" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
+                {LIMIT_OPTIONS.map(option => (
+                    <OptionButton key={option} onClick={() => setLimit(option)} isSelected={option === limit}>
+                        {option}
+                    </OptionButton>
+                ))}
+            </div>
 
-        <ResearchGroupContainer tags={research_group_tags} updateResearchGroupList={refetch} setEditUsersDialog={setEditUsersDialog} />
-        {/* {isError ? <APIError error={error} /> : null}
-        {isLoading || isFetching ? <Loading /> : null }
-        {isSuccess && _.isArray(research_group_tags) ?
-            research_group_tags.map(tag => <ResearchGroupItem tag={tag} setEditUsersDialog={setEditUsersDialog} />) : null } */}
-    </div>
-
+            <ResearchGroupContainer
+                tags={research_group_tags}
+                updateResearchGroupList={refetch}
+                setEditUsersDialog={setEditUsersDialog}
+            />
+        </div>
+    )
 }
