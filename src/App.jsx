@@ -93,6 +93,7 @@ import { SubmissionExclusivelyQuantified } from "./comps/analysis/exclusively";
 import hooks from "@mitocube/api-hooks" 
 
 import { api } from "./api";
+import { SubmissionCompare } from "./comps/analysis/compare";
 
 
 
@@ -154,7 +155,7 @@ function App() {
 
   useEffect(() => {
     // Use effect if token string was found in storage.
-    console.log((tokenValidError && !_.has(tokenValidError, "response.status")))
+    // console.log((tokenValidError && !_.has(tokenValidError, "response.status")))
     if (tokenValidError && !_.has(tokenValidError, "response.status")) logout();
     if (tokenValidIsError && tokenValidError.response.status === 401) {
       logout();
@@ -296,6 +297,7 @@ function App() {
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />
             <Route path="/submissions/:tag/correlation" element={<SubmissionFeatureCorrelation {...{ logout }} />} />
+            <Route path="/submissions/:tag/compare" element={<SubmissionCompare {...{ logout }} />} />
             <Route path="/submissions/:tag/exclusively" element={<SubmissionExclusivelyQuantified {...{ logout }} />} />
             <Route path="/submissions/:tag/heatmap" element={<DatasetHeatmap {...{}} />} />
             <Route path="/submissions/:tag/pca" element={<DatasetPCA {...{ logout }} />} />
