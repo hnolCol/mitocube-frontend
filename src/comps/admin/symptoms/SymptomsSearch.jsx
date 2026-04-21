@@ -19,15 +19,15 @@ export function SymptomsSearch() {
     const [symptomsToDisplay, setSymptomsToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
 
-    const { data: tag, isLoading, isSuccess, isError, refetch : updateSymptomList } =
-        api.maintenance.symptoms.querySymptoms.useGetSymptomByQuery(
-            { search_string: debouncedSearchString, limit: 20 },
-            { staleTime: 2000 }
-        )
-
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit")))
         ? _.toNumber(searchParams.get("limit"))
         : LIMIT_OPTIONS[0]
+
+    const { data: tag, isLoading, isSuccess, isError, refetch : updateSymptomList } =
+    api.maintenance.symptoms.querySymptoms.useGetSymptomByQuery(
+        { search_string: debouncedSearchString, limit: selectedLimit },
+        { staleTime: 2000 }
+    )
 
     useEffect(() => {
         if (isSuccess && Array.isArray(tag)) {
