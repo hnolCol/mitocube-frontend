@@ -121,22 +121,27 @@ function DatasetHeatmap() {
                                 <div style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
                                     <div className="margin--medium padding--medium">
                                         <Combobox
-                                
-                                        selectedItems={_.isArray(viewProps.selectedCluster) ? viewProps.selectedCluster.map(item => item.tag) : []}
-                                        onChange={(item) => {setViewProps({...viewProps, selectedCluster : addItemToArrayOrRemoveIfPresentByTag({array : viewProps.selectedCluster, item})})}}
-                                        items={_.keys(heatmapData.cluster_indices).sort().map((i, idx) => { return { tag: i, text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`, clusterColor: colorPalette[idx % colorPalette.length] } })}
-                                        colorKey="clusterColor" placeholder={viewProps.selectedCluster.length > 0 ? `${viewProps.selectedCluster.length} clusters selected` : "Select cluster"} />
+                                            selectedItems={_.isArray(viewProps.selectedCluster) ? viewProps.selectedCluster.map(item => item.tag) : []}
+                                            onChange={(item) => {setViewProps({...viewProps, selectedCluster : addItemToArrayOrRemoveIfPresentByTag({array : viewProps.selectedCluster, item})})}}
+                                            items={_.keys(heatmapData.cluster_indices).sort().map((i, idx) => { return { tag: i, text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`, clusterColor: colorPalette[idx % colorPalette.length] } })}
+                                            colorKey="clusterColor" placeholder={viewProps.selectedCluster.length > 0 ? `${viewProps.selectedCluster.length} clusters selected` : "Select cluster"} />
                                     </div>
+
                                     <MultiProfiles {...{
-                                chartIdx, data,
-                                subsetIndices: heatmapData.cluster_indices,
-                                colorName : "cluster",
-                                yaxisLabel: "Z-Score",
-                                xaxisLabel: "Samples",
-                                        ...hoverProps, ...filterProps,
-                                mergeHoverWithSearch : viewProps.showSearchInProfile,
-                                limits, xaxisName, yaxisName, valid, labelNames: heatmapData.label_names,
-                                    }} />
+                                        chartIdx, data,
+                                        subsetIndices: heatmapData.cluster_indices,
+                                        colorName : "cluster",
+                                        yaxisLabel: "Z-Score",
+                                        xaxisLabel: "Samples",
+                                        ...hoverProps,
+                                        ...filterProps,
+                                        mergeHoverWithSearch : viewProps.showSearchInProfile,
+                                        limits,
+                                        xaxisName,
+                                        yaxisName,
+                                        valid,
+                                        labelNames: heatmapData.label_names,
+                                            }} />
                             </div>
 
                                 <div style={{ overflowY: "scroll", flex: 1, height: "100%" }}> 
