@@ -7,7 +7,7 @@ import Loading from "../../../core/base/loading";
 
 import _ from "lodash"
 import { useState } from "react";
-import { TraitWithValueInput, TagWithTooltip } from "../../../core/base/tags/TagWithTooltip";
+import { TraitWithValueInput} from "../../../core/base/tags/TraitWithValueInput";
 import { aggregateAttributeValues } from "../../../../services/arrays/groupby";
 
 export function AddQCRunDialog({ isOpen }) {

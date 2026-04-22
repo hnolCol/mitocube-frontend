@@ -30,7 +30,14 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
             <div className="flex center-items">
                 {/* <div> */}
                     {show_attribute && _.isObject(attribute) ? <span><strong>{attribute.text}:</strong>&nbsp;</span> : null}
-                        {value ? is_protein ? <Protein minimal tag={value}/> : <div>{value}</div> : null} 
+                    {value ? is_protein ? 
+                        value.split("||").filter(Boolean).map((protein_tag, idx) => (
+                            <span key={protein_tag} className="flex center-items">
+                                {idx > 0 ? <span>,&nbsp;</span> : null}
+                                <Protein minimal tag={protein_tag} />
+                            </span>
+                        )) 
+                        : <div>{value}</div> : null}
                     {is_protein ? null : trait_text} 
                     {add_separator ? <div>,</div> : null}
                 {/* </div> */}

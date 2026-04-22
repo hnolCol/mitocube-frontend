@@ -1,6 +1,6 @@
 
 
-import { TraitWithValueInput } from '../base/tags/TagWithTooltip';
+import { TraitWithValueInput } from '../base/tags/TraitWithValueInput';
 import { AttributeTraitSelection } from '../base/attributes/AttributeTraitSelection';
 import _ from 'lodash'; 
 
@@ -13,7 +13,7 @@ export function InsertGeneticApplication({selectedTraits, handleTraitSelection, 
         
         <AttributeTraitSelection
             attribute_tag='att_gene_engineering'
-            onChange={trait => handleTraitSelection(trait.tag, referenceID)}
+            onChange={trait_tag => handleTraitSelection(trait_tag, referenceID)}
             selected_traits={_.isArray(trait_selection) ? trait_selection.map(c => c.tag) : []} />
         
         {selected ? null : <div className='font-size--small'> Select traits for gene engineering attribute</div>}
