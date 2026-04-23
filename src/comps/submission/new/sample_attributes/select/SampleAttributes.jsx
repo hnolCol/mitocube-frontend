@@ -8,7 +8,7 @@ import _ from "lodash"
 import { ReplicateMenu } from "./menu/ReplicateMenu"
 import { AttributeContextMenuSearch } from "./menu/AttributeMenu"
 import { GenotypeContextMenu } from "./menu/GenotypeMenu"
-import { TraitWithValueInput } from "../../../../core/base/tags/TagWithTooltip"
+import { TraitWithValueInput } from "../../../../core/base/tags/TraitWithValueInput"
 
 import { api } from "@/api"
 import hooks from "@mitocube/api-hooks"

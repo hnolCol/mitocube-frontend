@@ -1,7 +1,7 @@
 import { Button } from "@blueprintjs/core";
 import { checkForKey } from "../../../services/objects/checks";
 import { AttributeTraitSelection } from "../../core/base/attributes/AttributeTraitSelection";
-import { TraitWithValueInput } from "../../core/base/tags/TagWithTooltip";
+import { TraitWithValueInput } from "../../core/base/tags/TraitWithValueInput";
 
 
 export function ProteinMutation({ mutation_tag, genotype, setGenotype, modification_tag }) {

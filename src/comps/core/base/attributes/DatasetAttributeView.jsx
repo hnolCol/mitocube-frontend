@@ -1,4 +1,4 @@
-import { TraitWithValueInput } from "../tags/TagWithTooltip"
+import { TraitWithValueInput } from "../tags/TraitWithValueInput"
 import _ from "lodash"
 import { Attribute } from "./Attribute"
 import { getRandomID } from "../../../../services/random"

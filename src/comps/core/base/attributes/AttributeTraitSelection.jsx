@@ -1,3 +1,4 @@
+import { TraitInput } from "../../input/api/TraitInput";
 import { MinimalTraitSelection } from "../traits/MinimalTraitSelection";
 import { Attribute } from "./Attribute";
 
@@ -15,7 +16,8 @@ export function AttributeTraitSelection({attribute_tag, selected_traits = [], on
     return (
         <div className="flex">
             <Attribute attribute_tag={attribute_tag} />
-            <MinimalTraitSelection attribute_tag={attribute_tag} onChange={onChange} selected_traits={selected_traits} />
+            <TraitInput attribute_tag={attribute_tag} onItemSelect={(attribute_tag, trait_tag) => onChange(trait_tag)} selected_traits={selected_traits} descriptionWidth = "12rem"/>
+            {/* <MinimalTraitSelection attribute_tag={attribute_tag} onChange={onChange} selected_traits={selected_traits} /> */}
         </div>
     )
 }
