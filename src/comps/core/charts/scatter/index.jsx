@@ -1,5 +1,4 @@
 import PropTypes from "prop-types"
-import AxisWithBackground from "../axis"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
 import { useEffect, useMemo, useState } from "react"
 import { addMarginToBoundaries, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
@@ -7,7 +6,6 @@ import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
 import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
-import ScatterPoints from "./ScatterPoints"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette } from "../../colors/colorPalette"
 import { Divider, H4 } from "@blueprintjs/core"

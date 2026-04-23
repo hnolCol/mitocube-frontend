@@ -7,7 +7,8 @@ import { getMinMaxForMultipleKeyNames } from "../../../../services/arrays/bounda
 import { filterArrayBySearchStringByMultipleKeys, filterArrayBySearchStringBySingleKey } from "../../../../services/arrays/filter";
 import { checkChartData } from "../../types/checks/data";
 import { checkInteractiveChartKeyNames } from "../../types/checks/chart";
-import { Responsive, WidthProvider } from "react-grid-layout"
+
+
 
 function makeid(length) {
     let result = '';
@@ -49,10 +50,14 @@ function InteractiveChart({
     dataUpdateTrigger = undefined,
     onLabelDataChange}) {
     
+    
+    
+    
     const numberCharts = keyNames.length
 
+
     //hovering data 
-    const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1})
+    const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1, hoverTags : []})
     //const [selectedItems, setSelectedItems]  = useState()
     //label data, the data that are annotated. 
     const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1, lastSelected : undefined})
@@ -60,7 +65,6 @@ function InteractiveChart({
     const [backgroundScatter, setRerender] = useState({ rerender: [Math.random()], filterIndices: new Set(), filterRange: [0, 100], searchIndices: new Set(), searchString: "" })
 
     const [resetAxisZoom, setResetAxisZoom] = useState(_.range(numberCharts).map(idx => { return { chartIdx: undefined } }))
-
 
     const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
     const flattenKeyNames = _.join(keyNamesFlatten)
@@ -90,7 +94,13 @@ function InteractiveChart({
 
     useEffect(() => {
         setRerender(prevValues => { return {...prevValues, rerender: [Math.random()]}})
-    },[flattenKeyNames,numberCharts,_.join(extraLimitNames),dataName,data.length, dataUpdateTrigger])
+    }, [flattenKeyNames,
+        numberCharts,
+        _.join(extraLimitNames),
+        dataName,
+        data.length,
+        dataUpdateTrigger])
+
 
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         // finds the index in a rectangle
@@ -114,12 +124,24 @@ function InteractiveChart({
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         //check if the size changed and if hoverData idcs have not changed.
         if (idcs.size == hoverData.idcs.size && _.every(Array.from(idcs), idx => hoverData.idcs.has(idx))) return
-        setHoverData({data : Array.from(idcs).map(idx => data[idx]), rerender : [Math.random()], rect : screenPosition, idcs, hoverChart : chartIdx})
+        setHoverData({
+            rerender: [Math.random()],
+            rect: screenPosition,
+            idcs,
+            hoverChart: chartIdx,
+            hoverTags : Array.from(idcs).map(idx => data[idx].tag)
+        })
     }
     
     const setHoverDataByDataIndex = (chartIdx, idcs) => {
         let arr = Array.from(idcs).map(idc => data[idc])
-        setHoverData({data : arr, rerender : [Math.random()], idcs, hoverChart : chartIdx })
+        setHoverData({
+            data: arr,
+            rerender: [Math.random()],
+            idcs,
+            hoverChart: chartIdx,
+            hoverTags : Array.from(idcs).map(idx => data[idx].tag)
+        })
     }
 
     const setTriggerResetAxisZoom = (chartIdx) => {
@@ -214,7 +236,7 @@ function InteractiveChart({
             setHoverDataByDataIndex,
             findClosestPoint,
             triggerResetAxis : resetAxisZoom[chartIdx],
-            hoverProps : {hoverData : hoverData.data, rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
+            hoverProps : {rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
             filterProps: { rerenderBackground: backgroundScatter.rerender, filterIndices: backgroundScatter.filterIndices, filterRange: backgroundScatter.filterRange, searchIndices: backgroundScatter.searchIndices, resetSearchIdcs, searchString : backgroundScatter.searchString },
             labelProps : {labelIndices : labelData.idcs, labelRerender : labelData.rerender, labelChart : labelData.labelChart, lastSelected : labelData.lastSelected}
         }

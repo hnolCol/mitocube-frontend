@@ -14,26 +14,72 @@ import NumericValueInput from "../../core/input/Numeric";
 import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationSelectionMenu";
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 
-function DatasetHeatmap() {
+import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 
-    const { submission_tag } = useOutletContext()   
+
+
+
+
+function HeatmapLoad( {submission_tag} ) {
     const [testProps, setTestProps] = useState({ fdr: 0.05, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
-    const [viewProps, setViewProps] = useState({showSearchInProfile : true, selectedCluster : []})
-    const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
+    const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] })
     const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
     const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
     const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+
+    console.log(sample_ca_attribute_tags)
+
     
     if (isError) return <APIError error={error} />
     if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div>Loading...</div>
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
     
-    // const sample_ca_attribute_tags = _.keys(submissionSampleConditionApplications[0]).filter(k => k !== "tag")
+    const unique_ca_tags = _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
+    console.log(unique_ca_tags)
+
+
+    return <WithTagMaps Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} {...{
+            heatmapData,
+            submissionSampleConditionApplications,
+            testProps,
+            setTestProps,
+            viewProps,
+            setViewProps, unique_ca_tags
+        }} />
+
+
+}
+
+
+function DatasetHeatmap() {
+
+    const { submission_tag } = useOutletContext()
+
+   return <HeatmapLoad submission_tag={submission_tag} />
+
+
+}
+
+
+function HeatmapViz({
+        heatmapData,
+        submissionSampleConditionApplications,
+        testProps,
+        setTestProps,
+        viewProps,
+        setViewProps,
+        ca_tags,
+        caTagMap, 
+    attributeTagMap,
+        attribute_tags
+}) {
     
+    console.log(caTagMap)
+    const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
+
     const handleAnnotationSelection = (e, tag) => {
         if (_.isArray(tag)) {
             setTestProps(prevProps => {
-
                 return { ...prevProps, selected_annotation_tags: [] }
             })
         }
@@ -46,15 +92,16 @@ function DatasetHeatmap() {
     }
 
 
+   
+
     return (
         <div>
             <h2>Hierarchical Clustering</h2>
             <h3>Settings</h3>
             
-            
-                {sample_ca_attribute_tags.length > 1 ? <div>
+                {attribute_tags.length > 1 ? <div>
                 <span>Select a condition application attribute to perform the statistical analysis. By default the all attributes are considered.</span><AttributeSelection
-                    attribute_tags={sample_ca_attribute_tags}
+                    attribute_tags={attribute_tags}
                     selected={testProps.selected_ca_attribute_tags}
                     onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> </div>: null}
                 
@@ -80,98 +127,107 @@ function DatasetHeatmap() {
             
             
             <InteractiveChart
-                        data = {heatmapData.data}
-                        keyNames={[
-                        {
-                            xaxisName: undefined,
-                            yaxisName: heatmapData.value_names,
-                        }]}
-                        isPointChart={[false]}>
-                        {
+                data={heatmapData.data}
+                keyNames={[
+                    {
+                        xaxisName: undefined,
+                        yaxisName: heatmapData.value_names,
+                    }]}
+                isPointChart={[false]}>
+                {
                     /**
                      * 
                      * @param {import("../../../types/charts").InteractiveChartResponse[]} chartData 
                      * @returns 
                      */
-                        (chartData) => chartData.map(({
-                    data,
-                    chartIdx,
-                    xaxisName,
-                    yaxisName,
-                    valid,
-                    limits,
-                    handleStringSearch,
-                    handleSearchByDataIndex,
-                    setHoverDataByDataIndex,
-                    hoverProps,
-                    filterProps
-                        }, didx) => {
-                    return (
-                        <div>
+                    (chartData) => chartData.map(({
+                        data,
+                        chartIdx,
+                        xaxisName,
+                        yaxisName,
+                        valid,
+                        limits,
+                        handleStringSearch,
+                        handleSearchByDataIndex,
+                        setHoverDataByDataIndex,
+                        hoverProps,
+                        filterProps
+                    }, didx) => {
+                        return (
+                            <div>
                             
-                            <div className="flex center-items" style={{gap: "10px", marginLeft : "2rem", marginRight : "2rem"}}>
-                            <div style={{flex: 1}}><FeatureSearch  compare_to_list={data.map(t => t.tag)} onIndexFind={(idcs) => handleSearchByDataIndex(chartIdx, idcs)} /></div>
-                            <Checkbox label="Show search results in profile plot" checked={viewProps.showSearchInProfile} onChange={(e) => setViewProps({...viewProps, showSearchInProfile: e.target.checked})} />
-                            </div>
+                                <div className="flex center-items" style={{ gap: "10px", marginLeft: "2rem", marginRight: "2rem" }}>
+                                    <div style={{ flex: 1 }}><FeatureSearch compare_to_list={data.map(t => t.tag)} onIndexFind={(idcs) => handleSearchByDataIndex(chartIdx, idcs)} /></div>
+                                    <Checkbox label="Show search results in profile plot" checked={viewProps.showSearchInProfile} onChange={(e) => setViewProps({ ...viewProps, showSearchInProfile: e.target.checked })} />
+                                </div>
                             
                             
                             
-                            <div className="flex" style={{ display: "flex", height: "75vh" }}>
+                                <div className="flex" style={{ display: "flex", height: "75vh" }}>
                                 
-                                <div style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
-                                    <div className="margin--medium padding--medium">
-                                        <Combobox
-                                            selectedItems={_.isArray(viewProps.selectedCluster) ? viewProps.selectedCluster.map(item => item.tag) : []}
-                                            onChange={(item) => {setViewProps({...viewProps, selectedCluster : addItemToArrayOrRemoveIfPresentByTag({array : viewProps.selectedCluster, item})})}}
-                                            items={_.keys(heatmapData.cluster_indices).sort().map((i, idx) => { return { tag: i, text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`, clusterColor: colorPalette[idx % colorPalette.length] } })}
-                                            colorKey="clusterColor" placeholder={viewProps.selectedCluster.length > 0 ? `${viewProps.selectedCluster.length} clusters selected` : "Select cluster"} />
+                                    <div style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
+                                        <div className="margin--medium padding--medium">
+                                            <Combobox
+                                                selectedItems={_.isArray(viewProps.selectedCluster) ? viewProps.selectedCluster.map(item => item.tag) : []}
+                                                onChange={(item) => { setViewProps({ ...viewProps, selectedCluster: addItemToArrayOrRemoveIfPresentByTag({ array: viewProps.selectedCluster, item }) }) }}
+                                                items={_.keys(heatmapData.cluster_indices).sort().map((i, idx) => { return { tag: i, text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`, clusterColor: colorPalette[idx % colorPalette.length] } })}
+                                                colorKey="clusterColor" placeholder={viewProps.selectedCluster.length > 0 ? `${viewProps.selectedCluster.length} clusters selected` : "Select cluster"} />
+                                        </div>
+
+                                        <MultiProfiles {...{
+                                            chartIdx, data,
+                                            subsetIndices: heatmapData.cluster_indices,
+                                            colorName: "cluster",
+                                            yaxisLabel: "Z-Score",
+                                            xaxisLabel: "Samples",
+                                            ...hoverProps,
+                                            ...filterProps,
+                                            mergeHoverWithSearch: viewProps.showSearchInProfile,
+                                            limits,
+                                            xaxisName,
+                                            yaxisName,
+                                            valid,
+                                            labelNames: heatmapData.label_names,
+                                        }} />
                                     </div>
 
-                                    <MultiProfiles {...{
-                                        chartIdx, data,
-                                        subsetIndices: heatmapData.cluster_indices,
-                                        colorName : "cluster",
-                                        yaxisLabel: "Z-Score",
-                                        xaxisLabel: "Samples",
-                                        ...hoverProps,
-                                        ...filterProps,
-                                        mergeHoverWithSearch : viewProps.showSearchInProfile,
-                                        limits,
-                                        xaxisName,
-                                        yaxisName,
-                                        valid,
-                                        labelNames: heatmapData.label_names,
-                                            }} />
-                            </div>
-
-                                <div style={{ overflowY: "scroll", flex: 1, height: "100%" }}> 
-                                    <viz.charts.HeatmapGrouping data={submissionSampleConditionApplications} binHeight={15} binWidth={15} is_condition_application={sample_ca_attribute_tags.map(i => true)} startX={15 + 15 / 4} startY={14} keyNames={sample_ca_attribute_tags} />
-                                    <viz.charts.Heatmap
-                                        {...{
-                                            data,
-                                            clusterName : "cluster",
-                                            valueNames: yaxisName,
-                                            colorNames: heatmapData.color_names,
-                                            labelNames: heatmapData.label_names,
-                                            handleSearchByDataIndex,
-                                            setHoverDataByDataIndex,
-                                            ...filterProps,
-                                            ...hoverProps,
-                                            isLabelFeatureTag: true,
-                                            selectedClusters : viewProps.selectedCluster.map(c => _.toNumber(c.tag)),
+                                    <div style={{ overflowY: "scroll", flex: 1, height: "100%" }}>
+                                        <viz.charts.HeatmapGrouping
+                                            data={submissionSampleConditionApplications}
+                                            binHeight={15}
+                                            binWidth={15}
+                                            is_condition_application={attribute_tags.map(i => true)}
+                                            startX={15 + 15 / 4}
+                                            startY={14}
+                                            keyNames={attribute_tags}
+                                            caTagMap={caTagMap}
+                                            attributeTagMap={attributeTagMap} />
+                                        <viz.charts.Heatmap
+                                            {...{
+                                                data,
+                                                
+                                                clusterName: "cluster",
+                                                valueNames: yaxisName,
+                                                colorNames: heatmapData.color_names,
+                                                labelNames: heatmapData.label_names,
+                                                handleSearchByDataIndex,
+                                                setHoverDataByDataIndex,
+                                                ...filterProps,
+                                                ...hoverProps,
+                                                isLabelFeatureTag: true,
+                                                selectedClusters: viewProps.selectedCluster.map(c => _.toNumber(c.tag)),
                                             
-                                    }} />
-                            </div>
+                                            }} />
+                                    </div>
                                 </div>
                             </div>)
-                })}
+                    })}
 
             </InteractiveChart> 
 
 
         </div>
     )
-
 
 }
 
