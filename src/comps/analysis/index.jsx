@@ -51,7 +51,8 @@ function SubmissionAnalysisHeader({ }) {
                     { text: "Timeline", to: `${urlStart}/timeline` },
                     { text: "Correlation", to: `${urlStart}/correlation` },
                     { text: "Runlist", to: `${urlStart}/runlist` },
-                    { text: "Help", to : `${urlStart}/help`}]} />   
+                    { text: "Help", to : `${urlStart}/help`},
+                    { text: "Comments", to: `${urlStart}/comments`}]} />   
             <div className="no-scroll div--expand">
             {submissionExistsLoading ?  <Loading /> : null}
                 {(!submissionExists) ? <div className="margin--medium">Submission with tag <strong>{submission_tag}</strong> does not exist.</div> :

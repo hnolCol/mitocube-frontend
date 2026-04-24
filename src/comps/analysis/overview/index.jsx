@@ -88,10 +88,6 @@ function SubmissionOverview() {
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
                 </div> : null} */}
             </div>
-            <div className="margin-right ">
-                <h3>Comments</h3>
-                <SubmissionComments submission_tag={submission_tag}/>
-            </div>
 
             <div className="margin-right ">
             <h3>Metatext</h3>

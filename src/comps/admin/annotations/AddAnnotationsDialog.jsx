@@ -58,7 +58,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
               publication: annotation.publication,
               pubmed_id: annotation.pubmed_id,
               source: annotation.source,
-              protein_tags: annotation.protein_tags,
+              protein_tags: annotation.protein_tags.flatMap(t => t.split(";")).map(t => t.trim()).filter(Boolean),
               group_tag: annotation.group_tag,
           };
 
@@ -138,26 +138,28 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
         }
       />
 
-    <textarea
-        className="text-input"
-        placeholder="Protein tags (newline or ; separated)"
-        value={annotation.protein_tags.join("\n")}
-        onChange={(e) =>
-          setAnnotation((prev) => ({
-            ...prev,
-            protein_tags: e.target.value
-              .split(/[\n;]+/)
-              .map((tag) => tag.trim())
-              .filter(Boolean),
-          }))
-        }
-        style={{
-          maxHeight: "160px",
-          resize: "vertical",
-          overflowY: "auto",
-        }}
-      />
-   
+      <div className="flex gap--small" style={{ alignItems: "flex-start" }}>
+        <textarea
+          className="text-input"
+          placeholder="Protein tags (newline or ; separated)"
+          value={annotation.protein_tags.join("\n")}
+          onChange={(e) =>
+            setAnnotation((prev) => ({
+              ...prev,
+              protein_tags: e.target.value.split("\n"),
+            }))
+          }
+          style={{
+            flex: 1,
+            minHeight: "100px",
+            maxHeight: "200px",
+            resize: "vertical",
+            overflowY: "auto",
+          }}
+        />
+        <AnnotationUpload onProteinIdsLoaded={handleProteinIdsLoaded} />
+      </div>
+{/*    
       <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
           Upload File
       </h3>
@@ -167,7 +169,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
       </p>
       <AnnotationUpload
         onProteinIdsLoaded={handleProteinIdsLoaded}
-          />
+          /> */}
 
 
 
@@ -208,7 +210,7 @@ export function AddAnnotationDialog({ isOpen, onClose, group_tag, onSuccess }) {
       isOpen={isOpen}
       title="Add Annotation"
       onClose={onClose}
-      style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }}
+      style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }}
       canOutsideClickClose={false}
     >
 

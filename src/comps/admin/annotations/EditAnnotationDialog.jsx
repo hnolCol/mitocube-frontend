@@ -61,6 +61,10 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
     const data = {
       tag,
       ...annotation,
+      protein_tags: annotation.protein_tags
+      .flatMap(t => t.split(";"))
+      .map(t => t.trim())
+      .filter(Boolean),
     }
 
     updateAnnotation(data, {
@@ -127,22 +131,27 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
         }
       />
 
-      <textarea
-        className="text-input"
-        placeholder="Protein tags (newline or ; separated)"
-        value={annotation.protein_tags.join("\n")}
-        onChange={(e) =>
-          setAnnotation((prev) => ({
-            ...prev,
-            protein_tags: e.target.value
-              .split(/[\n;]+/)
-              .map((t) => t.trim())
-              .filter(Boolean),
-          }))
-        }
-      />
-
-      <AnnotationUpload onProteinIdsLoaded={handleProteinIdsLoaded} />
+      <div className="flex gap--small" style={{ alignItems: "flex-start" }}>
+        <textarea
+          className="text-input"
+          placeholder="Protein tags (newline or ; separated)"
+          value={annotation.protein_tags.join("\n")}
+          onChange={(e) =>
+            setAnnotation((prev) => ({
+              ...prev,
+              protein_tags: e.target.value.split("\n"),
+            }))
+          }
+          style={{
+            flex: 1,
+            minHeight: "100px",
+            maxHeight: "200px",
+            resize: "vertical",
+            overflowY: "auto",
+          }}
+        />
+        <AnnotationUpload onProteinIdsLoaded={handleProteinIdsLoaded} />
+      </div>
 
       {isError && (
         <div style={{ color: "red" }}>
@@ -151,7 +160,9 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
       )}
 
       <div className="flex justify-end gap--small">
-        <button className="dialog-button" onClick={onClose}>
+        <button className="dialog-button" 
+        style={{ backgroundColor: "#ec7160ff" }}
+        onClick={onClose}>
           Close
         </button>
 
@@ -174,7 +185,7 @@ export function EditAnnotationDialog({ isOpen, onClose, tag, onSuccess }) {
       isOpen={isOpen}
       title="Edit Annotation"
       onClose={onClose}
-      style={{ width: "min(600px,85vw)", height: "min(80vh, 900px)" }}
+      style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }}
       canOutsideClickClose={false}
     >
       <div
