@@ -62,9 +62,11 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
             <ProcedureText procedure_tag={procedure_tag} update={update} />
 
             <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+            {permissions?.edit && (
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit
-                </button>
+                </button>)}
+
 
                 {canShowRemoveButton && (
                     <button onClick={handleRemove} className="basic-button">
