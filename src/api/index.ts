@@ -14,7 +14,8 @@ import {
     submissionRankingAPI,
     submissionSamplesAPI,
     submissionUserAPI,
-    submissionViewsAPI
+    submissionViewsAPI,
+    submissionRunlistAPI
 } from "./submission";
 import { tokenAuthentication, userLogin } from "./authentication";
 import { newsAPI } from "./news";
@@ -89,7 +90,8 @@ export const api = {
         ranking : submissionRankingAPI,
         samples : submissionSamplesAPI,
         users : submissionUserAPI,
-        views : submissionViewsAPI
+        views : submissionViewsAPI,
+            runlist : submissionRunlistAPI
     },
     authentication: {
         login: userLogin,

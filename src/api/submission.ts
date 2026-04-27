@@ -15,3 +15,4 @@ export const submissionRankingAPI = hooks.submissions.statistics.createSubmissio
 export const submissionSamplesAPI = hooks.submissions.samples.createSubmissionSamplesAPI(apiClient);
 export const submissionUserAPI = hooks.submissions.users.createSubmissionUsersAPI(apiClient);
 export const submissionViewsAPI = hooks.submissions.views.createSubmissionViewsAPI(apiClient);
+export const submissionRunlistAPI = hooks.submissions.runlist.createSubmissionRunlistAPI(apiClient);
