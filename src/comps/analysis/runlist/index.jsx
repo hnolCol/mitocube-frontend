@@ -11,7 +11,7 @@ import { RunlistCreatorDialog } from "@/comps/submission/view/dialogs/RunlistDia
 function Run({ run }) {
     return (
         <div className="div--round bg--lightgrey padding--little flex">
-            <h5>{run.name}</h5>
+            <h5>{run.text}</h5>
             <WellPosition positionLabel={run.position_label} />
             <div>Plate : {run.plate_index}</div>
         </div>
@@ -99,7 +99,7 @@ function Runlist() {
                     <div>
                         <p><strong>{runlist.n_runs}</strong> runs</p>
                         <div className="flex flex-column div--expand">
-                            {runlist.runs.map(run => <Run key={run.name} run={run} />)}
+                            {runlist.runs.map(run => <Run key={run.text} run={run} />)}
                         </div>
                     </div>
                 ) : null}
