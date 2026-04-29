@@ -23,17 +23,25 @@ import { api } from "@/api";
  * @param {Function} props.handleTraitSelection Handle the selection of a trait.
  * @returns 
  */
-export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits }) {
-    const { data: attribute, isLoading, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, {enabled : _.isArray(trait_tags) && trait_tags.length > 0})
+export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false }) {
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing })
+    
+    const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
+        { tag },
+        { enabled: isMissing && (!_.isArray(trait_tags) || trait_tags.length === 0) }
+    )
+
+    const effectiveTraitTags = _.isArray(trait_tags) && trait_tags.length > 0 ? trait_tags : (fetchedTraitTags || [])
+
     return <div>
-        {isSuccess ? <div className="menu_item_header"> {attribute.text }</div>: null}
-        {_.isArray(trait_tags) ? trait_tags.map(trait_tag => {
+        {isSuccess ? <div className="menu_item_header">
+            {attribute.text}{isMissing ? <span style={{ color: "red" }}> *</span> : null}
+        </div> : null}
+        {_.isArray(effectiveTraitTags) ? effectiveTraitTags.map(trait_tag => {
             return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} />
         }) : null}
     </div>
 }
-
-
 
 AttributesInput.propTypes = {
     // selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
@@ -75,10 +83,14 @@ export function AttributesInput({
         matchTargetWidth,
         placeHolderText,
         selected_traits,
+        submission_tag
 }) {
     
  
-    
+    const { data: mandatoryCheck } = api.submissions.core.useCheckSubmission(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) }
+    )
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
     const [itemsLoaded, setItemsLoaded] = useState(false)
@@ -113,19 +125,30 @@ export function AttributesInput({
      * @returns 
      */
     const renderAttributes = ({ activeItem, items, query, filteredItems }) => {
-        // if (isLoading || isFetching) return <div className="padding--medium"><p>Loading...</p></div>
-        if (query.length > 0 &&  _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/traits match the search string ...</p></div>
-        if (!itemsLoaded || items.length === 0)  return <div className = "padding--medium"><p>Start typing...</p></div>
-        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh", backgroundColor : "#efefef" }}>
+        if (query.length > 0 && _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/traits match the search string ...</p></div>
+        if (!itemsLoaded || items.length === 0) return <div className="padding--medium"><p>Start typing...</p></div>
+    
+        const missingTags = mandatoryCheck?.missing?.map(m => m.tag) || []
 
-            {items.map(attributeWithTraits => {
-                return < AttributeWithTraitsMenuItem
+
+        const sortedItems = [...items].sort((a, b) => {
+            const aIsMissing = missingTags.includes(a.attribute_tag)
+            const bIsMissing = missingTags.includes(b.attribute_tag)
+            if (aIsMissing && !bIsMissing) return -1
+            if (!aIsMissing && bIsMissing) return 1
+            return 0
+        })
+        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh", backgroundColor: "#efefef" }}>
+            {sortedItems.map(attributeWithTraits => (
+                <AttributeWithTraitsMenuItem
                     key={attributeWithTraits.attribute_tag}
                     tag={attributeWithTraits.attribute_tag}
                     trait_tags={attributeWithTraits.trait_tags}
                     selected_traits={selected_traits}
-                    handleTraitSelection={handleTraitSelection} />
-            })}
+                    handleTraitSelection={handleTraitSelection}
+                    isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}
+                />
+            ))}
         </div>
     }
 

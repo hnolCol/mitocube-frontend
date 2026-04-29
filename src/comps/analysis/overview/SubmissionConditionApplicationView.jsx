@@ -10,6 +10,10 @@ import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttribut
 import { findAndInsertTree, findChildrenByPath, deleteByPath, checkPathExists, addIDToPath } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api";
+import { MandatoryCheckDetail } from "@/comps/submission/MandatoryAttributes";
+import { MandatoryCheckBadge } from "@/comps/submission/MandatoryAttributes";
+
+
 export function SubmissionConditionApplicationView({ submission_tag }) {
     const queryClient = useQueryClient()
     const [dialogOpen, setDialogOpen] = useState(false)
@@ -34,12 +38,20 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
         }
     })
 
+    const { data: submissionState } = api.submissions.states.useGetSubmissionState(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) }
+    )
+
     const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
     
     const canEdit = permissions?.edit === true
+    console.log("selected_traits", selected_traits)
+    console.log("submission_ca_data", submission_ca_data)
+    
 
     const handleOpen = () => {
         if (_.isArray(submission_ca_data)) {
@@ -100,6 +112,7 @@ const handleSubmit = () => {
             <div className="flex flex-column">
                 <div className="flex center-items justify-space-between">
                     <h3>Condition Applications</h3>
+                    <MandatoryCheckBadge submission_tag={submission_tag} />
                     {canEdit && (
                     <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
@@ -120,11 +133,14 @@ const handleSubmit = () => {
                 style={{ minWidth: "600px" }}
             >
                 <div className="padding--medium flex flex-column" style={{ gap: "1rem" }}>
-                    <AttributesInput
-                        handleTraitSelection={handleTraitSelection}
-                        min_state={0}
-                        selected_traits={selected_traits}
-                    />
+
+                <AttributesInput
+                    handleTraitSelection={handleTraitSelection}
+                    min_state={submissionState ?? 0}
+                    selected_traits={selected_traits}
+                    submission_tag={submission_tag}
+                />
+                <MandatoryCheckDetail submission_tag={submission_tag} />
                     <DatasetAttributeView
                         submission_tag={submission_tag}
                         attributeTraits={selected_traits}

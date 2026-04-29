@@ -23,7 +23,7 @@ function TraitTag({ tag }) {
  * @param {Function} props.onItemSelect
  * @returns 
  */
-export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path }) {
+export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path, isMandatory = false }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 2)
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag})
@@ -54,10 +54,17 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
 
     
     return (
-   
+
+        <div>
+            {isMandatory && isSuccess ? (
+    <div style={{ fontSize: "0.85rem", marginBottom: "2px", marginTop: "0.5rem" }}>
+        <strong>{attribute.text}</strong> <span style={{ color: "red" }}>*</span>
+    </div>
+) : null}
+    
         <MultiSelect
             items={_.isArray(trait_tags) ? trait_tags : []}
-            placeholder={isSuccess ? attribute.text : null}
+            placeholder={isSuccess ? (isMandatory ? "Search..." : attribute.text) : null}
             tagRenderer={(tag) => <TraitTag tag={tag} />}
             onItemSelect={handleItemSelection}
             itemListRenderer={renderTraits}
@@ -74,5 +81,6 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
             }}
             selectedItems={_.isArray(selected_traits)?selected_traits:[]}
             />
+            </div>
     )
 }

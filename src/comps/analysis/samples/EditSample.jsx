@@ -27,27 +27,47 @@ export function EditSample({ submission_tag, onClose, refetch }) {
         const sampleNames = samplesData.map(s => s.tag);
 
         // build attribute table from resolved trait_tags
-        const attributeTable = samplesData.map((sample, idx) => {
-            return _.map(sample.attributes, (trait_tags, attribute_tag) => ({
+    
+        function backendNodeToFrontend(node, id) {
+            return {
                 type: "attribute",
-                tag: attribute_tag,
-                id: idx,
-                children: trait_tags.map(trait_tag => ({
-                    type: "trait",
-                    tag: trait_tag,
+                tag: node.attribute_tag,
+                id,
+                children: [
+                    {
+                        type: "trait",
+                        tag: node.trait_tag,
+                        id,
+                        value: node.value ?? undefined,
+                        children: (node.children || []).map(child => backendNodeToFrontend(child, id))
+                    }
+                ]
+            };
+        }
+    
+        const attributeTable = samplesData.map((sample, idx) => {
+            const rows = [];
+            for (const [attribute_tag, trees] of Object.entries(sample.attributes)) {
+                rows.push({
+                    type: "attribute",
+                    tag: attribute_tag, 
                     id: idx,
-                    children: []
-                }))
-            }));
+                    children: trees.map(tree => ({
+                        type: "trait",
+                        tag: tree.trait_tag,
+                        id: idx,
+                        value: tree.value ?? undefined,
+                        children: (tree.children || []).map(child => backendNodeToFrontend(child, idx))
+                    }))
+                });
+            }
+            return rows;
         });
-
-        // collect unique attribute tags for column headers
         const samplesAttributes = _.uniq(
             attributeTable.flatMap(row => row.map(node => node.tag))
         );
-
-        const genotypes = samplesData.map(s => s.genotype ? [s.genotype] : []);
-
+    
+        const genotypes = samplesData.map(s => s.genotype ? [...s.genotype] : []);
         setSubmissionState({
             tag: submission_tag,
             label: submission_tag,

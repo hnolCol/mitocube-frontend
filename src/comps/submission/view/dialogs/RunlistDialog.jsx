@@ -64,6 +64,15 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     const sampleAttributeNames = _.keys(submission.samples_attributes).map(sampleAttrTag => submission.attributes[sampleAttrTag]).map(sampleAttr => { return { text: sampleAttr.text, tag : sampleAttr.tag,  description: `${_.join(_.keys(submission.samples_attributes[sampleAttr.tag]).map(attrValueTag => submission.attribute_values_by_tag[attrValueTag].text), ", ")}` } })
     const runlistLoading = runlistSubmitIsLoading || runlistSubmitIsFetching
 
+    const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
+    const [selectedInstrument, setSelectedInstrument] = useState(null)
+
+    const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypes()
+    const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
+        { tag: selectedInstrumentType?.tag },
+        { enabled: !!selectedInstrumentType }
+    )
+
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
     }
@@ -83,6 +92,8 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
         reset()
         setRunlistProps(init_runprops)
         setPlates(initPlates)
+        setSelectedInstrumentType(null)
+        setSelectedInstrument(null)
     }
 
     const handleSubmit = () => {
@@ -116,11 +127,11 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
             scramble: runlistProps.scramble,
             scramble_across_plates: runlistProps.scramble_across_plates,
             n_fractions: runlistProps.n_fractions === "" || !runlistProps.fractionate ? undefined : _.toInteger(runlistProps.n_fractions),
-            free_plate_positions: freePlatePositions
+            free_plate_positions: freePlatePositions,
+            instrument_tag: selectedInstrument?.tag
         }
         
         submitRunlistProps({ tag: submission.tag, runlist_props })
-
     }
     /**
      * @description Exports the runlist to a tab-delimited txt-file. 
@@ -198,7 +209,40 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                         </Callout>
                         </div>
                     </div>
-                    
+                    <hr />
+                    <h3>Instrument</h3>
+                    <div className="flex center-items">
+                        <div style={{ minWidth: "min(200px,20vw)" }}>
+                            <Combobox
+                                items={_.isArray(instrumentTypes) ? instrumentTypes.map(t => ({ tag: t, text: t })) : []}
+                                placeholder="Select instrument type..."
+                                callbackKey="instrumentType"
+                                textKey="text"
+                                matchTargetWidth={false}
+                                onChange={(key, item) => {
+                                    setSelectedInstrumentType(item)
+                                    setSelectedInstrument(null)
+                                }}
+                                value={selectedInstrumentType?.text || null}
+                            />
+                            {selectedInstrumentType && (
+                                <Combobox
+                                    items={_.isArray(instruments) ? instruments.map(i => ({ tag: i, text: i })) : []}
+                                    placeholder="Select instrument..."
+                                    callbackKey="instrument"
+                                    textKey="text"
+                                    matchTargetWidth={false}
+                                    onChange={(key, item) => setSelectedInstrument(item)}
+                                    value={selectedInstrument?.text || null}
+                                />
+                            )}
+                        </div>
+                        <div style={{ maxWidth: "min(600px,70vw)", marginLeft: "2rem" }}>
+                            <Callout>
+                                <p>Select the instrument that will measure this runlist. First pick the instrument type (e.g. mass spectrometer, LC system), then select the specific instrument.</p>
+                            </Callout>
+                        </div>
+                    </div>
                     <hr />
                     <h3>Well plate format</h3>
                     <p>The runlist is created for a single or multiple well plates. Here you can define how the runlist should be formatted.</p>
