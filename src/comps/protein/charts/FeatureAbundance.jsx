@@ -41,7 +41,7 @@ export function ProteinAbundance({ tag }) {
     const boxplotData = _.isObject(sample_feature_abundance) ? _.keys(sample_feature_abundance).map(k => sample_feature_abundance[k] ) : []
     return <div>
         
-        <MinimalAttributeSelection onAttributeSelect={handleAttributeSelection} selectedItem={abundanceProps.attribute_tag}/>
+        <MinimalAttributeSelection onAttributeSelect={handleAttributeSelection} selectedItem={abundanceProps.attribute_tag} attribute_groups={_.join(["dataset","sample"], ";")}/>
         <div>
             {VALUE_TYPES.map(value_type => <OptionButton
                 key={value_type.value}

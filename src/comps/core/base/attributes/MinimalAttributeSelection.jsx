@@ -13,6 +13,7 @@ MinimalAttributeSelection.propTypes = {
     onAttributeSelect: PropTypes.func.isRequired,
     selectedItem: PropTypes.string,
     debounce: PropTypes.number,
+    attribute_groups: PropTypes.arrayOf(PropTypes.string)
 
 }
 MinimalAttributeSelection.defaultProps = {
@@ -27,12 +28,12 @@ MinimalAttributeSelection.defaultProps = {
  * @param {Number} props.debounce - debounce time for the search input. Default is 100ms.
  * @returns 
  */
-export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, selectedItem}) {
+export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, selectedItem, attribute_groups}) {
     
     const [query, setQuery] = useState()
     const debouncedQuery = useDebounce(query, debounce)
 
-    const { data: attribute_tags,isSuccess } = api.attributes.queryAttributes.useGetAttributesByQuery({search_string : debouncedQuery, include_traits : false, limit : 30}) 
+    const { data: attribute_tags,isSuccess } = api.attributes.queryAttributes.useGetAttributesByQuery({search_string : debouncedQuery, include_traits : false, limit : 30, attribute_groups}) 
     
     /**
      * 

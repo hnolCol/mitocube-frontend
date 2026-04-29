@@ -50,14 +50,14 @@ AttributeInput.defaultProps = {
  * 
  * @param {Object} props 
  * @param {String} props.text - The text shown for the button. 
- * @param {String} props.attribute_group
+ * @param {Array<String>} props.attribute_groups - The attribute groups to filter the attributes.
  * @param {String} props.min_state
  * @param {Function} props.onItemSelect A function that handles a trait selection. This handles also the deselection if
  * an item has been already selected.  
  * @param {Boolean} props.disabled - If the selection is disabled. 
  * @returns 
  */
-export function AttributeInput({ text, min_state, attribute_group, onItemSelect, disabled }) {
+export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled }) {
 
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 50)
@@ -65,7 +65,7 @@ export function AttributeInput({ text, min_state, attribute_group, onItemSelect,
     const { data: attribute_tags, isError, isLoading, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery({
         search_string: debouncedString,
         min_state,
-        attribute_group,
+        attribute_groups : _.join(attribute_groups, ";"),
         include_traits: false, limit: 20
     }, {
         staleTime: 300000,

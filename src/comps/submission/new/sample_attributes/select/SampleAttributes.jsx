@@ -30,7 +30,7 @@ function AttributeSelectionHeader({
         <div style={{marginRight : "2rem"}}>
             {<AttributeInput {...{
                 text: attributeSelected ? attribute.text : "",
-                attribute_group : "sample",
+                attribute_groups : ["sample"],
                 min_state: 0, disabled,
                 onItemSelect: (attribute_tag) => onSampleAttributeSelect(sampleAttrIndex, attribute_tag)
             }} />}
