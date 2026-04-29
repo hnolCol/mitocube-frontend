@@ -3,12 +3,10 @@ import { SubmissionTitle } from "../../../submission/view/SubmissionTitle"
 import { Attribute } from "../attributes/Attribute"
 import MetricTable from "../metrictable"
 import _ from "lodash"
-import { ConditionApplicationItem, ConditionApplicationsView } from "../condition_applications/ConditionApplicationView"
+import { ConditionApplicationsView } from "../condition_applications/ConditionApplicationView"
 
 export function RankingStats({ attribute_tag, submission_tag, stats }) { 
-    console.log(stats, "stats in ranking stats")
     const { data : condition_applications} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags :attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) }    )
-    console.log(condition_applications, "condition applications in ranking stats")
     return <div>
         <SubmissionTitle tag={submission_tag} showCopyToClipboard={false} />
         <Attribute attribute_tag={attribute_tag} />

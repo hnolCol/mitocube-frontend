@@ -1,8 +1,8 @@
 import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
 import InteractiveChart from "../../core/charts/interactive";
-import { Checkbox, InputGroup } from "@blueprintjs/core";
-import _, { set } from "lodash"
+import { Checkbox } from "@blueprintjs/core";
+import _ from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 import viz from "@mitocube/viz"
 import { api } from "@/api";
@@ -27,7 +27,6 @@ function HeatmapLoad( {submission_tag} ) {
     const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
     const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
 
-    console.log(sample_ca_attribute_tags)
 
     
     if (isError) return <APIError error={error} />
@@ -35,7 +34,6 @@ function HeatmapLoad( {submission_tag} ) {
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
     
     const unique_ca_tags = _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
-    console.log(unique_ca_tags)
 
 
     return <WithTagMaps Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} {...{
@@ -46,8 +44,6 @@ function HeatmapLoad( {submission_tag} ) {
             viewProps,
             setViewProps, unique_ca_tags
         }} />
-
-
 }
 
 

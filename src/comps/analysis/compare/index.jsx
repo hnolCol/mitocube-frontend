@@ -65,7 +65,6 @@ export function SubmissionCompare({ }) {
         ));
     };
 
-    console.log(filters, "current filters") 
 
     return (
         <div className="filter-builder">

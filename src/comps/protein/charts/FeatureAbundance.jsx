@@ -4,10 +4,11 @@ import { Boxplot } from "../../core/charts/boxplot/Boxplot";
 import { useState } from "react";
 import { MinimalAttributeSelection } from "../../core/base/attributes/MinimalAttributeSelection";
 import { api } from "@/api";
-import hooks from "@mitocube/api-hooks"
 import { OptionButton } from "../../core/base/buttons/OptionButton";
+import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 
 const VALUE_TYPES = [{ value: "raw", label: "Raw" }, { value: "z_score_sample", label: "Z Score " }]
+
 
 export function ProteinAbundance({ tag }) {
     const [abundanceProps, setAbundanceProps] = useState({ attribute_tag: undefined, rerender: undefined, value_type: "z_score_sample" }) 
@@ -35,10 +36,7 @@ export function ProteinAbundance({ tag }) {
             setAbundanceProps(prevValues => {return {...prevValues, attribute_tag : attribute_tag, rerender : Math.random()}})
         }
         
-
-
     }
-
     // const boxplotData = _.flatten([proteome_abundance, feature_abundance]).filter(d => !_.isEmpty(d))
     const boxplotData = _.isObject(sample_feature_abundance) ? _.keys(sample_feature_abundance).map(k => sample_feature_abundance[k] ) : []
     return <div>
@@ -52,7 +50,14 @@ export function ProteinAbundance({ tag }) {
                 children={<span>{value_type.label}</span>} />)}
         </div>
         
-        <Boxplot width={30 + (55 * (boxplotData.length + 1))} data={boxplotData} rerender={abundanceProps.rerender} xaxis_ca_tags={_.keys(sample_feature_abundance)} yAxisLabel={abundanceProps.value_type === "raw" ? "log2 intensity" : "Z Score"} />
+        {boxplotData.length > 0 ? <WithTagMaps Component={Boxplot} ca_tags={_.keys(sample_feature_abundance)} attribute_tags={[]} {...{
+            width: 30 + (55 * (boxplotData.length + 1)),
+            data: boxplotData,
+            rerender: abundanceProps.rerender,
+            xaxis_ca_tags: _.keys(sample_feature_abundance), yAxisLabel: abundanceProps.value_type === "raw" ? "log2 intensity" : "Z Score",
+            
+        }} /> : null}
+
     
     </div>
 }

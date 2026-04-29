@@ -10,7 +10,6 @@ export function WithTagMaps({
     ...rest
 }) {
 
-    console.log(ca_tags, attribute_tags, Component)
     const { isReady, tagQueries } =
         usePrefetchConditionApplicationTexts(ca_tags)
 
