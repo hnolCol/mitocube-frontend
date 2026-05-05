@@ -27,23 +27,23 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
    
     const [savedData, setSavedData] = useState([]);
 
-    const { data: query_features, isLoading } = api.features.info.useGetFeaturesByQuery(
-        { search_string, limit, submission_tag },
+    const { data: query_features, isLoading, isFetching } = api.features.info.useGetFeaturesByQuery(
+        { search_string, limit, submission_tag, include_types : "protein_groups"},
         {
             staleTime: 60000,
             placeholderData: savedData,
             onSuccess: (data) => _.isArray(data) && setSavedData(data),
         }
-    );
-    
+    );    
     const displayedFeatures = isLoading ? savedData : _.isArray(query_features) ? query_features : savedData;
 
     return <div>
         <div className="font-size--smallest">Showing |  {_.isArray(displayedFeatures) ? displayedFeatures.length : 0}</div>
         <div className="flex flex-column bg--lightgrey" style={{ height: "78vh", overflow: "scroll", padding: "10px", borderRadius: "5px", marginTop: "3px", gap: "0px", width: "100%" }}>
-            <div className="font-size--smallest">{_.isArray(query_features) && query_features.length === 0 ? <span>No results found..</span> : isLoading ? <span>Searching ...</span> : null }</div>
+            <div className="font-size--smallest">{_.isArray(query_features) && query_features.length === 0 && !isLoading && !isFetching ? <span>No results found..</span> : isLoading || isFetching ? <span>Searching ...</span> : null }</div>
             {_.isArray(displayedFeatures) ? displayedFeatures.map((search_result, idx) => {
                 const selected = _.includes(selected_feature_tags, search_result.tag)
+                
                 return <motion.button key={`${search_result.tag}-${idx}-result`}
                     whileHover={{ backgroundColor: "#f0f0f0" }}
                     className="flex flex-column"

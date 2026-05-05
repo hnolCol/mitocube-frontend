@@ -48,7 +48,8 @@ function InteractiveChart({
     dataName = "",
     children,
     dataUpdateTrigger = undefined,
-    onLabelDataChange}) {
+    onLabelDataChange,
+    passOnProps = {} }) {
     
     
     
@@ -238,7 +239,8 @@ function InteractiveChart({
             triggerResetAxis : resetAxisZoom[chartIdx],
             hoverProps : {rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},
             filterProps: { rerenderBackground: backgroundScatter.rerender, filterIndices: backgroundScatter.filterIndices, filterRange: backgroundScatter.filterRange, searchIndices: backgroundScatter.searchIndices, resetSearchIdcs, searchString : backgroundScatter.searchString },
-            labelProps : {labelIndices : labelData.idcs, labelRerender : labelData.rerender, labelChart : labelData.labelChart, lastSelected : labelData.lastSelected}
+            labelProps: { labelIndices: labelData.idcs, labelRerender: labelData.rerender, labelChart: labelData.labelChart, lastSelected: labelData.lastSelected },
+            ...passOnProps
         }
     })  
     

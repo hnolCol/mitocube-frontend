@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '@/api';
-import { Loading } from '../base/states/Loading';
 import _ from 'lodash';
 import { OpenAIWarning } from './OpenAIWarning';
 import { OpenAIChatView } from './ChatView';
@@ -8,21 +7,22 @@ import { HIGHLIGHT_COLOR } from '../colors/colorPalette';
 
 export function OpenAIChat() {
     const [prompt, setPrompt] = useState({ prompt: '', session_id: undefined, response: '', session_messages: [] });
-    const { isLoading, refetch, isError, error } = api.openai.cyper.useGetCypherQuery({ prompt: prompt.prompt, session_id: prompt.session_id },
+    const { data : ai_response, isLoading, refetch, isError, error, isSuccess } = api.openai.cyper.useGetCypherQuery({ prompt: prompt.prompt, session_id: prompt.session_id },
         {
             enabled: false,
-            onSuccess: (data) => {
-                setPrompt(prevValues => {
-                    return {
-                        ...prevValues,
-                        session_id: data.session_id,
-                        response: data.response,
-                        session_messages: data.session_messages
-                    }
-                })
-            }
         });
-    
+    useEffect(() => {
+        if (isSuccess) {
+            setPrompt(prevValues => {
+                return {
+                    ...prevValues,
+                    session_id: ai_response.session_id,
+                    response: ai_response.response,
+                    session_messages: ai_response.session_messages
+                }
+            })
+        }
+    }, [isSuccess]);
     const handleInputChange = (e) => {
         setPrompt(prevValues => { return { ...prevValues, prompt: e.target.value } });
     };

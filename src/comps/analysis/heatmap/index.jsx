@@ -23,6 +23,7 @@ import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 function HeatmapLoad( {submission_tag} ) {
     const [testProps, setTestProps] = useState({ fdr: 0.05, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
     const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] })
+    const [requiredProteinTags, setRequiredProteinTags] = useState([]) // State to hold the required protein tags for prefetching
     const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
     const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
     const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
@@ -35,14 +36,14 @@ function HeatmapLoad( {submission_tag} ) {
     
     const unique_ca_tags = _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
 
-
-    return <WithTagMaps Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} {...{
+    console.log(requiredProteinTags)
+    return <WithTagMaps Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} protein_tags={requiredProteinTags} {...{
             heatmapData,
             submissionSampleConditionApplications,
             testProps,
             setTestProps,
             viewProps,
-            setViewProps, unique_ca_tags
+            setViewProps, unique_ca_tags, setRequiredProteinTags
         }} />
 }
 
@@ -66,11 +67,15 @@ function HeatmapViz({
         setViewProps,
         ca_tags,
         caTagMap, 
-    attributeTagMap,
-        attribute_tags
+        attributeTagMap,
+        attribute_tags,
+    setRequiredProteinTags,
+    proteinTagMap,
+        refetchedTrigger
 }) {
     
     console.log(caTagMap)
+    console.log(attributeTagMap)
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
 
     const handleAnnotationSelection = (e, tag) => {
@@ -129,6 +134,7 @@ function HeatmapViz({
                         xaxisName: undefined,
                         yaxisName: heatmapData.value_names,
                     }]}
+                passOnProps={{ refetchedTrigger, setRequiredProteinTags, proteinTagMap }}
                 isPointChart={[false]}>
                 {
                     /**
@@ -147,7 +153,10 @@ function HeatmapViz({
                         handleSearchByDataIndex,
                         setHoverDataByDataIndex,
                         hoverProps,
-                        filterProps
+                        filterProps,
+                        refetchedTrigger,
+                        setRequiredProteinTags,
+                        proteinTagMap
                     }, didx) => {
                         return (
                             <div>
@@ -197,11 +206,14 @@ function HeatmapViz({
                                             startY={14}
                                             keyNames={attribute_tags}
                                             caTagMap={caTagMap}
-                                            attributeTagMap={attributeTagMap} />
+                                            attributeTagMap={attributeTagMap}
+                                              />
                                         <viz.charts.Heatmap
                                             {...{
                                                 data,
-                                                
+                                                setRequiredProteinTags,
+                                                proteinTagMap,
+                                                refetchedTrigger,
                                                 clusterName: "cluster",
                                                 valueNames: yaxisName,
                                                 colorNames: heatmapData.color_names,

@@ -15,29 +15,16 @@ export function MitomapNetwork({ }) {
     const { submission_tag } = useOutletContext() 
     const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type: "pairwise", statProps: {} })
     
-    const { data : network_data, isLoading, isFetching, isSuccess, isError, error } = api.submissions.analysis.useGetSubmissionAnnotationNetwork({tag : submission_tag, annotation_group_tag : "LK9p5"}, {enabled : !_.isEmpty(submission_tag)})
+    const { data: network_data,
+        isLoading, isFetching,
+        isSuccess, isError, error } = api.submissions.analysis.useGetSubmissionAnnotationNetwork({ tag: submission_tag, annotation_group_tag: "IsnSC" }, { enabled: !_.isEmpty(submission_tag) })
 
 
     const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["tag"], sizeName : undefined, textSearchNames : ["tag"] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
     }
-    // /**
-    //  *
-    //  * @param {Object} props
-    //  */
-    // const handleSelection = (props) => {
-    //     setNetworkProps(prevValues => {return {...prevValues,statProps : props}})
-    // }
-
-    // //console.log(network_data)
-    // // useEffect(() => {setnetwork_data(network_data)},[isSuccess,networkProps.type])
     
-    // const network_dataValid = _.isObject(network_data) && _.has(network_data,"nodes")
-    
-    // if (valueNameFound) {
-    //     numericKeyNames  = _.concat(numericKeyNames,[network_data["value_keyName"]])
-    // }
 
     const network_dataValid = isSuccess && _.isObject(network_data) && _.has(network_data, "nodes")
     const numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []

@@ -493,7 +493,7 @@ export function ScatterPlot({
                         return <ScatterLabel {...{
                             key: `${labelIndex}-${chartIdx}`, data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
                             opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                            rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRenderer]
+                            rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRenderer, triggerResetAxis]
                         }} />
                     }) : null}
                 </g>
