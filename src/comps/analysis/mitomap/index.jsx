@@ -7,6 +7,7 @@ import { useState } from "react"
 import APIError from "../../core/error/APIerror"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
 import { api } from "@/api";
+import { AnnotationGroupSelectionMenu } from "./AnnotationGroupSelection"
 
 
 
@@ -14,15 +15,23 @@ export function MitomapNetwork({ }) {
 
     const { submission_tag } = useOutletContext() 
     const [networkProps, setNetworkProps] = useState({ type: "pathway", comp_type: "pairwise", statProps: {} })
+    const [selectedAnnotationGroupTag, setSelectedAnnotationGroupTag] = useState(undefined)
     
-    const { data: network_data,
-        isLoading, isFetching,
-        isSuccess, isError, error } = api.submissions.analysis.useGetSubmissionAnnotationNetwork({ tag: submission_tag, annotation_group_tag: "IsnSC" }, { enabled: !_.isEmpty(submission_tag) })
+    const { data : network_data, isLoading, isFetching, isSuccess, isError, error } = api.submissions.analysis.useGetSubmissionAnnotationNetwork({
+        tag: submission_tag, 
+        annotation_group_tag: selectedAnnotationGroupTag
+    }, {
+        enabled: !_.isEmpty(submission_tag) && _.isString(selectedAnnotationGroupTag)
+    })
 
 
     const [selection, setSelection] = useState({ xaxisName: "x", yaxisName: "y", colorName : "node_type", tooltipNames : ["tag"], sizeName : undefined, textSearchNames : ["tag"] })
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => {return {...prevValues,[selectionKey] : keyName}})
+    }
+
+    const handleAnnotationGroupSelection = (e, tag) => {
+        setSelectedAnnotationGroupTag(tag)
     }
     
 
@@ -35,11 +44,24 @@ export function MitomapNetwork({ }) {
     }
 
     return (<div className="div--expand" style={{overflowY:"scroll"}}>
-        <div className="flex">
-        <div>
+        <div className="flex-column">
+            <div className="margin-bottom--little" style={{ padding: "1rem" }}>
+                <h4>Select Annotation Group</h4>
+                <AnnotationGroupSelectionMenu 
+                    selected_tags={_.isString(selectedAnnotationGroupTag) ? [selectedAnnotationGroupTag] : []} 
+                    onSelection={handleAnnotationGroupSelection}
+                    showTags={true}
+                    placeholder="Select annotation group..."
+                />
+            </div>
             
             {isError ? <APIError error={error}/> : null}
-            </div>
+            
+            {!selectedAnnotationGroupTag ? (
+                <div className="center-items" style={{ padding: "2rem" }}>
+                    <span>Select an annotation group to view the network</span>
+                </div>
+            ) : null}
             {isSuccess && network_dataValid ? 
        
                 
@@ -117,7 +139,7 @@ export function MitomapNetwork({ }) {
                                 tooltipSmall : true,
                                 tooltipNames: ["tag"],
                                 labelNames : ["tag"],
-                                dataRerender : [networkProps.type],
+                                dataRerender : [networkProps.type, selectedAnnotationGroupTag],
                                 ...hoverProps,
                                 ...filterProps,
                                 ...labelProps,

@@ -7,6 +7,8 @@ import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
 import { WellPosition } from "../../core/plate/wellplate"
 import { RunlistCreatorDialog } from "@/comps/submission/view/dialogs/RunlistDialog"
+import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile  } from "@/services/downloads/txt"
+
 
 function Run({ run }) {
     return (
@@ -25,6 +27,12 @@ function Runlist() {
 
     const { data: runlist, isLoading, isFetching, isSuccess, isError, error, refetch } =
         api.submissions.runlist.useGetRunlist({ tag: submission_tag })
+
+    const { mutate: deleteRunlist, isLoading: isDeleting } = api.submissions.runlist.useDeleteRunlist({
+        onSuccess: () => {
+            refetch()
+        }
+    })
         
     const { data: samplesFull, isSuccess: samplesFullSuccess } =
         api.submissions.samples.useGetSubmissionSamplesFull(
@@ -36,6 +44,21 @@ function Runlist() {
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
+
+    const exportRunlistToTxtFile = () => {
+        if (!runlist) return;
+        
+        let infoString = objectToKeyValueString({ obj: runlist, ignoreKeys: ["runs"] })
+        let runString = arrayObjectsToString({ array: runlist.runs})
+        downloadTxtFile(`${infoString}\n\n\n${runString}`, `${submission_tag}-${runlist.n_runs}-runs.txt`)
+    }
+  
+    const handleDeleteRunlist = () => {
+        if (window.confirm("Are you sure you want to delete this runlist? This action cannot be undone.")) {
+            deleteRunlist({ tag: submission_tag })
+        }
+    }
+
 
     // Build submission object that RunlistCreatorDialog expects
     const submission = useMemo(() => {
@@ -89,22 +112,45 @@ function Runlist() {
                     icon="add"
                     text="Generate Runlist"
                     onClick={() => setDialogOpen(true)}
-                    disabled={!submission}
+                    disabled={!submission || isSuccess}
                 />
             </div>
             <p>Find the analytical runs associated with the projects below.</p>
 
             {isLoading || isFetching ? <Loading /> :
-                isError ? <APIError error={error} /> :
+                isError ? (
+                    error?.response?.status === 404 ? (
+                        <p className="text--muted">No runlist found.</p>
+                    ) : (
+                        <APIError error={error} />
+                    )
+                ) :
                 isSuccess ? (
                     <div>
-                        <p><strong>{runlist.n_runs}</strong> runs</p>
+                        <div className="flex center-items justify-space-between">
+                            <p><strong>{runlist.n_runs}</strong> runs</p>
+                            <div className="flex center-items">
+                                <Button 
+                                    icon="download" 
+                                    text="Download Runlist" 
+                                    onClick={exportRunlistToTxtFile}
+                                    style={{ marginRight: "0.5rem" }}
+                                />
+                                <Button 
+                                    icon="trash" 
+                                    text="Delete Runlist" 
+                                    onClick={handleDeleteRunlist}
+                                    intent="danger"
+                                    loading={isDeleting}
+                                    disabled={isDeleting}
+                                />
+                            </div>
+                        </div>
                         <div className="flex flex-column div--expand">
                             {runlist.runs.map(run => <Run key={run.name} run={run} />)}
                         </div>
                     </div>
                 ) : null}
-
             {submission && (
                 <RunlistCreatorDialog
                     isOpen={dialogOpen}
