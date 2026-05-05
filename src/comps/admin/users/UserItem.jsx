@@ -9,7 +9,7 @@ import { CreatedAt } from "../../core/metrics/CreatedAt"
 
 export function UserItem({ tag, redirectOnClick = true, onClick }) {
     const redirect = useNavigate()
-    const {data : user, isLoading, isError, error} = api.users.modify.useGetPublicUserByTag({tag}, {enabled: tag && tag.length > 0})
+    const {data : user, isLoading, isError, error} = api.users.core.useGetPublicUserByTag({tag}, {enabled: tag && tag.length > 0})
     const { data: isUserActive } = api.users.active.useGetUserIsActive({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
     
     if (isLoading) return <div>Loading user...</div>

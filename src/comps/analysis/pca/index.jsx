@@ -91,47 +91,42 @@ function DatasetPCA({ }) {
                                     yaxisName,
                                     valid,
                                     limits,
-                                    handleItemSelection,
-                                    findIndexInRectangle,
                                     findDataInRectangle,
                                     setHoverDataInRectangle,
-                                    handleNumericFilter,
-                                    handleStringSearch,
                                     handleSearchByDataIndex,
                                     filterDataInKeyByValue,
                                     hoverProps,
                                     filterProps
-                                }, didx) => {
-                                    // console.log(findDataInRectangle,data,xaxisName,yaxisName, limits, "FIND DATA IN RECTANGLE??")
-                                    return (
-                                        <div>
-                                            
-                                        <ScatterPlot key={`${chartIdx}`}{...{
-                                            chartIdx,
-                                            colorName: selection.colorName,
-                                            sizeName: selection.sizeName,
-                                            data,
-                                            valid,
-                                            findDataInRectangle,
-                                            setHoverDataInRectangle,
-                                            xaxisName,
-                                            yaxisName,
-                                            limits,
-                                            tooltipSmall : false,
-                                            tooltipNames : [],
-                                            ...hoverProps,
-                                            ...filterProps,
-                                            // attributeValuesByTag: metadata.attribute_values_by_tag,
-                                            // attributesByTag: metadata.attributes,
-                                            // genotypesByLabel : metadata.genotypes,
-                                            legend: true,
-                                                handleSearchByDataIndex,
-                                                filterDataInKeyByValue,
-                                            svgID : "scatter_plot-pca-projection"
-                                        
-                                            }} />
-                                    </div>)
-                                })}
+                                        }, didx) => {
+                                            return (
+                                                <div>
+                                                    
+                                                <ScatterPlot key={`${chartIdx}`}{...{
+                                                    chartIdx,
+                                                    colorName: selection.colorName,
+                                                    sizeName: selection.sizeName,
+                                                    data,
+                                                    valid,
+                                                    findDataInRectangle,
+                                                    setHoverDataInRectangle,
+                                                    xaxisName,
+                                                    yaxisName,
+                                                    limits,
+                                                    tooltipSmall : false,
+                                                    tooltipNames : [],
+                                                    ...hoverProps,
+                                                    ...filterProps,
+                                                    // attributeValuesByTag: metadata.attribute_values_by_tag,
+                                                    // attributesByTag: metadata.attributes,
+                                                    // genotypesByLabel : metadata.genotypes,
+                                                    legend: true,
+                                                        handleSearchByDataIndex,
+                                                        filterDataInKeyByValue,
+                                                    svgID : "scatter_plot-pca-projection"
+                                                
+                                                    }} />
+                                            </div>)
+                                        })}
 
         </InteractiveChart> : null}
                                 {/* Drivers plot. */}
@@ -147,11 +142,8 @@ function DatasetPCA({ }) {
                                 yaxisName,
                                 valid,
                                 limits,
-                                handleItemSelection,
-                                findIndexInRectangle,
                                 findDataInRectangle,
                                 setHoverDataInRectangle,
-                                handleNumericFilter,
                                 handleStringSearch,
                                 filterDataInKeyByValue,
                                 hoverProps,
@@ -164,6 +156,7 @@ function DatasetPCA({ }) {
                                         {...{
                                             title : "Drivers",
                                         numericKeyNames,
+                                        itemIsAttribute : false,    
                                         idx : 1,
                                         selection,
                                         setSelection : handleScatterSelection,

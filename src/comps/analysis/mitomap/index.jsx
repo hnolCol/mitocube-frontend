@@ -33,22 +33,7 @@ export function MitomapNetwork({ }) {
     const handleAnnotationGroupSelection = (e, tag) => {
         setSelectedAnnotationGroupTag(tag)
     }
-    // /**
-    //  *
-    //  * @param {Object} props
-    //  */
-    // const handleSelection = (props) => {
-    //     setNetworkProps(prevValues => {return {...prevValues,statProps : props}})
-    // }
-
-    // //console.log(network_data)
-    // // useEffect(() => {setnetwork_data(network_data)},[isSuccess,networkProps.type])
     
-    // const network_dataValid = _.isObject(network_data) && _.has(network_data,"nodes")
-    
-    // if (valueNameFound) {
-    //     numericKeyNames  = _.concat(numericKeyNames,[network_data["value_keyName"]])
-    // }
 
     const network_dataValid = isSuccess && _.isObject(network_data) && _.has(network_data, "nodes")
     const numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []

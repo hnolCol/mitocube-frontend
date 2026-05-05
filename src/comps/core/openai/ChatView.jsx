@@ -6,7 +6,7 @@ import PropTypes
 import { useEffect, useRef } from "react";
 function AssistantResponse({ message, highlight = false }) {
     return (
-        <div className="padding--medium" style={{ marginTop: '20px', whiteSpace: 'pre-wrap', backgroundColor: "#e2dedede", width : "85%", borderLeft : highlight ? "4px solid #466688" : "none" }}>
+        <div className="padding--medium" style={{ marginTop: '20px', whiteSpace: 'pre-wrap', backgroundColor: "#e2dedede", width : "85%", borderLeft : highlight ? "4px solid #466688" : "none", overflowX : "scroll" }}>
             <Markdown remarkPlugins={[remarkGfm]}>
                 {message}
             </Markdown>

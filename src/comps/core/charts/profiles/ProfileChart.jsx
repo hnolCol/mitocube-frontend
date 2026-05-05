@@ -69,7 +69,6 @@ export function ProfileChart({
     svgID,
     rerenderHover,
     rerenderBackground,
-    hoverData,
     profileAsLine = true,
     profileAsBar = false,
     subsetIndices = new Set(), // subset the data to only plot those 
@@ -158,7 +157,7 @@ export function ProfileChart({
                 }} />
             </g> : null}
             {profileAsBar ? <g>
-                <ProfileBars {...{ valid, data: hoverData, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
+                <ProfileBars {...{ valid, data: hoverDataInSubset, xScale, yScale, yaxisName, xaxisName, rerenderDependency: rerenderHover }} />
             </g> : null}
 
             {/* Indicate Searches */}

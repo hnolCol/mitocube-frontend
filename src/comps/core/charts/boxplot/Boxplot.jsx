@@ -20,6 +20,7 @@ export function Boxplot({
     height = 300,
     rerender, 
     yAxisLabel = "log2 Abundance",
+    caTagMap,
     margin = {
         top: 15,
         left: 45,
@@ -27,7 +28,6 @@ export function Boxplot({
         right : 10
     }
     }) {
-    
     const { chartWidth, chartHeight } = getChartWidthAndHeightWithMargins({ width, height, margins: margin })    
     const xScale = useMemo(() => {
         const domain = _.range(data.length)
@@ -62,7 +62,7 @@ export function Boxplot({
                 tickLength={3}
                 labelOffset={25}
                 numTicks={6}
-                tickComponent={({ x, y, formattedValue }) => <ConditionApplicationLabel x={x} y={y} tag={formattedValue} textProps={{textAnchor: "end", verticalAnchor: "end", angle: -40}} />}
+                tickComponent={({ x, y, formattedValue }) => <ConditionApplicationLabel x={x} y={y} caTagToText={caTagMap} tag={formattedValue} textProps={{textAnchor: "end", verticalAnchor: "end", angle: -40}} />}
                 tickFormat={(tickLabel) => xaxis_ca_tags[tickLabel]} />
             {data.map((qs, i) => {
                 return <viz.primitives.Box

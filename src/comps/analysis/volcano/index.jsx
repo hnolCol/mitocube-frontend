@@ -16,7 +16,24 @@ import hooks from "@mitocube/api-hooks"
 function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, onError }) {
 
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
+    
+    const handleError = (error) => {
+        setIsFetching(false)
+        onError({ isOpen: true, message: error })
+        }
+    
+    //fetch data
+    const {data : testData, isSuccess, refetch} = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
+        enabled: false,
+        onError: handleError
+    })
 
+    useEffect(() => {
+        if (isSuccess && _.isObject(testData)) {
+            handleSuccess(testData)
+        }
+    }, [isSuccess])
+    
     const handleSuccess = (data) => {
         //merge data to get super fast split
         let updatedData = []
@@ -44,17 +61,9 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
     }
 
 
-    const handleError = (error) => {
-        setIsFetching(false)
-        onError({ isOpen: true, message: error })
-    }
 
-    //fetch data
-    const { isSuccess, refetch} = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
-        enabled: false,
-        onSuccess: handleSuccess,
-        onError: handleError
-    })
+
+
     
 
     const handleSelection = (idx,key,value) => {
@@ -94,17 +103,17 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
 
         
         <InteractiveChart
-                        data={volcanoData.data}
-                        extraLimitNames={extraLimits} 
-            // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
-            keyNames={
-                volcanoData.suffixes.map((suffix, idx) => {
-                    return {
-                        xaxisName: volcanoData.selection[idx].xaxisName,
-                        yaxisName: volcanoData.selection[idx].yaxisName
-                    }
-                })
-            } 
+                data={volcanoData.data}
+                extraLimitNames={extraLimits} 
+                // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
+                keyNames={
+                    volcanoData.suffixes.map((suffix, idx) => {
+                        return {
+                            xaxisName: volcanoData.selection[idx].xaxisName,
+                            yaxisName: volcanoData.selection[idx].yaxisName
+                        }
+                    })
+                } 
                     isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}>
                     
                     
@@ -121,12 +130,8 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
                             yaxisName,
                             valid,
                             limits,
-                            initialLayouts,
-                            handleItemSelection,
-                            findIndexInRectangle,
                             findDataInRectangle,
                             setHoverDataInRectangle,
-                            handleNumericFilter,
                             handleStringSearch,
                             handleSearchByDataIndex,
                             filterDataInKeyByValue,
@@ -204,6 +209,7 @@ function VolcanoPlotWrapper({submission_tag, metadata}) {
     const [error, setError] = useState({isOpen : false, message : ""})
 
     const handleVolcano = (props) => {
+        console.log(props)
         setTestParams(props)
     }
     return (
