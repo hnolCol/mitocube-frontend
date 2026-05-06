@@ -1,4 +1,3 @@
-import hooks from "@mitocube/api-hooks"
 import _ from "lodash"
 import { MinimalSubmissionItem } from "../submission/view/SubmissionItem";
 import { api } from "@/api";

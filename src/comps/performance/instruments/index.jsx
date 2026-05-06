@@ -1,5 +1,4 @@
 import { InstrumentMenu } from "./Menu"
-import hooks from "@mitocube/api-hooks"
 
 
 

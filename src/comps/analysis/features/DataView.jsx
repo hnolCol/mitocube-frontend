@@ -1,6 +1,5 @@
 import _ from "lodash";
 import PropTypes from "prop-types"; 
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api";
 
 import ResultChart from "../../protein/charts/resultCard/chart";

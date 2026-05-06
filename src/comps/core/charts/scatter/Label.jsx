@@ -1,10 +1,6 @@
 import React from "react";
-import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend";
-import { Tooltip, useTooltip } from "@visx/tooltip";
 import _ from "lodash"
-import { roundNumber } from "../../../../services/format/number";
 import { Text } from "@visx/text";
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api";
 
 

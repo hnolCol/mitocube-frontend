@@ -366,9 +366,7 @@ export function Network({
         }, [zoomActive.zoomed])
 
         
-        
-        console.log(xScale.domain(), yScale.domain(),"domains", zoomActive.zoomed)
-
+    
     return (
         <div className="flex" ref={containerRef}>
             <SVG {...{ width, height, svgID }}>

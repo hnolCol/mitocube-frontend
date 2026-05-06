@@ -1,7 +1,9 @@
+import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { getRandomID } from "../../../../services/random"
 import { MetaTextInput } from "../../../core/dialogs/MetaTextInput"
 import MetaText from "../MetaText"
-
+import _ from "lodash"
+import { HIGHLIGHT_COLOR } from "@/comps/core/colors/colorPalette"
 
 /**
  * Displays the metatext tab in the new submission panel and allows editing metatexts.
@@ -36,18 +38,25 @@ export function MetatextTab({ submission, setSubmission, setComponentKey, compon
         })
 
         setSubmission(prevValues => {return {...prevValues, extraMetaText : updatedExtraMetaText}})
-
     }
     
+    const onMetaTextRemove = (tag) => {
+        let updatedExtraMetaText = submission.extraMetaText.filter(meta => meta.tag !== tag)
+        setSubmission(prevValues => {return {...prevValues, extraMetaText : updatedExtraMetaText}})
+    }
+
     return  <div>
         <h3>Meta Text</h3>
+        <div className="flex center-items margin--little" >
+            <button className="basic-button" onClick={addExtraMetaText}>
+            <span style={{ color: HIGHLIGHT_COLOR }}><strong>Add Meta Text</strong></span>
+            </button>
+        </div>
         <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />
         <div>
-            <button onClick={addExtraMetaText}>+</button>
-            {submission.extraMetaText.length}
+            
             {submission.extraMetaText.length > 0 ? submission.extraMetaText.map((meta, index) => {
-                console.log(meta)
-                return <div key={meta.tag} style={{ height: "250px" }}><MetaTextInput metatext={meta} setMetatext={(type, text) => handleMetaTextChange(meta.tag, type, text)} showButton={false} setIsStateFunction={false} /></div>
+                return <div key={meta.tag} style={{ height: "250px" }}><MetaTextInput metatext={meta} setMetatext={(type, text) => handleMetaTextChange(meta.tag, type, text)} showButton={false} setIsStateFunction={false} showRemove={true} onRemove={() => onMetaTextRemove(meta.tag)} /></div>
              } ) : null}
 
         </div>

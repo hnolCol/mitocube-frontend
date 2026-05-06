@@ -1,5 +1,4 @@
 import { Dialog } from "@blueprintjs/core";
-import hooks from "@mitocube/api-hooks"
 import { motion } from "framer-motion"
 import _ from "lodash"
 import { ProteinQuantificationUploader } from "../../core/base/files/ChunkProteinUploader";

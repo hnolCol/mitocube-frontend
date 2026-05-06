@@ -15,7 +15,7 @@ import { api } from "@/api";
 export function SampleItem({ tag, display_condition_applications = true }) {
 
     const { data: sample } = api.samples.core.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 0 });
-
+    const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag}, { enabled: _.isString(tag), defaultValue : false, staleTime: 0})
     const { data : condition_applications} = api.samples.core.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 0})
 
     return (
@@ -30,10 +30,10 @@ export function SampleItem({ tag, display_condition_applications = true }) {
             {tag}
             {_.isObject(sample) && sample.text ? <div>{sample.text}</div> : null}
 
-            <div>
+            {hasGenotype ? <div>
                 <Attribute attribute_tag={'att_genotype'} />
                 <SampleGenotype tag={tag} />
-            </div>
+            </div> : null}
             
             {/* Display the condition application */}
             {_.isArray(condition_applications) && display_condition_applications && condition_applications.map(ca_prop => {

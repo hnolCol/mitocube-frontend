@@ -2,7 +2,6 @@ import { Loading } from "../../base/states/Loading";
 import InteractiveChart from "../interactive";
 import { ScatterPlot } from "../scatter";
 import _ from "lodash"
-import hooks from "@mitocube/api-hooks"
 import viz from "@mitocube/viz"
 import { useMemo } from "react";
 import { api } from "@/api";

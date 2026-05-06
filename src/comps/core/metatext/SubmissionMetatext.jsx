@@ -45,8 +45,6 @@ export function Metatexts({ submission_tag, fill = false }) {
             }
         })
     }
-    console.log(isError, metatexts, permissions)
-    // if (isError) return <p>Invalid response when getting metadata...</p>    
 
     return (
         <div>

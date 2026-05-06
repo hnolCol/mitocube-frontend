@@ -5,7 +5,6 @@ import { Popover } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 import { api } from "@/api";
 
-import hooks from "@mitocube/api-hooks"
 import { Text } from "@visx/text"
 
 export function ProteinGroup({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", minimal = false, redirect_to_protein_site = true, onClick}) {
@@ -32,7 +31,6 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
     const redirect = useNavigate()
     const { data: feature, isSuccess, isLoading, isError } = api.features.tag.useGetFeatureByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
-    
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
@@ -48,8 +46,8 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
         }
     }
 
-    if (isError || isLoading) return null
-    if (inSVG) return <Text {...svgTextProps}>feature.gene_name</Text>
+    if (isError || isLoading || _.isNull(feature)) return null
+    if (inSVG) return <Text {...svgTextProps}>{feature.gene_name}</Text>
     if (minimal && isSuccess) return <div>{feature.gene_name}</div>
     return <div>
         {isSuccess ? <motion.div

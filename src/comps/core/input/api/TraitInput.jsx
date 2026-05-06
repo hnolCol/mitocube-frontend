@@ -25,7 +25,7 @@ function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem
         text={trait.text}
         multiline={true}
         labelElement={<div className="font-size--smallest"
-            style={{ maxWidth: descriptionWidth }}>
+            style={{ maxWidth: descriptionWidth, maxHeight : "5rem", overflow: "hidden", textOverflow: "ellipsis", lineHeight: "1.2rem" }}>
             {trait.description}
         </div>}
         active={menuItemProps.modifiers.active} 
@@ -41,7 +41,7 @@ function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem
  * an item has been already selected.  
  * @returns 
  */
-export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess, descriptionWidth = "240px" }) {
+export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess, descriptionWidth = "400px" }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 30)
     
@@ -71,14 +71,14 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
                 disabled={isError}
                 items={_.isArray(traits) ? traits : []}
                 itemRenderer={renderItem}
-
                 inputValueRenderer={(i) => i.text}
                 onQueryChange={handleQueryChange}
                 onItemSelect={handleSelect}
-                popoverProps={{ popoverClassName: "default_bp_menu" }}
+                menuProps={{style : {minWidth : "600px"}}}
+                popoverProps={{ popoverClassName: "default_bp_menu"}}
                 >
                 
-                <Button small minimal text={text} loading={isLoading} icon={"chevron-down"}/>
+                <Button variant="minimal" text={text} loading={isLoading} icon={"chevron-down"}/>
             
             </Select>
         </div>

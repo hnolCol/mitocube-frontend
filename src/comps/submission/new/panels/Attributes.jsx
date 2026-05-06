@@ -8,7 +8,6 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
 
     const getSelectionByPath = (path) => {
         const selection = findChildrenByPath(submission.selected_traits, path)
-        // console.log(selection, "getSelectionByPath", submission.selected_traits, path)
         return selection
     }
 
@@ -19,7 +18,8 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         return selection
     }
 
-    const handleTraitSelectionHierarchy = (path, row_idcs, single_child_level, single_child_type) => {
+    const handleTraitSelectionHierarchy = (path, enforceSingleVariantPerGroup) => {
+        console.log(enforceSingleVariantPerGroup, path)
         path = addIDToPath(path, submission.tag)
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
@@ -30,7 +30,9 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
             deleteByPath(selected_traits, path, true)
         }
         else {
-            findAndInsertTree(selected_traits, path, 3, false)
+            findAndInsertTree(selected_traits, path, {
+                                enforceSingleVariantPerGroup
+                            })
         }
         setSubmission(prevValues => { return {...prevValues, selected_traits}})
     }

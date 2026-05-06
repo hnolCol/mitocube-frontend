@@ -11,7 +11,6 @@ import { GenotypeContextMenu } from "./menu/GenotypeMenu"
 import { TraitWithValueInput } from "../../../../core/base/tags/TraitWithValueInput"
 
 import { api } from "@/api"
-import hooks from "@mitocube/api-hooks"
 import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
 import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"

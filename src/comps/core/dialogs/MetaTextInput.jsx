@@ -1,7 +1,8 @@
+import { RemoveButton } from "../base/buttons/RemoveButton"
 import { HIGHLIGHT_COLOR } from "../colors/colorPalette"
+import _ from "lodash"
 
-
-export function MetaTextInput({ metatext, setMetatext, edit, handleSubmit, isLoadingPatch, isLoading, showButton = true, setIsStateFunction = true }) {
+export function MetaTextInput({ metatext, setMetatext, edit, handleSubmit, isLoadingPatch, isLoading, showButton = true, setIsStateFunction = true, showRemove = false, onRemove }) {
     return <div
                     className="padding--medium"
                     style={{
@@ -35,7 +36,8 @@ export function MetaTextInput({ metatext, setMetatext, edit, handleSubmit, isLoa
                                 color: "#111827",
                                 outline: "none",
                             }}
-                            />
+                />
+                {showRemove && _.isFunction(onRemove) ? <RemoveButton onRemove={onRemove} /> : null}
                             </div>
                     </div>
                     

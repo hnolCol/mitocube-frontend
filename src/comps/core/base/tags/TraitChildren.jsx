@@ -1,4 +1,4 @@
-import _ from "lodash"
+import _, { has } from "lodash"
 import "./style.css"
 import { useEffect, useState } from "react"
 
@@ -9,6 +9,7 @@ import { TraitInput } from '../../input/api/TraitInput'
 import { MinimalTextInput } from '../../input/MinimalTextInput'
 import { FeatureInput } from '../../input/api/FeatureInput'
 import { Trait } from '../traits/Trait'
+import { use } from "react";
 
 
 
@@ -23,7 +24,7 @@ TraitChildren.propTypes = {
  * @param {String[]} props.children_tags The tags of the children.  
  * @returns 
  */
-export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection = true, respect_single_child_level = true }) {
+export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection = true, }) {
     return (<div>
         {
             _.isArray(children_tags) && children_tags.length ?
@@ -41,7 +42,6 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
                         referenceID,
                         checkAttributeRequiredTraits,
                         displayChildrenUponSelection,
-                        respect_single_child_level
                     }} />)
                 : null
         }
@@ -61,23 +61,25 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
  * @param {Number} props.rowIndex The index of the row in the table.
  * @param {Number} props.index The index of the current attribute in the hierarchy. 
  * @param {String} props.referenceID The reference ID for the current selection.
- * @param {Boolean} props.respect_single_child_level Whether to respect the single child level.
  * @returns 
  */
-export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection}) {
+export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection, proteome_tags = []}) {
 
-    const [childTrait, setChildTrait] = useState(undefined) 
 
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag)})
     const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = api.traits.queryTraits.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess })
     const {data : children, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
     const {data : traitCount, isSuccess : isSuccessTraitCount} = api.traits.queryTraits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
+    const allows_multiple_traits = false //["att_duration","att_concentration"].includes(attribute_tag) ? false : true
 
     const attributeHasTraits = isSuccessTraitCount && traitCount > 0
     let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }])
-    const selection = _.isFunction(getSelectionByPath) ? _.head(getSelectionByPath(track_path, rowIndex)) : undefined
-    const has_selection = _.isObject(selection) 
+    const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(track_path, rowIndex) : undefined 
+   
+    // console.log(selection, "selection for path", track_path, "and rowIndex", rowIndex)
 
+    const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
+    const childTrait = has_selection && _.isString(selection[0].tag) ? selection[0].tag : undefined
     useEffect(() => {
         if (has_selection && selection.type === "trait") {
             const traitInSelection = selection.tag
@@ -86,23 +88,31 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
             }
         }
     
-    },[has_selection])
+    }, [has_selection])
+    
 
-    const handleTraitSelection = (trait_tag, single_child_level = 3, single_child_type = false, join_values = false, referenceID) => {
-        const p_remove = _.concat(track_path, [{ "type": "trait", "tag": childTrait, "id": referenceID }])
-        if (_.isFunction(onRemove)) onRemove(p_remove)
+    useEffect(() => { 
+        console.log(attribute)
+        if (attribute_tag === "att_protein") {
+            console.log("NO PROTEOME TAGG!", proteome_tags)
+        }
+    } , [attribute_tag] ) 
+
+    const handleTraitSelection = (trait_tag, referenceID) => {
+        if (has_selection) {
+            //check if multiple allowed??
+            const p_remove = _.concat(track_path, [{ "type": "trait", "tag": selection[0].tag, "id": referenceID }])
+            if (_.isFunction(onRemove)) onRemove(p_remove)
+        }
         const p = _.concat(track_path, [{ "type": "trait", "tag": trait_tag, "id": referenceID }])
         
-        const num_children = _.isArray(children) ? children.length : 0
-        const respect_single_child_level = num_children === 1 ? false : true //if there is only one child, we do not want to respect the single child level, as the child should be displayed regardless.
-
-        onSelection(p, [rowIndex], respect_single_child_level ? index + single_child_level : Infinity, single_child_type, join_values)
-        setChildTrait(trait_tag)
+        onSelection(p, [rowIndex], !allows_multiple_traits)
+       
     }
 
     const handleTraitValueInput = (value) => {
-        const p = _.concat(track_path, [{ "type": "trait", "value": value, "tag": childTrait, "id": referenceID }])
-        onSelection(p, [rowIndex], Infinity, false, false, false) //adding the value should not have an effect on the single child level or type, as the value is not relevant for the children display.
+        const p = _.concat(track_path, [{ "type": "trait", "value": value, "tag": selection[0].tag, "id": referenceID }])
+        onSelection(p, [rowIndex], !allows_multiple_traits) //adding the value should not have an effect on the single child level or type, as the value is not relevant for the children display.
     }
 
     const handleFeatureSelection = (tag) => {
@@ -111,9 +121,10 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
             ? currentProteins.filter(p => p !== tag)
             : [...currentProteins, tag]
         const combinedValue = updatedProteins.join("||")
+
         onSelection(
-            _.concat(track_path, [{ "type": "trait", "value": combinedValue, "tag": childTrait, "id": referenceID }]),
-            [rowIndex], Infinity, true, false
+            _.concat(track_path, [{ "type": "trait", "value": combinedValue, "tag": selection[0].tag, "id": referenceID }]),
+            allows_multiple_traits
         )
     }
     /**
@@ -124,10 +135,13 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         const input = getSelectionByPath(track_path, rowIndex)
         if (_.isArray(input) && input.length > 0) {
 
-            return _.head(input).value
+            return allows_multiple_traits ? input.map(i => i.value) : _.head(input).value
         }
         return ""
     }
+
+
+
 
     const getFeatureInput = () => {
         const input = getSelectionByPath(track_path, rowIndex)
@@ -152,46 +166,96 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                 {attribute.text}
                             </div>
                         </div>
+
                         <div className='flex center-items'>
 
                             {attribute.tag === "att_protein" ?
-                            
-                                <FeatureInput
-                                onItemSelect={(a, tag) => handleFeatureSelection(tag)}
-                                onItemRemove={(a, tag) => handleFeatureSelection(tag)}
-                                selectedItems={getFeatureInput()}
-                            /> :
+                                <div>
+                                    <div className="flex center-items">
+                                    <FeatureInput
+                                        proteome_tags={[has_selection ? selection[0].tag : undefined].filter(_.isString)}
+                                        onItemSelect={(a, tag) => handleFeatureSelection(tag)}
+                                        onItemRemove={(a, tag) => handleFeatureSelection(tag)}
+                                        selectedItems={getFeatureInput()}
+                                        />
+                                        <TraitInput
+                                            attribute_tag={"att_proteome"}
+                                            onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                            selected_trait={has_selection ? selection[0].tag : undefined}
+                                            onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? handleTraitSelection(d[0], referenceID) : null}
+                                        /> 
+                                        </div>
+                                    {proteome_tags.length === 0 && !has_selection ? <div className='font-size--smallest'>No proteome available. Please select a proteome.</div> : null}
+                                    {has_selection ? <div className='font-size--smallest'>{selection[0].tag}</div> : null}
+                                
+                                </div> :
                         
-                        <MinimalTextInput
-                            value={getInput()}
-                            disabled={(attributeHasTraits && childTrait === null)}
+                                <MinimalTextInput
+                                    value={getInput()}
+                                    disabled={!has_selection}
                                     callbackKey={attribute_tag}
                                     allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
                                     allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
-                            onChange={(value) => handleTraitValueInput(value)}
-                            suffix_trait_tag={childTrait} />}
+                                    onChange={(value) => handleTraitValueInput(value)}
+                                    suffix_trait_tag={childTrait} />}
                            
                             {attributeHasTraits ?
                                 
                                 <TraitInput
                                     attribute_tag={attribute_tag}
-                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, index + 3, true, false, referenceID)}
-                                    selected_trait={_.isString(childTrait) ? childTrait : has_selection ? selection.tag : undefined}
-                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? setChildTrait(d[0]) : null}
+                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                    selected_trait={has_selection ? selection[0].tag : undefined}
+                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? handleTraitSelection(d[0], referenceID) : null}
                                 /> : null}
                         </div>
                     </div> :
                     <div className='flex center-items'>
-                        <div>{_.isString(childTrait) ? <Trait trait_tag={childTrait} /> : null}</div>
-                        <TraitInput
-                            attribute_tag={attribute_tag}
-                            text={has_selection || _.isString(childTrait) ? "" : attribute.text}
-                            onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, index + 3, true, false, referenceID)}
-                            selected_trait={has_selection ? selection.tag : _.isString(childTrait) ? childTrait : undefined} />
-                        
-                        </div>
+                        {allows_multiple_traits ? 
+                            <div className="flex flex-column center-items">
+                                <div className="flex center-items"><span>{has_selection ? `${attribute.text} (${selection.length})` :attribute.text}</span>
+                                <TraitInput
+                                    attribute_tag={attribute_tag}
+                                    
+                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                    selected_trait={has_selection ? selection.map(t => t.tag) : undefined} /> </div>
+                                <div className="flex flex-column">
+                                    {
+                                    has_selection ?
+                                            selection.map(t => <div className="bg--lightgrey">
+                                                
+                                                <Trait trait_tag={t.tag} />
+                                                <TraitChildren
+                                                    children_tags={children}
+                                                        {...{
+                                                            path: _.concat(track_path,[{type : "trait", tag: t.tag, id : referenceID}]),
+                                                            rowIndex,
+                                                            getSelectionByPath,
+                                                            selectedRows,
+                                                            onChildrenSelection: onSelection,
+                                                            index: index + 1,
+                                                            referenceID: `${referenceID}`,
+                                                            checkAttributeRequiredTraits: checkAttributeRequiredTraits
+                                            }} /></div>) : null}
+                                    </div>
+                                </div>
+                            : 
+
+                            <div className="flex center-items">
+                                <div>{has_selection ? <Trait trait_tag={selection[0].tag} /> : null}</div>
+                                
+                                <TraitInput
+                                    attribute_tag={attribute_tag}
+                                    text={has_selection  ? "" : attribute.text}
+                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                    selected_trait={has_selection ? selection[0].tag : undefined} />
+                                
+                                    </div>}
+                                </div>
                 }
-                {childrenIsSuccess && (!displayChildrenUponSelection || has_selection) && children.length > 0 ?
+
+
+
+                {!allows_multiple_traits && childrenIsSuccess && (!displayChildrenUponSelection || has_selection) && children.length > 0 ?
                     <TraitChildren
                         children_tags={children}
                         {...{

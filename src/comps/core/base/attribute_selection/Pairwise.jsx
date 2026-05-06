@@ -3,8 +3,6 @@ import _ from "lodash"
 import { useEffect, useState } from "react"
 import {  Checkbox, Tooltip } from "@blueprintjs/core"
 import Loading from "../loading"
-
-import { MinimalAttributeSelection } from "../attributes/MinimalAttributeSelection"
 import { AttributeSelection } from "../attributes/AttributeSelection"
 import { Attribute } from "../attributes/Attribute"
 import PropTypes from "prop-types"
@@ -13,7 +11,7 @@ import { ConditionApplicationsView } from "../condition_applications/ConditionAp
 import { arraysEqual } from "../../../../services/arrays/equal"
 import { motion } from "framer-motion"
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette"
-import { Cell, Column, ColumnHeaderCell, EditableName, Table2 } from "@blueprintjs/table"
+import { Cell, Column, Table2 } from "@blueprintjs/table"
 import { AnnotationSelectionMenu } from "../annotations/AnnotationSelectionMenu"
 import { api } from "@/api"
 
@@ -276,22 +274,12 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                 onChange={() => setPairwiseComp(prevValues => { return { ...prevValues, impute: !prevValues.impute } })} />
             </Tooltip> : null}
         </div>
-        <div className="">
+        <div>
         <button className= {inputIsSufficient ? "basic-button" : "basic-button basic-button--excluded"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
         <button disabled={isLoadingData} onClick={handleReset} className="basic-button margin-top--little">Reset</button>
         </div>
-
+        {isLoadingData ? <strong><Loading /></strong>: null }
     </div>
 
 }
 
-
-const initState = {
-    sample_attribute_tag: undefined,
-    attribute_value_tag_left: undefined,
-    attribute_value_tag_right: undefined,
-    within_attribute_tag: [],
-    within_attribute_value_tag: {},
-    impute: false,
-    filter : undefined
-}

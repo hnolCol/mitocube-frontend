@@ -96,7 +96,7 @@ function SubmissionFeatureCorrelation({ }) {
         <div>If you define two featuers, then the overlap will be highlighted.</div>
         {_.isObject(metadata) ? <div style={{width : "20vw"}}>
             <FeatureInput
-                proteome_ids={metadata.proteome_tags}
+                proteome_tags={metadata.proteome_tags}
                 
                 selectedItems={featureDefined ? correlation.feature : []}
                 onItemSelect={handleFeatureSelection} />

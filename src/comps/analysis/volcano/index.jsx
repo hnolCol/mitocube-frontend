@@ -4,17 +4,16 @@ import _ from "lodash"
 import { useEffect, useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
-import { Card, Dialog } from "@blueprintjs/core";
-import { isItemInArrayDeepComp } from "../../../services/arrays/transforms";
+import { Button, Card, Dialog } from "@blueprintjs/core";
+import { addStringToArrayIfNotPresent, isItemInArrayDeepComp } from "../../../services/arrays/transforms";
 import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/groupby";
 import { ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 import { api } from "@/api";
-import hooks from "@mitocube/api-hooks"
+import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
+import { Combobox } from "@/comps/core/input/Combobox";
 
-
-function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, onError }) {
-
+function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, onError, hiddenSuffix, setHiddenSuffix }) {
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
     
     const handleError = (error) => {
@@ -23,19 +22,21 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
         }
     
     //fetch data
-    const {data : testData, isSuccess, refetch} = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
+    const {data : testData, isSuccess, refetch, isFetching, isLoading} = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
         enabled: false,
+        staleTime: Infinity,
         onError: handleError
     })
 
     useEffect(() => {
-        if (isSuccess && _.isObject(testData)) {
+        if (isSuccess && _.isObject(testData) ) {
             handleSuccess(testData)
         }
     }, [isSuccess])
     
     const handleSuccess = (data) => {
         //merge data to get super fast split
+        if (volcanoData.suffixes.includes(data.suffix)) return //already have this data, no need to merge again
         let updatedData = []
         let prevData = volcanoData.data
         if (prevData.length > 1) {
@@ -45,9 +46,6 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
         else {
             updatedData = data.stats
         }
-
-        
-
 
         setIsFetching(false)
         setVolcanoData(prevValues => {
@@ -59,11 +57,6 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
             }
         })
     }
-
-
-
-
-
     
 
     const handleSelection = (idx,key,value) => {
@@ -81,7 +74,9 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
         !_.isEmpty(selectedTestParams) &&
         !isItemInArrayDeepComp({ array: volcanoData.testParams, item: selectedTestParams })
     
-
+    const handleHiddenSuffix = (suffix) => {
+        setHiddenSuffix(prevValues => addStringToArrayIfNotPresent({ array: prevValues, string: suffix }))
+    }
     
     useEffect(() => {
         if (testParamsUpdate) {
@@ -95,12 +90,8 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
     const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
    
-    
-    
-    return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap: "0.5rem" }}> 
-    
-        
-
+  
+    return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap: "0.5rem", marginLeft : "2rem"}}> 
         
         <InteractiveChart
                 data={volcanoData.data}
@@ -142,9 +133,18 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
                             triggerResetAxis,
                             setTriggerResetAxisZoom
                         }, didx) => {
+                            if (hiddenSuffix.includes(volcanoData.suffixes[chartIdx])) return null
                             return (
-                                //  <div key={chartIdx} data-grid={initialLayouts[chartIdx]}>
-                                <Card compact={true} style={{maxWidth: "700px", maxHeight : "500px"}}>
+                                <Card
+                                    compact={true}
+                                    style={{ width: "600px", maxWidth: "750px", height: "500px", position: "relative" }}
+                                    key={chartIdx}>
+                                    
+                                    <div style={{ position: "absolute", right: 5, top: 5 }}>
+                                        <RemoveButton
+                                            onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
+                                        
+                                        </div>
                                     <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                         {...{
                                         // title : "Volcano Plot",
@@ -161,10 +161,11 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
                                         elementTypes: ["svg", "data"],
                                         itemIsAttribute: false
                                         }} />
+                                    
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
                                         width: 400,
-                                        height : 400,
+                                        height : 450,
                                         colorName: volcanoData.selection[didx].colorName,
                                         sizeName: volcanoData.selection[didx].sizeName,
                                         data,
@@ -205,11 +206,11 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
 
 function VolcanoPlotWrapper({submission_tag, metadata}) {
     const [testParams, setTestParams] = useState({})
+    const [ hiddenSuffix, setHiddenSuffix] = useState([])
     const [isFetching, setIsFetching] = useState(false)
     const [error, setError] = useState({isOpen : false, message : ""})
 
     const handleVolcano = (props) => {
-        console.log(props)
         setTestParams(props)
     }
     return (
@@ -220,12 +221,26 @@ function VolcanoPlotWrapper({submission_tag, metadata}) {
                     <APIError error={error.message} />
                 </div>
             </Dialog>
-            <ConditionApplicationSelection {...{submission_tag, onConfirm : handleVolcano, reset_after_confirm: true, isLoadingData : isFetching }}/>
-            <VolcanoDataHandler {...{ submission_tag, selectedTestParams: testParams, metadata, setIsFetching, onError: setError }} />
+            <div style={{position : "relative"}}>
+            <div style={{position: "absolute", top : 5, right : 0}}><HiddenSuffixes hiddenSuffixes={hiddenSuffix} setHiddenSuffixes={setHiddenSuffix} /></div>
+                <ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching }} />
+            </div>
+            <VolcanoDataHandler {...{ submission_tag, selectedTestParams: testParams, metadata, setIsFetching, onError: setError, hiddenSuffix, setHiddenSuffix }} />
         </div>
     )
 }
 
+
+function HiddenSuffixes({ hiddenSuffixes, setHiddenSuffixes }) {
+    const handleRemoveSuffix = (suffix) => {
+        setHiddenSuffixes(prevValues => prevValues.filter(s => s !== suffix))
+    }
+    return <Combobox
+        placeholder="" items={hiddenSuffixes.map(t => ({ text: t }))}
+        onChange={i => handleRemoveSuffix(i.text)}
+        noResultsText="No hidden volcanos."
+        buttonProps={{ icon: "eye-off", variant: "minimal", intent: _.isEmpty(hiddenSuffixes) ? "none" : "danger" }} />
+}
 
 
 function DatasetVolcanoPlot(logout) {

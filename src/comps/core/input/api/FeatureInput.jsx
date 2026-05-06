@@ -4,13 +4,18 @@ import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
 import { ProteinMenuItem } from "../items/FeatureMenu"
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api";
+import { Protein } from "../../base/protein/Protein"
 
-export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, attribute, isRequired = true, helperText = "", inline = false, showLabel = true, debounceDelay = 200, disabled = false, rightElement}) {
+export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, attribute, isRequired = true, helperText = "", inline = false, showLabel = true, debounceDelay = 200, disabled = false, rightElement, proteome_tags}) {
     const [queryString,setQueryString] = useState("")
-    const debouncedString = useDebounce(queryString,debounceDelay)
-    const { data: items, isLoading, isFetching } = api.features.proteinsQuery.useGetProteinFeatureByQuery({ search_string: debouncedString, limit: 20 }, { enabled: debouncedString.length > 0, staleTime: 5 * 60 * 1000 })
+    const debouncedString = useDebounce(queryString, debounceDelay)
+    const {
+        data: items,
+        isLoading,
+        isFetching } = api.features.proteinsQuery.useGetProteinFeatureByQuery({ search_string: debouncedString, limit: 25, proteome_tags: proteome_tags }, {enabled : true, staleTime: 5 * 60 * 1000, defaultValue : [] })
+
+    
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
 
         return <ProteinMenuItem key={item} {...{tag : item, onClick : handleClick, active : modifiers.active}} />
@@ -19,11 +24,11 @@ export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, at
      * @description Handles the item selection 
      * @param {import("../../../types/feature").Feature} item 
      */
-    const handleItemSelection = (item, e) => {
+    const handleItemSelection = (tag, e) => {
         if (_.isFunction(e.stopPropagation)) {
             e.stopPropagation()
         }
-        onItemSelect(attribute, item)
+        onItemSelect(attribute, tag)
     }
 
     const handleItemRemove = (item, e) => {
@@ -49,7 +54,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, at
             disabled={disabled}
             itemRenderer={renderFeature}
             items={_.isArray(items) ? items : []}
-            tagRenderer={(tag) =>  <div>{tag}</div>}
+            tagRenderer={(tag) => <div><Protein minimal={true} tag={tag} /></div>}
             selectedItems={selectedItems}
             onItemSelect={handleItemSelection}
             onRemove={handleItemRemove}
@@ -65,7 +70,8 @@ export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, at
                 inputProps: { intent: "primary" },
                 tagProps: { minimal: true }
             }}
-            initialContent={_.isArray(items) && selectedItems.length === 0 ? <MenuItem text="Loading..." disabled={true} /> : null }
+            // initialContent={isFetching || isLoading ? <MenuItem text="Loading..." disabled={true} /> : null }
+            // initialContent={!_.isArray(items) ? <MenuItem text="Loading..." disabled={true} /> : null }
             />
         </FormGroup>
 }

@@ -5,7 +5,6 @@ import { motion } from "framer-motion"
 import { Popover } from "@blueprintjs/core"
 import { api } from "@/api";
 
-import hooks from "@mitocube/api-hooks"
 
 
 StaticTrait.propTypes = {

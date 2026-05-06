@@ -21,6 +21,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
+    console.log(selectedTraits, "selected traits in insert genotype")
     const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = api.genotypes.modifyGenotypes.usePostGenotype()
     const { mutate : updateGenotype, isLoading : isUpdateLoading } = api.genotypes.modifyGenotypes.useEditGenotype()
 
@@ -38,11 +39,12 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     }, [isEditing])
    
     
-    const handleTraitSelection = (trait_tag, referenceID) => {
+    const handleTraitSelection = (trait_tag, referenceID, enforceSingleVariantPerGroup = true) => {
+        console.log(enforceSingleVariantPerGroup, trait_tag, referenceID)
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         findAndInsertTree(selected_traits, [
             { "type": "attribute", "tag": 'att_gene_engineering', 'id': referenceID },
-            { "type": "trait", "tag": trait_tag, "id": referenceID }], 0, true, false, false)
+            { "type": "trait", "tag": trait_tag, "id": referenceID }], { enforceSingleVariantPerGroup })
 
         setSelectedTraits(selected_traits)
     }
@@ -57,9 +59,10 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         return undefined
     }
 
-    const handleSelection = (path, _ , single_child_level = 5) => {
+    const handleSelection = (path, _, enforceSingleVariantPerGroup = true) => {
+        console.log(path, enforceSingleVariantPerGroup, "HANDLE SELECTION"  )
         let selected_traits = selectedTraits.slice() //mission.selected_traits
-        findAndInsertTree(selected_traits, path, single_child_level, true, true, true, 0)
+        findAndInsertTree(selected_traits, path, { enforceSingleVariantPerGroup  })
         setSelectedTraits(selected_traits)
     }
 

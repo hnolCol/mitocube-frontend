@@ -1,9 +1,5 @@
 import { useOutletContext } from "react-router";
 import _ from "lodash"
-import ResultChart from "../../protein/charts/resultCard/chart";
-import { useEffect } from "react";
-
-import hooks from "@mitocube/api-hooks"
 import { SamplePGCounts } from "./PGCounts";
 
 

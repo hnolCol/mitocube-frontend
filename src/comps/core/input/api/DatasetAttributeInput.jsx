@@ -11,7 +11,6 @@ import "./style.css"
 import useDebounce from "../../../../hooks/useDebounce";
 import { TraitMenuItem } from "../items/AttributeValueMenu";
 
-import hooks from "@mitocube/api-hooks"
 import { api } from "@/api";
 
 /**

@@ -1,8 +1,7 @@
 
-import _, { update } from "lodash"
-import Loading from "../../../../core/base/loading"
-import { clearArrayOfObjectsByKeyName, removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
-import { addItemToArrayIfNotPresent, addItemToArrayOrRemoveItIfPresent, addItemsToArrayIfNotPresent, addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
+import _  from "lodash"
+import { removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
+import { addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useState } from "react"
 import { Alert } from "@blueprintjs/core"
@@ -52,19 +51,15 @@ export const findNode = (data, type, tag, id) => {
     return undefined;
 }
 
-export const findAndInsertTree = (
+export const findAndInsertTree2 = (
         data,
         path,
-        single_child_level = 2,
-        single_child_type = false,
-        join_values = false,
-        forceInsert = false,
+        remove_parent_children,
         level = 0
 ) => {
-    // console.log(data,single_child_type,forceInsert)
             if (path.length === 0) return;
             const [current, ...restPath] = path;
-    // Find node by type and id
+            // Find node by type and id
             if (current.tag === undefined || current.id === undefined || current.type === undefined) return;
             let node = data.find(
             n =>  n.type === current.type && n.id === current.id && n.tag === current.tag
@@ -72,7 +67,7 @@ export const findAndInsertTree = (
             
             // If not found, create and push it
             if (!node) {
-                    node = { ...current, children: [] };
+                node = { ...current, children: [] };
                 // Only apply single_child_type restriction at level >= single_child_level
                     if (single_child_type && level >= single_child_level) {
                     // Remove all nodes of the same type at this level
@@ -84,9 +79,9 @@ export const findAndInsertTree = (
                     }
                     data.push(node);
             }
-            else if (forceInsert && restPath.length === 0) {
-                    data.push(current)
-            }
+            // else if (forceInsert && restPath.length === 0) {
+            //         data.push(current)
+            // }
 
             if (_.has(current, "value") && current.value !== node.value) {
                 node.value = current.value; // Update the value if it has changed
@@ -108,27 +103,104 @@ export const findAndInsertTree = (
             findAndInsertTree(node.children, restPath, single_child_level, single_child_type, join_values, forceInsert, level + 1);
 };
 
+export const findAndInsertTree = (
+    data,
+    path,
+    options = {},
+    level = 0
+) => {
+    const {
+        enforceSingleVariantPerGroup = false, 
+    } = options;
+
+    console.log(enforceSingleVariantPerGroup, "ENFORCE SINGLE VARIANT PER GROUP IN FIND AND INSERT TREE")
+    // Stop if nothing to process
+    if (!path || path.length === 0) return;
+
+    const [current, ...restPath] = path;
+
+    // Validate required fields
+    if (
+        current.tag === undefined ||
+        current.id === undefined ||
+        current.type === undefined
+    ) {
+        return;
+    }
+
+    // Helper: get base tag (before ":")
+    const getBaseTag = (tag) => tag?.split(":")[0];
+
+    // Try to find existing node
+    let node = data.find(
+        (n) =>
+            n.type === current.type &&
+            n.id === current.id &&
+            n.tag === current.tag
+    );
+
+    // Create node if it doesn't exist
+    if (!node) {
+        node = {
+            ...current,
+            children: [],
+        };
+
+        data.push(node);
+    }
+
+    // 🔥 Enforce "only one variant per group"
+    if (enforceSingleVariantPerGroup) {
+        const baseTag = getBaseTag(current.tag);
+
+        for (let i = data.length - 1; i >= 0; i--) {
+            const existingBaseTag = getBaseTag(data[i].tag);
+
+            if (
+                existingBaseTag === baseTag &&
+                data[i] !== node
+            ) {
+                data.splice(i, 1);
+            }
+        }
+    }
+
+    // Update value if changed
+    if (
+        Object.prototype.hasOwnProperty.call(current, "value") &&
+        current.value !== node.value && current.id === node.id && current.type === node.type
+    ) {
+        node.value = current.value;
+    }
+
+    // Ensure children exists
+    if (!node.children) {
+        node.children = [];
+    }
+
+    // Recurse
+    findAndInsertTree(
+        node.children,
+        restPath,
+        options,
+        level + 1
+    );
+};
 
 
 export const checkPathExists = (data, path, ignore_id = false) => {
     if (!_.isArray(data) || data.length === 0) return false; // No data to search
     if (path.length === 0) return false; // Nothing to find
     const [current, ...restPath] = path;
-    // Find node by type and tag
-    // data.map(d => console.log( d.type == current.type, d.tag == current.tag, d.id === current.id, d.value === current.value, (ignore_id || d.id === current.id), d.tag, d.id, current.type, current.tag, current.id, _.toNumber(current.value) , _.toNumber(d.value)))
 
     let node = data.find(
         n => n.type === current.type && n.tag === current.tag && (ignore_id || n.id === current.id) && n.value == current.value //keep == here so that null and undefined return true 
     );  
-
     // If not found, return false  
-    console.log(node,"CHECK PATH EXISTS NODE")
     if (!node) return false;
-    console.log(restPath, "rest path")
     if (restPath.length === 0) {    
         return true; // Found the node
     }
-    console.log(node,"FOUND?")
     // Recurse into children
     if (!node.children || node.children.length === 0) {
         return false;
@@ -397,14 +469,15 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      * @param {Boolean} join_values - Whether to join the values.
      * @param {Boolean} forceInsert - Whether to force the insert.
      */
-    const onSampleTraitSelection = (path, rowIdces, single_child_level = 3 , single_child_type = false, join_values = false, forceInsert = false) => {
+    const onSampleTraitSelection = (path, rowIdces, enforceSingleVariantPerGroup = true) => {
         let d = submission.attributeTable.slice()
-        // console.log(path, rowIdces, "trait selection")
-        // console.log(d, "after add id to path")
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length).filter(rowIndex => !checkPathExists (d[rowIndex], path, false))
             .forEach(rowIndex => {
-                findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), single_child_level, single_child_type, join_values, forceInsert)
+                //  findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), single_child_level, single_child_type, join_values, forceInsert)
+                 findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), {
+                            enforceSingleVariantPerGroup
+                        })
             })
         updateSubmission(prevValues => {
             return {

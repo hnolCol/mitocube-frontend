@@ -47,9 +47,11 @@ export function Combobox({
     textKey = "text",
     labelKey = undefined,
     colorKey = "color",
+    noResultsText = "No items available.",
     disabled = false,
     small = false,
     matchTargetWidth = false,
+    showNoResults = true,
     minQueryLength = 2,
     value_suffix = "",
     buttonProps = {
@@ -121,7 +123,7 @@ export function Combobox({
     return (
         <Select
             fill={true}
-            noResults={<MenuItem text="No items/attributes available." disabled={true}/>}
+            noResults={showNoResults ? <MenuItem text={noResultsText} disabled={true}/> : null}
             filterable={items.length > 5 ? true : false}
             items={sortedItems}
             resetOnSelect={true}

@@ -6,7 +6,6 @@ import { ResearchAim } from "./Researchaim";
 import { StateIndicator } from "../../core/base/states/SubmssionState";
 import { AuthorList } from "../../core/authors/AuthorList";
 import { Metatexts } from "../../core/metatext/SubmissionMetatext";
-import { SubmissionComments } from "../../submission/comments";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 import { SubmissionTag } from "../../submission/view/SubmissionTag";
 import { SubmissionViews } from "../../submission/view/SubmissionViews";

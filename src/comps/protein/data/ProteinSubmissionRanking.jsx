@@ -1,8 +1,7 @@
 
 
 
-import hooks from "@mitocube/api-hooks"
-import viz from "@mitocube/viz"
+
 import _ from "lodash"
 import InteractiveChart from "../../core/charts/interactive"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
