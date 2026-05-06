@@ -7,6 +7,7 @@ import ResultChart from "../../protein/charts/resultCard/chart";
 import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
+import { a } from "../../../../dist/assets/chunk-zsgVPwQN";
 
 FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -23,6 +24,11 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
     const { data: attributes, isLoading : isSampleCAAttributeLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
     const containerRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
+
+    // Remove genotypes from attributes for now since they are not supported in the chart and can be very numerous, causing performance issues. We can re-add them later with some adjustments if needed.
+    const filteredAttributes = _.isArray(attributes)
+        ? attributes.filter(attr => attr !== "att_genotype")
+        : attributes;
 
     useEffect(() => {
         const el = containerRef.current;
@@ -49,7 +55,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
                         featureTag={feature_tag}
                         data={data?.data}
                         showMenu={true}
-                        attribute_tags={attributes}
+                        attribute_tags={filteredAttributes}
                         width={size.width || undefined}
                         height={size.height || undefined}
                         title={_.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}

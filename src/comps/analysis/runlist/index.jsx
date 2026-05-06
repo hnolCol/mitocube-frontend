@@ -12,10 +12,19 @@ import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile  } from "
 
 function Run({ run }) {
     return (
-        <div className="div--round bg--lightgrey padding--little flex">
-            <h5>{run.name}</h5>
-            <WellPosition positionLabel={run.position_label} />
-            <div>Plate : {run.plate_index}</div>
+        <div className="div--round bg--lightgrey padding--medium flex justify-space-between center-items margin--little">
+            <div className="flex center-items">
+                <WellPosition positionLabel={run.position_label} />
+                <div className="margin-left--medium">
+                    <div className="font-weight--bold">{run.name}</div>
+                    <div className="font-size--small text--muted">Plate {run.plate_index + 1}</div>
+                </div>
+            </div>
+            {run.aggregated_samples?.length > 0 && (
+                <div className="text--muted font-size--small">
+                    {run.aggregated_samples.length} samples pooled
+                </div>
+            )}
         </div>
     )
 }
@@ -127,18 +136,25 @@ function Runlist() {
                 ) :
                 isSuccess ? (
                     <div>
-                        <div className="flex center-items justify-space-between">
-                            <p><strong>{runlist.n_runs}</strong> runs</p>
+                        <div className="flex center-items justify-space-between margin-bottom--medium">
+                            <div>
+                                <h3 className="margin--none">{runlist.n_runs} runs</h3>
+                                <div className="text--muted font-size--small">
+                                    {runlist.n_plates} plate{runlist.n_plates > 1 ? 's' : ''} • 
+                                    {runlist.scrambled ? ' Scrambled' : ' Sequential'} • 
+                                    {runlist.fractionated ? ` ${runlist.n_fractions} fractions` : ' No fractionation'}
+                                </div>
+                            </div>
                             <div className="flex center-items">
                                 <Button 
                                     icon="download" 
-                                    text="Download Runlist" 
+                                    text="Download" 
                                     onClick={exportRunlistToTxtFile}
                                     style={{ marginRight: "0.5rem" }}
                                 />
                                 <Button 
                                     icon="trash" 
-                                    text="Delete Runlist" 
+                                    text="Delete" 
                                     onClick={handleDeleteRunlist}
                                     intent="danger"
                                     loading={isDeleting}
@@ -146,7 +162,11 @@ function Runlist() {
                                 />
                             </div>
                         </div>
-                        <div className="flex flex-column div--expand">
+                        <div style={{ 
+                            maxHeight: '70vh', 
+                            overflowY: 'auto',
+                            paddingRight: '0.5rem'  
+                        }}>
                             {runlist.runs.map(run => <Run key={run.name} run={run} />)}
                         </div>
                     </div>

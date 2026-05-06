@@ -4,6 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useOutletContext } from "react-router";
 import { api } from "@/api";
 import { Comment } from "./Comment";
+import { Loading } from "../../core/base/states/Loading";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router";
 
 function buildCommentTree(comments) {
     const map = {};
@@ -17,6 +20,28 @@ function buildCommentTree(comments) {
         }
     });
     return roots;
+}
+
+export function SubmissionCommentCount({ submission_tag }) {
+    const navigate = useNavigate();
+    const { data: comments, isLoading } = api.submissions.comments.useGetSubmissionComments(
+        { tag: submission_tag },
+        { enabled: !!submission_tag, staleTime: 60000 }
+    );
+
+    return (
+        <motion.button
+            whileHover={{ scale: 1.04, boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => navigate(`/submissions/${submission_tag}/comments`)}
+            className="submission-metric-view"
+        >
+            <div>
+                <h4>Comments</h4>
+                {isLoading ? <Loading /> : <span>{comments?.length || 0}</span>}
+            </div>
+        </motion.button>
+    );
 }
 
 export function SubmissionComments() {
