@@ -25,11 +25,6 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
     const containerRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
 
-    // Remove genotypes from attributes for now since they are not supported in the chart and can be very numerous, causing performance issues. We can re-add them later with some adjustments if needed.
-    const filteredAttributes = _.isArray(attributes)
-        ? attributes.filter(attr => attr !== "att_genotype")
-        : attributes;
-
     useEffect(() => {
         const el = containerRef.current;
         if (!el) return;
@@ -55,7 +50,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
                         featureTag={feature_tag}
                         data={data?.data}
                         showMenu={true}
-                        attribute_tags={filteredAttributes}
+                        attribute_tags={attributes}
                         width={size.width || undefined}
                         height={size.height || undefined}
                         title={_.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
