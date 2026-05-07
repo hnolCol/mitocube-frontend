@@ -21,7 +21,6 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
 
     const [genotype, setGenotype] = useState(INITIAL_GENOTYPE)
     const [selectedTraits, setSelectedTraits] = useState([])
-    console.log(selectedTraits, "selected traits in insert genotype")
     const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = api.genotypes.modifyGenotypes.usePostGenotype()
     const { mutate : updateGenotype, isLoading : isUpdateLoading } = api.genotypes.modifyGenotypes.useEditGenotype()
 
@@ -40,7 +39,6 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
    
     
     const handleTraitSelection = (trait_tag, referenceID, enforceSingleVariantPerGroup = true) => {
-        console.log(enforceSingleVariantPerGroup, trait_tag, referenceID)
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         findAndInsertTree(selected_traits, [
             { "type": "attribute", "tag": 'att_gene_engineering', 'id': referenceID },
@@ -60,7 +58,6 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     }
 
     const handleSelection = (path, _, enforceSingleVariantPerGroup = true) => {
-        console.log(path, enforceSingleVariantPerGroup, "HANDLE SELECTION"  )
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         findAndInsertTree(selected_traits, path, { enforceSingleVariantPerGroup  })
         setSelectedTraits(selected_traits)

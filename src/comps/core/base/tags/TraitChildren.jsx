@@ -92,7 +92,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     
 
     useEffect(() => { 
-        console.log(attribute)
         if (attribute_tag === "att_protein") {
             console.log("NO PROTEOME TAGG!", proteome_tags)
         }
@@ -233,7 +232,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                                             selectedRows,
                                                             onChildrenSelection: onSelection,
                                                             index: index + 1,
-                                                            referenceID: `${referenceID}`,
+                                                            referenceID,
                                                             checkAttributeRequiredTraits: checkAttributeRequiredTraits
                                             }} /></div>) : null}
                                     </div>
