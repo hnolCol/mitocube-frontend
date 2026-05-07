@@ -9,7 +9,7 @@ import { getRandomID } from "../../../../services/random"
  * @param {String} props.submission_tag 
  * @param {Object} props.attributeTraits {attribute_tag : trait_tag[]} 
  */
-export function DatasetAttributeView({submission_tag, attributeTraits, handleTraitRemove, getSelectionByPath, onChildrenSelection}) {
+export function DatasetAttributeView({submission_tag, attributeTraits, handleTraitRemove, getSelectionByPath, onChildrenSelection, checkAttributeRequiredTraits}) {
 
 
     return (<div style={{ overflowY: "scroll", height: "50vh", marginTop : "1rem", paddingTop: "1rem", paddingBottom : "2rem" }}>
@@ -32,6 +32,7 @@ export function DatasetAttributeView({submission_tag, attributeTraits, handleTra
                                         onRemove={handleTraitRemove}
                                         getSelectionByPath={getSelectionByPath}
                                         referenceID={trait.id}
+                                        checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                                     />
                                 })}
                         </div>:

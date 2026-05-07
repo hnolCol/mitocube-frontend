@@ -2,7 +2,7 @@ import { DatasetAttributeView } from "../../../core/base/attributes/DatasetAttri
 import { AttributesInput } from "../../../core/input/api/DatasetAttributeInput";
 import { MandatoryAttributes } from "../../MandatoryAttributes";
 import _ from "lodash"
-import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath } from "../sample_attributes/select/SamplesAttributeWrapper";
+import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "../sample_attributes/select/SamplesAttributeWrapper";
 
 export function AttributesTab({submission, setSubmission, setComponentKey, componentKey }) {
 
@@ -19,7 +19,6 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
     }
 
     const handleTraitSelectionHierarchy = (path, enforceSingleVariantPerGroup) => {
-        console.log(enforceSingleVariantPerGroup, path)
         path = addIDToPath(path, submission.tag)
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
@@ -36,6 +35,12 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         }
         setSubmission(prevValues => { return {...prevValues, selected_traits}})
     }
+
+     const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
+            let selected_traits = submission.selected_traits.slice()
+            const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, referenceID))
+            return _.some(foundNode)
+        }
 
     
     return <div>
@@ -61,6 +66,7 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
             attributeTraits={submission.selected_traits}
             onChildrenSelection={handleTraitSelectionHierarchy}
             handleTraitRemove={handleTraitSelectionHierarchy}
+            checkAttributeRequiredTraits={checkAttributeRequiredTraits}
          />
         {/* userUnitInput={submission.userUnitInput}
             onUserUnitInput={onUserUnitInput} */}
