@@ -10,6 +10,7 @@ import { Combobox } from "../../../core/input/Combobox";
 import { WellPlates } from "../../../core/plate/wellplate"
 import { getRandomID } from "../../../../services/random";
 import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile } from "../../../../services/downloads/txt";
+import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
 /**
  * 
  * @param {import("../../../../types/submissions").Submission} submission 
@@ -172,11 +173,8 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                                 onChange={(key, item) => handleItemChange(key, item)}
                                 value={_.isObject(runlistProps.aggregate_on) ? runlistProps.aggregate_on.text : null} />
                                 {runlistProps.aggregate_on && (
-                                    <Button 
-                                        icon="cross" 
-                                        minimal 
-                                        small
-                                        onClick={() => handleItemChange("aggregate_on", undefined)}
+                                    <RemoveButton 
+                                        onRemove={() => handleItemChange("aggregate_on", undefined)}
                                         style={{ marginLeft: "0.5rem" }}
                                     />
                                 )}
