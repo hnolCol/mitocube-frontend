@@ -66,13 +66,13 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
 
     const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
     const [selectedInstrument, setSelectedInstrument] = useState(null)
-
-    const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypesText()
-    const { data: instruments } = api.instruments.core.useGetInstrumentsByTypeText(
+    
+    
+    const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypes()
+    const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
         { tag: selectedInstrumentType?.tag },
         { enabled: !!selectedInstrumentType }
     )
-
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
     }
@@ -189,10 +189,11 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                             Hence, you have to have a samples attributes called for example "TMT-Batch" to assign the samples that will be in the same TMT batch.
                             </p>
                         </Callout>
-                        </div>
                     </div>
                     
                     
+                    </div>
+
                     <h3>Fractionation</h3>
                     <div className="flex center-items">
                         <div style={{ minWidth: "min(200px,20vw)" }}>
@@ -211,8 +212,8 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                                     placeholder="Number of fractions.."
                                 value={runlistProps.n_fractions}
                                 onChange={handleItemChange} /> : null}
-                        </div>
                             </div>
+                        </div>
                         <div style={{ maxWidth: "min(600px,70vw)", marginLeft: "2rem" }}>
                         <Callout>
                             <p>If your sample is fractionated either by offline methods (high-pH, gel-based) or online methods (CV-FAIMS, GPF)

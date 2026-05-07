@@ -39,7 +39,7 @@ function Instruments({instrument_type,open_instrument_tag}) {
     return (<div>
         <h4><Attribute attribute_tag={instrument_type} /></h4>
         
-        {_.isArray(instruments) ? instruments.map(instrument_tag => <Instrument key={instrument_tag} tag={instrument_tag} isOpen={open_instrument_tag===instrument_tag} /> ):null}
+        {_.isArray(instruments) ? instruments.map(instrument => <Instrument key={instrument.tag} tag={instrument.tag} /> ):null}
     </div>)
 }
 
@@ -51,6 +51,6 @@ export function InstrumentMenu({open_instrument_tag}) {
     <h3>Instruments</h3>
 
             {_.isArray(instrument_types) ?
-            instrument_types.map(t => <Instruments key={t} instrument_type={t} open_instrument_tag={open_instrument_tag} />) : null}
+            instrument_types.map(instrumentType => <Instruments key={instrumentType.tag} instrument_type={instrumentType.tag} />) : null}
     </div>
 }
