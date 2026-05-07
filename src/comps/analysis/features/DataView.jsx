@@ -65,8 +65,8 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
         // build a simple initial layout (you can adjust sizing/positions as needed)
         const initialLayouts = feature_tags.map((ft, i) => ({
             i: `${ft}-${i}-${submission_tags[i]}`,
-            x: (i % 3) * 2,
-            y: Math.floor(i / 3) * 6,
+            x: (i % 6) * 2,
+            y: Math.floor(i / 6) * 6,
             w: 2,
             h: 6,
         }));
@@ -81,12 +81,12 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                 const ResponsiveGridLayout = WidthProvider(Responsive);
 
                 return (
-                    <div style={{ width: "80vw", height : "90vh" }}>
+                    <div style={{ width: "85vw", height : "90vh" }}>
                         <ResponsiveGridLayout
                             className="layout"
                             layouts={{ lg: initialLayouts }}
                             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-                            cols={{ lg: 12, md: 10, sm: 6, xs: 2 }}
+                            cols={{ lg: 12, md: 10, sm: 8, xs: 4 }}
                             rowHeight={40}
                             isResizable={true}
                             isDraggable={true}
