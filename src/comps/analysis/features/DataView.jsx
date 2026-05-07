@@ -7,7 +7,7 @@ import ResultChart from "../../protein/charts/resultCard/chart";
 import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
-import { a } from "../../../../dist/assets/chunk-zsgVPwQN";
+
 
 FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
