@@ -10,6 +10,7 @@ import { Combobox } from "../../../core/input/Combobox";
 import { WellPlates } from "../../../core/plate/wellplate"
 import { getRandomID } from "../../../../services/random";
 import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile } from "../../../../services/downloads/txt";
+import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
 /**
  * 
  * @param {import("../../../../types/submissions").Submission} submission 
@@ -66,13 +67,13 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
 
     const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
     const [selectedInstrument, setSelectedInstrument] = useState(null)
-
+    
+    
     const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypes()
     const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
         { tag: selectedInstrumentType?.tag },
         { enabled: !!selectedInstrumentType }
     )
-
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
     }
@@ -161,6 +162,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                     <h3>Sample pooling/aggregation</h3>
                     <div className="flex center-items">
                         <div style={{minWidth: "min(200px,20vw)"}}>
+                            <div className="flex center-items">
                             <Combobox
                                 items={sampleAttributeNames}
                                 placeholder="Aggregate samples on..."
@@ -170,7 +172,14 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                                 matchTargetWidth={false}
                                 onChange={(key, item) => handleItemChange(key, item)}
                                 value={_.isObject(runlistProps.aggregate_on) ? runlistProps.aggregate_on.text : null} />
+                                {runlistProps.aggregate_on && (
+                                    <RemoveButton 
+                                        onRemove={() => handleItemChange("aggregate_on", undefined)}
+                                        style={{ marginLeft: "0.5rem" }}
+                                    />
+                                )}
                             </div>
+                        </div>
                         <div style={{ maxWidth: "min(600px,70vw)", marginLeft: "2rem" }}>
                         <Callout className="">
                             <p>If samples are pooled prior to measurement, you will have to select a samples attribute that is used to aggregate the sample list.
@@ -178,10 +187,11 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                             Hence, you have to have a samples attributes called for example "TMT-Batch" to assign the samples that will be in the same TMT batch.
                             </p>
                         </Callout>
-                        </div>
                     </div>
                     
                     
+                    </div>
+
                     <h3>Fractionation</h3>
                     <div className="flex center-items">
                         <div style={{ minWidth: "min(200px,20vw)" }}>
@@ -200,8 +210,8 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                                     placeholder="Number of fractions.."
                                 value={runlistProps.n_fractions}
                                 onChange={handleItemChange} /> : null}
-                        </div>
                             </div>
+                        </div>
                         <div style={{ maxWidth: "min(600px,70vw)", marginLeft: "2rem" }}>
                         <Callout>
                             <p>If your sample is fractionated either by offline methods (high-pH, gel-based) or online methods (CV-FAIMS, GPF)
@@ -214,7 +224,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                     <div className="flex center-items">
                         <div style={{ minWidth: "min(200px,20vw)" }}>
                             <Combobox
-                                items={_.isArray(instrumentTypes) ? instrumentTypes.map(t => ({ tag: t, text: t })) : []}
+                                items={instrumentTypes || []}
                                 placeholder="Select instrument type..."
                                 callbackKey="instrumentType"
                                 textKey="text"
@@ -227,7 +237,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                             />
                             {selectedInstrumentType && (
                                 <Combobox
-                                    items={_.isArray(instruments) ? instruments.map(i => ({ tag: i, text: i })) : []}
+                                    items={instruments || []} 
                                     placeholder="Select instrument..."
                                     callbackKey="instrument"
                                     textKey="text"

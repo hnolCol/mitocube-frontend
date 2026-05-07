@@ -13,6 +13,7 @@ import { SubmissionProteinGroupCount } from "../../submission/view/SubmissionPro
 import { SubmissionUpload } from "../../submission/upload/SubmissionFeatureUpload";
 import { SubmissionSampleCount } from "../../submission/view/SubmissionSampleCount";
 import { SubmissionPeptideCount } from "../../submission/view/SubmissionPeptideCount";
+import { SubmissionCommentCount } from "@/comps/submission/comments";
 import { SubmissionConditionApplicationView } from "./SubmissionConditionApplicationView";
 import { SubmissionDate } from "../../submission/view/SubmissionDate";
 import { getColorPalette } from "@mitocube/viz/src/colors/palette";
@@ -63,6 +64,7 @@ function SubmissionOverview() {
                 <SubmissionSampleCount  {...{ submission_tag, fontColor: fontColors[2] }} />
                 <SubmissionProteinGroupCount {...{ submission_tag, fontColor: fontColors[3] }} />
                 <SubmissionPeptideCount {...{ submission_tag, fontColor: fontColors[4] }} />
+                <SubmissionCommentCount {...{ submission_tag, fontColor: fontColors[0] }} />
                 
                 </div>
             </div>

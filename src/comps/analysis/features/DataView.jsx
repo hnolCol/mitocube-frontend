@@ -7,6 +7,7 @@ import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 
+
 FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
     submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired
