@@ -64,11 +64,7 @@ export function AnnotationSelection({ onAnnotationSelect, minimal }) {
             }
             
             const uniqueProteinTags = [...new Set(allProteinTags)]
-            
-            console.log("Selected annotations:", selectedAnnotationTags)
-            console.log("Color:", selectedColor)
-            console.log("Total unique proteins found:", uniqueProteinTags.length)
-            
+
             if (uniqueProteinTags.length === 0) {
                 alert("No proteins found for the selected annotations")
                 setIsLoadingProteins(false)
