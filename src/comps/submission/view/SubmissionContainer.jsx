@@ -43,6 +43,7 @@ export function SubmissionsByState({ submissionFilter, submissionsQuery, minimal
         genotype_tag: genotypeTagString,
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         trait_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
+        include_sample_ca: submissionFilter.include_sample_ca
     }, { staleTime: 0 })
 
     return (
@@ -95,7 +96,8 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
         user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         trait_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
-        attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" })
+        attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" }),
+        include_sample_ca: submissionFilter.include_sample_ca || false,
     }, { staleTime: 0 })
 
     return (

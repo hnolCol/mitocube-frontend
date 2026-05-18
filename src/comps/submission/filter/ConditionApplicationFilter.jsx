@@ -5,12 +5,14 @@ import { Button } from "@blueprintjs/core";
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms";
 import { api } from "@/api";
 import useDebounce from "../../../hooks/useDebounce";
+import { Checkbox } from "@blueprintjs/core";
 import { AttributeWithTraitsMenuItem } from "../../core/input/api/DatasetAttributeInput";
 import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttributeView";
 
 export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter }) {
     const [searchString, setSearchString] = useState("");
     const [itemsLoaded, setItemsLoaded] = useState(false);
+    const [includeSampleLevel, setIncludeSampleLevel] = useState(false);
     const debouncedSearchString = useDebounce(searchString, 300);
 
     const { data: queried_attributes, isLoading, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery({
@@ -30,13 +32,10 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         }
     };
 
-    // Convert submissionFilter to the format expected by DatasetAttributeView
     const attributeTraits = _.isArray(submissionFilter.attribute_tag) 
         ? submissionFilter.attribute_tag.map(attr => {
             // Group traits by attribute
             const attributeTraits = (submissionFilter.trait_tag || []).filter(t => {
-                // You may need to track which trait belongs to which attribute
-                // For now, include all
                 return true;
             });
             
@@ -53,43 +52,41 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         })
         : [];
 
-    // Get selected trait tags for highlighting in the menu
     const selectedTraitTags = _.isArray(submissionFilter.trait_tag) 
         ? submissionFilter.trait_tag.map(t => t.tag) 
         : [];
 
-    // This is the handler that matches what TraitMenuItem expects
-    const handleTraitSelection = (path) => {
-        console.log("handleTraitSelection called with path:", path);
+        const handleTraitSelection = (path) => {
+            console.log("handleTraitSelection called with path:", path);
+            
+           
+            if (!_.isArray(path) || path.length === 0) return;
+            
+
+            const attributeItem = _.findLast(path, p => p.type === "attribute");
+            const traitItem = _.findLast(path, p => p.type === "trait");
+            
+            if (!attributeItem || !traitItem) return;
         
-        // path is an array like [{type: "attribute", tag: "att_gene_expression_alteration"}, {type: "trait", tag: "KD"}]
-        if (!_.isArray(path) || path.length === 0) return;
+            const newAttributeArray = addItemToArrayOrRemoveItIfPresent({
+                array: submissionFilter.attribute_tag || [],
+                item: { tag: attributeItem.tag }
+            });
         
-        const attributeItem = path.find(p => p.type === "attribute");
-        const traitItem = path.find(p => p.type === "trait");
+            // Handle trait selection
+            const newTraitArray = addItemToArrayOrRemoveItIfPresent({
+                array: submissionFilter.trait_tag || [],
+                item: { tag: traitItem.tag }
+            });
         
-        if (!attributeItem || !traitItem) return;
-
-        // Handle attribute selection
-        const newAttributeArray = addItemToArrayOrRemoveItIfPresent({
-            array: submissionFilter.attribute_tag || [],
-            item: { tag: attributeItem.tag }
-        });
-
-        // Handle trait selection
-        const newTraitArray = addItemToArrayOrRemoveItIfPresent({
-            array: submissionFilter.trait_tag || [],
-            item: { tag: traitItem.tag }
-        });
-
-        console.log("New filters:", { attribute_tag: newAttributeArray, trait_tag: newTraitArray });
-
-        setSubmissionFilter(prevValues => ({ 
-            ...prevValues, 
-            attribute_tag: newAttributeArray,
-            trait_tag: newTraitArray
-        }));
-    };
+            console.log("New filters:", { attribute_tag: newAttributeArray, trait_tag: newTraitArray });
+        
+            setSubmissionFilter(prevValues => ({ 
+                ...prevValues, 
+                attribute_tag: newAttributeArray,
+                trait_tag: newTraitArray
+            }));
+        };
 
     const handleTraitRemove = (path) => {
         console.log("handleTraitRemove called with path:", path);
@@ -98,13 +95,12 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         if (lastItem.type === "trait") {
             const newTraitArray = (submissionFilter.trait_tag || []).filter(t => t.tag !== lastItem.tag);
             
-            // Check if this was the last trait for its attribute
+        
             const attributeTag = lastItem.tag.split(":")[0];
             const remainingTraitsForAttribute = newTraitArray.filter(t => t.tag.startsWith(attributeTag + ":"));
             
             let newAttributeArray = submissionFilter.attribute_tag || [];
             if (remainingTraitsForAttribute.length === 0) {
-                // Remove the attribute if no traits remain
                 newAttributeArray = newAttributeArray.filter(a => a.tag !== attributeTag);
             }
             
@@ -114,7 +110,6 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                 attribute_tag: newAttributeArray
             }));
         } else if (lastItem.type === "attribute") {
-            // Remove attribute and all its traits
             const newAttributeArray = (submissionFilter.attribute_tag || []).filter(a => a.tag !== lastItem.tag);
             const newTraitArray = (submissionFilter.trait_tag || []).filter(t => !t.tag.startsWith(lastItem.tag + ":"));
             
@@ -129,6 +124,18 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
     const getSelectionByPath = (path) => {
         return [];
     };
+    const handleIncludeSampleLevelChange = (e) => {
+        const checked = e.target.checked;
+        setIncludeSampleLevel(checked);
+        setSubmissionFilter(prevValues => {
+            return {
+                ...prevValues,
+                "include_sample_ca": checked
+            };
+        });
+        console.log("New submission filter:", newFilter);
+    };
+
 
     const renderAttributes = ({ items, query }) => {
         if (query.length > 0 && _.isArray(queried_attributes) && queried_attributes.length === 0) {
@@ -151,7 +158,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         );
     };
 
-        // ConditionApplicationFilter.jsx - Update the return statement
+       
         return (
             <div style={{ width: "100%", paddingRight: "0.1rem" }}>
                 <h4>Attributes</h4>
@@ -172,12 +179,18 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                     tagRenderer={() => null}
                 />
                 
-                {/* Description text right below search bar */}
+                
                 <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
                     Datasets with the selected attributes will be displayed.
                 </div>
+                <div style={{ marginTop: "0.5rem" }}>
+                    <Checkbox
+                        checked={includeSampleLevel}
+                        onChange={handleIncludeSampleLevelChange}
+                        label="Include sample-level attributes (e.g. sample treatment conditions)"
+                    />
+                </div>
 
-                {/* Show selected attributes and traits */}
                 {attributeTraits.length > 0 && (
                     <div style={{ marginTop: "0.5rem" }}>
                         <DatasetAttributeView
