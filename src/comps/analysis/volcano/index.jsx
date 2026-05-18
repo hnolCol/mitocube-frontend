@@ -15,6 +15,7 @@ import { Combobox } from "@/comps/core/input/Combobox";
 
 function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, onError, hiddenSuffix, setHiddenSuffix }) {
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
+    const [annotationMarkers, setAnnotationMarkers] = useState([])
     
     const handleError = (error) => {
         setIsFetching(false)
@@ -77,6 +78,43 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
     const handleHiddenSuffix = (suffix) => {
         setHiddenSuffix(prevValues => addStringToArrayIfNotPresent({ array: prevValues, string: suffix }))
     }
+    const handleAnnotationSelect = async (annotationTags, color, proteinTags) => {
+        console.log("Annotation selected:", { annotationTags, color, proteinCount: proteinTags.length })
+        
+        // Fetch annotation names
+        const annotationNames = []
+        for (const tag of annotationTags) {
+            try {
+                const response = await fetch(`/api/annotations/${tag}`)
+                if (response.ok) {
+                    const annotation = await response.json()
+                    annotationNames.push(annotation.text || tag)
+                } else {
+                    annotationNames.push(tag)
+                }
+            } catch (err) {
+                annotationNames.push(tag)
+            }
+        }
+        
+        const markerKey = annotationTags.sort().join(',') + '_' + color
+        
+        setAnnotationMarkers(prevMarkers => {
+            const existingIndex = prevMarkers.findIndex(m => {
+                const existingKey = m.annotationTags.sort().join(',') + '_' + m.color
+                return existingKey === markerKey
+            })
+            
+            if (existingIndex >= 0) {
+                const updated = [...prevMarkers]
+                updated[existingIndex] = { annotationTags, annotationNames, color, proteinTags }
+                return updated
+            } else {
+                return [...prevMarkers, { annotationTags, annotationNames, color, proteinTags }]
+            }
+        })
+    }
+    
     
     useEffect(() => {
         if (testParamsUpdate) {
@@ -90,12 +128,45 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
     const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
    
+    // Add this function right before the numericKeyNames line
+    const enrichDataWithAnnotations = (data) => {
+        if (!_.isArray(data) || data.length === 0) {
+            return data
+        }
+        
+        if (annotationMarkers.length === 0) {
+            return data
+        }
+        
+        console.log("Enriching data with", annotationMarkers.length, "annotation markers")
+        
+        let enrichedCount = 0
+        const enriched = data.map(dataPoint => {
+            // Check if this protein's tag is in any annotation marker
+            for (const marker of annotationMarkers) {
+                if (marker.proteinTags.includes(dataPoint.tag)) {
+                    enrichedCount++
+                    return {
+                        ...dataPoint,
+                        annotation_color: marker.color,
+                        annotation_tags: marker.annotationTags
+                    }
+                }
+            }
+            return dataPoint
+        })
+        
+        console.log("Enriched", enrichedCount, "data points out of", data.length)
+        return enriched
+    }
+
+    // const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
   
     return (<div className="div--expand flex flex--wrap" style={{ overflowY: "scroll", gap: "0.5rem", marginLeft : "2rem"}}> 
         
         <InteractiveChart
-                data={volcanoData.data}
-                extraLimitNames={extraLimits} 
+    data={enrichDataWithAnnotations(volcanoData.data)}
+    extraLimitNames={extraLimits}
                 // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
                 keyNames={
                     volcanoData.suffixes.map((suffix, idx) => {
@@ -159,13 +230,20 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
                                         elementNames: ["SVG","DIVIDER",`Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
                                         fileNames: [`${submission_tag}-VolcanoPlot.svg`,`${submission_tag}-VolcanoPlot-Data.txt`],
                                         elementTypes: ["svg", "data"],
-                                        itemIsAttribute: false
+                                        itemIsAttribute: false,
+                                        onAnnotationSelect: handleAnnotationSelect
                                         }} />
                                     
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
-                                        width: 400,
-                                        height : 450,
+                                        width: 500,
+                                        height : 480,
+                                        margins: {          
+                                            left: 80,     
+                                            top: 10,
+                                            right: 5,
+                                            bottom: 80
+                                        },
                                         colorName: volcanoData.selection[didx].colorName,
                                         sizeName: volcanoData.selection[didx].sizeName,
                                         data,
@@ -192,6 +270,7 @@ function VolcanoDataHandler({ submission_tag, selectedTestParams,setIsFetching, 
                                         svgID: `volcano-${didx}`,
                                         triggerResetAxis,
                                         setTriggerResetAxisZoom,
+                                        annotationMarkers: annotationMarkers
                                     }} />
                                     </Card> 
                                     // </div>

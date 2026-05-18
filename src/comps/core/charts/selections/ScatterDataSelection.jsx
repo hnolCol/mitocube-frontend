@@ -4,6 +4,7 @@ import { ScatterMarksSelection } from "../../../protein/charts/resultCard/charts
 import { TextSelection } from "../../../protein/charts/resultCard/chartselection/TextSelection"
 import { DownloadData } from "../../../protein/charts/resultCard/chartselection/DownloadChart"
 import { AxisSelection } from "./AxisSelection"
+import { AnnotationSelection } from "./AnnotationSelection"
 import _ from "lodash"
 import { StringSearch } from "./StringSearch"
 
@@ -19,7 +20,8 @@ ScatterDataSelection.propTypes = {
     downloadElements: PropType.arrayOf(PropType.oneOf(["svg", "data"])),
     elementNames: PropType.arrayOf(PropType.string),
     elementTypes: PropType.arrayOf(),
-    fileNames: PropType.arrayOf(PropType.string)
+    fileNames: PropType.arrayOf(PropType.string),
+    onAnnotationSelect: PropType.func 
 }
 
 
@@ -32,7 +34,8 @@ ScatterDataSelection.defaultProps = {
     downloadElements: [],
     elementNames: [],
     elementTypes: [],
-    fileNames: []
+    fileNames: [],
+    onAnnotationSelect: null
     
 }
 
@@ -50,7 +53,7 @@ ScatterDataSelection.defaultProps = {
  * @returns 
  */
 export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, selection, setSelection, minimal, handleStringSearch, downloadElements, elementNames, elementTypes, fileNames, itemIsAttribute = true, chartIdx, 
-                                        setTriggerResetAxisZoom}) {
+                                        setTriggerResetAxisZoom, onAnnotationSelect}) {
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
 
@@ -82,10 +85,17 @@ export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, se
                     keyNames={nonNumericKeyNames}
                     selection={selection}
                     onSelectionChange={onSelection}
-                    minimal={minimal} handleStringSearch={handleStringSearch} itemIsAttribute={itemIsAttribute}/> : null }
-                
-     
-            <div className="flex">
+                    minimal={minimal} 
+                    handleStringSearch={handleStringSearch} 
+                    itemIsAttribute={itemIsAttribute}
+                /> : null }
+                {_.isFunction(onAnnotationSelect) ? (
+                    <AnnotationSelection
+                        onAnnotationSelect={onAnnotationSelect}
+                        minimal={minimal}
+                    />
+                ) : null}
+                <div className="flex">
                     <Divider />
                     <DownloadData elements={downloadElements} elementNames={elementNames} elementTypes={elementTypes} fileNames={fileNames} itemIsAttribute={itemIsAttribute} />
                     <button onClick={() => setTriggerResetAxisZoom(chartIdx)}>Reset zoom</button>

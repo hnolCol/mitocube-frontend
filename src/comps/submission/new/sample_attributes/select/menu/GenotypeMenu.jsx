@@ -48,19 +48,33 @@ function extractGenotypeRepresentation(genotype) {
 
 }
 
-export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index, modifiers, selectedRows }) {
+export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index, modifiers, selected, selectedRows }) {
     
     const {data : genotype_text, isSuccess} = api.genotypes.queryGenotypes.useGetGenotypeText({ genotype_tag })
     const {data : proteome_tag} = api.genotypes.queryGenotypes.useGetGenotypeProteome({ genotype_tag })
     const {data : proteome_name} = api.proteomes.queryProteomes.useGetProteomeText({ tag: proteome_tag }, { enabled: !!proteome_tag })
-
-    return <MenuItem text={isSuccess ? genotype_text : ""} 
-        {...{onClick : (e) => handleClick(selectedRows, genotype_tag), onFocus : handleFocus}} 
-        labelElement = {
-        <div className="flex flex-column" style ={{maxWidth : "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem"}}>
-            {proteome_name && <div style={{fontSize: "0.8rem", fontWeight: "bold", color: "#106ba3", marginBottom: "4px"}}>{proteome_name}</div>}
-            <GenotypeDescription tag={genotype_tag} />
-        </div>}/>
+    
+    return <MenuItem 
+        text={isSuccess ? genotype_text : genotype_tag} 
+        onClick={(e) => {
+            // If selectedRows is provided, use the sample attributes pattern
+            // Otherwise, use the filter pattern
+            if (selectedRows !== undefined) {
+                handleClick(selectedRows, genotype_tag);
+            } else {
+                handleClick(genotype_tag, e);
+            }
+        }}
+        onFocus={handleFocus}
+        active={modifiers?.active}
+        selected={selected}
+        labelElement={
+            <div className="flex flex-column" style={{maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem"}}>
+                {proteome_name && <div style={{fontSize: "0.8rem", fontWeight: "bold", color: "#106ba3", marginBottom: "4px"}}>{proteome_name}</div>}
+                <GenotypeDescription tag={genotype_tag} />
+            </div>
+        }
+    />
 }
 
 //tODO make this connected to API instead of loading the genotypes first.

@@ -320,3 +320,45 @@ const TextScatterLegend = React.memo(
 
 export { ScatterLegend, TextScatterLegend }
 
+
+/**
+ * @description Legend for annotation markers
+ * @param {Object} props 
+ * @param {Object[]} props.annotationMarkers - Array of annotation markers with color and protein tags
+ * @param {String} props.maxWidth - Max width of the legend
+ * @param {Number} props.size - Size of the legend circles
+ * @returns 
+ */
+export function AnnotationLegend({ annotationMarkers = [], maxWidth = "8rem", size = 25 }) {
+    
+    if (annotationMarkers.length === 0) return null
+
+    const renderLegendCircle = (size, fill, r) => {
+        return <svg width={size} height={size}>
+            <circle 
+                cx={size / 2} 
+                cy={size / 2}
+                fill={fill}
+                r={r}
+                stroke="#000"
+                strokeWidth={0.5} 
+            />
+        </svg>
+    }
+
+    return (
+        <div className="margin-left--little" style={{ maxWidth, marginTop: "0.5rem" }}>
+            <h4>Annotations</h4>
+            <div>
+                {annotationMarkers.map((marker, idx) => (
+                    <LegendItem key={`annotation-${idx}`}>
+                        {renderLegendCircle(size, marker.color, size / 3)}
+                        <LegendLabel align="left" margin={"0 4px"}>
+                            {(marker.annotationNames || marker.annotationTags).join(", ")} ({marker.proteinTags.length})
+                        </LegendLabel>
+                    </LegendItem>
+                ))}
+            </div>
+        </div>
+    )
+}

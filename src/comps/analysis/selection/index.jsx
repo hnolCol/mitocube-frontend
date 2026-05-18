@@ -13,6 +13,7 @@ import TooltipButton from "../../core/base/buttons/TooltipButton";
 import { UserFilter } from "../../submission/filter/UserSelection";
 import "../../submission/submission.css"
 import { GenotypeDatasetFilter } from "../../submission/filter/GenotypeFilter";
+import { ConditionApplicationFilter } from "@/comps/submission/filter/ConditionApplicatioFilter";
 
 function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
     
@@ -29,7 +30,8 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
         feature_key : getValueByKeyAndMergeToString({ array: submissionFilter["feature_key"], keyName: "tag" }),
         user_label : getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
-        attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"})
+        attribute_value_tag: getValueByKeyAndMergeToString({array : submissionFilter["attribute_value_tag"], keyName : "tag"}),
+        trait_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" })
         //attribute_tag : 
     })
     const usersByLabel = _.isArray(users) ? groupListByProperty(users, "label") : {}
@@ -50,6 +52,7 @@ function DatasetSelection({ logout, submissionFilter, setSubmissionFilter, submi
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
                     <FeatureDatasetFilter  {...{ setSubmissionFilter }} />
                     <GenotypeDatasetFilter {...{ setSubmissionFilter }}/>
+                    <ConditionApplicationFilter {...{setSubmissionFilter, submissionFilter}} />
             <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQuery.tags : [] }} />
             </div>       
          </div>

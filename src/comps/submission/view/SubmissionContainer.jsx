@@ -46,15 +46,14 @@ export function SubmissionsByState({ submission_by_state, minimal}) {
                     return <div key={`${state_tag}-${idx}`}>
                         <StateHeader key={`${idx}-${state_tag}`} tag={state_tag} />
                         <div className="flex flex-column padding-left--little margin-bottom--little">
-                        {submission_by_state[state_tag].map((submission_tag, submissionIdx) => {
-                            return (
-                                <div key={`${submission_tag}-${submissionIdx}`}>
-                                    {/* // If minimalView is true, use MinimalSubmissionItem, otherwise use SubmissionItem */}
-                                    {minimal ? <MinimalSubmissionItem tag={submission_tag} /> : null}
-                                </div>
-                            )
-                        })}
-                            </div>
+                            {submission_by_state[state_tag].map((submission_tag, submissionIdx) => {
+                                return (
+                                    <div key={`${submission_tag}-${submissionIdx}`}>
+                                        {minimal ? <MinimalSubmissionItem tag={submission_tag} /> : null}
+                                    </div>
+                                )
+                            })}
+                        </div>
                     </div>
             }) }
         </div>
@@ -102,8 +101,14 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
     const submissionByDate = submissionBy === "date" ? true : false 
 
     console.log(submissionByState, submissionByUser, submissionByGenotype, submissionByDate)
-
-    const stateFilter = _.isNumber(validState) ? _.toString(validState) : _.has(submissionFilter, "states") && submissionFilter.states.size > 0 ? _.join(Array.from(submissionFilter.states), ";") : null
+    
+    const stateFilter = _.isNumber(validState) ? _.toString(validState) : _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
+        ? _.join(Array.from(submissionFilter.states),";") 
+        : null
+    
+    const genotypeTagString = _.isArray(submissionFilter["genotype_tag"]) && submissionFilter["genotype_tag"].length > 0
+        ? _.join(submissionFilter["genotype_tag"], ";")
+        : null
     
     const { data: submission_by, isLoading, isFetching, isSuccess, isError, error } = api.submissions.query.useGetSubmissionByQuery({
             search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
@@ -141,6 +146,27 @@ SubmissionContainer.propTypes = {
 
 
 
+export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
+    const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
+        ? _.join(Array.from(submissionFilter.states),";") 
+        : null
+    
+    const genotypeTagString = _.isArray(submissionFilter["genotype_tag"]) && submissionFilter["genotype_tag"].length > 0
+        ? _.join(submissionFilter["genotype_tag"], ";")
+        : null
+
+    const { data: counts, isSuccess } = api.submissions.query.useGetSubmissionQueryCount({
+        search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
+        state: stateFilter,
+        genotype_tag: genotypeTagString,
+        user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
+        attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
+        trait_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
+        attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" }),
+        include_sample_ca: submissionFilter.include_sample_ca || false,
+    }, { staleTime: 0 })
+    
+    
 export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, ...props }) {
     const [orderBy, setOrderBy] = useState("state")
 

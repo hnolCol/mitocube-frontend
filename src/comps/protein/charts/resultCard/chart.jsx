@@ -164,8 +164,26 @@ function ResultChart({
         >
             
 
-            <div className="flex center-items">
+            <div className="flex center-items" style={{ justifyContent: "space-between" }}>
                 <h4>{title}</h4>
+                {showMenu && (
+                    <div className="flex" style={{ gap: "5px" }}>
+                        <CategoricalChartSelection
+                            vertical={false}
+                            {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
+                        />
+                        <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
+                        <InfoIcon items={["Metadata", "Dataset view"]} callback={handleInfo} callbackValueOnly={true} />
+                        <DownloadIcon
+                            items={["Raw", "Aggregated", "DIVIDER", "PNG", "SVG"].map((dataType) => {
+                                return { text: dataType }
+                            })}
+                            placeholder=""
+                            callback={handleDataDownload}
+                            callbackValueOnly={true}
+                        />
+                    </div>
+                )}
             </div>
             <div className="flex">
 
@@ -173,6 +191,7 @@ function ResultChart({
                     getConditionApplicationText={({ x, y, tag, textProps }) => <ConditionApplicationText x={x} y={y} tag={tag} textProps={textProps} />}
                     width={width - 40 || undefined}
                     height={height - 50 || undefined}
+                    margins={{ left: 80, right: 150, top: 20, bottom: 80 }}
                     {...selectionTags}
                     data={groupedAggratedData}
                     errorName="e"
@@ -186,40 +205,6 @@ function ResultChart({
                     tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
                 /> : null}
 
-            {showMenu && (
-                <div className="flex flex-column justify-flex-start">
-                    <CategoricalChartSelection
-                        vertical={true}
-                        {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
-                    />
-
-                    {/* <div>
-                        <NormalizeIcon
-                            placeholder=""
-                            colorIdx={NormalizationModes.indexOf(normalization)}
-                            items={_.concat(
-                                NormalizationModes.map((v) => {
-                                    return { text: v, selected: normalization === v, disabled: v !== "raw" && !checkNormalizeToSelection() }
-                                }),
-                                [{ text: "Normalize to .." }]
-                            )}
-                            callbackValueOnly={true}
-                            callback={handleNormalization}
-                        />
-                    </div> */}
-                    <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
-                    <InfoIcon items={["Metadata", "Dataset view"]} callback={handleInfo} callbackValueOnly={true} />
-
-                    <DownloadIcon
-                        items={["Raw", "Aggregated", "DIVIDER", "PNG", "SVG"].map((dataType) => {
-                            return { text: dataType } //disabled: dataType === "Normalized" ? !(_.isArray(normalizedData) && normalizedData.length > 0) : false
-                        })}
-                        placeholder=""
-                        callback={handleDataDownload}
-                        callbackValueOnly={true}
-                    />
-                </div>
-                )}
                 </div>
         </div>
     )

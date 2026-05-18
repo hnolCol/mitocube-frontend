@@ -9,7 +9,7 @@ import { localPoint } from '@visx/event';
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette } from "../../colors/colorPalette"
 import { Divider, H4 } from "@blueprintjs/core"
-import { ScatterLegend, TextScatterLegend } from "./Legend"
+import { ScatterLegend, TextScatterLegend, AnnotationLegend } from "./Legend"
 import { ScatterLabel } from "./Label"
 import { SearchIndicator } from "../annotations/Search"
 import { ChartTopLeftLabel } from "../profiles/ProfileChart"
@@ -55,7 +55,8 @@ ScatterPlot.propTypes = {
     tooltipNameIsGenotype: PropTypes.object,
     tooltipNameIsFeature: PropTypes.object,
     tooltipNameIsNumeric: PropTypes.object,
-    tooltipNameIsFeatures: PropTypes.object
+    tooltipNameIsFeatures: PropTypes.object,
+    annotationMarkers: PropTypes.arrayOf(PropTypes.object) 
 }
 
 
@@ -151,7 +152,8 @@ export function ScatterPlot({
     setTriggerResetAxisZoom,
     labelRenderer,
     linesBySlopeAndIntercept = [],
-    plotLinesAfterPoints = false
+    plotLinesAfterPoints = false,
+    annotationMarkers = []
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
     // Plots an array of points. Each item in the array 
@@ -425,6 +427,25 @@ export function ScatterPlot({
             }
 
         }, [zoomActive.zoomed])
+
+
+    // Build colorMap from annotation colors 
+    const annotationColorMap = useMemo(() => {
+        const map = {}
+        if (!_.isArray(data) || data.length === 0) return map
+        
+        // Create a map of protein tag -> annotation color
+        data.forEach(dataPoint => {
+            if (dataPoint.annotation_color) {
+                map[dataPoint.tag] = dataPoint.annotation_color
+            }
+        })
+        
+        console.log("Built annotation colorMap:", Object.keys(map).length, "proteins")
+        return map
+    }, [data, data.length])
+
+    const hasAnnotationColors = Object.keys(annotationColorMap).length > 0
     
     return (
         <div className="flex" ref={containerRef}>
@@ -449,7 +470,7 @@ export function ScatterPlot({
 
                 <g >
             {/* Render data points */}
-                    {validDataInput ? <viz.primitives.ScatterPoints {...{
+            {validDataInput ? <viz.primitives.ScatterPoints {...{
                         data,
                         valid,
                         xScale,
@@ -460,7 +481,10 @@ export function ScatterPlot({
                         sizeName,
                         colorName,
                         colorScale,
-                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain()),
+                        checkColorMap: hasAnnotationColors,
+                        colorMap: annotationColorMap,
+                        colorMapKeyName: "tag",
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain(), [annotationColorMap]),
                         filterIndices,
                         searchIndices,
                         opacity : 0.75
@@ -511,6 +535,23 @@ export function ScatterPlot({
                         strokeWidth={0.5} 
                         fill={"transparent"}/>:null
                 }
+
+                {annotationMarkers.length > 0 && (
+                    <g transform={`translate(${margins.left + chartWidth + 10}, ${margins.top + 80})`}>
+                        <rect x={-5} y={-12} width={115} height={15 + annotationMarkers.length * 16} fill="white" fillOpacity={0.9} stroke="#E1E8ED" strokeWidth={0.5} rx={2} />
+                        <text x={0} y={0} fontSize="10" fontWeight="600" fill="#5C7080">
+                            Annotations
+                        </text>
+                        {annotationMarkers.map((marker, idx) => (
+                            <g key={idx} transform={`translate(0, ${15 + idx * 16})`}>
+                                <circle cx={5} cy={-3} r={4.5} fill={marker.color} stroke="#000" strokeWidth={0.5} />
+                                <text x={14} y={0} fontSize="8.5" fill="#394B59">
+                                    {(marker.annotationNames || marker.annotationTags).join(", ")} ({marker.proteinTags.length})
+                                </text>
+                            </g>
+                        ))}
+                    </g>
+                )}
                 <rect
                     x={margins.left}
                     y={margins.top}
@@ -595,6 +636,11 @@ export function ScatterPlot({
                         resetSearchIdcs,
                         sizeLimit: limits[sizeName],
                         colorLimit: limits[colorName]}}/> : null}
+                            <AnnotationLegend 
+        annotationMarkers={annotationMarkers} 
+        maxWidth="8rem" 
+        size={25} 
+    />
         </div>
         </div>
         

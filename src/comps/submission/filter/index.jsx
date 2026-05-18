@@ -5,6 +5,7 @@ import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { useEffect, useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
 import { GenotypeDatasetFilter } from "./GenotypeFilter"
+import { ConditionApplicationFilter } from "./ConditionApplicationFilter"
 import { SUBMISSIONS_BY_OPTIONS } from "../view/SubmissionContainer"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
@@ -49,7 +50,13 @@ export function SubmissionFilterSelection({
             {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
                 <GenotypeDatasetFilter {...{setSubmissionFilter}} />
+
+                <div style={{ marginTop: "2rem" }}>
+                        <ConditionApplicationFilter {...{setSubmissionFilter, submissionFilter}} />
+                    </div>
+                    
                 <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [] }} />
+            </div>
             </div>
         </div>
 
