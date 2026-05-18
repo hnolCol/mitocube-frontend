@@ -16,16 +16,23 @@ export function GenotypeInput({
         isRequired = true,
         helperText = "",
         inline = false,
-        disabled = false }) {
+        disabled = false,
+        showSelection = true }) {
         
     const [queryString, setQueryString] = useState("")
+    const [isOpen, setIsOpen] = useState(false)  
     const debouncedString = useDebounce(queryString, 200)
     const { data: items, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { staleTime : 6000 })    
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
-        return <GenotypeMenuItem genotype_tag={item} selected={selectedGenotypes.includes(item)} />
-        // <MenuItem key={`${item.tag}-${index}`} text={item.text} onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-        //     labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}>{item.proteome_id}</div>}/>
+        return <GenotypeMenuItem 
+            genotype_tag={item}
+            handleClick={handleClick}
+            handleFocus={handleFocus}
+            index={index}
+            modifiers={modifiers}
+            selected={selectedGenotypes.includes(item)}
+        />
     }
     /**
      * @description Handles the item selection 
@@ -35,7 +42,9 @@ export function GenotypeInput({
         if (_.isFunction(e.stopPropagation)) {
             e.stopPropagation()
         }
-        onItemSelect(attribute, item)   
+        onItemSelect(attribute, item)
+        setIsOpen(false)
+        setQueryString("")  
     }
 
     /**
@@ -44,37 +53,44 @@ export function GenotypeInput({
      * @returns 
      */
     const renderValue = (item) => {
-        return item.text
+        return item.substring(0, 8) + "..."
     }
-
-    return <FormGroup
-    style={{margin : "0.1rem"}}
-    label={undefined}
-    labelInfo={isRequired ? "(required)" : "(optional)"}
-    inline={inline}
-    fill={true}
-    disabled={disabled}
-    helperText={helperText}>
-        <MultiSelect
+    
+    return (
+        <FormGroup
+            style={{ margin: "0.1rem" }}
+            label={undefined}
+            labelInfo={isRequired ? "(required)" : "(optional)"}
+            inline={inline}
+            fill={true}
             disabled={disabled}
-            itemRenderer={renderFeature}
-            items={_.isArray(items) ? items : []}
-            tagRenderer={renderValue}
-            selectedItems={selectedGenotypes}
-            onItemSelect={handleItemSelection}
-            onRemove={handleItemSelection}
-            resetOnSelect={true}
-            query={queryString}
-            fill = {true}
-            onQueryChange={(query) => setQueryString(query)}
-            popoverProps={{ minimal: true, matchTargetWidth: false }}
-            menuProps={{style : {minWidth:"700px", maxHeight : "50vh"}}}
-            tagInputProps={{
-                rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
-                inputProps : {intent : "primary"},
-                tagProps: { minimal: true }
-            }}
-            // initialContent={_.isArray(items) && selectedGenotypes.length === 0 ? <MenuItem text="Search starts on typing.." disabled={true} /> : null }
+            helperText={helperText}
+        >
+            <MultiSelect
+                disabled={disabled}
+                itemRenderer={renderFeature}
+                items={_.isArray(items) ? items : []}
+                tagRenderer={showSelection ? renderValue : () => null}
+                selectedItems={showSelection ? selectedGenotypes : []}
+                onItemSelect={handleItemSelection}
+                onRemove={handleItemSelection}
+                resetOnSelect={true}
+                query={queryString}
+                fill={true}
+                onQueryChange={(query) => setQueryString(query)}
+                popoverProps={{ 
+                    minimal: true, 
+                    matchTargetWidth: false,
+                    isOpen: isOpen, 
+                    onInteraction: (nextOpenState) => setIsOpen(nextOpenState)  
+                }}
+                menuProps={{ style: { minWidth: "700px", maxHeight: "50vh" } }}
+                tagInputProps={{
+                    rightElement: <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
+                    inputProps: { intent: "primary" },
+                    tagProps: { minimal: true }
+                }}
             />
         </FormGroup>
+    )
 }

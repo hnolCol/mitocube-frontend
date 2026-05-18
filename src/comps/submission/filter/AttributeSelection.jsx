@@ -1,7 +1,7 @@
 import _ from "lodash"
 import { motion } from "framer-motion"
 import Loading from "../../core/base/loading"
-import { useGetAttributeValues } from "../../../hooks/queries/attribute.hooks"
+import { useGetAttributeValues } from "@/hooks/queries2/attribute.hooks"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 
 
