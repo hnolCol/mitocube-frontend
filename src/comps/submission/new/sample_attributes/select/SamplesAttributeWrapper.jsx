@@ -17,9 +17,8 @@ export function deleteByPath(data, path, ignore_id = false) {
     const idx = data.findIndex(
       n => n.type === current.type && n.tag === current.tag && (ignore_id || n.id === current.id)
     );
-  
     if (idx === -1) return false; // Node not found
-  
+    
     if (restPath.length === 0) {
       // This is the node to delete
       data.splice(idx, 1);
@@ -110,10 +109,10 @@ export const findAndInsertTree = (
     level = 0
 ) => {
     const {
-        enforceSingleVariantPerGroup = false, 
+        enforceSingleVariantPerGroup = false,
+        enforceAtLevel = 0,
     } = options;
-
-    console.log(enforceSingleVariantPerGroup, "ENFORCE SINGLE VARIANT PER GROUP IN FIND AND INSERT TREE")
+    console.log(enforceAtLevel,"ENFORE", enforceAtLevel < level, level)
     // Stop if nothing to process
     if (!path || path.length === 0) return;
 
@@ -138,7 +137,7 @@ export const findAndInsertTree = (
             n.id === current.id &&
             n.tag === current.tag
     );
-
+    console.log(data, "DATAAA000")
     // Create node if it doesn't exist
     if (!node) {
         node = {
@@ -148,9 +147,8 @@ export const findAndInsertTree = (
 
         data.push(node);
     }
-
-    // 🔥 Enforce "only one variant per group"
-    if (enforceSingleVariantPerGroup) {
+    console.log(data, "DATAAA")
+    if (enforceSingleVariantPerGroup && level > enforceAtLevel) {
         const baseTag = getBaseTag(current.tag);
 
         for (let i = data.length - 1; i >= 0; i--) {
@@ -164,7 +162,7 @@ export const findAndInsertTree = (
             }
         }
     }
-
+    console.log(data, "DATA AFETR CHECK")
     // Update value if changed
     if (
         Object.prototype.hasOwnProperty.call(current, "value") &&
@@ -186,6 +184,61 @@ export const findAndInsertTree = (
         level + 1
     );
 };
+
+/**
+ * Replaces a subtree if the same path already exists.
+ *
+ * The newData always starts from level 0 and contains
+ * the FULL hierarchy path you want to replace.
+ *
+ * Example:
+ * oldData:
+ * A
+ *  └── B
+ *
+ * newData:
+ * A
+ *  └── B
+ *       └── C
+ *
+ * Result:
+ * A subtree gets completely replaced by newData.
+ */
+
+function replaceHierarchy(oldData, newData) {
+  function isMatch(a, b) {
+    return (
+      a.tag === b.tag &&
+      a.type === b.type &&
+      a.id === b.id
+    );
+  }
+
+  function replace(nodes, newNode) {
+    return nodes.map((node) => {
+      // Found matching root -> replace entire subtree
+      if (isMatch(node, newNode)) {
+        return newNode;
+      }
+
+      // Traverse children
+      if (node.children?.length) {
+        return {
+          ...node,
+          children: replace(node.children, newNode),
+        };
+      }
+
+      return node;
+    });
+  }
+    console.log(!_.isArray(oldData), newData)
+    if (oldData === undefined) return newData; 
+    if (!_.isArray(oldData) || oldData.length === 0) return newData;
+
+  return replace(oldData, newData);
+}
+
 
 
 export const checkPathExists = (data, path, ignore_id = false) => {
@@ -261,6 +314,16 @@ export function addIDToPath(path, id) {
     return path.map(p => { return { ...p, id } })
 }
 
+export function addIDToHierarchy(data, id) {
+    return data.map(item => {
+        const newItem = { ...item, id };
+        if (item.children && item.children.length > 0) {
+            newItem.children = addIDToHierarchy(item.children, id);
+        }
+        return newItem;
+    });
+}
+
 /**
  * Wrapper for the sample attribute table component.
  * @param {Object} props 
@@ -279,12 +342,14 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         //adds a new sample attribute
         updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, [[]]) } })
     }
+    
+    
     const clearAttributeTableByRowIndex = (rowIdces, attribute_tag) => {
         //clear rows in table for specific attribute by its tg
         let attributeTable = submission.attributeTable.slice()
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
-            .forEach((rowIndex) => deleteByPath(attributeTable[rowIndex],[{ type: "attribute", tag: attribute_tag, id : submission.referenceIDs[rowIndex] }], true))
+            .forEach((rowIndex) => deleteByPath(attributeTable[rowIndex],[{ type: "attribute", tag: attribute_tag, id : submission.referenceIDs[rowIndex] }], false))
         
         
         updateSubmission(prevValues => {
@@ -369,13 +434,13 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         const lastIdx = rowIdcs.at(-1)
         const diff = (n_samples + 1) - lastIdx
         const n_repeat = _.toInteger((diff) / rowIdcs.length + 0.5)
-        const values = Array(n_repeat).fill(selection).flat();
+        const fillValues = Array(n_repeat).fill(selection).flat();
         _.forEach(_.range(diff), idx => {  
             const rowIndex = lastIdx + 1 + idx 
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToPath(values.at(idx % rowIdcs.length), id)
-                d[rowIndex] = [...d[rowIndex], ...v]
+                const v = addIDToHierarchy(fillValues.at(idx % rowIdcs.length), id)
+                d[rowIndex] = replaceHierarchy(d[rowIndex], v)
             }
         })
 
@@ -386,13 +451,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 rerenderTableDependency: [Math.random()]
             }
         })
-        // _.forEach(_.range(diff), idx => attributeTable[lastIdx + 1 + idx] = [...attributeTable[lastIdx + 1 + idx], ...values.at(idx % rowIdcs.length)])
-            
-        // updateSubmission(prevValues => {
-        //     return {
-        //         ...prevValues, attributeTable, rerenderTableDependency: [Math.random()]
-        //     }
-        // })
     }
 
     const onReplicateChange = (rowIdcs, replicate, patternIndex) => {
@@ -428,19 +486,17 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     }
 
 
-    const onSampleAttrRemove = (path, rowIdces) => {
+    const onSampleAttrRemove = (path, rowIdces, referenceID) => {
         let d = submission.attributeTable.slice()
         //handles the removal of a samples attributes
         if (!_.isArray(rowIdces)) return
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length)
             .forEach(rowIndex => {
-                deleteByPath(d[rowIndex], path)
+   
+                deleteByPath(d[rowIndex], path, false)
             })
-        
-        // console.log(path, rowIdces, d, "after delete by path")
-        
-        
+                
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],
@@ -469,14 +525,14 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      * @param {Boolean} join_values - Whether to join the values.
      * @param {Boolean} forceInsert - Whether to force the insert.
      */
-    const onSampleTraitSelection = (path, rowIdces, enforceSingleVariantPerGroup = true) => {
+    const onSampleTraitSelection = (path, rowIdces, enforceSingleVariantPerGroup = false, enforceAtLevel = 1) => {
         let d = submission.attributeTable.slice()
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length).filter(rowIndex => !checkPathExists (d[rowIndex], path, false))
             .forEach(rowIndex => {
-                //  findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), single_child_level, single_child_type, join_values, forceInsert)
                  findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), {
-                            enforceSingleVariantPerGroup
+                     enforceSingleVariantPerGroup ,
+                     enforceAtLevel
                         })
             })
         updateSubmission(prevValues => {
@@ -509,22 +565,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     ...prevValues,
                     samplesAttributes: sampleAttrs,
                     //attributeTable: updatedAttributeTable,
-                    rerenderTableDependency: [Math.random()],
-                    sampleNames: constructSampleNames({
-                        submission_tag: prevValues.tag,
-                        sampleNumber: prevValues.sampleNames.length,
-                        sampleAttributes: updatedAttributeTable,
-                        sampleGenotypes: prevValues.genotypeAttributes,
-                        include_sample_attributes : sampleAttrs.map(a => a.tag) })
-                }
-            })
-        }
-        else {
-            //save sample attribute
-            updateSubmission(prevValues => {
-                return {
-                    ...prevValues,
-                    samplesAttributes: sampleAttrs,
                     rerenderTableDependency: [Math.random()],
                     sampleNames: constructSampleNames({
                         submission_tag: prevValues.tag,

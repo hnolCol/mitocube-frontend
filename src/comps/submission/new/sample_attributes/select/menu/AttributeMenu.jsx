@@ -58,7 +58,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
                                 tag={trait_tag}
                                 attribute_tag={attribute_tag}
                                 selected={_.includes(currentSelection, trait_tag)}
-                                onClick={(p) => onSampleTraitSelection(p, rowIdces, 3, false, false, false)} />
+                                onClick={(p) => onSampleTraitSelection(p, rowIdces)} />
                         </div>
                     })}
                 </Menu>

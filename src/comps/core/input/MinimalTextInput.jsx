@@ -68,7 +68,6 @@ export function MinimalTextInput({
     allowDNAOnly
 }) {
 
-    console.log(value, disabled, "???")
     const { data: suffixTrait } = api.traits.queryTraits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
 
     const handleValueChange = (e) => {

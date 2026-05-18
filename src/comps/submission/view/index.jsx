@@ -8,7 +8,7 @@ import { SubmissionContainer } from "./SubmissionContainer"
 
 
 
-function SubmissionView({authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
+function SubmissionView({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, ...props }) {
 
 
     // const [runlistDialog, setRunlistDialog] = useState({
@@ -39,6 +39,7 @@ function SubmissionView({authenticationStatus, logout, submissionFilter, setSubm
                             setSubmissionFilter,
                             submissionsQuery,
                             setSubmissionQuery,
+                            ...props
                             }} />
             
         </div>
