@@ -10,3 +10,4 @@ export function usePrefetchProteins(tags: string[]) {
 
   return { isReady, tagQueries };
 }
+
