@@ -137,7 +137,6 @@ export const findAndInsertTree = (
             n.id === current.id &&
             n.tag === current.tag
     );
-    console.log(data, "DATAAA000")
     // Create node if it doesn't exist
     if (!node) {
         node = {
@@ -147,7 +146,7 @@ export const findAndInsertTree = (
 
         data.push(node);
     }
-    console.log(data, "DATAAA")
+  
     if (enforceSingleVariantPerGroup && level > enforceAtLevel) {
         const baseTag = getBaseTag(current.tag);
 
@@ -162,7 +161,6 @@ export const findAndInsertTree = (
             }
         }
     }
-    console.log(data, "DATA AFETR CHECK")
     // Update value if changed
     if (
         Object.prototype.hasOwnProperty.call(current, "value") &&

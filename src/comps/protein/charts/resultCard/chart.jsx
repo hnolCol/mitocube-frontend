@@ -40,7 +40,7 @@ function ResultChart({
         { "y": 23.2, Genotype: "WT", Treatment: "Treat", Time: "15min" },
         { "y": 23.5, Genotype: "WT", Treatment: "Treat", Time: "00min" }],
     yaxisName = "y",
-    yAxisLabel = undefined,
+    yAxisLabel = "log2 intensity",
     attribute_tags = [],
     submission_tag = "",
     featureTag = "",
@@ -185,13 +185,13 @@ function ResultChart({
                     </div>
                 )}
             </div>
-            <div className="flex">
+            <div className="flex" style={{ height : height - 35}}>
 
                 {isReady && attributesReady? <viz.charts.Categorical
                     getConditionApplicationText={({ x, y, tag, textProps }) => <ConditionApplicationText x={x} y={y} tag={tag} textProps={textProps} />}
-                    width={width - 40 || undefined}
-                    height={height - 50 || undefined}
-                    margins={{ left: 80, right: 150, top: 20, bottom: 80 }}
+                    width={width - 0 || undefined}
+                    height={height - 0 || undefined}
+                    margins={{ left: 50, right: 50, top: 20, bottom: 80 }}
                     {...selectionTags}
                     data={groupedAggratedData}
                     errorName="e"

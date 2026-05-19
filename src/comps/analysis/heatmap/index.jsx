@@ -36,7 +36,7 @@ function HeatmapLoad( {submission_tag} ) {
     
     const unique_ca_tags = _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
 
-    console.log(requiredProteinTags)
+    
     return <WithTagMaps Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} protein_tags={requiredProteinTags} {...{
             heatmapData,
             submissionSampleConditionApplications,
@@ -74,8 +74,7 @@ function HeatmapViz({
         refetchedTrigger
 }) {
     
-    console.log(caTagMap)
-    console.log(attributeTagMap)
+
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
 
     const handleAnnotationSelection = (e, tag) => {

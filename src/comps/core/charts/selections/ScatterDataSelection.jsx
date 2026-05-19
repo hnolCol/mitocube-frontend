@@ -72,13 +72,14 @@ export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, se
                 keyNames={keyNames}
                 selection={selection}
                 onSelectionChange={onSelection}
-                    minimal={minimal} itemIsAttribute={itemIsAttribute}/>
-            <TextSelection 
+                    minimal={minimal} itemIsAttribute={itemIsAttribute} />
+                
+            {/* <TextSelection 
                 keyNames={nonNumericKeyNames}
                 selection={selection}
                 onSelectionChange={onSelection}
                     minimal={minimal}
-                itemIsAttribute={itemIsAttribute}/>
+                itemIsAttribute={itemIsAttribute}/> */}
         
                 {_.isFunction(handleStringSearch) ? <StringSearch
                     idx = {idx}

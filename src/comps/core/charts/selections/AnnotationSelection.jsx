@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { Button, Icon, Dialog, Intent, Divider } from "@blueprintjs/core"
-import { AnnotationSelectionMenu } from "/Users/PParsa/Documents/GitHub/mitocube-frontend/src/comps/core/base/annotations/AnnotationSelectionMenu.jsx"
+
+import { AnnotationSelectionMenu } from "../../base/annotations/AnnotationSelectionMenu";
+
 import PropTypes from "prop-types"
 import _ from "lodash"
 

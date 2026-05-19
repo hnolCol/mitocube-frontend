@@ -1,7 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import _ from "lodash"
 import { Text } from "@visx/text";
-import { api } from "@/api";
 
 
 /**
@@ -16,6 +15,11 @@ function areEqual(prevProps, nextProps) {
     if (!labelNamesEqual) return false 
     const xDomain = prevProps.xScale.domain()
     const yDomain = prevProps.yScale.domain()
+    if (prevProps.text !== nextProps.text) return false
+    const prevTag = prevProps.data[prevProps.index]["tag"]
+    const nextTag = nextProps.data[nextProps.index]["tag"]
+    if (prevTag !== nextTag) return false 
+   
     if (_.some(prevProps.rerenderDependency, (value, idx) => nextProps.rerenderDependency[idx] !== value)) return false 
     if (xDomain[0] !== nextProps.xScale.domain()[0] || xDomain[1] !== nextProps.xScale.domain()[1]) return false 
     if (yDomain[0] !== nextProps.yScale.domain()[0] || yDomain[1] !== nextProps.yScale.domain()[1]) return false
@@ -51,21 +55,23 @@ const ScatterLabel = React.memo(
         yScale,
         xaxisName,
         yaxisName,
-        labelNames,
-        split = true,
-        joinString = ",",
-        splitString = " ",
-        splitIndex = 0,
+        text,
+        // labelNames,
+        // split = true,
+        // joinString = ",",
+        // splitString = " ",
+        // splitIndex = 0,
         offset = 5,
         opacity = 1,
-        isFeature = true,
-        rerenderDependency = []
+        // isFeature = true,
+        rerenderDependency = [],
+        setRequiredProteinTags,
+
     }) {
-    const { data : feature, isLoading, isSuccess } = api.features.tag.useGetFeatureByTag({tag : data[index]["tag"]}, {enabled : isFeature})
-    const labelStrings = _.uniq(_.concat(labelNames.map(labelName => data[index][labelName]).filter(text => _.isString(text)), labelNames.map(labelName => _.isObject(feature) ? feature[labelName] : undefined).filter(text => _.isString(text))))
-    const labelText = _.join(labelStrings.map(labelString => split?_.split(labelString,splitString).at(splitIndex):labelString), joinString)
+    
+       
     const domainIsAroundZero = xScale.domain()[0] < 0 && xScale.domain()[1] > 0 
-    if (labelStrings.length === 0) return null 
+    // if (labelStrings.length === 0) return null 
     if (!_.isNumber(data[index][xaxisName]) || !_.isNumber(data[index][yaxisName])) return null 
     
     const x = xScale(data[index][xaxisName])
@@ -74,7 +80,7 @@ const ScatterLabel = React.memo(
 
 
     const moveLeft = domainIsAroundZero && data[index][xaxisName] < 0
-
+    
     return (
         <Text
             x={x}
@@ -85,7 +91,7 @@ const ScatterLabel = React.memo(
             dy={-offset}
             fillOpacity={opacity}
         >
-            {labelText}
+            {text}
         </Text>
         
     )

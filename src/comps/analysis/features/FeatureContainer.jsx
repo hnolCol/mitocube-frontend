@@ -1,10 +1,10 @@
 
 
 import hooks from "@mitocube/api-hooks"
-import _ from "lodash"
+import _, { set } from "lodash"
 import { Protein } from "../../core/base/protein/Protein";
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 export function PeptideFeatureItem({ peptide_tag }) {
     return <div>{peptide_tag}</div>
 }
@@ -27,14 +27,20 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
    
     const [savedData, setSavedData] = useState([]);
 
-    const { data: query_features, isLoading, isFetching } = api.features.info.useGetFeaturesByQuery(
+    const { data: query_features, isLoading, isFetching, isSuccess } = api.features.info.useGetFeaturesByQuery(
         { search_string, limit, submission_tag, include_types : "protein_groups"},
         {
             staleTime: 60000,
-            placeholderData: savedData,
-            onSuccess: (data) => _.isArray(data) && setSavedData(data),
+            placeholderData: savedData
         }
     );    
+
+    useEffect(() => {
+        if (isSuccess && _.isArray(query_features)) {
+            setSavedData(query_features)
+        }
+    }, [isSuccess]);  
+
     const displayedFeatures = isLoading ? savedData : _.isArray(query_features) ? query_features : savedData;
 
     return <div>

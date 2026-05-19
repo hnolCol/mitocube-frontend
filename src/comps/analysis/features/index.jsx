@@ -56,7 +56,6 @@ export function DatasetFeatureView() {
     const [searchParams, setSearchParams] = useSearchParams();
     // Get values from URL or fallback to defaults
     const searchString = searchParams.get("search") || "";
-    console.log(searchString)
     const selectedOption = OPTIONS.includes(searchParams.get("option")) ? searchParams.get("option") : "Protein Groups";
     const selectedLimit = LIMITS.includes(Number(searchParams.get("limit"))) ? Number(searchParams.get("limit")) : LIMITS[0];
 

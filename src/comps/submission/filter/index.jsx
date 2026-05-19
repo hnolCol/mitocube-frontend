@@ -16,20 +16,23 @@ export function SubmissionFilterSelection({
         submissionQueryResult,
         isSuccess,
         submissionFilter, setSubmissionFilter,
-        setSubmissionQuery, header = "Submissions", children = <div></div>,
+    setSubmissionQuery,
+    header = "Submissions", children = <div></div>,
         orderBy,         
-        setOrderBy,       
-    fixedState = false }) {
+        setOrderBy,  
+        fixedState = false }) {
     
     const [searchString, setSearchString] = useState(submissionsQuery.plain)
     const debouncedString = useDebounce(searchString, 200)
-
     useEffect(() => { setSubmissionQuery(prevValues => { return { ...prevValues, plain: debouncedString } }) }, [debouncedString])
-
+        
     return (
         <div className="submission__wrapper">
+
         <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
-            <h3>{header} ({isSuccess? submissionQueryResult.query_count:"0"}/{isSuccess? submissionQueryResult.total_count:"0"})</h3>
+            
+                <h3>{header} ({isSuccess ? submissionQueryResult.query_count : "0"}/{isSuccess ? submissionQueryResult.total_count : "0"})</h3>
+                
                 <div className="flex center-items" style={{ width: "100%" }}>
                     <div>
                         <input
@@ -58,14 +61,14 @@ export function SubmissionFilterSelection({
                 <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [] }} />
             </div>
             </div>
-        </div>
-
             <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>
                 {/* isError ? <p>An error was returned.</p> :
                     _.isEmpty(submissionsByState) && !(isLoading || isFet{ching) ?
                         <p>No submission found that match the filter.</p> : children} */}
                 {children}
             </div>
-            </div>
+        </div>
+
+            
     )
 }

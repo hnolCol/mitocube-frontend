@@ -49,13 +49,10 @@ function InteractiveChart({
     children,
     dataUpdateTrigger = undefined,
     onLabelDataChange,
-    passOnProps = {} }) {
-    
-    
-    
+    passOnProps = {},
+    externalSearchResult = {values : [], key : "tag", trigger : undefined}}) {
     
     const numberCharts = keyNames.length
-
 
     //hovering data 
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1, hoverTags : []})
@@ -102,6 +99,12 @@ function InteractiveChart({
         data.length,
         dataUpdateTrigger])
 
+    useEffect(() => { 
+        if (externalSearchResult.trigger === undefined) return
+        if (!_.isArray(externalSearchResult.values)) return
+        setRerender(preValues => {return {...preValues, searchIndices : new Set(data.map((d,idx) => externalSearchResult.values.includes(d[externalSearchResult.key]) ? idx : null).filter(idx => idx !== null)), rerender : [Math.random()]}})
+    }, [externalSearchResult.trigger])   
+    
 
     const findIndexInRectangle = (chartIdx,minX,minY,maxX,maxY) => {
         // finds the index in a rectangle
@@ -200,20 +203,10 @@ function InteractiveChart({
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         let labelIdcs = labelData.idcs
         _.forEach(Array.from(idcs), idx => labelIdcs.has(idx) ? labelIdcs.delete(idx) : labelIdcs.add(idx))
-
         if (_.isFunction(onLabelDataChange)) onLabelDataChange(idcs)
 
         setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()], lastSelected : idcs})
-        
     }
-
-    const findClosestPoint2 = (xaxisName = "", yName = "", point = {x : undefined, y : undefined}, tolerance = 0.1) => {
-        //find closest point 
-    }
-
-
-
-
     
     const chartProps = _.range(numberCharts).map(chartIdx => {
         const {xaxisName, yaxisName } = keyNames[chartIdx]
@@ -244,7 +237,6 @@ function InteractiveChart({
         }
     })  
     
-
     
 
     

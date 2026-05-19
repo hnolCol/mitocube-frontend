@@ -148,12 +148,17 @@ export function ScatterPlot({
     tooltipNameIsNumeric = {}, //provide number to be rounded to.
     tooltipNameIsFeatures = {},
     tooltipNameIsStats = {},
+    tooltipNameIsProtein = {"tag": true},
     triggerResetAxis,
     setTriggerResetAxisZoom,
-    labelRenderer,
+    labelRerender,
     linesBySlopeAndIntercept = [],
     plotLinesAfterPoints = false,
-    annotationMarkers = []
+    annotationMarkers = [],
+    proteinTagMap,
+    setRequiredProteinTags,
+    proteinIsLoading
+
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
     // Plots an array of points. Each item in the array 
@@ -198,7 +203,34 @@ export function ScatterPlot({
             
     }
      }, [triggerResetAxis])
+    
+    useEffect(() => {
+        if (proteinIsLoading) return
+        if (chartIdx !== 0) return //only first chart in series handles the protein loading.
+        //fetches the required protein data.
+        const labelTags = [...labelIndices].map(idx => {
+        const proteinGroupTag = data[idx]["tag"]
+            if (proteinGroupTag.includes(";")) return proteinGroupTag.split(";")
+            else return proteinGroupTag
+        }).flat().filter(tag => _.isString(tag) && !proteinTagMap.has(tag))
 
+        if (labelTags.length === 0) return
+        setRequiredProteinTags(prevValues => [...new Set([...prevValues, ...labelTags])])
+
+    }, [labelRerender])
+
+    useEffect(() => {
+            if (proteinIsLoading) return
+            if (chartIdx !== 0) return //only first chart in series handles the protein loading.
+            if (_.isEmpty(tooltipNameIsProtein)) return 
+            const hoverProteinTags = [...hoverIndices].map(idx => data[idx]["tag"]).filter(tag => _.isString(tag) && !proteinTagMap.has(tag)).slice(0, 15).map(tag => { 
+                if (tag.includes(";")) return tag.split(";") 
+                return tag
+            }).flat()
+            setRequiredProteinTags(prevValues => [...new Set([...prevValues, ...hoverProteinTags])])
+        }, [rerenderHover])    
+    
+    
     const getYScaleDomain = () => {
         const yDomain = limits[yaxisName]
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain, frac: 0.1 })
@@ -428,6 +460,15 @@ export function ScatterPlot({
 
         }, [zoomActive.zoomed])
 
+    
+    const getProteinGroupText = (tag, index) => {
+        return _.isMap(proteinTagMap) ?
+            proteinTagMap.has(data[index]["tag"]) ?
+                proteinTagMap.get(data[index]["tag"]).text : data[index]["tag"].includes(";") ?
+                    data[index]["tag"].split(";").map(tag => proteinTagMap.has(tag) ?
+                        proteinTagMap.get(tag).text : tag).join(", ") : "" : ""
+        
+    }
 
     // Build colorMap from annotation colors 
     const annotationColorMap = useMemo(() => {
@@ -441,15 +482,15 @@ export function ScatterPlot({
             }
         })
         
-        console.log("Built annotation colorMap:", Object.keys(map).length, "proteins")
+        // console.log("Built annotation colorMap:", Object.keys(map).length, "proteins")
         return map
     }, [data, data.length])
 
     const hasAnnotationColors = Object.keys(annotationColorMap).length > 0
     
     return (
-        <div className="flex" ref={containerRef}>
-            <SVG {...{ width, height, svgID }}>
+        <div className="flex">
+            <SVG {...{ width, height, svgID, svgRef : containerRef }}>
             
             <viz.axis.XYaxis
            
@@ -510,14 +551,24 @@ export function ScatterPlot({
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
-                {indicateDataSize ? <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${validPoints}`], textOffset: 3 }} /> : null}
+                {indicateDataSize ?
+                    <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${validPoints}`], textOffset: 3 }} /> : null}
                 <g>
                     {/* Annotation of scatter points */}
                     {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => {
-                        return <ScatterLabel {...{
-                            key: `${labelIndex}-${chartIdx}`, data: data, xaxisName, yaxisName, xScale, yScale, labelNames, index: labelIndex,
-                            opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                            rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRenderer, triggerResetAxis]
+                        return <ScatterLabel
+                            key = { `${labelIndex}-${chartIdx}` }
+                            {...{
+                                data: data,
+                                text: getProteinGroupText(data[labelIndex]["tag"], labelIndex),
+                                xaxisName,
+                                yaxisName,
+                                xScale,
+                                yScale,
+                                labelNames,
+                                index: labelIndex,
+                                opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
+                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRerender, triggerResetAxis]
                         }} />
                     }) : null}
                 </g>
@@ -537,11 +588,13 @@ export function ScatterPlot({
                 }
 
                 {annotationMarkers.length > 0 && (
+
                     <g transform={`translate(${margins.left + chartWidth + 10}, ${margins.top + 80})`}>
                         <rect x={-5} y={-12} width={115} height={15 + annotationMarkers.length * 16} fill="white" fillOpacity={0.9} stroke="#E1E8ED" strokeWidth={0.5} rx={2} />
                         <text x={0} y={0} fontSize="10" fontWeight="600" fill="#5C7080">
                             Annotations
                         </text>
+
                         {annotationMarkers.map((marker, idx) => (
                             <g key={idx} transform={`translate(0, ${15 + idx * 16})`}>
                                 <circle cx={5} cy={-3} r={4.5} fill={marker.color} stroke="#000" strokeWidth={0.5} />
@@ -560,7 +613,6 @@ export function ScatterPlot({
                     onMouseMove={handleMouseHover}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
-                    onMouseUpCapture={console.log}
                     fill="#ffffff"
                     opacity={0.0} />
         
@@ -583,19 +635,22 @@ export function ScatterPlot({
                                 style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
                                 
                                 {tooltipNames.map(tooltipName =>
+                                
                                 {
+                                    const d = hoverIndexData[tooltipName]
+                                    // console.log(hoverIndexData, "tooltip")
+                                    if (_.has(tooltipNameIsProtein, tooltipName)) return <span key={`${index}-${tooltipName}`}>{getProteinGroupText(d, index)}</span>
                                     if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} minimal={true} />
-                                                if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein key={`${index}-${tooltipName}`}tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
-                                                else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
-                                                else if (_.has(tooltipNameIsStats, tooltipName)) return tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])
-                                                else {
-                                                    return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
-                                                }
+                                    if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein key={`${index}-${tooltipName}`}tag={hoverIndexData[tooltipName]} />
+                                    else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
+                                    else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
+                                    else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
+                                    else if (_.has(tooltipNameIsStats, tooltipName)) return tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])
+                                    else {
+                                        return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
+                                    }
 
-                                            })}
-
+                                })}
                             </div>
                         })
                             : null}

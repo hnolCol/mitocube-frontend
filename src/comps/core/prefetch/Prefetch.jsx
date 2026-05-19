@@ -1,18 +1,23 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { usePrefetchConditionApplicationTexts } from "@/api/orchestrated/conditionApplications";
 import { usePrefetchAttributes } from "@/api/orchestrated/attributes";
-import _ from "lodash"; 
 import { usePrefetchProteins } from '@/api/orchestrated/proteins';
+import _, { set } from "lodash";
+import { ProteinSearch } from '../base/protein/ProteinSearch';
 
 export function WithTagMaps({
     Component,
-    ca_tags,
-    attribute_tags,
-    protein_tags = [], 
+    ca_tags = [],
+    attribute_tags = [],
+    protein_tags = [],
+    showProteinSearch = false,
+    proteinSearchProps = {},
     ...rest
 }) {
-    const [refetchedTrigger, setRefetchTrigger] = useState(0) // State to trigger refetching when tags change
-    const proteinTagGeneNameMap = new Map() 
+    // Persist across renders
+    const [proteinSearchTags, setProteinSearchTags] =  useState({tags : [], trigger : undefined})
+    const proteinTagGeneNameMapRef = useRef(new Map())
+
     const { isReady, tagQueries } =
         usePrefetchConditionApplicationTexts(ca_tags)
 
@@ -21,68 +26,93 @@ export function WithTagMaps({
         tagQueries: attributeTagQueries,
     } = usePrefetchAttributes(attribute_tags)
 
+    const missingProteinTags = protein_tags.filter(
+        t => !proteinTagGeneNameMapRef.current.has(t)
+    )
 
     const {
         isReady: proteinIsReady,
+        isLoading : proteinIsLoading,
         tagQueries: proteinTagQueries,
-    } = usePrefetchProteins(protein_tags.filter(t => !proteinTagGeneNameMap.has(t)))
+    } = usePrefetchProteins(missingProteinTags)
 
     const caTagMap = useMemo(() => {
-        if (!isReady) return null
         const map = new Map()
+
         tagQueries.forEach((q, idx) => {
             if (q.data) {
                 map.set(ca_tags[idx], q.data)
             }
         })
+
         return map
-    }, [_.join(ca_tags), isReady])
+    }, [tagQueries, ca_tags])
 
     const attributeTagMap = useMemo(() => {
-        if (!attributeIsReady) return null 
         const map = new Map()
+
         attributeTagQueries.forEach((q, idx) => {
             if (q.data) {
                 map.set(attribute_tags[idx], q.data)
             }
         })
+
         return map
-    }, [_.join(attribute_tags), attributeIsReady])
+    }, [attributeTagQueries, attribute_tags])
 
     const proteinTagMap = useMemo(() => {
-        if (!proteinIsReady) return null 
-        
-        if (_.isArray(protein_tags)) {
-            protein_tags.forEach((protein_tag, idx) => {
+
+        // Keep old values while loading
+        if (_.isArray(missingProteinTags)) {
+            missingProteinTags.forEach((protein_tag, idx) => {
                 const q = proteinTagQueries[idx]
-                if (q && q.data) {
-                    proteinTagGeneNameMap.set(protein_tag, { text: q.data.gene_name }) //extract gene names   
+
+                if (q?.data) {
+                    proteinTagGeneNameMapRef.current.set(
+                        protein_tag,
+                        { text: q.data.gene_name }
+                    )
                 }
             })
-            // setRefetchTrigger(Math.random()) // Trigger refetching of components that depend on the protein tag map
         }
-        return proteinTagGeneNameMap
-    }, [_.join(protein_tags), proteinIsReady])
 
+        return proteinTagGeneNameMapRef.current
+
+    }, [proteinTagQueries, missingProteinTags])
+
+    const handleProteinSearchSuccess = (proteinTags) => { 
+
+        setProteinSearchTags(prev => ({ key: "tag", values: proteinTags, trigger: Math.random() }))
+
+    }
 
     const ready = isReady && attributeIsReady
 
     if (!ready) {
         return null
     }
-
-
+    
 
     return (
+        <div className='div--expand'>
+            {showProteinSearch && (
+                <div>
+                    <h4>Search</h4>
+                    <ProteinSearch onSuccess={handleProteinSearchSuccess} {...proteinSearchProps} />
+                </div>
+            )}
+        
         <Component
             {...rest}
             ca_tags={ca_tags}
             attribute_tags={attribute_tags}
             caTagMap={caTagMap}
             attributeTagMap={attributeTagMap}
+            proteinTagMap={proteinTagMap}
             isReady={ready}
-            proteinTagMap={proteinTagMap} 
-            refetchedTrigger={refetchedTrigger}
-        />
+                proteinIsLoading={proteinIsLoading}
+                proteinSearchResults = {proteinSearchTags}
+            />
+            </div>
     )
 }

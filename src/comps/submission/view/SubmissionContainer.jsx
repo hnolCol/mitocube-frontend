@@ -115,7 +115,7 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             group_by_state: submissionByState,
             group_by_user :submissionByUser,
             state: stateFilter,
-            genotype_tag: getValueByKeyAndMergeToString({ array: submissionFilter["genotype_tag"], keyName: "tag" }),
+            genotype_tag: genotypeTagString,
             user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
             attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
             attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" })
@@ -146,9 +146,12 @@ SubmissionContainer.propTypes = {
 
 
 
-export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery}) {
-    const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
-        ? _.join(Array.from(submissionFilter.states),";") 
+export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState }) {
+
+    const [orderBy, setOrderBy] = useState("state")
+    const fixedState = _.isNumber(validState)
+    const stateFilter = fixedState ? _.toString(validState) : _.has(submissionFilter, "states") && submissionFilter.states.size > 0
+        ? _.join(Array.from(submissionFilter.states), ";")
         : null
     
     const genotypeTagString = _.isArray(submissionFilter["genotype_tag"]) && submissionFilter["genotype_tag"].length > 0
@@ -165,10 +168,6 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
         attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" }),
         include_sample_ca: submissionFilter.include_sample_ca || false,
     }, { staleTime: 0 })
-    
-    
-export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, ...props }) {
-    const [orderBy, setOrderBy] = useState("state")
 
     return (
         <div>
@@ -177,9 +176,11 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
                 setSubmissionFilter,
                 submissionsQuery,
                 setSubmissionQuery,
+                submissionQueryResult : counts,
                 orderBy, 
                 setOrderBy,
-                fixedState : _.isNumber(validState) ? validState : false
+                fixedState:  fixedState,
+                isSuccess
             }}
                 children={
                     

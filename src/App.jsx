@@ -239,7 +239,8 @@ function App() {
             path="/datasets"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-                {/* <DatasetSelection {...{ logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} /> */}
+
+                <SubmissionView {...{ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState : 5 }} />
               </ProtectedRoute>
             }
           />
