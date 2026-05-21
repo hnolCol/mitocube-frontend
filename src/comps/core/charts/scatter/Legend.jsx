@@ -79,8 +79,6 @@ const ScatterLegend = React.memo(
     const { data: colorAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute, staleTime: Infinity })
     const { data: sizeAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute, staleTime: Infinity })
 
-
-    console.log(colorAttribute, colorNameIsAttribute, colorName)
         
 
     /**
@@ -129,7 +127,6 @@ const ScatterLegend = React.memo(
                                 // const attributeValues = findAttributeValues(colorAttribute,label.text)
                                 // if (attributeValues.length === 0) return null d
                                 // const label = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
-                                console.log(label, "H" ? label.text : "")
                                 return (
 
                                     <LegendItem key={`${idx}-${label.text}-colorcat`}

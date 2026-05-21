@@ -64,7 +64,6 @@ export function AnnotationSelectionMenu({placeholder = "Select annotations", onS
         refetch()
     }, [] )
 
-    // console.log(annotation_search_results, "Annotation Search Results")
 
     const annotation_results_ok = isSuccess && _.isArray(annotation_search_results) && annotation_search_results.length > 0 
     

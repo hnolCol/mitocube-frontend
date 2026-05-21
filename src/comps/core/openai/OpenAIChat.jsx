@@ -57,7 +57,21 @@ export function OpenAIChat() {
         >
             {/* Top: Input + controls */}
             <div style={{gridRow: '1', display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid #e0e0e0'}}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                
+
+                <OpenAIWarning />
+            </div>
+
+            {/* Bottom: Chat view - takes remaining space */}
+            <div style={{ gridRow: '2', overflow: 'hidden', paddingBottom : "20px", height : "100%" }}>
+                    {_.isObject(prompt) && _.isArray(prompt.session_messages) ? (
+                        <OpenAIChatView
+                            session_messages={prompt.session_messages}
+                            session_id={prompt.session_id}
+                        />
+                    ) : null}
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                         type="text"
                         value={prompt.prompt}
@@ -114,23 +128,11 @@ export function OpenAIChat() {
                         </svg>
                         <span>Send</span>
                     </button>
-                </div>
-
-                <div className='flex flex-column' style={{ gap: 4, flexWrap: 'wrap' }}>
-                    {isLoading ? <div className='font-size--smallest'><span>Waiting for response..</span></div> : null}
-                    <OpenAIWarning />
-                    {isError ? <div>Error: {error.message}</div> : null}
-                </div>
             </div>
-
-            {/* Bottom: Chat view - takes remaining space */}
-            <div style={{ gridRow: '2', overflow: 'hidden', paddingBottom : "20px", height : "100%" }}>
-                    {_.isObject(prompt) && _.isArray(prompt.session_messages) ? (
-                        <OpenAIChatView
-                            session_messages={prompt.session_messages}
-                            session_id={prompt.session_id}
-                        />
-                    ) : null}
+            <div className='flex flex-column' style={{ gap: 4, flexWrap: 'wrap' }}>
+                    {isLoading ? <div className='font-size--smallest'><span>Waiting for response..</span></div> : null}
+                    
+                    {isError ? <div>Error: {error.message}</div> : null}
                 </div>
         </div>
     )

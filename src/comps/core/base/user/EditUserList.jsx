@@ -60,8 +60,6 @@ export function EditableUserList({ selected_user_tags, title = "User Selected", 
     
     const { data: user_tags, isSuccess : isUserSuccess } = api.users.queryByQuery.useGetUserByQuery({ search_string: debounceQuery })
     
-    console.log(user_tags)
-
     return (<div>
         
         {_.isString(title) && title.length > 0 ? <h3>{title}</h3> : null}

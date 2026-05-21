@@ -65,17 +65,17 @@ function SubmissionOverview() {
                 <SubmissionProteinGroupCount {...{ submission_tag, fontColor: fontColors[3] }} />
                 <SubmissionPeptideCount {...{ submission_tag, fontColor: fontColors[4] }} />
                 <SubmissionCommentCount {...{ submission_tag, fontColor: fontColors[0] }} />
-                
                 </div>
             </div>
             <div>
                 <SubmissionUpload {...{ submission_tag }}/>
             </div>
-            <div className="flex flex--wrap align-start ">
+            <div className="flex flex--wrap align-start" style={{ gap: "2rem", marginTop: "1rem" }}>
 
-                {_.isString(submission_tag) ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
+                {_.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
+                    <h3>Genotypes</h3>
                 </div> : null}
-                <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
+                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
                     {/* <ConditionApplicationsView /> */}
                 {/* <StaticDatasetAttributesHierarchy submission_tag={submission_tag} /> */}
@@ -88,12 +88,12 @@ function SubmissionOverview() {
                     <h3>Links</h3>
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
                 </div> : null} */}
+            <Metatexts {...{submission_tag}} />
             </div>
 
             <div className="margin-right ">
-            <h3>Metatext</h3>
                 <div className="flex flex--wrap" style={{ gap: "2rem" }}>                    
-                    <Metatexts {...{submission_tag}} />
+                    
                 
                        
             </div>

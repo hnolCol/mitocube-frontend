@@ -93,7 +93,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
 
     useEffect(() => { 
         if (attribute_tag === "att_protein") {
-            console.log("NO PROTEOME TAGG!", proteome_tags)
         }
     } , [attribute_tag] ) 
 

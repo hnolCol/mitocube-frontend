@@ -260,7 +260,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             </div> : null}
 
         <div className="margin-top--little">
-            <h3>Annotation Selection</h3>
+            <h4>Subset data by annotation</h4>
             <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" />
             <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
         {inputIsSufficient ? <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{ maxWidth: "14rem", textJustify: "inter-word" }}>Imputation is performed by filtering for proteins that are fully quantified in one group.

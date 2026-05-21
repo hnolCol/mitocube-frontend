@@ -9,7 +9,6 @@ import { api } from "@/api"
 function MaintenanceProcedureMenuItem({ procedure_tag, handleClick, handleFocus, index, modifiers, query, selected}) {
     
     const { data: mp, isSuccess, isLoading, isError } = api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByTag({ procedure_tag })
-    console.log
     if (isError) return null 
     return (<MenuItem
         icon={selected ? "tick" : "blank"}

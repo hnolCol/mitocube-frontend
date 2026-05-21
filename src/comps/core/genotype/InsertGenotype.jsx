@@ -150,9 +150,6 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         })
     }
 
-
-    console.log(selectedTraits)
-
     
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>

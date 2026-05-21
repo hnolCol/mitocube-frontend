@@ -112,7 +112,6 @@ export const findAndInsertTree = (
         enforceSingleVariantPerGroup = false,
         enforceAtLevel = 0,
     } = options;
-    console.log(enforceAtLevel,"ENFORE", enforceAtLevel < level, level)
     // Stop if nothing to process
     if (!path || path.length === 0) return;
 
@@ -230,7 +229,6 @@ function replaceHierarchy(oldData, newData) {
       return node;
     });
   }
-    console.log(!_.isArray(oldData), newData)
     if (oldData === undefined) return newData; 
     if (!_.isArray(oldData) || oldData.length === 0) return newData;
 
@@ -335,7 +333,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
     const [alertProps, setAlertProps] = useState({ isOpen: false, children: <div></div> })
     const proteome_ids = get_proteome_id(submission.datasetAttributeValues)
-    console.log(submission)
     const addSampleAttr = () => {
         //adds a new sample attribute
         updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, [[]]) } })

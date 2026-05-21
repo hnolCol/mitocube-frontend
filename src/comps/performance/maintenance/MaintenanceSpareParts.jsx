@@ -75,7 +75,6 @@ export function MaintenanceSpareParts({ maintenance_event, refetch, refetchCosts
      * On Success, it will refetch the maintenance event to update the UI.
      */
     const handleSparePartSelect = (sparepart_tag, force_increase = false, force_decrease = false, onSuccessFunc) => {
-        console.log(onSuccessFunc, "???", "onSUccessFunc")
         const isFunction = _.isFunction(onSuccessFunc)
         if ((force_decrease || _.includes(maintenance_event.sparepart_tags, sparepart_tag)) && !force_increase) {
             // remove the spare part tag from the list

@@ -10,7 +10,7 @@ import { OpenAiPublicationSummary } from "../../../core/openai/OpenAiPublication
 import { ProteinOverview } from "./ProteinOverview"
 
 
-import { ProteinCorrelation } from "../../correlation"
+import { ProteinCorrelation, ProteinCorrelationWrapper } from "../../correlation"
 import { ProteinSubmissionRanking } from "../../data/ProteinSubmissionRanking"
 import { ProteinHelp } from "./ProteinHelp"
 
@@ -61,7 +61,7 @@ export function ProteinPage() {
 
                 {selectedView === "data" ? <ProteinSubmissionRanking tag={feature_tag} /> : null     }
 
-            {selectedView === "correlation" ? < ProteinCorrelation tag={feature_tag} /> : null }
+            {selectedView === "correlation" ? <  ProteinCorrelationWrapper tag={feature_tag} /> : null }
 
             {selectedView == "literature" ? <div style={{paddingLeft : "3rem", paddingRight : "3rem"}}><OpenAiPublicationSummary feature_tag={feature_tag} /></div> : null }
                 {selectedView === "abundance" ? <ProteinAbundance tag={feature_tag} /> : null}

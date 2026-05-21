@@ -59,7 +59,6 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
     useEffect(() => {
        
         if (verifyTokenIsSuccess && verifiedToken.success) {
-            console.log(verifiedToken,"VERIFIED TOKEN")
             saveInLocalStorage({itemName : "token", itemValue : verifiedToken.token})
             setAuthenticationStatus({
                 isAuth: verifiedToken.verified,

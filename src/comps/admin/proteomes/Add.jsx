@@ -8,7 +8,6 @@ export function AddProteome({ can_insert = false}) {
     const [proteomes, setProteomes] = useState({proteome_tag : "", reviewed : true})
     const { mutate, isLoading, isError, error } = api.proteomes.postProteome.usePostProteome()
     
-    console.log(proteomes)
 
     const handleProteomeSubmit = (e) => {
         if (_.isString(proteomes.proteome_tag) && proteomes.proteome_tag.length > 2) { //API checks for more comprehensive things

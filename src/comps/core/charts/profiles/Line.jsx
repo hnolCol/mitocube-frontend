@@ -41,13 +41,15 @@ function ProfileLine({
                 <polyline
                     points={_.join(_.map(yaxisName, yName => `${xScale(yName)+halfBandWidth},${yScale(d[yName])}`), ", ")}
                     {...{ stroke, strokeWidth, fill }} />
-                {showPoints ? _.map(yaxisName, yName => <circle {...{
-                    cx: xScale(yName) + halfBandWidth,
-                    cy: yScale(d[yName]),
-                    r: 5,
-                    fill: "#fff",
-                    stroke
-                }} />) : null
+                {showPoints ? _.map(yaxisName, yName => <circle
+                    key={`${yName}-${idx}-profile-point`}
+                    {...{
+                        cx: xScale(yName) + halfBandWidth,
+                        cy: yScale(d[yName]),
+                        r: 5,
+                        fill: "#fff",
+                        stroke
+                    }} />) : null
                 }
                 {labelNames.length > 0 && yaxisName.length > 0 ?
                     <Text

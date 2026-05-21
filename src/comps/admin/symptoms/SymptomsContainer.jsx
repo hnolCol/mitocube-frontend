@@ -14,7 +14,6 @@ export function SymptomsContainer({ tags, updateSymptomList }) {
             const detailTags = addStringToArrayOrRemove({array : showDetailTags.slice(), string : tag})
             setShowDetailsTags(detailTags)
     }
-    // console.log(tags)
     return (
         <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "5rem", paddingRight: "0.5rem" }} className="flex flex-column">
             {tags.map((tag, idx) => (

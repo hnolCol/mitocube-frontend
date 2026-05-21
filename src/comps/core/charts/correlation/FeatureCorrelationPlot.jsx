@@ -79,7 +79,8 @@ export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 50
                             rerenderBackground: `${filterProps.rerenderBackground}-${feature_tag_y}-${feature_tag_x}}`,
                             legend: true,
                             svgID: "scatter_plot-corr",
-                            linesBySlopeAndIntercept: [r]
+                            linesBySlopeAndIntercept: [r],
+                            labelIsProtein : true
                         }} />
                     )
                 })

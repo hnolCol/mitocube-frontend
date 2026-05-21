@@ -46,7 +46,6 @@ function RadialCategoricalScatter({
     svgID = undefined,
     svgRef = undefined
 }) {
-    console.log(data)
     const padding = 20
 
     const xScale = useMemo(() => {
@@ -58,7 +57,6 @@ function RadialCategoricalScatter({
 
     const yScale = useMemo(() => {
         const bounds = getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
-        console.log(bounds)
         return scaleLinear({
             domain: [0, 35],
             range : [0, height/2-padding]
@@ -114,7 +112,6 @@ function RadialCategoricalScatter({
         <LineRadial angle={angle} radius={radius} curve={curveBasisOpen["linear"]}>
                     {({ path }) => {
                         const d = path(data) || '';
-                        console.log(d)
                         return (
                             <path
                                 d={d}
@@ -132,7 +129,6 @@ function RadialCategoricalScatter({
                     const r = radius(d)
                     const cx = r * Math.cos( phi )
                     const cy = r * Math.sin(phi)
-                    console.log(d,phi,r,cx,cy)
                     return (
                         <circle key={`${i}-circle`} {...{cx,cy,r : 5}} fill="white"/>
                     )

@@ -7,7 +7,7 @@ import { SVG } from "../SVGHeader"
 import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import { getColorPalette } from "../../colors/colorPalette"
+import { getColorPalette, HIGHLIGHT_COLOR } from "../../colors/colorPalette"
 import { Divider, H4 } from "@blueprintjs/core"
 import { ScatterLegend, TextScatterLegend, AnnotationLegend } from "./Legend"
 import { ScatterLabel } from "./Label"
@@ -17,7 +17,7 @@ import { Attribute } from "../../base/attributes/Attribute"
 import { Protein, ProteinGroup } from "../../base/protein/Protein"
 import { checkFullMargin } from "../../types/checks/chart"
 import { Genotype } from "../../base/genotype/Genotype"
-import _ from "lodash"
+import _, { has } from "lodash"
 
 
 import viz from "@mitocube/viz"
@@ -157,7 +157,12 @@ export function ScatterPlot({
     annotationMarkers = [],
     proteinTagMap,
     setRequiredProteinTags,
-    proteinIsLoading
+    proteinIsLoading, 
+    externalHoverIndices = new Set(),
+    externalHoverRerender,
+    externalLabelIndices = new Set(),
+    externalLabelRerender,
+    labelIsProtein = false
 
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
@@ -204,11 +209,15 @@ export function ScatterPlot({
     }
      }, [triggerResetAxis])
     
+    const hasLabels = labelIndices.size > 0 || externalHoverIndices.size > 0 || externalLabelIndices.size > 0
+
     useEffect(() => {
         if (proteinIsLoading) return
+        if (!labelIsProtein) return 
         if (chartIdx !== 0) return //only first chart in series handles the protein loading.
         //fetches the required protein data.
-        const labelTags = [...labelIndices].map(idx => {
+        if (!hasLabels) return
+        const labelTags = [...labelIndices, ...externalHoverIndices, ...externalLabelIndices].map(idx => {
         const proteinGroupTag = data[idx]["tag"]
             if (proteinGroupTag.includes(";")) return proteinGroupTag.split(";")
             else return proteinGroupTag
@@ -217,12 +226,24 @@ export function ScatterPlot({
         if (labelTags.length === 0) return
         setRequiredProteinTags(prevValues => [...new Set([...prevValues, ...labelTags])])
 
-    }, [labelRerender])
+    }, [labelRerender, externalHoverRerender, externalLabelRerender])
+    //combined with the useMemo for indicesForLabels, this useEffect ensures that when the label indices change, the required protein tags are fetched, and when the protein data is loaded, the chart is rerendered to show the labels.
+    
+    const indicesForLabels = useMemo(() => {
+        const indices = new Set()
+        if (hasLabels) {
+            labelIndices.forEach(idx => indices.add(idx))
+            externalHoverIndices.forEach(idx => indices.add(idx))
+            externalLabelIndices.forEach(idx => indices.add(idx))
+        }
+        return indices
+    }, [labelIndices, externalHoverIndices, externalLabelIndices, labelRerender, externalHoverRerender, externalLabelRerender])
 
     useEffect(() => {
             if (proteinIsLoading) return
             if (chartIdx !== 0) return //only first chart in series handles the protein loading.
-            if (_.isEmpty(tooltipNameIsProtein)) return 
+        if (_.isEmpty(tooltipNameIsProtein)) return 
+        if (!_.isFunction(setRequiredProteinTags)) return 
             const hoverProteinTags = [...hoverIndices].map(idx => data[idx]["tag"]).filter(tag => _.isString(tag) && !proteinTagMap.has(tag)).slice(0, 15).map(tag => { 
                 if (tag.includes(";")) return tag.split(";") 
                 return tag
@@ -240,7 +261,7 @@ export function ScatterPlot({
 
     const getXScaleDomain = () => {
         const xDomain = limits[xaxisName]
-        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain, frac: 0.1 })
+        const xDomainWithMargin = addMarginToBoundaries({ domain: xDomain, frac: 0.15 })
         if (centerXAxisAtZero) {
             const maxValue = getMaxAbsoluteValue([xDomainWithMargin.max, xDomainWithMargin.min])
             return { min: -maxValue, max: maxValue }    
@@ -551,11 +572,47 @@ export function ScatterPlot({
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
+
+                {externalLabelIndices.size > 0 ? <g>
+                    
+                    <viz.primitives.ScatterPoints {...{
+                        data: data,
+                        indices : externalLabelIndices,
+                        valid,
+                        xScale,
+                        yScale,
+                        xaxisName,
+                        yaxisName,
+                        sizeScale,
+                        sizeName,
+                        colorName: undefined,
+                        fill: HIGHLIGHT_COLOR,
+                        rerenderDependency: externalLabelRerender
+                }} />
+                    </g> : null}
+
+                {externalHoverIndices.size > 0 ? <g><viz.primitives.ScatterPoints {...{
+                        data: data,
+                        indices : externalHoverIndices,
+                        valid,
+                        xScale,
+                        yScale,
+                        xaxisName,
+                        yaxisName,
+                        sizeScale,
+                        sizeName,
+                        colorName: undefined,
+                        fill: "red",
+                        rerenderDependency: externalHoverRerender
+                }} />
+                </g> : null}
+
+
                 {indicateDataSize ?
                     <ChartTopLeftLabel {...{ margins, labelTexts: [`n=${validPoints}`], textOffset: 3 }} /> : null}
                 <g>
                     {/* Annotation of scatter points */}
-                    {labelIndices.size > 0 ? Array.from(labelIndices).map(labelIndex => {
+                    {hasLabels && _.isMap(proteinTagMap) && labelIsProtein ? Array.from(indicesForLabels).map(labelIndex => {
                         return <ScatterLabel
                             key = { `${labelIndex}-${chartIdx}` }
                             {...{
@@ -568,7 +625,7 @@ export function ScatterPlot({
                                 labelNames,
                                 index: labelIndex,
                                 opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRerender, triggerResetAxis]
+                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
                         }} />
                     }) : null}
                 </g>
@@ -638,14 +695,16 @@ export function ScatterPlot({
                                 
                                 {
                                     const d = hoverIndexData[tooltipName]
-                                    // console.log(hoverIndexData, "tooltip")
+                                    if (_.has(tooltipNameIsStats, tooltipName)) {
+                                        return tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])
+                                    }
                                     if (_.has(tooltipNameIsProtein, tooltipName)) return <span key={`${index}-${tooltipName}`}>{getProteinGroupText(d, index)}</span>
                                     if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} minimal={true} />
                                     if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein key={`${index}-${tooltipName}`}tag={hoverIndexData[tooltipName]} />
-                                    else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
-                                    else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
-                                    else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
-                                    else if (_.has(tooltipNameIsStats, tooltipName)) return tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])
+                                    if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
+                                    if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
+                                    if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
+                                    
                                     else {
                                         return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
                                     }

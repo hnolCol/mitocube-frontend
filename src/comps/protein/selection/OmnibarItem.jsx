@@ -25,7 +25,7 @@ export function OmnibarItem(props) {
 
             <div className="margin--little">
                     <div className="h0-span" style={{ float: "left" }}>
-                <p>{item.key}</p>
+                <p>{item.tag}</p>
             </div>
             <div style={{float:"right",paddingRight:"3px",paddingTop:"4px",color:"#737373"}}>
                 <p>{item.genes}</p>

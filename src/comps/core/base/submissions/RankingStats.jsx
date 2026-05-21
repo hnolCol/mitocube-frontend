@@ -8,7 +8,7 @@ import { ConditionApplicationsView } from "../condition_applications/ConditionAp
 export function RankingStats({ attribute_tag, submission_tag, stats }) { 
     const { data : condition_applications} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags :attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) }    )
     return <div>
-        <SubmissionTitle tag={submission_tag} showCopyToClipboard={false} />
+        <SubmissionTitle tag={submission_tag} showCopyToClipboard={false} showEdit={false} />
         <Attribute attribute_tag={attribute_tag} />
         <div className="flex flex-column" style={{gap : "0.2rem"}}>{_.has(condition_applications, attribute_tag) && _.isArray(condition_applications[attribute_tag]) ?
             condition_applications[attribute_tag].map(ca_tags =>

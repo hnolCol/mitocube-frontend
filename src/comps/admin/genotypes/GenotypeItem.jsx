@@ -31,7 +31,6 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   }); 
 
   const canShowRemoveButton = isSuccess && permissions.delete
-  console.log(canShowRemoveButton)
 
   const handleRemove = (e) => {
     e.stopPropagation();

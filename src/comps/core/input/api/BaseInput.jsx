@@ -16,7 +16,7 @@ BaseInput.propTypes = {
     selected_tags: PropTypes.arrayOf(PropTypes.string),
     placeholder: PropTypes.string
 }
-export function BaseInput({ render_children, api_hook, onSelect, selected_tags, placeholder = "Select", api_hook_params = {} }) {
+export function BaseInput({ render_children, api_hook, onSelect, selected_tags, placeholder = "Select", api_hook_params = {} , fill = true}) {
     const [search, setSearch] = useState("")
     const search_string = useDebounce(search, 300)
     const { data: item_tags, } = api_hook({ search_string, ...api_hook_params }, { enabled: true })
@@ -40,11 +40,12 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
         onSelect(tag)
     }
 
-    return <Select
+    return <Select  
+        
         items={_.isArray(item_tags) ? item_tags : []} itemRenderer={handleRenderItem}
         onItemSelect={handleSelect}
         onQueryChange={(query) => setSearch(query)}>
-        <button className="basic-button">{placeholder}</button>
+        <button style={{width : fill ? "100%" : "auto"}} className="basic-button">{placeholder}</button>
     </Select>
 
 }

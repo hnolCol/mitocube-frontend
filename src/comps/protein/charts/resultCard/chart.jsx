@@ -123,25 +123,6 @@ function ResultChart({
         else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureTag}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
     }
 
-    // const handleNormalizationGroupSelection = (groupingName, groupName) => {
-    //     var normalizeSelection = { ...normalizeDialog.normalizeToSelection }
-    //     normalizeSelection[groupingName] = groupName
-    //     setNormalizeDialog(prevValues => {return {...prevValues,normalizeToSelection : normalizeSelection}})
-    // }
-    // const checkNormalizeToSelection = () => {
-    //     return _.every(keyNamesForSplitting, i => Object.keys(normalizeDialog.normalizeToSelection).includes(i))
-    // }
-
-    // const handleNormalization = (normMode) => {
-    //     if (NormalizationModes.includes(normMode)) setNormalization(normMode)
-    //     else {
-    //         setNormalizeDialog(prevValues => { return { ...prevValues, isOpen : true}})
-    //     }
-    // }
-
-    // const applyNormalization = () => {
-    //     setNormalizeDialog(prevValues => { return { ...prevValues, isOpen: false } })
-    // }
     
 
     const handleInfo = (infoType) => {
@@ -164,10 +145,10 @@ function ResultChart({
         >
             
 
-            <div className="flex center-items" style={{ justifyContent: "space-between" }}>
+            <div className="flex center-items" >
                 <h4>{title}</h4>
                 {showMenu && (
-                    <div className="flex" style={{ gap: "5px" }}>
+                    <div className="flex" style={{ gap: "5px"}}>
                         <CategoricalChartSelection
                             vertical={false}
                             {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
@@ -191,7 +172,7 @@ function ResultChart({
                     getConditionApplicationText={({ x, y, tag, textProps }) => <ConditionApplicationText x={x} y={y} tag={tag} textProps={textProps} />}
                     width={width - 0 || undefined}
                     height={height - 0 || undefined}
-                    margins={{ left: 50, right: 50, top: 20, bottom: 80 }}
+                    margins={{ left: 50, right:10, top: 20, bottom: 120 }}
                     {...selectionTags}
                     data={groupedAggratedData}
                     errorName="e"

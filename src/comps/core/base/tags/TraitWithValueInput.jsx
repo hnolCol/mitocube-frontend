@@ -80,7 +80,7 @@ export function TraitWithValueInput({
                         </div>
                         {_.isFunction(onRemove) ?
                             <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}>
-                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(traitPath, [rowIndex])} />
+                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(traitPath, [rowIndex], referenceID)} />
                             </div>
                             : null}
                     </div>

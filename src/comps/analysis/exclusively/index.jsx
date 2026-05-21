@@ -81,7 +81,7 @@ export function SubmissionExclusivelyQuantified() {
 
         {_.isArray(ca_attributes) && _.isArray(exclusivelyQuantified) ? <div>
             
-            <div style={{ display: "grid", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '350px'), " ")}` }}>
+            <div style={{ display: "grid", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '1fr'), " ")}` }}>
 
                 <div style={{ gridColumn: "1", border: "0.5px solid black"}}>Protein Group</div>
                 {ca_attributes.map((attribute_tag, idx) => <div key={attribute_tag} style={{ gridColumn: idx + 2, border: "0.5px solid black", width : "100%" }} className="flex flex-column center-items">
@@ -92,7 +92,7 @@ export function SubmissionExclusivelyQuantified() {
             </div>
 
             
-            <div style={{ display: "grid", alignContent: "start", overflowY : "scroll", height : "75vh", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '350px'), " ")}` }}>
+            <div style={{ display: "grid", alignContent: "start", overflowY : "scroll", height : "75vh", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '1fr'), " ")}` }}>
             {_.isArray(exclusivelyQuantified) && exclusivelyQuantified.map((protein_group, idx) => {
                 return <div key={protein_group.tag} style={{
                         gridRow: idx + 2,

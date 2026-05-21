@@ -5,7 +5,6 @@ import { getUserFullName } from "../../../../services/format/user"
 import { MultiSelect } from "@blueprintjs/select"
 import _ from "lodash"
 import { api } from "@/api"; 
-import { use } from "react"
 
 
 export function UserFullName({ tag }) {
@@ -59,7 +58,6 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
     }
 
     const renderValue = (item) => {
-        console.log(item)
         return <UserFullName tag={item} />
     }
     return <FormGroup

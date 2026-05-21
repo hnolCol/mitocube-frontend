@@ -54,15 +54,7 @@ export function AttributesAdminView() {
     const [searchString, setSearchString] = useState()
     const [attribute_groups, setAttributeGroups] = useState([])
     const debouncedSearchString = useDebounce(searchString, 30)
-    const group_by = "attribute_group"
     
-    // const { data: attribute_tags, isError, isFetching } = hooks.attributes_query.useGetAttributesByQuery({
-    //     search_string: debouncedSearchString,
-    //     limit: limit === Infinity ? 1E5 : limit,
-    //     include_traits: false,
-    //     // group_by,
-    //     attribute_groups: _.isArray(attribute_groups) && attribute_groups.length > 0 ? _.join(attribute_groups, ";") : undefined
-    // }, { staleTime: 1000 * 60 * 5, placeholderData: (prev) => { console.log(prev, "PREV");  return prev || []}, cacheTime : 1000 * 60 * 10 })
 
     
     return (

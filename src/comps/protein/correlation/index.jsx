@@ -1,10 +1,5 @@
 
 
-import _, { findLastKey, isError } from "lodash" 
-
-// import ResultChart from "../resultCard/chart"
-
-import viz from "@mitocube/viz"
 import { api } from "@/api";
 import { useSearchParams } from "react-router-dom";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
@@ -16,18 +11,36 @@ import { ScatterPlot } from "../../core/charts/scatter";
 import { useState } from "react";
 import APIError from "../../core/error/APIerror";
 import { FeatureCorrelationPlot } from "../../core/charts/correlation/FeatureCorrelationPlot";
+import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
+import _ from "lodash";
 
 const LIMITS = [5, 10, 20, 100, "None"];
 const MIN_DATA_POINTS = [8, 10, 50, 100, 500]
 const DIRECTIONS = ["positive", "negative", "both"]
 const VIEW_OPTIONS = ["scatter", "sample"]
 const FDR_CUTOFFS = ["0.001", "0.01", "0.05"]
+
+
+
+
+
+export function ProteinCorrelationWrapper({ tag }) {
+    const [requiredProteinTags, setRequiredProteinTags] = useState([])
+        
+        return <WithTagMaps
+            Component={ProteinCorrelation}
+            tag={tag}
+            {...{setRequiredProteinTags}}
+            protein_tags={requiredProteinTags}/>
+    }
+
+
 /**
  * @description The protein correlation visualization of a feature tag. 
  * @param {Object} param0 
  * @returns 
  */
-export function ProteinCorrelation({ tag }) {
+export function ProteinCorrelation({ tag, setRequiredProteinTags, proteinTagMap, proteinIsLoading}) {
 
     const [searchParams, setSearchParams] = useSearchParams();
     const [dataUpdated, setDataUpdated] = useState(undefined)
@@ -175,8 +188,9 @@ export function ProteinCorrelation({ tag }) {
                 }]}
                 dataName={`${fdr_cutoff}-${tag}-${direction}-${limit}-${min_data_points}-${annotation_tags}`}
                 dataUpdateTrigger={dataUpdated}
+                passOnProps = {{setRequiredProteinTags, proteinTagMap, proteinIsLoading}}
                 onLabelDataChange={(idcs => handleFeatureSelection(idcs))}
-            isPointChart={[true]}>
+                isPointChart={[true]}>
             {
                 /**
                  * 
@@ -195,7 +209,10 @@ export function ProteinCorrelation({ tag }) {
                     hoverProps,
                     filterProps,
                     findClosestPoint,
-                    labelProps
+                    labelProps,
+                    setRequiredProteinTags,
+                    proteinTagMap,
+                    proteinIsLoading
                 }, didx) => {
                    
                     
@@ -223,7 +240,11 @@ export function ProteinCorrelation({ tag }) {
                             labelRenderer : labelProps.labelRenderer,
                             tooltipNameIsFeature: { "tag" : true },
                             tooltipNameIsNumeric: { "pearson": 2, "t": 2, "N": 0 },
-                            ...labelProps
+                            ...labelProps,
+                            setRequiredProteinTags,
+                            proteinTagMap,
+                            proteinIsLoading,
+                            labelIsProtein : true
                         }} />
                             <FeatureProfile tag={tag} data={data} hoverProps={hoverProps} filterProps={filterProps} labelProps={labelProps} limits={limits} />
                             </div>

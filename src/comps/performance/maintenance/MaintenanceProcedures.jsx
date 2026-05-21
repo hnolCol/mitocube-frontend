@@ -25,7 +25,6 @@ export function MaintenanceProcedure({ tag, onRemove }) {
  * @returns 
  */
 export function MaintenanceProcedures({ maintenance_event, refetch }) {
-    console.log(maintenance_event)
 
     const maintenance_event_tag = maintenance_event.tag
 
@@ -42,9 +41,6 @@ export function MaintenanceProcedures({ maintenance_event, refetch }) {
          */
     
     const handleProcedureSelect = (procedure_tag) => {
-        console.log(procedure_tag)
-        console.log(maintenance_event.maintenance_procedure_tags)
-        console.log(_.includes(maintenance_event.maintenance_procedure_tags, procedure_tag))
             if (_.includes(maintenance_event.maintenance_procedure_tags, procedure_tag)) {
                 // remove the procedure tag from the list
                 deleteProcedure({ maintenance_event_tag, procedure_tag }, {

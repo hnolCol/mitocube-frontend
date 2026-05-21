@@ -57,7 +57,6 @@ function CreateSampleList({dataID, token, onClose, handleDataChange, isOpen = tr
         axios.get('/api/admin/samplelist', {params:{token:token,dataID:dataID, ...input}}).then(response => 
             
             {
-                //console.log(response.data)
                 if (response.data["success"] && Object.keys(response.data).includes("paramsFile")){
                     
                     handleDataChange(dataID,response.data["paramsFile"])

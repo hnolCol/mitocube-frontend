@@ -4,9 +4,11 @@ import _ from "lodash";
 import PropTypes
     from "prop-types";
 import { useEffect, useRef } from "react";
+
+
 function AssistantResponse({ message, highlight = false }) {
     return (
-        <div className="padding--medium" style={{ marginTop: '20px', whiteSpace: 'pre-wrap', backgroundColor: "#e2dedede", width : "85%", borderLeft : highlight ? "4px solid #466688" : "none", overflowX : "scroll" }}>
+        <div className="padding--medium" style={{ marginTop: '20px', whiteSpace: 'pre-wrap', backgroundColor: "#e2dedede", width : "80%", borderLeft : highlight ? "4px solid #466688" : "none", overflowX : "scroll"}}>
             <Markdown remarkPlugins={[remarkGfm]}>
                 {message}
             </Markdown>
@@ -41,14 +43,16 @@ export function OpenAIChatView({ session_messages, session_id }) {
             {session_messages.map((msg, index) => {
                 return (<div key={`${session_id}-${index}`} className="margin-bottom--medium">
                     {msg.role === 'user' && (
-                        <div className="margin-right--medium flex" key={index} style={{ marginTop: '10px' , justifyContent: "flex-end" }}>
+                        <div className="margin-right--medium flex" key={index} style={{ marginTop: '10px' , justifyContent: "flex-start" }}>
                             <div style={{backgroundColor: "#e0e0e0", padding: "8px", borderRadius: "8px"}}>
                                 <strong>User:</strong> {msg.content}
                             </div>
                         </div>
                     )}
                     {msg.role === 'assistant' && (
-                        <AssistantResponse key={index} message={msg.content} highlight={lastAssistantMessageIndex === index} />
+                        <div className="flex" style={{justifyContent: "flex-end"}}>
+                            <AssistantResponse key={index} message={msg.content} highlight={lastAssistantMessageIndex === index} />
+                        </div>
                     )}
                 </div>)
             }  )}

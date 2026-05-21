@@ -16,7 +16,7 @@ FeatureDataView.defaultProps = {
     features: []
 };
 
-export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
+export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true }) {
 
     const { data, isLoading } = api.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
     const {data : feature} = api.features.tag.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
@@ -43,7 +43,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
                 <div>Loading...</div>
             ) : (
                     <div>
-                        {showTitle && <SubmissionTitle tag={submission_tag} showEdit={false} />}
+                        {showTitle && <SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} />}
                 <ResultChart
                         yaxisName="value"
                         featureTag={feature_tag}
@@ -52,7 +52,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
                         attribute_tags={attributes}
                         width={size.width || undefined}
                         height={size.height || undefined}
-                        title={_.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
+                        title={!showProteinNameInTitle ? "" :  _.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
                         />
                     </div>
             )}
@@ -60,7 +60,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true }) {
     );
 }
 
-export function FeatureDataView({ feature_tags, submission_tags, showTitle = true }) {
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true }) {
 
         // build a simple initial layout (you can adjust sizing/positions as needed)
         const initialLayouts = feature_tags.map((ft, i) => ({
@@ -97,7 +97,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                 <div key={`${feature_tag}-${i}-${submission_tags[i]}`} data-grid={initialLayouts[i]}>
                                     <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%", marginBottom: "100px" }}>
                                         
-                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tags[i]} showTitle={showTitle} />
+                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tags[i]} showTitle={showTitle} showProteinNameInTitle={showProteinNameInTitle} />
                                     </div>
                                 </div>
                             ))}

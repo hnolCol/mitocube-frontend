@@ -10,3 +10,4 @@ export const featuresPairwiseQuantAPI = hooks.features.data.createFeaturePairwis
 export const featuresSequenceAPI = hooks.features.createFeatureSequenceAPI(apiClient);
 export const featuresRankingAPI = hooks.features.protein_groups.createFeaturesProteinsRankingAPI(apiClient);
 export const featuresQuantificationsAPI = hooks.features.quantification.createFeatureQuantificationAPI(apiClient);
+export const proteinFavoritesAPI = hooks.features.proteins.createProteinFavoriteAPI(apiClient)

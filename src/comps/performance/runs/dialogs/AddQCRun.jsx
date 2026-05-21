@@ -51,8 +51,7 @@ export function AddQCRunDialog({ isOpen }) {
 
         setQCProps(prevValues => {return{...prevValues, attributes : _.filter(prevValues.attributes, attrValue => attrValue[1].tag !== attributeValue.tag)}})
     }
-    console.log(qcProps.attributes)
-    console.log(aggregateAttributeValues({attributeValuePair : qcProps.attributes}))
+
     return <Dialog isOpen={isOpen} canEscapeKeyClose canOutsideClickClose title="Add QC Run">
 
         <DialogBody>

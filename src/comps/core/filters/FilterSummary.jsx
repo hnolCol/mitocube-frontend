@@ -4,7 +4,6 @@ import { isHexColorLight } from "../../../services/colors"
 import { motion } from "framer-motion"
 
 export function FilterSummary({ filter_tag }) {
-    console.log(filter_tag)
 
     const backgroundColor = "#e5e5e5"
     const motionBackgroundColor = "#466688" //highlight ? "#e5e5e5" : 
@@ -18,9 +17,7 @@ export function FilterSummary({ filter_tag }) {
                 inheritDarkTheme={false}
                 content={<div >
                     <h4>{filter_tag}</h4>
-                    {/* <p>Number of features: <strong>{filter.N}</strong></p>
-                    <p>{filter.description} <br/>
-                     Filter based on publication: {filter.publication}</p> */}
+             
                 </div>
                 }>
                 <motion.div

@@ -33,10 +33,10 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
     if (!_.isArray(submissionStats) || submissionStats.length === 0) {
         return <div>Loading...</div>
     }
-        console.log(numericKeyNames, "numeric key names")
 
     
     const getSubmissionStats = (tag) => {
+        console.log(tag)
         if (!_.isArray(submissionStats)) return null
         if (!_.isString(tag)) return null
         const stats = submissionStats.filter(stat => stat.tag === tag)[0]
@@ -47,7 +47,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
     }
     
     return <div>
-        
+        <h3>Protein Submission Ranking</h3>
         <span>Features are ranked by statistic approaches. Find more information in the documentation.</span>
         <InteractiveChart
             data={submissionStats}
@@ -82,13 +82,11 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                         triggerResetAxis,
                         setTriggerResetAxisZoom
                             }, didx) => {
-                                console.log(valid, hoverProps.hoverIndices)
                         return (
                             <div>
-                                
                                 <ScatterDataSelection keyNames={_.keys(submissionStats[0])}
                                     {...{
-                                        title : "Protein Submission Ranking",
+                                        // title : ,
                                         numericKeyNames,
                                         itemIsAttribute : false,    
                                         idx: 1,
@@ -133,7 +131,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                                                 svgID: `submissionsFeatureStats-${didx}`,
                                                 triggerResetAxis,
                                                 setTriggerResetAxisZoom,
-                                                
+                                                labelIsProtein : false
                                             }} />
                             </div>)
                         })}
@@ -147,7 +145,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
 
 
             
-                {_.isArray(topSubmissionStats) ? <FeatureDataView feature_tags={topSubmissionStats.map(i => tag)} submission_tags={topSubmissionStats.map(d => d.submission_tag)} /> : null}
+                {_.isArray(topSubmissionStats) ? <FeatureDataView feature_tags={topSubmissionStats.map(i => tag)} submission_tags={topSubmissionStats.map(d => d.submission_tag)} showProteinNameInTitle={false} /> : null}
 
     
 

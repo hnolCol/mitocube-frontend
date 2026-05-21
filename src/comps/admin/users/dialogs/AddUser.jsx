@@ -10,7 +10,7 @@ const USER_INPUT = [
     { type: "text", tag: "email", placeholder: "Enter user email" }]
 
 export function AddUserDialog({onCancel}) {
-    const { mutate: postUser, isLoading } = api.users.modify.usePostUser()
+    const { mutate: postUser, isPending } = api.users.modify.usePostUser()
     const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group : "", institute : "", role : 1})
     const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
 
@@ -43,11 +43,12 @@ export function AddUserDialog({onCancel}) {
                         />
                     </div>
                 ))}
-
+                <div style={{width : "100%"}}>
                 <ResearchGroupInput
                     selected_rg_tags={formData.research_group ? [formData.research_group] : []}
                     onSelect={(tag) => setFormData((prev) => ({ ...prev, research_group: tag }))}
-                />
+                    />
+                </div>
 
                 <div className="font-size--small color--grey">
                     A verification email will be sent to the user containing a randomly created password.
@@ -56,7 +57,7 @@ export function AddUserDialog({onCancel}) {
                 <UserRoleSelection selectedRole={formData.role} onRoleChange={handleRoleChange} />
                 <div className="flex justify-end margin-top--medium">
                     <button
-                        disabled={isLoading}
+                        disabled={isPending}
                         className="dialog-button"
                         type="button"
                         onClick={(e) => {
@@ -67,12 +68,12 @@ export function AddUserDialog({onCancel}) {
                         Cancel
                     </button>
                     <button
-                        disabled={disabledButton}
+                        disabled={disabledButton || isPending}
                         className={`dialog-button bg--blue-light ${disabledButton ? "opacity--disabled" : ""}`}
                         type="button"
                         onClick={handleInsert}
                     >
-                        {isLoading ? "Inserting..." : "Insert"}
+                        {isPending ? "Inserting..." : "Insert"}
                     </button>
                 </div>
             </div>

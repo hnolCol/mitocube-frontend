@@ -16,8 +16,6 @@ export function PubmedPublicationList({ pubmedids }) {
     if (!_.isObject(publications)) return 
     if (isError) return <div>Error loading PubMed articles</div>
 
-    console.log(publications)
-
 
     return (<div>
         {isSuccess ? publications.result.uids.map(pubmedid => <motion.div

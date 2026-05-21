@@ -12,12 +12,12 @@ export function PersistentCollapse({
   direction = "vertical",
   keepMounted = true,
   className = "",
+  horizontalWidth = "max-content"
 }) {
   const containerRef = useRef(null);
   const [size, setSize] = useState(isOpen ? "auto" : 0);
 
     const dimension = direction === "horizontal" ? "width" : "height";
-    console.log(dimension)
   const scrollSizeKey =
     direction === "horizontal" ? "scrollWidth" : "scrollHeight";
 
@@ -87,7 +87,7 @@ export function PersistentCollapse({
       <div
         ref={containerRef}
         style={{
-            width: direction === "horizontal" ? "max-content" : "100%",
+            width: direction === "horizontal" ? horizontalWidth : "100%",
             
         }}
       >

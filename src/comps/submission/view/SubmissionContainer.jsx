@@ -8,11 +8,11 @@ import { SubmissionFilterSelection } from "../filter"
 import { StateHeader } from "./StateHeader"
 import { api } from "@/api" 
 import { useState } from "react"
-import { MinimalUserIcon, User, UserIcon } from "@/comps/core/base/user"
+import { MinimalUserIcon } from "@/comps/core/base/user"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 
 
-export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "genotype", "date"]
+export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "date"]
 
 
 SubmissionsByState.propTypes = {
@@ -66,7 +66,6 @@ export function SubmissionsByUser({ submission_by_user, minimal = true}) {
     return (
         <div>
             {_.isObject(submission_by_user) && _.map(user_tags, (user_tag, idx) => {
-                console.log("user_tag", user_tag)
                 return <div key={user_tag}>
                     <div className="flex center-items"><MinimalUserIcon user_tag={user_tag} /> <UserFullName tag={user_tag}/></div>
                     <div className="flex flex-column padding-left--little margin-bottom--little">
@@ -97,10 +96,8 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
     
     const submissionByState = submissionBy === "state" ? true : false
     const submissionByUser = submissionBy === "user" ? true : false 
-    const submissionByGenotype = submissionBy === "genotype" ? true : false 
+    // const submissionByGenotype = submissionBy === "genotype" ? true : false 
     const submissionByDate = submissionBy === "date" ? true : false 
-
-    console.log(submissionByState, submissionByUser, submissionByGenotype, submissionByDate)
     
     const stateFilter = _.isNumber(validState) ? _.toString(validState) : _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
         ? _.join(Array.from(submissionFilter.states),";") 
@@ -120,7 +117,6 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
             attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" })
         }, { staleTime: 0 })
-    console.log(submission_by)
     return (<div>
 
         {isError ? <APIError error={error} /> : null}

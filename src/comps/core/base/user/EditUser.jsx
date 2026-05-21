@@ -18,12 +18,13 @@ function PWChangeUser({ onSuccess }) {
     const isDifferent = oldPassword !== newPassword
     const isValid = hasOld && hasNew && isDifferent
 
+
+
+    const { mutate, isLoading, isError, error } = api.users.edit.usePostPasswordChange()
+    
     const errorMessage = isError
         ? (error?.response?.data?.detail || "Current password is incorrect.")
         : null
-
-    const { mutate, isLoading, isError, error } = api.users.edit.usePostPasswordChange()
-
 
     const handlePasswordChange = () => {
         if (!isValid) return
@@ -68,7 +69,7 @@ function PWChangeUser({ onSuccess }) {
                     placeholder="Enter your current password"
                     value={oldPassword}
                     onChange={handleOldChange}
-                    disabled={isPending}
+                    disabled={isLoading}
                     intent={errorMessage ? "danger" : "none"}
                     rightElement={
                         <Button
@@ -93,7 +94,7 @@ function PWChangeUser({ onSuccess }) {
                     <PasswordInput
                         onChange={handleNewChange}
                         hint=""
-                        disabled={isPending}
+                        disabled={isLoading}
                         placeholder="Enter a new password (min. 8 characters)"
                     />
                 </div>
@@ -119,7 +120,7 @@ function PWChangeUser({ onSuccess }) {
                     text="Save password"
                     disabled={!isValid}
                     intent="primary"
-                    loading={isPending}
+                    loading={isLoading}
                     onClick={handlePasswordChange}
                 />
             </div>

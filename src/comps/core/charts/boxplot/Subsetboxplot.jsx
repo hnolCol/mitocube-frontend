@@ -16,9 +16,7 @@ import viz from "@mitocube/viz"
  * @param {Set[]} props.subsetIndices 
  */
 export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, height = 85, rerender, subsetNames, marginleft = 25, marginRight = 30, marginTop = 10, marginBottom = 10 }) {
-    
-    //console.log(subsetIndices, data)
-    
+        
     const qs = useMemo(() => getQuantileByIndices({
         data,
         subsetIndices: _.concat([_.range(data.length)], subsetIndices),

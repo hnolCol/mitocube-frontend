@@ -80,6 +80,7 @@ export function WithTagMaps({
 
     }, [proteinTagQueries, missingProteinTags])
 
+    
     const handleProteinSearchSuccess = (proteinTags) => { 
 
         setProteinSearchTags(prev => ({ key: "tag", values: proteinTags, trigger: Math.random() }))

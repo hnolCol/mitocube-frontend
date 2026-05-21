@@ -24,8 +24,10 @@ export function VolcanoDataHandler({
         volcanoData,
         setVolcanoData,
         proteinIsLoading,
-        proteinSearchResults}) {
-    
+       proteinSearchResults,
+        proteinHoverResults,
+        favoriteProteinSelection}) {
+
     const [annotationMarkers, setAnnotationMarkers] = useState([])
     
     const handleError = (error) => {
@@ -184,7 +186,9 @@ export function VolcanoDataHandler({
         <InteractiveChart
                 data={volcanoData.data} //enrichDataWithAnnotations(volcanoData.data)
                 extraLimitNames={extraLimits}
-                externalSearchResult = {proteinSearchResults}
+                externalSearchResult={proteinSearchResults}
+                externalLabelResult={favoriteProteinSelection}
+                externalHoverResult={proteinHoverResults}
                 // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
                 keyNames={
                     volcanoData.suffixes.map((suffix, idx) => {
@@ -216,6 +220,8 @@ export function VolcanoDataHandler({
                         hoverProps,
                         filterProps,
                         labelProps,
+                        externalHoverProps,
+                        externalLabelProps,
                         triggerResetAxis,
                         setTriggerResetAxisZoom,
                         setRequiredProteinTags,
@@ -278,6 +284,8 @@ export function VolcanoDataHandler({
                                         ...hoverProps,
                                         ...filterProps,
                                         ...labelProps,
+                                        ...externalHoverProps,
+                                        ...externalLabelProps,
                                         attributeValuesByTag: {}, //metadata.attribute_values_by_tag,
                                         attributesByTag: {}, //metadata.attributes,
                                         legend: true,
@@ -288,7 +296,9 @@ export function VolcanoDataHandler({
                                         annotationMarkers: annotationMarkers,
                                         proteinTagMap,
                                         setRequiredProteinTags,
-                                        proteinIsLoading
+                                        proteinIsLoading,
+                                        labelIsProtein : true
+                                    
                                     }} />
                                     </Card> 
                                     // </div>

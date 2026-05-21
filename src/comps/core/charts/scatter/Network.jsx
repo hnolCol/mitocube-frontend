@@ -131,10 +131,7 @@ export function Network({
     triggerResetAxis,
     setTriggerResetAxisZoom
 }) {
-    //console.log(colorName)
-    // Plots an array of points. Each item in the array
-    // must be an object including the following keys: x, y, r
- 
+
     const [zoomActive, setZoomActive] = useState(initZoomState)    
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0

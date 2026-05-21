@@ -10,6 +10,8 @@ import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 import { VolcanoDataHandler } from "./DataHandler";
 import { PersistentCollapse } from "@/comps/core/base/collapse/Collapse";
 import { FavoriteProteinSelection } from "@/comps/core/base/protein/FavoriteProteinSelection";
+import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
+import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 
 
 
@@ -38,15 +40,29 @@ function HiddenSuffixes({ hiddenSuffixes, setHiddenSuffixes }) {
 
 
 export function VolcanoPlotWrapper({ submission_tag }) {
+
     const [pairWiseOpen, setPairWiseOpen] = useState(true)
+    const [quickSelectOpen, setQuickSelectOpen] = useState({proteins : false, annotations : false, conditions : true})
     const [testParams, setTestParams] = useState({})
     const [hiddenSuffix, setHiddenSuffix] = useState([])
     const [isFetching, setIsFetching] = useState(false)
     const [error, setError] = useState({ isOpen: false, message: "" })
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
+    const [favoriteProteinSelection, setFavoriteProteinSelection] = useState({ values: [], trigger: undefined, key: "tag" })
+    const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
+    
     const handleVolcano = (props) => {
         setTestParams(props)
     }
+
+    const handleFavoriteSelect = (proteinTag) => {
+        setFavoriteProteinSelection(prevValues => { return { ...prevValues, values : addStringToArrayOrRemove({ array: prevValues.values, string: proteinTag }), trigger: Math.random() } })
+    }
+    const handleProteinHover = (proteinTag) => {
+
+        setProteinHoverResults(prevValues => { return { ...prevValues, values: proteinTag ? [proteinTag] : [], trigger: Math.random() } })
+    }
+
     return (
         <div className="div--expand flex">
             <Dialog isOpen={error.isOpen} onClose={() => setError({isOpen : false, message : undefined})} title="Error in Volcano Plot Generation">
@@ -57,11 +73,28 @@ export function VolcanoPlotWrapper({ submission_tag }) {
             </Dialog>
             <div className="flex" style={{flexGrow : 1, alignContent : "flex-start"}}>
                 <div className="padding--medium" style={{height : "90vh"}}>
-                    <PersistentCollapse isOpen={pairWiseOpen} duration={0.65} direction="horizontal" >
-                        <ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching }} />
+                    <PersistentCollapse isOpen={pairWiseOpen} duration={0.65} direction="horizontal" horizontalWidth="400px" >
+                        
+                        <button className="basic-button div--expand margin--little" style={{backgroundColor : HIGHLIGHT_COLOR, color : "white"}}
+                            onClick={() => setQuickSelectOpen(prev => ({ ...prev, conditions: !prev.conditions }))}>
+                            <span>Volcano Plot Settings</span>
+                        </button>
 
-                        <h2>Quick Select</h2>
-                        <FavoriteProteinSelection submission_tags={[submission_tag]}/>
+                        <PersistentCollapse isOpen={quickSelectOpen.conditions} direction="vertical" duration={0.65} >        
+                            <div className="padding--medium"><ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching }} /></div>
+                        </PersistentCollapse>
+                        <h3>Quick Select</h3>
+                        <span>Annotate favorite proteins or annotations in volcano plots.</span>
+                        <button className="basic-button div--expand margin--little" onClick={() => setQuickSelectOpen(prev => ({ ...prev, proteins: !prev.proteins }))}><span>Proteins</span></button>
+                            <PersistentCollapse isOpen={quickSelectOpen.proteins} direction="vertical" duration={0.65} >        
+                                <FavoriteProteinSelection selected={favoriteProteinSelection.values} submission_tags={[submission_tag]} onSelect={handleFavoriteSelect} onHover={handleProteinHover} />
+                        </PersistentCollapse>
+
+
+                        <button className="basic-button div--expand margin--little" onClick={() => setQuickSelectOpen(prev => ({ ...prev, annotations: !prev.annotations }))}><span>Annotations</span></button>
+                            <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} >        
+                        </PersistentCollapse>                        
+
 
                     </PersistentCollapse>
                 </div>
@@ -76,7 +109,9 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                     setIsFetching,
                     onError: setError,
                     hiddenSuffix,volcanoData, setVolcanoData,
-                    setHiddenSuffix
+                    setHiddenSuffix,
+                        favoriteProteinSelection,
+                    proteinHoverResults
                     }} />
                     </div>
                 </div>
@@ -86,7 +121,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
     return <WithTagMaps
@@ -102,6 +137,8 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                         onError,
                         hiddenSuffix,
                         setHiddenSuffix,
-                        setRequiredProteinTags
+                        setRequiredProteinTags,
+                        favoriteProteinSelection,
+                        proteinHoverResults
                     }} />
 }

@@ -7,6 +7,7 @@ import { AxisSelection } from "./AxisSelection"
 import { AnnotationSelection } from "./AnnotationSelection"
 import _ from "lodash"
 import { StringSearch } from "./StringSearch"
+import { ResetZoomSVG } from "../../svg/icons/chartSelection/ResetZoom"
 
 
 ScatterDataSelection.propTypes = {
@@ -99,7 +100,7 @@ export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, se
                 <div className="flex">
                     <Divider />
                     <DownloadData elements={downloadElements} elementNames={elementNames} elementTypes={elementTypes} fileNames={fileNames} itemIsAttribute={itemIsAttribute} />
-                    <button onClick={() => setTriggerResetAxisZoom(chartIdx)}>Reset zoom</button>
+                    <button style={{border : "none", backgroundColor : "transparent"}} onClick={() => setTriggerResetAxisZoom(chartIdx)}><ResetZoomSVG /></button>
             </div>
 
             </div>

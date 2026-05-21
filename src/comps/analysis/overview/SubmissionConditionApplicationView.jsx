@@ -49,8 +49,7 @@ export function SubmissionConditionApplicationView({ submission_tag }) {
     )
     
     const canEdit = permissions?.edit === true
-    // console.log("selected_traits", selected_traits)
-    // console.log("submission_ca_data", submission_ca_data)
+
     
 
     const handleOpen = () => {

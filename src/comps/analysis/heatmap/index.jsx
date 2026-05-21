@@ -43,7 +43,9 @@ function HeatmapLoad( {submission_tag} ) {
             testProps,
             setTestProps,
             viewProps,
-            setViewProps, unique_ca_tags, setRequiredProteinTags
+        setViewProps, unique_ca_tags, setRequiredProteinTags,
+        showProteinSearch: true,
+        proteinSearchProps : {submission_tag}
         }} />
 }
 
@@ -52,7 +54,9 @@ function DatasetHeatmap() {
 
     const { submission_tag } = useOutletContext()
 
-   return <HeatmapLoad submission_tag={submission_tag} />
+    return <div>
+        <h2>Hierarchical Clustering</h2><HeatmapLoad submission_tag={submission_tag} />
+        </div>
 
 
 }
@@ -96,7 +100,7 @@ function HeatmapViz({
 
     return (
         <div>
-            <h2>Hierarchical Clustering</h2>
+            
             <h3>Settings</h3>
             
                 {attribute_tags.length > 1 ? <div>
@@ -159,13 +163,6 @@ function HeatmapViz({
                     }, didx) => {
                         return (
                             <div>
-                            
-                                <div className="flex center-items" style={{ gap: "10px", marginLeft: "2rem", marginRight: "2rem" }}>
-                                    <div style={{ flex: 1 }}><FeatureSearch compare_to_list={data.map(t => t.tag)} onIndexFind={(idcs) => handleSearchByDataIndex(chartIdx, idcs)} /></div>
-                                    <Checkbox label="Show search results in profile plot" checked={viewProps.showSearchInProfile} onChange={(e) => setViewProps({ ...viewProps, showSearchInProfile: e.target.checked })} />
-                                </div>
-                            
-                            
                             
                                 <div className="flex" style={{ display: "flex", height: "75vh" }}>
                                 

@@ -21,8 +21,6 @@ export function InsertEditExternalService({
     preBilling_number = "",
     preInternal_id = "",
 }) {
-
-    console.log(onSuccess, _.isFunction(onSuccess));
     
     const [externalservice, setExternalService] = useState(INITIAL_EXTERNAL_SERVICE);
     const {mutate : postExternalService, isLoading, isError, error, isSuccess } = api.maintenance.externalservice.modifyExternalService.usePostExternalService({
@@ -62,14 +60,11 @@ export function InsertEditExternalService({
             internal_id: externalservice.internal_id
         };
 
-        console.log("externalservice:", externalservice)
-
         postExternalService(data, {
             onSuccess: (external_service_tag) => {
                 setExternalService(INITIAL_EXTERNAL_SERVICE);
         
                 if (_.isFunction(onSuccess)) {
-                    console.log(external_service_tag)
                     onSuccess(external_service_tag);
                 }
         

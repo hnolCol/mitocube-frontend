@@ -37,7 +37,7 @@ import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
-import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI } from "./features";
+import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, proteinFavoritesAPI } from "./features";
 import { statsAPI } from "./stats";
 import { cyperOpenAIAPI } from "./openai";
 
@@ -69,7 +69,8 @@ export const api = {
         data : featuresDataAPI,
         info : featuresInfoAPI,
         pairwiseQuant : featuresPairwiseQuantAPI,
-        proteinsQuery : featuresProteinsQueryAPI,
+        proteinsQuery: featuresProteinsQueryAPI,
+        proteinsFavorite : proteinFavoritesAPI,
         quantifications : featuresQuantificationsAPI,
         ranking : featuresRankingAPI,
         sequence : featuresSequenceAPI,

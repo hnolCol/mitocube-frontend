@@ -1,4 +1,5 @@
 import { api } from "@/api";
+import { ProteinFavorite } from "@/comps/protein/charts/overview/ProteinFavorite";
 import _ from "lodash"
 /**
  * 
@@ -21,7 +22,10 @@ export function ProteinMenuItem({ tag, onClick, active = false, selected = false
                     onClick(tag, e)
                 }}>
                 <div className="flex justify-space-between">
-                    <div className="menu_item_text">{protein.gene_name} | {protein.tag}</div>
+                    <div className="flex center-items">
+                        <div style={{ marginRight: "0.5rem" }}><ProteinFavorite tag={tag} size={19} justIcon={true} /></div>
+                        <div className="menu_item_text">{protein.gene_name} | {protein.tag}</div>
+                    </div>
                     <div className="menu_item_description">{protein.protein_name}</div>
                 </div> 
             </button> : null}

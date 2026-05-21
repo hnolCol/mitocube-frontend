@@ -73,8 +73,6 @@ export function MaintenanceExternalServices({ maintenance_event, refetch, refetc
             },
             {
                 onSuccess: () => {
-                    console.log("LINK SUCCESS")
-                    console.log(maintenance_event)
                     setDialogOpen(false)
                     refetch()
                     if (refetchCosts) refetchCosts()
