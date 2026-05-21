@@ -106,16 +106,23 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
     const genotypeTagString = _.isArray(submissionFilter["genotype_tag"]) && submissionFilter["genotype_tag"].length > 0
         ? _.join(submissionFilter["genotype_tag"], ";")
         : null
-    
+    const caTagsString = _.isArray(submissionFilter["ca_tags"]) && submissionFilter["ca_tags"].length > 0
+    ? _.join(submissionFilter["ca_tags"], ";")
+    : null
+
     const { data: submission_by, isLoading, isFetching, isSuccess, isError, error } = api.submissions.query.useGetSubmissionByQuery({
             search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
+            limit: submissionsQuery.limit,
             group_by_state: submissionByState,
             group_by_user :submissionByUser,
             state: stateFilter,
             genotype_tag: genotypeTagString,
             user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
             attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
-            attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" })
+            ca_tags: caTagsString,
+            attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
+            ca_search_string: submissionFilter.ca_search_string || null,
+            include_sample_ca: submissionFilter.include_sample_ca || false,
         }, { staleTime: 0 })
     return (<div>
 
@@ -141,28 +148,34 @@ SubmissionContainer.propTypes = {
 }
 
 
-
-export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState }) {
-
+export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, ...props}) {
     const [orderBy, setOrderBy] = useState("state")
     const fixedState = _.isNumber(validState)
-    const stateFilter = fixedState ? _.toString(validState) : _.has(submissionFilter, "states") && submissionFilter.states.size > 0
-        ? _.join(Array.from(submissionFilter.states), ";")
+    const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
+        ? _.join(Array.from(submissionFilter.states),";") 
+
         : null
     
     const genotypeTagString = _.isArray(submissionFilter["genotype_tag"]) && submissionFilter["genotype_tag"].length > 0
         ? _.join(submissionFilter["genotype_tag"], ";")
         : null
 
+    const caTagsString = _.isArray(submissionFilter["ca_tags"]) && submissionFilter["ca_tags"].length > 0
+    ? _.join(submissionFilter["ca_tags"], ";")
+    : null
+
     const { data: counts, isSuccess } = api.submissions.query.useGetSubmissionQueryCount({
         search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
+        limit: submissionsQuery.limit,
         state: stateFilter,
         genotype_tag: genotypeTagString,
         user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
+        ca_tags: caTagsString, 
         trait_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
         attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" }),
         include_sample_ca: submissionFilter.include_sample_ca || false,
+        ca_search_string: submissionFilter.ca_search_string || null,
     }, { staleTime: 0 })
 
     return (
