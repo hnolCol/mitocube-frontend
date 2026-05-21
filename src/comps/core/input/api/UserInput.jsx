@@ -14,7 +14,7 @@ export function UserFullName({ tag }) {
 
 export function UserMenuItem({ tag, handleClick, handleFocus, modifiers }) {
     
-    const { data: user, isSuccess } = api.users.modify.museGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
     return isSuccess ? <MenuItem
         key={tag}
         text={getUserFullName(user)}
@@ -41,6 +41,7 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
      * @returns 
      */
     const renderUser = (user_tag, { handleClick, handleFocus, index, modifiers, query }) => {
+        console.log(user_tag)
         return <UserMenuItem tag={user_tag} {...{ handleClick, handleFocus, modifiers}} />
      
     }
@@ -72,12 +73,12 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
         <MultiSelect
             disabled={disabled}
             itemRenderer={renderUser}
-            items={_.isArray(user_tags) ? user_tags : []}
+            items={user_tags}
             tagRenderer={renderValue}
             selectedItems={selected_users}
             onItemSelect={handleUserSelection}
             onRemove={handleUserSelection}
-            resetOnSelect={true}
+            resetOnSelect={false}
             query={queryString}
             fill = {true}
             onQueryChange={(query) => setQueryString(query)}
@@ -87,9 +88,9 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
                 rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
                 inputProps : {intent : "primary"},
                 tagProps: { minimal: true },
-                placeholder : "User search starts on typing ..."
+                placeholder : "Find a colleague ..."
             }}
-            initialContent={null}
+            
             />
         </FormGroup>
 }

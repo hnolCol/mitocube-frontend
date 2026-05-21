@@ -15,6 +15,7 @@ import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationS
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
+import { Attribute } from "@/comps/core/base/attributes/Attribute";
 
 
 
@@ -37,15 +38,16 @@ function HeatmapLoad( {submission_tag} ) {
     const unique_ca_tags = _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
 
     
-    return <WithTagMaps Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} protein_tags={requiredProteinTags} {...{
+    return <WithTagMaps
+            Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} protein_tags={requiredProteinTags} {...{
             heatmapData,
             submissionSampleConditionApplications,
             testProps,
             setTestProps,
             viewProps,
-        setViewProps, unique_ca_tags, setRequiredProteinTags,
-        showProteinSearch: true,
-        proteinSearchProps : {submission_tag}
+            setViewProps, unique_ca_tags, setRequiredProteinTags,
+            showProteinSearch: true,
+            proteinSearchProps : {submission_tag}
         }} />
 }
 
@@ -75,7 +77,9 @@ function HeatmapViz({
         attribute_tags,
     setRequiredProteinTags,
     proteinTagMap,
-        refetchedTrigger
+    refetchedTrigger,
+    proteinSearchResults,
+    proteinIsLoading
 }) {
     
 
@@ -99,15 +103,16 @@ function HeatmapViz({
    
 
     return (
-        <div>
-            
+        <div className="flex">
+            <div style={{maxWidth : "300px"}}>
             <h3>Settings</h3>
             
                 {attribute_tags.length > 1 ? <div>
                 <span>Select a condition application attribute to perform the statistical analysis. By default the all attributes are considered.</span><AttributeSelection
                     attribute_tags={attribute_tags}
                     selected={testProps.selected_ca_attribute_tags}
-                    onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> </div>: null}
+                    onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> </div> : 
+                <div className="flex" style={{gap : "0.2rem"}}><span>Statistics is calculated using</span> <Attribute attribute_tag={attribute_tags[0]} /></div>}
                 
             <div className="flex flex-column">
                 <span>Select an annotation to subset the data.</span>
@@ -127,17 +132,19 @@ function HeatmapViz({
             <div className="flex center-items" style={{ gap: "10px" }}>
                                 <div className="flex flex-column center-items"><div>FDR cutoff:</div></div>
                                  <NumericValueInput minValue={-0.01} maxValue={1.0} placeholder="Enter FDR cutoff" label="FDR Cutoff" value={testProps.fdr} onValueChange={(_,value) => setTestProps({...testProps, fdr: value})} />
+                </div>
             </div>
             
             
             <InteractiveChart
                 data={heatmapData.data}
+                externalSearchResult={proteinSearchResults}
                 keyNames={[
                     {
                         xaxisName: undefined,
                         yaxisName: heatmapData.value_names,
                     }]}
-                passOnProps={{ refetchedTrigger, setRequiredProteinTags, proteinTagMap }}
+                passOnProps={{ refetchedTrigger, setRequiredProteinTags, proteinTagMap, proteinIsLoading }}
                 isPointChart={[false]}>
                 {
                     /**
@@ -159,7 +166,8 @@ function HeatmapViz({
                         filterProps,
                         refetchedTrigger,
                         setRequiredProteinTags,
-                        proteinTagMap
+                        proteinTagMap,
+                        proteinIsLoading
                     }, didx) => {
                         return (
                             <div>
@@ -220,7 +228,7 @@ function HeatmapViz({
                                                 ...hoverProps,
                                                 isLabelFeatureTag: true,
                                                 selectedClusters: viewProps.selectedCluster.map(c => _.toNumber(c.tag)),
-                                            
+                                                proteinIsLoading
                                             }} />
                                     </div>
                                 </div>
