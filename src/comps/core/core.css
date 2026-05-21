@@ -524,7 +524,44 @@ h5 {
     opacity: 0.2;
     
 }
+.dropdown-button {
+    width: 100%;
+    padding: 4px 8px;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 12px;
+    transition: all 0.15s ease;
+}
 
+.dropdown-button:hover {
+    background: #f5f8fa;
+    box-shadow: 0 1px 3px rgba(16, 22, 26, 0.12);
+}
+
+.dropdown-button--ca {
+    border-left: 3px solid #d8e1e8;
+}
+
+.dropdown-button--attribute {
+    background: #ebf1f5;
+    border-left: 3px solid #2b95d6;
+}
+
+.dropdown-button--attribute:hover {
+    background: #d8e6f0;
+}
+
+.dropdown-button--trait {
+    background: #eef6ee;
+    border-left: 3px solid #0f9960;
+}
+
+.dropdown-button--trait:hover {
+    background: #d9edd9;
+}
 .dialog-button {
     background: #f3f4f6;
     color: #374151;

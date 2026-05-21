@@ -8,8 +8,10 @@ import { GenotypeDatasetFilter } from "./GenotypeFilter"
 import { ConditionApplicationFilter } from "./ConditionApplicationFilter"
 import { SUBMISSIONS_BY_OPTIONS } from "../view/SubmissionContainer"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { useSearchParams } from "react-router-dom";
 
 
+const LIMIT_OPTIONS = [20, 30, 50, 100, 150]
 
 export function SubmissionFilterSelection({
         submissionsQuery,
@@ -25,14 +27,30 @@ export function SubmissionFilterSelection({
     const [searchString, setSearchString] = useState(submissionsQuery.plain)
     const debouncedString = useDebounce(searchString, 200)
     useEffect(() => { setSubmissionQuery(prevValues => { return { ...prevValues, plain: debouncedString } }) }, [debouncedString])
+    
+    const [searchParams, setSearchParams] = useSearchParams()
+
+    const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) 
+        ? _.toNumber(searchParams.get("limit")) 
+        : LIMIT_OPTIONS[0]
+
+        useEffect(() => {
+            setSubmissionQuery(prevValues => {
+                return { ...prevValues, limit: selectedLimit }
+            })
+        }, [selectedLimit])
         
+    const updateLimit = (limit) => {
+        const newParams = new URLSearchParams(searchParams)
+        newParams.set("limit", limit)
+        setSearchParams(newParams, { replace: true })
+    }
     return (
         <div className="submission__wrapper">
 
         <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
             
-                <h3>{header} ({isSuccess ? submissionQueryResult.query_count : "0"}/{isSuccess ? submissionQueryResult.total_count : "0"})</h3>
-                
+        <h3>{header} ({isSuccess ? Math.min(submissionQueryResult.query_count, selectedLimit) : "0"}/{isSuccess ? submissionQueryResult.query_count : "0"})</h3>
                 <div className="flex center-items" style={{ width: "100%" }}>
                     <div>
                         <input
@@ -47,8 +65,21 @@ export function SubmissionFilterSelection({
                  <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
                 </div>
                 <div>
+                    <div className="flex" >
+                        {LIMIT_OPTIONS.map(option => (
+                            <OptionButton
+                                key={option}
+                                onClick={() => updateLimit(option)}
+                                isSelected={option === selectedLimit}
+                            >
+                                {option}
+                            </OptionButton>
+                        ))}
+                    </div>
+            </div>
+                <div style={{ marginTop: "0.5rem" }}>
                     <h4>View By</h4>
-                    <div className="flex center-items">{SUBMISSIONS_BY_OPTIONS.map(option => <OptionButton key={option} isSelected={orderBy === option} onClick={() => setOrderBy(option)}  children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />)}</div>
+                    <div className="flex center-items" >{SUBMISSIONS_BY_OPTIONS.map(option => <OptionButton key={option} isSelected={orderBy === option} onClick={() => setOrderBy(option)}  children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />)}</div>
                     </div>
             {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
