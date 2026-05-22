@@ -185,7 +185,7 @@ export function EditAnnotationDialog({ isOpen, onClose, tag, onSuccess }) {
       isOpen={isOpen}
       title="Edit Annotation"
       onClose={onClose}
-      style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }}
+      style={{ width: "min(600px,85vw)", height: "auto" }}
       canOutsideClickClose={false}
     >
       <div

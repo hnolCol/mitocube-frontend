@@ -195,7 +195,7 @@ export function InsertAnnotationGroup({
 export function AddAnnotationGroupDialog({ isOpen, onClose, onSuccess }) {
 
     return (
-        <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(85vh, 900px)" }} canOutsideClickClose={false}>
+        <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(65vh, 1500px)" }} canOutsideClickClose={false}>
             <div className="padding--medium" style={{ height: "95%" }}>
                 <div style={{ height: "100%", width: "95%" }}>
                     <InsertAnnotationGroup onClose={onClose} onSuccess={onSuccess} />
