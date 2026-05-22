@@ -10,7 +10,7 @@ export function FavoriteProteinSelection({ submission_tags, proteome_tags, annot
 
     return (
         <div className="flex flex-column" style={{maxHeight, overflowY : "scroll", overflowY : "overlay",gap: "0.2rem"}}>
-            {_.isArray(favorites) && favorites.map(protein_tag => <Protein redirect_to_protein_site={false} key={protein_tag} disableTooltip tag={protein_tag} onClick={onSelect} highlight={selected.includes(protein_tag)} disableHover={!_.isFunction(onHover)} onHover={onHover} />)}
+            {_.isArray(favorites) && favorites.map(protein_tag => <Protein redirect_to_protein_site={false} key={protein_tag} disableTooltip tag={protein_tag} onClick={onSelect} highlight={selected.includes(protein_tag)} disableHover={!_.isFunction(onHover)} onHover={onHover} fill/>)}
         </div>
     )
 }

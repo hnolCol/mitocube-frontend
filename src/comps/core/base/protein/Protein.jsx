@@ -49,13 +49,14 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
     if (isError || isLoading || _.isNull(feature)) return null
     if (inSVG) return <Text {...svgTextProps}>{feature.gene_name}</Text>
     if (minimal && isSuccess) return <div>{feature.gene_name}</div>
-    return <div>
+    return <div >
         {isSuccess ? <motion.div
             style={{ ...style, backgroundColor: highlight ? motionBackgroundColor : backgroundColor, color: fontColor, fontSize: "0.75rem" } } //lighter ? "#efefef" :
             className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
             whileHover={{ backgroundColor: motionBackgroundColor, color: "#ffffff"}}
         >
             <Popover disabled={disableTooltip}
+                fill={fill}
                 popoverClassName="margin--little"
                 content={
                 <div className="padding--little bg--grey margin--little" style={{ maxWidth: "28rem" }}>

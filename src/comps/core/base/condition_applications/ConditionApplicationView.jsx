@@ -38,16 +38,18 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                             </span>
                         )) 
                         : <div>{value}</div> : null}
-                    {is_protein ? null : trait_text} 
+                    {is_protein ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
                     {add_separator ? <div>,</div> : null}
                 {/* </div> */}
                 </div>
                 
-                {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem" }}>
-                    <div>(</div>
+                {_.isArray(children) && children.length > 0 ? <div className="flex flex-column center-items" style={{ gap: "0.1rem" }}>
+                {show_attribute ? null : <div>(</div>}
+                <div className="flex">
                     {children.map((child, idx) =>
                         <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
-                <div>)</div>
+                </div>
+                {show_attribute ? null : <div>)</div>}
                 </div>
                     : null}
                 

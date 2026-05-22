@@ -44,7 +44,7 @@ function SubmissionAnalysisHeader({ }) {
                     { text: "Samples", to: `${urlStart}/samples` },
                     { text: "Volcano", to: `${urlStart}/volcano` },
                     { text: "Exclusively", to: `${urlStart}/exclusively` },
-                    { text: "Compare", to: `${urlStart}/compare`},
+                    // { text: "Compare", to: `${urlStart}/compare`},
                     { text: "Heatmap", to: `${urlStart}/heatmap` },
                     { text: "PCA", to: `${urlStart}/pca` }, 
                     { text: "Annotation Map", to: `${urlStart}/annotationmap` }, 
