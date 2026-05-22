@@ -239,23 +239,23 @@ export function VolcanoDataHandler({
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
                                         </div>
-                                    <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
+                                    {_.isArray(volcanoData.data) && volcanoData.data.length > 0 && _.isObject(volcanoData.data[0]) ? <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                         {...{
-                                        numericKeyNames : numericKeyNames,
-                                        selection : volcanoData.selection[didx],
-                                        setSelection: handleSelection,
-                                        idx: didx,
-                                        chartIdx, 
-                                        setTriggerResetAxisZoom,
-                                        // handleStringSearch,
-                                        downloadElements: [`volcano-${didx}`, volcanoData.data],
-                                        elementNames: ["SVG","DIVIDER",`Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
-                                        fileNames: [`${submission_tag}-VolcanoPlot.svg`,`${submission_tag}-VolcanoPlot-Data.txt`],
-                                        elementTypes: ["svg", "data"],
-                                        itemIsAttribute: false,
-                                        onAnnotationSelect: handleAnnotationSelect,
-                                        handleSearchByDataIndex
-                                        }} />
+                                            numericKeyNames: numericKeyNames,
+                                            selection: volcanoData.selection[didx],
+                                            setSelection: handleSelection,
+                                            idx: didx,
+                                            chartIdx,
+                                            setTriggerResetAxisZoom,
+                                            // handleStringSearch,
+                                            downloadElements: [`volcano-${didx}`, volcanoData.data],
+                                            elementNames: ["SVG", "DIVIDER", `Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
+                                            fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
+                                            elementTypes: ["svg", "data"],
+                                            itemIsAttribute: false,
+                                            onAnnotationSelect: handleAnnotationSelect,
+                                            handleSearchByDataIndex
+                                        }} /> : null}
                                     
                                     <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
