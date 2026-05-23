@@ -43,7 +43,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                 {/* </div> */}
                 </div>
                 
-                {_.isArray(children) && children.length > 0 ? <div className="flex flex-column center-items" style={{ gap: "0.1rem" }}>
+                {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem" }}>
                 {show_attribute ? null : <div>(</div>}
                 <div className="flex">
                     {children.map((child, idx) =>

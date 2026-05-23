@@ -149,6 +149,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
             
             <Popover
                 isOpen={showDropdown}
+                onClose={() => setShowDropdown(false)}
                 content={
                     <div style={{ minWidth: "700px", maxHeight: "50vh", overflowY: "auto" }}>
 
@@ -158,8 +159,10 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                 minimal
                 matchTargetWidth={false}
                 placement="bottom-start"
-                enforceFocus={false}
-                autoFocus={false}
+                // enforceFocus={false}
+                // autoFocus={false}
+                canEscapeKeyClose={true}
+                
             >
                 <InputGroup
                     leftIcon="search"

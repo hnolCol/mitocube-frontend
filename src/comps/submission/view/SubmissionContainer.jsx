@@ -151,7 +151,7 @@ SubmissionContainer.propTypes = {
 export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, ...props}) {
     const [orderBy, setOrderBy] = useState("state")
     const fixedState = _.isNumber(validState)
-    const stateFilter = _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
+    const stateFilter = _.isNumber(validState) ? _.toString(validState) : _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
         ? _.join(Array.from(submissionFilter.states),";") 
 
         : null
