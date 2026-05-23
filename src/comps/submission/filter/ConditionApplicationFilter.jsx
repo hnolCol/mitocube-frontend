@@ -87,33 +87,33 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         enabled : _.isString(searchString) && searchString.length >= 1
     });
 
-    console.log(allCAs)
-    const filteredCAs = useMemo(() => {
-        if (!allCAs || !searchString || searchString.length < 2) return [];
+    // const filteredCAs = useMemo(() => {
+    //     if (!allCAs || !searchString || searchString.length < 2) return [];
         
-        const lowerSearch = searchString.toLowerCase();
-        const matching = allCAs.filter(ca => {
-            const traitSearch = ca.trait_search || "";
-            const attributeSearch = ca.attribute_search || "";
-            return traitSearch.toLowerCase().includes(lowerSearch) || 
-                   attributeSearch.toLowerCase().includes(lowerSearch);
-        });
+    //     const lowerSearch = searchString.toLowerCase();
+    //     const matching = allCAs.filter(ca => {
+    //         const traitSearch = ca.trait_search || "";
+    //         const attributeSearch = ca.attribute_search || "";
+    //         return traitSearch.toLowerCase().includes(lowerSearch) || 
+    //                attributeSearch.toLowerCase().includes(lowerSearch);
+    //     });
         
-        const deduped = {};
-        matching.forEach(ca => {
-            if (!deduped[ca.trait_tag]) {
-                deduped[ca.trait_tag] = {
-                    ...ca,
-                    frequency: ca.frequency
-                };
-            } else {
-                deduped[ca.trait_tag].frequency += ca.frequency;
-            }
-        });
+    //     const deduped = {};
+    //     matching.forEach(ca => {
+    //         if (!deduped[ca.trait_tag]) {
+    //             deduped[ca.trait_tag] = {
+    //                 ...ca,
+    //                 frequency: ca.frequency
+    //             };
+    //         } else {
+    //             deduped[ca.trait_tag].frequency += ca.frequency;
+    //         }
+    //     });
         
-        return Object.values(deduped).sort((a, b) => b.frequency - a.frequency);
-    }, [allCAs, searchString]);
-    console.log(submissionFilter)
+    //     return Object.values(deduped).sort((a, b) => b.frequency - a.frequency);
+    // }, [allCAs, searchString]);
+    // console.log(submissionFilter)
+
     const selectedCATags = submissionFilter.ca_tags || [];
 
     const handleSearchChange = (e) => {
@@ -122,7 +122,6 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
 
     const handleSelectCA = (ca_tag) => {
         const updatedCATags = addStringToArrayOrRemove({ array: submissionFilter.ca_tags || [], string: ca_tag})
-        console.log("updatedCATags", updatedCATags)
         setSubmissionFilter(prev => ({
             ...prev,
             ca_tags: updatedCATags
@@ -159,8 +158,8 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                 minimal
                 matchTargetWidth={false}
                 placement="bottom-start"
-                // enforceFocus={false}
-                // autoFocus={false}
+                enforceFocus={false}
+                autoFocus={false}
                 canEscapeKeyClose={true}
                 
             >
