@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button, Checkbox, InputGroup, MenuItem, Menu, Popover } from "@blueprintjs/core";
 import { api } from "@/api";
 import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView";
@@ -77,6 +77,7 @@ function CAHItem({ cahierarchy, onSelect, level = 0 }) {
 }
 export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter }) {
     const [searchString, setSearchString] = useState("");
+    const [showDropdown, setShowDropdown] = useState(false);
     const [includeSampleLevel, setIncludeSampleLevel] = useState(submissionFilter.include_sample_ca || false);
 
     const { data: allCAs, isLoading, error } = api.condition_applications.useGetConditionApplicationHierarchyByQuery({
@@ -86,6 +87,15 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         staleTime: 300000,
         enabled : _.isString(searchString) && searchString.length >= 1
     });
+
+    useEffect(() => {
+        if (searchString.length === 0) {
+            setShowDropdown(false);
+        }
+        else if (!showDropdown) {
+            setShowDropdown(true);
+        }
+    }, [searchString]);
 
     // const filteredCAs = useMemo(() => {
     //     if (!allCAs || !searchString || searchString.length < 2) return [];
@@ -140,7 +150,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         }));
     };
 
-    const showDropdown = searchString.length >= 2 
+   
 
     return (
         <div style={{ width: "100%", paddingRight: "0.1rem" }}>
