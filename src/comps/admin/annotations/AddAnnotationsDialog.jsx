@@ -210,7 +210,7 @@ export function AddAnnotationDialog({ isOpen, onClose, group_tag, onSuccess }) {
       isOpen={isOpen}
       title="Add Annotation"
       onClose={onClose}
-      style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }}
+      style={{ width: "min(600px,85vw)", height: "auto" }}
       canOutsideClickClose={false}
     >
 

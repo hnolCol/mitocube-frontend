@@ -1,49 +1,116 @@
-
 import _ from "lodash"
 import { useOutletContext } from "react-router"
 import { StaticStateIndicator } from "../../core/base/states/SubmssionState"
-
 import { CreatedAt } from "../../core/metrics/CreatedAt"
-
 import { api } from "@/api"
 
 function Timeline() {
     const { submission_tag } = useOutletContext()   
-
-    const { data: created_at, isSuccess : isCreatedAtSuccess } = api.submissions.core.useGetSubmissionCreatedAt({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
+    
+    const { data: created_at, isSuccess: isCreatedAtSuccess } = api.submissions.core.useGetSubmissionCreatedAt(
+        { tag: submission_tag }, 
+        { enabled: _.isString(submission_tag) && submission_tag.length > 0 }
+    )
+    
     const { data: state, isSuccess } = api.submissions.states.useGetSubmissionState({ tag: submission_tag })
-    // const { data : timeline, isLoading : timelineIsLoading, isFetching : timelineIsFetching, isSuccess : timelineIsSuccess } = useGetTimelineBySubmissionTag({submission_tag})
-    //map the submission_state(int) to the submission name
-    // const timeline_data = timelineIsSuccess && _.isArray(timeline) ?
-    //     timeline.map(tl => {
-    //         return {
-    //             ...tl,
-    //             "submission_text": submissionStates.states_inv[tl.submission_state]
-    //         }
-    //     }) : []
+    
+    const { data: stateHistory, isLoading: historyIsLoading, isSuccess: historyIsSuccess } = api.submissions.states.useGetStateHistory(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) && submission_tag.length > 0 }
+    )
+
+    const formatUserName = (entry) => {
+        if (entry.user_firstname || entry.user_lastname) {
+            return `${entry.user_firstname || ''} ${entry.user_lastname || ''}`.trim()
+        }
+        return null
+    }
+
+    const formatDuration = (startTime, endTime) => {
+        const diffMs = endTime - startTime
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+        const diffMinutes = Math.floor(diffMs / (1000 * 60))
+
+        if (diffDays > 0) {
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''}`
+        } else if (diffHours > 0) {
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`
+        } else if (diffMinutes > 0) {
+            return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`
+        } else {
+            return 'less than a minute'
+        }
+    }
+
     return (
         <div>
-            {isSuccess ? <div>
-                <h2>Project Timeline</h2>
-                {isCreatedAtSuccess ? <p>Project started: <CreatedAt createdat={created_at} /></p> : null}
-                <div className="flex center-items">The current state of the project is : <StaticStateIndicator state_tag={state} padding="tiny" /></div>
-                <div className="flex center-items">The next state of your project will be :<StaticStateIndicator state_tag={state + 1} padding="tiny" /> </div>
+            {isSuccess ? (
+                <div>
+                    <h2>Project Timeline</h2>
+                    {isCreatedAtSuccess ? (
+                        <p style={{ marginBottom: "1.5rem" }}>
+                            Project started: <CreatedAt createdat={created_at} />
+                        </p>
+                    ) : null}
+                    
+                    <div className="flex center-items" style={{ marginBottom: "2rem" }}>
+                        The current state of the project is: <StaticStateIndicator state_tag={state} padding="tiny" />
+                    </div>
 
-                <div>Info: The average project time from submission to done is <span className="bold">X weeks</span>.</div>
+                    <h3 style={{ marginBottom: "1rem" }}>State History</h3>
+                    {historyIsLoading ? (
+                        <div>Loading timeline...</div>
+                    ) : historyIsSuccess && _.isArray(stateHistory) && stateHistory.length > 0 ? (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                            {stateHistory.map((entry, idx) => {
+                                const userName = formatUserName(entry)
+                                const nextEntry = stateHistory[idx + 1]
+                                const duration = nextEntry 
+                                    ? formatDuration(entry.created_at, nextEntry.created_at)
+                                    : null
 
-                {/* {timelineIsFetching || timelineIsLoading ? <Loading /> : timelineIsSuccess ?
-                    <TimelineChart
-                        data={timeline_data}
-                        dateName={"created_at"}
-                        height={800}
-                        labelName="submission_text"
-                        colorName="submission_state"
-                        tooltipNames={["content"]}
-                        colorMapper={submissionStates.colors_inv} /> : null} */}
-            </div> : null}
-            </div>
+                                return (
+                                    <div key={idx}>
+                                        <div 
+                                            className="flex" 
+                                            style={{ 
+                                                alignItems: "center"
+                                            }}
+                                        >
+                                            <span style={{ minWidth: "200px" }}>
+                                                <CreatedAt createdat={entry.created_at} />
+                                            </span>
+                                            <span style={{ margin: "0 1rem", color: "#999" }}>→</span>
+                                            <StaticStateIndicator state_tag={entry.state_tag} padding="tiny" />
+                                            {userName && (
+                                                <span style={{ marginLeft: "1rem", color: "#666", fontSize: "0.9rem" }}>
+                                                    by {userName}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {duration && (
+                                            <div style={{ 
+                                                marginLeft: "220px", 
+                                                marginTop: "0.25rem",
+                                                fontSize: "0.85rem",
+                                                color: "#999",
+                                                fontStyle: "italic"
+                                            }}>
+                                                Duration: {duration}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    ) : (
+                        <div>No state history available yet.</div>
+                    )}
+                </div>
+            ) : null}
+        </div>
     )
 }
-
 
 export default Timeline

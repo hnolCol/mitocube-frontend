@@ -7,6 +7,7 @@ import { EditGenotypeDialog } from "./AddGentoypeDialog"
 import { useState } from "react"
 import { set } from "lodash"
 import { DeleteGenotypeDialog } from "./DeleteGenotypeDialog"
+import { Tag } from "@blueprintjs/core"
 
 /**
  * React component to display genotype Item
@@ -53,6 +54,12 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
       
     }
 
+  const { data: sampleCount } = api.genotypes.queryGenotypes.useGetGenotypeSampleCount(
+    { genotype_tag: currentTag },
+    { staleTime: 60_000 }
+  )
+  
+
   return (
     <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
       
@@ -66,16 +73,18 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
        
         <GenotypeText tag={currentTag} update={update} />
         <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
-                <button onClick={() => setIsOpen(true)} className="basic-button ">
-                    Edit
-                </button>
-
-                {canShowRemoveButton && (
-                    <button onClick={handleRemove} className="basic-button ">
-                        Delete
-                    </button>
-                )}
-        </div>
+          <Tag
+              minimal
+              intent={sampleCount > 0 ? "success" : "none"}
+              title={`Used in ${sampleCount ?? 0} sample(s)`}
+          >
+              {sampleCount > 0 ? `${sampleCount} sample${sampleCount !== 1 ? "s" : ""}` : "Unused"}
+          </Tag>
+          <button onClick={() => setIsOpen(true)} className="basic-button">Edit</button>
+          {canShowRemoveButton && (
+              <button onClick={handleRemove} className="basic-button">Delete</button>
+          )}
+      </div>
       </div>
 
 

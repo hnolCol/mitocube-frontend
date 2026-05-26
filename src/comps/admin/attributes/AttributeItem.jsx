@@ -25,38 +25,40 @@ export function AdminAttributeItem({ tag }) {
     const [mouseIsOver, setMouseIsOver] = useState(false)
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: tag && tag.length > 0 });
     return (
-        <motion.button
-            className="items-center"
-            onMouseEnter={(e) => setMouseIsOver(true)}
-            onMouseLeave={(e) => setMouseIsOver(false)}
+        <motion.div
+            onMouseEnter={() => setMouseIsOver(true)}
+            onMouseLeave={() => setMouseIsOver(false)}
             style={{
                 display: "grid",
-                backgroundColor: "#fff",
-                border: "none",
                 gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr",
                 gap: "16px",
+                alignItems: "center",
                 width: "100%",
-                textAlign: "left",
-                padding: "2px",
+                padding: "8px 12px",
+                borderBottom: "1px solid #f0f0f0",
+                backgroundColor: "#fff",
+                cursor: "pointer",
             }}
-            whileHover={{ backgroundColor: "#e0e0e0" }}
-            transition={{ duration : 0.1}}
+            whileHover={{ backgroundColor: "#f5f5f5" }}
+            transition={{ duration: 0.1 }}
             onClick={() => redirect(`/admin/attributes/${tag}`)}
         >
-            {_.isObject(attribute) && isSuccess && attribute.text && (
+            {_.isObject(attribute) && isSuccess && (
                 <>
-                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <span style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        fontWeight: 500,
+                    }}>
                         {attribute.text}
                     </span>
-                    <div>{mouseIsOver ? <TraitCount tag={tag} text="Traits" /> : null}</div>
-                    <div>
-                        {mouseIsOver ? <AttributeMinState tag={tag} /> : null}
-                    </div>
-                    {/* <span>{attribute.attribute_group}</span> */}
-                    <div>{mouseIsOver ? <div>allow input: <Code>{attribute.allow_input ? "TRUE" : "FALSE"}</Code></div>    : null}</div>
+                    <div>{mouseIsOver ? <TraitCount tag={tag} text="Traits" /> : null}</div> 
+                    <div>{mouseIsOver ? <AttributeMinState tag={tag} /> : null}</div>
+                    <div>{mouseIsOver ? <div>allow input: <Code>{attribute.allow_input ? "TRUE" : "FALSE"}</Code></div> : null}</div>
                     <div>{mouseIsOver ? <span>priority: {attribute.priority}</span> : null}</div>
                 </>
             )}
-        </motion.button>
+        </motion.div>
     )
 }
