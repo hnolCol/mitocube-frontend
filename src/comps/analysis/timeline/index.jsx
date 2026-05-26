@@ -1,10 +1,7 @@
-
 import _ from "lodash"
 import { useOutletContext } from "react-router"
 import { StaticStateIndicator } from "../../core/base/states/SubmssionState"
-
 import { CreatedAt } from "../../core/metrics/CreatedAt"
-
 import { api } from "@/api"
 
 function Timeline() {
@@ -29,6 +26,23 @@ function Timeline() {
         return null
     }
 
+    const formatDuration = (startTime, endTime) => {
+        const diffMs = endTime - startTime
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+        const diffMinutes = Math.floor(diffMs / (1000 * 60))
+
+        if (diffDays > 0) {
+            return `${diffDays} day${diffDays !== 1 ? 's' : ''}`
+        } else if (diffHours > 0) {
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''}`
+        } else if (diffMinutes > 0) {
+            return `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''}`
+        } else {
+            return 'less than a minute'
+        }
+    }
+
     return (
         <div>
             {isSuccess ? (
@@ -51,23 +65,40 @@ function Timeline() {
                         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                             {stateHistory.map((entry, idx) => {
                                 const userName = formatUserName(entry)
+                                const nextEntry = stateHistory[idx + 1]
+                                const duration = nextEntry 
+                                    ? formatDuration(entry.created_at, nextEntry.created_at)
+                                    : null
+
                                 return (
-                                    <div 
-                                        key={idx} 
-                                        className="flex" 
-                                        style={{ 
-                                            alignItems: "center"
-                                        }}
-                                    >
-                                        <span style={{ minWidth: "200px" }}>
-                                            <CreatedAt createdat={entry.created_at} />
-                                        </span>
-                                        <span style={{ margin: "0 1rem", color: "#999" }}>→</span>
-                                        <StaticStateIndicator state_tag={entry.state_tag} padding="tiny" />
-                                        {userName && (
-                                            <span style={{ marginLeft: "1rem", color: "#666", fontSize: "0.9rem" }}>
-                                                by {userName}
+                                    <div key={idx}>
+                                        <div 
+                                            className="flex" 
+                                            style={{ 
+                                                alignItems: "center"
+                                            }}
+                                        >
+                                            <span style={{ minWidth: "200px" }}>
+                                                <CreatedAt createdat={entry.created_at} />
                                             </span>
+                                            <span style={{ margin: "0 1rem", color: "#999" }}>→</span>
+                                            <StaticStateIndicator state_tag={entry.state_tag} padding="tiny" />
+                                            {userName && (
+                                                <span style={{ marginLeft: "1rem", color: "#666", fontSize: "0.9rem" }}>
+                                                    by {userName}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {duration && (
+                                            <div style={{ 
+                                                marginLeft: "220px", 
+                                                marginTop: "0.25rem",
+                                                fontSize: "0.85rem",
+                                                color: "#999",
+                                                fontStyle: "italic"
+                                            }}>
+                                                Duration: {duration}
+                                            </div>
                                         )}
                                     </div>
                                 )
@@ -81,6 +112,5 @@ function Timeline() {
         </div>
     )
 }
-
 
 export default Timeline

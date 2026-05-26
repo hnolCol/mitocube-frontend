@@ -69,13 +69,21 @@ export function NewsManagement() {
                     ) : isLoading || isFetching ? (
                         <Loading />
                     ) : (
-                        <div className="flex flex-column" style={{ gap: "1rem" }}>
+                        <div className="flex flex-column" style={{ 
+                            gap: "1rem",
+                            overflowY: "auto",      
+                            maxHeight: "100%",      
+                            height: "100%"         
+                        }}
+                        >
                             {_.isArray(news) && news.length > 0 ? (
                                 _.map(news, news_tag => (
                                     <NewsItem 
                                         key={news_tag} 
                                         news_tag={news_tag} 
+                                        showEdit={permissionLoaded && newsPermissions.edit} 
                                         showDelete={permissionLoaded && newsPermissions.delete}
+                                        onEditSuccess={refetch}       
                                         onDeleteSuccess={refetch}
                                     />
                                 ))

@@ -25,7 +25,6 @@ export function AdminAttributeItem({ tag }) {
     const [mouseIsOver, setMouseIsOver] = useState(false)
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: tag && tag.length > 0 });
     return (
-            onMouseEnter={(e) => setMouseIsOver(true)}
         <motion.div
             onMouseEnter={() => setMouseIsOver(true)}
             onMouseLeave={() => setMouseIsOver(false)}

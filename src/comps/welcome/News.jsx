@@ -6,6 +6,8 @@ import { CreatedAt } from "../core/metrics/CreatedAt"
 import { FeatureLink } from "../core/links/Feature"
 import { Dialog } from "@blueprintjs/core"
 import { InsertNews } from "./dialog/InsertNews"
+import { Button } from "@blueprintjs/core"
+import { EditNews } from "../admin/news/NewsEdit"
 import { useState } from "react"
 import { MinimalUserIcon } from "../core/base/user"
 import { AddButton } from "../core/base/buttons/AddButton"
@@ -13,23 +15,21 @@ import { RemoveButton } from "../core/base/buttons/RemoveButton"
 import { SubmissionLink } from "../core/links/Submission"
 
 import { api } from "@/api"
+export function NewsItem({ 
+    news_tag, 
+    showDelete = false, 
+    showEdit = false,
+    onDeleteSuccess = () => {}, 
+    onEditSuccess = () => {},
+    onDeleteError = console.log 
+}) {
+    const [editDialogOpen, setEditDialogOpen] = useState(false)
 
-
-
-/**
- * 
- * @param {Object} props 
- * @param {string} props.news_tag - The tag of the news item to display.
- * @param {boolean} props.showDelete - Whether to show the delete button.
- * @param {Function} props.onDeleteSuccess - Callback function to be called upon successful deletion of the news item.
- */
-export function NewsItem({ news_tag, showDelete = false, onDeleteSuccess = () => {}, onDeleteError = console.log }) {
-
-    const { data: news, isLoading, isFetching, isError, error } = api.news.useGetNewsByTag({ tag: news_tag }, {
+    const { data: news, isLoading, isFetching, isError, error, refetch } = api.news.useGetNewsByTag({ tag: news_tag }, {
         staleTime: 1000 * 60 * 5,
-    }) //5 minutes
+    })
 
-    const { mutate : deleteNews } = api.news.useDeleteNews
+    const { mutate: deleteNews } = api.news.useDeleteNews()
 
     const handleDelete = (e) => {
         e.stopPropagation()
@@ -43,33 +43,77 @@ export function NewsItem({ news_tag, showDelete = false, onDeleteSuccess = () =>
         })
     }
 
-
     if (isLoading || isFetching) return <Loading />
     if (isError) return <APIError error={error} />
     if (!_.isObject(news)) return <div>News not found</div>
+    
     return (
-        <div className="bg--lightgrey margin--little padding--medium div--round"
-            style={{ width: "max(20rem,80%)" }}>
+        <>
+            <Dialog
+                isOpen={editDialogOpen}
+                onClose={() => setEditDialogOpen(false)}
+                canEscapeKeyClose={true}
+                canOutsideClickClose={true}
+                title="Edit News"
+                style={{ width: "50vw", height: "70vh", minHeight: "600px", fontSize: "1rem" }}
+            >
+                <EditNews 
+                    news_tag={news_tag} 
+                    onClose={() => setEditDialogOpen(false)}
+                    onSuccess={() => {
+                        setEditDialogOpen(false)
+                        refetch()
+                        onEditSuccess()
+                    }}
+                />
+            </Dialog>
             
-            <div className="flex center-items justify-space-between">
-                <div>
-                    {_.isString(news.title) && <TitleText title={news.title} />}
-                    <CreatedAt createdat={news.created_at} />
+            <div 
+                className="bg--lightgrey margin--little padding--medium div--round"
+                style={{ width: "max(20rem,80%)" }}
+            >
+                <div className="flex center-items justify-space-between">
+                    <div>
+                        {_.isString(news.title) && <TitleText title={news.title} />}
+                        <CreatedAt createdat={news.created_at} />
+                    </div>
+                    
+                    <div className="flex flex-column" style={{ alignItems: "flex-end" }}>
+                        <div>
+                            <MinimalUserIcon user_tag={news.user_tag} />
+                        </div>
+                        <div className="flex">
+                            {showEdit && (
+                                <Button 
+                                    icon="edit" 
+                                    minimal 
+                                    small
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditDialogOpen(true)
+                                    }} 
+                                />
+                            )}
+                            {showDelete && (
+                                <Button 
+                                    icon="trash" 
+                                    minimal 
+                                    small
+                                    onClick={handleDelete}
+                                />
+                            )}
+                        </div>
+                    </div>
                 </div>
-                <RemoveButton onRemove={handleDelete}/>
-                <MinimalUserIcon user_tag={news.user_tag} />
-                </div>
+                
                 <div>
                     <Content text={news.content} />
                 </div>
                 <div>
-                    {news.submission_tags.map(tag => <SubmissionLink key={tag} tag={tag} />)}
+                    {news.submission_tags && news.submission_tags.map(tag => <SubmissionLink key={tag} tag={tag} />)}
                 </div>
-                {_.isArray(news.feature_tags) && news.feature_tags.length > 0 ? <div>
-                    <div>Associated Features: </div>
-                    {news.feature_tags.map(tag => <FeatureLink key={tag} tag={tag} />)}
-                </div> : null}
-        </div>
+            </div>
+        </>
     )
 
 }
@@ -127,9 +171,11 @@ export function NewsView() {
                     <Loading /> :
                 <div className="flex flex-column" style={{ gap: "1rem" }}>
                         {_.isArray(news) ? _.map(news, news_tag =>
-                            <NewsItem key={news_tag} news_tag={news_tag} showDelete={permissionLoaded &&newsPermissions.delete} onDeleteSuccess={refetch} />) : null}
+                            <NewsItem key={news_tag} news_tag={news_tag} />) : null}
                         {_.isArray(news) && news.length === 0 ? <div>No news available.</div> : null}
                 </div> }
        
         </div>)
 }
+
+// <NewsItem key={news_tag} news_tag={news_tag} showDelete={permissionLoaded &&newsPermissions.delete} onDeleteSuccess={refetch} />) : null}
