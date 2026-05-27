@@ -12,17 +12,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api";
 import { MandatoryCheckDetail } from "@/comps/submission/MandatoryAttributes";
 import { MandatoryCheckBadge } from "@/comps/submission/MandatoryAttributes";
+import { StateIndicator } from "@/comps/core/base/states/SubmssionState";
+import { StateHeader } from "@/comps/submission/view/StateHeader";
 
 
-export function SubmissionConditionApplicationView({ submission_tag }) {
+export function SubmissionConditionApplicationView({ submission_tag, group_by_min_state = true }) {
     const queryClient = useQueryClient()
     const [dialogOpen, setDialogOpen] = useState(false)
     const [selected_traits, setSelectedTraits] = useState([])
 
     const { data: submission_ca_tags } = api.submissions.condition_applications.useGetSubmissionConditionApplication(
-        { tag: submission_tag },
+        { tag: submission_tag, group_by_min_state },
         { enabled: _.isString(submission_tag) }
     )
+
+    console.log(submission_ca_tags)
 
     const { data: submission_ca_data } = api.submissions.condition_applications.useGetSubmissionConditionApplicationData(
         { tag: submission_tag },
@@ -117,7 +121,19 @@ const handleSubmit = () => {
                     <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
                 </div>
-                <div style={{height : "28vw", padding : "1rem", overflowY : "scroll"}}>
+                <div style={{ height: "33vh", padding: "1rem", overflowY: "scroll" }}>
+                    {group_by_min_state ?
+                        <div>
+                            {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div>
+                                <StateHeader tag={state_ca_item.state_tag} />
+                                {state_ca_item.condition_application_tags.length > 0 ? state_ca_item.condition_application_tags.map(ca_tag => (
+                                    <div key={ca_tag} className="padding--tiny margin--tiny">
+                                        <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
+                                    </div>
+                                )) : <div>No condition applications found for this submission.</div>}
+                            </div>)}
+                        </div>
+                        : null}
                 {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
                     submission_ca_tags.map(ca_tag => (
                         <div key={ca_tag} className="padding--tiny margin--tiny">

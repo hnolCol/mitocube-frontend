@@ -12,6 +12,7 @@ import useDebounce from "../../../../hooks/useDebounce";
 import { TraitMenuItem } from "../items/AttributeValueMenu";
 
 import { api } from "@/api";
+import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
 /**
  * 
@@ -34,7 +35,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
 
     return <div>
         {isSuccess ? <div className="menu_item_header">
-            {attribute.text}{isMissing ? <span style={{ color: "red" }}> *</span> : null}
+            <span style={{color : HIGHLIGHT_COLOR}}>{attribute.text}</span>{isMissing ? <span style={{ color: "red" }}> *</span> : null}
         </div> : null}
         {_.isArray(effectiveTraitTags) ? effectiveTraitTags.map(trait_tag => {
             return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} />
@@ -137,7 +138,7 @@ export function AttributesInput({
             if (!aIsMissing && bIsMissing) return 1
             return 0
         })
-        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll", maxWidth: "80vh", backgroundColor: "#efefef" }}>
+        return <div className="padding--medium" style={{ minWidth: "40vw", maxHeight: "400px", overflowY: "scroll"}}>
             {sortedItems.map(attributeWithTraits => (
                 <AttributeWithTraitsMenuItem
                     key={attributeWithTraits.attribute_tag}

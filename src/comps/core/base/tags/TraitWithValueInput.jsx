@@ -67,7 +67,8 @@ export function TraitWithValueInput({
                         <div className="flex flex-column" style={{ width: "100%" }}>
                             <div><strong>{trait.text}</strong></div>
                             {hasChildren ?
-                                <TraitChildren children_tags={children} {...{
+                                <TraitChildren
+                                    children_tags={children} {...{
                                     onChildrenSelection,
                                     rowIndex,
                                     getSelectionByPath,

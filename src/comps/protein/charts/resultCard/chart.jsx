@@ -130,7 +130,6 @@ function ResultChart({
             openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, submission_tag : submission_tag}})
         }
         else {
-            console.log(submission_tag)
             redirect("/submissions/"+submission_tag)
         }
         

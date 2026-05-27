@@ -17,13 +17,17 @@ import { api } from "@/api";
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "cohen_f", colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
     const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
-
-    const topSubmissionStats = useMemo(() => {
+    const { feature_tags, submission_tags} = useMemo(() => {
         if (_.isArray(submissionStats)) {
-            return _.slice(_.orderBy(submissionStats, ["score"], ["desc"]), 0, N)
+            const topStats = _.uniqBy(_.slice(_.orderBy(submissionStats, ["score"], ["desc"]), 0, N), "submission_tag");
+            return {
+                feature_tags: topStats.map(stat => tag), //all the same feature tag, which is the one in the props
+                submission_tags: topStats.map(stat => stat.submission_tag)
+            };
         }
-        return []
+        return { feature_tags: [], submission_tags: [] };
     }, [_.isArray(submissionStats) && submissionStats.length > 0, tag, N])
+
 
     const numericKeyNames = _.isArray(submissionStats) && submissionStats.length > 0 ? _.filter(_.keys(submissionStats[0]), keyName => _.isNumber(submissionStats[0][keyName])) : []
     const handleSelection = (idx, selectionKey, keyName) => {
@@ -36,7 +40,6 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
 
     
     const getSubmissionStats = (tag) => {
-        console.log(tag)
         if (!_.isArray(submissionStats)) return null
         if (!_.isString(tag)) return null
         const stats = submissionStats.filter(stat => stat.tag === tag)[0]
@@ -145,7 +148,8 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
 
 
             
-                {_.isArray(topSubmissionStats) ? <FeatureDataView feature_tags={topSubmissionStats.map(i => tag)} submission_tags={topSubmissionStats.map(d => d.submission_tag)} showProteinNameInTitle={false} /> : null}
+            {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length ?
+                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} /> : null}
 
     
 
