@@ -45,7 +45,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                 
                 {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem"}}>
                 {show_attribute ? null : <div>(</div>}
-                <div className={"flex"} style={{ gap: "0.2rem", marginLeft : show_attribute ? "1.2rem" : "0.1rem" }}>
+                <div className={"flex"} style={{ gap: "0.2rem", marginLeft : show_attribute ? "1.2rem" : "0.1rem" , flexWrap: "wrap" }}>
                     {children.map((child, idx) =>
                         <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
                 </div>

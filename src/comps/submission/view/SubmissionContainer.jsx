@@ -85,6 +85,36 @@ export function SubmissionsByUser({ submission_by_user, minimal = true}) {
     )
 }
 
+SubmissionsByDate.propTypes = {
+    submission_by_date: PropTypes.object.isRequired,
+    minimal: PropTypes.bool
+}
+export function SubmissionsByDate({ submission_by_date, minimal = true}) {
+    const date_tags = _.keys(submission_by_date)
+    return (
+        <div>
+            {_.isObject(submission_by_date) && _.map(date_tags, (date_tag, idx) => {
+                return <div key={`${date_tag}-${idx}`}>
+                    <div><span>{date_tag}</span></div>
+                    <div className="flex flex-column padding-left--little margin-bottom--little">
+                    {_.isArray(submission_by_date[date_tag]) && submission_by_date[date_tag].map((submission_tag, submissionIdx) => {
+                        return (
+                            <div key={`${submission_tag}-${submissionIdx}`}>
+                                {/* // If minimalView is true, use MinimalSubmissionItem, otherwise use SubmissionItem */}
+                                {minimal ? <MinimalSubmissionItem tag={submission_tag} /> : null}
+                            </div>
+                        )
+                    })}
+                    </div>
+                </div>
+            }) }
+        </div>
+
+    )
+}
+
+
+
 
 /**
  * 
@@ -114,7 +144,8 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
             limit: submissionsQuery.limit,
             group_by_state: submissionByState,
-            group_by_user :submissionByUser,
+            group_by_user: submissionByUser,
+            group_by_date : submissionByDate,
             state: stateFilter,
             genotype_tag: genotypeTagString,
             user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
@@ -128,10 +159,12 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
 
         {isError ? <APIError error={error} /> : null}
         {isLoading || isFetching ? <div>Loading...</div> : null}
+        {_.isEmpty(submission_by) && isSuccess ? <div>No submissions found.</div> : null}
         {isSuccess && _.isObject(submission_by) ?
             submissionByState ?
                 <SubmissionsByState submission_by_state={submission_by} submissionFilter={submissionFilter} submissionsQuery={submissionsQuery} minimal={minimal} /> : 
-            submissionByUser ? <SubmissionsByUser submission_by_user={submission_by} submissionFilter={submissionFilter} submissionsQuery={submissionsQuery} minimal={minimal} /> : null : null}
+                submissionByUser ? <SubmissionsByUser submission_by_user={submission_by} submissionFilter={submissionFilter} submissionsQuery={submissionsQuery} minimal={minimal} /> : 
+            submissionByDate ? <SubmissionsByDate submission_by_date={submission_by} submissionFilter={submissionFilter} submissionsQuery={submissionsQuery} minimal={minimal} /> : null : null}
 
     </div>)
 }
@@ -163,7 +196,6 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
     const caTagsString = _.isArray(submissionFilter["ca_tags"]) && submissionFilter["ca_tags"].length > 0
     ? _.join(submissionFilter["ca_tags"], ";")
     : null
-
     const { data: counts, isSuccess } = api.submissions.query.useGetSubmissionQueryCount({
         search_string: submissionsQuery.plain.length === 0 ? null : submissionsQuery.plain,
         limit: submissionsQuery.limit,
@@ -176,7 +208,7 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
         attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" }),
         include_sample_ca: submissionFilter.include_sample_ca || false,
         ca_search_string: submissionFilter.ca_search_string || null,
-    }, { staleTime: 0 })
+    }, { staleTime: 5000 })
 
     return (
         <div>
@@ -194,7 +226,6 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
                 children={
                     
                     <div>
-                
                        <SubmissionBy submissionBy={orderBy} submissionFilter={submissionFilter} submissionsQuery={submissionsQuery} validState={validState} /> 
                     </div>
                 }

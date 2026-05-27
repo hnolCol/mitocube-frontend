@@ -61,6 +61,7 @@ export function MandatoryAttributes({ onAttributeValueSelect, submission_state =
             { tag: submission_tag },
             { enabled: _.isString(submission_tag) }
         )
+        console.log(data)
         if (isLoading || !data) return null
         if (data.complete) return <Tag intent="success" minimal>Mandatory complete</Tag>
         return (

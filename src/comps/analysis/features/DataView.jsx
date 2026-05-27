@@ -47,6 +47,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
                 <ResultChart
                         yaxisName="value"
                         featureTag={feature_tag}
+                        submission_tag={submission_tag}
                         data={data?.data}
                         showMenu={true}
                         attribute_tags={attributes}

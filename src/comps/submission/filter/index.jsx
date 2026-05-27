@@ -17,15 +17,16 @@ export function SubmissionFilterSelection({
         submissionsQuery,
         submissionQueryResult,
         isSuccess,
-        submissionFilter, setSubmissionFilter,
-    setSubmissionQuery,
-    header = "Submissions", children = <div></div>,
+        submissionFilter,
+        setSubmissionFilter,
+        setSubmissionQuery,
+        header = "Submissions", children = <div></div>,
         orderBy,         
         setOrderBy,  
         fixedState = false }) {
     
     const [searchString, setSearchString] = useState(submissionsQuery.plain)
-    const debouncedString = useDebounce(searchString, 200)
+    const debouncedString = useDebounce(searchString, 10)
     useEffect(() => { setSubmissionQuery(prevValues => { return { ...prevValues, plain: debouncedString } }) }, [debouncedString])
     
     const [searchParams, setSearchParams] = useSearchParams()
@@ -62,7 +63,10 @@ export function SubmissionFilterSelection({
                     </div>
             
             {/* <InputGroup value={searchString} fill = {true} placeholder="Search by label, metatext ..." small={true} onValueChange={value => setSearchString(value)} rightElement={<Button minimal={true} loading={isLoading || isFetching}/>}/> */}
-                 <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => setSubmissionFilter({})} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
+                    <TooltipButton content="Clear filter selection." icon="cross" small={true} onClick={() => {
+                        setSubmissionQuery(prevValues => { return { ...prevValues, plain: "" } })
+                        setSubmissionFilter({})
+                    }} intent={_.isEmpty(submissionFilter) ? "none" : "danger"} />
                 </div>
                 <div>
                     <div className="flex" >

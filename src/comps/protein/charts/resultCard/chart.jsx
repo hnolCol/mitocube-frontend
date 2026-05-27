@@ -50,7 +50,7 @@ function ResultChart({
     showMenu = true,
     openMetadataDrawer
 }) {
-
+    const redirect = useNavigate()
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
@@ -93,7 +93,6 @@ function ResultChart({
 
 
     const svgID = `${featureTag}-svg-id${submission_tag}`
-    const redirect = useNavigate()
     
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
         const chartData = data
@@ -131,6 +130,7 @@ function ResultChart({
             openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, submission_tag : submission_tag}})
         }
         else {
+            console.log(submission_tag)
             redirect("/submissions/"+submission_tag)
         }
         
@@ -154,7 +154,7 @@ function ResultChart({
                             {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
                         />
                         <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
-                        <InfoIcon items={["Metadata", "Dataset view"]} callback={handleInfo} callbackValueOnly={true} />
+                        <InfoIcon items={["Metadata", "Explore Submission"]} callback={handleInfo} callbackValueOnly={true} />
                         <DownloadIcon
                             items={["Raw", "Aggregated", "DIVIDER", "PNG", "SVG"].map((dataType) => {
                                 return { text: dataType }
@@ -171,7 +171,7 @@ function ResultChart({
                 {isReady && attributesReady? <viz.charts.Categorical
                     width={width - 0 || undefined}
                     height={height - 0 || undefined}
-                    margins={{ left: 50, right:10, top: 20, bottom: 100 }}
+                    margins={{ left: 50, right:10, top: 20, bottom: 125 }}
                     {...selectionTags}
                     data={groupedAggratedData}
                     errorName="e"

@@ -117,7 +117,7 @@ const handleSubmit = () => {
                     <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
                 </div>
-                <div style={{height : "28vw", overflowY : "scroll"}}>
+                <div style={{height : "28vw", padding : "1rem", overflowY : "scroll"}}>
                 {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
                     submission_ca_tags.map(ca_tag => (
                         <div key={ca_tag} className="padding--tiny margin--tiny">
