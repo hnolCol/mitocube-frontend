@@ -51,7 +51,6 @@ function ResultChart({
     openMetadataDrawer
 }) {
 
-    console.log(data)
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
@@ -89,9 +88,7 @@ function ResultChart({
         if (q.data) attributeMap.set(attr_tag, q.data.text) // we only need the text for attributes, as they are used for labelling and not for grouping like CA tags.
     })
 
-    console.log(isReady)
-
-    // const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
+    // const nomalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     // const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
 
 

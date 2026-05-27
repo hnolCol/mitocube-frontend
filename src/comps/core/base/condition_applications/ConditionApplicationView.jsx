@@ -26,7 +26,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
     const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
     const is_protein = _.isObject(attribute) && attribute.tag=== "att_protein"
     return (
-        <div className="flex" style={{ gap: "0.1rem" }}>
+        <div className={`flex ${show_attribute ? "flex-column" : ""}`} style={{ gap: "0.1rem" }}>
             <div className="flex center-items">
                 {/* <div> */}
                     {show_attribute && _.isObject(attribute) ? <span><strong>{attribute.text}:</strong>&nbsp;</span> : null}
@@ -43,9 +43,9 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                 {/* </div> */}
                 </div>
                 
-                {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem" }}>
+                {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem"}}>
                 {show_attribute ? null : <div>(</div>}
-                <div className="flex">
+                <div className={"flex"} style={{ gap: "0.2rem", marginLeft : show_attribute ? "1.2rem" : "0.1rem" }}>
                     {children.map((child, idx) =>
                         <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
                 </div>
