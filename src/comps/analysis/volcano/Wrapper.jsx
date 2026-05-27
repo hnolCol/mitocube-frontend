@@ -12,7 +12,7 @@ import { PersistentCollapse } from "@/comps/core/base/collapse/Collapse";
 import { FavoriteProteinSelection } from "@/comps/core/base/protein/FavoriteProteinSelection";
 import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
-
+import { FavoriteAnnotationSelection } from "@/comps/core/base/annotations/FavoriteAnnotationSelection";
 
 
 export function ProteinSearch({ submission_tag, onSuccess }) {
@@ -50,6 +50,9 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
     const [favoriteProteinSelection, setFavoriteProteinSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
+    const [selectedAnnotations, setSelectedAnnotations] = useState([])
+    const [favoriteAnnotationSelection, setFavoriteAnnotationSelection] = useState({ values: [], trigger: undefined, key: "tag" })
+    const [annotationHoverResults, setAnnotationHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
     
     const handleVolcano = (props) => {
         setTestParams(props)
@@ -61,6 +64,22 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const handleProteinHover = (proteinTag) => {
 
         setProteinHoverResults(prevValues => { return { ...prevValues, values: proteinTag ? [proteinTag] : [], trigger: Math.random() } })
+    }
+
+    const handleAnnotationSelection = (annotationTag) => {
+        setSelectedAnnotations(prev => addStringToArrayOrRemove({ array: prev, string: annotationTag }))
+    }
+    
+    const handleFavoriteAnnotationSelect = (annotationTag) => {
+        setFavoriteAnnotationSelection(prevValues => {
+            return { ...prevValues, values: addStringToArrayOrRemove({ array: prevValues.values, string: annotationTag }), trigger: Math.random() }
+        })
+    }
+    
+    const handleAnnotationHover = (annotationTag) => {
+        setAnnotationHoverResults(prevValues => {
+            return { ...prevValues, values: annotationTag ? [annotationTag] : [], trigger: Math.random() }
+        })
     }
 
     return (
@@ -92,8 +111,15 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
                         <button className="basic-button div--expand margin--little" onClick={() => setQuickSelectOpen(prev => ({ ...prev, annotations: !prev.annotations }))}><span>Annotations</span></button>
-                            <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} >        
-                        </PersistentCollapse>                        
+                        <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} >        
+                            <FavoriteAnnotationSelection 
+                                selected={selectedAnnotations}
+                                highlighted={favoriteAnnotationSelection.values}
+                                onAdd={handleAnnotationSelection}
+                                onSelect={handleFavoriteAnnotationSelect}
+                                onHover={handleAnnotationHover} 
+                            />
+                        </PersistentCollapse>               
 
 
                     </PersistentCollapse>
@@ -111,7 +137,9 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                     hiddenSuffix,volcanoData, setVolcanoData,
                     setHiddenSuffix,
                         favoriteProteinSelection,
-                    proteinHoverResults
+                    proteinHoverResults,
+                    favoriteAnnotationSelection,
+                    annotationHoverResults
                     }} />
                     </div>
                 </div>
@@ -121,7 +149,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
     return <WithTagMaps
@@ -139,6 +167,8 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                         setHiddenSuffix,
                         setRequiredProteinTags,
                         favoriteProteinSelection,
-                        proteinHoverResults
+                        proteinHoverResults,
+                        favoriteAnnotationSelection,
+                        annotationHoverResults
                     }} />
 }

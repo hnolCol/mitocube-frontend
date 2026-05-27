@@ -5,6 +5,7 @@ import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { useEffect } from "react"
 import _ from "lodash"
 import { AnnotationUpload } from "./AnnotationFileUpload"
+import { SubmissionSelect } from "./SubmissionSelect"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -13,6 +14,7 @@ const INITIAL_ANNOTATION = {
   pubmed_id: "",
   source: "",
   protein_tags: [],
+  submission_tags: [],
   group_tag: "",
 }
 
@@ -60,6 +62,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
               source: annotation.source,
               protein_tags: annotation.protein_tags.flatMap(t => t.split(";")).map(t => t.trim()).filter(Boolean),
               group_tag: annotation.group_tag,
+              submission_tags: annotation.submission_tags ?? [],
           };
 
 
@@ -137,6 +140,10 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           setAnnotation(prev => ({ ...prev, pubmed_id: e.target.value }))
         }
       />
+      <SubmissionSelect
+  selectedTags={annotation.submission_tags}
+  onChange={tags => setAnnotation(prev => ({ ...prev, submission_tags: tags }))}
+/>
 
       <div className="flex gap--small" style={{ alignItems: "flex-start" }}>
         <textarea

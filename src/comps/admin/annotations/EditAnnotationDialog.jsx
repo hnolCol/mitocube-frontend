@@ -4,6 +4,7 @@ import _ from "lodash"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { AnnotationUpload } from "./AnnotationFileUpload"
 import { Dialog } from "@blueprintjs/core"
+import { SubmissionSelect } from "./SubmissionSelect"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -12,6 +13,7 @@ const INITIAL_ANNOTATION = {
   pubmed_id: "",
   source: "",
   protein_tags: [],
+  submission_tags: [],
   group_tag: "",
 }
 
@@ -44,6 +46,7 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
         source: existingAnnotation.source ?? "",
         protein_tags: existingAnnotation.protein_tags ?? [],
         group_tag: existingAnnotation.group_tag ?? "",
+        submission_tags: existingAnnotation.submission_tags ?? [],
       })
     }
   }, [isSuccess, existingAnnotation])
@@ -129,6 +132,11 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
         onChange={(e) =>
           setAnnotation((prev) => ({ ...prev, pubmed_id: e.target.value }))
         }
+      />
+
+            <SubmissionSelect
+        selectedTags={annotation.submission_tags}
+        onChange={tags => setAnnotation(prev => ({ ...prev, submission_tags: tags }))}
       />
 
       <div className="flex gap--small" style={{ alignItems: "flex-start" }}>

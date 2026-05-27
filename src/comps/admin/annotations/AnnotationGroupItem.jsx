@@ -4,6 +4,7 @@ import { Tooltip } from "@blueprintjs/core"
 import { Button } from "@blueprintjs/core"
 import { useState } from "react"                                          
 import { EditAnnotationGroupDialog } from "./EditAnnotationGroupDialog"   
+import { CreatedAt } from "@/comps/core/metrics/CreatedAt"
 
 export function AnnotationGroupItem({ tag, onClick, isSelected }) {
     const [isEditOpen, setIsEditOpen] = useState(false)                 
@@ -23,7 +24,7 @@ export function AnnotationGroupItem({ tag, onClick, isSelected }) {
     const hoverContent = group.created_at && group.created_by ? (
         <div style={{ fontSize: "0.75rem" }}>
             Created by {group.created_by}<br />
-            {new Date(group.created_at).toLocaleDateString()}
+            <CreatedAt createdat={group.created_at} />
         </div>
     ) : null;
 

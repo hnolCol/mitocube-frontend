@@ -82,7 +82,8 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
 
     const { data: allCAs, isLoading, error } = api.condition_applications.useGetConditionApplicationHierarchyByQuery({
         search_string : searchString,
-        limit : 50
+        limit : 50,
+        exclude_attribute_group: "genotype"
     }, {
         staleTime: 300000,
         enabled : _.isString(searchString) && searchString.length >= 1
