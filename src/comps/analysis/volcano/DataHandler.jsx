@@ -26,10 +26,21 @@ export function VolcanoDataHandler({
         proteinIsLoading,
        proteinSearchResults,
         proteinHoverResults,
-        favoriteProteinSelection}) {
+        favoriteProteinSelection,
+        favoriteAnnotationSelection,
+        annotationHoverResults}) {
 
     const [annotationMarkers, setAnnotationMarkers] = useState([])
+    const { data: selectedAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
+        { tag: favoriteAnnotationSelection?.values?.[0] },
+        { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
+    )
     
+    const { data: hoveredAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
+        { tag: annotationHoverResults?.values?.[0] },
+        { enabled: !!annotationHoverResults?.values?.[0], staleTime: Infinity }
+    )
+        
     const handleError = (error) => {
         setIsFetching(false)
         onError({ isOpen: true, message: error })
@@ -187,8 +198,16 @@ export function VolcanoDataHandler({
                 data={volcanoData.data} //enrichDataWithAnnotations(volcanoData.data)
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
-                externalLabelResult={favoriteProteinSelection}
-                externalHoverResult={proteinHoverResults}
+                externalLabelResult={{
+                    values: _.uniq([...(favoriteProteinSelection?.values || []), ...(selectedAnnotationProteins ?? [])]),
+                    trigger: (selectedAnnotationProteins?.length > 0) ? Math.random() : (favoriteProteinSelection?.trigger || 0),
+                    key: "tag"
+                }}
+                externalHoverResult={{
+                    values: _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])]),
+                    trigger: (hoveredAnnotationProteins?.length > 0) ? Math.random() : (proteinHoverResults?.trigger || 0),
+                    key: "tag"
+                }}
                 // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
                 keyNames={
                     volcanoData.suffixes.map((suffix, idx) => {
