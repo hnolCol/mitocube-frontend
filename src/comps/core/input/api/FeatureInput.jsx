@@ -8,7 +8,8 @@ import { api } from "@/api";
 import { Protein } from "../../base/protein/Protein"
 
 export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, attribute, isRequired = true, helperText = "", inline = false, showLabel = true, debounceDelay = 200, disabled = false, rightElement, proteome_tags}) {
-    const [queryString,setQueryString] = useState("")
+    
+    const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, debounceDelay)
     const {
         data: items,

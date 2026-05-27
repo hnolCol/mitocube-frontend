@@ -15,7 +15,6 @@ import { Button, Menu, MenuItem } from "@blueprintjs/core";
  * @returns
  */
 function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem" }) {
-
     const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag({ tag } , { enabled: _.isString(tag), staleTime: Infinity })
 
     if (!isSuccess) return null 
@@ -42,13 +41,12 @@ function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem
  * @returns 
  */
 export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess, descriptionWidth = "400px" }) {
+   
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 30)
-    
     const { data: traits, isError, isLoading, isSuccess } = api.traits.queryTraits.useGetTraitBySearchString({ search_string: debouncedString, attribute_tag, limit: 50 }, {
         enabled: _.isString(attribute_tag)
     })
-
     useEffect(() => { if (_.isFunction(onTraitLoadSuccess)) onTraitLoadSuccess(traits) }, [isSuccess, traits])
 
     const handleSelect = (trait_tag, e) => {
@@ -59,7 +57,9 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
     }
     
     const renderItem = (item, itemProps) => {
-        return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={_.isString(selected_trait) && item === selected_trait}  descriptionWidth={descriptionWidth}/>
+        
+        const isSelected = _.isString(selected_trait) ? item === selected_trait : _.isArray(selected_trait) ? selected_trait.includes(item) : false
+        return <TraitMenuItem key={item}  tag={item} menuItemProps={itemProps} selected={isSelected}  descriptionWidth={descriptionWidth}/>
     }
     const handleQueryChange = (query) => {
         setQuery(query)

@@ -9,13 +9,15 @@ import { api } from "@/api";
  * The information of the sample are retrieved from the database. 
  * @param {Object} props
  * @param {String} props.tag - The tag of the sample to be displayed.
+ * @param {String} props.submission_tag - The tag of the submission to check for genotype.
+ * @param {Boolean} props.display_condition_applications - Whether to display condition applications.
  * @returns {JSX.Element} The SampleItem component.
  */
 
-export function SampleItem({ tag, display_condition_applications = true }) {
+export function SampleItem({ tag, submission_tag, display_condition_applications = true }) {
 
     const { data: sample } = api.samples.core.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 0 });
-    const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag}, { enabled: _.isString(tag), defaultValue : false, staleTime: 0})
+    const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 0})
     const { data : condition_applications} = api.samples.core.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 0})
 
     return (

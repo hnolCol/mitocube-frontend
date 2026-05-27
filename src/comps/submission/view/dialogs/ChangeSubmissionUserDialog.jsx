@@ -30,7 +30,6 @@ export function ChangeSubmissionUserDialog({
  
     const handleSubmit = () => {
 
-        // console.log(submission)
         mutate({submission_tag : submission.tag, user_tag : selectedOwner.tag})
     }
     

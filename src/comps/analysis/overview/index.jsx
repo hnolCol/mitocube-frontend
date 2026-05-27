@@ -75,14 +75,8 @@ function SubmissionOverview() {
                 {_.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Genotypes</h3>
                 </div> : null}
-                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
+                <div className="container--shadow padding--little margin-top--little" style={{ width: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
-                    {/* <ConditionApplicationsView /> */}
-                {/* <StaticDatasetAttributesHierarchy submission_tag={submission_tag} /> */}
-                {/* <DatasetAttributeHierarchy {...{
-                    selectedDasetAttributeValues: datasetAttributeValues,
-                    selectedAttributes: dataAttributes
-                    }} /> */}
                 </div>
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>

@@ -30,7 +30,7 @@ export function SamplesContainer({ submission_tag }) {
                 }}
             >
                 {_.isArray(sample_tags) ? sample_tags.map((sample_tag, idx) => (
-                    <SampleItem key={`${sample_tag}_${idx}`} tag={sample_tag} />
+                    <SampleItem key={`${sample_tag}_${idx}`} tag={sample_tag} submission_tag={submission_tag} />
                 )) : null}
             </div>
         </div>)

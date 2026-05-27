@@ -491,7 +491,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
    
                 deleteByPath(d[rowIndex], path, false)
             })
-                
+    
         updateSubmission(prevValues => {
             return {
                 ...prevValues, attributeTable: d, rerenderTableDependency: [Math.random()],

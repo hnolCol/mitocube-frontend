@@ -108,21 +108,22 @@ const handleSubmit = () => {
 
     return (
         <div>
-            <div className="flex flex-column">
-                <div className="flex center-items justify-space-between">
+            <div className="flex flex-column" style={{overflow: "hidden", width : "100%"}}>
+                <div className="flex center-items justify-space-between" >
                     <h3>Condition Applications</h3>
                     <MandatoryCheckBadge submission_tag={submission_tag} />
                     {canEdit && (
                     <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
                 </div>
-
+                <div style={{height : "28vw", overflowY : "scroll"}}>
                 {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
                     submission_ca_tags.map(ca_tag => (
                         <div key={ca_tag} className="padding--tiny margin--tiny">
                             <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
                         </div>
                     )) : <div>No condition applications found for this submission.</div>}
+                </div>
             </div>
 
             <Dialog

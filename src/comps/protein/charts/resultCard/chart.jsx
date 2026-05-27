@@ -51,7 +51,7 @@ function ResultChart({
     openMetadataDrawer
 }) {
 
-
+    console.log(data)
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
@@ -66,7 +66,9 @@ function ResultChart({
         return _.uniq(
             _.values(selection)
             .filter(attr => _.isString(attr) && _.has(data[0], attr))
-            .flatMap(attr => data.map(d => d[attr]))
+                .flatMap(attr => data.map(d => d[attr]))
+                .map(ca_tag => ca_tag.includes(";") ? ca_tag.split(";") : ca_tag) // handle multiple CA tags in one string separated by ";"
+                .flat()
             .filter(Boolean)
         );
         }, [_.join(_.values(selection), "-"), featureTag, submission_tag, _.isArray(data) ? data.length : 0]) // we need to include featureTag and submission_tag in the dependency array, because the CA tags are derived from the selection which is reset when feature or submission changes.;
@@ -87,6 +89,7 @@ function ResultChart({
         if (q.data) attributeMap.set(attr_tag, q.data.text) // we only need the text for attributes, as they are used for labelling and not for grouping like CA tags.
     })
 
+    console.log(isReady)
 
     // const normalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     // const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
@@ -169,10 +172,9 @@ function ResultChart({
             <div className="flex" style={{ height : height - 35}}>
 
                 {isReady && attributesReady? <viz.charts.Categorical
-                    getConditionApplicationText={({ x, y, tag, textProps }) => <ConditionApplicationText x={x} y={y} tag={tag} textProps={textProps} />}
                     width={width - 0 || undefined}
                     height={height - 0 || undefined}
-                    margins={{ left: 50, right:10, top: 20, bottom: 120 }}
+                    margins={{ left: 50, right:10, top: 20, bottom: 100 }}
                     {...selectionTags}
                     data={groupedAggratedData}
                     errorName="e"
@@ -184,7 +186,7 @@ function ResultChart({
                     caTagToText={map}
                     attributeTagToText={attributeMap}
                     tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
-                /> : null}
+                /> : <span>Attributes loading not complete..</span>}
 
                 </div>
         </div>

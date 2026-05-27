@@ -39,7 +39,7 @@ export function MinimalSubmissionItem({ tag, onClick, redirectOnClick = true, sh
                 e.stopPropagation()
             }} className="submission__item__container bg--white">
             <div className="flex"> 
-                {_.isNumber(created_at) && showCreatedAt?<span><CreatedAt createdat={created_at} addFromNow={false} /> |</span> : null}
+                <div>{_.isNumber(created_at) && showCreatedAt?<div  className="flex justify-space-between" style={{width : "6rem"}}><CreatedAt createdat={created_at} addFromNow={false} /> <span>|</span></div> : null}</div>
                 <span className="padding-left--little"> <SubmissionTitle tag={tag} showEdit={false} showCopyToClipboard={false} /> </span>
             </div>
         </motion.button>
