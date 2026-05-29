@@ -50,14 +50,14 @@ export function AnnotationGroupInMenu({ tag, annotation_tags = [], selected_tags
 }
 
 
-export function AnnotationSelectionMenu({placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true}) {
+export function AnnotationSelectionMenu({ placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true, vertical = false, submission_tags = [] }) {
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchString, setSearchString] = useState("")
     const debouncedString = useDebounce(searchString, 50)
     const [limit, setLimit] = useState(50)
 
-    const { data : annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({ search_string : debouncedString, limit, group_by_group : true})
+    const { data : annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({ search_string : debouncedString, limit, group_by_group : true, submission_tags : _.isArray(submission_tags) && submission_tags.length > 0 ? _.join(submission_tags, ";") : undefined })
 
     useEffect(() => {
         //make sure there is something displayed when opening the menu, otherwise it looks weird.
@@ -68,7 +68,7 @@ export function AnnotationSelectionMenu({placeholder = "Select annotations", onS
     const annotation_results_ok = isSuccess && _.isArray(annotation_search_results) && annotation_search_results.length > 0 
     
     return (
-        <div>
+        <div className={`flex ${vertical ? "flex-column" : "flex"}`}>
         <Popover
             
             content={<div className="padding--medium margin--little" style={{ minWidth: "30rem" }}>

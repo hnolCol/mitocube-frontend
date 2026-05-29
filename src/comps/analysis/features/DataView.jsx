@@ -62,7 +62,6 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
 }
 
 export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true }) {
-        console.log(submission_tags)
         // build a simple initial layout (you can adjust sizing/positions as needed)
         const initialLayouts = feature_tags.map((ft, i) => ({
             i: `${ft}-${i}-${submission_tags[i]}`,

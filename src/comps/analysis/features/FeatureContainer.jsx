@@ -2,13 +2,14 @@
 
 import hooks from "@mitocube/api-hooks"
 import _, { set } from "lodash"
-import { Protein } from "../../core/base/protein/Protein";
+import { Protein, ProteinGroup } from "../../core/base/protein/Protein";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 export function PeptideFeatureItem({ peptide_tag }) {
     return <div>{peptide_tag}</div>
 }
 import { api } from "@/api";
+import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 
 
 
@@ -21,14 +22,14 @@ import { api } from "@/api";
  * @param {Function} props.onClickFeature - Callback function when a feature is clicked. Receives the feature object as an argument. This is an object of tag (protein group), protein_tags (array of protein tags), peptide_tags (array of peptide tags), and
  * if the protein matches the search string or if only the peptide sequences matched. Example: {tag: "H7C835;Q9UF56", pg_match: true, protein_tags: ["H7C835", "Q9UF56"], peptide_match: false, peptide_tags: []}
  * @param {string[]} props.selected_feature_tags - Array of currently selected feature tags. Used to highlight selected features in the list.
+ * @param {string[]} props.annotation_tags - Array of annotation tags to filter features.
  * @returns 
  */
-export function FeatureContainer({ search_string, submission_tag, limit, onClickFeature, selected_feature_tags = [], show_selected_first = true }) {
-   
+export function FeatureContainer({ search_string, submission_tag, limit, onClickFeature, sort_by_stat = undefined, annotation_tags = [], selected_feature_tags = [], show_selected_first = true }) {
     const [savedData, setSavedData] = useState([]);
-
+  
     const { data: query_features, isLoading, isFetching, isSuccess } = api.features.info.useGetFeaturesByQuery(
-        { search_string, limit, submission_tag, include_types : "protein_groups"},
+        { search_string, limit, submission_tag, include_types : "protein_groups", sort_by_stat : _.isString(sort_by_stat) ? sort_by_stat : undefined, annotation_tags : _.isArray(annotation_tags) && annotation_tags.length > 0 ? _.join(annotation_tags, ";") : undefined },
         {
             staleTime: 60000,
             placeholderData: savedData
@@ -49,19 +50,19 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
             <div className="font-size--smallest">{_.isArray(query_features) && query_features.length === 0 && !isLoading && !isFetching ? <span>No results found..</span> : isLoading || isFetching ? <span>Searching ...</span> : null }</div>
             {_.isArray(displayedFeatures) ? displayedFeatures.map((search_result, idx) => {
                 const selected = _.includes(selected_feature_tags, search_result.tag)
-                
-                return <motion.button key={`${search_result.tag}-${idx}-result`}
+                // console.log("selected", selected, search_result.tag, search_result.protein_tags, selected_feature_tags, search_result)
+                return <motion.div key={`${search_result.tag}-${idx}-result`}
                     whileHover={{ backgroundColor: "#f0f0f0" }}
                     className="flex flex-column"
                     style={{
-                        padding: "10px",
+                        padding: "4px",
                         border: "none",
                         backgroundColor: idx % 2 === 0 ? "#ffffff" : "#fafafafd",
                         textAlign: "left",
                         cursor: "pointer",
                         borderRadius: "5px"
                     }}
-                    onClick={(() => { onClickFeature(search_result) })}>
+                    >
                     
                     <div className="flex center-items" style={{ gap: "10px" }}>
                         <div>{selected  ?  
@@ -75,7 +76,7 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
                                 width: 16,
                                 height: 16,
                                 borderRadius: 999,
-                                background: "#22c55e",
+                                background: HIGHLIGHT_COLOR,
                                 color: "#fff",
                                 fontSize: 12,
                                 lineHeight: 1,
@@ -84,16 +85,13 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
                         >
                             ✓
                             </span> : null}</div>
-                        <div className="flex">
-                        {
-                            search_result.protein_tags.map(protein_tag =>
-                                <Protein
-                                    key={protein_tag}
-                                    tag={protein_tag}
-                                    popoverPosition="right"
+                        <div className="flex div--expand">
+                            {
+                                search_result.pg_match ? <ProteinGroup
+                                    tag={search_result.tag}
                                     redirect_to_protein_site={false}
-                                    />)
-                        }
+                                    onClick={(tag) => onClickFeature(tag)} highlight={selected} fill /> : null
+                            }
                         </div>
                     </div>
                     {_.isArray(search_result.peptide_tags) && search_result.peptide_tags.length > 0 ? <div>
@@ -103,7 +101,7 @@ export function FeatureContainer({ search_string, submission_tag, limit, onClick
                         </div>
                     </div> : null}
                     
-                </motion.button>
+                </motion.div>
             } ) : null}
 
         </div>

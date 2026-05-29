@@ -5,7 +5,7 @@ import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { useEffect } from "react"
 import _ from "lodash"
 import { AnnotationUpload } from "./AnnotationFileUpload"
-import { SubmissionSelect } from "./SubmissionSelect"
+import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -140,7 +140,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           setAnnotation(prev => ({ ...prev, pubmed_id: e.target.value }))
         }
       />
-      <SubmissionSelect
+      <SubmissionInput
   selectedTags={annotation.submission_tags}
   onChange={tags => setAnnotation(prev => ({ ...prev, submission_tags: tags }))}
 />
@@ -166,17 +166,6 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
         />
         <AnnotationUpload onProteinIdsLoaded={handleProteinIdsLoaded} />
       </div>
-{/*    
-      <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
-          Upload File
-      </h3>
-      <p>
-          Upload a file containing protein identifiers (e.g. UniProt accessions).
-          Supported formats: TSV, CSV, TXT.
-      </p>
-      <AnnotationUpload
-        onProteinIdsLoaded={handleProteinIdsLoaded}
-          /> */}
 
 
 

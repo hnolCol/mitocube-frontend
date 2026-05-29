@@ -2,7 +2,7 @@ import APIError from "../../core/error/APIerror";
 import _ from "lodash"
 import { useState } from "react";
 
-import { Button, Collapse, Dialog } from "@blueprintjs/core";
+import { Button, Dialog } from "@blueprintjs/core";
 import { ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
 
 import { Combobox } from "@/comps/core/input/Combobox";
@@ -13,6 +13,7 @@ import { FavoriteProteinSelection } from "@/comps/core/base/protein/FavoriteProt
 import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import { FavoriteAnnotationSelection } from "@/comps/core/base/annotations/FavoriteAnnotationSelection";
+import { Checkbox } from "@/comps/core/base/states/Checkbox";
 
 
 export function ProteinSearch({ submission_tag, onSuccess }) {
@@ -40,7 +41,7 @@ function HiddenSuffixes({ hiddenSuffixes, setHiddenSuffixes }) {
 
 
 export function VolcanoPlotWrapper({ submission_tag }) {
-
+    const [showHoverLabels, setShowHoverLabels] = useState(true)
     const [pairWiseOpen, setPairWiseOpen] = useState(true)
     const [quickSelectOpen, setQuickSelectOpen] = useState({proteins : false, annotations : false, conditions : true})
     const [testParams, setTestParams] = useState({})
@@ -102,15 +103,22 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                         <PersistentCollapse isOpen={quickSelectOpen.conditions} direction="vertical" duration={0.65} >        
                             <div className="padding--medium"><ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching }} /></div>
                         </PersistentCollapse>
+
+
                         <h3>Quick Select</h3>
                         <span>Annotate favorite proteins or annotations in volcano plots.</span>
-                        <button className="basic-button div--expand margin--little" onClick={() => setQuickSelectOpen(prev => ({ ...prev, proteins: !prev.proteins }))}><span>Proteins</span></button>
+                        <Checkbox label={"Show hover labels"} checked={showHoverLabels} onChange={() => setShowHoverLabels(prev => !prev)} />
+                        <button className="basic-button div--expand margin--little" style={ quickSelectOpen.proteins ? { backgroundColor: HIGHLIGHT_COLOR, color: "white" } : {}} onClick={() => setQuickSelectOpen(prev => ({ ...prev, proteins: !prev.proteins }))}><span>Proteins</span></button>
                             <PersistentCollapse isOpen={quickSelectOpen.proteins} direction="vertical" duration={0.65} >        
                                 <FavoriteProteinSelection selected={favoriteProteinSelection.values} submission_tags={[submission_tag]} onSelect={handleFavoriteSelect} onHover={handleProteinHover} />
                         </PersistentCollapse>
 
 
-                        <button className="basic-button div--expand margin--little" onClick={() => setQuickSelectOpen(prev => ({ ...prev, annotations: !prev.annotations }))}><span>Annotations</span></button>
+                        
+                        <button className="basic-button div--expand margin--little" style={quickSelectOpen.annotations ? { backgroundColor: HIGHLIGHT_COLOR, color: "white" } : {}} onClick={() => setQuickSelectOpen(prev => ({ ...prev, annotations: !prev.annotations }))}>
+                            <span>Annotations</span>
+                        </button>
+
                         <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} >        
                             <FavoriteAnnotationSelection 
                                 selected={selectedAnnotations}
@@ -139,7 +147,8 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                         favoriteProteinSelection,
                     proteinHoverResults,
                     favoriteAnnotationSelection,
-                    annotationHoverResults
+                    annotationHoverResults,
+                    showHoverLabels
                     }} />
                     </div>
                 </div>
@@ -149,7 +158,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, showHoverLabels = false }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
     return <WithTagMaps
@@ -169,6 +178,7 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                         favoriteProteinSelection,
                         proteinHoverResults,
                         favoriteAnnotationSelection,
-                        annotationHoverResults
+                        annotationHoverResults,
+                        showHoverLabels
                     }} />
 }
