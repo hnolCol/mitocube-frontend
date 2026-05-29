@@ -34,7 +34,7 @@
     "@visx/text": "^3.0.0",
     "@visx/tooltip": "^3.1.2",
     "@visx/zoom": "^3.3.0",
-    "axios": "^1.4.0",
+    "axios": "^1.16.0",
     "d3-scale-chromatic": "^3.0.0",
     "framer-motion": "^10.12.4",
     "kdbush": "^4.0.2",
