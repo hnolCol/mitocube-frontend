@@ -75,21 +75,9 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }])
     const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(track_path, rowIndex) : undefined 
    
-    // console.log(selection, "selection for path", track_path, "and rowIndex", rowIndex)
 
     const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
     const childTrait = has_selection && _.isString(selection[0].tag) ? selection[0].tag : undefined
-    
-
-    useEffect(() => {
-        if (has_selection && selection.type === "trait") {
-            const traitInSelection = selection.tag
-            if (_.isString(traitInSelection) && traitInSelection !== childTrait) {
-                setChildTrait(traitInSelection)
-            }
-        }
-    
-    }, [has_selection])
     
 
     useEffect(() => { 
@@ -177,7 +165,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                             attribute_tag={"att_proteome"}
                                             onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
                                             selected_trait={selection && has_selection ? selection.map(s => s.tag) : undefined}
-                                            onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? handleTraitSelection(d[0], referenceID) : null}
+                                            onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleTraitSelection(d[0], referenceID) : null}
                                         /> 
                                         </div>
                                     {_.isArray(selection) && selection.length === 0 && !has_selection ? <div className='font-size--smallest'>No proteome available. Please select a proteome.</div> : null}
@@ -200,7 +188,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                     attribute_tag={attribute_tag}
                                     onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
                                     selected_trait={has_selection ? selection[0].tag : undefined}
-                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 ? handleTraitSelection(d[0], referenceID) : null}
+                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleTraitSelection(d[0], referenceID) : null}
                                 /> : null}
                         </div>
                     </div> :

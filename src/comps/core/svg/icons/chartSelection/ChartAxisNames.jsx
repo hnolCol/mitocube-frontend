@@ -1,4 +1,3 @@
-import { getColorPalette } from "../../../colors/colorPalette"
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 

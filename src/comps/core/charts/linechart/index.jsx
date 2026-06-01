@@ -6,7 +6,7 @@ import * as allCurves from '@visx/curve';
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from '../../../../services/arrays/boundaries';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import _ from "lodash"
-import { getColorPalette } from '../../colors/colorPalette';
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import { SVG } from '../SVGHeader';
 import { GridColumns, GridRows } from '@visx/grid';
 import { getChartWidthAndHeightWithMargins } from '../../../../services/plotting/size';

@@ -18,6 +18,7 @@ import viz from "@mitocube/viz"
 
 import { usePrefetchConditionApplicationTexts } from "@/api/orchestrated/conditionApplications"
 import { usePrefetchAttributes } from "@/api/orchestrated/attributes"
+import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton"
 
 
 function ResultChart({
@@ -48,7 +49,8 @@ function ResultChart({
     height,
     title,
     showMenu = true,
-    openMetadataDrawer
+    openMetadataDrawer,
+    onRemove
 }) {
     const redirect = useNavigate()
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
@@ -144,9 +146,10 @@ function ResultChart({
         >
             
 
-            <div className="flex center-items" >
+            <div className="flex center-items padding--medium" >
                 <h4>{title}</h4>
                 {showMenu && (
+                    <div className="flex justify-space-between div--expand">
                     <div className="flex" style={{ gap: "5px"}}>
                         <CategoricalChartSelection
                             vertical={false}
@@ -162,15 +165,17 @@ function ResultChart({
                             callback={handleDataDownload}
                             callbackValueOnly={true}
                         />
+                        </div>
+                        {_.isFunction(onRemove) ? <RemoveButton onRemove={(e) => { e.stopPropagation(); onRemove(featureTag); }} onMouseDown={(e) => e.stopPropagation()} /> : null}
                     </div>
                 )}
             </div>
             <div className="flex" style={{ height : height - 35}}>
 
                 {isReady && attributesReady? <viz.charts.Categorical
-                    width={width - 0 || undefined}
-                    height={height - 0 || undefined}
-                    margins={{ left: 50, right:10, top: 20, bottom: 125 }}
+                    width={width - 10 || undefined}
+                    height={height - 5 || undefined}
+                    margins={{ left: 50, right:0, top: 8, bottom: 120 }}
                     {...selectionTags}
                     data={groupedAggratedData}
                     errorName="e"

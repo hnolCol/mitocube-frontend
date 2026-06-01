@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
 import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
-import { useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import _ from "lodash"
 
 import { ReplicateMenu } from "./menu/ReplicateMenu"
@@ -14,6 +14,7 @@ import { api } from "@/api"
 import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
 import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
+import { useHotkeys } from "@blueprintjs/core";
 
 
 
@@ -68,11 +69,87 @@ function SamplesAttributes({
     genotypes,
     handleGenotypeSelection,
     repeatSelection,
+    onPasteRowsInAttribute,
     }) {
 
     const [selectedRows, setSelectedRows] = useState([])
+    const [copiedRows, setCopiedRows] = useState([])
     const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
+    const getCurrentSelection = () => { return selectedRows }
+     /**
+     * @description Handles the selection based on the selection region. 
+     * @param {import("@blueprintjs/table").Region} selectedRegion 
+     * @returns 
+     */
+    const handleSelection = (selectedRegion) => {
+        //handle selection of rows
+        let rows = [] 
+        if (!_.isArray(selectedRegion)) return 
+        if (selectedRegion.length === 0) return 
+        if (!_.isObject(selectedRegion[0])) return 
+        if (!_.has(selectedRegion[0], "rows")) return 
+        if (!_.isArray(selectedRegion[0].rows)) return 
+        if (selectedRegion.length > 1) {
+            //cmd /ctrl based selection
+            // the indiividual selections can have overlapping rows or equal rows
+            // hence we need to check for overlapping rows
+            // the mapping returns either an integer (row) or an array ( multiple rows)
+            // therefore we need to flatten the array first
+            rows = _.uniq(_.flatten(selectedRegion.filter(selection => _.has(selection, "rows")).map(selection => {
+                if (selection.rows[0] === selection.rows[1]) return selection.rows[0]
+                return _.range(selection.rows[0],selection.rows[1]+1)
+            })))
+        }
+        else if (selectedRegion.length === 1 && _.has(selectedRegion[0],"rows")) {
+            //drag seelection
+            if (selectedRegion[0].rows[0] == selectedRegion[0].rows[1]) {
+                rows = [selectedRegion[0].rows[1]]
+            }
+            else {
+                rows = _.range(selectedRegion[0].rows[0],selectedRegion[0].rows[1]+1)
+            }
+        }
+        setSelectedRows(rows)
+    }
+        const handleCopy = useCallback(() => {
+            if (!handleSelection) return;
 
+            // TODO: replace with your actual selection model
+            const selection = getCurrentSelection(); 
+            setCopiedRows(selection);
+            
+
+            console.log(selection, "copied rows")
+
+
+            }, [handleSelection]);
+
+        const handlePaste = useCallback(async () => {
+            if (!handleSelection) return;
+
+            try {
+                setCopiedRows
+            } catch (e) {
+                console.error("Paste failed", e);
+            }
+        }, [handleSelection, copiedRows]);
+    
+        const hotkeys = useMemo(() => [
+        {
+            combo: "mod + c",
+            label: "Copy table selection",
+            preventDefault: true,
+            onKeyDown: handleCopy,
+        },
+        {
+            combo: "mod + v",
+            label: "Paste table selection",
+            preventDefault: true,
+            onKeyDown: handlePaste,
+        },
+    ], [handleCopy, handlePaste]);
+
+    const { handleKeyDown, handleKeyUp } = useHotkeys(hotkeys);
 
     const getSelectedSampleTags = () => {
         return selectedRows.map(
@@ -128,7 +205,9 @@ function SamplesAttributes({
                             onSampleTraitSelection,
                             rowIdces: selectedRows,
                             clearAttributeTableByRowIndex,
-                            repeatSelection
+                            repeatSelection,
+                            copiedRows,
+                            onPaste: onPasteRowsInAttribute
                         }}
                     />
                 )
@@ -252,41 +331,7 @@ function SamplesAttributes({
             </ColumnHeaderCell>)
     }
 
-    /**
-     * @description Handles the selection based on the selection region. 
-     * @param {import("@blueprintjs/table").Region} selectedRegion 
-     * @returns 
-     */
-    const handleSelection = (selectedRegion) => {
-        //handle selection of rows
-        let rows = [] 
-        if (!_.isArray(selectedRegion)) return 
-        if (selectedRegion.length === 0) return 
-        if (!_.isObject(selectedRegion[0])) return 
-        if (!_.has(selectedRegion[0], "rows")) return 
-        if (!_.isArray(selectedRegion[0].rows)) return 
-        if (selectedRegion.length > 1) {
-            //cmd /ctrl based selection
-            // the indiividual selections can have overlapping rows or equal rows
-            // hence we need to check for overlapping rows
-            // the mapping returns either an integer (row) or an array ( multiple rows)
-            // therefore we need to flatten the array first
-            rows = _.uniq(_.flatten(selectedRegion.filter(selection => _.has(selection, "rows")).map(selection => {
-                if (selection.rows[0] === selection.rows[1]) return selection.rows[0]
-                return _.range(selection.rows[0],selection.rows[1]+1)
-            })))
-        }
-        else if (selectedRegion.length === 1 && _.has(selectedRegion[0],"rows")) {
-            //drag seelection
-            if (selectedRegion[0].rows[0] == selectedRegion[0].rows[1]) {
-                rows = [selectedRegion[0].rows[1]]
-            }
-            else {
-                rows = _.range(selectedRegion[0].rows[0],selectedRegion[0].rows[1]+1)
-            }
-        }
-        setSelectedRows(rows)
-    }
+   
 
     // const genotypeHeaderMenu = () => {
     //     return <Menu small={true}>
@@ -325,19 +370,24 @@ function SamplesAttributes({
         }
     }
 
+
+
+    
+
     return (
     
         <div style={{paddingTop:"1rem",paddingBottom:"1rem", height : "75vh", overflowY: "scroll"}}>
             <HotkeysProvider>
+                <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} tabIndex={0}>
                 <Table2
                     //enableColumnInteractionBar = {false}
                     enableGhostCells={true}
                     numRows={sampleNames.length}
                     cellRendererDependencies={[rerenderTableDependency]}
                     bodyContextMenuRenderer={renderBodyContextMenu}
-                    defaultRowHeight={40}
+                    defaultRowHeight={60}
                     selectionModes={SelectionModes.CELLS}
-                    minColumnWidth={250}
+                    minColumnWidth={300}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
@@ -380,7 +430,7 @@ function SamplesAttributes({
                 selectedRows={selectedRows}
                 submission_tag={submission_tag}
             />
-
+            </div>
             </HotkeysProvider>
         </div>
     )

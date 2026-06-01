@@ -12,7 +12,7 @@ import { localPoint } from '@visx/event';
 import _ from "lodash"
 import ScatterPoints from "./ScatterPoints"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import { getColorPalette } from "../../colors/colorPalette"
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import { Divider, H4 } from "@blueprintjs/core"
 import { LegendItem, LegendLabel, LegendLinear, LegendOrdinal, LegendSize } from "@visx/legend"
 import { roundNumber } from "../../../../services/format/number"

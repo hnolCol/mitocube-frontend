@@ -7,7 +7,7 @@ import { SVG } from "../SVGHeader"
 import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import { getColorPalette, HIGHLIGHT_COLOR } from "../../colors/colorPalette"
+import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import { Divider, H4 } from "@blueprintjs/core"
 import { ScatterLegend, TextScatterLegend, AnnotationLegend } from "./Legend"
 import { ScatterLabel } from "./Label"

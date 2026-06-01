@@ -37,6 +37,7 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
     }
     
     const handleSelect = (tag) => {
+        console.log(tag)
         onSelect(tag)
     }
 

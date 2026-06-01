@@ -94,6 +94,7 @@ export function DatasetFeatureView() {
         updateParam("protein_group_tags", value);
     };
 
+    console.log(proteinGroupTags)
     return (
         <div>
             <h2>Dataset Features</h2>
@@ -179,7 +180,9 @@ export function DatasetFeatureView() {
 
                 {/* Column 2: FeatureDataView only */}
                 <div style={{marginLeft : "2rem"}}>
-                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} />
+                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} onRemove={(tag) => {
+                        updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: tag }));
+                    }} />
                 </div>
             </div>
         </div>

@@ -1,18 +1,16 @@
 
 
-import hooks from "@mitocube/api-hooks";
 import _ from "lodash";
 import { useState } from "react";
 import { Dialog } from "@blueprintjs/core";
 import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView";
 import { AttributesInput } from "../../core/input/api/DatasetAttributeInput";
 import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttributeView";
-import { findAndInsertTree, findChildrenByPath, deleteByPath, checkPathExists, addIDToPath } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
+import { findAndInsertTree, findChildrenByPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api";
 import { MandatoryCheckDetail } from "@/comps/submission/MandatoryAttributes";
 import { MandatoryCheckBadge } from "@/comps/submission/MandatoryAttributes";
-import { StateIndicator } from "@/comps/core/base/states/SubmssionState";
 import { StateHeader } from "@/comps/submission/view/StateHeader";
 
 
@@ -25,9 +23,6 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         { tag: submission_tag, group_by_min_state },
         { enabled: _.isString(submission_tag) }
     )
-
-    console.log(submission_ca_tags)
-
     const { data: submission_ca_data } = api.submissions.condition_applications.useGetSubmissionConditionApplicationData(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
@@ -106,10 +101,18 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
             children: _.isArray(item.children) ? cleanForBackend(item.children) : []
         }))
     }
-const handleSubmit = () => {
-    const cleaned = cleanForBackend(selected_traits)
-    updateCA({ tag: submission_tag, selected_traits: cleaned })
-}
+    const handleSubmit = () => {
+        const cleaned = cleanForBackend(selected_traits)
+        updateCA({ tag: submission_tag, selected_traits: cleaned })
+    }
+
+    
+    const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
+                const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, referenceID))
+                return _.some(foundNode)
+            }
+
+
 
     return (
         <div>
@@ -164,6 +167,7 @@ const handleSubmit = () => {
                         getSelectionByPath={getSelectionByPath}
                         onChildrenSelection={handleTraitSelection}
                         handleTraitRemove={handleTraitSelection}
+                        checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                     />
                     <div className="flex justify-end" style={{ gap: "0.5rem" }}>
                         <button 

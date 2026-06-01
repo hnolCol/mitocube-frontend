@@ -1,6 +1,5 @@
 
 import { SVG } from "../../../charts/SVGHeader"
-import { getColorPalette } from "../../../colors/colorPalette"
 import AnimatedText from "../../AniamtedText"
 import _ from "lodash"
 import { motion } from "framer-motion"

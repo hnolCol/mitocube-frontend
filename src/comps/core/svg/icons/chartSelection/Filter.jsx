@@ -1,6 +1,6 @@
 import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
-import { getColorPalette } from "../../../colors/colorPalette"
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 
 export function FilterSVG({ width, height, strokeColor}) {

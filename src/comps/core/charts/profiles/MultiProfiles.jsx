@@ -3,7 +3,7 @@ import { ProfileChart } from "./ProfileChart";
 import _ from "lodash"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique";
 import { scaleOrdinal } from "@visx/scale";
-import { getColorPalette } from "../../colors/colorPalette";
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 export function MultiProfiles({chartIdx,
     width = 220,

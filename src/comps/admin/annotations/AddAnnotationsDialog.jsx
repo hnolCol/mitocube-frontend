@@ -6,6 +6,7 @@ import { useEffect } from "react"
 import _ from "lodash"
 import { AnnotationUpload } from "./AnnotationFileUpload"
 import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
+import { addStringToArrayOrRemove } from "@/services/arrays/transforms"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -83,6 +84,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           });
       };
 
+  console.log(annotation)
   return (
     <div className="flex flex-column gap--small padding--medium">
       <h3>Add Annotation</h3>
@@ -141,8 +143,8 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
         }
       />
       <SubmissionInput
-  selectedTags={annotation.submission_tags}
-  onChange={tags => setAnnotation(prev => ({ ...prev, submission_tags: tags }))}
+  selected_submission_tags={annotation.submission_tags}
+  onSelect={tag => setAnnotation(prev => ({ ...prev, submission_tags: addStringToArrayOrRemove({array : prev.submission_tags, string: tag}) }))}
 />
 
       <div className="flex gap--small" style={{ alignItems: "flex-start" }}>

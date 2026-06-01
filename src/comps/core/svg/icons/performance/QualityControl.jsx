@@ -3,13 +3,9 @@
 
 import { SVG } from "../../../charts/SVGHeader";
 
-
-
-
-
 import { motion } from "framer-motion";
 import AnimatedText from "../../AniamtedText";
-import { getColorPalette } from "../../../colors/colorPalette";
+import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import _ from "lodash"
 function QualityControl({width=200,height=50}) {
     const colorPalette = getColorPalette()

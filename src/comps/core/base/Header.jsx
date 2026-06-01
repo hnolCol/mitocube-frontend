@@ -1,5 +1,5 @@
 import PropTypes from "prop-types"
-import { getColorPalette } from "../colors/colorPalette"
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 const primaryColor = getColorPalette(1)
 

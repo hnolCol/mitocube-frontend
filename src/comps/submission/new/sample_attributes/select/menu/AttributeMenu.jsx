@@ -13,7 +13,8 @@ export function AttributeContextMenuSearch({ attribute_tag,
                 onSampleTraitSelection,
                 rowIdces = [],
                 clearAttributeTableByRowIndex = undefined,
-                repeatSelection}) {
+                repeatSelection,
+                copiedRows = [], onPaste = () => {} }) {
     
     const [currentSelection, setCurrentSelection] = useState([]) 
     const [searchString, setQuery] = useState("")
@@ -65,6 +66,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
                 <MenuDivider />
                 <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces, attribute_tag)} />
                 <MenuItem text={`Clear Selection (${rowIdces.length} row(s))`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces, attribute_tag)} />
+                {copiedRows.length > 0 && <MenuItem text={`Paste copied values to selection (${rowIdces.length} row(s))`} icon="clipboard" onClick={() => onPaste(attribute_tag, copiedRows, rowIdces)} />}
             </Menu>
             </div>
     )

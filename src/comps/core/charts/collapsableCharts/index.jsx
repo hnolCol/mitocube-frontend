@@ -7,7 +7,7 @@ import { addItemToArrayOrRemoveItIfPresent } from "../../../../services/arrays/t
 import { Combobox } from "../../input/Combobox"
 import { getDomainWithBoundaries } from "../../../../services/arrays/boundaries"
 import { scaleLinear, scaleOrdinal } from "@visx/scale"
-import { getColorPalette } from "../../colors/colorPalette"
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import { getCumSumFromArray } from "../../../../services/arrays/cumsum"
 
 function CollapsableAxes({

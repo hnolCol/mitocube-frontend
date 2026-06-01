@@ -16,7 +16,7 @@ FeatureDataView.defaultProps = {
     features: []
 };
 
-export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true }) {
+export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true, onRemove }) {
 
     const { data, isLoading } = api.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
     const {data : feature} = api.features.tag.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
@@ -54,6 +54,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
                         width={size.width || undefined}
                         height={size.height || undefined}
                         title={!showProteinNameInTitle ? "" :  _.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
+                        onRemove={onRemove}
                         />
                     </div>
             )}
@@ -61,7 +62,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
     );
 }
 
-export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true }) {
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove }) {
         // build a simple initial layout (you can adjust sizing/positions as needed)
         const initialLayouts = feature_tags.map((ft, i) => ({
             i: `${ft}-${i}-${submission_tags[i]}`,
@@ -81,7 +82,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                 const ResponsiveGridLayout = WidthProvider(Responsive);
 
                 return (
-                    <div style={{ width: "85vw", height : "90vh" }}>
+                    <div style={{ width: "85vw", height : "80vh", overflowY : "scroll" }}>
                         <ResponsiveGridLayout
                             className="layout"
                             layouts={{ lg: initialLayouts }}
@@ -97,7 +98,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                 <div key={`${feature_tag}-${i}-${submission_tags[i]}`} data-grid={initialLayouts[i]}>
                                     <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%", marginBottom: "100px" }}>
                                         
-                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tags[i]} showTitle={showTitle} showProteinNameInTitle={showProteinNameInTitle} />
+                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tags[i]} showTitle={showTitle} showProteinNameInTitle={showProteinNameInTitle} onRemove={onRemove} />
                                     </div>
                                 </div>
                             ))}

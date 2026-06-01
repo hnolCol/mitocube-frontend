@@ -18,6 +18,7 @@ export function SubmissionInput({ selected_submission_tags = [], onSelect }) {
         api_hook={api.submissions.query.useGetSubmissionByQuery}
         onSelect={onSelect}
         api_hook_params={{group_by_state : false}}
-        placeholder="Select submission..." />
+        placeholder={selected_submission_tags.length > 0 ? `${selected_submission_tags.length} submission(s) selected` : "Select submission..."}
+    />
 
 }

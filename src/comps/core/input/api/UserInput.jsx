@@ -41,7 +41,6 @@ export function UserInput({selected_users = [], onUserSelect, isRequired = true,
      * @returns 
      */
     const renderUser = (user_tag, { handleClick, handleFocus, index, modifiers, query }) => {
-        console.log(user_tag)
         return <UserMenuItem tag={user_tag} {...{ handleClick, handleFocus, modifiers}} />
      
     }
