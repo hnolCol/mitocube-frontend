@@ -78,7 +78,7 @@ function CAHItem({ cahierarchy, onSelect, level = 0 }) {
 export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter }) {
     const [searchString, setSearchString] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
-    const [includeSampleLevel, setIncludeSampleLevel] = useState(submissionFilter.include_sample_ca || false);
+    const [includeSampleLevel, setIncludeSampleLevel] = useState(submissionFilter.include_sample_ca || true);
 
     const { data: allCAs, isLoading, error } = api.condition_applications.useGetConditionApplicationHierarchyByQuery({
         search_string : searchString,
@@ -197,7 +197,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
 
             {/* Full CA display */}
             {selectedCATags.length > 0 && (
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="flex flex-column" style={{ marginTop: "0.5rem", gap: "0.1rem" }}>
                     {selectedCATags.map(tag => (
                         <CADisplay key={tag} tag={tag} onRemove={() => handleSelectCA(tag)} />
                     ))}
@@ -208,14 +208,14 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
 }
 
 function CADisplay({ tag, onRemove }) {
-    console.log(tag)
     return (
         <div style={{ 
             display: "flex", 
             alignItems: "center", 
+            backgroundColor : "#f9f9f9",
             justifyContent: "space-between",
             marginBottom: "0.5rem",
-            position: "relative"
+            position: "relative",
         }}>
             <div style={{ flex: 1 }}>
                 <ConditionApplicationsView 
@@ -226,7 +226,6 @@ function CADisplay({ tag, onRemove }) {
             <button
                 onClick={onRemove}
                 style={{
-                    position: "absolute",
                     top: "0.5rem",
                     right: "0.5rem",
                     background: "none",

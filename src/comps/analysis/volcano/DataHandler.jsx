@@ -36,7 +36,7 @@ export function VolcanoDataHandler({
         { tag: favoriteAnnotationSelection?.values?.[0] },
         { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
     )
-    
+    console.log(selectedAnnotationProteins)
     const { data: hoveredAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: annotationHoverResults?.values?.[0] },
         { enabled: !!annotationHoverResults?.values?.[0], staleTime: Infinity }

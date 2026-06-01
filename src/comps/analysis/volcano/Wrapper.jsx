@@ -126,6 +126,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                                 onAdd={handleAnnotationSelection}
                                 onSelect={handleFavoriteAnnotationSelect}
                                 onHover={handleAnnotationHover} 
+                                submission_tags={[submission_tag]}
                             />
                         </PersistentCollapse>               
 
