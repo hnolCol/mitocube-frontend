@@ -17,7 +17,8 @@ import { SubmissionCommentCount } from "@/comps/submission/comments";
 import { SubmissionConditionApplicationView } from "./SubmissionConditionApplicationView";
 import { SubmissionDate } from "../../submission/view/SubmissionDate";
 import { getColorPalette } from "@mitocube/viz/src/colors/palette";
-
+import { SubmissionGenotypesView } from "@/comps/core/base/genotype/SubmissionGenotypesView";
+import { api } from "@/api";
 
 /**
  * @description React element to give an overview about a Dataset/Submission. 
@@ -26,7 +27,8 @@ import { getColorPalette } from "@mitocube/viz/src/colors/palette";
  */
 function SubmissionOverview() {
 
-    const { submission_tag } = useOutletContext()    
+    const { submission_tag } = useOutletContext()   
+    const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 0})
     const fontColors = getColorPalette(5)
     return (
         <div style={{ overflowY: "scroll", height: "85vh", padding: "1rem" }} className="flex flex-column">
@@ -72,8 +74,9 @@ function SubmissionOverview() {
             </div>
             <div className="flex flex--wrap align-start" style={{ gap: "2rem", marginTop: "1rem" }}>
 
-                {_.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
-                    <h3>Genotypes</h3>
+                {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                    
+                    <SubmissionGenotypesView {...{ submission_tag }}/>
                 </div> : null}
                 <div className="container--shadow padding--little margin-top--little" style={{ width: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>

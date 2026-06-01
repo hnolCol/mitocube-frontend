@@ -6,7 +6,7 @@ import _ from "lodash"
 import { Annotation } from "./Annotation";
 import { TagLike } from "../tags/TagLike";
 
-export function AnnotationMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem" }) {
+export function AnnotationMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem"}) {
 
     const { data: annotation, isSuccess } = api.annotations.queryAnnotations.useGetAnnotationsByTag({ tag }, { enabled: Boolean(tag), staleTime: Infinity })
 
@@ -50,7 +50,7 @@ export function AnnotationGroupInMenu({ tag, annotation_tags = [], selected_tags
 }
 
 
-export function AnnotationSelectionMenu({ placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true, vertical = false, submission_tags = [] }) {
+export function AnnotationSelectionMenu({ placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true, vertical = false, submission_tags = [], showDeselect = false  }) {
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchString, setSearchString] = useState("")
@@ -100,7 +100,7 @@ export function AnnotationSelectionMenu({ placeholder = "Select annotations", on
                     }
 
                     <Divider />
-                    <MenuItem text="Deselect All Annotations" onClick={(e) => onSelection(e,[])} />
+                    {showDeselect ? <MenuItem text="Deselect All Annotations" onClick={(e) => onSelection(e,[])} /> : null}
                 </Menu></div>}
             minimal={true}
             isOpen={isOpen}

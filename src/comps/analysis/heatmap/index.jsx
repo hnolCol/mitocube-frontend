@@ -47,7 +47,8 @@ function HeatmapLoad( {submission_tag} ) {
             viewProps,
             setViewProps, unique_ca_tags, setRequiredProteinTags,
             showProteinSearch: true,
-            proteinSearchProps : {submission_tag}
+            proteinSearchProps: { submission_tag },
+            submission_tag
         }} />
 }
 
@@ -79,7 +80,8 @@ function HeatmapViz({
     proteinTagMap,
     refetchedTrigger,
     proteinSearchResults,
-    proteinIsLoading
+    proteinIsLoading,
+    submission_tag
 }) {
     
 
@@ -120,7 +122,8 @@ function HeatmapViz({
                     placeholder={testProps.selected_annotation_tags.length === 0? "Select annotations" : `${testProps.selected_annotation_tags.length} selected`}
                     onSelection={handleAnnotationSelection}
                     onRemove={(e,tag) => handleAnnotationSelection(e,tag)}
-                    selected_tags={testProps.selected_annotation_tags} />
+                        selected_tags={testProps.selected_annotation_tags}
+                    submission_tags={[submission_tag]}/>
                 <span className="font-size--smallest">Data will be filtered after statistical analysis to be part of the given annotation. For example : MitoCarta 3.0</span>
             </div>
             <div>

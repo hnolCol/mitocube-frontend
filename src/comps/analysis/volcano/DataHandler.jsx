@@ -36,7 +36,6 @@ export function VolcanoDataHandler({
         { tag: favoriteAnnotationSelection?.values?.[0] },
         { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
     )
-    console.log(selectedAnnotationProteins)
     const { data: hoveredAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: annotationHoverResults?.values?.[0] },
         { enabled: !!annotationHoverResults?.values?.[0], staleTime: Infinity }
@@ -274,7 +273,7 @@ export function VolcanoDataHandler({
                                             fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
                                             elementTypes: ["svg", "data"],
                                             itemIsAttribute: false,
-                                            onAnnotationSelect: handleAnnotationSelect,
+                                            // onAnnotationSelect: handleAnnotationSelect,
                                             handleSearchByDataIndex
                                         }} /> : null}
                                     
