@@ -113,122 +113,188 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
     )
 }
 
+export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp, withinFilters = {}, onCountChange }) {  
 
-export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp }) {  
 
+    const withinAttributeTags = _.keys(withinFilters).filter(t => _.isString(t))
+    const allAttributeTags = _.uniq([attribute_tag, ...withinAttributeTags]).filter(_.isString)
+
+    const { data: condition_applications } = api.submissions.condition_applications
+    .useGetSubmissionSampleConditionApplications(
+        { tag: submission_tag, attribute_tags: _.join(allAttributeTags, ";") },
+        { 
+            enabled: _.isString(submission_tag) && _.isString(attribute_tag),
+            staleTime: 0  
+        }
+    )
     const [rerender, setRerender] = useState(undefined)
-    const { data: condition_applications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag, attribute_tags: attribute_tag }, { enabled: _.isString(submission_tag) && _.isString(attribute_tag) })
     useEffect(() => {
+        setRerender([Math.random()])
+    }, [_.join(pairwiseComp.left,";"), _.join(pairwiseComp.right,";")])
 
-            setRerender([Math.random()])
-            
-        } , [_.join(pairwiseComp.left,";"),_.join(pairwiseComp.right,";")])
-
-    if (!_.isArray(condition_applications) || condition_applications.length < 1) return <div>No condition applications found for attribute {<Attribute attribute_tag={attribute_tag} />}.</div>
-    const uniqueCAValuesJoined = _.uniq(condition_applications.map(ca => _.join(_.get(ca, [attribute_tag]).sort()))) //merge them to get unique values including combinations.
+    const uniqueCAValuesJoined = _.isArray(condition_applications) ? _.uniq(condition_applications.map(ca => _.join(_.get(ca, [attribute_tag]).sort()))) : []
     const uniqueCAValues = uniqueCAValuesJoined.map(ca_tags => _.split(ca_tags, ","))
     
-    const sampleTagsByColor = (pairwiseComp.left.length > 0 || pairwiseComp.right.length > 0) ?
-        _.fromPairs(condition_applications.map(sampleCA => {
-            return [sampleCA.tag, arraysEqual(sampleCA[attribute_tag], pairwiseComp.left) ?
-                "#efefef" : arraysEqual(sampleCA[attribute_tag], pairwiseComp.right)
-                    ? "#edf8b1" : "white"]
-        }))
-        : {}
-    
-    const sampleCountByGroup = condition_applications.reduce((acc, sampleCA) => { 
+    const sampleTagsByColor = (_.isArray(condition_applications) && (pairwiseComp.left.length > 0 || pairwiseComp.right.length > 0)) ?
+    _.fromPairs(condition_applications.map(sampleCA => {
+        const isLeft = arraysEqual(sampleCA[attribute_tag], pairwiseComp.left)
+        const isRight = arraysEqual(sampleCA[attribute_tag], pairwiseComp.right)
+
+        const hasActiveWithin = _.some(_.values(withinFilters), v => _.isArray(v) && v.length > 0)
+        const passesWithin = !hasActiveWithin || _.every(_.keys(withinFilters), attr =>
+            !_.isArray(sampleCA[attr]) || withinFilters[attr].length === 0 || arraysEqual(sampleCA[attr], withinFilters[attr])
+        )
+
+        if (isLeft && passesWithin) return [sampleCA.tag, "#efefef"]
+        if (isRight && passesWithin) return [sampleCA.tag, "#edf8b1"]
+        return [sampleCA.tag, "white"]
+    })) : {}
+
+    useEffect(() => {
+        setRerender([Math.random()])
+    }, [_.join(pairwiseComp.left,";"), _.join(pairwiseComp.right,";"), JSON.stringify(withinFilters)])
+
+    const sampleCountByGroup = _.isArray(condition_applications) ? condition_applications.reduce((acc, sampleCA) => { 
         const group = arraysEqual(sampleCA[attribute_tag], pairwiseComp.left) ? "left" : arraysEqual(sampleCA[attribute_tag], pairwiseComp.right) ? "right" : "none"
         acc[group] = (acc[group] || 0) + 1
         return acc
-    }, {})
+    }, {}) : {}
    
+    const withinFilteredCount = _.isArray(condition_applications) ? condition_applications.reduce((acc, sampleCA) => {
+        const passesWithin = _.every(_.keys(withinFilters), attr =>
+            !_.isArray(sampleCA[attr]) || withinFilters[attr].length === 0 || arraysEqual(sampleCA[attr], withinFilters[attr])
+        )
+        if (!passesWithin) return acc
+        const group = arraysEqual(sampleCA[attribute_tag], pairwiseComp.left) ? "left"
+            : arraysEqual(sampleCA[attribute_tag], pairwiseComp.right) ? "right" : "none"
+        acc[group] = (acc[group] || 0) + 1
+        return acc
+    }, {}) : {}
 
-    if (uniqueCAValuesJoined.length < 2) return <div>Not enough condition application values found for attribute {<Attribute attribute_tag={attribute_tag} />}.</div>
-    
+    useEffect(() => {
+        if (_.isFunction(onCountChange)) {
+            const hasActiveWithin = _.some(_.values(withinFilters), v => _.isArray(v) && v.length > 0)
+            onCountChange(hasActiveWithin ? withinFilteredCount : sampleCountByGroup)
+        }
+    }, [JSON.stringify(withinFilteredCount), JSON.stringify(sampleCountByGroup), JSON.stringify(withinFilters)])
 
-
-    
+ 
+    if (!_.isArray(condition_applications) || condition_applications.length < 1) return <div>No condition applications found for attribute <Attribute attribute_tag={attribute_tag} />.</div>
+    if (uniqueCAValuesJoined.length < 2) return <div>Not enough condition application values found for attribute <Attribute attribute_tag={attribute_tag} />.</div>
 
     return <div>
         <SampleSelectionTableView submission_tag={submission_tag} highlightSampleTagByColor={sampleTagsByColor} dependency={rerender}/>
         {_.isArray(uniqueCAValues) && uniqueCAValues.length > 0 ?
             <div style={{width : "100%"}} className="center-items margin-top--little">
                 <div className="flex" style={{ gap: "1rem", justifyContent: "center" }}>
-                <CAGroupSelection
-                    ca_tags={uniqueCAValues}
-                    exclude_tags={pairwiseComp.right}
-                    selected={pairwiseComp.left}
-                    backgroundColor={"#efefef"}
-                    onConfirm={(ca_tags) => onConfirm(ca_tags, "left")} />
-                
-                <CAGroupSelection
+                    <CAGroupSelection
                         ca_tags={uniqueCAValues}
-
-                    exclude_tags={pairwiseComp.left}
-                    selected={pairwiseComp.right}
-                    backgroundColor={"#edf8b1"}
-                    onConfirm={(ca_tags) => onConfirm(ca_tags, "right")}
-                    placeHolder="Right Group" />
+                        exclude_tags={pairwiseComp.right}
+                        selected={pairwiseComp.left}
+                        backgroundColor={"#efefef"}
+                        onConfirm={(ca_tags) => onConfirm(ca_tags, "left")} />
+                    <CAGroupSelection
+                        ca_tags={uniqueCAValues}
+                        exclude_tags={pairwiseComp.left}
+                        selected={pairwiseComp.right}
+                        backgroundColor={"#edf8b1"}
+                        onConfirm={(ca_tags) => onConfirm(ca_tags, "right")}
+                        placeHolder="Right Group" />
+                </div>
             </div>
-                {_.isObject(sampleCountByGroup) && _.keys(sampleCountByGroup).length > 0 ? <span>Number of selected samples of left <strong>{sampleCountByGroup.left || 0}</strong> and right <strong>{sampleCountByGroup.right || 0}</strong> group.</span> : null}
-            </div>
-                : null}    
-
+            : null}    
     </div>
-
-
-
 }
 
+export function WithinCASelection({ submission_tag, attribute_tag, selected, onConfirm }) {
+    const { data: condition_applications } = api.submissions.condition_applications
+        .useGetSubmissionSampleConditionApplications(
+            { tag: submission_tag, attribute_tags: attribute_tag },
+            { enabled: _.isString(submission_tag) && _.isString(attribute_tag) }
+        )
 
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false }) {
+    if (!_.isArray(condition_applications) || condition_applications.length < 1) return null
+
+    const uniqueCAValuesJoined = _.uniq(
+        condition_applications.map(ca => _.join(_.get(ca, [attribute_tag], []).sort()))
+    )
+    const uniqueCAValues = uniqueCAValuesJoined.map(joined => joined.split(","))
+
+    return <div className="flex center-items" style={{ gap: "0.2rem" }}>
+        <CAGroupSelection
+            ca_tags={uniqueCAValues}
+            selected={selected}
+            exclude_tags={[]}
+            placeHolder="All (no filter)"
+            onConfirm={onConfirm} />
+        {selected.length > 0
+            ? <span
+                style={{ cursor: "pointer", fontSize: "0.7rem" }}
+                onClick={() => onConfirm([])}>✕</span>
+            : null}
+    </div>
+
+}
     
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false }) {
     const [attribute, setAttribute] = useState(undefined)
-    const [pairwiseComp,setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
-    const {data : ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
-
+    const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
+    const [withinFilters, setWithinFilters] = useState({})
+    const [activeWithinAttributes, setActiveWithinAttributes] = useState([])
+    const [sampleCounts, setSampleCounts] = useState({})
+    const { data: ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)})
+    
+    
     const inputIsSufficient = _.isString(attribute)
-        && _.isArray(pairwiseComp.left) && pairwiseComp.left.length > 0
-        && _.isArray(pairwiseComp.right) && pairwiseComp.right.length > 0
+    && pairwiseComp.left.length > 0
+    && pairwiseComp.right.length > 0
+    && (sampleCounts.left ?? 0) >= 2
+    && (sampleCounts.right ?? 0) >= 2
 
+    const withinAttributes = _.isArray(ca_attributes) && _.isString(attribute)
+        ? ca_attributes.filter(t => t !== attribute)
+        : []
 
     const handleSelection = (value, key) => {
-
-        setPairwiseComp(prevValues => {
-            return {
-                ...prevValues,
-                [key] : value
-            }
-        })  
+        setPairwiseComp(prevValues => ({ ...prevValues, [key] : value }))
     }
 
     const handleReset = () => {
         setAttribute(undefined)
         setPairwiseComp({left : [], right : [], impute : false})
-
+        setWithinFilters({})
+        setActiveWithinAttributes([])
+        setSampleCounts({})
     }
+    
 
     const handleConfirm = () => {
-        if (!inputIsSufficient) return null 
+        if (!inputIsSufficient) return null
+        
+        const activeWithinAttrTags = _.keys(withinFilters).filter(attr => 
+            _.isArray(withinFilters[attr]) && withinFilters[attr].length > 0
+        )
+        
         onConfirm({
             sample_attribute_tag: attribute,
             ca_tag_left: _.join(pairwiseComp.left, ";"),
             ca_tag_right: _.join(pairwiseComp.right, ";"),
+            within_attribute_tags: _.join(activeWithinAttrTags, ";"),
+            within_ca_tags: _.join(activeWithinAttrTags.map(attr => _.join(withinFilters[attr], ";")), ";"),
             impute: pairwiseComp.impute || false,
             annotation_tag: pairwiseComp.annotation_tag
         })
-        if (reset_after_confirm) {
-            handleReset()
-        }
-
+        if (reset_after_confirm) handleReset()
     }
-
     return <div>
         <h4>Define pairwise comparison</h4>
         {isLoading ? <Loading /> : null}
         {isSuccess ? <div> 
             <span>Select an attribute to define pairwise comparison groups.</span>
-        <AttributeSelection attribute_tags={ca_attributes} selected={_.isString(attribute) ? [attribute] : []} onSelect={(attribute_tag) => setAttribute(attribute_tag)} />
+            <AttributeSelection
+                attribute_tags={ca_attributes}
+                selected={_.isString(attribute) ? [attribute] : []}
+                onSelect={(attribute_tag) => { setAttribute(attribute_tag); setWithinFilters({}); setActiveWithinAttributes([]) }} />
         </div> : null}
 
         
@@ -238,30 +304,65 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             <div className="margin-top--little"> 
                 <span>Select conditions to compare.</span>
                 <div className="flex">
-                    
                     <GroupCASelection
                         submission_tag={submission_tag}
                         pairwiseComp={pairwiseComp}
                         attribute_tag={attribute}
-                        onConfirm={handleSelection}
-                        placeHolder="Left Group" />
-
-
-            </div>
-
+                        withinFilters={withinFilters}
+                        onCountChange={setSampleCounts}
+                        onConfirm={handleSelection} />
+                </div>
             </div> : null}
-        
-
-        {_.isArray(ca_attributes) && ca_attributes.length > 1 ?
+            {withinAttributes.length > 0 ?
             <div className="margin-top--little">
                 <span>Define the within conditions.</span>
+                {withinAttributes.length > 0 ?
+                    <Select
+                        items={withinAttributes}
+                        filterable={false}
+                        itemRenderer={(attr_tag, { handleClick }) => (
+                            <motion.button
+                                key={attr_tag}
+                                whileHover={{ backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
+                                className={activeWithinAttributes.includes(attr_tag) ? "basic-button basic-button--highlighted flex" : "basic-button flex"}
+                                style={{ width: "100%" }}
+                                onClick={handleClick}>
+                                {activeWithinAttributes.includes(attr_tag) ? <span style={{ marginRight: "0.2rem" }}>✓</span> : null}
+                                <Attribute attribute_tag={attr_tag} />
+                            </motion.button>
+                        )}
+                        onItemSelect={(attr_tag) => setActiveWithinAttributes(prev =>
+                            prev.includes(attr_tag) ? prev.filter(t => t !== attr_tag) : [...prev, attr_tag]
+                        )}
+                        closeOnSelect={false}
+                    >
+                    <button className="basic-button" style={{ width: "fit-content" }}>
+                        Select within attributes
+                    </button>
+                    </Select>
+                    : null}
+                    {activeWithinAttributes.map(attr_tag =>
+                        <div key={attr_tag} className="margin-top--little flex center-items" style={{ gap: "0.5rem" }}>
+                            <Attribute attribute_tag={attr_tag} />
+                            <WithinCASelection
+                                submission_tag={submission_tag}
+                                attribute_tag={attr_tag}
+                                selected={withinFilters[attr_tag] ?? []}
+                                onConfirm={(ca_tags) => setWithinFilters(prev => ({ ...prev, [attr_tag]: ca_tags }))} />
+                        </div>
+                    )}
+                </div> : null}
 
-        
-            </div> : null}
-
+        {_.isObject(sampleCounts) && _.keys(sampleCounts).length > 0
+            ? <span className="margin-top--little">Number of selected samples of left <strong>{sampleCounts.left || 0}</strong> and right <strong>{sampleCounts.right || 0}</strong> group.</span>
+            : null}
         <div className="margin-top--little">
             <h4>Subset data by annotation</h4>
-            <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" />
+            <AnnotationSelectionMenu
+                selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))}
+                onSelection={(e, tag) => setPairwiseComp(prevValues => ({ ...prevValues, annotation_tag: tag }))}
+                showTags={false}
+                placeholder="Select annotation" />
             <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
         {inputIsSufficient ? <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{ maxWidth: "14rem", textJustify: "inter-word" }}>Imputation is performed by filtering for proteins that are fully quantified in one group.
             Then NaNs are replaced by random data taken from a downshifted gaussian distribution.

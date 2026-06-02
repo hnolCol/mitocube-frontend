@@ -55,7 +55,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [annotationHoverResults, setAnnotationHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
     
     const handleVolcano = (props) => {
-        setTestParams(props)
+        setTestParams({ ...props, _nonce: Date.now() })
     }
 
     const handleFavoriteSelect = (proteinTag) => {

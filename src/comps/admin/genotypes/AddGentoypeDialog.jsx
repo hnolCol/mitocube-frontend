@@ -23,7 +23,7 @@ export function AddGenotypeDialog({ isOpen, onClose }) {
                     padding: "20px 24px 24px 24px",
                 }}
             >
-                <InsertEditGenotype onClose={onClose} />
+                <InsertEditGenotype onClose={(success) => onClose(success)} />
             </div>
         </Dialog>
     )

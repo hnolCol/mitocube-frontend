@@ -22,7 +22,8 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [update, setUpdate] = useState(undefined)
   const [currentTag, setCurrentTag] = useState(tag)
-
+  
+  const { data: creator } = api.genotypes.queryGenotypes.useGetGenotypeCreator(currentTag, { enabled: showDetails})
   const { data: permissions, isSuccess } = api.genotypes.queryGenotypes.useGetGenotypePermissions();
 
   const { mutate: deleteGenotype } = api.genotypes.modifyGenotypes.useDeleteGenotype({
@@ -102,6 +103,10 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
           <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
             <td><GenotypeDescription tag={currentTag} update={update}/></td>
           </tr>
+          <tr>
+          <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Created by</th>
+          <td>{creator ?? "—"}</td>
+        </tr>
         </tbody>
         </table>
       ) : null}

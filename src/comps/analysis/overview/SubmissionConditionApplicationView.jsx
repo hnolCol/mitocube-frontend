@@ -126,7 +126,7 @@ const handleSubmit = () => {
                         <div>
                             {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div>
                                 <StateHeader tag={state_ca_item.state_tag} />
-                                {state_ca_item.condition_application_tags.length > 0 ? state_ca_item.condition_application_tags.map(ca_tag => (
+                                {state_ca_item.condition_application_tags?.length > 0 ? state_ca_item.condition_application_tags.map(ca_tag => (
                                     <div key={ca_tag} className="padding--tiny margin--tiny">
                                         <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
                                     </div>

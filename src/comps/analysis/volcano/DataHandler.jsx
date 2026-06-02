@@ -47,7 +47,7 @@ export function VolcanoDataHandler({
         }
     
     //fetch data
-    const {data : testData, isSuccess, refetch } = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag}, {
+    const {data : testData, isSuccess, refetch } = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag, within_attribute_tags : selectedTestParams.within_attribute_tags, within_ca_tags : selectedTestParams.within_ca_tags}, {
         enabled: false,
         staleTime: Infinity,
         onError: handleError
