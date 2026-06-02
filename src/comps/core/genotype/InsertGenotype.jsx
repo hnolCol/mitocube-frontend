@@ -124,7 +124,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
                 setGenotype(INITIAL_GENOTYPE)
                 setSelectedTraits([])
             
-                onClose()
+                onClose(true)
 
             },
             onError: (error) => {
