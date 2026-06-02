@@ -5,7 +5,8 @@ import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { useEffect } from "react"
 import _ from "lodash"
 import { AnnotationUpload } from "./AnnotationFileUpload"
-import { SubmissionSelect } from "./SubmissionSelect"
+import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
+import { addStringToArrayOrRemove } from "@/services/arrays/transforms"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -83,6 +84,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           });
       };
 
+  console.log(annotation)
   return (
     <div className="flex flex-column gap--small padding--medium">
       <h3>Add Annotation</h3>
@@ -140,9 +142,9 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           setAnnotation(prev => ({ ...prev, pubmed_id: e.target.value }))
         }
       />
-      <SubmissionSelect
-  selectedTags={annotation.submission_tags}
-  onChange={tags => setAnnotation(prev => ({ ...prev, submission_tags: tags }))}
+      <SubmissionInput
+  selected_submission_tags={annotation.submission_tags}
+  onSelect={tag => setAnnotation(prev => ({ ...prev, submission_tags: addStringToArrayOrRemove({array : prev.submission_tags, string: tag}) }))}
 />
 
       <div className="flex gap--small" style={{ alignItems: "flex-start" }}>
@@ -166,17 +168,6 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
         />
         <AnnotationUpload onProteinIdsLoaded={handleProteinIdsLoaded} />
       </div>
-{/*    
-      <h3 style={{ fontSize: 18, fontWeight: 600, marginBottom: 20 }}>
-          Upload File
-      </h3>
-      <p>
-          Upload a file containing protein identifiers (e.g. UniProt accessions).
-          Supported formats: TSV, CSV, TXT.
-      </p>
-      <AnnotationUpload
-        onProteinIdsLoaded={handleProteinIdsLoaded}
-          /> */}
 
 
 

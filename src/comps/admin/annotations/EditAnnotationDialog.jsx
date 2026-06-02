@@ -4,7 +4,7 @@ import _ from "lodash"
 import { AnnotationGroupInput } from "./AnnotationGroupInput"
 import { AnnotationUpload } from "./AnnotationFileUpload"
 import { Dialog } from "@blueprintjs/core"
-import { SubmissionSelect } from "./SubmissionSelect"
+import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
 
 const INITIAL_ANNOTATION = {
   text: "",
@@ -134,9 +134,9 @@ export function EditAnnotations({ isOpen, onClose, tag, onSuccess }) {
         }
       />
 
-            <SubmissionSelect
-        selectedTags={annotation.submission_tags}
-        onChange={tags => setAnnotation(prev => ({ ...prev, submission_tags: tags }))}
+        <SubmissionInput
+        selected_submission_tags={annotation.submission_tags}
+        onSelect={tag => setAnnotation(prev => ({ ...prev, submission_tags: addStringToArrayOrRemove({array : prev.submission_tags, string: tag}) }))}
       />
 
       <div className="flex gap--small" style={{ alignItems: "flex-start" }}>

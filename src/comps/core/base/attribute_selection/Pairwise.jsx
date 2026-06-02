@@ -358,11 +358,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             : null}
         <div className="margin-top--little">
             <h4>Subset data by annotation</h4>
-            <AnnotationSelectionMenu
-                selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))}
-                onSelection={(e, tag) => setPairwiseComp(prevValues => ({ ...prevValues, annotation_tag: tag }))}
-                showTags={false}
-                placeholder="Select annotation" />
+            <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]}/>
             <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
         {inputIsSufficient ? <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{ maxWidth: "14rem", textJustify: "inter-word" }}>Imputation is performed by filtering for proteins that are fully quantified in one group.
             Then NaNs are replaced by random data taken from a downshifted gaussian distribution.

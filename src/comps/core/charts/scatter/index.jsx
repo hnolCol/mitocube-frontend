@@ -7,7 +7,7 @@ import { SVG } from "../SVGHeader"
 import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
-import { getColorPalette, HIGHLIGHT_COLOR } from "../../colors/colorPalette"
+import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import { Divider, H4 } from "@blueprintjs/core"
 import { ScatterLegend, TextScatterLegend, AnnotationLegend } from "./Legend"
 import { ScatterLabel } from "./Label"
@@ -162,7 +162,8 @@ export function ScatterPlot({
     externalHoverRerender,
     externalLabelIndices = new Set(),
     externalLabelRerender,
-    labelIsProtein = false
+    labelIsProtein = false,
+    showHoverLabels = false
 
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
@@ -233,11 +234,13 @@ export function ScatterPlot({
         const indices = new Set()
         if (hasLabels) {
             labelIndices.forEach(idx => indices.add(idx))
-            externalHoverIndices.forEach(idx => indices.add(idx))
+            if (showHoverLabels) {
+                externalHoverIndices.forEach(idx => indices.add(idx))
+            }
             externalLabelIndices.forEach(idx => indices.add(idx))
         }
         return indices
-    }, [labelIndices, externalHoverIndices, externalLabelIndices, labelRerender, externalHoverRerender, externalLabelRerender])
+    }, [labelIndices, externalHoverIndices, externalLabelIndices, labelRerender, externalHoverRerender, externalLabelRerender, showHoverLabels])
 
     useEffect(() => {
             if (proteinIsLoading) return

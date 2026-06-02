@@ -1,6 +1,6 @@
 
 
-import { getColorPalette } from "../../../colors/colorPalette"
+import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import _ from "lodash"
 import IconBase from "./Base"
 import viz from "@mitocube/viz"

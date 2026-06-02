@@ -8,8 +8,8 @@ import { GridColumns, GridRows } from "@visx/grid";
 import Bar from "./Bar";
 import ErrorBar from "../error";
 import { SVG } from "../SVG";
+import { getColorPalette, getAxisStrokeColor } from "@mitocube/viz/src/colors/palette";
 
-import { getAxisStrokeColor, getColorPalette } from "../../colors/colorPalette";
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries";
 import _ from "lodash"
 

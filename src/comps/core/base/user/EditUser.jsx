@@ -153,7 +153,7 @@ export function EditUser({userLabel}) {
     return (
         <Tabs selectedTabId={tabID} onChange={(newTabID, oldTabID) => setTabID(newTabID)}>
             <Tab id="change_pw" title="Change password" panel={<PWChangeUser />} />
-            <Tab id="change_affiliation" title="Affiliation" panel={<EditAffiliation />}/>
+            {/* <Tab id="change_affiliation" title="Affiliation" panel={<EditAffiliation />}/> */}
         </Tabs>
     )
 }

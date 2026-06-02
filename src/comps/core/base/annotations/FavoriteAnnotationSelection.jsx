@@ -10,7 +10,8 @@ export function FavoriteAnnotationSelection({
     onAdd,
     onSelect,
     onHover,
-    maxHeight = "300px" 
+    maxHeight = "300px",
+    submission_tags = []
 }) {
     return (
         <div>
@@ -24,6 +25,7 @@ export function FavoriteAnnotationSelection({
                     onRemove={(e, tag) => onAdd(tag)}
                     selected_tags={selected}
                     showTags={false}
+                    submission_tags={submission_tags}
                 />
                 {selected.length > 0 && (
                     <button className="basic-button" onClick={() => selected.forEach(tag => onAdd(tag))}>

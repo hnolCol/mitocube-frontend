@@ -4,6 +4,13 @@ import { useOutletContext } from "react-router";
 import { useSearchParams } from "react-router-dom";
 import { FeatureDataView } from "./DataView";
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms";
+import _ from "lodash";
+import { api } from "@/api";
+import { Attribute } from "@/comps/core/base/attributes/Attribute";
+import { Tooltip } from "@blueprintjs/core";
+import { AnnotationSelection } from "@/comps/core/charts/selections/AnnotationSelection";
+import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu";
+
 const OPTIONS = ["All", "Protein Groups", "Precursors"];
 const LIMITS = [20, 100, 200, 500];
 // Use a separator that won't conflict with ";" in tags, e.g. "|"
@@ -54,11 +61,15 @@ export function DatasetFeatureView() {
     const { submission_tag } = useOutletContext();
 
     const [searchParams, setSearchParams] = useSearchParams();
+    const { data: ca_attributes } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
     // Get values from URL or fallback to defaults
     const searchString = searchParams.get("search") || "";
     const selectedOption = OPTIONS.includes(searchParams.get("option")) ? searchParams.get("option") : "Protein Groups";
     const selectedLimit = LIMITS.includes(Number(searchParams.get("limit"))) ? Number(searchParams.get("limit")) : LIMITS[0];
-
+    const selectedStat = ca_attributes && ca_attributes.includes(searchParams.get("stat")) ? searchParams.get("stat") : (ca_attributes && ca_attributes.length > 0 ? ca_attributes[0] : null);
+    const selectedAnnotationTag = searchParams.get("annotation_tag") || null;
+    const selected_annotation_tags = selectedAnnotationTag ? [selectedAnnotationTag] : [] 
+    
     // Parse protein_group_tags from URL
     const proteinGroupTagsString = searchParams.get("protein_group_tags") || "";
     const proteinGroupTags = proteinGroupTagsString
@@ -75,12 +86,15 @@ export function DatasetFeatureView() {
         setSearchParams(newParams, { replace: true });
     };
 
+
+
     // Handler for updating protein_group_tags
     const updateProteinGroupTags = (tags) => {
         const value = tags.length > 0 ? tags.join(TAGS_SEPARATOR) : "";
         updateParam("protein_group_tags", value);
     };
 
+    console.log(proteinGroupTags)
     return (
         <div>
             <h2>Dataset Features</h2>
@@ -130,15 +144,35 @@ export function DatasetFeatureView() {
                             <span>{option}</span>
                         </OptionButton>
                     ))}
-                </div>
+                    </div>
+                    
+                <div className="flex margin-top--little center-items" style={{ gap: "5px", width : "100%" }}>
+                    <span>Annotations | </span>
+                        <AnnotationSelectionMenu submission_tags={[submission_tag]} placeholder="Select annotation" selected_tags={selected_annotation_tags}  showTags={true} onSelection={(e,tag) => updateParam("annotation_tag", tag)} onRemove={() => updateParam("annotation_tag",undefined)}/>
+                    </div>
+                <div className="flex margin-top--little center-items" style={{ gap: "5px", width : "100%" }}>
+                    <Tooltip  content={<div style={{maxWidth : "14rem"}}>Sort the features by selected statistical attribute. Features will be ranked by decreasing score which quantifies the how much variance is explained by the individual attribute groups (condition applications)</div>}><span>Sort by Statistics | </span></Tooltip>
+                    {_.isArray(ca_attributes) && ca_attributes.length ?
+                            ca_attributes.map(attribute_tag => (
+                                    <OptionButton
+                                        key={attribute_tag}
+                                        isSelected={attribute_tag === selectedStat}
+                                        onClick={() => updateParam("stat", attribute_tag)}>
+                                            <Attribute attribute_tag={attribute_tag}/>
+                                    </OptionButton>
+                                )) : null}
+                    </div> 
+                    
                
                 <FeatureContainer
                     search_string={searchString}
                     limit={selectedLimit}
                     submission_tag={submission_tag}
                     selected_feature_tags={proteinGroupTags}
-                    onClickFeature={(featureSearchResult) => {
-                        updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: featureSearchResult.tag }));
+                    sort_by_stat={selectedStat}
+                    annotation_tags={selected_annotation_tags}
+                    onClickFeature={(protein_tag) => {
+                        updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: protein_tag }));
                     }}
                 />
                 
@@ -146,7 +180,9 @@ export function DatasetFeatureView() {
 
                 {/* Column 2: FeatureDataView only */}
                 <div style={{marginLeft : "2rem"}}>
-                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} />
+                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} onRemove={(tag) => {
+                        updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: tag }));
+                    }} />
                 </div>
             </div>
         </div>

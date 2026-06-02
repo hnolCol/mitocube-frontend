@@ -1,7 +1,7 @@
 import { useMemo } from "react"
 import { SVG } from "../SVGHeader"
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale"
-import { getColorPalette } from "../../colors/colorPalette"
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import _ from "lodash"
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries"
 import PropTypes from "prop-types"

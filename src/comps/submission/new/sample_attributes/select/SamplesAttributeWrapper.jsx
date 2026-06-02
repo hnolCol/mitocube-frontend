@@ -181,7 +181,35 @@ export const findAndInsertTree = (
         level + 1
     );
 };
+export function replaceHierarchy(oldData, newNode) {
+  if (!Array.isArray(oldData) || oldData.length === 0) {
+    return [newNode];
+  }
 
+  function replace(nodes) {
+    return nodes.map((node) => {
+      // Replace matching node completely
+      if (
+        node.tag === newNode.tag &&
+        node.type === newNode.type
+      ) {
+        return newNode;
+      }
+
+      // Traverse children
+      if (Array.isArray(node.children) && node.children.length > 0) {
+        return {
+          ...node,
+          children: replace(node.children),
+        };
+      }
+
+      return node;
+    });
+  }
+
+  return replace(oldData);
+}
 /**
  * Replaces a subtree if the same path already exists.
  *
@@ -202,12 +230,13 @@ export const findAndInsertTree = (
  * A subtree gets completely replaced by newData.
  */
 
-function replaceHierarchy(oldData, newData) {
+function replaceHierarchy2(oldData, newData) {
   function isMatch(a, b) {
     return (
       a.tag === b.tag &&
       a.type === b.type &&
-      a.id === b.id
+        a.id === b.id &&
+        a.value === b.value
     );
   }
 
@@ -230,7 +259,7 @@ function replaceHierarchy(oldData, newData) {
     });
   }
     if (oldData === undefined) return newData; 
-    if (!_.isArray(oldData) || oldData.length === 0) return newData;
+    if (!_.isArray(oldData) || oldData.length === 0) return newData;
 
   return replace(oldData, newData);
 }
@@ -423,6 +452,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
     const repeatSelection = (rowIdcs, attribute_tag) => {
 
+
         let d = submission.attributeTable.slice()
         const n_samples = d.length
         const selection = rowIdcs.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
@@ -432,13 +462,16 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         const fillValues = Array(n_repeat).fill(selection).flat();
         _.forEach(_.range(diff), idx => {  
             const rowIndex = lastIdx + 1 + idx 
+            // console.log(rowIndex)
+            // console.log(fillValues.at(idx % rowIdcs.length))
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToHierarchy(fillValues.at(idx % rowIdcs.length), id)
-                d[rowIndex] = replaceHierarchy(d[rowIndex], v)
+                const v = addIDToHierarchy(fillValues.at(idx % rowIdcs.length).slice(), id)
+
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...addIDToHierarchy(v, id)]
+               
             }
         })
-
         updateSubmission(prevValues => {
             return {
                 ...prevValues,
@@ -537,6 +570,32 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         })
     }
 
+    const onPasteRowsForAttribute = (attribute_tag, copiedRows, rowIdces) => {
+
+        let d = submission.attributeTable.slice()
+        const selection = copiedRows.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
+
+        _.forEach(rowIdces, rowIndex => {  
+            
+            const id = submission.referenceIDs[rowIndex] 
+            if (id !== undefined) { 
+                const v = addIDToHierarchy(selection.at(rowIndex % copiedRows.length).slice(), id)
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...addIDToHierarchy(v, id)]
+               
+            }
+        })
+
+        updateSubmission(prevValues => {
+            return {
+                ...prevValues,
+                attributeTable: d,
+                rerenderTableDependency: [Math.random()]
+            }
+        })
+
+
+    }
+
     
     /**
      * 
@@ -620,6 +679,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 rerenderTableDependency={submission.rerenderTableDependency}
                 onSampleTraitSelection={onSampleTraitSelection}
                 onTagRemove={onSampleAttrRemove}
+                onPasteRowsInAttribute = {onPasteRowsForAttribute}
                     {...{
                         // attributes: attributesAllowedForDataset,
                     genotypes : submission.genotypes,

@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import _ from "lodash"
 import Point from "../../scatter/Point";
 import AxisWithBackground from "../../axis";
-import { getColorPalette } from "../../../colors/colorPalette";
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import { useTooltip, useTooltipInPortal, TooltipWithBounds } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import GroupingTable from "../../../base/attribute_groupings/Table";

@@ -16,6 +16,8 @@ import { AxiosError } from "axios"
 import { indexStrings } from "../../../services/arrays"
 
 import { SubmissionPanelStack } from "./panels/TabStack"
+import { addIDToHierarchy } from "./sample_attributes/select/SamplesAttributeWrapper"
+import { use } from "react"
 //move to service
 
 export function get_proteome_id(datasetAttributeValues) {
@@ -98,6 +100,16 @@ function InitialSubmission({
         }
     }, [preDefinedSampleNames])
     
+
+    useEffect(() => {
+     
+        if (_.isObject(submission) && _.has(submission, "selected_traits") && _.isArray(submission.selected_traits) && submission.selected_traits.length > 0 && _.isString(tag)) {
+            const selected_traits = addIDToHierarchy(submission.selected_traits, tag)
+            setSubmission(prevValues => {return {...prevValues, ...submission, selected_traits}})
+        }
+     } , [tag])
+
+
     useEffect(() => {
 
         //handle changes that effect the samples names 
@@ -108,17 +120,26 @@ function InitialSubmission({
         let attributeTable = submission.attributeTable
             
         const sampleReferenceIDs  = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
-
-
-        if (sampleNumber > attributeTable.length) {
+                if (sampleNumber > attributeTable.length) {
             //add rows 
             const diff = sampleNumber - attributeTable.length
             //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 
-            const existingAttributeTags = attributeTable.length > 0?Object.keys(attributeTable[0]):submission.samplesAttributes.filter(groupInfo => _.isObject(groupInfo.attribute)).map(groupInfo => groupInfo.attribute.tag)
+            // const existingAttributeTags = attributeTable.length > 0?Object.keys(attributeTable[0]):submission.samplesAttributes.filter(groupInfo => _.isObject(groupInfo.attribute)).map(groupInfo => groupInfo.attribute.tag)
             _.forEach(_.range(diff), () => {
                 attributeTable.push( [] ) //Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
-        }
+                }
+        
+        _.forEach(sampleReferenceIDs, (refID, idx) => {
+            if (_.isArray(attributeTable[idx]) && attributeTable[idx].length > 0) {
+                if (_.has(attributeTable[idx], 'id') && attributeTable[idx].id !== refID) {
+                    attributeTable[idx] = addIDToHierarchy(attributeTable[idx], refID)
+                }
+            }
+        })
+
+
+
         const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : tag, sampleNumber : sampleNumber, referenceIDs : sampleReferenceIDs}) : sampleNames
 
         setSubmission(prevValues => {
@@ -196,24 +217,24 @@ function InitialSubmission({
     
         if (errMsgs.length > 0) {
             // if there are error messages, show it to the user.
-            setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent : "danger"})
+            setAlertProps({ isOpen: true, children: <div><h3>Errors</h3><ul >{errMsgs.map(err => <li key={`${err}`}>{err}</li>)}</ul></div>, intent: "danger" })
         }
 
         else {
 
             // console.log(submission.extraMetaText, submission.metatext)
         
-            let submissionDetails = { } // ...submission 
+            let submissionDetails = {} // ...submission 
             // delete rendering float
-            submissionDetails["title"] = submission.title 
-            submissionDetails["sample_names"] = submission.sampleNames 
+            submissionDetails["title"] = submission.title
+            submissionDetails["sample_names"] = submission.sampleNames
             submissionDetails["replicates"] = validReplicates
             submissionDetails["samples_attributes"] = attributeTable
             submissionDetails["dataset_attributes"] = submission.selected_traits
             submissionDetails["genotypes"] = submission.genotypes
             submissionDetails["collaborators"] = submission.collaborators.slice()
             submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
-            submissionDetails["tag"] = tag 
+            submissionDetails["tag"] = tag
             submissionDetails["metatext"] = { ...submission.metatext, ...submission.extraMetaText.reduce((acc, meta) => { acc[meta.title] = meta.text; return acc }, {}) }
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
@@ -241,18 +262,20 @@ function InitialSubmission({
                             redirect("/submissions/view")
                         }
                     }),
-                    onError: (error) => setAlertProps({
-                        isOpen: true,
-                        children: <div><h3>Error</h3>
-                            <p>There was an error in the submission.</p>
-                            <p>If your token expired you will be re-direct to the login. 
-                                Otherwise please contact the system administrator and/or the check the help. 
-                            </p>
-                            <APIError error={error} />
-                        </div>,
-                        onConfirm: () => closeAlertAndLogout(error),
-                        onClose : () => closeAlertAndLogout(error)
-                    })
+                    onError: (error) => {
+                        setAlertProps({
+                            isOpen: true,
+                            children: <div><h3>Error</h3>
+                                <p>There was an error in the submission.</p>
+                                <p>If your token expired you will be re-direct to the login.
+                                    Otherwise please contact the system administrator and/or the check the help.
+                                </p>
+                                <APIError error={error} />
+                            </div>,
+                            onConfirm: () => closeAlertAndLogout(error),
+                            onClose: () => closeAlertAndLogout(error)
+                        })
+                    }
                 })
             }
         
@@ -310,6 +333,7 @@ function InitialSubmission({
         // load a submission from the submission.
         const {itemFound, itemValue : submission} = getItemFromLocalStorage({itemName : "submission", parseJson : true})
         if (_.isObject(submission)) {
+
             setSubmission(prevValues => {return {...prevValues, ...submission}})
         }
         else {

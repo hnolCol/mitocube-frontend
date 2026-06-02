@@ -24,18 +24,18 @@ export function VolcanoDataHandler({
         volcanoData,
         setVolcanoData,
         proteinIsLoading,
-       proteinSearchResults,
+        proteinSearchResults,
         proteinHoverResults,
         favoriteProteinSelection,
         favoriteAnnotationSelection,
-        annotationHoverResults}) {
+        annotationHoverResults,
+        showHoverLabels = false}) {
 
     const [annotationMarkers, setAnnotationMarkers] = useState([])
     const { data: selectedAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: favoriteAnnotationSelection?.values?.[0] },
         { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
     )
-    
     const { data: hoveredAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: annotationHoverResults?.values?.[0] },
         { enabled: !!annotationHoverResults?.values?.[0], staleTime: Infinity }
@@ -184,7 +184,7 @@ export function VolcanoDataHandler({
         console.log("Enriched", enrichedCount, "data points out of", data.length)
         return enriched
     }
-         
+        
     return (
         <div
             className="div--expand flex flex--wrap"
@@ -199,7 +199,7 @@ export function VolcanoDataHandler({
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
                 externalLabelResult={{
-                    values: _.uniq([...(favoriteProteinSelection?.values || []), ...(selectedAnnotationProteins ?? [])]),
+                    values: _.uniq([...(favoriteProteinSelection?.values || []), ...(showHoverLabels && _.isArray(selectedAnnotationProteins) ? selectedAnnotationProteins : [])]),
                     trigger: (selectedAnnotationProteins?.length > 0) ? Math.random() : (favoriteProteinSelection?.trigger || 0),
                     key: "tag"
                 }}
@@ -218,7 +218,7 @@ export function VolcanoDataHandler({
                     })
                 } 
                 isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}
-                passOnProps = {{setRequiredProteinTags, proteinTagMap, proteinIsLoading}} >
+                passOnProps = {{setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels}} >
                 {
                     /**
                      * 
@@ -245,7 +245,8 @@ export function VolcanoDataHandler({
                         setTriggerResetAxisZoom,
                         setRequiredProteinTags,
                         proteinTagMap,
-                        proteinIsLoading
+                        proteinIsLoading,
+                        showHoverLabels
                     }, didx) => {
                             if (hiddenSuffix.includes(volcanoData.suffixes[chartIdx])) return null
                             return (
@@ -272,7 +273,7 @@ export function VolcanoDataHandler({
                                             fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
                                             elementTypes: ["svg", "data"],
                                             itemIsAttribute: false,
-                                            onAnnotationSelect: handleAnnotationSelect,
+                                            // onAnnotationSelect: handleAnnotationSelect,
                                             handleSearchByDataIndex
                                         }} /> : null}
                                     
@@ -316,7 +317,8 @@ export function VolcanoDataHandler({
                                         proteinTagMap,
                                         setRequiredProteinTags,
                                         proteinIsLoading,
-                                        labelIsProtein : true
+                                        labelIsProtein: true,
+                                        showHoverLabels
                                     
                                     }} />
                                     </Card> 

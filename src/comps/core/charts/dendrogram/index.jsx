@@ -6,7 +6,6 @@ import * as allCurves from '@visx/curve';
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from '../../../../services/arrays/boundaries';
 import { AxisBottom, AxisLeft } from '@visx/axis';
 import _ from "lodash"
-import { getColorPalette } from '../../colors/colorPalette';
 import { SVG } from '../SVGHeader';
 import { GridColumns, GridRows } from '@visx/grid';
 import { Group } from '@visx/group';

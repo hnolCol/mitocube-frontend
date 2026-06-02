@@ -1,6 +1,9 @@
+import { getColorPalette } from "@mitocube/viz/src/colors/palette"
 import _ from "lodash"
 import PropTypes from "prop-types"
-import { getColorPalette } from "../../colors/colorPalette"
+
+
+
 
 function GroupingHeader({ groupingName }) {
     //header of a grouping
