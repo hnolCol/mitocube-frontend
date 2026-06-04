@@ -48,7 +48,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [hiddenSuffix, setHiddenSuffix] = useState([])
     const [isFetching, setIsFetching] = useState(false)
     const [error, setError] = useState({ isOpen: false, message: "" })
-    const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [] })
+    const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [], initialLabelIndices : new Set() })
     const [favoriteProteinSelection, setFavoriteProteinSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
     const [selectedAnnotations, setSelectedAnnotations] = useState([])

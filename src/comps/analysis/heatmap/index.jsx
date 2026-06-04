@@ -7,7 +7,7 @@ import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 import viz from "@mitocube/viz"
 import { api } from "@/api";
 import { FeatureSearch } from "../../core/input/api/FeatureSearch";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Combobox } from "../../core/input/Combobox";
 import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../services/arrays/transforms";
 import NumericValueInput from "../../core/input/Numeric";
@@ -26,8 +26,12 @@ function HeatmapLoad( {submission_tag} ) {
     const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] })
     const [requiredProteinTags, setRequiredProteinTags] = useState([]) // State to hold the required protein tags for prefetching
     const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
-    const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 50000})
+    const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 5000000})
     const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+    const unique_ca_tags = useMemo(() => {
+        if (!_.isArray(sample_ca_attribute_tags) || !_.isArray(submissionSampleConditionApplications)) return []
+        return _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
+    }, [_.join(sample_ca_attribute_tags, ";"), _.isArray(submissionSampleConditionApplications)])
 
 
     
@@ -35,7 +39,6 @@ function HeatmapLoad( {submission_tag} ) {
     if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div>Loading...</div>
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
     
-    const unique_ca_tags = _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
 
     
     return <WithTagMaps
@@ -101,8 +104,25 @@ function HeatmapViz({
         }
     }
 
+    const passOnProps = useMemo(() => ({
+        refetchedTrigger,
+        setRequiredProteinTags,
+        proteinTagMap,
+        proteinIsLoading
+    }), [
+        refetchedTrigger,
+        setRequiredProteinTags,
+        proteinTagMap,
+        proteinIsLoading
+    ])
 
-   
+   const keyNames = useMemo(() => [
+        {
+            xaxisName: undefined,
+            yaxisName: heatmapData.value_names,
+        }
+    ], [_.join(heatmapData.value_names)])
+
 
     return (
         <div className="flex">
@@ -142,12 +162,8 @@ function HeatmapViz({
             <InteractiveChart
                 data={heatmapData.data}
                 externalSearchResult={proteinSearchResults}
-                keyNames={[
-                    {
-                        xaxisName: undefined,
-                        yaxisName: heatmapData.value_names,
-                    }]}
-                passOnProps={{ refetchedTrigger, setRequiredProteinTags, proteinTagMap, proteinIsLoading }}
+                keyNames={keyNames}
+                passOnProps={passOnProps}
                 isPointChart={[false]}>
                 {
                     /**

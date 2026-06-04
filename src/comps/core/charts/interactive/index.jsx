@@ -7,6 +7,7 @@ import { getMinMaxForMultipleKeyNames } from "../../../../services/arrays/bounda
 import { filterArrayBySearchStringByMultipleKeys, filterArrayBySearchStringBySingleKey } from "../../../../services/arrays/filter";
 import { checkChartData } from "../../types/checks/data";
 import { checkInteractiveChartKeyNames } from "../../types/checks/chart";
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
 
 
 
@@ -37,6 +38,8 @@ let dataTest = _.range(2000).map(idx => {return {x : Math.random() * 1000, y : M
  * @param {String} props.dataName A name of the dataset when changing this the graph is updated. Usually given as the data id/tag to make the graph update if the
  * dataset is changed. 
  * @param {Number} props.dataUpdateTrigger - A trigger to update the data. If the value changes the chart is updated. 
+ * @param {String} props.labelIndicesKey - The key under which the label indices are saved in the local storage.
+ * @param {String} props.labelIndicesDataKey - The key under which the label indices for the data are saved in the local storage. This allows to save the indices of the data that are labeled, which is useful for example for volcano plots, where one labels points in the plot, but wants to know which data points are labeled (e.g. to show them in a table or to download them) and not only which indices in the currently shown data are labeled, as these can change when switching between different xaxis and yaxis.
  * @param {Function} props.onLabelDataChange  - Called if defined as afunction upon labelData change (returns the selected indices in the data.)
  * @returns {Array.<import("../../../../types/charts").InteractiveChartResponse>} Returns the interactive response including function to identify points below the mouse using KDBush. 
  */
@@ -50,17 +53,19 @@ function InteractiveChart({
     dataUpdateTrigger = undefined,
     onLabelDataChange,
     passOnProps = {},
+    labelIndicesKey = "labelIndices",
+    labelIndicesDataKey = "labelIndicesforData",
+    initialLabelIndices = undefined,
     externalSearchResult = { values: [], key: "tag", trigger: undefined },
     externalLabelResult = {values : [], key : "tag", trigger : undefined},
-    externalHoverResult = {values : [], key : "tag", trigger : undefined}}) {
-
-
+    externalHoverResult = { values: [], key: "tag", trigger: undefined } }) {
+    
+    
     const numberCharts = keyNames.length
     //hovering data 
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1, hoverTags : []})
-    //const [selectedItems, setSelectedItems]  = useState()
     //label data, the data that are annotated. 
-    const [labelData, setLabelData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], labelChart : -1, lastSelected : undefined})
+    const [labelData, setLabelData] = useState({ idcs : new Set(), rerender : [Math.random()], labelChart : -1, lastSelected : undefined})
     //background scatter indicates hovering over the data points. This allows quick rendering, as all chart components only rerender if the value rerender changes.
     const [backgroundScatter, setRerender] = useState({ rerender: [Math.random()], filterIndices: new Set(), filterRange: [0, 100], searchIndices: new Set(), searchString: "" })
     const [externalHoverData, setExternalHoverData] = useState({idcs : new Set(), rerender : [Math.random()]})
@@ -93,7 +98,12 @@ function InteractiveChart({
         }))
     },[flattenKeyNames, numberCharts, dataName, data.length, dataUpdateTrigger])
 
+    useEffect(() => {
+        if (initialLabelIndices === undefined) return
 
+        setLabelData(prevValues => { return {...prevValues, idcs : initialLabelIndices, rerender : [Math.random()]}})
+    }, [initialLabelIndices]) 
+    
     useEffect(() => {
         setRerender(prevValues => { return {...prevValues, rerender: [Math.random()]}})
     }, [flattenKeyNames,
@@ -219,13 +229,25 @@ function InteractiveChart({
         setRerender(prevValues => {return {...prevValues, rerender : [Math.random()], searchIndices : new Set()}})
     }
 
+    const saveIndicesToLocalStorage = async (key, indices) => {
+        try {
+            const indicesArray = Array.from(indices);
+            const { itemFound, itemValue } = getItemFromLocalStorage({ itemName : key, parseJson : true })
+            saveInLocalStorage({ itemName: key, itemValue: itemFound ? JSON.stringify({ ...itemValue, [labelIndicesDataKey]: indicesArray }) : JSON.stringify({ [labelIndicesDataKey]: indicesArray }) })
+            return true;
+        } catch (error) {
+            console.error('Error saving indices to localStorage:', error);
+            return false;
+        }
+    }
+
     const findClosestPoint = (chartIdx, minX, minY, maxX, maxY, point) => {
 
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         let labelIdcs = labelData.idcs
         _.forEach(Array.from(idcs), idx => labelIdcs.has(idx) ? labelIdcs.delete(idx) : labelIdcs.add(idx))
         if (_.isFunction(onLabelDataChange)) onLabelDataChange(idcs)
-
+        saveIndicesToLocalStorage(labelIndicesKey, labelIdcs)
         setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()], lastSelected : idcs})
     }
     

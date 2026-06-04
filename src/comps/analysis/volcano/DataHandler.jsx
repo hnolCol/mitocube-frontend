@@ -39,8 +39,7 @@ export function VolcanoDataHandler({
     const [annotationMarkers, setAnnotationMarkers] = useState([])
     const [prefetchedTestParams, setPrefetchedTestParams] = useState([])
     const { isReady, tagQueries } = usePrefetchVolcanoData(prefetchedTestParams, { enabled: _.isObject(prefetchedTestParams) && _.isArray(prefetchedTestParams) && prefetchedTestParams.length > 0 })
-        console.log(prefetchedTestParams)
-    console.log(isReady, tagQueries)
+       
 
     useEffect(() => {
         if (volcanoData.suffixes.length > 0) return //already have data, no need to wait for prefetching, and don't want to overwrite existing data with prefetching results
@@ -63,17 +62,20 @@ export function VolcanoDataHandler({
                 .values()
             );
 
-            console.log(updatedData );
-
-
+            const { itemFound, itemValue } = getItemFromLocalStorage({ itemName : "volcanoLabelIndices", parseJson : true }) // we want to keep the same labeled indices when prefetching data, so we need to get the labeled indices from local storage and save them again after we have the prefetching results, to trigger a rerender of the charts with the new data but the same labeled indices
+            console.log(itemValue)
+            
+            const labelIndices = itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ? new Set(itemValue[submission_tag]) : new Set()
             const suffixes = tagQueries.map(q => q.data.suffix)
             const selection = tagQueries.map(q => { return { xaxisName: `log2FC ${q.data.suffix}`, yaxisName: `-log10 p-value ${q.data.suffix}`, colorName: `Significant ${q.data.suffix}`, tooltipNames: [], sizeName: undefined } })
             const testParams = prefetchedTestParams.slice()
-            console.log(suffixes, selection)
+            console.log(labelIndices)
+            console.log("PREFETCHING")
             setVolcanoData(prevValues => {
                 return {
                     ...prevValues,
                     data: updatedData,
+                    initialLabelIndices: labelIndices,
                     suffixes,
                     testParams,
                     selection
@@ -113,10 +115,7 @@ export function VolcanoDataHandler({
 
     useEffect(() => {
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
-        console.log(itemFound, itemValue)
         if (itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag)) {
-            console.log("FOUND VOLCANO PROPS!")
-            console.log(itemValue[submission_tag])
             setPrefetchedTestParams(itemValue[submission_tag])
         }
     }, [])
@@ -144,12 +143,11 @@ export function VolcanoDataHandler({
             updatedData = data.stats
         }
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
-        console.log([selectedTestParams])
-        console.log(itemValue)
+
         saveInLocalStorage({
             itemName: "volcanoProps", itemValue: JSON.stringify({
                 ...itemValue,
-                [submission_tag]: _.isObject(itemValue) && _.has(itemValue, submission_tag) ?
+                [submission_tag]: itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ?
                     _.concat(itemValue[submission_tag], { ...selectedTestParams, tag: submission_tag }) : [{ ...selectedTestParams, tag: submission_tag }]
             })
         })
@@ -288,7 +286,7 @@ export function VolcanoDataHandler({
             }}> 
         
         <InteractiveChart
-                data={volcanoData.data} 
+                data={volcanoData.data}
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
                 externalLabelResult={{
@@ -309,9 +307,13 @@ export function VolcanoDataHandler({
                             yaxisName: volcanoData.selection[idx].yaxisName
                         }
                     })
-                } 
+                }
                 isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}
-                passOnProps = {{setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels}} >
+                passOnProps={{ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }}
+                labelIndicesKey="volcanoLabelIndices"
+                labelIndicesDataKey={submission_tag}
+                initialLabelIndices={volcanoData.initialLabelIndices}
+            >
                 {
                     /**
                      * 
