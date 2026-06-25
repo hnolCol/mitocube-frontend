@@ -1,6 +1,7 @@
 import NumericValueInput from "../../../core/input/Numeric"
 import _ from "lodash"
 import { SampleAttributeTableWrapper } from "../sample_attributes/select/SamplesAttributeWrapper"
+import { useMemo } from "react"
 
 
 export function SamplesTab({ submission, setSubmission, setComponentKey, componentKey,  }) {
@@ -17,6 +18,14 @@ export function SamplesTab({ submission, setSubmission, setComponentKey, compone
             }
         })
     }
+
+    const selected_proteome_tags = useMemo(() => {
+        if (!_.isArray(submission.selected_traits)) return []
+        const proteome_attribute = submission.selected_traits.filter(a => a.type === "attribute" && a.tag === "att_proteome") 
+        if (proteome_attribute.length === 0) return []
+        const proteome_traits = _.get(proteome_attribute[0], "children", [])
+        return proteome_traits.map(t => t.tag)
+    }, [_.join(submission.selected_traits.map(t => t.tag), ",")])
 
     return (
         <div>
@@ -43,7 +52,8 @@ export function SamplesTab({ submission, setSubmission, setComponentKey, compone
                     <SampleAttributeTableWrapper {...{
                             submission,
                             updateSubmission: setSubmission,
-                            numberReplicates: submission.numberReplicates
+                            numberReplicates: submission.numberReplicates,
+                            selected_proteome_tags
                         }} />
                 </div>
     )

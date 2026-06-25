@@ -70,6 +70,8 @@ function SamplesAttributes({
     handleGenotypeSelection,
     repeatSelection,
     onPasteRowsInAttribute,
+    checkAttributeRequiredTraits,
+    selected_proteome_tags
     }) {
 
     const [selectedRows, setSelectedRows] = useState([])
@@ -262,8 +264,8 @@ function SamplesAttributes({
         const referenceID = referenceIDs[rowIndex]
         let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag, "id": referenceID }], rowIndex, false)
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
-        return <Cell key={cellKey}>
-            <div className="flex flex--wrap center-items">
+        return <Cell key={cellKey} style={{ width: "100%", padding: 0 }}>
+            <div className="flex " style={{flexWrap : "wrap", flex: 1 , minWidth : "300px" }}>
                 {cellData.map(child => {
                     return <div
                         key={`${rowIndex}-${columnIndex}-${child.tag}-${referenceID}`}
@@ -276,8 +278,10 @@ function SamplesAttributes({
                             submission_tag={submission_tag}
                             sel={selectedRows}
                             onChildrenSelection={onSampleTraitSelection}
+                            checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                             referenceID={referenceID}
-                            onRemove={onTagRemove} />
+                            onRemove={onTagRemove}
+                            selected_proteome_tags = {selected_proteome_tags}/>
                     </div>})}
             </div>
         </Cell>

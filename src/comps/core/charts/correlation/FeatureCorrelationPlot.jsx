@@ -6,7 +6,7 @@ import viz from "@mitocube/viz"
 import { useMemo } from "react";
 import { api } from "@/api";
 
-export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, width = 500, height = 400, margin = {top : 5, left : 10, right : 10, bottom : 20}}) {
+export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, proteinTagMap, width = 500, height = 400, margin = {top : 5, left : 10, right : 10, bottom : 20}}) {
     
     
     const { data: feature_x, isSuccess: isSuccessFeatureX } = api.features.tag.useGetFeatureByTag({ tag: feature_tag_x })

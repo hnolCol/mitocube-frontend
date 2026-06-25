@@ -14,16 +14,9 @@ import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import { FavoriteAnnotationSelection } from "@/comps/core/base/annotations/FavoriteAnnotationSelection";
 import { Checkbox } from "@/comps/core/base/states/Checkbox";
+import { AnnotationDistribution } from "@/comps/admin/annotations/AnnotationDistribution";
 
 
-export function ProteinSearch({ submission_tag, onSuccess }) {
-    
-    return <input className="search-input" placeholder="Search for a protein..." onKeyDown={(e) => {
-        if (e.key === "Enter") {
-            onSuccess(e.target.value)
-        }
-    }} /> 
-}
 
 
 function HiddenSuffixes({ hiddenSuffixes, setHiddenSuffixes }) {
@@ -41,7 +34,7 @@ function HiddenSuffixes({ hiddenSuffixes, setHiddenSuffixes }) {
 
 
 export function VolcanoPlotWrapper({ submission_tag }) {
-    const [showHoverLabels, setShowHoverLabels] = useState(true)
+    const [showHoverLabels, setShowHoverLabels] = useState(false)
     const [pairWiseOpen, setPairWiseOpen] = useState(true)
     const [quickSelectOpen, setQuickSelectOpen] = useState({proteins : false, annotations : false, conditions : true})
     const [testParams, setTestParams] = useState({})
@@ -54,7 +47,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [selectedAnnotations, setSelectedAnnotations] = useState([])
     const [favoriteAnnotationSelection, setFavoriteAnnotationSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [annotationHoverResults, setAnnotationHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
-    
+
     const handleVolcano = (props) => {
         setTestParams({ ...props, _nonce: Date.now() })
     }
@@ -128,6 +121,11 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                                 onHover={handleAnnotationHover} 
                                 submission_tags={[submission_tag]}
                             />
+
+                            {annotationHoverResults.values.length > 0 ? <div className="margin--medium">
+                                <span>Distribution of hovered annotation in samples:</span>
+                                <AnnotationDistribution submission_tag={submission_tag} tag={annotationHoverResults.values[0]} />
+                            </div> : null}
                         </PersistentCollapse>               
 
 

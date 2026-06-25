@@ -61,7 +61,7 @@ export function Boxplot({
                 label={""}
                 tickLength={3}
                 labelOffset={25}
-                numTicks={6}
+                numTicks={xaxis_ca_tags.length}
                 tickComponent={({ x, y, formattedValue }) => <ConditionApplicationLabel x={x} y={y} caTagToText={caTagMap} tag={formattedValue} textProps={{textAnchor: "end", verticalAnchor: "end", angle: -40}} />}
                 tickFormat={(tickLabel) => xaxis_ca_tags[tickLabel]} />
             {data.map((qs, i) => {

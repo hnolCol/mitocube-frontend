@@ -44,7 +44,9 @@ export function AttributeConditionApplicationView({ submission_tag, attribute_ta
     return <div className="flex justify-space-around" style={{width : "100%"}}>
         {ca_attribute_unique_count > 0 ?
             conditionApplicationTags[attribute_tag].map((ca_tags,idx) => {
-                return <div style={{
+                return <div
+                    key={`ca_tags-${idx}-${_.join(ca_tags, "-")}`}
+                    style={{
                     width: `${100 / ca_attribute_unique_count}%`,
                     borderTop: "0.5px solid black",
                     borderRight: idx < ca_attribute_unique_count - 1 ? "0.5px solid black" : "none"
@@ -94,7 +96,7 @@ export function SubmissionExclusivelyQuantified() {
             
             <div style={{ display: "grid", alignContent: "start", overflowY : "scroll", height : "75vh", gridTemplateColumns: `170px ${_.join(_.map(ca_attributes, (attribute_tag) => '1fr'), " ")}` }}>
             {_.isArray(exclusivelyQuantified) && exclusivelyQuantified.map((protein_group, idx) => {
-                return <div key={protein_group.tag} style={{
+                return <div key={`${protein_group.tag}-${idx}`} style={{
                         gridRow: idx + 2,
                         gridColumn: "1",
                         border: "0.5px solid black",

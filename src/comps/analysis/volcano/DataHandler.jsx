@@ -63,14 +63,11 @@ export function VolcanoDataHandler({
             );
 
             const { itemFound, itemValue } = getItemFromLocalStorage({ itemName : "volcanoLabelIndices", parseJson : true }) // we want to keep the same labeled indices when prefetching data, so we need to get the labeled indices from local storage and save them again after we have the prefetching results, to trigger a rerender of the charts with the new data but the same labeled indices
-            console.log(itemValue)
-            
             const labelIndices = itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ? new Set(itemValue[submission_tag]) : new Set()
             const suffixes = tagQueries.map(q => q.data.suffix)
             const selection = tagQueries.map(q => { return { xaxisName: `log2FC ${q.data.suffix}`, yaxisName: `-log10 p-value ${q.data.suffix}`, colorName: `Significant ${q.data.suffix}`, tooltipNames: [], sizeName: undefined } })
             const testParams = prefetchedTestParams.slice()
-            console.log(labelIndices)
-            console.log("PREFETCHING")
+     
             setVolcanoData(prevValues => {
                 return {
                     ...prevValues,
@@ -378,10 +375,10 @@ export function VolcanoDataHandler({
                                         width: 500,
                                         height : 480,
                                         margins: {          
-                                            left: 80,     
+                                            left: 50,     
                                             top: 10,
                                             right: 5,
-                                            bottom: 80
+                                            bottom: 100
                                         },
                                         colorName: volcanoData.selection[didx].colorName,
                                         sizeName: volcanoData.selection[didx].sizeName,
@@ -401,8 +398,6 @@ export function VolcanoDataHandler({
                                         ...labelProps,
                                         ...externalHoverProps,
                                         ...externalLabelProps,
-                                        attributeValuesByTag: {}, //metadata.attribute_values_by_tag,
-                                        attributesByTag: {}, //metadata.attributes,
                                         legend: true,
                                         legendWithAttributes: false,
                                         svgID: `volcano-${didx}`,

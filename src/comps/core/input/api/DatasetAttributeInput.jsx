@@ -27,7 +27,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
-        { tag },
+        { tag, limit : 10 },
         { enabled: isMissing && (!_.isArray(trait_tags) || trait_tags.length === 0) }
     )
 

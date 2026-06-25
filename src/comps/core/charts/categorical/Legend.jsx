@@ -75,12 +75,12 @@ const CategoricalLegend = React.memo(
      * @param {MouseEvent} e 
      * @param {import("../../../../types/attributes").AttributeValue[]} props.attributeValues
      */
-    const handleTooltip = (e,attributeValues,attribute) => {
+    const handleTooltip = (e) => {
 
         showTooltip({
             tooltipTop : e.clientY,
             tooltipLeft: e.clientX,
-            tooltipData: { attributeValues, attribute, has_features_value : attribute.has_features_value }
+            tooltipData: {  }
         })
     }
     /**

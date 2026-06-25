@@ -211,7 +211,6 @@ export function ScatterPlot({
      }, [triggerResetAxis])
     
     const hasLabels = labelIndices.size > 0 || externalHoverIndices.size > 0 || externalLabelIndices.size > 0
-
     useEffect(() => {
         if (proteinIsLoading) return
         if (!labelIsProtein) return 
@@ -300,6 +299,7 @@ export function ScatterPlot({
     }, [xaxisName, chartWidth, rerenderAxis, limits[xaxisName].min, limits[xaxisName].max])
 
     const colorScale = useMemo(() => {
+
         if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
         
         if (_.isNumber(data[0][colorName]) && _.has(limits,colorName)) {
@@ -734,7 +734,7 @@ export function ScatterPlot({
                     colorScale,
                     colorName,
                     data,
-                    maxWidth : "8rem",
+                    maxWidth : "12rem",
                     filterDataInKeyByValue,
                     resetSearchIdcs,
                     sizeLimit: limits[sizeName],

@@ -37,14 +37,13 @@ export function TraitWithValueInput({
         rowIndex,
         trait_tag, 
         attribute_tag = "",
-        // disableTooltip = false,
         onRemove = undefined,
-        // popoverPosition = "top",
         highlight = false,
         onChildrenSelection,
         getSelectionByPath,
         referenceID,
         checkAttributeRequiredTraits,
+        selected_proteome_tags = [],
         sel }) {
     
     const { data: trait, isLoading: traitIsLoading, isSuccess: traitIsSuccess } = api.traits.queryTraits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag), staleTime: Infinity})
@@ -53,17 +52,17 @@ export function TraitWithValueInput({
     //handle colors 
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
-
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
+    
     return (
         <div>
             { traitIsLoading || childrenIsLoading ? <Loading /> : traitIsSuccess && childrenIsSuccess?
                 <motion.div
-                    style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem" }}
+                    style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem", position : "relative", width : "100%" }}
                     className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
                     whileHover={{ backgroundColor: "#efefef" }}>
                 
-                    <div className="flex">
+                    <div className="flex" >
                         <div className="flex flex-column" style={{ width: "100%" }}>
                             <div><strong>{trait.text}</strong></div>
                             {hasChildren ?
@@ -77,14 +76,16 @@ export function TraitWithValueInput({
                                     onRemove,
                                     referenceID,
                                     checkAttributeRequiredTraits,
+                                    selected_proteome_tags
                                 }} /> : null}
                         </div>
-                        {_.isFunction(onRemove) ?
-                            <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem" }}>
+                        
+                    </div>
+                    {_.isFunction(onRemove) ?
+                            <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem", position: "absolute", right: 0, top : 0}}>
                                 <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(traitPath, [rowIndex], referenceID)} />
                             </div>
                             : null}
-                    </div>
                 </motion.div> : null }
         </div>
     )

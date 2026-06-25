@@ -15,7 +15,15 @@ const OPTIONS = ["All", "Protein Groups", "Precursors"];
 const LIMITS = [20, 100, 200, 500];
 // Use a separator that won't conflict with ";" in tags, e.g. "|"
 const TAGS_SEPARATOR = "|";
+ 
 
+const metrics_labels = {
+    "log2_fc_vs_mean": "Log2FC vs mean",
+    "raw": "Raw values",
+    "z_score_sample": "Z-scores (sample-wise)",
+    "z_score_protein_group": "Z-scores (protein group-wise)",
+    
+}
 
 export function DeselectAllButton({ onClick, selectedItems }) {
     const selectedItemsCount = selectedItems.length
@@ -67,6 +75,7 @@ export function DatasetFeatureView() {
     const selectedOption = OPTIONS.includes(searchParams.get("option")) ? searchParams.get("option") : "Protein Groups";
     const selectedLimit = LIMITS.includes(Number(searchParams.get("limit"))) ? Number(searchParams.get("limit")) : LIMITS[0];
     const selectedStat = ca_attributes && ca_attributes.includes(searchParams.get("stat")) ? searchParams.get("stat") : (ca_attributes && ca_attributes.length > 0 ? ca_attributes[0] : null);
+    const selectedMetrics = _.keys(metrics_labels).includes(searchParams.get("metrics")) ? searchParams.get("metrics") : _.keys(metrics_labels)[0];
     const selectedAnnotationTag = searchParams.get("annotation_tag") || null;
     const selected_annotation_tags = selectedAnnotationTag ? [selectedAnnotationTag] : [] 
     
@@ -94,7 +103,6 @@ export function DatasetFeatureView() {
         updateParam("protein_group_tags", value);
     };
 
-    console.log(proteinGroupTags)
     return (
         <div>
             <h2>Dataset Features</h2>
@@ -132,8 +140,24 @@ export function DatasetFeatureView() {
                 <span>|</span>
                 <DeselectAllButton onClick={() => updateProteinGroupTags([])} selectedItems={proteinGroupTags} />
                         
-                </div>
-                <div className="flex margin-top--little center-items" style={{ gap: "5px", width : "100%" }}>
+                    </div>
+                    
+                 <div className="flex margin-top--little center-items" style={{ gap: "5px", width: "100%" }}>
+                    <span>Metrics | </span>
+                    {_.keys(metrics_labels).map(option => (
+                        <OptionButton
+                            key={option}
+                            isSelected={option === selectedMetrics}
+                            onClick={() => updateParam("metrics", option)}
+                        >
+                            <span>{metrics_labels[option]}</span>
+                        </OptionButton>
+                    ))}
+                </div>     
+                    
+                    
+                    
+                <div className="flex margin-top--little center-items" style={{ gap: "5px", width: "100%" }}>
                     <span>Limit | </span>
                     {LIMITS.map(option => (
                         <OptionButton
@@ -144,7 +168,7 @@ export function DatasetFeatureView() {
                             <span>{option}</span>
                         </OptionButton>
                     ))}
-                    </div>
+                </div>
                     
                 <div className="flex margin-top--little center-items" style={{ gap: "5px", width : "100%" }}>
                     <span>Annotations | </span>
@@ -180,7 +204,7 @@ export function DatasetFeatureView() {
 
                 {/* Column 2: FeatureDataView only */}
                 <div style={{marginLeft : "2rem"}}>
-                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} onRemove={(tag) => {
+                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} metrics={selectedMetrics} onRemove={(tag) => {
                         updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: tag }));
                     }} />
                 </div>

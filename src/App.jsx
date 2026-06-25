@@ -46,7 +46,6 @@ import DatasetQC from "./comps/analysis/qc";
 import DatasetPCA from "./comps/analysis/pca";
 import DatasetHelp from "./comps/analysis/help";
 import Runlist from "./comps/analysis/runlist";
-import SubmissionFeatureCorrelation from "./comps/analysis/correlation";
 import {SubmissionSamples} from "./comps/analysis/samples";
 import {DatasetFeatureView} from "./comps/analysis/features";
 import Timeline from "./comps/analysis/timeline";
@@ -298,7 +297,6 @@ function App() {
             <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{ logout }} />} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />
-            <Route path="/submissions/:tag/correlation" element={<SubmissionFeatureCorrelation {...{ logout }} />} />
             <Route path="/submissions/:tag/compare" element={<SubmissionCompare {...{ logout }} />} />
             <Route path="/submissions/:tag/exclusively" element={<SubmissionExclusivelyQuantified {...{ logout }} />} />
             <Route path="/submissions/:tag/heatmap" element={<DatasetHeatmap {...{}} />} />
@@ -356,15 +354,7 @@ function App() {
             }
           />
 
-          {/* <Route
-            path="/admin/attributes/:tag"
-            element={
-              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-                <div><h3>Attributes</h3></div>
-                <div>THis is attributes</div>
-              </ProtectedRoute>
-            }
-          /> */}
+          
           <Route
             path="/admin/attributes/:tag"
             element={

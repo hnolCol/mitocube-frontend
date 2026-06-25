@@ -10,7 +10,7 @@ import { useEffect } from "react"
  */
 export function GenotypeProteome({tag, update}) {
 
-    const {data : genotypeProteome, isError, error, isSuccess, refetch} = api.genotypes.queryGenotypes.useGetGenotypeProteome({genotype_tag : tag})
+    const {data : genotypeProteome, isError, error, isSuccess, refetch} = api.genotypes.queryGenotypes.useGetGenotypeProteome({genotype_tag : tag}, {enabled : _.isString(tag), staleTime : Infinity})
     
     if (isError) console.log(error)
     useEffect(() =>{

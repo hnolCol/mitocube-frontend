@@ -5,6 +5,7 @@ import _ from "lodash"
 import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "../sample_attributes/select/SamplesAttributeWrapper";
 
 export function AttributesTab({submission, setSubmission, setComponentKey, componentKey }) {
+    console.log(submission.selected_traits)
 
     const getSelectionByPath = (path) => {
         const selection = findChildrenByPath(submission.selected_traits, path)
@@ -18,7 +19,10 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         return selection
     }
 
-    const handleTraitSelectionHierarchy = (path, enforceSingleVariantPerGroup) => {
+    const handleTraitSelectionHierarchy = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf  = false) => {
+        //row index is just for the table, not used here.
+        console.log(path,enforceSingleVariantPerGroup)
+
         path = addIDToPath(path, submission.tag)
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
@@ -30,7 +34,8 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         }
         else {
             findAndInsertTree(selected_traits, path, {
-                                enforceSingleVariantPerGroup
+                enforceSingleVariantPerGroup,
+                replaceChildrenAtLeaf
                             })
         }
         setSubmission(prevValues => { return {...prevValues, selected_traits}})

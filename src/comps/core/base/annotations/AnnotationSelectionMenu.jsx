@@ -50,14 +50,20 @@ export function AnnotationGroupInMenu({ tag, annotation_tags = [], selected_tags
 }
 
 
-export function AnnotationSelectionMenu({ placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true, vertical = false, submission_tags = [], showDeselect = false  }) {
+export function AnnotationSelectionMenu({ placeholder = "Select annotations", onSelection, onRemove, selected_tags = [], showTags = true, vertical = false, submission_tags = [], protein_tags = [], showDeselect = false  }) {
 
     const [isOpen, setIsOpen] = useState(false);
     const [searchString, setSearchString] = useState("")
     const debouncedString = useDebounce(searchString, 50)
     const [limit, setLimit] = useState(50)
 
-    const { data : annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({ search_string : debouncedString, limit, group_by_group : true, submission_tags : _.isArray(submission_tags) && submission_tags.length > 0 ? _.join(submission_tags, ";") : undefined })
+    const { data: annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({
+        search_string: debouncedString,
+        limit,
+        group_by_group: true,
+        submission_tags: _.isArray(submission_tags) && submission_tags.length > 0 ? _.join(submission_tags, ";") : undefined,
+        protein_tags: _.isArray(protein_tags) && protein_tags.length > 0 ? _.join(protein_tags, ";") : undefined
+    })
 
     useEffect(() => {
         //make sure there is something displayed when opening the menu, otherwise it looks weird.

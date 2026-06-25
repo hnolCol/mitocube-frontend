@@ -127,10 +127,10 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                 <div style={{ height: "33vh", padding: "1rem", overflowY: "scroll" }}>
                     {group_by_min_state ?
                         <div>
-                            {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div>
+                            {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}> 
                                 <StateHeader tag={state_ca_item.state_tag} />
                                 {state_ca_item.condition_application_tags?.length > 0 ? state_ca_item.condition_application_tags.map(ca_tag => (
-                                    <div key={ca_tag} className="padding--tiny margin--tiny">
+                                    <div key={`${state_ca_item.state_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
                                         <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
                                     </div>
                                 )) : <div>No condition applications found for this submission.</div>}
@@ -150,9 +150,9 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                 isOpen={dialogOpen}
                 onClose={handleClose}
                 title="Edit Condition Applications"
-                style={{ minWidth: "600px" }}
+                style={{ minWidth: "min(80vw,1100px)" }}
             >
-                <div className="padding--medium flex flex-column" style={{ gap: "1rem" }}>
+                <div className="padding--medium flex flex-column margin--medium" style={{ gap: "1rem" }}>
 
                 <AttributesInput
                     handleTraitSelection={handleTraitSelection}
@@ -160,7 +160,9 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                     selected_traits={selected_traits}
                     submission_tag={submission_tag}
                 />
-                <MandatoryCheckDetail submission_tag={submission_tag} />
+                    <MandatoryCheckDetail
+                        submission_tag={submission_tag} />
+                    
                     <DatasetAttributeView
                         submission_tag={submission_tag}
                         attributeTraits={selected_traits}
