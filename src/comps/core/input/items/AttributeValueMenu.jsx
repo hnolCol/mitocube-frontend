@@ -11,8 +11,9 @@ import { getRandomID } from "../../../../services/random"
  * @param {Function} props.onClick 
  * @param {Boolean} props.active 
  * @param {Boolean} props.selected  
+ * @param {Boolean} props.showDescription
  */
-export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, selected = false }) {
+export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, selected = false, showDescription = true }) {
     const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
     return (
@@ -24,7 +25,7 @@ export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, sel
 
                         <div className={`flex justify-space-between " ${selected ? "" : ""}`}>
                             <div className="menu_item_text">{trait.text}</div>
-                                <div className="menu_item_description">{trait.description}</div>
+                                {showDescription && <div className="menu_item_description">{trait.description}</div>}
                             </div>
                     </button>
                 </div >

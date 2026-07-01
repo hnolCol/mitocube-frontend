@@ -111,6 +111,7 @@ export const findAndInsertTree = (
     const {
         enforceSingleVariantPerGroup = false,
         enforceAtLevel = 0,
+        replaceChildrenAtLeaf = false
     } = options;
     // Stop if nothing to process
     if (!path || path.length === 0) return;
@@ -160,6 +161,13 @@ export const findAndInsertTree = (
             }
         }
     }
+
+    const isLeaf = restPath.length === 0;
+    if (replaceChildrenAtLeaf && isLeaf) {
+        data.length = 0;
+        data.push(node);
+    }
+
     // Update value if changed
     if (
         Object.prototype.hasOwnProperty.call(current, "value") &&
@@ -357,7 +365,7 @@ export function addIDToHierarchy(data, id) {
  * @param {Number} props.numberReplicates - The number of replicates for the submission
  * @returns 
 */
-export function SampleAttributeTableWrapper({ submission, updateSubmission, numberReplicates}) {
+export function SampleAttributeTableWrapper({ submission, updateSubmission, numberReplicates, selected_proteome_tags}) {
     // wrapper to the sample attributes table
 
     const [alertProps, setAlertProps] = useState({ isOpen: false, children: <div></div> })
@@ -631,6 +639,10 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         }
     }
 
+    const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID, rowIndex, track_path) => {
+        return _.some(track_path.map(p => p.type === "trait" && trait_tags.includes(p.tag)))
+    }
+
     /**
      * 
      * @param {Number} sampleAttrIdx - The index of the sample attribute that should be deleted.
@@ -689,6 +701,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     clearGenotypeColumn,
                     clearAttributeTableByRowIndex,
                     onSampleAttributeSelect,
+                    checkAttributeRequiredTraits ,
                     removeSampleAttrByIndex,
                     groupings: submission.samplesAttributes,
                     genotypeAttributes : submission.genotypeAttributes,
@@ -698,7 +711,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     replicates: submission.replicates,
                     onReplicateChange,
                     handleGenotypeSelection,
-                    repeatSelection
+                    repeatSelection,
+                    selected_proteome_tags
                         }} />
             </div>
     )

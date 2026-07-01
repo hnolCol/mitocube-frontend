@@ -75,17 +75,17 @@ function CAHItem({ cahierarchy, onSelect, level = 0 }) {
         </div>
     )
 }
-export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter }) {
+export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter, return_tags_only = false, infoText = "Datasets with the selected condition applications will be displayed.", showIncludeSampleLevelOption = true }) {
     const [searchString, setSearchString] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
-    const [includeSampleLevel, setIncludeSampleLevel] = useState(submissionFilter.include_sample_ca || true);
+    const [includeSampleLevel, setIncludeSampleLevel] = useState(submissionFilter.include_sample_ca || false);
 
     const { data: allCAs, isLoading, error } = api.condition_applications.useGetConditionApplicationHierarchyByQuery({
         search_string : searchString,
-        limit : 50,
+        limit : 40,
         exclude_attribute_group: "genotype"
     }, {
-        staleTime: 300000,
+        staleTime: 3000000,
         enabled : _.isString(searchString) && searchString.length >= 1
     });
 
@@ -132,7 +132,11 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
     };
 
     const handleSelectCA = (ca_tag) => {
-        const updatedCATags = addStringToArrayOrRemove({ array: submissionFilter.ca_tags || [], string: ca_tag})
+        const updatedCATags = addStringToArrayOrRemove({ array: submissionFilter.ca_tags || [], string: ca_tag })
+        if (return_tags_only) {
+            setSubmissionFilter(updatedCATags)
+            return;
+        }
         setSubmissionFilter(prev => ({
             ...prev,
             ca_tags: updatedCATags
@@ -154,10 +158,11 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
    
 
     return (
-        <div style={{ width: "100%", paddingRight: "0.1rem" }}>
+        <div style={{ width: "100%", paddingRight: "0.1rem"}}>
             <h4>Condition Applications</h4>
             
             <Popover
+                fill
                 isOpen={showDropdown}
                 onClose={() => setShowDropdown(false)}
                 content={
@@ -174,26 +179,43 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                 canEscapeKeyClose={true}
                 
             >
-                <InputGroup
-                    leftIcon="search"
-                    placeholder="Search..."
+                <div style={{ position: "relative", width: "100%" }}>
+                <input 
+                    style={{width: "100%"}}
                     value={searchString}
+                    className="text-input"
+                    placeholder="Search conditions..."
+                    
                     onChange={handleSearchChange}
-                    rightElement={isLoading ? <Button icon="blank" minimal loading /> : null}
                 />
+                {isLoading && (
+                <div style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    height: "2px",
+                    width: "100%",
+                    background: "linear-gradient(90deg, transparent, #4a90d9, transparent)",
+                    backgroundSize: "200% 100%",
+                    animation: "shimmer 1.2s infinite"
+                }} />
+                    )}
+                    </div>
             </Popover>
 
             <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
-                Datasets with the selected condition applications will be displayed.
+                {infoText}
             </div>
 
-            <div style={{ marginTop: "0.5rem" }}>
-                <Checkbox
-                    checked={includeSampleLevel}
-                    onChange={handleIncludeSampleLevelChange}
-                    label="Include sample-level condition applications"
-                />
-            </div>
+            {showIncludeSampleLevelOption && (
+                <div style={{ marginTop: "0.5rem" }}>
+                    <Checkbox
+                        checked={includeSampleLevel}
+                        onChange={handleIncludeSampleLevelChange}
+                        label="Include sample-level condition applications"
+                    />
+                </div>
+            )}
 
             {/* Full CA display */}
             {selectedCATags.length > 0 && (

@@ -35,24 +35,7 @@ function DatasetQC() {
                 yaxisStartsAtZero={true} /> */}
             {/* <h2>Intensity Distributions</h2> */}
 
-            {/* <h2>Protein of interest</h2>
-            <div className="flex flex-wrap intent-margin-bottom--large">
-            {_.map(datatable.poi_data, ({ data, samples_attributes, annotations, feature_key, feature_annotations }, idx) => {
-                return (
-                    <div style={{maxWidth : "500px"}}>
-                        <h4>{feature_annotations.genes}</h4>
-                        <h5>{feature_annotations.protein_name}</h5>
-                        <ResultChart
-                            data={data}
-                            groupings={samples_attributes}
-                            yaxisName="value"
-                            title={metadata.title}
-                            attributesByTag={metadata.attributes}
-                            attributeValuesByTag={metadata.attribute_values_by_tag}
-                            genotypesByLabel={metadata.genotypes}/>
-                    </div>
-                )
-            })} */}
+           
         </div>
 
        

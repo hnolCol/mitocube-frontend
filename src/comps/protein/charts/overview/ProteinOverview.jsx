@@ -4,6 +4,7 @@ import _ from "lodash"
 import { ProteinFavorite } from "./ProteinFavorite";
 import { ProteinAnnotationTree } from "./ProteinAnnotationTree";
 import { ProteinGroupsDisplay } from "./ProteinGroup";
+import { ProteinAnnotations } from "../../ProteinAnnotations";
 
 export function ProteinOverview({ feature_tag }) {
     const { data: feature, isSuccess } = api.features.proteinsQuery.useGetProteinByTag({ tag: feature_tag }, { enabled: _.isString(feature_tag), staleTime: Infinity })

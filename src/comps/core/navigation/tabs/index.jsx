@@ -42,7 +42,7 @@ function TabItem({text,to, active = false, can_close = false, handleClose = unde
     )
 }
 
-function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true, canClose = undefined, handleClose = undefined }) {
+function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true, canClose = undefined, handleClose = undefined, textMap = undefined }) {
   
     const location = useLocation()
     let locationMatches = tabs.filter(tab => tab.to === location.pathname)
@@ -57,7 +57,7 @@ function Tabs({ tabs, rightHeader, selectFirstTabIfPathNameDoesNotMatch = true, 
             return (
                 <TabItem key={`${tabIdx}-${tab.text}`}
                     active={locationMatches.length > 0? _.includes(locationMatches, tab) :selectFirstTabIfPathNameDoesNotMatch?tabIdx===0:false}
-                    {...{ to: tab.to, text: tab.text, can_close : !_.isArray(canClose)?false:canClose[tabIdx], handleClose}} />
+                    {...{ to: tab.to, text: textMap?.get(tab.text) ?? tab.text, can_close : !_.isArray(canClose)?false:canClose[tabIdx], handleClose}} />
             )
         })}
             {_.isString(rightHeader) && rightHeader.length > 0 ?

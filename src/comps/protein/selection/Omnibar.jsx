@@ -7,29 +7,41 @@ import _ from "lodash"
 import "./OmnibarStyles.css"
 import Loading from "../../core/base/loading";
 import { ProteinMenuItem } from "../../core/input/items/FeatureMenu";
-import hooks from "@mitocube/api-hooks";
 import { api } from "@/api";
+import { MenuItem } from "@blueprintjs/core";
+import { TraitMenuItem } from "@/comps/core/input/items/AttributeValueMenu";
+import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
+import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
+
+export function ProteomeSelection({attribute_tag = "att_proteome", onChange, selected_traits}) {
+    const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0})
+    
+    return <MenuItem
+        style={selected_traits.length > 0 ? {color : HIGHLIGHT_COLOR, fontWeight : 600} : {   }}
+        text={selected_traits.length > 0 ? `Proteomes selected: ${selected_traits.length}` : "Proteome selection"}
+        labelElement={<div style={{ fontSize: "0.7em", fontStyle: "italic", maxWidth: "15rem" }}>Select proteomes to include in the search. All are included by default.</div>} >
+        {_.isArray(traits) ? traits.map(trait_tag => <TraitMenuItem key={trait_tag} attribute_tag={attribute_tag} tag={trait_tag} showDescription={false} selected={selected_traits.includes(trait_tag)} onClick={onChange}/>) : null}
+    </MenuItem>
+}
+
 
 export function OmnibarSearch(props) {
     // handle search for proteins in the protein centric view.
-    const { isOpen, onClose, onSelect} = props
-    const [featureDeatails, setFeatureDetails] = useState({items : [], featureLabels : {}, itemsToShow : [], searchString : "", sortBy : ""})
-    const debounceSearchString = useDebounce(featureDeatails.searchString, 400)
-    const { data : features, isLoading, isSuccess, isError, isFetching} = api.features.proteinsQuery.useGetProteinFeatureByQuery({ search_string: debounceSearchString, limit: 50 }, { staleTime: 5 * 60 * 1000 })
-    // const {data : features, isLoading, isSuccess, isError, isFetching} = useGetFeatureByQuery({query : debounceSearchString},{enabled : _.isString(debounceSearchString) && debounceSearchString.length > 0})
+    const { isOpen, onClose, onSelect, proteomeTags, setProteomeTags } = props
+    
+    const [searchString, setSearchString] = useState("")
+    const debounceSearchString = useDebounce(searchString, 400)
+
+    const { data: features, isLoading, isSuccess, isError, isFetching } = api.features.proteinsQuery.useGetProteinFeatureByQuery({
+            search_string:
+            debounceSearchString,
+            limit: 50,
+            proteome_tags: _.isArray(proteomeTags) && proteomeTags.length > 0 ? _.join(proteomeTags, ";") : undefined
+    }, { staleTime: 5 * 60 * 10000 })
  
+    const proteomeItem = ["proteome_selection"]
 
     useEffect(() => {setSearchString("")},[isOpen])
-    
-    const setSearchString = (searchString) => {
-        // sets state for search string. 
-        setFeatureDetails(prevValues => {
-            return {
-                ...prevValues,
-                "searchString": searchString,
-            }
-        })
-    }
 
     /**
      * 
@@ -41,8 +53,12 @@ export function OmnibarSearch(props) {
         onSelect({feature_tag, text: feature_tag, to : featureURL })
     } 
 
+    const onProteomeSelect = (selection) => {
+        const selected_tag = selection[1].tag
+        setProteomeTags(addStringToArrayOrRemove({array : proteomeTags, string : selected_tag}))
+    }
+
     /**
-     * 
      * @param {import("../../../types/feature").Feature} item 
      * @param {Object} params 
      * @param {Function} params.handleClick  
@@ -50,26 +66,36 @@ export function OmnibarSearch(props) {
      * @returns 
      */
     const renderItem = (item, { handleClick, modifiers, query, index }) => {
-            if (!modifiers.matchesPredicate) {
+        
+        if (item === "proteome_selection") {
+            return <ProteomeSelection attribute_tag="att_proteome" onChange={onProteomeSelect} selected_traits={proteomeTags} />
+        }
+        if (!modifiers.matchesPredicate) {
               return null;
             }
-        if ((isLoading || isFetching) && index === 0) {
+        
+        if ((isLoading || isFetching) && index === 1) {
             return <div><Loading/></div>
         }
         return (
             <ProteinMenuItem key={item} {...{tag : item, onClick : handleClick, active : modifiers.active}} />
         )
-          }
+    }
     return (
 
         <Omnibar
             itemRenderer={renderItem}
-            query={featureDeatails.searchString}
+            query={searchString}
             resetOnSelect={true}
             onItemSelect={onFeatureSelect}
-            onQueryChange={setSearchString}
-            inputProps={{ placeholder: isFetching || isLoading ? "Fetching ..." :isError ? 'An error occured fetching the feature list.' : _.isArray(features) && features.length===0?'No feature items available. API is loading or filtering excluded all features.':`Search in for protein name, gene name or uniprot id.`}}
-            {...{ isOpen, onClose, items: isLoading || isFetching ? [{}] : _.isArray(features) ? features : []}} />
+            initialContent={<ProteomeSelection  attribute_tag="att_proteome" onChange={onProteomeSelect} selected_traits={proteomeTags} />}
+            onQueryChange={query => setSearchString(query)}
+            // inputProps={{ placeholder: isFetching || isLoading ? "Fetching ..." :isError ? 'An error occured fetching the feature list.' : _.isArray(features) && features.length===0?'No feature items available. API is loading or filtering excluded all features.':`Search in for protein name, gene name or uniprot id.`}}
+            {...{
+                isOpen,
+                onClose,
+                items: _.isArray(features) ? _.concat(proteomeItem, features) : proteomeItem
+            }} />
     )
 
 }

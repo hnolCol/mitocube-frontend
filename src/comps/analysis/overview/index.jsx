@@ -74,27 +74,23 @@ function SubmissionOverview() {
             </div>
             <div className="flex flex--wrap align-start" style={{ gap: "2rem", marginTop: "1rem" }}>
 
-                {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "max(45vw,500px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     
                     <SubmissionGenotypesView {...{ submission_tag }}/>
                 </div> : null}
-                <div className="container--shadow padding--little margin-top--little" style={{ width: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "max(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
                 </div>
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
                 </div> : null} */}
-            <Metatexts {...{submission_tag}} />
+            
+            </div>
+            <div className = "padding--medium">
+                <Metatexts {...{ submission_tag, fill: false }} />
             </div>
 
-            <div className="margin-right ">
-                <div className="flex flex--wrap" style={{ gap: "2rem" }}>                    
-                    
-                
-                       
-            </div>
-                </div>
         </div>
         )}
 

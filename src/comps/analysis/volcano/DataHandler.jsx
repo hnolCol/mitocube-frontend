@@ -9,6 +9,8 @@ import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/group
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 import { api } from "@/api";
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
+import { usePrefetchVolcanoData } from "@/api/orchestrated/volcanoData";
 
 
 
@@ -31,7 +33,54 @@ export function VolcanoDataHandler({
         annotationHoverResults,
         showHoverLabels = false}) {
 
+    
+    
+    
     const [annotationMarkers, setAnnotationMarkers] = useState([])
+    const [prefetchedTestParams, setPrefetchedTestParams] = useState([])
+    const { isReady, tagQueries } = usePrefetchVolcanoData(prefetchedTestParams, { enabled: _.isObject(prefetchedTestParams) && _.isArray(prefetchedTestParams) && prefetchedTestParams.length > 0 })
+       
+
+    useEffect(() => {
+        if (volcanoData.suffixes.length > 0) return //already have data, no need to wait for prefetching, and don't want to overwrite existing data with prefetching results
+        if (isReady && _.isArray(tagQueries) && tagQueries.length > 0) {
+            
+            const arrays = tagQueries.map(q => q.data.stats)
+            const updatedData = Array.from(
+            arrays
+                .flat()
+                .reduce((map, obj) => {
+                const existing = map.get(obj.tag) || {};
+
+                map.set(obj.tag, {
+                    ...existing,
+                    ...obj
+                });
+
+                return map;
+                }, new Map())
+                .values()
+            );
+
+            const { itemFound, itemValue } = getItemFromLocalStorage({ itemName : "volcanoLabelIndices", parseJson : true }) // we want to keep the same labeled indices when prefetching data, so we need to get the labeled indices from local storage and save them again after we have the prefetching results, to trigger a rerender of the charts with the new data but the same labeled indices
+            const labelIndices = itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ? new Set(itemValue[submission_tag]) : new Set()
+            const suffixes = tagQueries.map(q => q.data.suffix)
+            const selection = tagQueries.map(q => { return { xaxisName: `log2FC ${q.data.suffix}`, yaxisName: `-log10 p-value ${q.data.suffix}`, colorName: `Significant ${q.data.suffix}`, tooltipNames: [], sizeName: undefined } })
+            const testParams = prefetchedTestParams.slice()
+     
+            setVolcanoData(prevValues => {
+                return {
+                    ...prevValues,
+                    data: updatedData,
+                    initialLabelIndices: labelIndices,
+                    suffixes,
+                    testParams,
+                    selection
+                }
+            })
+        }
+    }, [isReady, tagQueries])
+
     const { data: selectedAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: favoriteAnnotationSelection?.values?.[0] },
         { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
@@ -47,11 +96,27 @@ export function VolcanoDataHandler({
         }
     
     //fetch data
-    const {data : testData, isSuccess, refetch } = api.submissions.analysis.useGetSubmissionVolcano({tag : submission_tag, ca_tag_left : selectedTestParams.ca_tag_left, ca_tag_right : selectedTestParams.ca_tag_right, annotation_tag : selectedTestParams.annotation_tag, within_attribute_tags : selectedTestParams.within_attribute_tags, within_ca_tags : selectedTestParams.within_ca_tags}, {
+    const { data: testData, isSuccess, refetch } = api.submissions.analysis.useGetSubmissionVolcano({
+        tag: submission_tag,
+        ca_tag_left: selectedTestParams.ca_tag_left,
+        ca_tag_right: selectedTestParams.ca_tag_right,
+        annotation_tag: selectedTestParams.annotation_tag,
+        within_attribute_tags: selectedTestParams.within_attribute_tags,
+        within_ca_tags: selectedTestParams.within_ca_tags
+    }, {
         enabled: false,
         staleTime: Infinity,
         onError: handleError
     })
+
+
+    useEffect(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
+        if (itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag)) {
+            setPrefetchedTestParams(itemValue[submission_tag])
+        }
+    }, [])
+
 
     useEffect(() => {
         if (isSuccess && _.isObject(testData) ) {
@@ -61,6 +126,9 @@ export function VolcanoDataHandler({
     
     const handleSuccess = (data) => {
         //merge data to get super fast split
+       
+        
+        
         if (volcanoData.suffixes.includes(data.suffix)) return //already have this data, no need to merge again
         let updatedData = []
         let prevData = volcanoData.data
@@ -71,14 +139,34 @@ export function VolcanoDataHandler({
         else {
             updatedData = data.stats
         }
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
 
+        saveInLocalStorage({
+            itemName: "volcanoProps", itemValue: JSON.stringify({
+                ...itemValue,
+                [submission_tag]: itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ?
+                    _.concat(itemValue[submission_tag], { ...selectedTestParams, tag: submission_tag }) : [{ ...selectedTestParams, tag: submission_tag }]
+            })
+        })
+        
         setIsFetching(false)
         setVolcanoData(prevValues => {
             return {
-                ...prevValues, data: updatedData,
+                ...prevValues,
+                data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
                 testParams: _.concat(prevValues.testParams, selectedTestParams),
-                selection : _.concat(prevValues.selection,{ xaxisName: `log2FC ${data.suffix}`, yaxisName: `-log10 p-value ${data.suffix}`, colorName : `Significant ${data.suffix}`, tooltipNames : [], sizeName : undefined, textSearchNames : ["genes"], filterSetNames : [] })
+                selection: _.concat(prevValues.selection,
+                    {
+                    xaxisName: `log2FC ${data.suffix}`,
+                    yaxisName: `-log10 p-value ${data.suffix}`,
+                    colorName: `Significant ${data.suffix}`,
+                    tooltipNames: [],
+                    sizeName: undefined,
+                    // textSearchNames: ["genes"],
+                    filterSetNames: []
+                    }
+                )
             }
         })
     }
@@ -195,7 +283,7 @@ export function VolcanoDataHandler({
             }}> 
         
         <InteractiveChart
-                data={volcanoData.data} //enrichDataWithAnnotations(volcanoData.data)
+                data={volcanoData.data}
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
                 externalLabelResult={{
@@ -216,9 +304,13 @@ export function VolcanoDataHandler({
                             yaxisName: volcanoData.selection[idx].yaxisName
                         }
                     })
-                } 
+                }
                 isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}
-                passOnProps = {{setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels}} >
+                passOnProps={{ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }}
+                labelIndicesKey="volcanoLabelIndices"
+                labelIndicesDataKey={submission_tag}
+                initialLabelIndices={volcanoData.initialLabelIndices}
+            >
                 {
                     /**
                      * 
@@ -248,7 +340,7 @@ export function VolcanoDataHandler({
                         proteinIsLoading,
                         showHoverLabels
                     }, didx) => {
-                            if (hiddenSuffix.includes(volcanoData.suffixes[chartIdx])) return null
+                            if (hiddenSuffix.includes(volcanoData.suffixes[chartIdx])) return null // this suffix is hidden, don't render the chart
                             return (
                                 <Card
                                     compact={true}
@@ -259,40 +351,40 @@ export function VolcanoDataHandler({
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
                                         </div>
-                                    {_.isArray(volcanoData.data) && volcanoData.data.length > 0 && _.isObject(volcanoData.data[0]) ? <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
-                                        {...{
-                                            numericKeyNames: numericKeyNames,
-                                            selection: volcanoData.selection[didx],
-                                            setSelection: handleSelection,
-                                            idx: didx,
-                                            chartIdx,
-                                            setTriggerResetAxisZoom,
-                                            // handleStringSearch,
-                                            downloadElements: [`volcano-${didx}`, volcanoData.data],
-                                            elementNames: ["SVG", "DIVIDER", `Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
-                                            fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
-                                            elementTypes: ["svg", "data"],
-                                            itemIsAttribute: false,
-                                            // onAnnotationSelect: handleAnnotationSelect,
-                                            handleSearchByDataIndex
-                                        }} /> : null}
+                                    {_.isArray(volcanoData.data) && volcanoData.data.length > 0 && _.isObject(volcanoData.data[0]) ?
+                                        <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
+                                            {...{
+                                                numericKeyNames: numericKeyNames,
+                                                selection: volcanoData.selection[didx],
+                                                setSelection: handleSelection,
+                                                idx: didx,
+                                                chartIdx,
+                                                setTriggerResetAxisZoom,
+                                                downloadElements: [`volcano-${didx}`, volcanoData.data],
+                                                elementNames: ["SVG", "DIVIDER", `Data (${volcanoData.data.length} x ${_.keys(volcanoData.data[0]).length})`],
+                                                fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
+                                                elementTypes: ["svg", "data"],
+                                                itemIsAttribute: false,
+                                                // onAnnotationSelect: handleAnnotationSelect,
+                                                handleSearchByDataIndex
+                                            }} /> : null}
                                     
-                                    <ScatterPlot key={`volcano-plot-${chartIdx}`}{...{
+                                    <ScatterPlot
+                                        key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
                                         width: 500,
                                         height : 480,
                                         margins: {          
-                                            left: 80,     
+                                            left: 50,     
                                             top: 10,
                                             right: 5,
-                                            bottom: 80
+                                            bottom: 100
                                         },
                                         colorName: volcanoData.selection[didx].colorName,
                                         sizeName: volcanoData.selection[didx].sizeName,
                                         data,
                                         valid,
                                         centerXAxisAtZero : true,
-                                        labelNames : ["gene_name"],
                                         findDataInRectangle,
                                         setHoverDataInRectangle,
                                         findClosestPoint,
@@ -306,8 +398,6 @@ export function VolcanoDataHandler({
                                         ...labelProps,
                                         ...externalHoverProps,
                                         ...externalLabelProps,
-                                        attributeValuesByTag: {}, //metadata.attribute_values_by_tag,
-                                        attributesByTag: {}, //metadata.attributes,
                                         legend: true,
                                         legendWithAttributes: false,
                                         svgID: `volcano-${didx}`,

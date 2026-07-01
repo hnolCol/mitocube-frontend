@@ -14,7 +14,7 @@ import { use } from "react";
 
 
 const AMINO_ACID_ATTRIBUTES = new Set(["att_aa_substitution"])
-const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr"])
+const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr","att_sirna_sequence"])
 TraitChildren.propTypes = {
     children_tags : PropTypes.array 
 }
@@ -24,7 +24,7 @@ TraitChildren.propTypes = {
  * @param {String[]} props.children_tags The tags of the children.  
  * @returns 
  */
-export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection = true, }) {
+export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection = true, selected_proteome_tags = []}) {
     return (<div>
         {
             _.isArray(children_tags) && children_tags.length ?
@@ -42,6 +42,7 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
                         referenceID,
                         checkAttributeRequiredTraits,
                         displayChildrenUponSelection,
+                        selected_proteome_tags
                     }} />)
                 : null
         }
@@ -63,14 +64,15 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
  * @param {String} props.referenceID The reference ID for the current selection.
  * @returns 
  */
-export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection, proteome_tags = []}) {
+export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, checkAttributeRequiredTraits, displayChildrenUponSelection, selected_proteome_tags = []}) {
 
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag)})
     const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = api.traits.queryTraits.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess })
     const {data : children, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
     const {data : traitCount, isSuccess : isSuccessTraitCount} = api.traits.queryTraits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
     const allows_multiple_traits = false //["att_duration","att_concentration"].includes(attribute_tag) ? false : true
-
+    const default_proteome = selected_proteome_tags.length > 0 ? selected_proteome_tags.length > 1 ? selected_proteome_tags.filter(t => t !== "ctrl")[0] : selected_proteome_tags[0] : undefined
+    console.log(default_proteome, selected_proteome_tags)
     const attributeHasTraits = isSuccessTraitCount && traitCount > 0
     let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }])
     const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(track_path, rowIndex) : undefined 
@@ -85,19 +87,19 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         }
     } , [attribute_tag] ) 
 
-    const handleTraitSelection = (trait_tag, referenceID) => {
+    const handleTraitSelection = (trait_tag, referenceID, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
         if (has_selection) {
             //check if multiple allowed??
             const p_remove = _.concat(track_path, [{ "type": "trait", "tag": selection[0].tag, "id": referenceID }])
             if (_.isFunction(onRemove)) onRemove(p_remove, [rowIndex], referenceID)
         }
         const p = _.concat(track_path, [{ "type": "trait", "tag": trait_tag, "id": referenceID }])
-        onSelection(p, [rowIndex], !allows_multiple_traits)
+        onSelection(p, [rowIndex], enforceSingleVariantPerGroup, replaceChildrenAtLeaf)
     }
 
-    const handleTraitValueInput = (value) => {
+    const handleTraitValueInput = (value, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
         const p = _.concat(track_path, [{ "type": "trait", "value": value, "tag": selection[0].tag, "id": referenceID }])
-        onSelection(p, [rowIndex], !allows_multiple_traits) //adding the value should not have an effect on the single child level or type, as the value is not relevant for the children display.
+        onSelection(p, [rowIndex], enforceSingleVariantPerGroup, replaceChildrenAtLeaf) //adding the value should not have an effect on the single child level or type, as the value is not relevant for the children display.
     }
 
     const handleFeatureSelection = (tag) => {
@@ -136,7 +138,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         return []
     }
     if (isLoadingRequirements) return null
-    if (requiredTraitsChecked && _.isFunction(checkAttributeRequiredTraits) &&  required_traits.length > 0 && !checkAttributeRequiredTraits(attribute_tag, required_traits, referenceID))  return null
+    if (requiredTraitsChecked && _.isFunction(checkAttributeRequiredTraits) &&  required_traits.length > 0 && !checkAttributeRequiredTraits(attribute_tag, required_traits, referenceID, rowIndex, track_path))  return null
 
     return <div> {
         isSuccess ?
@@ -145,9 +147,9 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                     <div className='flex flex-column'>
                         <div>
 
-                            <div className='font-size--smallest'>
+                            {/* <div className='font-size--smallest'>
                                 {attribute.text}
-                            </div>
+                            </div> */}
                         </div>
 
                         <div className='flex center-items'>
@@ -156,16 +158,16 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                 <div>
                                     <div className="flex center-items">
                                     <FeatureInput
-                                        proteome_tags={[has_selection ? selection.map(s => s.tag) : [], ...proteome_tags].flat()}
+                                        proteome_tags={[has_selection ? selection.map(s => s.tag) : [], ...selected_proteome_tags].flat()}
                                         onItemSelect={(a, tag) => handleFeatureSelection(tag)}
                                         onItemRemove={(a, tag) => handleFeatureSelection(tag)}
                                         selectedItems={getFeatureInput()}
                                         />
                                         <TraitInput
                                             attribute_tag={"att_proteome"}
-                                            onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                            onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID, true)}
                                             selected_trait={selection && has_selection ? selection.map(s => s.tag) : undefined}
-                                            onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleTraitSelection(d[0], referenceID) : null}
+                                            onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? selected_proteome_tags.length > 0 ? handleTraitSelection(default_proteome, referenceID, true)  : handleTraitSelection(d[0], referenceID, true) : null}
                                         /> 
                                         </div>
                                     {_.isArray(selection) && selection.length === 0 && !has_selection ? <div className='font-size--smallest'>No proteome available. Please select a proteome.</div> : null}
@@ -175,6 +177,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                         
                                 <MinimalTextInput
                                     value={getInput()}
+                                    placeholder={attribute.text}
                                     disabled={!has_selection}
                                     callbackKey={attribute_tag}
                                     allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
@@ -186,9 +189,9 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                 
                                 <TraitInput
                                     attribute_tag={attribute_tag}
-                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID, false, true    )}
                                     selected_trait={has_selection ? selection[0].tag : undefined}
-                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleTraitSelection(d[0], referenceID) : null}
+                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleTraitSelection(d[0], referenceID, false, true) : null}
                                 /> : null}
                         </div>
                     </div> :
@@ -199,7 +202,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                 <TraitInput
                                     attribute_tag={attribute_tag}
                                     
-                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID, false)}
                                     selected_trait={has_selection ? selection.map(t => t.tag) : undefined} /> </div>
                                 <div className="flex flex-column">
                                     {
@@ -229,7 +232,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                 <TraitInput
                                     attribute_tag={attribute_tag}
                                     text={has_selection  ? "" : attribute.text}
-                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID)}
+                                    onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID, false)}
                                     selected_trait={has_selection ? selection[0].tag : undefined} />
                                 
                                     </div>}

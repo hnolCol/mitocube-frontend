@@ -11,16 +11,18 @@ import { ScatterPlot } from "../../core/charts/scatter"
 import { FeatureDataView } from "../../analysis/features/DataView"
 import { RankingStats } from "../../core/base/submissions/RankingStats"
 import { api } from "@/api";
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
+const METRICES = ["log2_fc_vs_mean", "raw", "z_score_sample", "z_score_protein_group"]
 
 
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
-    const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName : undefined, tooltipNames : [], sizeName : undefined, filterTag : undefined })
+    const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
+    const [metrics, setMetrics] = useState(METRICES[0])
     const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
     const { feature_tags, submission_tags} = useMemo(() => {
         if (_.isArray(submissionStats)) {
             const topStats = _.uniqBy(_.slice(_.orderBy(submissionStats, ["score"], ["desc"]), 0, N), "submission_tag");
-            console.log(topStats)
             return {
                 feature_tags: topStats.map(stat => tag), //all the same feature tag, which is the one in the props
                 submission_tags: topStats.map(stat => stat.submission_tag)
@@ -54,7 +56,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         <h3>Protein Submission Ranking</h3>
         <span>Features are ranked by statistic approaches. Find more information in the documentation.</span>
         <div className="flex" style={{gap : "3rem", marginTop : "1rem"}}>
-        <InteractiveChart
+        <div><InteractiveChart
             data={submissionStats}
             keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}>
             
@@ -144,13 +146,29 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         
     </InteractiveChart>
         
+                <div>
+                    <h3>Settings</h3>
+                    <span>Choose metrics to display data.</span>
+                    
+                    <div className="flex" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
+                            {METRICES.map(option => (
+                                <OptionButton key={option} onClick={() => setMetrics(option)} isSelected={option === metrics}>
+                                    {option}
+                                </OptionButton>
+                            ))}
+                    </div>
+                    
+                    
 
+                
+                </div>
+            </div>
 
         <div style={{width : "75vw", borderLeft : "1px solid #ccc", paddingLeft : "2rem"}}>
 
             
             {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length ?
-                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} /> : null}
+                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} /> : null}
 
     
 

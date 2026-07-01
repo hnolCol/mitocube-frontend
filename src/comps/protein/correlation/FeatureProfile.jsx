@@ -6,15 +6,14 @@ import viz from "@mitocube/viz"
 import { Loading } from "../../core/base/states/Loading"
 import { api } from "@/api";
 
-export function FeatureProfile({ tag, data, xaxisName, yaxisName, hoverProps, width = 550, height = 480., splitName = "tag" }) {
+export function FeatureProfile({ tag, data, proteinTagMap, xaxisName, yaxisName, hoverProps, width = 550, height = 480., splitName = "tag", metrics = "log2_fc_vs_mean" }) {
     
     const tags = Array.from(hoverProps.hoverIndices).map(idx => data[idx]["tag"])
-    const { data: featureData, isLoading, isFetching, isSuccess } = api.features.quantifications.useGetSampleAbundance({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
+    const { data: featureData, isLoading, isFetching, isSuccess, error } = api.features.quantifications.useGetSampleAbundance({ tag, metrics }, { enabled: _.isString(tag), staleTime: Infinity })
     
 
-    const { data: featureDataOther, isLoading: isLoadingOther, isFetching: isFetchingOther, isSuccess: isSuccessOther } = api.features.quantifications.useGetSampleAbundance({ tag : tags[0] }, { enabled: _.isArray(tags) && tags.length > 0 && _.isString( tags[0]), staleTime: Infinity })
+    const { data: featureDataOther, isLoading: isLoadingOther, isFetching: isFetchingOther, isSuccess: isSuccessOther } = api.features.quantifications.useGetSampleAbundance({ tag : tags[0], metrics }, { enabled: _.isArray(tags) && tags.length > 0 && _.isString( tags[0]), staleTime: Infinity })
     const featureDataToPlot = _.isArray(featureDataOther) ? _.concat(featureData, featureDataOther) : featureData
-
     return <div>
         {isLoading || isFetching ? <Loading /> : null}
         {isSuccess ?
@@ -57,7 +56,9 @@ export function FeatureProfile({ tag, data, xaxisName, yaxisName, hoverProps, wi
                         yaxisLabel: "log2 intensity",
                         width,
                         height,
-                        splitName
+                        splitName,
+                        proteinTagMap,
+                        splitByProtein: true,
                     }} /> 
 
                 })

@@ -37,8 +37,8 @@ export function ProteinAbundance({ tag }) {
         }
         
     }
-    // const boxplotData = _.flatten([proteome_abundance, feature_abundance]).filter(d => !_.isEmpty(d))
-    const boxplotData = _.isObject(sample_feature_abundance) ? _.keys(sample_feature_abundance).map(k => sample_feature_abundance[k] ) : []
+
+    const boxplotData = _.isObject(sample_feature_abundance) ? _.keys(sample_feature_abundance).map(k => sample_feature_abundance[k]) : []
     return <div>
         
         <MinimalAttributeSelection onAttributeSelect={handleAttributeSelection} selectedItem={abundanceProps.attribute_tag} attribute_groups={_.join(["dataset","sample"], ";")}/>

@@ -140,56 +140,57 @@ function ResultChart({
     
 
     return (
-        <div
-            className="margin--little"
-            style={{ width: width, height: height }}
-        >
-            
-
-            <div className="flex center-items padding--medium" >
-                <h4>{title}</h4>
-                {showMenu && (
-                    <div className="flex justify-space-between div--expand">
-                    <div className="flex" style={{ gap: "5px"}}>
-                        <CategoricalChartSelection
-                            vertical={false}
-                            {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
-                        />
-                        <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
-                        <InfoIcon items={["Metadata", "Explore Submission"]} callback={handleInfo} callbackValueOnly={true} />
-                        <DownloadIcon
-                            items={["Raw", "Aggregated", "DIVIDER", "PNG", "SVG"].map((dataType) => {
-                                return { text: dataType }
-                            })}
-                            placeholder=""
-                            callback={handleDataDownload}
-                            callbackValueOnly={true}
-                        />
+    <div>
+            {width > 30 && height > 50 ?
+                <div className="margin--little"
+                    style={{ width: width, height: height }}>
+        
+                        <div className="flex center-items padding--medium" >
+                            <h4>{title}</h4>
+                            {showMenu && (
+                                <div className="flex justify-space-between div--expand">
+                                <div className="flex" style={{ gap: "5px"}}>
+                                    <CategoricalChartSelection
+                                        vertical={false}
+                                        {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
+                                    />
+                                    <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
+                                    <InfoIcon items={["Metadata", "Explore Submission"]} callback={handleInfo} callbackValueOnly={true} />
+                                    <DownloadIcon
+                                        items={["Raw", "DIVIDER", "SVG"].map((dataType) => {
+                                            return { text: dataType }
+                                        })}
+                                        placeholder=""
+                                        callback={handleDataDownload}
+                                        callbackValueOnly={true}
+                                    />
+                                    </div>
+                                    {_.isFunction(onRemove) ? <RemoveButton onRemove={(e) => { e.stopPropagation(); onRemove(featureTag); }} onMouseDown={(e) => e.stopPropagation()} /> : null}
+                                </div>
+                            )}
                         </div>
-                        {_.isFunction(onRemove) ? <RemoveButton onRemove={(e) => { e.stopPropagation(); onRemove(featureTag); }} onMouseDown={(e) => e.stopPropagation()} /> : null}
-                    </div>
-                )}
-            </div>
-            <div className="flex" style={{ height : height - 35}}>
+            
+                <div className="flex" style={{ height: height - 35 }}>
 
-                {isReady && attributesReady? <viz.charts.Categorical
-                    width={width - 10 || undefined}
-                    height={height - 5 || undefined}
-                    margins={{ left: 50, right:0, top: 8, bottom: 120 }}
-                    {...selectionTags}
-                    data={groupedAggratedData}
-                    errorName="e"
-                    yaxisLabel={_.isString(yAxisLabel) ? yAxisLabel : yaxisName}
-                    yaxisName={yaxisName}
-                    minMaxYDomain={minMaxYDomain}
-                    svgID={svgID}
-                    chartType={chartType}
-                    caTagToText={map}
-                    attributeTagToText={attributeMap}
-                    tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
-                /> : <span>Attributes loading not complete..</span>}
+                    {isReady && attributesReady ? <viz.charts.Categorical
+                        width={width - 10 || undefined}
+                        height={height - 5 || undefined}
+                        margins={{ left: 50, right: 0, top: 8, bottom: 120 }}
+                        {...selectionTags}
+                        data={groupedAggratedData}
+                        errorName="e"
+                        yaxisLabel={_.isString(yAxisLabel) ? yAxisLabel : yaxisName}
+                        yaxisName={yaxisName}
+                        minMaxYDomain={minMaxYDomain}
+                        svgID={svgID}
+                        chartType={chartType}
+                        caTagToText={map}
+                        attributeTagToText={attributeMap}
+                        tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
+                    /> : <span>Attributes loading not complete..</span>}
 
-                </div>
+                </div> 
+            </div> : null}
         </div>
     )
 }
