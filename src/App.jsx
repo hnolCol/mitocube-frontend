@@ -77,6 +77,7 @@ import { AdminSparepart } from "./comps/admin/spareparts/Sparepart";
 import { AdminExternalService } from "./comps/admin/externalservice/ExternalService";
 import { AdminAnnotations } from "./comps/admin/annotations/Annotations";
 import { NewsManagement } from "./comps/admin/news/NewsManagement";
+import { AdminPhenotypeAssociations } from "./comps/admin/phenotypes/AdminPhenotypeAssociation";
 
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
@@ -336,7 +337,7 @@ function App() {
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
             {/* <Route path="/admin/sets" element={<AdminFilterSets />} /> */}
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
-            {/* <Route path="/admin/phenotypes" element={<AdminPhenotype />} /> */}
+            <Route path="/admin/phenotypes" element={<AdminPhenotypeAssociations />} />
             <Route path="/admin/symptoms" element={<AdminSymptoms />} />
             <Route path="/admin/spareparts" element={<AdminSparepart />} />
             <Route path="/admin/procedure" element={<AdminProcedure />} />

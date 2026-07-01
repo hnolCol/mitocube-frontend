@@ -40,6 +40,10 @@ import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } fr
 import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, proteinFavoritesAPI } from "./features";
 import { statsAPI } from "./stats";
 import { cyperOpenAIAPI } from "./openai";
+import { diseasesQueryAPI, diseasesClinVarAPI } from "./diseases";
+import { phenotypeQueryAPI, phenotypeassociationQueryAPI } from "./phenotypes";
+import { variantsQueryAPI } from "./variants";
+import { crosslinksQueryAPI, externalresourceQueryAPI } from "./crosslinks";
 
 export const api = {
     annotations : {
@@ -155,5 +159,21 @@ export const api = {
         cyper : cyperOpenAIAPI
     },
         
-    researchgroups : researchGroupsQueryAPI
+    researchgroups : researchGroupsQueryAPI,
+
+    diseases : {
+        query : diseasesQueryAPI,
+        clinvar : diseasesClinVarAPI
+    },
+    phenotypes : {
+        query : phenotypeQueryAPI,
+        associations : phenotypeassociationQueryAPI
+    },
+    variants : {
+        query : variantsQueryAPI
+    },
+    crosslinks : {
+        crosslinks : crosslinksQueryAPI,
+        externalresources : externalresourceQueryAPI
+    }   
 };

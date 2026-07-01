@@ -13,3 +13,8 @@ export function usePrefetchProteins(tags: string[]) {
   return { isReady, tagQueries, isLoading };
 }
 
+export function usePrefetchInterproFeatures(tags: string[]) {
+    const tagQueries = api.features.proteinsQuery.useGetProteinsInterproFeatures({ tags }, { enabled: _.isArray(tags) && tags.length > 0, staleTime: Infinity });
+    if (tags.length === 0) return { tagQueries: [] };
+    return { tagQueries };
+}
