@@ -118,14 +118,10 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
             components: selectedTraits
         }
         postGenotype(data, {
-            onSuccess: (response) => {
-                const genotype_tag = response?.tag
-            
+            onSuccess: (tag) => {        // tag comes from backend now
                 setGenotype(INITIAL_GENOTYPE)
                 setSelectedTraits([])
-            
-                onClose(true)
-
+                onClose(true, tag)       // pass tag not text
             },
             onError: (error) => {
                 console.error("Failed to insert genotype", error)

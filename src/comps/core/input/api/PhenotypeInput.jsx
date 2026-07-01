@@ -5,13 +5,14 @@ import { MultiSelect } from "@blueprintjs/select";
 import { Button, MenuItem } from "@blueprintjs/core";
 import _ from "lodash"
 import {motion } from "framer-motion"
+import { api } from "@/api";
 export function PhenotypeInput({selectedItems = [], placeHolderText = "Search phenotype", debounce = 400, min_search_string_length = 0, matchTargetWidth = false , onPhenotypeSelection}) {
     
     const [query, setQuery] = useState()
     const debounceString = useDebounce(query, debounce)
     const searchStringValid = debounceString.length >= min_search_string_length
 
-    const { data : queried_phenotypes, isLoading, isFetching } = useGetPhenotypes({
+    const { data : queried_phenotypes, isLoading, isFetching } = api.phenotypes.query.useGetPhenotypes({
         query: debounceString,
         limit: 15
     }, {

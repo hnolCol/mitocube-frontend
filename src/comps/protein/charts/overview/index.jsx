@@ -15,6 +15,8 @@ import { ProteinSubmissionRanking } from "../../data/ProteinSubmissionRanking"
 import { ProteinHelp } from "./ProteinHelp"
 
 
+import { ProteinCrosslinks } from "../../crosslinks/ProteinCrosslinks"
+
 
 
 export function ProteinPage() {
@@ -26,6 +28,7 @@ export function ProteinPage() {
         { tag: "data", text: "Data" },
         { tag: "correlation", text: "Correlation" },
         { tag: "abundance", text: "Abundance" },
+        { tag: "crosslinks", text: "Crosslinks" },
         { tag: "literature", text: "Literature (AI)" },
         { tag: "publications", text: "Publications" },
         {tag : "documentation", text : "Documentation"}];
@@ -66,6 +69,7 @@ export function ProteinPage() {
             {selectedView == "literature" ? <div style={{paddingLeft : "3rem", paddingRight : "3rem"}}><OpenAiPublicationSummary feature_tag={feature_tag} /></div> : null }
                 {selectedView === "abundance" ? <ProteinAbundance tag={feature_tag} /> : null}
                 {selectedView === "documentation" ? <ProteinHelp /> : null  }
+                {selectedView === "crosslinks" ? <ProteinCrosslinks protein_tag={feature_tag} /> : null}
             </div>
             {/* <BoxplotWithValue/>
             <div> Color : </div>
