@@ -200,7 +200,10 @@ h5 {
     padding-bottom: 0.15rem;
 }
 /* Margins */
-
+.margin--none {
+    margin : 0rem;
+    padding: 0rem;
+}
 .margin--little {
     margin : 0.25rem
 }

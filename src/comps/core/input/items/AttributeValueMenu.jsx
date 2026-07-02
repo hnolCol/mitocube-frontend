@@ -17,10 +17,9 @@ export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, sel
     const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
     return (
-    <div>
+    <div className="flex flex-column">
             {isSuccess ?
-                <div className="flex flex-column">
-                    <button className={`menu_item ${selected ? "menu_item__selected" : ""} ${active ? "menu_item__active" : ""} `}
+                    <button className={`menu_item ${selected ? "menu_item__selected" : ""} ${active ? "menu_item__active" : ""} f`}
                         onClick={(e) => onClick([{ "type": "attribute", "tag": attribute_tag}, { "type": "trait", "tag": tag}])}>
 
                         <div className={`flex justify-space-between " ${selected ? "" : ""}`}>
@@ -28,7 +27,6 @@ export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, sel
                                 {showDescription && <div className="menu_item_description">{trait.description}</div>}
                             </div>
                     </button>
-                </div >
 
                 : null}
         </div>

@@ -1,12 +1,10 @@
 import { useOutletContext } from "react-router";
 import APIError from "../../core/error/APIerror";
 import InteractiveChart from "../../core/charts/interactive";
-import { Checkbox } from "@blueprintjs/core";
 import _ from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 import viz from "@mitocube/viz"
 import { api } from "@/api";
-import { FeatureSearch } from "../../core/input/api/FeatureSearch";
 import { useMemo, useState } from "react";
 import { Combobox } from "../../core/input/Combobox";
 import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../services/arrays/transforms";
@@ -16,9 +14,6 @@ import { AttributeSelection } from "../../core/base/attributes/AttributeSelectio
 
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
-
-
-
 
 
 function HeatmapLoad( {submission_tag} ) {

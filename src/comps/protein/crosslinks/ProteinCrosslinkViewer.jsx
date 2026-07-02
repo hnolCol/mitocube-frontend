@@ -6,6 +6,7 @@ import APIError from "../../core/error/APIerror"
 import viz from "@mitocube/viz"
 
 function PartnerCrosslinkFetcher({ tag, resource_tag, onData }) {
+    
     const { data } = api.crosslinks.crosslinks.useGetCrosslinksByProteinTag(
         { protein_tag: tag, resource_tag },
         { enabled: Boolean(tag), staleTime: Infinity }
@@ -71,8 +72,9 @@ export function ProteinCrosslinkViewer({
     const visiblePartnerTags = useMemo(() => allTags.filter(t => t !== tag), [allTags, tag])
 
     const { isReady: proteinsReady, tagQueries: proteinTagQueries } = usePrefetchProteins(allTags)
-    const { tagQueries: featureTagQueries } = usePrefetchInterproFeatures(allTags)
-
+    const { tagQueries: featureTagQueries, isReady: featuresReady } = usePrefetchInterproFeatures(allTags)
+    
+    console.log(featureTagQueries, "domains")
     // features merged into proteinsByTag
     const proteinsByTag = useMemo(() => {
         const map = {}
@@ -81,12 +83,15 @@ export function ProteinCrosslinkViewer({
             const fq = featureTagQueries[idx]
             if (q?.data) map[t] = {
                 ...q.data,
-                label: q.data.gene_name ?? t,
-                features: fq?.data ?? [],
+                label: q.data.gene_name ?? t, 
+                features: fq?.data ?? [], 
             }
         })
         return map
-    }, [proteinTagQueries, featureTagQueries, allTags])
+    }, [proteinTagQueries, featureTagQueries, allTags, featuresReady ])
+
+    console.log(proteinsByTag, "proteinsByTag")
+
 
     const { isReady: allPartnersReady, tagQueries: allPartnerQueries } = usePrefetchProteins(partnerOrder)
     const allPartnersByTag = useMemo(() => {

@@ -12,22 +12,29 @@ import { api } from "@/api";
 import { MandatoryCheckDetail } from "@/comps/submission/MandatoryAttributes";
 import { MandatoryCheckBadge } from "@/comps/submission/MandatoryAttributes";
 import { StateHeader } from "@/comps/submission/view/StateHeader";
+import { Attribute } from "@/comps/core/base/attributes/Attribute";
 
 
-export function SubmissionConditionApplicationView({ submission_tag, group_by_min_state = true }) {
+export function SubmissionConditionApplicationView({ submission_tag, group_by_min_state = true, group_by_attribute = true }) {
     const queryClient = useQueryClient()
     const [dialogOpen, setDialogOpen] = useState(false)
     const [selected_traits, setSelectedTraits] = useState([])
 
     const { data: submission_ca_tags } = api.submissions.condition_applications.useGetSubmissionConditionApplication(
-        { tag: submission_tag, group_by_min_state },
+        { tag: submission_tag, group_by_min_state, group_by_attribute  },
         { enabled: _.isString(submission_tag) }
     )
+
+
+    console.log(submission_ca_tags)
+
     const { data: submission_ca_data } = api.submissions.condition_applications.useGetSubmissionConditionApplicationData(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
 
+
+    console.log(submission_ca_data)
 
     const { mutate: updateCA, isLoading } = api.submissions.condition_applications.useUpdateSubmissionCA({
         onSuccess: () => {
@@ -79,19 +86,25 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         return findChildrenByPath(selected_traits, path)
     }
 
-    const handleTraitSelection = (path) => {
+    const handleTraitSelection = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf  = false, singleTrait = false) => {
         // path = path.map(p => ({ value: null, ...p }))
         path = addIDToPath(path, submission_tag)
         let traits = selected_traits.slice()
         const pathExists = checkPathExists(traits, path, false)
         const isValueInput = _.last(path).type === "trait" && _.has(_.last(path), "value") && _.isString(_.last(path).value)
     
-        if (pathExists && !isValueInput) {
-            deleteByPath(traits, path, true)
-        } else {
-            findAndInsertTree(traits, path, 3, true)
-        }
+        // if (pathExists && !isValueInput) {
+        //     deleteByPath(traits, path, true)
+        // } else {
+        findAndInsertTree(traits, path, { enforceSingleVariantPerGroup, replaceChildrenAtLeaf, singleTrait })
+        // }
         setSelectedTraits([...traits])
+    }
+
+    const handleRemove = (path) => {
+        console.log(path)
+        path = addIDToPath(path, submission_tag)
+        deleteByPath(selected_traits, path)
     }
     const cleanForBackend = (traits) => {
         return traits.map(item => ({
@@ -107,10 +120,10 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
     }
 
     
-    const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
-                const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, referenceID))
-                return _.some(foundNode)
-            }
+    // const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
+    //             const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, referenceID))
+    //             return _.some(foundNode)
+    //         }
 
 
 
@@ -125,7 +138,25 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                     )}
                 </div>
                 <div style={{ height: "33vh", padding: "1rem", overflowY: "scroll" }}>
-                    {group_by_min_state ?
+                    {group_by_min_state && group_by_min_state ? <div>
+                        {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}> 
+                            <StateHeader tag={state_ca_item.state_tag} />
+                            {state_ca_item.attribute_conditions.map(attr_cond => {
+                                return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}`} className="padding--tiny margin--tiny">
+                                    <strong><Attribute attribute_tag={attr_cond.attribute_tag} /></strong>
+                                    {attr_cond.condition_application_tags?.length > 0 ? attr_cond.condition_application_tags.map(ca_tag => (
+                                        <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
+                                            <ConditionApplicationsView tag={ca_tag} show_attribute={false} />
+                                        </div>
+                                    )) : <div>No condition applications found for this attribute.</div>}
+                                </div>
+                             })}
+                        </div>)}
+
+
+                    </div> : null }
+
+                    {group_by_min_state && !group_by_min_state ?
                         <div>
                             {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}> 
                                 <StateHeader tag={state_ca_item.state_tag} />
@@ -168,8 +199,8 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                         attributeTraits={selected_traits}
                         getSelectionByPath={getSelectionByPath}
                         onChildrenSelection={handleTraitSelection}
-                        handleTraitRemove={handleTraitSelection}
-                        checkAttributeRequiredTraits={checkAttributeRequiredTraits}
+                        handleTraitRemove={handleRemove}
+                        // checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                     />
                     <div className="flex justify-end" style={{ gap: "0.5rem" }}>
                         <button 

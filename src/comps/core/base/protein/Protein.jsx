@@ -8,7 +8,7 @@ import { api } from "@/api";
 import { Text } from "@visx/text"
 import { ProteinFavorite } from "@/comps/protein/charts/overview/ProteinFavorite"
 
-export function ProteinGroup({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", minimal = false, redirect_to_protein_site = true, onClick, proteinsAsButton = false, fill = true, onHover, disableHover = true }) {
+export function ProteinGroup({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", minimal = false, redirect_to_protein_site = true, onClick, proteinsAsButton = false, fill = true, onHover, disableHover = true, showFavorite = true }) {
     const tags = _.isString(tag) ? tag.split(";").map(t => t.trim()) : []
     return <motion.button
         onClick={(e) => onClick(tag)}
@@ -26,6 +26,7 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
                     highlight={highlight}
                     disableTooltip={disableTooltip}
                     popoverPosition={popoverPosition}
+                    showFavorite={showFavorite}
                     redirect_to_protein_site={redirect_to_protein_site}  asButton={proteinsAsButton} fill={fill} onHover={onHover} disableHover={disableHover}/>
                 {minimal ? <span>{i < tags.length - 1 ? ";" : null}</span> : null}
                 

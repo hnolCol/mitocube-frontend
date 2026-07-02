@@ -1,12 +1,11 @@
 
-import _  from "lodash"
+import _, { rest }  from "lodash"
 import { removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
 import { addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useState } from "react"
 import { Alert } from "@blueprintjs/core"
 import { constructSampleNames } from "../../../../../services/samples"
-import { get_proteome_id } from "../../InitialSubmission"
 
 export function deleteByPath(data, path, ignore_id = false) {
     if (path.length === 0) return false; // Nothing to delete
@@ -110,12 +109,14 @@ export const findAndInsertTree = (
 ) => {
     const {
         enforceSingleVariantPerGroup = false,
-        enforceAtLevel = 0,
-        replaceChildrenAtLeaf = false
+        enforceAtLevel = 2,
+        replaceChildrenAtLeaf = false,
+        enforceSingleChild = false,
+        singleTrait = false 
     } = options;
     // Stop if nothing to process
     if (!path || path.length === 0) return;
-
+    let existing_children = []
     const [current, ...restPath] = path;
 
     // Validate required fields
@@ -138,35 +139,54 @@ export const findAndInsertTree = (
             n.tag === current.tag
     );
     // Create node if it doesn't exist
+
+    // if (enforceSingleChild) {
+    //     if (restPath.length === 0) {
+    //         existing_children = data[0]?.children || [];
+    //         console.log("ENFORCE SINGLE CHILD", existing_children, data, path)
+           
+    //     }
+    // }
     if (!node) {
         node = {
             ...current,
-            children: [],
+            children: existing_children,
         };
 
         data.push(node);
     }
-  
-    if (enforceSingleVariantPerGroup && level > enforceAtLevel) {
-        const baseTag = getBaseTag(current.tag);
-
-        for (let i = data.length - 1; i >= 0; i--) {
-            const existingBaseTag = getBaseTag(data[i].tag);
-
-            if (
-                existingBaseTag === baseTag &&
-                data[i] !== node
-            ) {
-                data.splice(i, 1);
-            }
-        }
-    }
-
-    const isLeaf = restPath.length === 0;
-    if (replaceChildrenAtLeaf && isLeaf) {
+    
+    if (singleTrait && restPath.length === 0) {
         data.length = 0;
         data.push(node);
     }
+
+    // if (enforceSingleVariantPerGroup && level > enforceAtLevel) {
+    //     const baseTag = getBaseTag(current.tag);
+
+    //     for (let i = data.length - 1; i >= 0; i--) {
+    //         const existingBaseTag = getBaseTag(data[i].tag);
+
+    //         if (
+    //             existingBaseTag === baseTag &&
+    //             data[i] !== node
+    //         ) {
+    //             data.splice(i, 1);
+    //         }
+    //     }
+    // }
+
+    // const isLeaf = restPath.length === 0;
+    // if (replaceChildrenAtLeaf && isLeaf) {
+    //     data.length = 0;
+    //     data.push(node);
+    // }
+
+    // if (enforceSingleChild && data.length > 1 && res) {
+    //     console.log("THIS IS HAPPENING!")
+    //     data.length = 1;
+    //     data.push(node);
+    // }
 
     // Update value if changed
     if (
@@ -369,7 +389,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     // wrapper to the sample attributes table
 
     const [alertProps, setAlertProps] = useState({ isOpen: false, children: <div></div> })
-    const proteome_ids = get_proteome_id(submission.datasetAttributeValues)
     const addSampleAttr = () => {
         //adds a new sample attribute
         updateSubmission(prevValues => { return { ...prevValues, samplesAttributes: _.concat(prevValues.samplesAttributes, [[]]) } })
@@ -560,15 +579,18 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      * @param {Boolean} single_child_type - Whether to insert a single child type. (e.g. deleting the rest.)
      * @param {Boolean} join_values - Whether to join the values.
      * @param {Boolean} forceInsert - Whether to force the insert.
+     * @param {Boolean} singleTrait - Whether selection allows only a single trait
      */
-    const onSampleTraitSelection = (path, rowIdces, enforceSingleVariantPerGroup = false, enforceAtLevel = 1) => {
+    const onSampleTraitSelection = (path, rowIdces, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false, singleTrait = false, enforceAtLevel = 1) => {
         let d = submission.attributeTable.slice()
         rowIdces
             .filter(rowIndex => rowIndex < submission.sampleNames.length).filter(rowIndex => !checkPathExists (d[rowIndex], path, false))
             .forEach(rowIndex => {
                  findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), {
                      enforceSingleVariantPerGroup ,
-                     enforceAtLevel
+                     enforceAtLevel,
+                     replaceChildrenAtLeaf,
+                     singleTrait
                         })
             })
         updateSubmission(prevValues => {
@@ -706,7 +728,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     groupings: submission.samplesAttributes,
                     genotypeAttributes : submission.genotypeAttributes,
                     // onFeatureSelection,
-                    proteome_ids,
                     numberReplicates: numberReplicates !==undefined? _.toNumber(numberReplicates) :_.uniq(submission.replicates).length,
                     replicates: submission.replicates,
                     onReplicateChange,

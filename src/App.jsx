@@ -8,7 +8,7 @@ import "@blueprintjs/datetime2/lib/css/blueprint-datetime2.css";
 import "@blueprintjs/table/lib/css/table.css";
 
 import "react-grid-layout/css/styles.css";
-// import "react-resizable/css/styles.css";
+import 'react-grid-layout/node_modules/react-resizable/css/styles.css'
 
 import axios from "axios";
 import _ from "lodash";
@@ -31,7 +31,6 @@ import Login from "./comps/login";
 /* Submission area */
 import SubmissionHeader from "./comps/submission";
 import SubmissionView from "./comps/submission/view";
-import NewSubmission from "./comps/submission/new";
 import SubmissionHelp from "./comps/submission/help";
 import SubmissionStatistics from "./comps/submission/statistics";
 import InitialSubmission from "./comps/submission/new/InitialSubmission";
@@ -95,6 +94,7 @@ import hooks from "@mitocube/api-hooks"
 
 import { api } from "./api";
 import { SubmissionCompare } from "./comps/analysis/compare";
+import { queryClient } from "./api/queryClient";
 
 
 
@@ -182,6 +182,7 @@ function App() {
    */
   const logout = () => {
     removeItemFromLocalStorage("token");
+    queryClient.clear();
     setAuthenticationStatus(initAuthenticationStatus);
     setTokenFromStorage({ token: undefined, locationPathName: "/" });
     axios.defaults.headers.common["Authorization"] = `Bearer`;

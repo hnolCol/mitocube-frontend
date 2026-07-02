@@ -24,6 +24,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = api.genotypes.modifyGenotypes.usePostGenotype()
     const { mutate : updateGenotype, isLoading : isUpdateLoading } = api.genotypes.modifyGenotypes.useEditGenotype()
 
+    console.log(genotype, selectedTraits)
 
     useEffect(() => {
 
@@ -57,9 +58,9 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         return undefined
     }
 
-    const handleSelection = (path, _, enforceSingleVariantPerGroup = true) => {
+    const handleSelection = (path, _, enforceSingleVariantPerGroup = true, replaceChildrenAtLeaf = false, singleTrait = false) => {
         let selected_traits = selectedTraits.slice() //mission.selected_traits
-        findAndInsertTree(selected_traits, path, { enforceSingleVariantPerGroup  })
+        findAndInsertTree(selected_traits, path, { enforceSingleVariantPerGroup, replaceChildrenAtLeaf, singleTrait })
         setSelectedTraits(selected_traits)
     }
 
@@ -99,12 +100,15 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     }
 
 
-    const handleRemoveByPath = (path) => {
-        if (!_.isArray(path)) return
+    const handleRemoveByPath = (path, rowIndex, referenceID) => {
+
+        if (_.isArray(path) && path.length === 0) return 
+
         let selected_traits = selectedTraits.slice() //mission.selected_traits
         //delete by path
-        deleteByPath(selected_traits, path)
+        deleteByPath(selected_traits, path, false)
         setSelectedTraits(selected_traits)
+
     }
 
 
@@ -168,7 +172,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
                     return (
                         <div className="padding--medium bg--lightgrey flex flex-column"
                             key={`$${component.referenceID}-${idx}`}
-                            style={{ borderRadius: "5px", minWidth: "200px" }}>
+                            style={{ borderRadius: "5px", minWidth : "380px" }}>
                             
                             <div className="flex justify-space-between" ><div>{idx + 1}. Genetic Applications</div><RemoveButton onRemove={() => handleClear(component.referenceID)} /></div>
                             

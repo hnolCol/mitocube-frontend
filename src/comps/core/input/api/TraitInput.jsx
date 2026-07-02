@@ -68,6 +68,7 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
     return ( 
         <div>
             <Select
+                className="margin--none"
                 disabled={isError}
                 items={_.isArray(traits) ? traits : []}
                 itemRenderer={renderItem}

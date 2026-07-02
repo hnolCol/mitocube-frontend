@@ -12,7 +12,7 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @param {Boolean} props.selected  
  * @returns 
  */
-export function ProteinMenuItem({ tag, onClick, active = false, selected = false, showProteome  = true}) {
+export function ProteinMenuItem({ tag, onClick, active = false, selected = false, showProteome  = true, showFavorite = true }) {
 
     const { data : protein, isSuccess } = api.features.proteinsQuery.useGetProteinByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     return (
@@ -25,7 +25,7 @@ export function ProteinMenuItem({ tag, onClick, active = false, selected = false
                 <div className="flex justify-space-between">
                     <div>
                     <div className="flex center-items">
-                        <div style={{ marginRight: "0.5rem" }}><ProteinFavorite tag={tag} size={19} justIcon={true} /></div>
+                        {showFavorite && <div style={{ marginRight: "0.5rem" }}><ProteinFavorite tag={tag} size={19} justIcon={true} /></div>}
                         <div className="menu_item_text">{protein.gene_name} | {protein.tag}</div>
                     </div>
                     {showProteome && <div style={{marginTop : "1rem", color : HIGHLIGHT_COLOR}}><Trait trait_tag={protein.proteome_tag} /></div>}

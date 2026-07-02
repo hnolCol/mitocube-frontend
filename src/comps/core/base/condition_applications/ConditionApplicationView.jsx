@@ -7,6 +7,8 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 import { Protein } from "../protein/Protein";
 import { GenotypeText } from "../../../admin/genotypes/GentotypeText";
 import { api } from "@/api";
+import { Attribute } from "../attributes/Attribute";
+import { AttributeAbbreviation } from "../attributes/AttributeAbbreviation";
 
 /**
  * @description Component to display individual condition application item.
@@ -37,9 +39,9 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                                 <Protein minimal tag={protein_tag} />
                             </span>
                         )) 
-                        : <div>{value}</div> : null}
+                        : <div><AttributeAbbreviation attribute_tag={attribute_tag} />={value}</div> : null} {add_separator ? <div>,</div> : null}
                     {is_protein ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
-                    {add_separator ? <div>,</div> : null}
+                    
                 {/* </div> */}
                 </div>
                 
@@ -50,6 +52,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                         <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
                 </div>
                 {show_attribute ? null : <div>)</div>}
+                
                 </div>
                     : null}
                 

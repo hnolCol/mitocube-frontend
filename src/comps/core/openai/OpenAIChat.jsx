@@ -16,9 +16,10 @@ export function OpenAIChat() {
             setPrompt(prevValues => {
                 return {
                     ...prevValues,
+                    prompt : '',
                     session_id: ai_response.session_id,
                     response: ai_response.response,
-                    session_messages: ai_response.session_messages
+                    session_messages: _.concat(prevValues.session_messages, ai_response.session_messages)
                 }
             })
         }
@@ -57,8 +58,6 @@ export function OpenAIChat() {
         >
             {/* Top: Input + controls */}
             <div style={{gridRow: '1', display: 'flex', flexDirection: 'column', gap: '8px', borderBottom: '1px solid #e0e0e0'}}>
-                
-
                 <OpenAIWarning />
             </div>
 

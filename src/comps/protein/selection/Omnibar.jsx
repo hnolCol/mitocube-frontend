@@ -15,11 +15,12 @@ import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 
 export function ProteomeSelection({attribute_tag = "att_proteome", onChange, selected_traits}) {
     const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0})
-    
     return <MenuItem
-        style={selected_traits.length > 0 ? {color : HIGHLIGHT_COLOR, fontWeight : 600} : {   }}
+        autoFocus={false}
+        shouldDismissPopover={false}
+        style={selected_traits.length > 0 ? { color: HIGHLIGHT_COLOR, fontWeight: 600 } : {}}
         text={selected_traits.length > 0 ? `Proteomes selected: ${selected_traits.length}` : "Proteome selection"}
-        labelElement={<div style={{ fontSize: "0.7em", fontStyle: "italic", maxWidth: "15rem" }}>Select proteomes to include in the search. All are included by default.</div>} >
+        labelElement={isLoading || isFetching ? <Loading /> : <div style={{ fontSize: "0.7em", fontStyle: "italic", maxWidth: "15rem" }}>Select proteomes to include in the search. All are included by default.</div>} >
         {_.isArray(traits) ? traits.map(trait_tag => <TraitMenuItem key={trait_tag} attribute_tag={attribute_tag} tag={trait_tag} showDescription={false} selected={selected_traits.includes(trait_tag)} onClick={onChange}/>) : null}
     </MenuItem>
 }
