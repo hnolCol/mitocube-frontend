@@ -43,7 +43,6 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
         return () => ro.disconnect();
     }, [containerRef]);
 
-    console.log(data)
     return (
         <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
             {isLoading || isSampleCAAttributeLoading ? (

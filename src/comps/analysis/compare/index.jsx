@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { SubmissionCondition } from "./SubmissionCondition";
 import _ from "lodash" 
+import { FilterBuilder } from "./FilterBuilder";
+import { useOutlet, useOutletContext } from "react-router";
 
 const DEFAULT_SELECTION = {
     submission_tag: [],
     ca_tag : []
 }
 export function SubmissionCompare({ }) {
+    
+    const { submission_tag } = useOutletContext()
     const [filterSelection, setFilterSelection] = useState({});
     const [filters, setFilters] = useState([]);
 
@@ -68,7 +72,8 @@ export function SubmissionCompare({ }) {
 
     return (
         <div className="filter-builder">
-            <button className="basic-button" onClick={() => addFilter()}>
+            <FilterBuilder submission_tag={submission_tag} />
+            {/* <button className="basic-button" onClick={() => addFilter()}>
                 Add Top-level Filter
             </button>
             <button className="basic-button" onClick={clearAllFilters}>
@@ -76,7 +81,7 @@ export function SubmissionCompare({ }) {
             </button>
             <div className="filters-container">
                 {renderFilters(filters)}
-            </div>
+            </div> */}
         </div>
     );
 }

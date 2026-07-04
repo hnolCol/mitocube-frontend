@@ -19,6 +19,7 @@ import { SubmissionDate } from "../../submission/view/SubmissionDate";
 import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import { SubmissionGenotypesView } from "@/comps/core/base/genotype/SubmissionGenotypesView";
 import { api } from "@/api";
+import { ResearchGroupTextByUser } from "@/comps/admin/researchgroup/ResearchGroupText";
 
 /**
  * @description React element to give an overview about a Dataset/Submission. 
@@ -28,6 +29,7 @@ import { api } from "@/api";
 function SubmissionOverview() {
 
     const { submission_tag } = useOutletContext()   
+    const { data: users, isLoading, isFetching } = api.submissions.users.useGetSubmissionUsers({ tag: submission_tag })
     const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 0})
     const fontColors = getColorPalette(5)
     return (
@@ -49,6 +51,8 @@ function SubmissionOverview() {
                     emailSubject : `Related to submission ${submission_tag}`
                 }} />
 
+                <ResearchGroupTextByUser user_tags={users} />
+                
                 <div className="margin-top--little" style={{ maxWidth : "max(60vw,500px)"}}>
                 {/* <MultipleMetrices metrices={datasetMetrices} /> */}
                

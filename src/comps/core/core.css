@@ -527,6 +527,20 @@ h5 {
     opacity: 0.2;
     
 }
+
+.basic-button--small {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 4px 8px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+
 .dropdown-button {
     width: 100%;
     padding: 4px 8px;
