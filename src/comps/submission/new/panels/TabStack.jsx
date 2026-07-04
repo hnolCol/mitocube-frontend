@@ -129,7 +129,9 @@ export function SubmissionPanelStack({
 
             <div className="navbar__submission__grid__left" style={{ zIndex: 5 }}>
                 <div>{_.isString(submission.tag) ? <h3>{isSuccess && submissionPermission.edit && submissionPermission.create ?
-                    <EditableText initialValue={submission.tag} onChange={handleSubmissionTagEdit} minLength={10} maxLength={12}/> : `${submission.tag}: ${submission.title}`}</h3> : null}</div>
+                    <div className="flex flex-column" >
+                        <EditableText initialValue={submission.tag} onChange={handleSubmissionTagEdit} minLength={10} maxLength={12} />
+                        <div><span style={{ wordWrap: "break-word" }}>{submission.title}</span></div></div> : `${submission.tag}: ${submission.title}`}</h3> : null}</div>
                 <TabNavigation {...{
                     componentKey,
                     setComponentKey,
