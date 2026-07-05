@@ -27,7 +27,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
     const { data: trait_text } = api.traits.queryTraits.useGetTraitText({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity });
     const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
     const is_protein = _.isObject(attribute) && attribute.tag === "att_protein"
-    const valid_value = _.isString(value) && value.length > 0 && attribute.allow_input
+    const valid_value = _.isString(value) && value.length > 0 && (_.isObject(attribute) && attribute.allow_input)
 
     return (
         <div className={`flex ${show_attribute ? "flex-column" : ""}`} style={{ gap: "0.1rem" }}>
