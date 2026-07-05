@@ -258,7 +258,7 @@ function InitialSubmission({
                         intent: "success",
                         onClose: () => {
                             setAlertProps({ isOpen: false })
-                            // resetSubmission()
+                            resetSubmission()
                             redirect("/submissions/view")
                         }
                     }),
