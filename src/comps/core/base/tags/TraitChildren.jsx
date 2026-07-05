@@ -229,7 +229,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
 
                     allow_multiple_selection ?
                         
-                        <div style={{marginTop : "0.1rem", paddingTop : "0.5rem", width : "100%", backgroundColor : "#f5f5f5f2", borderRadius : "0.2rem", marginTop : "0.5rem", marginBottom : "0.5rem", paddingLeft : "0.5rem", paddingRight : "0.5rem"}}>
+                        <div style={{marginTop : "0.1rem", paddingTop : "0.5rem", width : "100%", backgroundColor : "#f5f5f5f2", borderRadius : "0.2rem", marginBottom : "0.5rem", paddingLeft : "0.5rem", paddingRight : "0.5rem"}}>
                             <TraitInput
                                 attribute_tag={attribute_tag}
                                 text={attribute.text}
