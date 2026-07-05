@@ -127,7 +127,6 @@ export function getCountsByGroups(
     const groupedAggratedData = groups.map(group => {
         var groupData = groupedByKeyNames[group]
         //var yaxisvalues = groupData.map(d => d[yaxisName])
-        console.log(groupData.length,yaxisName)
         return {
             ...Object.fromEntries(keyNames.map(keyName => [keyName, groupData[0][keyName]])),
             N : yaxisName !== undefined ? groupData.filter(d => _.isNumber(d[yaxisName])).length : groupData.length}

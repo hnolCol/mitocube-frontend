@@ -7,7 +7,6 @@ export function TickIcon({ width = 10, height = 10 }) {
     const halfHeight = height / 2
 
     // const ps = [[margin, halfHeight],[halfWidth,halfHeight+height/3],[width - halfWidth/2, margin]]
-    // console.log(_.join(_.map(ps, p => `${p[0]},${p[1]}`), ", "))
     return (
         <InputIconBase {...{ width, height }}>
             <circle cx={halfWidth} cy={halfHeight} fill="darkgrey" r={_.min([width, height]) / 2.5} />

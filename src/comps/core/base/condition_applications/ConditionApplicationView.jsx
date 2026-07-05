@@ -42,7 +42,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                             </span>
                         )) 
                         : valid_value ? <div><AttributeAbbreviation attribute_tag={attribute_tag} />={value}</div> : null : null} {add_separator ? <div>,</div> : null}
-                    {is_protein || (attribute.allow_input && !valid_value) ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
+                    {is_protein || (_.isObject(attribute) && attribute.allow_input && !valid_value) ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
                     
                 {/* </div> */}
                 </div>

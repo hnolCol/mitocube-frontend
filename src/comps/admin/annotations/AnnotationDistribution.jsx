@@ -15,16 +15,10 @@ export function AnnotationDistribution({ tag, submission_tag, width = 95, height
         selectedTestParams = itemValue[submission_tag]
     }
     
-    console.log(selectedTestParams)
 
 
     const {isReady, tagQueries } = usePrefetchTestQuantificationDistributions({tag : submission_tag, testParams : selectedTestParams, annotation_tag : tag, quantification_type : "protein_groups"}, { enabled: _.isString(submission_tag) && _.isObject(selectedTestParams) && !_.isEmpty(selectedTestParams) })
 
-    console.log(tagQueries)
-
-    if (_.isArray(tagQueries && isReady)) {
-        console.log("TAG QUERIES", tagQueries.map(q => { return { suffix: q.data.suffix, distributions: q.data.distributions } }))
-    }
     
     const yScale = useMemo(() => {
         

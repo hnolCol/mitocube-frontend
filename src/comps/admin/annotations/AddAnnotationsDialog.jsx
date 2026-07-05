@@ -84,7 +84,6 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
           });
       };
 
-  console.log(annotation)
   return (
     <div className="flex flex-column gap--small padding--medium">
       <h3>Add Annotation</h3>
