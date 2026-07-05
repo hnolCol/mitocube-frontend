@@ -33,7 +33,7 @@ export function FavoriteAnnotationSelection({
                     </button>
                 )}
             </div>
-            <div className="flex flex-column" style={{maxHeight, overflowY: "scroll", overflowY: "overlay", gap: "0.2rem"}}>
+            <div className="flex flex-column" style={{maxHeight, overflowY: "scroll", gap: "0.2rem"}}>
                 {selected.map(annotation_tag => (
                     <motion.button
                         key={annotation_tag}
