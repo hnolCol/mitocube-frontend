@@ -24,8 +24,6 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     const { mutate : postGenotype, isLoading, isError, error, isSuccess }  = api.genotypes.modifyGenotypes.usePostGenotype()
     const { mutate : updateGenotype, isLoading : isUpdateLoading } = api.genotypes.modifyGenotypes.useEditGenotype()
 
-    console.log(genotype, selectedTraits)
-
     useEffect(() => {
 
         if (isEditing && _.isArray(preSelectedTraits) && preSelectedTraits.length > 0) {

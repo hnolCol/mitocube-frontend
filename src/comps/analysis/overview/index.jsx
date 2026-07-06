@@ -82,7 +82,7 @@ function SubmissionOverview() {
                     
                     <SubmissionGenotypesView {...{ submission_tag }}/>
                 </div> : null}
-                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "max(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
                 </div>
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>

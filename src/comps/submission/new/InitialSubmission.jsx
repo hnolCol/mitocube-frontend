@@ -105,7 +105,7 @@ function InitialSubmission({
      
         if (_.isObject(submission) && _.has(submission, "selected_traits") && _.isArray(submission.selected_traits) && submission.selected_traits.length > 0 && _.isString(submission.tag)) {
             const selected_traits = addIDToHierarchy(submission.selected_traits, submission.tag)
-            setSubmission(prevValues => {return {...prevValues, ...submission, selected_traits}})
+            setSubmission(prevValues => {return {...prevValues, selected_traits}})
         }
      } , [submission.tag])
 
@@ -118,7 +118,6 @@ function InitialSubmission({
         if (!_.isString(submission.tag)) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
-            
         const sampleReferenceIDs  = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
                 if (sampleNumber > attributeTable.length) {
             //add rows 
@@ -138,8 +137,6 @@ function InitialSubmission({
             }
         })
 
-
-
         const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : submission.tag, sampleNumber : sampleNumber, referenceIDs : sampleReferenceIDs}) : sampleNames
 
         setSubmission(prevValues => {
@@ -148,7 +145,8 @@ function InitialSubmission({
                 sampleNames: constructedSampleNames,
                 referenceIDs : sampleReferenceIDs,
                 attributeTable,
-                tag: submission.tag, rerenderTableDependency: [Math.random()]
+                tag: prevValues.tag,
+                rerenderTableDependency: [Math.random()]
             }
         })
 
@@ -333,8 +331,9 @@ function InitialSubmission({
         // load a submission from the submission.
         const {itemFound, itemValue : submission} = getItemFromLocalStorage({itemName : "submission", parseJson : true})
         if (itemFound && _.isObject(submission)) {
-
-            setSubmission(prevValues => {return {...prevValues, ...submission}})
+            console.log(submission)
+            console.log(submission.tag , "from storage")
+            setSubmission(prevValues => {return {...prevValues, ...submission, tag : submission.tag}}) //...prevValues, 
         }
         else {
             setSubmission(initSubmissionState)

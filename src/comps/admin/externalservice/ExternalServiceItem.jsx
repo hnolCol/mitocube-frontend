@@ -27,7 +27,6 @@ export function ExternalServiceItem({ tag, showDetails = false, updateExternalSe
     });
   
     const canShowRemoveButton = isSuccess && permissions.delete
-    //   console.log(canShowRemoveButton)
 
       const handleRemove = (e) => {
         e.stopPropagation();

@@ -11,7 +11,6 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette"
  */
 export function DatasetAttributeView({attributeTraits, handleTraitRemove, getSelectionByPath, onChildrenSelection, checkAttributeRequiredTraits}) {
 
-    console.log(attributeTraits)
     return (<div style={{ overflowY: "scroll", height: "50vh", marginTop : "1rem", paddingTop: "1rem", paddingBottom : "2rem" }}>
         {_.isArray(attributeTraits) && attributeTraits.length > 0 ? attributeTraits.map((attributeTraitHierarchy,idx) => {
             const attribute_tag = attributeTraitHierarchy.tag

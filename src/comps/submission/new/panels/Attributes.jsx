@@ -5,7 +5,6 @@ import _ from "lodash"
 import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "../sample_attributes/select/SamplesAttributeWrapper";
 
 export function AttributesTab({submission, setSubmission, setComponentKey, componentKey }) {
-    console.log(submission.selected_traits)
 
     const getSelectionByPath = (path) => {
         const selection = findChildrenByPath(submission.selected_traits, path)
@@ -25,7 +24,6 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
         const pathExists = checkPathExists(selected_traits, path, true)
-        console.log(pathExists, checkExists, path)
         const isValueInput = _.last(path).type === "trait" && _.has(_.last(path), "value") && _.isString(_.last(path).value)
         if (checkExists && pathExists && !isValueInput) {
             deleteByPath(selected_traits, path, true)
@@ -41,7 +39,7 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
                 replaceChildrenAtLeaf,
                 singleTrait
             })
-                
+
         }
         setSubmission(prevValues => { return {...prevValues, selected_traits}})
     }

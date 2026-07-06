@@ -13,7 +13,6 @@ export function ResearchGroupTextByUser({ user_tags }) {
     
     const { data: research_group_tags, isSuccess, isLoading, isFetching } = api.researchgroups.useGetResearchGroupsByQuery( { user_tags : _.join(user_tags, ";") }, { enabled: _.isArray(user_tags), staleTime: Infinity })
    
-    console.log(research_group_tags)
    
     return <div>{isSuccess ? _.map(research_group_tags, tag => <ResearchGroupText key={tag} research_group_tag={tag} />) : null}</div>
 }

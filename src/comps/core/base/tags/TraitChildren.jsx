@@ -111,7 +111,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     // handles selection of single trait! For example a unit 
     const handleSingleTraitSelection = (trait_tag, referenceID) => {
         const p = _.concat(track_path, [{ "type": "trait", "tag": trait_tag, "id": referenceID }]) 
-        console.log(p)
         onSelection(p, [rowIndex], false, false, true)
     }
 

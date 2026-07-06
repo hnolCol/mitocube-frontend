@@ -1,7 +1,7 @@
 
 
-import hooks from "@mitocube/api-hooks";
-import _ from "lodash";
+import _, { set } from "lodash";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 import { Protein } from "../protein/Protein";
@@ -22,18 +22,36 @@ import { AttributeAbbreviation } from "../attributes/AttributeAbbreviation";
  * @param {boolean} props.show_attribute If the attribute should be displayed
  * @returns 
  */
-export function ConditionApplicationItem({ attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false }) { 
+export function ConditionApplicationItem({ attribute_tag, trait_tag, children, value, add_separator = false, show_attribute = false, reportChildrenShowSomething = undefined }) { 
    
     const { data: trait_text } = api.traits.queryTraits.useGetTraitText({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity });
     const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
     const is_protein = _.isObject(attribute) && attribute.tag === "att_protein"
     const valid_value = _.isString(value) && value.length > 0 && (_.isObject(attribute) && attribute.allow_input)
+    const attributeValid = _.isObject(attribute)
+    const [childrenShowSomething, setChildrenShowSomething] = useState(false)
+   
+    const handleChildrenShowSomething = () => {
+        if (childrenShowSomething) return
+        setChildrenShowSomething(true)
+    }
+
+
+    useEffect(() => {
+        if (!_.isFunction(reportChildrenShowSomething)) return
+        if (attributeValid && attribute.allow_input && valid_value) {
+            reportChildrenShowSomething()
+        }
+        else if (attributeValid && !attribute.allow_input && _.isString(trait_tag) && _.isString(trait_text) && trait_text.length > 0) {
+            reportChildrenShowSomething()
+        }
+    }, [attributeValid, trait_text, valid_value])
 
     return (
         <div className={`flex ${show_attribute ? "flex-column" : ""}`} style={{ gap: "0.1rem" }}>
             <div className="flex center-items">
                 {/* <div> */}
-                    {show_attribute && _.isObject(attribute) ? <span><strong>{attribute.text}:</strong>&nbsp;</span> : null}
+                    {show_attribute && attributeValid ? <span><strong>{attribute.text}:</strong>&nbsp;</span> : null}
                     {value ? is_protein ? 
                         value.split("||").filter(Boolean).map((protein_tag, idx) => (
                             <span key={protein_tag} className="flex center-items">
@@ -41,19 +59,20 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                                 <Protein minimal tag={protein_tag} />
                             </span>
                         )) 
-                        : valid_value ? <div><AttributeAbbreviation attribute_tag={attribute_tag} />={value}</div> : null : null} {add_separator && valid_value ? <div>,</div> : null}
-                    {is_protein || (_.isObject(attribute) && attribute.allow_input && !valid_value) ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
-                    
+                        : valid_value ? <div><AttributeAbbreviation attribute_tag={attribute_tag} suffix="=" />{value}</div> : null : null} 
+                    {is_protein || (attributeValid && attribute.allow_input && !valid_value) ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
+                    {add_separator && (valid_value || (attributeValid && !attribute.allow_input)) ? <div>,</div> : null}
                 {/* </div> */}
                 </div>
                 
                 {_.isArray(children) && children.length > 0 ? <div className="flex center-items" style={{ gap: "0.1rem"}}>
-                {show_attribute ? null : <div>(</div>}
+                {show_attribute || !childrenShowSomething ? null : <div>(</div>}
                 <div className={"flex"} style={{ gap: "0.2rem", marginLeft : show_attribute ? "1.2rem" : "0.1rem" , flexWrap: "wrap" }}>
                     {children.map((child, idx) =>
-                        <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute} />)}
+                        <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute}
+                            reportChildrenShowSomething={handleChildrenShowSomething} />)}
                 </div>
-                {show_attribute ? null : <div>)</div>}
+                {show_attribute || !childrenShowSomething ? null : <div>)</div>}
                 
                 </div>
                     : null}

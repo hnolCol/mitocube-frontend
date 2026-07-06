@@ -24,17 +24,10 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         { tag: submission_tag, group_by_min_state, group_by_attribute  },
         { enabled: _.isString(submission_tag) }
     )
-
-
-    console.log(submission_ca_tags)
-
     const { data: submission_ca_data } = api.submissions.condition_applications.useGetSubmissionConditionApplicationData(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
-
-
-    console.log(submission_ca_data)
 
     const { mutate: updateCA, isLoading } = api.submissions.condition_applications.useUpdateSubmissionCA({
         onSuccess: () => {
@@ -102,7 +95,6 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
     }
 
     const handleRemove = (path) => {
-        console.log(path)
         path = addIDToPath(path, submission_tag)
         deleteByPath(selected_traits, path)
     }
@@ -118,13 +110,6 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         const cleaned = cleanForBackend(selected_traits)
         updateCA({ tag: submission_tag, selected_traits: cleaned })
     }
-
-    
-    // const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
-    //             const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, referenceID))
-    //             return _.some(foundNode)
-    //         }
-
 
 
     return (

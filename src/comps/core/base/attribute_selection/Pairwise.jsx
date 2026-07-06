@@ -36,7 +36,6 @@ export function SampleSelectionTableView({ submission_tag, attribute_tags = [], 
 
     const { data : condition_applications} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
 
-    // console.log(condition_applications, "Condition applications")
 
     return (<div style={{maxHeight : "20vh", overflowY: "scroll", maxWidth : "500px", overflowX : "scroll"}}>
 
