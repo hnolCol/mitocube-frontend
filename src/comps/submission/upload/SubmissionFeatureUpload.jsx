@@ -4,6 +4,7 @@ import _ from "lodash"
 import { ProteinQuantificationUploader } from "../../core/base/files/ChunkProteinUploader";
 import { useState } from "react";
 import { api } from "@/api";
+import { useQueryClient } from "@tanstack/react-query";
 /**
  * Uploads a protein/peptides file to a submission. 
  * @param {*} param0 
@@ -19,7 +20,8 @@ export function SubmissionUpload({ submission_tag, feature_type = "protein" }) {
     if (_.isObject(permissions) && !permissions.upload) return null 
 
     return (
-        <div>
+        <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+            <div className="flex" style={{ gap: "0.75rem" }}>
 
             <Dialog isOpen={dialogIsOpen} title="Upload Protein Quantifications" onClose={() => setDialogOpen(false)} canEscapeKeyClose={true} canOutsideClickClose={false} >
             <ProteinQuantificationUploader submission_tag={submission_tag}/>
@@ -62,12 +64,55 @@ export function SubmissionUpload({ submission_tag, feature_type = "protein" }) {
                     <path d="M10 15V5M10 5L5 10M10 5l5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
             </motion.button>
+            <RecalculateStatisticsButton submission_tag={submission_tag} />
+            </div> 
         </div>
     )
 
+}
 
 
+function RecalculateStatisticsButton({ submission_tag }) {
+    const queryClient = useQueryClient()
+    const { data: samples } = api.submissions.samples.useGetSubmissionSamplesFull({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const excludedCount = _.isArray(samples) ? samples.filter(s => s.excluded).length : 0
 
+    const { data: isOutdated, isLoading: isOutdatedLoading } = api.submissions.quantifications.useGetStatsOutdated(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) }
+    )
 
+    const { mutate: recalculate, isPending } = api.submissions.quantifications.useRecalculateStatistics({
+        onSettled: () => {
+            queryClient.invalidateQueries({ queryKey: ["getStatsOutdated", submission_tag] })
+            queryClient.invalidateQueries({ queryKey: ["getSubmissionHeatmap"] })
+            queryClient.invalidateQueries({ queryKey: ["getSubmissionPCA"] })
+        }
+    })
 
+    const disabled = isPending || isOutdatedLoading || !isOutdated
+
+    return (
+        <div className="flex flex-column">
+            <motion.button
+                whileHover={disabled ? {} : { scale: 1.04, boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
+                whileTap={disabled ? {} : { scale: 0.97 }}
+                disabled={disabled}
+                onClick={() => recalculate({ tag: submission_tag })}
+                className="basic-button"
+                style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    padding: "10px 16px", borderRadius: 6, fontSize: 14, fontWeight: 500,
+                    cursor: disabled ? "default" : "pointer",
+                    opacity: disabled && !isPending ? 0.5 : 1,
+                }}>
+                {isPending ? "Recalculating..." : isOutdated ? "Recalculate Statistics" : "Statistics up to date"}
+            </motion.button>
+            {excludedCount > 0 ? (
+                <span className="font-size--smallest" style={{ marginTop: "4px", color: "#b5560c" }}>
+                    {excludedCount} sample{excludedCount > 1 ? "s" : ""} excluded from statistical analysis.
+                </span>
+            ) : null}
+        </div>
+    )
 }

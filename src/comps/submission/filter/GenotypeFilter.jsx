@@ -45,6 +45,7 @@ export function GenotypeDatasetFilter({ setSubmissionFilter, submissionFilter })
                 selectedGenotypes={genotypeSelection.selectedGenotypes} 
                 onItemSelect={onGenotypeSelection}
                 showSelection={false}
+                usedInSubmissionOnly={true}
             />
             <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
                 Datasets in which the genotype was utilized will be displayed.
