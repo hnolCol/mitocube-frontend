@@ -93,7 +93,7 @@ function RecalculateStatisticsButton({ submission_tag }) {
     const disabled = isPending || isOutdatedLoading || !isOutdated
 
     return (
-        <div className="flex flex-column">
+        <div className="flex flex-column" >
             <motion.button
                 whileHover={disabled ? {} : { scale: 1.04, boxShadow: "0 2px 8px rgba(0,0,0,0.10)" }}
                 whileTap={disabled ? {} : { scale: 0.97 }}
@@ -101,6 +101,7 @@ function RecalculateStatisticsButton({ submission_tag }) {
                 onClick={() => recalculate({ tag: submission_tag })}
                 className="basic-button"
                 style={{
+                    height : "100%",
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     padding: "10px 16px", borderRadius: 6, fontSize: 14, fontWeight: 500,
                     cursor: disabled ? "default" : "pointer",

@@ -51,6 +51,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
         <div className={`flex ${show_attribute ? "flex-column" : ""}`} style={{ gap: "0.1rem" }}>
             <div className="flex center-items">
                 {/* <div> */}
+                    {add_separator && (valid_value || (attributeValid && !attribute.allow_input)) ? <div></div> : null}
                     {show_attribute && attributeValid ? <span><strong>{attribute.text}:</strong>&nbsp;</span> : null}
                     {value ? is_protein ? 
                         value.split("||").filter(Boolean).map((protein_tag, idx) => (
@@ -61,7 +62,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                         )) 
                         : valid_value ? <div><AttributeAbbreviation attribute_tag={attribute_tag} suffix="=" />{value}</div> : null : null} 
                     {is_protein || (attributeValid && attribute.allow_input && !valid_value) ? null : <span style={{marginLeft : "0.1rem"}}>{trait_text}</span>} 
-                    {add_separator && (valid_value || (attributeValid && !attribute.allow_input)) ? <div>,</div> : null}
+                    
                 {/* </div> */}
                 </div>
                 
@@ -69,7 +70,7 @@ export function ConditionApplicationItem({ attribute_tag, trait_tag, children, v
                 {show_attribute || !childrenShowSomething ? null : <div>(</div>}
                 <div className={"flex"} style={{ gap: "0.2rem", marginLeft : show_attribute ? "1.2rem" : "0.1rem" , flexWrap: "wrap" }}>
                     {children.map((child, idx) =>
-                        <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx < children.length - 1} show_attribute={show_attribute}
+                        <ConditionApplicationItem key={`${child.trait_tag}-${idx}`} {...child} add_separator={idx > 0} show_attribute={show_attribute}
                             reportChildrenShowSomething={handleChildrenShowSomething} />)}
                 </div>
                 {show_attribute || !childrenShowSomething ? null : <div>)</div>}

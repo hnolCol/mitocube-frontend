@@ -143,7 +143,7 @@ function HeatmapViz({
 
     return (
         <div className="flex">
-            <div style={{maxWidth : "300px"}}>
+            <div style={{maxWidth : "300px", marginRight : "1rem"}} className="flex flex-column">
             <h3>Settings</h3>
             
                 {attribute_tags.length > 1 ? <div>
@@ -153,6 +153,47 @@ function HeatmapViz({
                     onSelect={(attribute_tag) => setTestProps(prevProps => ({ ...prevProps, selected_ca_attribute_tags: addStringToArrayOrRemove({ array: prevProps.selected_ca_attribute_tags, string: attribute_tag }) }))} /> </div> : 
                 <div className="flex" style={{gap : "0.2rem"}}><span>Statistics is calculated using</span> <Attribute attribute_tag={attribute_tags[0]} /></div>}
                 
+        
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "auto 200px",
+                        columnGap: "10px",
+                        rowGap: "0.5rem",
+                        alignItems: "center",
+                    }}
+                    >
+                    <div>FDR cutoff:</div>
+                    <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="Enter FDR cutoff"
+                        value={testProps.fdr}
+                        onChange={(e) => {
+                        const value = e.target.value;
+                        // basic validation, adjust to match your NumericValueInput rules
+                        if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
+                            setTestProps({ ...testProps, fdr: value });
+                        }
+                        }}
+                        className="search-input"
+                        style={{ width: "100%" }}
+                    />
+
+                    <div>Number of clusters:</div>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Enter number of clusters"
+                        value={clusterInputValue}
+                        onChange={(e) => setClusterInputValue(e.target.value)}
+                        onBlur={commitClusterCount}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur() } }}
+                        className="search-input"
+                        style={{ width: "100%" }}
+                    />
+                    </div>
+
             <div className="flex flex-column">
                 <span>Select an annotation to subset the data.</span>
                 <AnnotationSelectionMenu
@@ -169,24 +210,7 @@ function HeatmapViz({
             
             </div>
            
-            <div className="flex center-items" style={{ gap: "10px" }}>
-                <div className="flex flex-column center-items"><div>FDR cutoff:</div></div>
-                <NumericValueInput minValue={-0.01} maxValue={1.0} placeholder="Enter FDR cutoff" label="FDR Cutoff" value={testProps.fdr} onValueChange={(_,value) => setTestProps({...testProps, fdr: value})} />
-            </div>
-            <div className="flex center-items" style={{ gap: "10px", marginTop: "0.5rem" }}>
-    <div className="flex flex-column center-items"><div>Number of clusters:</div></div>
-    <input
-        type="text"
-        inputMode="numeric"
-        placeholder="Enter number of clusters"
-        value={clusterInputValue}
-        onChange={(e) => setClusterInputValue(e.target.value)}
-        onBlur={commitClusterCount}
-        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur() } }}
-        style={{ width: "60px" }}
-        className="search-input"
-    />
-</div>
+            
             </div>
             
             

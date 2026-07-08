@@ -57,14 +57,17 @@ export function SampleItem({ tag, submission_tag, display_condition_applications
             {/* Display the condition application */}
             {_.isArray(condition_applications) && display_condition_applications && condition_applications.map(ca_prop => {
 
-                return <div key={ca_prop.attribute_tag} style={{ marginTop: "8px" }}>
+                return <div key={ca_prop.attribute_tag} style={{ marginTop: "8px", alignItems: "flex-start", display: "flex", flexDirection: "column" }}>
 
-                    <Attribute attribute_tag={ca_prop.attribute_tag} />
-                {
+                    <h4><Attribute attribute_tag={ca_prop.attribute_tag} /></h4>
+                    <div className="flex">
+                    {
                     ca_prop.condition_application_tags.map(ca_tag => {
                         return <ConditionApplicationsView key={ca_tag} tag={ca_tag} />
                     })
-                }
+                    
+                        }
+                    </div>
                 </div>
             })
             }
