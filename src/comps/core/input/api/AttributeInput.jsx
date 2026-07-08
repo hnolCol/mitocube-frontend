@@ -17,7 +17,7 @@ import { api } from "@/api";
  */
 export function AttributeMenuItem({ tag, menuItemProps, onItemSelect, selected = false}) {
 
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag })
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, {staleTime : Infinity, enabled: _.isString(tag) && tag.length > 0})
 
     if (!isSuccess) return null 
 

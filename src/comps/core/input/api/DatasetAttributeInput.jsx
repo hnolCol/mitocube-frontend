@@ -24,7 +24,7 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @returns 
  */
 export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false }) {
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing })
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing, staleTime : 60000 })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
         { tag, limit : 10 },
@@ -45,7 +45,6 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
 
 AttributesInput.propTypes = {
     // selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
-    param_name: PropTypes.oneOf(["allow_for_dataset","allow_for_sample"]),
     min_state: PropTypes.number,
     min_search_string_length: PropTypes.number,
     showSelection: PropTypes.bool,
@@ -57,7 +56,6 @@ AttributesInput.propTypes = {
 AttributesInput.defaultProps = {
     selected_traits : [],
     min_state: 5,
-    param_name: "allow_for_dataset",
     min_search_string_length: 0,
     showSelection: true,
     matchTargetWidth: true,
@@ -72,24 +70,30 @@ AttributesInput.defaultProps = {
  * @param {Boolean} props.matchTargetWidth  - If the menu item width should match the Input widget. 
  * @param {String} props.placeHolderText - The text to be displayed as a hint for the user.
  * @param {Function} props.onItemSelect - Should take two props (attribute, trait)
- * @returns 
+ * @param {String[]} props.attribute_tags - If you want to limit the selection to specific attributes, pass them here.
+ * @param {String[]} props.selected_traits - The selected traits. This is used to mark the selected traits in the menu.
+ * @param {String} props.submission_tag - The submission tag for which the mandatory attributes should be checked. 
+ * @param {Boolean} props.checkMandatoryAttributes - If the mandatory attributes should be checked. Default is true.
+ * @param {Boolean} props.disabled - If the input should be disabled. Default is false.
+ * @returns {JSX.Element} The rendered AttributesInput component.
  */
 export function AttributesInput({
         min_state,
         min_search_string_length, //set to 0 if you want to search without any string... (E.g. getting all)
-        param_name, // attribute have specific filtering and props. define them here and check the backend for options 
         handleTraitSelection,
         showSelection, 
         matchTargetWidth,
         placeHolderText,
         selected_traits,
-        submission_tag
+    submission_tag,
+    checkMandatoryAttributes = true,
+    disabled = false,
+    attribute_tags = undefined
 }) {
-    
  
     const { data: mandatoryCheck } = api.submissions.core.useCheckSubmission(
         { tag: submission_tag },
-        { enabled: _.isString(submission_tag) }
+        { enabled: _.isString(submission_tag) && checkMandatoryAttributes }
     )
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
@@ -100,7 +104,7 @@ export function AttributesInput({
             limit: 50,
             include_traits: true,
             min_state: min_state,
-            param_name: param_name // filters for attributes that actually allowed for a dataset ("allow_for_dataset")
+            attribute_tags : _.join(attribute_tags, ";"),
         }, {
             enabled: debouncedSearchString.length >= min_search_string_length,
             staleTime: 300000,
@@ -128,10 +132,10 @@ export function AttributesInput({
         if (query.length > 0 && _.isArray(queried_attributes) && queried_attributes.length === 0) return <div><p>No attributes/traits match the search string ...</p></div>
         if (!itemsLoaded || items.length === 0) return <div className="padding--medium"><p>Start typing...</p></div>
     
-        const missingTags = mandatoryCheck?.missing?.map(m => m.tag) || []
-
+        const missingTags = checkMandatoryAttributes ? mandatoryCheck?.missing?.map(m => m.tag) || [] : []
 
         const sortedItems = [...items].sort((a, b) => {
+            if (missingTags.length === 0) return 0
             const aIsMissing = missingTags.includes(a.attribute_tag)
             const bIsMissing = missingTags.includes(b.attribute_tag)
             if (aIsMissing && !bIsMissing) return -1
@@ -160,6 +164,7 @@ export function AttributesInput({
     return (
    
         <MultiSelect
+            disabled={disabled}
             items={debouncedSearchString.length >= min_search_string_length && _.isArray(queried_attributes) ? queried_attributes : []}
             placeholder={placeHolderText}
             tagRenderer={renderValue}

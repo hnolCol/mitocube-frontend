@@ -7,6 +7,7 @@ import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 
+const ResponsiveGridLayout = WidthProvider(Responsive);
 
 FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -42,7 +43,6 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
         return () => ro.disconnect();
     }, [containerRef]);
 
-    
     return (
         <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
             {isLoading || isSampleCAAttributeLoading ? (
@@ -50,7 +50,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
             ) : (
                     <div>
                         {showTitle && <SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} />}
-                <ResultChart
+                {_.isArray(data.data) && !_.every(data.data, q => q.value === null) ? <ResultChart
                         yaxisName="value"
                         featureTag={feature_tag}
                         submission_tag={submission_tag}
@@ -62,7 +62,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
                         height={size.height || undefined}
                         title={!showProteinNameInTitle ? "" :  _.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
                         onRemove={onRemove}
-                        />
+                        /> : <div>No data available or all quantified values are null.</div>}
                     </div>
             )}
         </div>
@@ -86,29 +86,38 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                 // render the whole grid once (when idx === 0) to make items movable/resizable with react-grid-layout
                 if (idx !== 0) return null;
 
-                const ResponsiveGridLayout = WidthProvider(Responsive);
+                
 
                 return (
-                    <div style={{ width: "80vw", height : "80vh", overflowY : "scroll" }}>
+                    <div style={{ width: "65vw", height : "80vh", overflowY : "scroll" }}>
                         <ResponsiveGridLayout
                             className="layout"
                             layouts={{ lg: initialLayouts }}
                             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-                            cols={{ lg: 12, md: 10, sm: 8, xs: 4 }}
-                            rowHeight={120}
+                            cols={{ lg: 8, md: 7, sm: 6, xs: 3 }}
+                            rowHeight={180}
                             isResizable={true}
                             isDraggable={true}
                             measureBeforeMount={false}
                             useCSSTransforms={true}
                         >
-                            {feature_tags.map((feature_tag, i) => (
-                                <div key={`${feature_tag}-${i}-${submission_tags[i]}`} data-grid={initialLayouts[i]}>
-                                    <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%", marginBottom: "100px" }}>
-                                        
-                                        <FeatureData feature_tag={feature_tag} submission_tag={submission_tags[i]} showTitle={showTitle} showProteinNameInTitle={showProteinNameInTitle} onRemove={onRemove} metrics={metrics} />
+                            {feature_tags.map((feature_tag, i) => {
+                                const itemKey = `${feature_tag}-${i}-${submission_tags[i]}`;
+                                return (
+                                    <div key={itemKey} data-grid={initialLayouts[i]}>
+                                        <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%" }}>
+                                            <FeatureData
+                                                feature_tag={feature_tag}
+                                                submission_tag={submission_tags[i]}
+                                                showTitle={showTitle}
+                                                showProteinNameInTitle={showProteinNameInTitle}
+                                                onRemove={onRemove}
+                                                metrics={metrics}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </ResponsiveGridLayout>
                     </div>
                 );

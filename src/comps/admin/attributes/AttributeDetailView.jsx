@@ -22,7 +22,7 @@ export function AttributeDetailView() {
         isLoading: attributeLoading,
         isError: attributeIsError,
         error: attributeError,
-    } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: !!tag })
+    } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag) && tag.length > 0, staleTime: 600000 })
 
     const {
         data: trait_tags,
@@ -31,7 +31,7 @@ export function AttributeDetailView() {
         error: traitsError,
     } = api.traits.queryTraits.useGetTraitsByAttributeTag(
         { tag },
-        { enabled: !!tag, staleTime: 0 }
+        { enabled: !!tag, staleTime: 600000 }
     )
 
     const handleTraitAdded = () => {

@@ -16,10 +16,10 @@ AttributeSelection.defaultProps = {
     selected: []
 }
 
-export function AttributeButton({ tag }) {
+export function AttributeButton({ tag, minimal = false }) {
     const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
-    return <button className="basic-button"> {_.isObject(attribute) ? attribute.text : "Select Attribute"} </button>
+    return <button className={`${minimal ? "basic-button--small" : "basic-button"}`}> {_.isObject(attribute) ? attribute.text : "Select Attribute"} </button>
 }
 
 
@@ -29,9 +29,10 @@ export function AttributeButton({ tag }) {
  * @param {String[]} props.attribute_tags The attribute tags to select from.
  * @param {String[]} props.selected 
  * @param {Function} props.onSelect
+ * @param {Boolean} props.minimal Whether to use the minimal button style.
  * @returns 
  */
-export function AttributeSelection({ attribute_tags, selected, onSelect }) { 
+export function AttributeSelection({ attribute_tags, selected, onSelect, minimal = false }) { 
     const handleSelect = (attribute_tag) => {
         onSelect(attribute_tag)
     }
@@ -39,6 +40,6 @@ export function AttributeSelection({ attribute_tags, selected, onSelect }) {
     const renderItem = (attribute_tag, { handleClick, handleFocus, modifiers, query }) => {
         return <AttributeMenuItem tag={attribute_tag} menuItemProps={{ handleClick, handleFocus, modifiers, query }} onItemSelect={onSelect} selected={selected.includes(attribute_tag)} />
     }
-    return <Select items={attribute_tags} filterable={false} onItemSelect={handleSelect} itemRenderer={renderItem}><AttributeButton tag={_.isArray(selected) && selected.length > 0 ? selected[0] : undefined} /></Select>
+    return <Select items={attribute_tags} filterable={false} onItemSelect={handleSelect} itemRenderer={renderItem}><AttributeButton minimal={minimal} tag={_.isArray(selected) && selected.length > 0 ? selected[0] : undefined} /></Select>
 
 }

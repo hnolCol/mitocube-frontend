@@ -13,17 +13,11 @@ import { constructSampleNames } from "../../../services/samples"
 
 import { useNavigate } from "react-router"
 import { AxiosError } from "axios"
-import { indexStrings } from "../../../services/arrays"
 
 import { SubmissionPanelStack } from "./panels/TabStack"
 import { addIDToHierarchy } from "./sample_attributes/select/SamplesAttributeWrapper"
-import { use } from "react"
 //move to service
-
-export function get_proteome_id(datasetAttributeValues) {
-    return _.has(datasetAttributeValues,"att_proteome") && datasetAttributeValues["att_proteome"].length > 0? datasetAttributeValues["att_proteome"].map(attributeValue => attributeValue.tag) : []
-    
-}
+import { api } from "@/api"
 
 
 export function ensureRandomIDArray(existingArray, requiredLength) {
@@ -71,7 +65,6 @@ function InitialSubmission({
     logout,
     sampleNames = [],
     loadingFileProps,
-    init_submission_tag
     }   
 ) {
     
@@ -84,15 +77,22 @@ function InitialSubmission({
     
     const { mutate: postSubmission, isLoading: submissionLoading, isError: submissionFailed, error: submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}) 
-    const { data: submission_tag, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : !_.isString(init_submission_tag)})
-    const tag = useMemo(() => _.isString(init_submission_tag) ? init_submission_tag : _.isObject(submission_tag) ?submission_tag.tag : undefined,[_.isObject(submission_tag),submission_tag])
+    const { data: submission_tag, isSuccess : submissionIDSuccess, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : false})
+    const { data: submissionPermission, isSuccess : permissionSuccess } = api.submissions.permissions.useGetSubmissionPermissions()
     
-
-    console.log("InitialSubmission render", submission)
+    console.log("InitialSubmission render", submission, submission_tag)
     
     useEffect(() => {
         loadSubmission()
     }, [])
+
+
+    useEffect(() => {
+        console.log("submission_tag effect", submission_tag, submissionIDSuccess)
+        if (submissionIDSuccess && _.isString(submission_tag.tag) && submission_tag.tag.length > 0) {
+            setSubmission(prevValues => { return { ...prevValues, tag: submission_tag.tag } })
+        }
+    }, [submissionIDSuccess, submission_tag])
 
     useEffect(() => {
         if (preDefinedSampleNames) {
@@ -103,24 +103,27 @@ function InitialSubmission({
 
     useEffect(() => {
      
-        if (_.isObject(submission) && _.has(submission, "selected_traits") && _.isArray(submission.selected_traits) && submission.selected_traits.length > 0 && _.isString(tag)) {
-            const selected_traits = addIDToHierarchy(submission.selected_traits, tag)
-            setSubmission(prevValues => {return {...prevValues, ...submission, selected_traits}})
+        if (_.isObject(submission) && _.has(submission, "selected_traits") && _.isArray(submission.selected_traits) && submission.selected_traits.length > 0 && _.isString(submission.tag)) {
+            const selected_traits = addIDToHierarchy(submission.selected_traits, submission.tag)
+            setSubmission(prevValues => {return {...prevValues, selected_traits}})
         }
-     } , [tag])
+     } , [submission.tag])
 
 
     useEffect(() => {
-
         //handle changes that effect the samples names 
         const sampleNumber = parseInt(submission.sampleNumber)
         if (!_.isNumber(sampleNumber)) return 
-        if (!_.isString(tag )) return
+        if (!_.isString(submission.tag)) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
-            
-        const sampleReferenceIDs  = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
-                if (sampleNumber > attributeTable.length) {
+        const sampleReferenceIDs = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
+        _.forEach(_.range(attributeTable.length), idx => {
+            if (_.isArray(attributeTable[idx]) && attributeTable[idx].length > 0) {
+                attributeTable[idx] = attributeTable[idx].filter(attr => _.has(attr, "id") && attr.id === sampleReferenceIDs[idx])
+            }
+        })
+        if (sampleNumber > attributeTable.length) {
             //add rows 
             const diff = sampleNumber - attributeTable.length
             //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 
@@ -138,9 +141,7 @@ function InitialSubmission({
             }
         })
 
-
-
-        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : tag, sampleNumber : sampleNumber, referenceIDs : sampleReferenceIDs}) : sampleNames
+        const constructedSampleNames = !preDefinedSampleNames ? constructSampleNames({submission_tag : submission.tag, sampleNumber : sampleNumber, referenceIDs : sampleReferenceIDs}) : sampleNames
 
         setSubmission(prevValues => {
             return {
@@ -148,11 +149,12 @@ function InitialSubmission({
                 sampleNames: constructedSampleNames,
                 referenceIDs : sampleReferenceIDs,
                 attributeTable,
-                tag, rerenderTableDependency: [Math.random()]
+                tag: prevValues.tag,
+                rerenderTableDependency: [Math.random()]
             }
         })
 
-    }, [submission.sampleNumber, tag ])
+    }, [submission.sampleNumber, submission.tag ])
 
 
     const onSubmissionRequest = () => {
@@ -234,7 +236,7 @@ function InitialSubmission({
             submissionDetails["genotypes"] = submission.genotypes
             submissionDetails["collaborators"] = submission.collaborators.slice()
             submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
-            submissionDetails["tag"] = tag
+            submissionDetails["tag"] = submission.tag
             submissionDetails["metatext"] = { ...submission.metatext, ...submission.extraMetaText.reduce((acc, meta) => { acc[meta.title] = meta.text; return acc }, {}) }
             delete submissionDetails["rerenderTableDependency"]
             delete submissionDetails["attributes"]
@@ -258,7 +260,7 @@ function InitialSubmission({
                         intent: "success",
                         onClose: () => {
                             setAlertProps({ isOpen: false })
-                            // resetSubmission()
+                            resetSubmission()
                             redirect("/submissions/view")
                         }
                     }),
@@ -332,12 +334,14 @@ function InitialSubmission({
     const loadSubmission = () => {
         // load a submission from the submission.
         const {itemFound, itemValue : submission} = getItemFromLocalStorage({itemName : "submission", parseJson : true})
-        if (_.isObject(submission)) {
-
-            setSubmission(prevValues => {return {...prevValues, ...submission}})
+        if (itemFound && _.isObject(submission)) {
+            console.log(submission)
+            console.log(submission.tag , "from storage")
+            setSubmission(prevValues => {return {...prevValues, ...submission, tag : submission.tag}}) //...prevValues, 
         }
         else {
             setSubmission(initSubmissionState)
+            refetchSubmissionID()
         }
     }
 

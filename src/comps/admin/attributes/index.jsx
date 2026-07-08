@@ -8,6 +8,9 @@ import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { AttributeContainer } from "./AttributeContainer"
 
 import { api } from "@/api"
+import { AddButton } from "@/comps/core/base/buttons/AddButton"
+import { Dialog, DialogBody } from "@blueprintjs/core"
+import { InsertAttribute } from "@/comps/core/base/attributes/InsertAttribute"
 
 
 export function AttributeQueryContainer({ search_string, limit = 50, attribute_groups = [] }) {
@@ -51,6 +54,7 @@ export function AttributeQueryContainer({ search_string, limit = 50, attribute_g
  */
 export function AttributesAdminView() {
     const [limit, setLimit] = useState(50) // Default limit
+    const [dialogProps, setDialogProps] = useState({ isOpen: false })
     const [searchString, setSearchString] = useState()
     const [attribute_groups, setAttributeGroups] = useState([])
     const debouncedSearchString = useDebounce(searchString, 30)
@@ -58,31 +62,25 @@ export function AttributesAdminView() {
 
     
     return (
-        <div
-            style={{
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#f5f5f5",
-            }}
-        >
-            <div
-                style={{
-                    width: "90vw",
-                    height: "auto",
-                    marginTop: "40px",
-                    marginBottom: "40px",
-                    padding: 32,
-                    background: "#fff",
-                    borderRadius: 10,
-                    boxShadow: "0 4px 24px rgba(0,0,0,0.08)",
-                }}
-            >
+        <div style={{
+            width: "90vw",
+            height : "85vh",
+            margin: "40px auto",
+            padding: 32,
+            background: "#fff",
+            borderRadius: 10,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.08)"
+        }}>
+
+                <Dialog style={{width : "min(950px,70vw)"}} isOpen={dialogProps.isOpen} onClose={() => setDialogProps({ isOpen: false })} title="Add Attribute" canOutsideClickClose={false} canEscapeKeyClose={true}> 
+                <DialogBody>
+                    <InsertAttribute />
+                </DialogBody>   
+                </Dialog>
                 <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24, letterSpacing: -1 }}>Attributes</h2>
                 <div className="flex flex-column" style={{ marginBottom: 24 }}>
                     <div>
+                        <div className="flex center-items" style={{marginBottom : "1rem", gap : "1rem"}}><AddButton onSelect={() => setDialogProps({ isOpen: true })} /><div>Insert Attribute</div></div>
                         <input
                             className="search-input"
                             type="text"
@@ -141,6 +139,6 @@ export function AttributesAdminView() {
                     </div>
                 </div>
             </div>
-        </div>
+
     )
 }

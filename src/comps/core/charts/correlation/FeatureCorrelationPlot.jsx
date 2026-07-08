@@ -16,7 +16,6 @@ export function FeatureCorrelationPlot({feature_tag_x, feature_tag_y, proteinTag
 
     const r = useMemo(() => {
         if (isSuccess && _.isString(feature_tag_x) && _.isString(feature_tag_y) && correlationData.length > 4) {
-            console.log("calculate ones!!")
             return viz.utils.linearRegression({ x: correlationData.map(d => d.x), y: correlationData.map(d => d.y) })
         }
         

@@ -14,7 +14,9 @@ export function usePrefetchProteins(tags: string[]) {
 }
 
 export function usePrefetchInterproFeatures(tags: string[]) {
-    const tagQueries = api.features.proteinsQuery.useGetProteinsInterproFeatures({ tags }, { enabled: _.isArray(tags) && tags.length > 0, staleTime: Infinity });
-    if (tags.length === 0) return { tagQueries: [] };
-    return { tagQueries };
+  const tagQueries = api.features.proteinsQuery.useGetProteinsInterproFeatures({ tags }, { enabled: _.isArray(tags) && tags.length > 0, staleTime: Infinity });
+  if (tags.length === 0) return { isReady: true, tagQueries: [], isLoading: false };
+  const isReady = tagQueries.every(q => q.isSuccess);
+  const isLoading = tagQueries.some(q => q.isLoading);
+    return {isReady, isLoading, tagQueries };
 }

@@ -5,7 +5,6 @@ import _ from "lodash"
 import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "../sample_attributes/select/SamplesAttributeWrapper";
 
 export function AttributesTab({submission, setSubmission, setComponentKey, componentKey }) {
-    console.log(submission.selected_traits)
 
     const getSelectionByPath = (path) => {
         const selection = findChildrenByPath(submission.selected_traits, path)
@@ -19,26 +18,42 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         return selection
     }
 
-    const handleTraitSelectionHierarchy = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf  = false) => {
+    const handleTraitSelectionHierarchy = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf  = false, singleTrait = false, checkExists = false) => {
         //row index is just for the table, not used here.
-        console.log(path,enforceSingleVariantPerGroup)
-
         path = addIDToPath(path, submission.tag)
         let selected_traits = submission.selected_traits.slice() //mission.selected_traits
         //check if path exists in the selected traits
         const pathExists = checkPathExists(selected_traits, path, true)
         const isValueInput = _.last(path).type === "trait" && _.has(_.last(path), "value") && _.isString(_.last(path).value)
-        // if it exists, delete it, if not, add it.
-        if (pathExists && !isValueInput) {
+        if (checkExists && pathExists && !isValueInput) {
             deleteByPath(selected_traits, path, true)
         }
+        // if it exists, delete it, if not, add it.
+        // if (pathExists && !isValueInput) {d
+        //     
+        // }
+
         else {
             findAndInsertTree(selected_traits, path, {
                 enforceSingleVariantPerGroup,
-                replaceChildrenAtLeaf
-                            })
+                replaceChildrenAtLeaf,
+                singleTrait
+            })
+
         }
         setSubmission(prevValues => { return {...prevValues, selected_traits}})
+    }
+
+    const mandatoryTraitSelect = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false, singleTrait = false) => {
+        
+        handleTraitSelectionHierarchy(path, rowIndex, enforceSingleVariantPerGroup, replaceChildrenAtLeaf, singleTrait, true)
+    
+    }
+
+    const handleTraitRemove = (path) => {
+        let selected_traits = submission.selected_traits.slice() //m
+        deleteByPath(selected_traits, path, false)
+        setSubmission(prevValues => { return { ...prevValues, selected_traits } })
     }
 
      const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
@@ -58,19 +73,21 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
             findPath={findDataForPath}
             getSelectionByPath={getSelectionByPath}
             selected_traits={submission.selected_traits}
-            onAttributeValueSelect={handleTraitSelectionHierarchy} /> 
+            onTraitSelect={mandatoryTraitSelect}
+            referenceID={submission.tag}/> 
+        <h4>Additional Attributes</h4>  
         
         <AttributesInput
             handleTraitSelection = {handleTraitSelectionHierarchy}
             min_state={submission.state}
             selected_traits={submission.selected_traits} />
-                            
+        <span className="font-size--smallest">Cellline, organ, tissue, ... anything that applies to all samples.</span> 
         <DatasetAttributeView
             getSelectionByPath={getSelectionByPath}
             submission_tag={submission.tag}
             attributeTraits={submission.selected_traits}
             onChildrenSelection={handleTraitSelectionHierarchy}
-            handleTraitRemove={handleTraitSelectionHierarchy}
+            handleTraitRemove={handleTraitRemove}
             checkAttributeRequiredTraits={checkAttributeRequiredTraits}
          />
         {/* userUnitInput={submission.userUnitInput}

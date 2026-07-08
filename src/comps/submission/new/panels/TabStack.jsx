@@ -10,6 +10,8 @@ import { LinksTab } from "./Links";
 import { SamplesTab } from "./Samples";
 import { Button, Code } from "@blueprintjs/core";
 import { TabNavigation } from "./TabNavigation";
+import { api } from "@/api";
+import { EditableText } from "@/comps/core/input/EditableTextInput";
 
 const componentMap = {
     "scope": ScopePanel,
@@ -105,16 +107,31 @@ export function SubmissionPanelStack({
         resetSubmission
         }) {
     
+    const { data: submissionPermission, isSuccess } = api.submissions.permissions.useGetSubmissionPermissions()
     // Initial panel for the stack
     const [componentKey, setComponentKey] = useState({ current: "scope", prev: undefined });
     const componentKeys = _.keys(componentMap) 
+
+
+    const handleSubmissionTagEdit = (newSubmissionTag) => { 
+
+        setSubmission(prevValues => {
+            return {
+                ...prevValues,
+                tag: newSubmissionTag
+            }
+        })
+    }
 
 
     return <div className="div--expand">
         <div className="navbar__submission__grid__container bg--grey">
 
             <div className="navbar__submission__grid__left" style={{ zIndex: 5 }}>
-                <div>{_.isString(submission.tag) ? <h3>{submission.tag}: {submission.title}</h3>: null}</div>
+                <div>{_.isString(submission.tag) ? <h3>{isSuccess && submissionPermission.edit && submissionPermission.create ?
+                    <div className="flex flex-column" >
+                        <EditableText initialValue={submission.tag} onChange={handleSubmissionTagEdit} minLength={10} maxLength={12} />
+                        <div><span style={{ wordWrap: "break-word" }}>{submission.title}</span></div></div> : `${submission.tag}: ${submission.title}`}</h3> : null}</div>
                 <TabNavigation {...{
                     componentKey,
                     setComponentKey,

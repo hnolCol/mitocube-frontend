@@ -53,7 +53,6 @@ export function TraitWithValueInput({
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
-    
     return (
         <div>
             { traitIsLoading || childrenIsLoading ? <Loading /> : traitIsSuccess && childrenIsSuccess?
@@ -62,8 +61,8 @@ export function TraitWithValueInput({
                     className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
                     whileHover={{ backgroundColor: "#efefef" }}>
                 
-                    <div className="flex" >
-                        <div className="flex flex-column" style={{ width: "100%" }}>
+                    <div className="flex center-items" >
+                        <div className="flex flex-column" style={{ width: "100%",marginRight : "1rem" }}>
                             <div><strong>{trait.text}</strong></div>
                             {hasChildren ?
                                 <TraitChildren
@@ -82,7 +81,7 @@ export function TraitWithValueInput({
                         
                     </div>
                     {_.isFunction(onRemove) ?
-                            <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem", position: "absolute", right: 0, top : 0}}>
+                            <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem", position: "absolute", right: 0, top : 2}}>
                                 <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(traitPath, [rowIndex], referenceID)} />
                             </div>
                             : null}

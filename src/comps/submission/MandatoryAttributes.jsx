@@ -4,7 +4,7 @@ import Loading from "../core/base/loading"
 import { api } from "@/api"
 import { Tag } from "@blueprintjs/core"
 
-export function MandatoryAttributes({ onAttributeValueSelect, submission_state = 0, getSelectionByPath, findPath}) {
+export function MandatoryAttributes({onTraitSelect, submission_state = 0, getSelectionByPath, findPath, referenceID}) {
     
     const {
         data: attribute_tags,
@@ -20,9 +20,10 @@ export function MandatoryAttributes({ onAttributeValueSelect, submission_state =
                         return <TraitsInput
                             key={attribute_tag}
                             attribute_tag={attribute_tag}
-                            onItemSelect={onAttributeValueSelect} 
+                            onItemSelect={onTraitSelect} 
                             path={p}
                             isMandatory={true}
+                            referenceID={referenceID}
                             {...{
                                 selected_traits: _.isObject(selection) && _.isArray(selection.children) && selection.children.length > 0 ? selection.children.map(c => c.tag) : [] // find the path first, then extract the children tags
                             }} //show here only the first level traits, not if there children.

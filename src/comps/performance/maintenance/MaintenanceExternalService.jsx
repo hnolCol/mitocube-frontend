@@ -60,10 +60,6 @@ export function MaintenanceExternalServices({ maintenance_event, refetch, refetc
         }
         
     const handleServiceCreated = (external_service_tag) => {
-        console.log("LINKING ES TO ME:", {
-            maintenance_event_tag: maintenance_event.tag,
-            external_service_tag: external_service_tag,
-        })
 
 
         addExternalService(

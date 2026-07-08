@@ -16,9 +16,6 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
     const [update, setUpdate] = useState(undefined);
 
     const { data: permissions, isSuccess } = api.maintenance.procedures.queryMaintenanceProcedures.useGetProcedurePermissions();
-    
-    // console.log(permissions)
-
     const { mutate: deleteProcedure } = api.maintenance.procedures.modifyMaintenanceProcedures.useDeleteMaintenanceProcedure({
         onSuccess: () => {
             setIsDeleteOpen(true); 
@@ -26,8 +23,6 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
     });
     
     const canShowRemoveButton = isSuccess && permissions.delete
-    // console.log(canShowRemoveButton)
-
     const handleRemove = (e) => {
         e.stopPropagation();
         deleteProcedure({ procedure_tag});

@@ -26,10 +26,6 @@ export function InsertGeneticApplication({selectedTraits, handleTraitSelection, 
                 onChildrenSelection={handleSelection}
                 referenceID={referenceID}
                 onRemove={handleRemoveByPath}
-                checkAttributeRequiredTraits={checkAttributeRequiredTraits}
-                addIDToAttribute={false}
-                respect_single_child_level={true}
-                
             /> : null}
 
     </div >)

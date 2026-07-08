@@ -7,8 +7,7 @@ import { ProteinMenuItem } from "../items/FeatureMenu"
 import { api } from "@/api";
 import { Protein } from "../../base/protein/Protein"
 
-export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, attribute, isRequired = true, helperText = "", inline = false, showLabel = true, debounceDelay = 200, disabled = false, rightElement, proteome_tags}) {
-    
+export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, attribute, isRequired = true, helperText = "", inline = false, showLabel = true, debounceDelay = 200, disabled = false, rightElement, proteome_tags, showFavorite = true}) {
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, debounceDelay)
     const {
@@ -19,7 +18,7 @@ export function FeatureInput({selectedItems = [], onItemSelect, onItemRemove, at
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
 
-        return <ProteinMenuItem key={item} {...{tag : item, onClick : handleClick, active : modifiers.active}} />
+        return <ProteinMenuItem key={item} {...{tag : item, onClick : handleClick, active : modifiers.active, showFavorite : showFavorite}} />
     }
     /**
      * @description Handles the item selection 

@@ -6,6 +6,7 @@ import APIError from "../../core/error/APIerror"
 import viz from "@mitocube/viz"
 
 function PartnerCrosslinkFetcher({ tag, resource_tag, onData }) {
+
     const { data } = api.crosslinks.crosslinks.useGetCrosslinksByProteinTag(
         { protein_tag: tag, resource_tag },
         { enabled: Boolean(tag), staleTime: Infinity }

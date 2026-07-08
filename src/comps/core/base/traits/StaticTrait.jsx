@@ -50,8 +50,8 @@ export function StaticTrait({
 }) {
 
     
-    const { data: attribute, isSuccess } =  api.attributes.queryAttributes.useGetAttribute(({ tag: attribute_tag }))
-    const { data : trait, isSuccess : traitIsSuccess} = api.traits.queryTraits.useGetTraitByTag({tag : trait_tag})
+    const { data: attribute, isSuccess } =  api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && attribute_tag.length > 0, staleTime: Infinity })
+    const { data : trait, isSuccess : traitIsSuccess} = api.traits.queryTraits.useGetTraitByTag({tag : trait_tag}, {enabled : _.isString(trait_tag) && trait_tag.length > 0, staleTime: Infinity})
     //handle colors
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"

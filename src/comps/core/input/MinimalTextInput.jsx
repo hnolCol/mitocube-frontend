@@ -105,7 +105,7 @@ export function MinimalTextInput({
                     background: "transparent",
                     padding: "3px 0",
                     fontSize: "0.75rem",
-                    width: "100%",
+                    width: "12rem",
                     ...style
                 }}
             />

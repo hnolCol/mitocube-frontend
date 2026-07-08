@@ -14,9 +14,10 @@ BaseInput.propTypes = {
     api_hook: PropTypes.func.isRequired,
     onSelect: PropTypes.func.isRequired,
     selected_tags: PropTypes.arrayOf(PropTypes.string),
-    placeholder: PropTypes.string
+    placeholder: PropTypes.string,
+    minimal: PropTypes.bool
 }
-export function BaseInput({ render_children, api_hook, onSelect, selected_tags, placeholder = "Select", api_hook_params = {} , fill = true}) {
+export function BaseInput({ render_children, api_hook, onSelect, selected_tags, placeholder = "Select", api_hook_params = {} , fill = true, minimal = false}) {
     const [search, setSearch] = useState("")
     const search_string = useDebounce(search, 300)
     const { data: item_tags, } = api_hook({ search_string, ...api_hook_params }, { enabled: true })
@@ -27,7 +28,7 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
                 whileHover={{ backgroundColor: "#b6ccf5d8" }}
                 onClick={() => handleClick(tag)}
                 style={{ width: "100%" }}
-                    className="basic-button">
+                    className={`${minimal ? "basic-button--small" : "basic-button"}`}>
                     <div className="flex justify-start">
                         {selected_tags.includes(tag) ? <span style={{ marginRight: "0.5rem" }}>✓</span> : null}
                         {render_children(tag)}
@@ -37,7 +38,6 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
     }
     
     const handleSelect = (tag) => {
-        console.log(tag)
         onSelect(tag)
     }
 
@@ -46,7 +46,7 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
         items={_.isArray(item_tags) ? item_tags : []} itemRenderer={handleRenderItem}
         onItemSelect={handleSelect}
         onQueryChange={(query) => setSearch(query)}>
-        <button style={{width : fill ? "100%" : "auto"}} className="basic-button">{placeholder}</button>
+        <button style={{width : fill ? "100%" : "auto"}} className={`${minimal ? "basic-button--small" : "basic-button"}`}>{placeholder}</button>
     </Select>
 
 }

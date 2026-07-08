@@ -97,7 +97,7 @@ export function Combobox({
                         {item[textKey]}
                     </div>
                 }
-                labelElement={<div style={{ maxWidth: "10rem", fontSize: "0.75rem" }}>
+                labelElement={<div style={{ maxWidth: "12rem", fontSize: "0.75rem" }}>
                     {_.isString(labelKey) ? item[labelKey] : ""}</div>}
                 onClick={e => {
                     e.stopPropagation()

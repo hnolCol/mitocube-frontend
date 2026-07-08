@@ -41,7 +41,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
 
     return (
         <div>
-            <Menu style={{ zIndex: 10 }} onWheelCapture={e => e.stopPropagation()}>
+            <Menu style={{ zIndex: 10, maxWidth : "min(35rem, 80vw)" }} onWheelCapture={e => e.stopPropagation()}>
                 <TextInput
                     small
                     id="attribute-context-input"

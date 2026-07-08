@@ -101,9 +101,10 @@ export function SubmissionExclusivelyQuantified() {
                         gridColumn: "1",
                         border: "0.5px solid black",
                         paddingLeft: "0.5rem",
-                        
+                        userSelect: "text",  
+                        cursor: "text"
                     }}>
-                    <ProteinGroup tag={protein_group.tag} minimal={true} redirect_to_protein_site={false} />
+                    <ProteinGroup tag={protein_group.tag} minimal={true} redirect_to_protein_site={false} disableTooltip={false} />
                 </div>
                 
             })}

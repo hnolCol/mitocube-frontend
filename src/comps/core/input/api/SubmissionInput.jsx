@@ -9,7 +9,7 @@ SubmissionInput.propTypes = {
     selected_submission_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
     onSelect: PropTypes.func.isRequired
 }
-export function SubmissionInput({ selected_submission_tags = [], onSelect }) {
+export function SubmissionInput({ selected_submission_tags = [], onSelect, minimal = false }) {
 
 
     return <BaseInput
@@ -17,6 +17,7 @@ export function SubmissionInput({ selected_submission_tags = [], onSelect }) {
         render_children={(submission_tag) => <SubmissionTitle tag={submission_tag} showCopyToClipboard={false} showEdit={false} />}
         api_hook={api.submissions.query.useGetSubmissionByQuery}
         onSelect={onSelect}
+        minimal={minimal}
         api_hook_params={{group_by_state : false}}
         placeholder={selected_submission_tags.length > 0 ? `${selected_submission_tags.length} submission(s) selected` : "Select submission..."}
     />

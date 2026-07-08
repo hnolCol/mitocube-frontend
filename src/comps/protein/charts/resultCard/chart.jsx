@@ -170,12 +170,12 @@ function ResultChart({
                             )}
                         </div>
             
-                <div className="flex" style={{ height: height - 35 }}>
+                <div className="flex" style={{ height: height  }}>
 
                     {isReady && attributesReady ? <viz.charts.Categorical
                         width={width - 10 || undefined}
-                        height={height - 5 || undefined}
-                        margins={{ left: 50, right: 0, top: 8, bottom: 120 }}
+                        height={height - 40 || undefined}
+                        margins={{ left: 60, right: 15, top: 8, bottom: 90 }}
                         {...selectionTags}
                         data={groupedAggratedData}
                         errorName="e"

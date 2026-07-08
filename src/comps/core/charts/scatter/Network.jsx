@@ -496,8 +496,8 @@ export function Network({
                        
                                 {tooltipNames.map(tooltipName =>
                                 {
-                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} />
-                                    if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} />
+                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={true} />
+                                    if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={false} />
                                     else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
                                     else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
                                     else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>

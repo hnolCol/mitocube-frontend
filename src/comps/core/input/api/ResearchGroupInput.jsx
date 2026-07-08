@@ -34,14 +34,15 @@ function ResearchGroupTitle({ tag }) {
 
 ResearchGroupInput.propTypes = {
     selected_rg_tags: PropTypes.arrayOf(PropTypes.string),
-    onSelect: PropTypes.func.isRequired
+    onSelect: PropTypes.func.isRequired,
+    placeholder: PropTypes.string
 }
 
-export function ResearchGroupInput({ selected_rg_tags = [], onSelect }) {
+export function ResearchGroupInput({ selected_rg_tags = [], onSelect, placeholder = "Select Research Group" }) {
     return <BaseInput
         selected_tags={selected_rg_tags}
         render_children={(rg_tag) => <ResearchGroupTitle tag={rg_tag} />}
         api_hook={api.researchgroups.useGetResearchGroupsByQuery}
         onSelect={onSelect}
-        placeholder="Select Research Group" />
+        placeholder={placeholder} />
 }

@@ -23,10 +23,10 @@ function TraitTag({ tag }) {
  * @param {Function} props.onItemSelect
  * @returns 
  */
-export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path, isMandatory = false }) {
+export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path, isMandatory = false, referenceID }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 2)
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag})
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : 600000})
     const { data: trait_tags, isError, isLoading, isFetching } = api.traits.queryTraits.useGetTraitBySearchString({
         search_string: debouncedString,
         attribute_tag,
@@ -41,14 +41,18 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
             if (_.isFunction(e.stopPropagation)) {
                 e.stopPropagation()
             }
-            onItemSelect(_.concat(path, [{"type": "trait", "tag": trait_tag, id : getRandomID()}]))
+            onItemSelect(_.concat(path, [{"type": "trait", "tag": trait_tag, id : _.isString(referenceID) ? referenceID :  getRandomID()}]))
         }
     
     
 
     const renderTraits = ({ activeItem, items, query, filteredItems, ...rest }) => {
 
-        return <AttributeWithTraitsMenuItem tag={attribute_tag} trait_tags={trait_tags} handleTraitSelection={onItemSelect} selected_traits={selected_traits} />
+        return <AttributeWithTraitsMenuItem
+            tag={attribute_tag}
+            trait_tags={trait_tags}
+            handleTraitSelection={onItemSelect}
+            selected_traits={selected_traits} />
              
     }
 

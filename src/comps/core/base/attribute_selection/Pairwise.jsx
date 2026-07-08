@@ -79,7 +79,7 @@ export function SampleSelectionTableView({ submission_tag, attribute_tags = [], 
 
 
 
-export function CAGroupSelection({ ca_tags, active = true, selected = [], exclude_tags = [], onConfirm, placeHolder = "Left Group", backgroundColor = undefined}) {
+export function CAGroupSelection({ ca_tags, active = true, selected = [], exclude_tags = [], onConfirm, placeHolder = "Left Group", backgroundColor = undefined, minimal = false }) {
     const handleItemRender = (item, { handleClick, modifiers }) => {
         const isSelected = arraysEqual(item, selected)
         const isExcluded = arraysEqual(item, exclude_tags)
@@ -87,7 +87,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
             <motion.button
                 whileHover={isExcluded ? {} : { backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
                 disabled={!active}
-                className={isExcluded  ? "basic-button basic-button--excluded flex" : isSelected ? "basic-button basic-button--highlighted flex" : "basic-button flex"}
+                className={`flex ${minimal ? "basic-button--small" : "basic-button"} ${isExcluded ? "basic-button--excluded" : isSelected ? "basic-button--highlighted" : ""}`}
                 style={{ width: "100%" }}
                 onClick={handleClick}
             >
@@ -106,7 +106,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
                 itemRenderer={handleItemRender}
                 onItemSelect={onConfirm}
             >
-                <button className="basic-button" style={_.isString(backgroundColor) ? {backgroundColor } : {}}>
+                <button className={`${minimal ? "basic-button--small" : "basic-button"}`} style={_.isString(backgroundColor) ? {backgroundColor } : {}}>
                     {_.isArray(selected) && selected.length > 0
                         ? selected.map(tag => <ConditionApplicationsView key={tag} tag={tag} />)
                         : placeHolder}
@@ -116,7 +116,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
     )
 }
 
-export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp, withinFilters = {}, onCountChange }) {  
+export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp, withinFilters = {}, onCountChange, minimal = false, showTable = true }) {
 
     const withinAttributeTags = _.keys(withinFilters).filter(t => _.isString(t))
     const allAttributeTags = _.uniq([attribute_tag, ...withinAttributeTags]).filter(_.isString)
@@ -191,7 +191,7 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
     if (uniqueCAValuesJoined.length < 2) return <div>Not enough condition application values found for attribute <Attribute attribute_tag={attribute_tag} />.</div>
 
     return <div>
-        <SampleSelectionTableView submission_tag={submission_tag} highlightSampleTagByColor={sampleTagsByColor} dependency={rerender}/>
+        {showTable && <SampleSelectionTableView submission_tag={submission_tag} highlightSampleTagByColor={sampleTagsByColor} dependency={rerender}/>}
         {_.isArray(uniqueCAValues) && uniqueCAValues.length > 0 ?
             <div style={{width : "100%"}} className="center-items margin-top--little">
                 <div className="flex" style={{ gap: "1rem", justifyContent: "center" }}>
@@ -200,14 +200,17 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
                         exclude_tags={pairwiseComp.right}
                         selected={pairwiseComp.left}
                         backgroundColor={"#efefef"}
+                        minimal={minimal}
                         onConfirm={(ca_tags) => onConfirm(ca_tags, "left")} />
                     <CAGroupSelection
+                        minimal={minimal}
                         ca_tags={uniqueCAValues}
                         exclude_tags={pairwiseComp.left}
                         selected={pairwiseComp.right}
                         backgroundColor={"#edf8b1"}
                         onConfirm={(ca_tags) => onConfirm(ca_tags, "right")}
-                        placeHolder="Right Group" />
+                        placeHolder="Right Group"
+                         />
                 </div>
             </div>
             : null}    
@@ -244,7 +247,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
 
 }
     
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false }) {
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true }) {
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const [withinFilters, setWithinFilters] = useState({})
@@ -295,11 +298,12 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
         if (reset_after_confirm) handleReset()
     }
     return <div>
-        <h4>Define pairwise comparison</h4>
+        {!minimal && <h4>Define pairwise comparison</h4>}
         {isLoading ? <Loading /> : null}
         {isSuccess ? <div> 
-            <span>Select an attribute to define pairwise comparison groups.</span>
+            {!minimal && <span>Select an attribute to define pairwise comparison groups.</span>}
             <AttributeSelection
+                minimal={minimal}
                 attribute_tags={ca_attributes}
                 selected={_.isString(attribute) ? [attribute] : []}
                 onSelect={(attribute_tag) => { setAttribute(attribute_tag); setWithinFilters({}); setActiveWithinAttributes([]) }} />
@@ -310,7 +314,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
         {_.isString(attribute) ?
             
             <div className="margin-top--little"> 
-                <span>Select conditions to compare.</span>
+                {!minimal && <span>Select conditions to compare.</span>}
                 <div className="flex">
                     <GroupCASelection
                         submission_tag={submission_tag}
@@ -318,7 +322,9 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         attribute_tag={attribute}
                         withinFilters={withinFilters}
                         onCountChange={setSampleCounts}
-                        onConfirm={handleSelection} />
+                        onConfirm={handleSelection}
+                        minimal={minimal}
+                        showTable={showTable} />
                 </div>
             </div> : null}
             {withinAttributes.length > 0 ?
@@ -332,7 +338,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                             <motion.button
                                 key={attr_tag}
                                 whileHover={{ backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
-                                className={activeWithinAttributes.includes(attr_tag) ? "basic-button basic-button--highlighted flex" : "basic-button flex"}
+                                className={`flex ${minimal ? "basic-button--small" : "basic-button"} ${activeWithinAttributes.includes(attr_tag) ? " basic-button--highlighted" : " "}`}
                                 style={{ width: "100%" }}
                                 onClick={handleClick}>
                                 {activeWithinAttributes.includes(attr_tag) ? <span style={{ marginRight: "0.2rem" }}>✓</span> : null}
@@ -344,7 +350,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         )}
                         closeOnSelect={false}
                     >
-                    <button className="basic-button" style={{ width: "fit-content" }}>
+                        <button className={`flex ${minimal ? "basic-button--small" : "basic-button"}`} style={{ width: "fit-content" }}>
                         Select within attributes
                     </button>
                     </Select>
@@ -366,7 +372,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             : null}
         <div className="margin-top--little">
             <h4>Subset data by annotation</h4>
-            <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]}/>
+            <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]} minimal/>
             <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
         {inputIsSufficient ? <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{ maxWidth: "14rem", textJustify: "inter-word" }}>Imputation is performed by filtering for proteins that are fully quantified in one group.
             Then NaNs are replaced by random data taken from a downshifted gaussian distribution.
