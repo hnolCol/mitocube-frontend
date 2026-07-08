@@ -15,6 +15,7 @@ import { AttributeSelection } from "../../core/base/attributes/AttributeSelectio
 
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
+import { use } from "react";
 
 
 function HeatmapLoad( {submission_tag} ) {
@@ -23,7 +24,8 @@ function HeatmapLoad( {submission_tag} ) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({
         tag: submission_tag,
-        annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined,
+        annotation_tag: testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags, ";") : undefined,
+        fdr : testProps.fdr,
         n_clusters: testProps.n_clusters   
     }, { enabled: _.isString(submission_tag), staleTime: 50000 })
     const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 5000000})
@@ -89,11 +91,16 @@ function HeatmapViz({
     
 
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
-    const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters))  
+    const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters)) 
+    const [fdrvInputValue, setFDRVInputValue] = useState(String(testProps.fdr))
     useEffect(() => {
         setClusterInputValue(String(testProps.n_clusters))
     }, [testProps.n_clusters])
     
+
+    useEffect(() => {
+        setFDRVInputValue(String(testProps.fdr))
+    }, [testProps.fdr])
     const commitClusterCount = () => {
         const parsed = parseInt(clusterInputValue, 10)
         if (_.isFinite(parsed) && parsed >= 2 && parsed <= 30) {
@@ -102,6 +109,16 @@ function HeatmapViz({
             setClusterInputValue(String(testProps.n_clusters)) 
         }
     }
+
+    const commitFDR = (value) => {
+        const parsed = parseFloat(value)
+        if (_.isFinite(parsed) && parsed >= 0 && parsed <= 1) {
+            setTestProps(prev => ({ ...prev, fdr: parsed }))
+        } else {
+            setTestProps(prev => ({ ...prev, fdr: prev.fdr })) 
+        }
+    }
+
     const handleAnnotationSelection = (e, tag) => {
         if (_.isArray(tag)) {
             setTestProps(prevProps => {
@@ -168,14 +185,10 @@ function HeatmapViz({
                         type="text"
                         inputMode="decimal"
                         placeholder="Enter FDR cutoff"
-                        value={testProps.fdr}
-                        onChange={(e) => {
-                        const value = e.target.value;
-                        // basic validation, adjust to match your NumericValueInput rules
-                        if (value === "" || /^-?\d*\.?\d*$/.test(value)) {
-                            setTestProps({ ...testProps, fdr: value });
-                        }
-                        }}
+                        onBlur={e => commitFDR(e.target.value)}
+                        value={fdrvInputValue}
+                        onChange={(e) => {setFDRVInputValue(e.target.value)}}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur() } }}
                         className="search-input"
                         style={{ width: "100%" }}
                     />
