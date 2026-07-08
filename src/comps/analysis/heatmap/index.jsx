@@ -7,7 +7,7 @@ import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 import viz from "@mitocube/viz"
 import { api } from "@/api";
 import { FeatureSearch } from "../../core/input/api/FeatureSearch";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Combobox } from "../../core/input/Combobox";
 import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../services/arrays/transforms";
 import NumericValueInput from "../../core/input/Numeric";
@@ -22,10 +22,14 @@ import { Attribute } from "@/comps/core/base/attributes/Attribute";
 
 
 function HeatmapLoad( {submission_tag} ) {
-    const [testProps, setTestProps] = useState({ fdr: 0.05, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
+    const [testProps, setTestProps] = useState({ fdr: 0.05, n_clusters: 8, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
     const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] })
-    const [requiredProteinTags, setRequiredProteinTags] = useState([]) // State to hold the required protein tags for prefetching
-    const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({ tag: submission_tag, annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined }, { enabled: _.isString(submission_tag), staleTime: 50000 })
+    const [requiredProteinTags, setRequiredProteinTags] = useState([])
+    const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({
+        tag: submission_tag,
+        annotation_tag : testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags,";") : undefined,
+        n_clusters: testProps.n_clusters   
+    }, { enabled: _.isString(submission_tag), staleTime: 50000 })
     const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 5000000})
     const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
     const unique_ca_tags = useMemo(() => {
@@ -89,7 +93,19 @@ function HeatmapViz({
     
 
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
-
+    const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters))  
+    useEffect(() => {
+        setClusterInputValue(String(testProps.n_clusters))
+    }, [testProps.n_clusters])
+    
+    const commitClusterCount = () => {
+        const parsed = parseInt(clusterInputValue, 10)
+        if (_.isFinite(parsed) && parsed >= 2 && parsed <= 30) {
+            setTestProps(prev => ({ ...prev, n_clusters: parsed }))
+        } else {
+            setClusterInputValue(String(testProps.n_clusters)) 
+        }
+    }
     const handleAnnotationSelection = (e, tag) => {
         if (_.isArray(tag)) {
             setTestProps(prevProps => {
@@ -123,6 +139,11 @@ function HeatmapViz({
         }
     ], [_.join(heatmapData.value_names)])
 
+    const filteredSampleConditionApplications = useMemo(() => {
+        if (!_.isArray(submissionSampleConditionApplications) || !_.isArray(heatmapData.value_names)) return submissionSampleConditionApplications
+        const valueNameSet = new Set(heatmapData.value_names)
+        return submissionSampleConditionApplications.filter(ca => valueNameSet.has(ca.tag))
+    }, [submissionSampleConditionApplications, heatmapData.value_names])
 
     return (
         <div className="flex">
@@ -153,9 +174,23 @@ function HeatmapViz({
             </div>
            
             <div className="flex center-items" style={{ gap: "10px" }}>
-                                <div className="flex flex-column center-items"><div>FDR cutoff:</div></div>
-                                 <NumericValueInput minValue={-0.01} maxValue={1.0} placeholder="Enter FDR cutoff" label="FDR Cutoff" value={testProps.fdr} onValueChange={(_,value) => setTestProps({...testProps, fdr: value})} />
-                </div>
+                <div className="flex flex-column center-items"><div>FDR cutoff:</div></div>
+                <NumericValueInput minValue={-0.01} maxValue={1.0} placeholder="Enter FDR cutoff" label="FDR Cutoff" value={testProps.fdr} onValueChange={(_,value) => setTestProps({...testProps, fdr: value})} />
+            </div>
+            <div className="flex center-items" style={{ gap: "10px", marginTop: "0.5rem" }}>
+    <div className="flex flex-column center-items"><div>Number of clusters:</div></div>
+    <input
+        type="text"
+        inputMode="numeric"
+        placeholder="Enter number of clusters"
+        value={clusterInputValue}
+        onChange={(e) => setClusterInputValue(e.target.value)}
+        onBlur={commitClusterCount}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur() } }}
+        style={{ width: "60px" }}
+        className="search-input"
+    />
+</div>
             </div>
             
             
@@ -221,7 +256,7 @@ function HeatmapViz({
 
                                     <div style={{ overflowY: "scroll", flex: 1, height: "100%" }}>
                                         <viz.charts.HeatmapGrouping
-                                            data={submissionSampleConditionApplications}
+                                            data={filteredSampleConditionApplications}
                                             binHeight={15}
                                             binWidth={15}
                                             is_condition_application={attribute_tags.map(i => true)}
@@ -230,7 +265,7 @@ function HeatmapViz({
                                             keyNames={attribute_tags}
                                             caTagMap={caTagMap}
                                             attributeTagMap={attributeTagMap}
-                                              />
+                                        />
                                         <viz.charts.Heatmap
                                             {...{
                                                 data,

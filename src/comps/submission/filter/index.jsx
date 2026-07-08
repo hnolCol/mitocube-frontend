@@ -9,6 +9,7 @@ import { ConditionApplicationFilter } from "./ConditionApplicationFilter"
 import { SUBMISSIONS_BY_OPTIONS } from "../view/SubmissionContainer"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom";
+import { UserDatasetFilter } from "./UserFilter"
 
 
 const LIMIT_OPTIONS = [20, 30, 50, 100, 150]
@@ -20,6 +21,7 @@ export function SubmissionFilterSelection({
         submissionFilter,
         setSubmissionFilter,
         setSubmissionQuery,
+        authenticationStatus,         
         header = "Submissions", children = <div></div>,
         orderBy,         
         setOrderBy,  
@@ -81,20 +83,31 @@ export function SubmissionFilterSelection({
                         ))}
                     </div>
             </div>
-                <div style={{ marginTop: "0.5rem" }}>
-                    <h4>View By</h4>
-                    <div className="flex center-items" >{SUBMISSIONS_BY_OPTIONS.map(option => <OptionButton key={option} isSelected={orderBy === option} onClick={() => setOrderBy(option)}  children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />)}</div>
-                    </div>
+            <div style={{ marginTop: "0.5rem" }}>
+            <div style={{ marginTop: "0.5rem" }}>
+    <h4>View By</h4>
+    <div className="flex center-items" >
+        {SUBMISSIONS_BY_OPTIONS.filter(option => option !== "My Submissions").map(option => (
+            <OptionButton key={option} isSelected={orderBy === option} onClick={() => setOrderBy(option)} children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />
+        ))}
+    </div>
+    <div className="flex center-items" style={{ marginTop: "0.5rem" }}>
+        <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
+    </div>
+</div>
+            </div>
             {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
             <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
                 <GenotypeDatasetFilter {...{setSubmissionFilter}} />
 
-                <div style={{ marginTop: "2rem" }}>
-                        <ConditionApplicationFilter {...{setSubmissionFilter, submissionFilter}} />
-                    </div>
-                    
-                <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [] }} />
-            </div>
+    <div style={{ marginTop: "2rem" }}>
+        <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
+    </div>
+
+    <div style={{ marginTop: "2rem" }}>
+        <ConditionApplicationFilter {...{setSubmissionFilter, submissionFilter}} />
+    </div>
+</div>
             </div>
             <div className="submission__items__container" style={{ gridRow: 1, gridColumn: 2 }}>
                 {/* isError ? <p>An error was returned.</p> :

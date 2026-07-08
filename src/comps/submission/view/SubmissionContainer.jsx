@@ -12,7 +12,7 @@ import { MinimalUserIcon } from "@/comps/core/base/user"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 
 
-export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "date"]
+export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "date", "My Submissions"]
 
 
 SubmissionsByState.propTypes = {
@@ -148,7 +148,8 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             group_by_date : submissionByDate,
             state: stateFilter,
             genotype_tag: genotypeTagString,
-            user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
+            user_tags: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),  
+            user_role: submissionFilter.user_role || null,
             attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
             ca_tags: caTagsString,
             attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
@@ -181,7 +182,7 @@ SubmissionContainer.propTypes = {
 }
 
 
-export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, ...props}) {
+export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, authenticationStatus, ...props}) {
     const [orderBy, setOrderBy] = useState("state")
     const fixedState = _.isNumber(validState)
     const stateFilter = _.isNumber(validState) ? _.toString(validState) : _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
@@ -201,7 +202,8 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
         limit: submissionsQuery.limit,
         state: stateFilter,
         genotype_tag: genotypeTagString,
-        user_tag: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),
+        user_tags: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }), 
+        user_role: submissionFilter.user_role || null,
         attribute_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_tag"], keyName: "tag" }),
         ca_tags: caTagsString, 
         trait_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
@@ -221,7 +223,8 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
                 orderBy, 
                 setOrderBy,
                 fixedState:  fixedState,
-                isSuccess
+                isSuccess,
+                authenticationStatus          
             }}
                 children={
                     

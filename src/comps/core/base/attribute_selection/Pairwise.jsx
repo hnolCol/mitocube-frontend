@@ -34,9 +34,12 @@ export function SampleSelectionTableView({ submission_tag, attribute_tags = [], 
     
     const { data: ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
 
-    const { data : condition_applications} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
+    const { data : condition_applications_raw} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
 
-    // console.log(condition_applications, "Condition applications")
+    const { data: samples } = api.submissions.samples.useGetSubmissionSamplesFull({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+
+    const excludedTags = _.isArray(samples) ? samples.filter(s => s.excluded).map(s => s.tag) : []
+    const condition_applications = _.isArray(condition_applications_raw) ? condition_applications_raw.filter(ca => !excludedTags.includes(ca.tag)) : condition_applications_raw
 
     return (<div style={{maxHeight : "20vh", overflowY: "scroll", maxWidth : "500px", overflowX : "scroll"}}>
 
@@ -115,11 +118,10 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
 
 export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp, withinFilters = {}, onCountChange }) {  
 
-
     const withinAttributeTags = _.keys(withinFilters).filter(t => _.isString(t))
     const allAttributeTags = _.uniq([attribute_tag, ...withinAttributeTags]).filter(_.isString)
 
-    const { data: condition_applications } = api.submissions.condition_applications
+    const { data: condition_applications_raw } = api.submissions.condition_applications
     .useGetSubmissionSampleConditionApplications(
         { tag: submission_tag, attribute_tags: _.join(allAttributeTags, ";") },
         { 
@@ -127,7 +129,13 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
             staleTime: 0  
         }
     )
+
+    const { data: samples } = api.submissions.samples.useGetSubmissionSamplesFull({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const excludedTags = _.isArray(samples) ? samples.filter(s => s.excluded).map(s => s.tag) : []
+    const condition_applications = _.isArray(condition_applications_raw) ? condition_applications_raw.filter(ca => !excludedTags.includes(ca.tag)) : condition_applications_raw
+
     const [rerender, setRerender] = useState(undefined)
+
     useEffect(() => {
         setRerender([Math.random()])
     }, [_.join(pairwiseComp.left,";"), _.join(pairwiseComp.right,";")])

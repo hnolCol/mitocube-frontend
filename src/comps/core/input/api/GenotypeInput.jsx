@@ -17,12 +17,17 @@ export function GenotypeInput({
         helperText = "",
         inline = false,
         disabled = false,
-        showSelection = true }) {
-        
+        showSelection = true,
+        usedInSubmissionOnly = false   
+    }) {
     const [queryString, setQueryString] = useState("")
     const [isOpen, setIsOpen] = useState(false)  
     const debouncedString = useDebounce(queryString, 200)
-    const { data: items, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString({ search_string : debouncedString }, { staleTime : 6000 })    
+    const { data: items, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString(
+        { search_string: debouncedString, used_in_submission: usedInSubmissionOnly },  
+        { staleTime: 6000 }
+    )
+
     
     const renderFeature = (item, { handleClick, handleFocus, index, modifiers, query }) => {
         return <GenotypeMenuItem 

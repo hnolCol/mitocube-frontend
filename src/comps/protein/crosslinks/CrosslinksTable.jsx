@@ -10,7 +10,7 @@ function ProteinGeneNameCell({ tag }) {
 
 const cellStyle = { border: "0.5px solid black", padding: "6px 10px", textAlign: "center" }
 
-export function CrosslinksTable({ protein_tag, resource_tag, droppedTags = new Set() }) {
+export function CrosslinksTable({ protein_tag, resource_tag, droppedTags = new Set(), focusedPartnerTag = null, visiblePartnerTags = null }) {
     const { data: crosslinks, isLoading, isError, isSuccess } =
         api.crosslinks.crosslinks.useGetCrosslinksByProteinTag(
             { protein_tag, resource_tag },
@@ -21,8 +21,25 @@ export function CrosslinksTable({ protein_tag, resource_tag, droppedTags = new S
     if (isError) return <div className="padding--little">Error loading crosslinks.</div>
     if (!isSuccess || crosslinks.length === 0) return <div className="padding--little">No crosslinks found.</div>
 
-    const sortedCrosslinks = _.sortBy(crosslinks, "pos_a")
+    const partnerSet = _.isArray(visiblePartnerTags) ? new Set(visiblePartnerTags) : null
 
+    const visibleCrosslinks = crosslinks.filter(xl => {
+        const isSelfLink = xl.protein_tag_a === xl.protein_tag_b
+        if (isSelfLink) return true
+
+        if (focusedPartnerTag) {
+            return xl.protein_tag_a === focusedPartnerTag || xl.protein_tag_b === focusedPartnerTag
+        }
+        if (partnerSet) {
+            const partner = xl.protein_tag_a === protein_tag ? xl.protein_tag_b : xl.protein_tag_a
+            return partnerSet.has(partner)
+        }
+        return true
+    })
+
+    if (visibleCrosslinks.length === 0) return <div className="padding--little">No crosslinks found for this partner.</div>
+
+    const sortedCrosslinks = _.sortBy(visibleCrosslinks, "pos_a")
     return (
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr" }}>
             <div style={{ ...cellStyle, fontWeight: 600 }}>Protein A</div>

@@ -48,6 +48,7 @@ export function ProteinCrosslinks({ protein_tag }) {
     const [partnerLimit, setPartnerLimit] = useState(20);
     const [focusedPartnerTag, setFocusedPartnerTag] = useState(null);
     const [partners, setPartners] = useState([]);
+    const [visiblePartnerTags, setVisiblePartnerTags] = useState(null);
     const [droppedTags, setDroppedTags] = useState(new Set());
     const [annotationFilterTag, setAnnotationFilterTag] = useState(null);
     const [showInterPartner, setShowInterPartner] = useState(false);
@@ -112,14 +113,20 @@ export function ProteinCrosslinks({ protein_tag }) {
                 focusedPartnerTag={focusedPartnerTag}
                 onFocusPartner={setFocusedPartnerTag}
                 onPartnersChange={setPartners}
+                onVisiblePartnersChange={setVisiblePartnerTags}
                 onDroppedTagsChange={setDroppedTags}
                 showInterPartner={showInterPartner}
             />
-            <CrosslinksTable
-                protein_tag={protein_tag}
-                resource_tag={selectedResourceTag}
-                droppedTags={droppedTags}
-            />
+
+            <div style={{ maxHeight: 400, overflowY: "auto", marginTop: 12 }}>
+                <CrosslinksTable
+                    protein_tag={protein_tag}
+                    resource_tag={selectedResourceTag}
+                    droppedTags={droppedTags}
+                    focusedPartnerTag={focusedPartnerTag}
+                    visiblePartnerTags={visiblePartnerTags}
+                />
+            </div>
         </div>
     );
 }

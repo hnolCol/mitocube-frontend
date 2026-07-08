@@ -3,6 +3,7 @@ import { getUserFullName, getUserInitials } from "../../../services/format/user"
 
 import {motion} from "framer-motion"
 import _ from "lodash"
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
 
 export function SimpleUser({ user, handleClick, isSelected = false, count = 2}) {
@@ -22,7 +23,23 @@ export function SimpleUser({ user, handleClick, isSelected = false, count = 2}) 
     )
 }
 
-export function UserFilter({ submissionFilter, setSubmissionFilter, tags }) {
-    
-    return <div></div>
+export function UserFilter({ submissionFilter, setSubmissionFilter, tags, authenticationStatus }) {
+    if (!authenticationStatus?.isAuth) return null
+
+    const currentUserTag = authenticationStatus.tag
+    const isMySubmissions = _.isEqual(submissionFilter.user?.map(u => u.tag), [currentUserTag])   
+
+    const toggleMySubmissions = () => {
+        setSubmissionFilter(prevValues => {
+            return isMySubmissions
+                ? _.omit(prevValues, ["user", "user_role"])
+                : { ...prevValues, user: [{ tag: currentUserTag }], user_role: "any" }
+        })
+    }
+
+    return (
+        <OptionButton isSelected={isMySubmissions} onClick={toggleMySubmissions}>
+            My Submissions
+        </OptionButton>
+    )
 }
