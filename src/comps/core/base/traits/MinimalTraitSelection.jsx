@@ -10,7 +10,7 @@ import { api } from "@/api"
  * @returns 
  */
 export function MinimalTraitSelection({attribute_tag, onChange, selected_traits}) {
-    const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0})
+    const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : 600000})
     if (isLoading || isFetching) return null 
     return <div>
         <Combobox

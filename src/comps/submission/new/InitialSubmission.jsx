@@ -111,15 +111,19 @@ function InitialSubmission({
 
 
     useEffect(() => {
-
         //handle changes that effect the samples names 
         const sampleNumber = parseInt(submission.sampleNumber)
         if (!_.isNumber(sampleNumber)) return 
         if (!_.isString(submission.tag)) return
         //adjust attribute table 
         let attributeTable = submission.attributeTable
-        const sampleReferenceIDs  = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
-                if (sampleNumber > attributeTable.length) {
+        const sampleReferenceIDs = ensureRandomIDArray(submission.referenceIDs, sampleNumber)
+        _.forEach(_.range(attributeTable.length), idx => {
+            if (_.isArray(attributeTable[idx]) && attributeTable[idx].length > 0) {
+                attributeTable[idx] = attributeTable[idx].filter(attr => _.has(attr, "id") && attr.id === sampleReferenceIDs[idx])
+            }
+        })
+        if (sampleNumber > attributeTable.length) {
             //add rows 
             const diff = sampleNumber - attributeTable.length
             //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 

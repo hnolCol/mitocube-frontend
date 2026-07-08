@@ -26,7 +26,7 @@ function TraitTag({ tag }) {
 export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path, isMandatory = false, referenceID }) {
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 2)
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag})
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : 600000})
     const { data: trait_tags, isError, isLoading, isFetching } = api.traits.queryTraits.useGetTraitBySearchString({
         search_string: debouncedString,
         attribute_tag,

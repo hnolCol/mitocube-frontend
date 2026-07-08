@@ -67,10 +67,10 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
  */
 export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, displayChildrenUponSelection, selected_proteome_tags = []}) {
     const [requiredTraitsValid, setRequiredTraitsValid] = useState()
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag)})
-    const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = api.traits.queryTraits.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess })
-    const {data : children, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
-    const {data : traitCount, isSuccess : isSuccessTraitCount} = api.traits.queryTraits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess})
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag), staleTime : Infinity})
+    const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = api.traits.queryTraits.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess, staleTime : Infinity })
+    const {data : children, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess, staleTime : Infinity})
+    const {data : traitCount, isSuccess : isSuccessTraitCount} = api.traits.queryTraits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess, staleTime : Infinity})
     const allows_multiple_traits = false //["att_duration","att_concentration"].includes(attribute_tag) ? false : true
     const default_proteome = selected_proteome_tags.length > 0 ? selected_proteome_tags.length > 1 ? selected_proteome_tags.filter(t => t !== "ctrl")[0] : selected_proteome_tags[0] : undefined
     const attributeHasTraits = isSuccessTraitCount && traitCount > 0

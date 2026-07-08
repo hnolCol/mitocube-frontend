@@ -25,7 +25,7 @@ export function AddUserDialog({onCancel}) {
 
     return (
         <div className="margin--medium padding--medium">
-            <h3>Add User Dialog</h3>
+            <h3>Add User </h3>
             <div className="flex flex-column margin-bottom--little margin--medium">
                 {USER_INPUT.map((input) => (
                     <div key={input.tag}>
@@ -45,8 +45,9 @@ export function AddUserDialog({onCancel}) {
                 ))}
                 <div style={{width : "100%"}}>
                 <ResearchGroupInput
-                    selected_rg_tags={formData.research_group ? [formData.research_group] : []}
-                    onSelect={(tag) => setFormData((prev) => ({ ...prev, research_group: tag }))}
+                        selected_rg_tags={formData.research_group ? [formData.research_group] : []}
+                        onSelect={(tag) => setFormData((prev) => ({ ...prev, research_group: tag }))}
+                        placeholder={_.isString(formData.research_group) && formData.research_group.length > 0 ? "Research Group Selected" :  "Select Research Group"}
                     />
                 </div>
 

@@ -22,7 +22,7 @@ export function TraitItem({ tag, attribute_tag }) {
 
     const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag(
         { tag },
-        { enabled: !!tag }
+        { enabled: _.isString(tag) && tag.length > 0, staleTime: 600000 }
     )
 
     const { data: permissions, isSuccess: permissionsLoaded } =

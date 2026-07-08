@@ -14,7 +14,7 @@ import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 
 export function ProteomeSelection({attribute_tag = "att_proteome", onChange, selected_traits}) {
-    const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0})
+    const { data : traits, isLoading, isFetching} = api.traits.queryTraits.useGetTraitsByAttributeTag({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : 600000})
     return <MenuItem
         autoFocus={false}
         shouldDismissPopover={false}

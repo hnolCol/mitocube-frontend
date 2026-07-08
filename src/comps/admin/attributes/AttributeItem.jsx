@@ -23,7 +23,7 @@ AdminAttributeItem.propTypes = {
 export function AdminAttributeItem({ tag }) {
     const redirect = useNavigate()
     const [mouseIsOver, setMouseIsOver] = useState(false)
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: tag && tag.length > 0 });
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag) && tag.length > 0, staleTime: 600000 });
     return (
         <motion.div
             onMouseEnter={() => setMouseIsOver(true)}

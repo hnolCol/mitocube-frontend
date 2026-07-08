@@ -24,7 +24,7 @@ function AttributeSelectionHeader({
     onSampleAttributeSelect,
     disabled = false }) {
    
-    const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : _.isString(selected_attribute_tag)})
+    const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : _.isString(selected_attribute_tag), staleTime : Infinity})
     const attributeSelected = _.isObject(attribute) && _.has(attribute,"text")
     return (
         <div style={{marginRight : "2rem"}}>
