@@ -77,6 +77,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     let track_path = _.concat(path, [{ "tag": attribute_tag, "type": "attribute", "id": referenceID }])
     const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(track_path, rowIndex) : undefined 
    
+    console.log(index,children)
     const allow_multiple_selection  = true 
     const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
     const childTrait = has_selection && _.isString(selection[0].tag) ? selection[0].tag : undefined
@@ -145,10 +146,13 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     }
 
     useEffect(() => {
-        if (requiredTraitsChecked && _.isArray(required_traits) && path.length > 0) {             
+        if (requiredTraitsChecked && _.isArray(required_traits) && required_traits.length === 0) {
+            setRequiredTraitsValid(true)
+        }
+        else if (requiredTraitsChecked && _.isArray(required_traits) && path.length > 0) {
             const pathTags = path.map(p => p.tag)
             // console.log(pathTags, required_traits)
-            console.log(_.intersection(required_traits, pathTags))
+            // console.log(_.intersection(required_traits, pathTags))
             setRequiredTraitsValid(_.intersection(required_traits, pathTags).length > 0)
         }
         else {
@@ -167,6 +171,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     }
 
     if (isLoadingRequirements) return null
+    if (!requiredTraitsValid) return null
     if (requiredTraitsChecked && required_traits.length > 0 && requiredTraitsValid === false) return null
 
     return <div> {

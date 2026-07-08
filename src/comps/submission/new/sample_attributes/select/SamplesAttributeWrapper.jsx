@@ -610,7 +610,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
                 const v = addIDToHierarchy(selection.at(rowIndex % copiedRows.length).slice(), id)
-                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...addIDToHierarchy(v, id)]
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag && p.id === id), ...v]
                
             }
         })
