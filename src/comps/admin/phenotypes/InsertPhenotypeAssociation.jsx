@@ -36,6 +36,8 @@ export function InsertPhenotypeAssociation({ onClose }) {
     const [genotypeImportError, setGenotypeImportError] = useState(null)
     const [showManualGenotype, setShowManualGenotype] = useState(false)
     const [conditionTraits, setConditionTraits] = useState([])
+    const [showManualPhenotype, setShowManualPhenotype] = useState(false)
+    const [newPhenotype, setNewPhenotype] = useState({ text: "", description: "", group_text: "" })
 
     const debouncedProtein = useDebounce(proteinSearch, 300)
     const debouncedDisease = useDebounce(diseaseSearch, 400)
@@ -71,6 +73,9 @@ export function InsertPhenotypeAssociation({ onClose }) {
 
     const { mutate: postAssociation, isLoading, isError, error } = api.phenotypes.associations.usePostPhenotypeAssociation()
 
+    const { mutate: postPhenotype, isLoading: phenotypeInsertLoading, isError: phenotypeInsertError, error: phenotypeInsertErrorObj } =
+        api.phenotypes.query.usePostPhenotype()
+
     const handleConditionTraitSelection = (path, enforceSingleVariantPerGroup = true) => {
         path = addIDToPath(path, "pa_condition")
         let traits = conditionTraits.slice()
@@ -101,6 +106,24 @@ export function InsertPhenotypeAssociation({ onClose }) {
     const handleDiseaseSelect = (disease) => {
         setForm(prev => ({ ...prev, disease_tag: disease.tag, disease_text: disease.text }))
         setDiseaseSearch("")
+    }
+
+    const handleCreatePhenotype = () => {
+        if (!newPhenotype.text.trim()) return
+        postPhenotype(
+            {
+                text: newPhenotype.text.trim(),
+                description: newPhenotype.description.trim() || undefined,
+                group_text: newPhenotype.group_text.trim() || undefined,
+            },
+            {
+                onSuccess: (tag) => {
+                    setForm(prev => ({ ...prev, phenotype_tag: tag }))
+                    setShowManualPhenotype(false)
+                    setNewPhenotype({ text: "", description: "", group_text: "" })
+                }
+            }
+        )
     }
 
     const handleVariantLookup = () => {
@@ -176,11 +199,70 @@ export function InsertPhenotypeAssociation({ onClose }) {
                         <button className="basic-button" onClick={() => setForm(prev => ({ ...prev, phenotype_tag: null }))}>Clear</button>
                     </div>
                 ) : (
-                    <PhenotypeInput
-                        selectedItems={[]}
-                        onPhenotypeSelection={(tag) => setForm(prev => ({ ...prev, phenotype_tag: tag }))}
-                        min_search_string_length={2}
-                    />
+                    <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                        {!showManualPhenotype && (
+                            <>
+                                <PhenotypeInput
+                                    selectedItems={[]}
+                                    onPhenotypeSelection={(tag) => setForm(prev => ({ ...prev, phenotype_tag: tag }))}
+                                    min_search_string_length={2}
+                                />
+                                <button
+                                    className="basic-button flex align-center"
+                                    style={{ gap: "0.3rem", color: "#137CBD", alignSelf: "flex-start" }}
+                                    onClick={() => setShowManualPhenotype(true)}
+                                >
+                                    <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>+</span>
+                                    <span>Add new phenotype</span>
+                                </button>
+                            </>
+                        )}
+
+                        {showManualPhenotype && (
+                            <div className="flex flex-column" style={{ gap: "0.4rem", border: "1px solid #e0e0e0", borderRadius: "6px", padding: "0.75rem" }}>
+                                <input
+                                    className="text-input"
+                                    type="text"
+                                    placeholder="Phenotype name (required)"
+                                    value={newPhenotype.text}
+                                    onChange={(e) => setNewPhenotype(prev => ({ ...prev, text: e.target.value }))}
+                                />
+                                <input
+                                    className="text-input"
+                                    type="text"
+                                    placeholder="Description (optional)"
+                                    value={newPhenotype.description}
+                                    onChange={(e) => setNewPhenotype(prev => ({ ...prev, description: e.target.value }))}
+                                />
+                                <input
+                                    className="text-input"
+                                    type="text"
+                                    placeholder="Group / category (optional)"
+                                    value={newPhenotype.group_text}
+                                    onChange={(e) => setNewPhenotype(prev => ({ ...prev, group_text: e.target.value }))}
+                                />
+                                <div className="flex" style={{ gap: "0.4rem" }}>
+                                    <button
+                                        className="basic-button"
+                                        disabled={!newPhenotype.text.trim() || phenotypeInsertLoading}
+                                        onClick={handleCreatePhenotype}
+                                    >
+                                        {phenotypeInsertLoading ? "Creating..." : "Create & select"}
+                                    </button>
+                                    <button
+                                        className="basic-button"
+                                        onClick={() => {
+                                            setShowManualPhenotype(false)
+                                            setNewPhenotype({ text: "", description: "", group_text: "" })
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                                {phenotypeInsertError && <APIError error={phenotypeInsertErrorObj} />}
+                            </div>
+                        )}
+                    </div>
                 )}
             </Section>
 

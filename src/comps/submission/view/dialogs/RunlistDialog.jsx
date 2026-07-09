@@ -68,6 +68,18 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
     const [selectedInstrument, setSelectedInstrument] = useState(null)
     
+    const totalWellsSelected = _.sum(_.values(plates.selectedWells).map(selWells => selWells.selected.length))
+    const wellsNeeded = getNumberOfSamples(
+        submission,
+        runlistProps.aggregate_on,
+        runlistProps.fractionate ? runlistProps.n_fractions : 1
+    )
+    
+    const isFormValid =
+        !!selectedInstrument &&
+        (!runlistProps.fractionate || (_.toInteger(runlistProps.n_fractions) > 0)) &&
+        totalWellsSelected >= wellsNeeded &&
+        totalWellsSelected > 0
     
     const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypes()
     const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
@@ -307,7 +319,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                 </DialogBody>}
             
             <DialogFooter  minimal={true} actions={<div>
-                <Button text="Submit" onClick={handleSubmit} icon="list" loading={runlistLoading} disabled={runlistLoading} intent="primary"/>
+                <Button text="Submit" onClick={handleSubmit} icon="list" loading={runlistLoading} disabled={runlistLoading || !isFormValid} intent="primary"/>
                 <Button text="Reset" onClick={resetDialog} icon="reset"/>
                 <Button text="Cancel" onClick={handleClose} intent="danger" disabled={runlistLoading}/>
             </div>} />

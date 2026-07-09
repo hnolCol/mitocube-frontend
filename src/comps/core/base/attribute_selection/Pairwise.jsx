@@ -247,7 +247,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
 
 }
     
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true }) {
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true, showAnnotationSubset = true }) {
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const [withinFilters, setWithinFilters] = useState({})
@@ -370,10 +370,14 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
         {_.isObject(sampleCounts) && _.keys(sampleCounts).length > 0
             ? <span className="margin-top--little">Number of selected samples of left <strong>{sampleCounts.left || 0}</strong> and right <strong>{sampleCounts.right || 0}</strong> group.</span>
             : null}
+        {showAnnotationSubset ? (
+            <div className="margin-top--little">
+                <h4>Subset data by annotation</h4>
+                <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]} minimal/>
+                <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
+            </div>
+        ) : null}
         <div className="margin-top--little">
-            <h4>Subset data by annotation</h4>
-            <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]} minimal/>
-            <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
         {inputIsSufficient ? <Tooltip hoverOpenDelay={500} compact={true} inheritDarkTheme={false} content={<div style={{ maxWidth: "14rem", textJustify: "inter-word" }}>Imputation is performed by filtering for proteins that are fully quantified in one group.
             Then NaNs are replaced by random data taken from a downshifted gaussian distribution.
             The downshift equals 1.8 x standard deviation of all features in a sample.
