@@ -225,16 +225,21 @@ export function InsertAttribute({ }) {
         let missingFields = [] 
         if (!(_.isString(attribute.text) && attribute.text.length > 0)) {
             valid = false
-            missingFields.push("Provide text for the attribute")
+            missingFields.push("Provide text for the attribute.")
         }
         if (attribute.group_tags.length === 0) {
             valid = false
-            missingFields.push("Select at least one attribute group")
+            missingFields.push("Select at least one attribute group.")
         }
         if (attribute.allow_input && (!_.isString(attribute.abbreviation) || attribute.abbreviation.length === 0)) {
             valid = false
             missingFields.push("Provide an abbreviation for the attribute if allow input is selected")
         }
+        if (attribute.children.length > 0 && attribute.allow_input) {
+            valid = false
+            missingFields.push("Cannot allow input if the attribute has children.")
+        }
+        
         return { valid, missingFields }
     }
 
