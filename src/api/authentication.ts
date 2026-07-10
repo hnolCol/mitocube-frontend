@@ -4,5 +4,5 @@ import { apiClient } from "./client";
 
 export const userLogin = hooks.authorization.login.createAuthenticationAPI(apiClient);
 export const tokenAuthentication = hooks.authorization.token.createAuthenticationTokenAPI(apiClient);
-
+export const mfaAuthentication = hooks.authorization.mfa.createAuthenticationMFAAPI(apiClient);
 
