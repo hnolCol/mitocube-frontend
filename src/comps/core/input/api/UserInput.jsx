@@ -5,6 +5,7 @@ import { getUserFullName } from "../../../../services/format/user"
 import { MultiSelect } from "@blueprintjs/select"
 import _ from "lodash"
 import { api } from "@/api"; 
+import { ResearchGroupText } from "@/comps/admin/researchgroup/ResearchGroupText"
 
 
 export function UserFullName({ tag }) {
@@ -12,14 +13,20 @@ export function UserFullName({ tag }) {
     return isSuccess ? <span>{getUserFullName(user)}</span> : null 
 }
 
-export function UserMenuItem({ tag, handleClick, handleFocus, modifiers }) {
+export function UserMenuItem({ tag, handleClick, handleFocus, modifiers, selected = false }) {
     
-    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({tag}, {enabled : _.isString(tag)})
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag }, { enabled: _.isString(tag) })
+    const { data : research_groups, isSuccess : isResearchGroupSuccess } = api.researchgroups.useGetResearchGroupsByQuery({user_tags : [tag]}, {enabled : isSuccess && _.isString(tag)})
     return isSuccess ? <MenuItem
         key={tag}
+        icon={selected ? "tick" : "blank"}
         text={getUserFullName(user)}
         onClick={handleClick} onFocus={handleFocus} active={modifiers.active}
-        labelElement={<div style={{ maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem" }}><div><h4>{user.research_group}</h4><p>{user.institute}</p></div></div>}/> : null 
+        labelElement={
+            <div style={{ maxWidth: "20rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem", fontSize : "0.6rem" }}>
+                <div>{isResearchGroupSuccess && _.isArray(research_groups) ?
+                    research_groups.map(rg_tag => <ResearchGroupText key={rg_tag} research_group_tag={rg_tag} />) : null}
+                </div></div>} /> : null 
 }
 
 

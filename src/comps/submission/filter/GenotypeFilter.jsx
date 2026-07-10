@@ -1,60 +1,44 @@
-import { useState } from "react"
 import _ from "lodash"
-import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
+import {  addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 import { GenotypeInput } from "../../core/input/api/GenotypeInput"
 import { api } from "@/api"
 
 export function GenotypeDatasetFilter({ setSubmissionFilter, submissionFilter }) {
-    const [genotypeSelection, setGenotypeSelection] = useState({ selectedGenotypes: [] })
+    console.log(submissionFilter)
+    const onGenotypeSelection = (attribute, genotype_tag) => {
+        console.log(genotype_tag)
+        setSubmissionFilter(prevValues => ({
+            ...prevValues, 
+            genotype_tag: addStringToArrayOrRemove({array : prevValues.genotype_tag, string : genotype_tag})
+        }))
     
-    const onGenotypeSelection = (attribute, item) => {
-        const newArray = addItemToArrayOrRemoveItIfPresent({
-            array: genotypeSelection.selectedGenotypes, 
-            item
-        })
-        
-        setGenotypeSelection(prevValues => ({
-            ...prevValues, 
-            selectedGenotypes: newArray
-        }))
-        
-        setSubmissionFilter(prevValues => ({ 
-            ...prevValues, 
-            genotype_tag: newArray 
-        }))
     }
 
-    const handleRemove = (genotypeTag) => {
-        const newArray = genotypeSelection.selectedGenotypes.filter(g => g !== genotypeTag)
-        
-        setGenotypeSelection(prevValues => ({
-            ...prevValues, 
-            selectedGenotypes: newArray
-        }))
+    const handleRemove = (genotype_tag) => {
         
         setSubmissionFilter(prevValues => ({ 
             ...prevValues, 
-            genotype_tag: newArray 
+            genotype_tag: prevValues.genotype_tag.filter(g => g !== genotype_tag)
         }))
     }
 
     return (
-        <div style={{ width: "100%", paddingRight: "0.1rem" }}>
+        <div style={{ width: "100%", paddingRight: "0.1rem", marginTop : "0.5rem"}}>
             <h4>Genotypes</h4>
+            <span className="font-size--smallest" style={{ marginTop: "0.25rem", marginBottom: "0.5rem", display: "block" }}>
+                Submissions in which the genotype was utilized will be displayed.
+            </span>
             <GenotypeInput 
-                selectedGenotypes={genotypeSelection.selectedGenotypes} 
+                selectedGenotypes={_.has(submissionFilter, "genotype_tag") && _.isArray(submissionFilter.genotype_tag) ? submissionFilter.genotype_tag : []} 
                 onItemSelect={onGenotypeSelection}
                 showSelection={false}
                 usedInSubmissionOnly={true}
             />
-            <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
-                Datasets in which the genotype was utilized will be displayed.
-            </div>
             
             {/* Show selected genotypes below */}
-            {genotypeSelection.selectedGenotypes.length > 0 && (
+            {_.has(submissionFilter, "genotype_tag") && _.isArray(submissionFilter.genotype_tag) && submissionFilter.genotype_tag.length > 0 && (
                 <div style={{ marginTop: "0.5rem" }}>
-                    {genotypeSelection.selectedGenotypes.map(tag => (
+                    {submissionFilter.genotype_tag.map(tag => (
                         <GenotypeDisplay key={tag} tag={tag} onRemove={() => handleRemove(tag)} />
                     ))}
                 </div>

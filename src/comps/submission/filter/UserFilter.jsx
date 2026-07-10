@@ -4,8 +4,10 @@ import useDebounce from "../../../hooks/useDebounce"
 import { addItemToArrayOrRemoveItIfPresent } from "../../../services/arrays/transforms"
 import { getUserFullName } from "../../../services/format/user"
 import { api } from "@/api"
+import { UserMenuItem } from "@/comps/core/input/api/UserInput"
+import { Select } from "@blueprintjs/select"
 
-export function UserDatasetFilter({ setSubmissionFilter, submissionFilter }) {
+export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disabled = false }) {
     const [searchString, setSearchString] = useState("")
     const debouncedString = useDebounce(searchString, 300)
 
@@ -13,8 +15,16 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter }) {
 
     const { data: userResults, isLoading } = api.users.queryByQuery.useGetUserByQuery(
         { search_string: debouncedString, limit: 20 },
-        { enabled: debouncedString.length > 0 }
+        { staleTime : 6000 }
     )
+
+    const renderUser = (item, { handleClick, handleFocus, index, modifiers, query }) => { 
+        const selected = _.has(submissionFilter, "user") && _.isArray(submissionFilter.user) && submissionFilter.user.some(u => u.tag === item)
+        return <UserMenuItem tag={item} selected={selected} {...{handleClick, handleFocus, modifiers, selected}} />
+
+
+    }
+    
 
     const onUserSelect = (userTag) => {
         const newArray = addItemToArrayOrRemoveItIfPresent({
@@ -39,15 +49,15 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter }) {
     return (
         <div style={{ width: "100%", paddingRight: "0.1rem" }}>
             <h4>Users</h4>
-            <input
+            {/* <input
                 className="search-input"
                 value={searchString}
                 onChange={(e) => setSearchString(e.target.value)}
                 placeholder="Search by name..."
                 style={{ width: "100%" }}
-            />
-            {isLoading ? <div className="font-size--smallest">Searching...</div> : null}
-            {_.isArray(userResults) && userResults.length > 0 ? (
+            /> */}
+            
+            {/* {_.isArray(userResults) && userResults.length > 0 ? (
                 <div style={{ marginTop: "0.25rem" }}>
                     {userResults
                         .filter(tag => !selectedUsers.some(su => su.tag === tag))
@@ -55,7 +65,30 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter }) {
                             <UserSearchResult key={tag} tag={tag} onSelect={() => onUserSelect(tag)} />
                         ))}
                 </div>
-            ) : null}
+            ) : null} */}
+
+
+             <Select
+                            minimal
+                            filterable={false}
+                            menuProps={{ style: { minWidth: "500px", maxHeight: "40vh" } }}
+                            disabled={disabled}
+                            items={_.isArray(userResults) ? userResults : []}
+                            itemRenderer={renderUser}
+                            onItemSelect={onUserSelect}
+                        >
+            
+                            <input
+                                className="search-input"
+                                type="text"
+                                placeholder="Search for users ..."
+                                value={searchString}
+                                onChange={(e) => setSearchString(e.target.value)}
+                />
+                
+            
+                        </Select>
+            {isLoading ? <div className="font-size--smallest">Searching...</div> : null}
             <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
                 Submissions created or collaborated on by the selected user(s) will be displayed.
             </div>

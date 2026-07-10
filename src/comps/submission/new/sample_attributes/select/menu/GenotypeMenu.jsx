@@ -67,7 +67,7 @@ export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index
         }}
         onFocus={handleFocus}
         active={modifiers?.active}
-        selected={selected}
+        icon={selected ? "tick" : "blank"}
         labelElement={
             <div className="flex flex-column" style={{maxWidth: "24rem", textAlign: "right", float: "right", textWrap: "wrap", marginRight: "1rem"}}>
                 {proteome_name && <div style={{fontSize: "0.8rem", fontWeight: "bold", color: "#106ba3", marginBottom: "4px"}}>{proteome_name}</div>}

@@ -9,7 +9,8 @@ export function SubmissionGenotypesView({ submission_tag }) {
     const uniqueGenotypeTags = _.isArray(genotypes) ? _.uniq(_.map(genotypes, g => _.join(g["att_genotype"],";"))) : []
     return <div className="flex flex-column padding--medium">
         <h3>Genotypes</h3>
-        {_.isArray(uniqueGenotypeTags) && uniqueGenotypeTags.length > 0 ? uniqueGenotypeTags.map((gt, idx) => <div key={gt}>{gt.split(";").map(gt => <ConditionApplicationsView tag={gt} />)}</div>) : null}
+        {_.isArray(uniqueGenotypeTags) && uniqueGenotypeTags.length > 0 ? uniqueGenotypeTags.map((gt, idx) =>
+            <div key={gt}>{gt.split(";").map(gt => <ConditionApplicationsView tag={gt} />)}</div>) : null}
 
     </div>
 

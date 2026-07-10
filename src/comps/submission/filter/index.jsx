@@ -84,7 +84,6 @@ export function SubmissionFilterSelection({
                     </div>
             </div>
             <div style={{ marginTop: "0.5rem" }}>
-            <div style={{ marginTop: "0.5rem" }}>
     <h4>View By</h4>
     <div className="flex center-items" >
         {SUBMISSIONS_BY_OPTIONS.filter(option => option !== "My Submissions").map(option => (
@@ -94,17 +93,17 @@ export function SubmissionFilterSelection({
     <div className="flex center-items" style={{ marginTop: "0.5rem" }}>
         <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
     </div>
-</div>
-            </div>
-            {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
-            <div style={{height : "1fr", overflowY: "scroll", paddingRight : "1rem"}}>
-                <GenotypeDatasetFilter {...{setSubmissionFilter}} />
-
-    <div style={{ marginTop: "2rem" }}>
-        <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
     </div>
+            {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
+    
+        <div style={{ height: "1fr", overflowY: "scroll", paddingRight: "1rem" }}>
+                <GenotypeDatasetFilter {...{setSubmissionFilter, submissionFilter}} />
 
-    <div style={{ marginTop: "2rem" }}>
+        <div style={{ marginTop: "1rem" }}>
+            <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
+        </div>
+
+    <div style={{ marginTop: "1rem" }}>
         <ConditionApplicationFilter {...{setSubmissionFilter, submissionFilter}} />
     </div>
 </div>

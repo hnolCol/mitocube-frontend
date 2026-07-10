@@ -78,7 +78,6 @@ function CAHItem({ cahierarchy, onSelect, level = 0 }) {
 export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter, return_tags_only = false, infoText = "Datasets with the selected condition applications will be displayed.", showIncludeSampleLevelOption = true }) {
     const [searchString, setSearchString] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
-    const [includeSampleLevel, setIncludeSampleLevel] = useState(submissionFilter.include_sample_ca || false);
 
     const { data: allCAs, isLoading, error } = api.condition_applications.useGetConditionApplicationHierarchyByQuery({
         search_string : searchString,
@@ -98,32 +97,14 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         }
     }, [searchString]);
 
-    // const filteredCAs = useMemo(() => {
-    //     if (!allCAs || !searchString || searchString.length < 2) return [];
-        
-    //     const lowerSearch = searchString.toLowerCase();
-    //     const matching = allCAs.filter(ca => {
-    //         const traitSearch = ca.trait_search || "";
-    //         const attributeSearch = ca.attribute_search || "";
-    //         return traitSearch.toLowerCase().includes(lowerSearch) || 
-    //                attributeSearch.toLowerCase().includes(lowerSearch);
-    //     });
-        
-    //     const deduped = {};
-    //     matching.forEach(ca => {
-    //         if (!deduped[ca.trait_tag]) {
-    //             deduped[ca.trait_tag] = {
-    //                 ...ca,
-    //                 frequency: ca.frequency
-    //             };
-    //         } else {
-    //             deduped[ca.trait_tag].frequency += ca.frequency;
-    //         }
-    //     });
-        
-    //     return Object.values(deduped).sort((a, b) => b.frequency - a.frequency);
-    // }, [allCAs, searchString]);
-    // console.log(submissionFilter)
+    useEffect(() => {
+        if (!_.has(submissionFilter, "include_sample_ca")) {
+            setSubmissionFilter(prev => ({
+                ...prev,
+                include_sample_ca: true
+            }));
+        }
+    }, [submissionFilter.include_sample_ca]);
 
     const selectedCATags = submissionFilter.ca_tags || [];
 
@@ -145,10 +126,8 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
         setSearchString("");
     };
 
-
     const handleIncludeSampleLevelChange = (e) => {
         const checked = e.target.checked;
-        setIncludeSampleLevel(checked);
         setSubmissionFilter(prev => ({
             ...prev,
             include_sample_ca: checked
@@ -210,7 +189,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
             {showIncludeSampleLevelOption && (
                 <div style={{ marginTop: "0.5rem" }}>
                     <Checkbox
-                        checked={includeSampleLevel}
+                        checked={_.has(submissionFilter, "include_sample_ca") ? submissionFilter.include_sample_ca : false}
                         onChange={handleIncludeSampleLevelChange}
                         label="Include sample-level condition applications"
                     />
@@ -234,10 +213,11 @@ function CADisplay({ tag, onRemove }) {
         <div style={{ 
             display: "flex", 
             alignItems: "center", 
-            backgroundColor : "#f9f9f9",
             justifyContent: "space-between",
+            padding: "0.5rem",
             marginBottom: "0.5rem",
-            position: "relative",
+            backgroundColor: "#f5f5f5",
+            borderRadius: "3px"
         }}>
             <div style={{ flex: 1 }}>
                 <ConditionApplicationsView 
