@@ -678,7 +678,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         //remove attribute from attribibuteTable
         let attribute_tag = sampleAttrs[sampleAttrIdx]
         let path = [{ type: "attribute", tag: attribute_tag }]
-        _.range(attributeTable.length).forEach(rowIndex => deleteByPath(attributeTable[rowIndex], path))
+        _.range(attributeTable.length).forEach(rowIndex => deleteByPath(attributeTable[rowIndex], path, true))
             
         updateSubmission(prevValues => {
                 return {
