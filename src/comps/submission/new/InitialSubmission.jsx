@@ -78,9 +78,8 @@ function InitialSubmission({
     const { mutate: postSubmission, isLoading: submissionLoading, isError: submissionFailed, error: submissionError } = usePostSubmission()
     const { data: metatext } = useGetSubmissionMetatext({}) 
     const { data: submission_tag, isSuccess : submissionIDSuccess, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : false})
-    const { data: submissionPermission, isSuccess : permissionSuccess } = api.submissions.permissions.useGetSubmissionPermissions()
+    const { data: submissionPermission, isSuccess : permissionIsSuccess } = api.submissions.permissions.useGetSubmissionPermissions()
     
-    console.log("InitialSubmission render", submission, submission_tag)
     
     useEffect(() => {
         loadSubmission()
@@ -88,7 +87,6 @@ function InitialSubmission({
 
 
     useEffect(() => {
-        console.log("submission_tag effect", submission_tag, submissionIDSuccess)
         if (submissionIDSuccess && _.isString(submission_tag.tag) && submission_tag.tag.length > 0) {
             setSubmission(prevValues => { return { ...prevValues, tag: submission_tag.tag } })
         }
@@ -368,13 +366,13 @@ function InitialSubmission({
                 className="flex flex-column container--scroll-y-hide-x padding--medium margin-top--little margin-right intent-padding-right--little"
                 style={{ height: "100%", position: "relative" }}>
                 
-                    <SubmissionPanelStack {...{
+                    {permissionIsSuccess && submissionPermission.create ? <SubmissionPanelStack {...{
                         submission,
                         setSubmission,
                         onSubmissionRequest,
                         saveSubmission,
                         resetSubmission
-                    }} />
+                    }} /> : null}
             </div>
             
             </div>

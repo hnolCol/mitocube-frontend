@@ -4,9 +4,8 @@ import { GenotypeInput } from "../../core/input/api/GenotypeInput"
 import { api } from "@/api"
 
 export function GenotypeDatasetFilter({ setSubmissionFilter, submissionFilter }) {
-    console.log(submissionFilter)
     const onGenotypeSelection = (attribute, genotype_tag) => {
-        console.log(genotype_tag)
+
         setSubmissionFilter(prevValues => ({
             ...prevValues, 
             genotype_tag: addStringToArrayOrRemove({array : prevValues.genotype_tag, string : genotype_tag})

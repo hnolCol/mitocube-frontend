@@ -590,6 +590,17 @@ h5 {
     font-weight: 500;
 }
 
+.dialog-button--disabled {
+    background: #f3f4f6;
+    color: #bfbfbf;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    padding: 8px 16px;
+    margin-right: 8px;
+    cursor: not-allowed;
+    font-weight: 500;
+}
+
 .bg--blue-light {
     background-color: #466688;
     color: white;

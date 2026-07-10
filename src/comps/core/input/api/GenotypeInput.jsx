@@ -1,5 +1,4 @@
-import { Button, FormGroup, MenuItem } from "@blueprintjs/core"
-import { MultiSelect, Select } from "@blueprintjs/select"
+import { Select } from "@blueprintjs/select"
 import { useState } from "react"
 import useDebounce from "../../../../hooks/useDebounce"
 import _ from "lodash"
@@ -16,7 +15,6 @@ export function GenotypeInput({
         disabled = false,
         usedInSubmissionOnly = false   
 }) {
-    console.log(selectedGenotypes)
     const [queryString, setQueryString] = useState("")
     const debouncedString = useDebounce(queryString, 200)
     const { data: items, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString(

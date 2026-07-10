@@ -148,6 +148,13 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
         })
     }
 
+
+    const isGenotypeInputValid = () => {
+        if (!_.isString(genotype.text) || genotype.text.length === 0) return false
+        if (!_.isString(genotype.description) || genotype.description.length === 0) return false 
+        if (!_.isArray(genotype.components) || genotype.components.length === 0) return false
+        return true
+    }
     
     return (
         <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
@@ -162,7 +169,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
             <div className="flex center-items"><div>
                 <span>Insert component</span></div><div className="flex flex-column"><AddButton onSelect={() => setGenotype(prevValues => { return { ...prevValues, components: [...prevValues.components, { "referenceID": getRandomID(5) }] } })} /></div>
             </div>
-            <div className="margin--medium" style={{color: HIGHLIGHT_COLOR}}>{isSuccess && genotype.components.length === 0 ? <h3>Genotype inserted successfully!</h3> : null}</div>
+            {/* <div className="margin--medium" style={{color: HIGHLIGHT_COLOR}}>{isSuccess && genotype.components.length === 0 ? <h3>Genotype inserted successfully!</h3> : null}</div> */}
             <div>{isError ? <APIError error={error} /> : null}</div>
            <div className="div--expand flex flex-column " style={{justifyContent: "space-between"}}>
             <div className="flex" style={{ gap: "1rem", flexWrap: "wrap", overflowY: "scroll" }}>
@@ -191,8 +198,8 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
             <div className="flex justify-end">
                     <button className="dialog-button" style={{backgroundColor : "#ec7160ff"}} onClick={onClose}>Close</button>
                     {isEditing ?
-                        <button className="dialog-button"  disabled={isUpdateLoading} onClick={editGenotype}>{isUpdateLoading  ? "Editing..." : "Edit"}</button> :
-                        <button className="dialog-button"  disabled={isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button> }
+                        <button className={!isGenotypeInputValid() || isUpdateLoading ? "dialog-button--disabled" : "dialog-button"}  disabled={!isGenotypeInputValid() || isUpdateLoading} onClick={editGenotype}>{isUpdateLoading  ? "Editing..." : "Edit"}</button> :
+                    <button className={!isGenotypeInputValid() || isLoading ? "dialog-button--disabled" : "dialog-button"}  disabled={!isGenotypeInputValid() || isLoading} onClick={insertGenotype}>{isLoading ? "Inserting..." : "Insert"}</button> }
                 </div>
                 </div>
             
