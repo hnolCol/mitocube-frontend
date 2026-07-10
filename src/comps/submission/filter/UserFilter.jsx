@@ -66,7 +66,9 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
                         ))}
                 </div>
             ) : null} */}
-
+            <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+                Submissions created or collaborated on by the selected user(s) will be displayed.
+            </span>
 
              <Select
                             minimal
@@ -89,9 +91,7 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
             
                         </Select>
             {isLoading ? <div className="font-size--smallest">Searching...</div> : null}
-            <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
-                Submissions created or collaborated on by the selected user(s) will be displayed.
-            </div>
+
             {selectedUsers.length > 0 && (
                 <div style={{ marginTop: "0.5rem" }}>
                     {selectedUsers.map(u => (

@@ -75,7 +75,7 @@ function CAHItem({ cahierarchy, onSelect, level = 0 }) {
         </div>
     )
 }
-export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter, return_tags_only = false, infoText = "Datasets with the selected condition applications will be displayed.", showIncludeSampleLevelOption = true }) {
+export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilter, return_tags_only = false, infoText = "Submissions with the selected condition applications will be displayed.", showIncludeSampleLevelOption = true }) {
     const [searchString, setSearchString] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
 
@@ -139,7 +139,9 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
     return (
         <div style={{ width: "100%", paddingRight: "0.1rem"}}>
             <h4>Condition Applications</h4>
-            
+            <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+                {infoText}
+            </span>
             <Popover
                 fill
                 isOpen={showDropdown}
@@ -182,9 +184,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                     </div>
             </Popover>
 
-            <div className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
-                {infoText}
-            </div>
+
 
             {showIncludeSampleLevelOption && (
                 <div style={{ marginTop: "0.5rem" }}>

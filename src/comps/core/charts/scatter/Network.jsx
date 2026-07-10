@@ -491,13 +491,12 @@ export function Network({
                                     className={tooltipSmall ? "" : "flex flex-column bg--lightgrey padding--medium margin--little"}
                                     key={`${index}-hover`}
                                     style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
-                                    {_.has(hoverIndexData, "type") && hoverIndexData["type"] === "annotation" ? <Annotation tag={hoverIndexData["tag"]} /> : null}
+                                    {_.has(hoverIndexData, "type") && hoverIndexData["type"] === "annotation" ? <h3><Annotation tag={hoverIndexData["tag"]} indicateNumberProteins={true} /></h3> : null}
                                         
-                       
                                 {tooltipNames.map(tooltipName =>
                                 {
-                                    if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={true} />
-                                    if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={false} />
+                                    if (_.has(tooltipNameIsFeatures, tooltipName) && hoverIndexData.type !== "annotation") return <ProteinGroup tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={true} />
+                                    if (_.has(tooltipNameIsFeature, tooltipName) && hoverIndexData.type !== "annotation") return <Protein tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={false} />
                                     else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
                                     else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
                                     else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
