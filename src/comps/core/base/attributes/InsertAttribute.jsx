@@ -53,7 +53,7 @@ export function LoadTraitsFromFile({onFileRead}) {
             const reader = new FileReader();
             reader.onload = (event) => {
                 const firstLine = event.target.result.split(/\r?\n/)[0];
-                const cols = firstLine.split(/\t|,/); // supports tab or comma
+                const cols = firstLine.split(/\t/); // supports tab only
                 setHeaders(cols);
             };
             // Read only the first 1KB for header
@@ -81,7 +81,7 @@ export function LoadTraitsFromFile({onFileRead}) {
             const file = lines
                 .filter((line) => line.trim() !== "")
                 .map((line) => {
-                    const cols = line.split(/\t|,/);
+                    const cols = line.split(/\t/);
                     return {
                         text: cols[columnIndex.text],
                         description: cols[columnIndex.description],

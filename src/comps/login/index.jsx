@@ -175,9 +175,9 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                 <div className="margin-bottom--little">
                     <Header text= { userHasMFAEnabled ? "Multi-Factor Authorization Code" : userLoginResponse.success && _.isString(userLoginResponse.token) ? "Verification Code" : "User Login" } />
                 </div>
-                <span>{(loginIsSuccess && !userLoginResponse.mfa_enabled) || (userLoginResponse.success && _.isString(userLoginResponse.token)) ? "MFA is not enabled for this account. You will receive an email with a one-time password that allows you to setup the MFA." : ""}</span>
+                <span className="margin--little" style={{maxWidth : "min(800px,70vw)"}}>{!userHasMFAEnabled && ((loginIsSuccess && !userLoginResponse.mfa_enabled) || (userLoginResponse.success && _.isString(userLoginResponse.token))) ? <span>MFA is <strong>not enabled for this account.</strong> You will receive an email with a one-time password that allows you to setup the MFA.</span> : ""}</span>
                 {
-                    userLoginResponse.mfa_enabled ? <div> 
+                    userHasMFAEnabled ? <div> 
 
                         <div className="flex justify-space-between margin-bottom--little" style={{ width: "45vw" }}>
                         <input
