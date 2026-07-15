@@ -138,8 +138,8 @@ export function NewsView() {
         <div
             className="bg--lightgrey padding--medium"
             style={{
-            minWidth: "max(33vw, 500px)",
-            minHeight: "max(20vh,300px)",
+            width: "max(33vw, 500px)",
+            height: "max(50vh,300px)",
             float: "left",
             overflowY: "scroll"
     }}>
@@ -154,7 +154,8 @@ export function NewsView() {
                 refetch()
             }}/>
         </Dialog>
-        <div className = "flex justify-space-between">
+       
+        <div className="flex justify-space-between">
             <div>
                     <h3>Latest News</h3>
                 </div>

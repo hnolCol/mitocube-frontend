@@ -49,8 +49,8 @@ export function SampleItem({ tag, submission_tag, display_condition_applications
             {tag}
             {_.isObject(sample) && sample.text ? <div>{sample.text}</div> : null}
 
-            {hasGenotype ? <div>
-                <Attribute attribute_tag={'att_genotype'} />
+            {hasGenotype ? <div style={{ marginTop: "8px", alignItems: "flex-start", display: "flex", flexDirection: "column" }}>
+                <h4><Attribute attribute_tag={'att_genotype'} /></h4>
                 <SampleGenotype tag={tag} />
             </div> : null}
             

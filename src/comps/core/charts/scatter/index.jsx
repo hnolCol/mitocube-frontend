@@ -693,9 +693,7 @@ export function ScatterPlot({
                                 className={tooltipSmall ? "" : "flex flex-column bg--lightgrey padding--medium margin--little"}
                                 key={`${index}-hover`}
                                 style={tooltipSmall ? {} : { borderLeft: "3px solid " + colorScale(hoverIndexData[colorName])}}>
-                                
                                 {tooltipNames.map(tooltipName =>
-                                
                                 {
                                     const d = hoverIndexData[tooltipName]
                                     if (_.has(tooltipNameIsStats, tooltipName)) {
@@ -708,9 +706,9 @@ export function ScatterPlot({
                                     if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
                                     if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
                                     
-                                    else {
-                                        return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
-                                    }
+                                    
+                                    return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
+                                    
 
                                 })}
                             </div>

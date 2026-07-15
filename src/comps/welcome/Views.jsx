@@ -8,7 +8,8 @@ export function LastViewed({user_tag, type, limit}) {
         <div className="bg--lightgrey padding--medium"
          style = {{
             width: "max(33vw, 500px)",
-            minHeight: "max(20vh,300px)"}}>
+                height: "max(50vh,300px)",
+            overflowY: "scroll"}}>
             <h3>Last Viewed {type[0].toUpperCase()}{type.slice(1)}</h3>
             {isLoading ? <div>Loading...</div> : isError ? <div>Error loading views.</div> : _.isArray(userSubmissionViews) && userSubmissionViews.length === 0 ? <div>No views found.</div> : (
                 <div>

@@ -33,7 +33,7 @@ function Welcome() {
 
                     </div>
                 </div>
-            <div className="flex flex-wrap justify-flex-start" style={{width : "93vw", gap : "2rem",marginTop: "3rem"}}>
+            <div className="flex flex-wrap justify-flex-start" style={{width : "93vw", gap : "2rem",marginTop: "3rem", height: "max(50vh,300px)",}}>
                     <NewsView />
                     
                     <LastViewed user_tag={null} type="submissions" />

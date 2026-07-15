@@ -16,7 +16,37 @@ import { RemoveButton } from "../buttons/RemoveButton";
 
 
 const AMINO_ACID_ATTRIBUTES = new Set(["att_aa_substitution"])
-const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr","att_sirna_sequence"])
+const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr", "att_sirna_sequence"])
+
+
+export function AttributeTraitInput({ has_selection, childTrait, attribute, attributeHasTraits, getInput, handleSingleTraitSelection, handleTraitValueInput, referenceID, }) {
+
+    return (
+    <div>
+        <MinimalTextInput
+                                    value={getInput()}
+                                    placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : attribute.text}
+                                    disabled={!has_selection}
+                                    callbackKey={attribute.tag}
+                                    allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
+                                    allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
+                                    onChange={(value) => handleTraitValueInput(value)}
+                                    suffix_trait_tag={childTrait} />
+                           
+                            {attributeHasTraits ?
+                                
+                                <TraitInput
+                                    attribute_tag={attribute.tag}
+                                    onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
+                                    selected_trait={has_selection ? selection[0].tag : undefined}
+                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
+            /> : null}
+    </div>
+    )
+}
+
+
+
 TraitChildren.propTypes = {
     children_tags : PropTypes.array 
 }

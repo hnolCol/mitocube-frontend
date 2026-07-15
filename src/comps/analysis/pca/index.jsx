@@ -45,27 +45,6 @@ function PCALoader({ submission_tag, annotation_tag }) {
         }} />
 }
     
-    // <WithTagMaps
-    //                 Component={VolcanoDataHandler}
-    //                     protein_tags={requiredProteinTags}
-    //                     showProteinSearch={true}
-    //                     proteinSearchProps={{submission_tag}}
-    //                     {...{
-    //                         submission_tag, 
-    //                         volcanoData, setVolcanoData,
-    //                         selectedTestParams,
-    //                         setIsFetching,
-    //                         onError,
-    //                         hiddenSuffix,
-    //                         setHiddenSuffix,
-    //                         setRequiredProteinTags,
-    //                         favoriteProteinSelection,
-    //                         proteinHoverResults,
-    //                         favoriteAnnotationSelection,
-    //                         annotationHoverResults,
-    //                         showHoverLabels
-    //                     }} />
-    // }
 
 function DatasetPCA({ }) {
 
@@ -84,7 +63,6 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
     const [selection, setSelection] = useState({ xaxisName: undefined, yaxisName: undefined, colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
     const pcaResultsValid = _.isObject(pcaresults) && _.isArray(pcaresults.drivers) && _.isArray(pcaresults.projection)
     const numericKeyNames = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.drivers) : []
-    const nonNumericKeyNames = pcaResultsValid ? _.keys(pcaresults.drivers[0]).filter(keyName => !numericKeyNames.includes(keyName)) : []
     const numericKeyNamesProjection = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.projection) : []
 
 
@@ -102,7 +80,6 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => { return { ...prevValues, [selectionKey]: keyName } })
     }
-
 
     return (<div className="div--expand" style={{ overflowY: "scroll", height: "90vh " }}>
         <h2>Principal Component Analysis</h2>
@@ -170,7 +147,7 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
                                         yaxisName,
                                         limits,
                                         tooltipSmall: false,
-                                        tooltipNames: [],
+                                        tooltipNames: ["tag"],
                                         ...hoverProps,
                                         ...filterProps,
                                                     
@@ -179,6 +156,7 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
                                         // genotypesByLabel : metadata.genotypes,
                                         legend: true,
                                         handleSearchByDataIndex,
+                                        tooltipNameIsProtein: {}, 
                                         filterDataInKeyByValue,
                                         svgID: "scatter_plot-pca-projection"
                                                 
