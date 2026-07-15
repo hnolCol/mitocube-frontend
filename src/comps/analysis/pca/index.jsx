@@ -150,10 +150,6 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
                                         tooltipNames: ["tag"],
                                         ...hoverProps,
                                         ...filterProps,
-                                                    
-                                        // attributeValuesByTag: metadata.attribute_values_by_tag,
-                                        // attributesByTag: metadata.attributes,
-                                        // genotypesByLabel : metadata.genotypes,
                                         legend: true,
                                         handleSearchByDataIndex,
                                         tooltipNameIsProtein: {}, 

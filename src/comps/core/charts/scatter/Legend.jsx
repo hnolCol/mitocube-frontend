@@ -163,10 +163,8 @@ const ScatterLegend = React.memo(
                                 return (
                                         <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
                                         {renderLegendCircle(size,"#fff",label.value)}
-                                        <LegendLabel align="left" margin={"0 4px"}>
-                                            {label.text}
-                                                </LegendLabel>
-                                                </LegendItem>
+                                        <ConditionApplicationLegendLabel tag={label.datum} handleTooltip={(e, tag) => handleTooltip(e, tag)} hideTooltip={hideTooltip} />
+                                        </LegendItem>
                                 )
                             })}
                         </LegendOrdinal></div> :
@@ -177,7 +175,8 @@ const ScatterLegend = React.memo(
                                 if (idx > 25) return null 
                             return (
                                 <LegendItem key={`${idx}-${label.text}-sizenum`}>
-                                    {renderLegendCircle(size,"#fff",label.value)}
+                                    {renderLegendCircle(size, "#fff", label.value)}
+                                    
                                     <LegendLabel align="left" margin={"0 4px"}>{roundNumber({ number: label.datum, limit: sizeLimit })}</LegendLabel>
                                 </LegendItem>
                             )

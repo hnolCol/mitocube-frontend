@@ -296,7 +296,8 @@ export function InsertAttribute({ }) {
                 
                 <div>
                 <h4>Attribute parents</h4>
-                <span>Defines parents of the specific attribute. For example, defining a specific heart region then, att_organ:heart should be the parent. This leads to a hierarchical entry of the attributes. Note that required traits must be of the same attribute as its parent.</span>
+                    <span>Defines parents of the specific attribute. For example, defining a specific heart region then, att_organ:heart should be the parent. This leads to a hierarchical entry of the attributes.
+                        Note that required traits must be of the same attribute as its parent.</span>
                 
                  <MultipleAttributeSelection selectedItems={attribute.parents}
                     onAttributeSelect={(attribute_tag) => setAttribute(prevValues =>
