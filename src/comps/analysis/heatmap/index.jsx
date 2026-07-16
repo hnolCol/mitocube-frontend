@@ -44,7 +44,11 @@ function HeatmapLoad( {submission_tag} ) {
 
     
     return <WithTagMaps
-            Component={HeatmapViz} ca_tags={unique_ca_tags} attribute_tags={sample_ca_attribute_tags} protein_tags={requiredProteinTags} {...{
+        Component={HeatmapViz}
+        ca_tags={unique_ca_tags}
+        attribute_tags={sample_ca_attribute_tags}
+        protein_tags={requiredProteinTags}
+        {...{
             heatmapData,
             submissionSampleConditionApplications,
             testProps,
@@ -63,7 +67,8 @@ function DatasetHeatmap() {
     const { submission_tag } = useOutletContext()
 
     return <div>
-        <h2>Hierarchical Clustering</h2><HeatmapLoad submission_tag={submission_tag} />
+        <h2>Hierarchical Clustering</h2>
+        <HeatmapLoad submission_tag={submission_tag} />
         </div>
 
 
@@ -86,7 +91,8 @@ function HeatmapViz({
     refetchedTrigger,
     proteinSearchResults,
     proteinIsLoading,
-    submission_tag
+    submission_tag,
+    setProteinSearchTrigger
 }) {
     
 
@@ -265,7 +271,10 @@ function HeatmapViz({
                                         <div className="margin--medium padding--medium">
                                             <Combobox
                                                 selectedItems={_.isArray(viewProps.selectedCluster) ? viewProps.selectedCluster.map(item => item.tag) : []}
-                                                onChange={(item) => { setViewProps({ ...viewProps, selectedCluster: addItemToArrayOrRemoveIfPresentByTag({ array: viewProps.selectedCluster, item }) }) }}
+                                                onChange={(item) => {
+                                                    setViewProps({ ...viewProps, selectedCluster: addItemToArrayOrRemoveIfPresentByTag({ array: viewProps.selectedCluster, item }) })
+                                                    setProteinSearchTrigger(Math.random())
+                                                }}
                                                 items={_.keys(heatmapData.cluster_indices).sort().map((i, idx) => { return { tag: i, text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`, clusterColor: colorPalette[idx % colorPalette.length] } })}
                                                 colorKey="clusterColor" placeholder={viewProps.selectedCluster.length > 0 ? `${viewProps.selectedCluster.length} clusters selected` : "Select cluster"} />
                                         </div>

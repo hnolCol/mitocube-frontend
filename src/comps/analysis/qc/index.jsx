@@ -1,6 +1,7 @@
 import { useOutletContext } from "react-router";
 import _ from "lodash"
 import { SamplePGCounts } from "./PGCounts";
+import { QuantificationDistribution } from "./QuantificationDistribution";
 
 
 
@@ -27,6 +28,7 @@ function DatasetQC() {
             {/* <CategoricalBoxplot data={datatable} /> */}
             <h3>Number of valid values in each sample</h3>
             <SamplePGCounts tag={submission_tag} />
+            <QuantificationDistribution submission_tag={submission_tag} quantification_type="protein_groups" />
             {/* <LineChart
                 data={featureCounts}
                 xaxisName="idx"

@@ -15,6 +15,7 @@ export function WithTagMaps({
     ...rest
 }) {
     // Persist across renders
+    const [resetProteinSearchTrigger, setProteinSearchTrigger] = useState(undefined)
     const [proteinSearchTags, setProteinSearchTags] =  useState({tags : [], trigger : undefined})
     const proteinTagGeneNameMapRef = useRef(new Map())
 
@@ -99,7 +100,7 @@ export function WithTagMaps({
             {showProteinSearch && (
                 <div>
                     <h4>Search</h4>
-                    <ProteinSearch onSuccess={handleProteinSearchSuccess} {...proteinSearchProps} />
+                    <ProteinSearch onSuccess={handleProteinSearchSuccess} {...proteinSearchProps}  resetTrigger={resetProteinSearchTrigger} />
                 </div>
             )}
         
@@ -112,7 +113,9 @@ export function WithTagMaps({
             proteinTagMap={proteinTagMap}
             isReady={ready}
                 proteinIsLoading={proteinIsLoading}
-                proteinSearchResults = {proteinSearchTags}
+                proteinSearchResults={proteinSearchTags}
+                setProteinSearchTrigger={setProteinSearchTrigger}   
+                
             />
             </div>
     )
