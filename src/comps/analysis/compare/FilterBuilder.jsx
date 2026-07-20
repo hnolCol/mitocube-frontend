@@ -7,7 +7,7 @@ import { FilterNode } from "./FilterNode"
 export function FilterBuilder({ submission_tag }) {
 
     const [tree, setTree] = useState({children : [], type : "and"})
-
+    console.log(tree, submission_tag)
     return <div className="div--expand">
 
         <div>

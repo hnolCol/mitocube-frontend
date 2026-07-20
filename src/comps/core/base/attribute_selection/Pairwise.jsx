@@ -7,7 +7,7 @@ import { AttributeSelection } from "../attributes/AttributeSelection"
 import { Attribute } from "../attributes/Attribute"
 import PropTypes from "prop-types"
 import { Select } from "@blueprintjs/select"
-import { ConditionApplicationsView } from "../condition_applications/ConditionApplicationView"
+import { ConditionApplicationItem, ConditionApplicationsView } from "../condition_applications/ConditionApplicationView"
 import { arraysEqual } from "../../../../services/arrays/equal"
 import { motion } from "framer-motion"
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette"
@@ -193,7 +193,7 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
     return <div>
         {showTable && <SampleSelectionTableView submission_tag={submission_tag} highlightSampleTagByColor={sampleTagsByColor} dependency={rerender}/>}
         {_.isArray(uniqueCAValues) && uniqueCAValues.length > 0 ?
-            <div style={{width : "100%"}} className="center-items margin-top--little">
+            <div style={{width : "100%"}} className="center-items">
                 <div className="flex" style={{ gap: "1rem", justifyContent: "center" }}>
                     <CAGroupSelection
                         ca_tags={uniqueCAValues}
@@ -247,7 +247,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
 
 }
     
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true, showAnnotationSubset = true }) {
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true, showAnnotationSubset = true, displayOnly = false, displayProps = {} }) {
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const [withinFilters, setWithinFilters] = useState({})
@@ -297,9 +297,19 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
         })
         if (reset_after_confirm) handleReset()
     }
+    if (displayOnly) {
+        return <div className="flex center-items" style={{gap : "0.5rem"}}>
+            <ConditionApplicationsView tag={displayProps.ca_tag_left} />
+            <span> vs </span>
+            <ConditionApplicationsView tag={displayProps.ca_tag_right} />
+        </div>
+    }
+
+    
     return <div>
         {!minimal && <h4>Define pairwise comparison</h4>}
         {isLoading ? <Loading /> : null}
+        <div className={minimal ? "flex center-items" : "flex flex-column"} style={{gap : "0.5rem", marginTop : "0.2rem", marginBottom : "0.2rem"}}>
         {isSuccess ? <div> 
             {!minimal && <span>Select an attribute to define pairwise comparison groups.</span>}
             <AttributeSelection
@@ -313,7 +323,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
         
         {_.isString(attribute) ?
             
-            <div className="margin-top--little"> 
+            <div className={!minimal ? "margin-top--little" : ""}>
                 {!minimal && <span>Select conditions to compare.</span>}
                 <div className="flex">
                     <GroupCASelection
@@ -326,7 +336,8 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         minimal={minimal}
                         showTable={showTable} />
                 </div>
-            </div> : null}
+                </div> : null}
+            </div>
             {withinAttributes.length > 0 ?
             <div className="margin-top--little">
                 <span>Define the within conditions.</span>
@@ -367,13 +378,13 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                     )}
                 </div> : null}
 
-        {_.isObject(sampleCounts) && _.keys(sampleCounts).length > 0
+        {_.isObject(sampleCounts) && _.keys(sampleCounts).length > 0 && !minimal
             ? <span className="margin-top--little">Number of selected samples of left <strong>{sampleCounts.left || 0}</strong> and right <strong>{sampleCounts.right || 0}</strong> group.</span>
             : null}
         {showAnnotationSubset ? (
             <div className="margin-top--little">
                 <h4>Subset data by annotation</h4>
-                <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]} minimal/>
+                <AnnotationSelectionMenu selected_tags={[pairwiseComp.annotation_tag].filter(t => _.isString(t))} onSelection={(e, tag) => setPairwiseComp(prevValues => { return { ...prevValues, annotation_tag: tag } })} showTags={false} placeholder="Select annotation" submission_tags={[submission_tag]} minimal={minimal} />
                 <div className="font-size--smallest">Data will be filtered for proteins that are annotated by the selected annotation.</div>
             </div>
         ) : null}
@@ -390,8 +401,8 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             </Tooltip> : null}
         </div>
         <div>
-        <button className= {inputIsSufficient ? "basic-button" : "basic-button basic-button--excluded"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
-        <button disabled={isLoadingData} onClick={handleReset} className="basic-button margin-top--little">Reset</button>
+        <button className={inputIsSufficient ? `basic-button ${minimal ? "basic-button--small" : ""}` : "basic-button--excluded"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
+        <button disabled={isLoadingData} onClick={handleReset} className={`basic-button margin-top--little ${minimal ? "basic-button--small" : ""}`}>Reset</button>
         </div>
         {isLoadingData ? <strong><Loading /></strong>: null }
     </div>

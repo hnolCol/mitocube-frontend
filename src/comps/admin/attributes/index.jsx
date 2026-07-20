@@ -11,9 +11,10 @@ import { api } from "@/api"
 import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { Dialog, DialogBody } from "@blueprintjs/core"
 import { InsertAttribute } from "@/comps/core/base/attributes/InsertAttribute"
+import { EditAttribute } from "@/comps/core/base/attributes/EditAttribute"
 
 
-export function AttributeQueryContainer({ search_string, limit = 50, attribute_groups = [] }) {
+export function AttributeQueryContainer({ search_string, limit = 50, attribute_groups = [], onEditAttributeClick }) {
 
     const { data: attribute_tags, isError, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery({
         search_string,
@@ -34,11 +35,11 @@ export function AttributeQueryContainer({ search_string, limit = 50, attribute_g
                     </span>
             </div>
             <div className="container--scroll-y-hide-x" style={{height : "60vh"}}>
-            {_.isArray(attribute_tags) ? <AttributeContainer attribute_tags={attribute_tags} isOpen={true} /> :
+            {_.isArray(attribute_tags) ? <AttributeContainer attribute_tags={attribute_tags} isOpen={true} onEditClick={onEditAttributeClick} /> :
                 _.keys(attribute_tags).map((key) => (
                     <div key={key}>
                         <div><h3>{key}</h3></div>
-                        <AttributeContainer attribute_tags={attribute_tags[key]} isOpen={true} />
+                        <AttributeContainer attribute_tags={attribute_tags[key]} isOpen={true} onEditClick={onEditAttributeClick} />
                     </div>
                 ))}
             </div>
@@ -54,7 +55,7 @@ export function AttributeQueryContainer({ search_string, limit = 50, attribute_g
  */
 export function AttributesAdminView() {
     const [limit, setLimit] = useState(50) // Default limit
-    const [dialogProps, setDialogProps] = useState({ isOpen: false })
+    const [dialogProps, setDialogProps] = useState({ isOpen: false, editMode: false, attribute_tag: null })
     const [searchString, setSearchString] = useState()
     const [attribute_groups, setAttributeGroups] = useState([])
     const debouncedSearchString = useDebounce(searchString, 30)
@@ -74,13 +75,13 @@ export function AttributesAdminView() {
 
                 <Dialog style={{width : "min(950px,70vw)"}} isOpen={dialogProps.isOpen} onClose={() => setDialogProps({ isOpen: false })} title="Add Attribute" canOutsideClickClose={false} canEscapeKeyClose={true}> 
                 <DialogBody>
-                    <InsertAttribute />
+                    {dialogProps.isOpen && !dialogProps.editMode ? <InsertAttribute /> : <EditAttribute attribute_tag={dialogProps.attribute_tag} />}
                 </DialogBody>   
                 </Dialog>
                 <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24, letterSpacing: -1 }}>Attributes</h2>
                 <div className="flex flex-column" style={{ marginBottom: 24 }}>
                     <div>
-                        <div className="flex center-items" style={{marginBottom : "1rem", gap : "1rem"}}><AddButton onSelect={() => setDialogProps({ isOpen: true })} /><div>Insert Attribute</div></div>
+                        <div className="flex center-items" style={{marginBottom : "1rem", gap : "1rem"}}><AddButton onSelect={() => setDialogProps({ isOpen: true, editMode : false })} /><div>Insert Attribute</div></div>
                         <input
                             className="search-input"
                             type="text"
@@ -134,7 +135,8 @@ export function AttributesAdminView() {
                         <AttributeQueryContainer
                             search_string={debouncedSearchString}
                             limit={limit}
-                            attribute_groups={attribute_groups}
+                        attribute_groups={attribute_groups}
+                        onEditAttributeClick={(attribute_tag) => setDialogProps({ isOpen: true, editMode: true, attribute_tag })}
                         />
                     </div>
                 </div>

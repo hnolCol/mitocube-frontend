@@ -57,7 +57,6 @@ export function MinimalAttributeSelection({debounce = 100, onAttributeSelect, se
             itemRenderer={itemRenderer}
             items={isSuccess && attribute_tags.length > 0 ? attribute_tags : []}
             onItemSelect={handleItemSelection}> 
-            
             <button className="basic-button"><span>{selectedItem ? <Attribute attribute_tag={selectedItem} /> : "Select attribute"}</span></button>
             </Select>
     </div>)

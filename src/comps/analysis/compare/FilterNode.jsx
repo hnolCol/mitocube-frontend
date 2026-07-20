@@ -11,6 +11,7 @@ const TYPE_OPTIONS = [
     { tag: "not", text: "NOT", description : "The child must be false for this node to be true" },
 ];
 
+const GROUP_COLORS = ["#4285f4", "#f28b82", "#fbbc04", "#34a853"];
 
 const makeTrend = (submission_tag) => {
     return {
@@ -18,6 +19,7 @@ const makeTrend = (submission_tag) => {
         type: "trend",
         submission_tag: submission_tag,
         direction: "increasing",
+        props : {},
         children : []
     }
 }
@@ -27,9 +29,8 @@ const makePairwise = (submission_tag) => {
         id: getRandomID(),
         type: "pairwise",
         submission_tag: submission_tag,
-        attribute_tag : undefined,
-        ca_tag_left: undefined,
-        ca_tag_right: undefined,
+        props: {},
+        editing : true,
         children : []
     }
 }
@@ -43,11 +44,23 @@ const LEAF_LABEL = { pairwise: "Pairwise comparison", trend: "Trend across condi
 
 
 export function PairwiseNode({ node, onChange, onDelete, depth }) {
-    console.log(node)
-    return <ConditionApplicationSelection submission_tag={node.submission_tag} onConfirm={console.log} showTable={false} minimal />
+
+    const handleConfim = (pairwiseProps) => {
+        onChange({ ...node, props: pairwiseProps, editing: false });
+    }
+
+    const handleReset = () => {
+        onChange({ ...node, props: {}, editing: true });
+    }
+
+    return (
+        <div>
+            <ConditionApplicationSelection submission_tag={node.submission_tag} onConfirm={handleConfim} showTable={false} minimal showAnnotationSubset={false} displayOnly={!node.editing} displayProps={node.props} />
+        </div>
+    );
 }
 
-export function FilterNode({ node, onChange, onDelete, depth, init_submission_tag, defaultGroupType = "and" }) {
+export function FilterNode({ node, onChange, onDelete, depth = 0, init_submission_tag, defaultGroupType = "and" }) {
     console.log(node, init_submission_tag)
     const [submission_tag, setSubmissionTag] = useState(init_submission_tag);
     const isGroup = node.type === "and" || node.type === "or" || node.type === "not";
@@ -67,10 +80,9 @@ export function FilterNode({ node, onChange, onDelete, depth, init_submission_ta
     };
     
     const addChild = (make) => onChange({ ...node, children: [...node.children, make()] });
-
     if (!isGroup) {
         return (
-            <div className="padding--little bg--lightgrey" style={{marginLeft : `${depth * 1.5}rem`, borderRadius : "0.25rem", marginBottom : "0.5rem"}}>
+            <div className="padding--little bg--lightgrey" style={{marginLeft : `${depth * 0.5}rem`, borderRadius : "0.25rem", marginBottom : "0.5rem"}}>
                 <div className="flex center-items">
                     <Code>{node.type}</Code>
                     <div><h3>{LEAF_LABEL[node.type]}</h3></div>
@@ -86,27 +98,29 @@ export function FilterNode({ node, onChange, onDelete, depth, init_submission_ta
     }
 
 
-    return <div >
-        <div className="flex center-items justify-space-between">
-            <div className="flex">
-                <span>{node.id}</span>
+    return <div style={{marginLeft : `${depth * 0.2}rem`, marginBottom : "0.5rem", borderRadius : "0.25rem", padding : "0.5rem", backgroundColor: "#f9f9f9", border : `3px solid ${GROUP_COLORS[depth % GROUP_COLORS.length]}`}}>
+        <div className="flex center-items justify-space-between" style={{marginLeft : "0.3rem", marginBottom : "0.5rem"}}>
+            <div className="flex center-items" style={{gap : "0.5rem"}}>
+                <span>Group Node Operator |</span>
                 <div style={{width : "4rem"}}>
                     <Combobox small items={TYPE_OPTIONS} value={node.type} textKey="tag" labelKey={"description"} onChange={item => onChange({ ...node, type: item.tag, children: node.children })} matchTargetWidth={false} />
                 </div>  
+                <span>Group Node ID: {node.id}</span>
             </div>
         {onDelete && <RemoveButton onRemove={() => onDelete(node.id)} />}
         </div>
 
-        <div style={{marginLeft : `${depth * 1.5}rem`, marginTop : "0.5rem", border : "1px solid #ccc", borderRadius : "0.25rem", padding : "0.5rem"}}>
+        <div style={{marginLeft : `${depth * 1.5}rem`, marginTop : "0.5rem", borderRadius : "0.25rem", padding : "0.5rem"}}>
             {node.children.map((child, index) => {
 
-                return <FilterNode
+                return <div key={child.id} style={{borderBottom : "2px solid #e0e0e0", marginBottom : "0.5rem", paddingBottom : "0.5rem"}}>
+                    <FilterNode
                             key={child.id}
                             node={child}
                             onChange={(next) => updateChild(index, next)}
                             onDelete={() => deleteChild(index)}
                             depth={depth + 1}
-                            init_submission_tag={submission_tag} />
+                            init_submission_tag={submission_tag} /> </div>
                 
                             })} 
         </div>

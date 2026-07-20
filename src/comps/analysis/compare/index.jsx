@@ -72,6 +72,12 @@ export function SubmissionCompare({ }) {
 
     return (
         <div className="filter-builder">
+            <div>
+                <h3>Filter Builder</h3>
+                <span>Here you can build filters to create list of features. For example you can define pairwise comparisons and trends in your data. You can also combine this with different submissions. In the end there is a list of features (proteins, genes, etc). You can then
+                    define this list of features as a annotation as well and download it with the associated data. 
+                </span>
+            </div>
             <FilterBuilder submission_tag={submission_tag} />
             {/* <button className="basic-button" onClick={() => addFilter()}>
                 Add Top-level Filter

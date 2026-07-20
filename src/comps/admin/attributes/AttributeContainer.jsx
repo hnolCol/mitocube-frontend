@@ -4,7 +4,8 @@ import PropTypes from "prop-types";
 
 AttributeContainer.propTypes = {
     attribute_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
-    isOpen: PropTypes.bool
+    isOpen: PropTypes.bool,
+    onEditClick: PropTypes.func
 };
 
 AttributeContainer.defaultProps = {
@@ -18,10 +19,10 @@ AttributeContainer.defaultProps = {
  * @param {Boolean} props.isOpen - Whether the container is open or not (e.g. shown or not)
  * @returns 
  */
-export function AttributeContainer({ attribute_tags, isOpen }) {
+export function AttributeContainer({ attribute_tags, isOpen, onEditClick }) {
     return (<div className="flex flex-column flex-start margin-left--medium">
         {_.isArray(attribute_tags) && isOpen  && attribute_tags.map((tag, idx) => (
-            <AdminAttributeItem key={`${tag}-${idx}`} tag={tag}/>
+            <AdminAttributeItem key={`${tag}-${idx}`} tag={tag} onEditClick={onEditClick}/>
         ))}
     </div>)
 }

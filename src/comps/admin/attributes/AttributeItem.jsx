@@ -11,7 +11,8 @@ import { TraitCount } from "./TraitCount";
 
 
 AdminAttributeItem.propTypes = {
-    tag: PropTypes.string.isRequired
+    tag: PropTypes.string.isRequired,
+    onEditClick: PropTypes.func
 };
 
 /**
@@ -20,7 +21,7 @@ AdminAttributeItem.propTypes = {
  * @param {String} props.tag - attribute tag 
  * @returns {JSX.Element} The attribute item component  
  */
-export function AdminAttributeItem({ tag }) {
+export function AdminAttributeItem({ tag, onEditClick }) {
     const redirect = useNavigate()
     const [mouseIsOver, setMouseIsOver] = useState(false)
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag) && tag.length > 0, staleTime: 600000 });
@@ -57,6 +58,7 @@ export function AdminAttributeItem({ tag }) {
                     <div>{mouseIsOver ? <AttributeMinState tag={tag} /> : null}</div>
                     <div>{mouseIsOver ? <div>allow input: <Code>{attribute.allow_input ? "TRUE" : "FALSE"}</Code></div> : null}</div>
                     <div>{mouseIsOver ? <span>priority: {attribute.priority}</span> : null}</div>
+                    <div>{mouseIsOver && _.isFunction(onEditClick) ? <button className="basic-button" onClick={(e) => { e.stopPropagation(); onEditClick(tag); }}>Edit</button> : null}</div>
                 </>
             )}
         </motion.div>

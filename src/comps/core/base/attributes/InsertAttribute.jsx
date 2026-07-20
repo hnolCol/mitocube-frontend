@@ -267,6 +267,12 @@ export function InsertAttribute({ }) {
         
         <h3>Settings</h3>
         <div style={{ marginLeft: "2rem" }}>
+            <h4>Sate</h4>
+                        <span>Define the minimum state that is required for the attribute to be shown. For example, attributes that are only relevant for the processing of the sample (protease) or Measuring (instrument). Attributes describing the samples should be defined as submitted</span>
+                        <div className="flex center-items" style={{ gap: "0.2rem", marginTop: "0.5rem" }}>
+                            <StaticStateIndicator state_tag={attribute.min_state}/>
+                            <StateSelectionMenu onSelection={(state) => setAttribute(prevValues => { return { ...prevValues, min_state: state } })} current_state_tag={attribute.min_state} />
+            </div>
             <h4>Attribute Groups</h4>
             <span>Select attribute groups. Select sample attribute if the attribute should be available for sample condition definition. </span>
             <div className="margin--little"><AttributeGroupSelection

@@ -298,7 +298,7 @@ function App() {
             <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{ logout }} />} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />
-            {/* <Route path="/submissions/:tag/compare" element={<SubmissionCompare {...{ logout }} />} /> */}
+            <Route path="/submissions/:tag/compare" element={<SubmissionCompare {...{ logout }} />} />
             <Route path="/submissions/:tag/exclusively" element={<SubmissionExclusivelyQuantified {...{ logout }} />} />
             <Route path="/submissions/:tag/heatmap" element={<DatasetHeatmap {...{}} />} />
             <Route path="/submissions/:tag/pca" element={<DatasetPCA {...{ logout }} />} />
