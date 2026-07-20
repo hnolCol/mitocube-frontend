@@ -54,9 +54,9 @@ export function Combobox({
     showNoResults = true,
     minQueryLength = 2,
     value_suffix = "",
+    minimal = false,
     buttonProps = {
-        minimal : false,
-        small : true
+        
     },
     fill = true}) {
 
@@ -136,7 +136,7 @@ export function Combobox({
                 onWheelCapture: (event) => event.stopPropagation()
             }}
             disabled={disabled}>
-            <Button text={value !== undefined ? `${value} ${value_suffix}` : placeholder} disabled={disabled} {...buttonProps} fill={fill} />
+            <button style={{width : fill ? "100%" : "auto"}} disabled={disabled} className={`basic-button ${minimal ? "basic-button--small" : ""}`} {...buttonProps}>{_.isString(value) ? value + value_suffix : placeholder}</button>
         </Select>
     )
 }

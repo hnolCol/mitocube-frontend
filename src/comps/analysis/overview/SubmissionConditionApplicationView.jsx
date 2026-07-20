@@ -97,6 +97,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
     const handleRemove = (path) => {
         path = addIDToPath(path, submission_tag)
         deleteByPath(selected_traits, path)
+        setSelectedTraits([...selected_traits])
     }
     const cleanForBackend = (traits) => {
         return traits.map(item => ({
@@ -110,6 +111,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         const cleaned = cleanForBackend(selected_traits)
         updateCA({ tag: submission_tag, selected_traits: cleaned })
     }
+
 
 
     return (

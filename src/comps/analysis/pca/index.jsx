@@ -81,6 +81,9 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
         setSelection(prevValues => { return { ...prevValues, [selectionKey]: keyName } })
     }
 
+    if (!isReady) return <Loading />
+    if (!pcaResultsValid) return <div>No PCA results found for this submission. Likely the data are not yet uploaded.</div>
+
     return (<div className="div--expand" style={{ overflowY: "scroll", height: "90vh " }}>
         <h2>Principal Component Analysis</h2>
         {_.isObject(pcaresults) && _.isArray(pcaresults.variance_explained) ? <span>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained) * 10000) / 100}% of the total variance.</span> : null}

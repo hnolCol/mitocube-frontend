@@ -55,10 +55,8 @@ export function TraitWithValueInput({
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
-    const allows_multiple_traits = true
-    
-    // const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(traitPath, rowIndex) : undefined
-    // const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
+    const allows_multiple_traits = true //wanted to make this an attribute property, but it is not yet implemented in the backend. For now, we will assume that all attributes allow multiple traits.
+
     /**
      * @description Get the input value for the text input. The given path is screened to match and the value is returned.
      * @returns {String} The input value for the text input.
@@ -74,12 +72,8 @@ export function TraitWithValueInput({
     
     const handleTraitSelection = (trait_tag, referenceID, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
         
-            if (has_selection && allow_multiple_selection === false) {
-                //check if multiple allowed??
-                const p_remove = _.concat(traitPath, [{ "type": "trait", "tag": selection[0].tag, "id": referenceID }])
-                if (_.isFunction(onRemove)) onRemove(p_remove, [rowIndex], referenceID)
-            }
-            else if (has_selection && allow_multiple_selection === true && selection.map(s => s.tag).includes(trait_tag)) {
+        if (has_selection && allow_multiple_selection === true && selection.map(s => s.tag).includes(trait_tag)) {
+                
                 const p_remove = _.concat(traitPath, [{ "type": "trait", "tag": trait_tag, "id": referenceID }])
                 if (_.isFunction(onRemove)) onRemove(p_remove, [rowIndex], referenceID)
                 return
@@ -89,7 +83,7 @@ export function TraitWithValueInput({
             onChildrenSelection(p, [rowIndex], enforceSingleVariantPerGroup, replaceChildrenAtLeaf)
         }
     
-        const handleTraitValueInput = (value, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
+    const handleTraitValueInput = (value, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
             const p = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID, value: value }]
             onChildrenSelection(p, [rowIndex], enforceSingleVariantPerGroup, replaceChildrenAtLeaf) //adding the value should not have an effect on the single child level or type, as the value is not relevant for the children display.
         }
@@ -136,7 +130,7 @@ export function TraitWithValueInput({
                     </div>
                     {_.isFunction(onRemove) ?
                             <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem", position: "absolute", right: 0, top : 2}}>
-                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove(traitPath, [rowIndex], referenceID)} />
+                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove([{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }], [rowIndex], referenceID)} />
                             </div>
                             : null}
                 </motion.div> : null }

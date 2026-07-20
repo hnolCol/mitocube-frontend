@@ -126,9 +126,6 @@ export function VolcanoDataHandler({
     
     const handleSuccess = (data) => {
         //merge data to get super fast split
-       
-        
-        
         if (volcanoData.suffixes.includes(data.suffix)) return //already have this data, no need to merge again
         let updatedData = []
         let prevData = volcanoData.data
@@ -141,11 +138,24 @@ export function VolcanoDataHandler({
         }
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
 
+        // Check if the item already exists to prevent duplicates
+        const newItem = { ...selectedTestParams, tag: submission_tag }
+        let updatedItems = [newItem]
+        if (itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag)) {
+            const existingItems = itemValue[submission_tag]
+            const isDuplicate = _.some(existingItems, item => _.isEqual(item, newItem))
+            if (!isDuplicate) {
+                updatedItems = _.concat(existingItems, newItem)
+            } else {
+                updatedItems = existingItems
+            }
+        }
+
         saveInLocalStorage({
-            itemName: "volcanoProps", itemValue: JSON.stringify({
+            itemName: "volcanoProps",
+            itemValue: JSON.stringify({
                 ...itemValue,
-                [submission_tag]: itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ?
-                    _.concat(itemValue[submission_tag], { ...selectedTestParams, tag: submission_tag }) : [{ ...selectedTestParams, tag: submission_tag }]
+                [submission_tag]: updatedItems
             })
         })
         
