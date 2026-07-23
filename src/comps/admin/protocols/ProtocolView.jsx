@@ -1,4 +1,5 @@
 import Markdown from "react-markdown";
+import { useEffect } from "react";
 import { api } from "@/api";
 import remarkGfm from 'remark-gfm'
 import { Loading } from "@/comps/core/base/states/Loading";
@@ -18,10 +19,11 @@ export function ProtocolSubmissions({ protocol_tag }) {
 }
 
 
-export function ProtocolView({ protocol_tag }) { 
+export function ProtocolView({ protocol_tag, handleEdit, updateTrigger }) { 
 
-    const { data: protocol, isLoading, isError, error, isSuccess } = api.protocols.query.useGetProtocolByTag({ tag: protocol_tag }, { enabled: _.isString(protocol_tag) })
-
+    const { data: protocol, isLoading, isError, error, isSuccess, refetch } = api.protocols.query.useGetProtocolByTag({ tag: protocol_tag }, { enabled: _.isString(protocol_tag) })
+    console.log(updateTrigger, protocol_tag, protocol)
+    useEffect(() => { if (_.isNumber(updateTrigger)) refetch() }, [updateTrigger])
     
     const isModified = protocol?.modified_at !== null && protocol?.modified_at !== protocol?.created_at && protocol?.modified_user_tags?.length > 0
     if (isLoading) return <Loading /> 
@@ -40,7 +42,7 @@ export function ProtocolView({ protocol_tag }) {
         <div className="flex flex-column" style={{marginTop : "1rem", marginBottom : "1rem"}}>
             <ProtocolSubmissions protocol_tag={protocol_tag} />
         </div>
-        
+        <button className="basic-button basic-button--highlighted" onClick={() => { handleEdit() }}>Edit Protocol</button>
         <Markdown remarkPlugins={[remarkGfm]}>{"# " + protocol?.title + "\n\n" + protocol?.text || "No description available."}</Markdown>
     </div>)
 }
