@@ -22,7 +22,6 @@ export function ProtocolSubmissions({ protocol_tag }) {
 export function ProtocolView({ protocol_tag, handleEdit, updateTrigger }) { 
 
     const { data: protocol, isLoading, isError, error, isSuccess, refetch } = api.protocols.query.useGetProtocolByTag({ tag: protocol_tag }, { enabled: _.isString(protocol_tag) })
-    console.log(updateTrigger, protocol_tag, protocol)
     useEffect(() => { if (_.isNumber(updateTrigger)) refetch() }, [updateTrigger])
     
     const isModified = protocol?.modified_at !== null && protocol?.modified_at !== protocol?.created_at && protocol?.modified_user_tags?.length > 0
@@ -42,7 +41,7 @@ export function ProtocolView({ protocol_tag, handleEdit, updateTrigger }) {
         <div className="flex flex-column" style={{marginTop : "1rem", marginBottom : "1rem"}}>
             <ProtocolSubmissions protocol_tag={protocol_tag} />
         </div>
-        <button className="basic-button basic-button--highlighted" onClick={() => { handleEdit() }}>Edit Protocol</button>
+        {_.isFunction(handleEdit) ? <button className="basic-button basic-button--highlighted" onClick={() => { handleEdit() }}>Edit Protocol</button> : null}
         <Markdown remarkPlugins={[remarkGfm]}>{"# " + protocol?.title + "\n\n" + protocol?.text || "No description available."}</Markdown>
     </div>)
 }

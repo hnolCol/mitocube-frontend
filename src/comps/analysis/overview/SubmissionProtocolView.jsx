@@ -1,12 +1,14 @@
 import { api } from "@/api"
 import { ProtocolMinimalItem } from "@/comps/admin/protocols/ProtocolMinimalItem"
+import { ProtocolView } from "@/comps/admin/protocols/ProtocolView"
 import { SubmissionProtocolLink } from "@/comps/admin/protocols/SubmissionProtocolLink"
-import { Dialog, DialogBody } from "@blueprintjs/core"
+import { Dialog, DialogBody, Drawer } from "@blueprintjs/core"
 import _ from "lodash" 
 import { useState } from "react"
 
 export function SubmissionProtocolsView({ submission_tag }) {
     const [dialogProps, setDialogProps] = useState({ isOpen: false, editMode: false, selected_protocol_tags: [] })
+    const [drawerProps, setDrawerProps] = useState({ isOpen: false, protocol_tag: null })
     const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
     const { data: submission_protocols, refetch : refetchSubmissionProtocols } = api.submissions.protocols.useGetSubmissionProtocols({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
     const { mutate : linkProtocol} = api.protocols.modify.useLinkProtocolToSubmission()
@@ -54,6 +56,12 @@ export function SubmissionProtocolsView({ submission_tag }) {
                     <SubmissionProtocolLink submission_tag={submission_tag} selected_protocol_tags={submission_protocols} onChange={handleProtocolChange} onDone={handleClose}/>
                 </DialogBody>
             </Dialog>
+
+            <Drawer isOpen={drawerProps.isOpen} onClose={() => setDrawerProps({ isOpen: false, protocol_tag: null })} title="View Protocol" canOutsideClickClose={true} canEscapeKeyClose={true}>
+                <ProtocolView protocol_tag={drawerProps.protocol_tag} />
+                
+            </Drawer>
+
             <div className="flex center-items justify-space-between" >
                     <h3>Utilized Protocols</h3>
                             {canEdit && (
@@ -61,7 +69,7 @@ export function SubmissionProtocolsView({ submission_tag }) {
                             )}
                         </div>
             <div style={{ height: "29vh", padding: "1rem", overflowY: "scroll" }}>
-                {submission_protocols?.map((protocol_tag) =>  <ProtocolMinimalItem key={protocol_tag} protocol_tag={protocol_tag}/>)}
+                {submission_protocols?.map((protocol_tag) =>  <ProtocolMinimalItem key={protocol_tag} protocol_tag={protocol_tag} onClick={() => setDrawerProps({ isOpen: true, protocol_tag })} />)}
 
             </div>
         </div>
