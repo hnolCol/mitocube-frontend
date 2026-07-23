@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { HIGHLIGHT_COLOR } from "/src/comps/core/colors/colorPalette.js";
+import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 
 const REQUIRED_COLUMNS = [
   { key: "protein_id", label: "UniProt ID" },

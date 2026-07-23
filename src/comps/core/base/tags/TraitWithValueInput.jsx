@@ -56,7 +56,8 @@ export function TraitWithValueInput({
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
     const allows_multiple_traits = true //wanted to make this an attribute property, but it is not yet implemented in the backend. For now, we will assume that all attributes allow multiple traits.
-
+    const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(traitPath, rowIndex) : undefined 
+    const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
     /**
      * @description Get the input value for the text input. The given path is screened to match and the value is returned.
      * @returns {String} The input value for the text input.
@@ -115,7 +116,9 @@ export function TraitWithValueInput({
                         </div> : 
                             <div className="flex flex-column" style={{ width: "100%", marginRight: "1rem" }}>
                                 <AttributeTraitInput
-                                    has_selection={true}
+                                    track_path={traitPath}
+                                    selection={selection}
+                                    has_selection={has_selection}
                                     childTrait={trait_tag}
                                     attribute = {attribute}
                                     attributeHasTraits={hasChildren}

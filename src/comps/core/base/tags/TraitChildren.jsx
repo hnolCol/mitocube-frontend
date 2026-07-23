@@ -19,8 +19,12 @@ const AMINO_ACID_ATTRIBUTES = new Set(["att_aa_substitution"])
 const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr", "att_sirna_sequence"])
 
 
-export function AttributeTraitInput({ has_selection, childTrait, attribute, attributeHasTraits, getInput, handleSingleTraitSelection, handleTraitValueInput, referenceID, }) {
-
+export function AttributeTraitInput({ has_selection, selection, childTrait, attribute, attributeHasTraits, getInput, handleSingleTraitSelection, handleTraitValueInput, referenceID, }) {
+    
+    
+    
+            
+    
     return (
     <div>
         <MinimalTextInput
