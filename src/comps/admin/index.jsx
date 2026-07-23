@@ -24,7 +24,8 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Procedures", to : "/admin/procedure"},
                 { text: "External Services", to : "/admin/externalservice"},
                 { text: "Annotations", to: "/admin/annotations"},
-                {text: "News", to: "/admin/news"}
+                { text: "Protocols", to: "/admin/protocols"},
+                { text: "News", to: "/admin/news"}
                 ]} />
                 
                 <div className="no-scroll div--expand">

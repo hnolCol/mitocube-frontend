@@ -15,7 +15,8 @@ import {
     submissionSamplesAPI,
     submissionUserAPI,
     submissionViewsAPI,
-    submissionRunlistAPI
+    submissionRunlistAPI,
+    submissionProtocolsAPI
 } from "./submission";
 import { tokenAuthentication, userLogin, mfaAuthentication } from "./authentication";
 import { newsAPI } from "./news";
@@ -44,7 +45,7 @@ import { diseasesQueryAPI, diseasesClinVarAPI } from "./diseases";
 import { phenotypeQueryAPI, phenotypeassociationQueryAPI } from "./phenotypes";
 import { variantsQueryAPI } from "./variants";
 import { crosslinksQueryAPI, externalresourceQueryAPI } from "./crosslinks";
-
+import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
 export const api = {
     annotations : {
         queryAnnotations : annotationsQueryAPI,
@@ -95,8 +96,9 @@ export const api = {
         ranking : submissionRankingAPI,
         samples : submissionSamplesAPI,
         users : submissionUserAPI,
-        views : submissionViewsAPI,
-            runlist : submissionRunlistAPI
+        views: submissionViewsAPI,
+        protocols : submissionProtocolsAPI,
+        runlist : submissionRunlistAPI
     },
     authentication: {
         login: userLogin,
@@ -169,6 +171,10 @@ export const api = {
     phenotypes : {
         query : phenotypeQueryAPI,
         associations : phenotypeassociationQueryAPI
+    },
+    protocols: {
+        query: protocolsQueryAPI,
+        modify : protocolsModifyAPI
     },
     variants : {
         query : variantsQueryAPI

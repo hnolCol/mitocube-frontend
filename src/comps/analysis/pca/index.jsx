@@ -80,7 +80,7 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
     const handleScatterSelection = (idx, selectionKey, keyName) => {
         setSelection(prevValues => { return { ...prevValues, [selectionKey]: keyName } })
     }
-
+    if (isPCALoading) return <Loading />
     if (!isReady) return <Loading />
     if (!pcaResultsValid) return <div>No PCA results found for this submission. Likely the data are not yet uploaded.</div>
 
@@ -88,9 +88,10 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
         <h2>Principal Component Analysis</h2>
         {_.isObject(pcaresults) && _.isArray(pcaresults.variance_explained) ? <span>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained) * 10000) / 100}% of the total variance.</span> : null}
         
-        {isPCALoading ? <Loading />: <div className = "flex" style={{ gap: "5rem", marginTop: "1rem" }}>
+   
+        <div className="flex" style={{ gap: "5rem", marginTop: "1rem" }}>
            
-            <div>
+        <div>
                 <ScatterDataSelection
                     keyNames={_.keys(pcaresults.projection[0])}
                     {...{
@@ -256,7 +257,7 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
                 })}
 
             </InteractiveChart> : null}
-        </div>}
+        </div>
         
     </div>
         )

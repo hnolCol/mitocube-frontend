@@ -77,7 +77,7 @@ import { AdminExternalService } from "./comps/admin/externalservice/ExternalServ
 import { AdminAnnotations } from "./comps/admin/annotations/Annotations";
 import { NewsManagement } from "./comps/admin/news/NewsManagement";
 import { AdminPhenotypeAssociations } from "./comps/admin/phenotypes/AdminPhenotypeAssociation";
-
+import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
 import Welcome from "./comps/welcome";
@@ -344,6 +344,7 @@ function App() {
             <Route path="/admin/externalservice" element={<AdminExternalService />} />
             <Route path="/admin/annotations" element={<AdminAnnotations />} />
             <Route path="/admin/news" element={<NewsManagement />} />
+             <Route path="/admin/protocols" element={<AdminProtocols />} />
           </Route>
 
           <Route

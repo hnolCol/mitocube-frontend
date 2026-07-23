@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { MultipleAttributeSelection } from "./MultipleAttributeSelection";
 import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
-import { AttributeInput } from "../../input/api/AttributeInput";
-import { TraitInput } from "../../input/api/TraitInput";
 import { AttributesInput } from "../../input/api/DatasetAttributeInput";
 import _ from "lodash"
 import { Trait } from "../traits/Trait";
 import { AttributeGroupSelection } from "@/comps/admin/attributes/Groups";
 import { api } from "@/api";
-import APIError from "../../error/APIerror";
 
 
 import { APIAxiosError } from "../states/APIError";
@@ -122,7 +119,7 @@ export function EditAttribute({attribute_tag}) {
         <h3>Settings</h3>
         <div style={{ marginLeft: "2rem" }}>
 
-            <h4>Sate</h4>
+            <h4>Minimal State</h4>
             <span>Define the minimum state that is required for the attribute to be shown. For example, attributes that are only relevant for the processing of the sample (protease) or Measuring (instrument). Attributes describing the samples should be defined as submitted</span>
             <div className="flex center-items" style={{ gap: "0.2rem", marginTop: "0.5rem" }}>
                 <StaticStateIndicator state_tag={attribute.min_state}/>

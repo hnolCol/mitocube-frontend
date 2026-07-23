@@ -124,26 +124,27 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                     <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
                 </div>
-                <div style={{ height: "33vh", padding: "1rem", overflowY: "scroll" }}>
-                    {group_by_min_state && group_by_min_state ? <div>
-                        {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}> 
-                            <StateHeader tag={state_ca_item.state_tag} />
-                            {state_ca_item.attribute_conditions.map(attr_cond => {
-                                return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}`} className="padding--tiny margin--tiny">
-                                    <strong><Attribute attribute_tag={attr_cond.attribute_tag} /></strong>
-                                    {attr_cond.condition_application_tags?.length > 0 ? attr_cond.condition_application_tags.map(ca_tag => (
-                                        <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
-                                            <ConditionApplicationsView tag={ca_tag} show_attribute={false} />
+                <div style={{ height: "29vh", padding: "1rem", overflowY: "scroll" }}>
+                    {group_by_min_state ? <div>
+                        {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => {
+                            return <div key={state_ca_item.state_tag}>
+                                    <StateHeader tag={state_ca_item.state_tag} />
+                                    {state_ca_item.attribute_conditions.map(attr_cond => {
+                                        return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}`} className="padding--tiny margin--tiny">
+                                            <strong><Attribute attribute_tag={attr_cond.attribute_tag} /></strong>
+                                            {attr_cond.condition_application_tags?.length > 0 ? attr_cond.condition_application_tags.map(ca_tag => {
+                                                return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
+                                                    <ConditionApplicationsView tag={ca_tag} show_attribute={false} />
+                                                </div>
+                                            }) : <div>No condition applications found for this attribute.</div>}
                                         </div>
-                                    )) : <div>No condition applications found for this attribute.</div>}
-                                </div>
-                             })}
-                        </div>)}
+                                    })}
+                                </div>})}
 
 
                     </div> : null }
 
-                    {group_by_min_state && !group_by_min_state ?
+                    {!group_by_min_state ?
                         <div>
                             {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}> 
                                 <StateHeader tag={state_ca_item.state_tag} />
@@ -155,12 +156,12 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                             </div>)}
                         </div>
                         : null}
-                {_.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
+                {!group_by_min_state && !group_by_attrbibute ? _.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
                     submission_ca_tags.map(ca_tag => (
                         <div key={ca_tag} className="padding--tiny margin--tiny">
                             <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
                         </div>
-                    )) : <div>No condition applications found for this submission.</div>}
+                    )) : <div>No condition applications found for this submission.</div> : null}
                 </div>
             </div>
 

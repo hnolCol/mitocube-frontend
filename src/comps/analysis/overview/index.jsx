@@ -20,6 +20,7 @@ import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 import { SubmissionGenotypesView } from "@/comps/core/base/genotype/SubmissionGenotypesView";
 import { api } from "@/api";
 import { ResearchGroupTextByUser } from "@/comps/admin/researchgroup/ResearchGroupText";
+import { SubmissionProtocolsView } from "./SubmissionProtocolView";
 
 /**
  * @description React element to give an overview about a Dataset/Submission. 
@@ -79,11 +80,13 @@ function SubmissionOverview() {
             <div className="flex flex--wrap align-start" style={{ gap: "2rem", marginTop: "1rem" }}>
 
                 {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "max(45vw,500px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
-                    
                     <SubmissionGenotypesView {...{ submission_tag }}/>
                 </div> : null}
                 <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
+                </div>
+                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                    <SubmissionProtocolsView {...{ submission_tag }} />
                 </div>
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>
