@@ -5,17 +5,15 @@ import _ from "lodash"
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
 import viz from "@mitocube/viz"
 import { api } from "@/api";
-import { FeatureSearch } from "../../core/input/api/FeatureSearch";
 import { useMemo, useState, useEffect } from "react";
 import { Combobox } from "../../core/input/Combobox";
 import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "../../../services/arrays/transforms";
-import NumericValueInput from "../../core/input/Numeric";
 import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationSelectionMenu";
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
-import { use } from "react";
+import { useRef } from "react";
 
 
 function HeatmapLoad( {submission_tag} ) {
@@ -95,10 +93,12 @@ function HeatmapViz({
     setProteinSearchTrigger
 }) {
     
-
+    const scrollContainerRef = useRef(null); 
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE
     const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters)) 
     const [fdrvInputValue, setFDRVInputValue] = useState(String(testProps.fdr))
+    
+    
     useEffect(() => {
         setClusterInputValue(String(testProps.n_clusters))
     }, [testProps.n_clusters])
@@ -138,6 +138,12 @@ function HeatmapViz({
             })
         }
     }
+
+    useEffect(() => {
+        if (_.isArray(viewProps.selectedCluster) && viewProps.selectedCluster.length > 0) {
+            scrollContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+        }
+    }, [_.join(viewProps.selectedCluster, ";")])
 
     const passOnProps = useMemo(() => ({
         refetchedTrigger,
@@ -265,7 +271,7 @@ function HeatmapViz({
                         return (
                             <div>
                             
-                                <div className="flex" style={{ display: "flex", height: "75vh" }}>
+                                <div className="flex" style={{ display: "flex", height: "85vh" }}>
                                 
                                     <div style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
                                         <div className="margin--medium padding--medium">
@@ -296,7 +302,7 @@ function HeatmapViz({
                                         }} />
                                     </div>
 
-                                    <div style={{ overflowY: "scroll", flex: 1, height: "100%" }}>
+                                    <div style={{ overflowY: "scroll", flex: 1, height: "100%"}}>
                                         <viz.charts.HeatmapGrouping
                                             data={filteredSampleConditionApplications}
                                             binHeight={15}
@@ -324,7 +330,8 @@ function HeatmapViz({
                                                 ...hoverProps,
                                                 isLabelFeatureTag: true,
                                                 selectedClusters: viewProps.selectedCluster.map(c => _.toNumber(c.tag)),
-                                                proteinIsLoading
+                                                proteinIsLoading, 
+                                                scrollContainerRef
                                             }} />
                                     </div>
                                 </div>

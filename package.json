@@ -51,6 +51,7 @@
     "react-router": "^6.30.4",
     "react-router-dom": "^6.10.0",
     "react-syntax-highlighter": "^15.5.0",
+    "rehype-raw": "^7.0.0",
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "vite-plugin-require": "^1.1.10"

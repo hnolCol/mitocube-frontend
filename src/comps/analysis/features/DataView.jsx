@@ -78,6 +78,27 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
             w: 2,
             h: 2,
         }));
+    
+    const COLS_LG = 8;
+    const ITEM_W = 2;
+    const ITEM_H = 2;
+    const itemsPerRow = Math.floor(COLS_LG / ITEM_W); // 4
+    const colsByBreakpoint = { lg: 8, md: 7, sm: 6, xs: 3 };
+
+    function buildLayout(cols) {
+        const perRow = Math.max(1, Math.floor(cols / ITEM_W));
+        return feature_tags.map((ft, i) => ({
+            i: `${ft}-${i}-${submission_tags[i]}`,
+            x: (i % perRow) * ITEM_W,
+            y: Math.floor(i / perRow) * ITEM_H,
+            w: ITEM_W,
+            h: ITEM_H,
+        }));
+    }
+
+    const layouts = Object.fromEntries(
+        Object.entries(colsByBreakpoint).map(([bp, cols]) => [bp, buildLayout(cols)])
+    );
     return <div>
         <h3>Feature Plots</h3>
         <div className="flex">
@@ -92,9 +113,9 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                     <div style={{ width: "65vw", height : "80vh", overflowY : "scroll" }}>
                         <ResponsiveGridLayout
                             className="layout"
-                            layouts={{ lg: initialLayouts }}
+                            layouts={layouts}
                             breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480 }}
-                            cols={{ lg: 8, md: 7, sm: 6, xs: 3 }}
+                            cols={colsByBreakpoint}
                             rowHeight={180}
                             isResizable={true}
                             isDraggable={true}
@@ -104,7 +125,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                             {feature_tags.map((feature_tag, i) => {
                                 const itemKey = `${feature_tag}-${i}-${submission_tags[i]}`;
                                 return (
-                                    <div key={itemKey} data-grid={initialLayouts[i]}>
+                                    <div key={itemKey} data-grid={layouts.lg[i]}>
                                         <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%" }}>
                                             <FeatureData
                                                 feature_tag={feature_tag}

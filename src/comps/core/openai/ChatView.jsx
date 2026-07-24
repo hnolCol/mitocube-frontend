@@ -1,5 +1,6 @@
 import Markdown from "react-markdown";
 import remarkGfm from 'remark-gfm' 
+import rehypeRaw from 'rehype-raw';
 import _ from "lodash";
 import PropTypes
     from "prop-types";
@@ -9,7 +10,7 @@ import { useEffect, useRef } from "react";
 function AssistantResponse({ message, highlight = false }) {
     return (
         <div className="padding--medium" style={{ marginTop: '20px', whiteSpace: 'pre-wrap', backgroundColor: "#e2dedede", width : "80%", borderLeft : highlight ? "4px solid #466688" : "none", overflowX : "scroll"}}>
-            <Markdown remarkPlugins={[remarkGfm]}>
+            <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
                 {message}
             </Markdown>
         </div>
