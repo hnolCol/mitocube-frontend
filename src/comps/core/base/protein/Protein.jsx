@@ -10,15 +10,18 @@ import { ProteinFavorite } from "@/comps/protein/charts/overview/ProteinFavorite
 
 export function ProteinGroup({ tag, highlight = false, disableTooltip = false, popoverPosition = "top", minimal = false, redirect_to_protein_site = true, onClick, proteinsAsButton = false, fill = true, onHover, disableHover = true, showFavorite = true }) {
     const tags = _.isString(tag) ? tag.split(";").map(t => t.trim()) : []
+    
     return <motion.button
-        onClick={(e) => onClick(tag)}
-        className="flex" style={{
-                            border: "none", backgroundColor: "transparent",
-                            color: "#000000", gap: "0.2rem",
-                            width: fill ? "100%" : "auto",
-                            outline: "none",
-                            fontWeight: highlight ? "bold" : "normal"
-                        }}>
+        onClick={_.isFunction(onClick) ? (e) => onClick(tag) : undefined}
+        className="flex"
+        style={{
+                border: "none", backgroundColor: "transparent",
+                color: "#000000", gap: "0.2rem",
+                width: fill ? "100%" : "auto",
+                outline: "none",
+                fontWeight: highlight ? "bold" : "normal"
+        }}>
+        
         {tags.map((t, i) => (
             <div key={`protein-${i}-${t}`} className="flex" >
                 <Protein tag={t}
@@ -27,7 +30,12 @@ export function ProteinGroup({ tag, highlight = false, disableTooltip = false, p
                     disableTooltip={disableTooltip}
                     popoverPosition={popoverPosition}
                     showFavorite={showFavorite}
-                    redirect_to_protein_site={redirect_to_protein_site}  asButton={proteinsAsButton} fill={fill} onHover={onHover} disableHover={disableHover}/>
+                    redirect_to_protein_site={redirect_to_protein_site}
+                    asButton={proteinsAsButton}
+                    fill={fill}
+                    onHover={onHover}
+                    disableHover={disableHover} />
+                
                 {minimal ? <span>{i < tags.length - 1 ? ";" : null}</span> : null}
                 
             </div>
@@ -54,9 +62,10 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
         }
     }
 
-    if (isError || isLoading || _.isNull(feature)) return null
-    if (inSVG) return <Text {...svgTextProps}>{feature.gene_name}</Text>
-    if (minimal && isSuccess) return <div>{feature.gene_name}</div>
+    const hasGeneName = _.isObject(feature) && isSuccess && _.isObject(feature) && _.has(feature, "gene_name") && _.isString(feature.gene_name) && feature.gene_name.length > 0
+    if (isError || isLoading || _.isNull(feature)) return <div>{tag}</div>
+    if (inSVG) return <Text {...svgTextProps}>{hasGeneName ? feature.gene_name : feature.tag }</Text>
+    if (minimal && isSuccess) return <div>{isSuccess && hasGeneName ? feature.gene_name : tag}</div>
     return <div >
         {isSuccess ? <motion.div
             style={{ ...style, backgroundColor: highlight ? motionBackgroundColor : backgroundColor, color: fontColor, fontSize: "0.75rem" } } //lighter ? "#efefef" :
@@ -68,7 +77,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
                 popoverClassName="margin--little"
                 content={
                 <div className="padding--little bg--grey margin--little" style={{ maxWidth: "28rem" }}>
-                        <h4>{feature.gene_name} ({feature.tag})</h4>
+                        <h4>{hasGeneName ? feature.gene_name : null} ({feature.tag})</h4>
                         <div>{feature.gene_names}</div>
                     <div className="div--expand">
                             <div>
@@ -97,7 +106,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
                             outline: "none",
                             fontWeight: highlight ? "bold" : "normal"
                         }} >
-                        <div>{showFavorite ? <ProteinFavorite tag={tag} /> : null}</div><div>{feature.gene_name}</div>
+                        <div>{showFavorite ? <ProteinFavorite tag={tag} /> : null}</div><div>{hasGeneName ? feature.gene_name : feature.tag}</div>
                         {/* {attribute.has_unit && !hasInput ? <div className="margin-left--little margin-right--little"> <Icon icon="info-sign" intent="danger" /> </div> : null} */}
                     </motion.button> :
                     <motion.div
@@ -111,7 +120,7 @@ export function Protein({ tag, highlight = false, disableTooltip = false, popove
                             outline: "none",
                             fontWeight: highlight ? "bold" : "normal"
                         }} >
-                        <div>{showFavorite ? <ProteinFavorite tag={tag} /> : null}</div><div>{feature.gene_name}</div>
+                        <div>{showFavorite ? <ProteinFavorite tag={tag} /> : null}</div><div>{hasGeneName ? feature.gene_name : feature.tag}</div>
                     </motion.div> }
             </Popover>
         

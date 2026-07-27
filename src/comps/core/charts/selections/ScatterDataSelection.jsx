@@ -69,7 +69,8 @@ export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, se
                 onSelectionChange={onSelection}
                     minimal={minimal}
                     itemIsAttribute={numericIsAttribute} /> : null}
-                {showMarksSelection ? <ScatterMarksSelection
+                {showMarksSelection ?
+                    <ScatterMarksSelection
                     keyNames={keyNames}
                     selection={selection}
                     onSelectionChange={onSelection}

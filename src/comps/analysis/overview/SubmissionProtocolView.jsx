@@ -69,7 +69,8 @@ export function SubmissionProtocolsView({ submission_tag }) {
                             )}
                         </div>
             <div style={{ height: "29vh", padding: "1rem", overflowY: "scroll" }}>
-                {submission_protocols?.map((protocol_tag) =>  <ProtocolMinimalItem key={protocol_tag} protocol_tag={protocol_tag} onClick={() => setDrawerProps({ isOpen: true, protocol_tag })} />)}
+                {submission_protocols?.map((protocol_tag) =>
+                    <ProtocolMinimalItem key={protocol_tag} protocol_tag={protocol_tag} onClick={() => setDrawerProps({ isOpen: true, protocol_tag })} />)}
 
             </div>
         </div>

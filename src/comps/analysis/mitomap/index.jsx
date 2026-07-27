@@ -155,7 +155,8 @@ export function MitomapNetwork({ }) {
                                 }, didx) => {
                                 return (
                                     <div key={chartIdx}>
-                                        <ScatterDataSelection keyNames={_.keys(enrichedNodes[0])}
+                                        <ScatterDataSelection
+                                            keyNames={_.keys(enrichedNodes[0])}
                                             {...{
                                                 title : "Annotation Group Network",
                                                 numericKeyNames: extraLimitNames,
