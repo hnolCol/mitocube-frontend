@@ -10,6 +10,7 @@ import { localPoint } from '@visx/event';
 
 
 import _ from "lodash"
+import { api } from "@/api"
 import ScatterPoints from "./ScatterPoints"
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette } from "@mitocube/viz/src/colors/palette";
@@ -28,6 +29,7 @@ import { Attribute } from "../../base/attributes/Attribute"
 import { AnnotationGroup } from "../../base/annotations/AnnotationGroup"
 import { Annotation } from "../../base/annotations/Annotation"
 
+import { AnnotationMapDistribution } from "@/comps/analysis/mitomap/AnnotationMapDistribution"
 
 const initZoomState = {
     active: false,
@@ -129,15 +131,65 @@ export function Network({
     tooltipNameIsNumeric = {}, //provide number to be rounded to.
     tooltipNameIsFeatures = {},
     triggerResetAxis,
-    setTriggerResetAxisZoom
+    setTriggerResetAxisZoom,
+    submission_tag,
+    activeAnnotationTag,
+    activeTestParam,
+    onHoverDistributionChange
 }) {
 
     const [zoomActive, setZoomActive] = useState(initZoomState)    
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
+    const originalHoveredIndices = Array.from(hoverIndices)
     const linkMaps = useMemo(() => _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)])),[rerenderBackground,svgID,hoverIndices])
         useMemo( () => _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx)))), [linkMaps])
     
+    const hoveredIndex = tooltipOpen && originalHoveredIndices.length === 1 ? originalHoveredIndices[0] : null
+    const hoveredNode = _.isNumber(hoveredIndex) ? data[hoveredIndex] : null
+    const hoveredProteinValue = hoveredNode?.type === "protein" && _.isNumber(hoveredNode[colorName]) ? hoveredNode[colorName] : undefined
+    const hoveredProteinTag = hoveredNode?.type === "protein" ? hoveredNode.tag : undefined
+    const { data: hoveredProteinFeature } = api.features.tag.useGetFeatureByTag(
+        { tag: hoveredProteinTag },
+        { enabled: _.isString(hoveredProteinTag), staleTime: Infinity }
+    )
+    const hoveredProteinGeneName = hoveredProteinFeature?.gene_name
+    const hoveredProteinAnnotationTag = useMemo(() => {
+        if (!hoveredNode || hoveredNode.type !== "protein" || !_.isArray(linkIdcs) || !_.isNumber(hoveredIndex)) return undefined
+        const linkedPair = linkIdcs.find(linkIdc => linkIdc[0] === hoveredIndex || linkIdc[1] === hoveredIndex)
+        if (!linkedPair) return undefined
+        const otherIdx = linkedPair[0] === hoveredIndex ? linkedPair[1] : linkedPair[0]
+        return data[otherIdx]?.type === "annotation" ? data[otherIdx].tag : undefined
+    }, [hoveredNode, hoveredIndex, linkIdcs, data])
+    const hoverDistributionTag = hoveredNode
+    ? hoveredNode.type === "annotation" ? hoveredNode.tag : hoveredProteinAnnotationTag
+    : undefined
+    const hoverDistributionTagType = "annotation"
+    const lastHoverDistributionRef = useRef(undefined)
+
+    useEffect(() => {
+        if (!_.isFunction(onHoverDistributionChange)) return
+
+        const next = {
+            tag: hoverDistributionTag,
+            tagType: hoverDistributionTagType,
+            markerValue: hoveredProteinValue,
+            markerLabel: hoveredNode?.type === "protein" ? (hoveredProteinGeneName ?? hoveredNode.tag) : undefined
+        }
+        const prev = lastHoverDistributionRef.current
+
+        const unchanged = prev
+            && prev.tag === next.tag
+            && prev.markerValue === next.markerValue
+            && prev.markerLabel === next.markerLabel
+
+        if (unchanged) return
+
+        lastHoverDistributionRef.current = next
+        onHoverDistributionChange(next)
+    }, [hoverDistributionTag, hoveredProteinValue, hoveredNode, hoveredProteinGeneName])
+    // console.log("hoveredNode:", hoveredNode, "hoveredProteinValue:", hoveredProteinValue, "hoverDistributionTag:", hoverDistributionTag)
+
     // const hoverIndcsArray = Array.from(hoverIndices)
     const rectDist = Object.fromEntries([xaxisName, yaxisName].map(keyName => {
         let keyNameLimits = limits[keyName]
@@ -365,7 +417,7 @@ export function Network({
         
     
     return (
-        <div className="flex" ref={containerRef}>
+        <div className="flex" ref={containerRef} style={{ position: "relative" }}>
             <SVG {...{ width, height, svgID }}>
                  <rect x={margins.left}
                     y={margins.top}
@@ -482,7 +534,7 @@ export function Network({
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
                     <div className="flex flex-column justify-start" style={{gap : "0.5px"}}>
-                        {hoverIndices.size > 0 ? Array.from(hoverIndices).map((index, i) => {
+                    {hoverIndices.size > 0 ? _.sortBy(Array.from(hoverIndices), index => data[index]?.type === "annotation" ? 0 : 1).map((index, i) => {
                             if (i == 10) return <div>...</div>
                             if (i > 10) return null
 
@@ -499,7 +551,7 @@ export function Network({
                                     if (_.has(tooltipNameIsFeature, tooltipName) && hoverIndexData.type !== "annotation") return <Protein tag={hoverIndexData[tooltipName]} minimal={true} showFavorite={false} />
                                     else if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype tag={hoverIndexData[tooltipName]} />
                                     else if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute attribute_tag={hoverIndexData[tooltipName]} />
-                                    else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName],tooltipNameIsNumeric[tooltipName])}`}</div>
+                                    else if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`log2FC: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
                                     else {
                                         return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
                                     }

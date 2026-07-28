@@ -1,8 +1,8 @@
-import _ from "lodash"
+import _, { values } from "lodash"
 import InteractiveChart from "../../core/charts/interactive"
 import { useOutletContext } from "react-router"
 import { Network } from "../../core/charts/scatter/Network"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useRef } from "react"
 import APIError from "../../core/error/APIerror"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
 import { api } from "@/api";
@@ -11,7 +11,7 @@ import { ConditionApplicationSelection } from "../../core/base/attribute_selecti
 import { PersistentCollapse } from "@/comps/core/base/collapse/Collapse"
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette"
 import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
-
+import { AnnotationMapDistribution } from "./AnnotationMapDistribution"
 
 export function MitomapNetwork({ }) {
 
@@ -21,6 +21,10 @@ export function MitomapNetwork({ }) {
     const [pairwiseTestParams, setPairwiseTestParams] = useState(undefined)
     const [pairwiseOpen, setPairwiseOpen] = useState(true)
     
+    const [pairwiseResetKey, setPairwiseResetKey] = useState(0)
+    const [hoverDistribution, setHoverDistribution] = useState({ tag: undefined, tagType: undefined, markerValue: undefined, markerLabel: undefined })
+    const appliedParamsRef = useRef(null)
+    const [log2FCAppliedMessage, setLog2FCAppliedMessage] = useState(false)
     const { data : network_data, isLoading, isFetching, isSuccess, isError, error } = api.submissions.analysis.useGetSubmissionAnnotationNetwork({
         tag: submission_tag, 
         annotation_group_tag: selectedAnnotationGroupTag
@@ -28,7 +32,7 @@ export function MitomapNetwork({ }) {
         enabled: !_.isEmpty(submission_tag) && _.isString(selectedAnnotationGroupTag)
     })
 
-    const { data: volcanoData, isSuccess: volcanoIsSuccess } = api.submissions.analysis.useGetSubmissionVolcano({
+    const { data: volcanoData, isSuccess: volcanoIsSuccess, isLoading: volcanoIsLoading, isFetching: volcanoIsFetching} = api.submissions.analysis.useGetSubmissionVolcano({
         tag: submission_tag,
         ca_tag_left: pairwiseTestParams?.ca_tag_left,
         ca_tag_right: pairwiseTestParams?.ca_tag_right,
@@ -38,6 +42,7 @@ export function MitomapNetwork({ }) {
         enabled: _.isObject(pairwiseTestParams) && _.isString(pairwiseTestParams?.ca_tag_left) && _.isString(pairwiseTestParams?.ca_tag_right)
     })
 
+    const log2FCApplying = _.isObject(pairwiseTestParams) && (volcanoIsLoading || volcanoIsFetching)
     const log2FCFieldName = volcanoIsSuccess && _.isObject(volcanoData) ? `log2FC ${volcanoData.suffix}` : undefined
 
     const log2FCByTag = useMemo(() => {
@@ -61,10 +66,13 @@ export function MitomapNetwork({ }) {
     const handleAnnotationGroupSelection = (e, tag) => {
         setSelectedAnnotationGroupTag(tag)
         setPairwiseTestParams(undefined)
+        appliedParamsRef.current = null
+        setLog2FCAppliedMessage(false)
         setSelection(prev => ({ ...prev, colorName: "node_type" }))
     }
 
     const handlePairwiseConfirm = (props) => {
+        setLog2FCAppliedMessage(false)
         const testParams = { ...props, tag: submission_tag }
         setPairwiseTestParams(testParams)
 
@@ -92,50 +100,82 @@ export function MitomapNetwork({ }) {
     const extraLimitNames = log2FCFieldName ? _.uniq([...numericKeyNames, log2FCFieldName]) : numericKeyNames
 
     useEffect(() => {
-        if (log2FCFieldName) setSelection(prev => ({ ...prev, colorName: log2FCFieldName }))
-    }, [log2FCFieldName])
+        if (!volcanoIsSuccess || !log2FCFieldName || !_.isObject(pairwiseTestParams)) return
+
+        const paramsKey = JSON.stringify(pairwiseTestParams)
+        if (appliedParamsRef.current === paramsKey) return
+        appliedParamsRef.current = paramsKey
+
+        setSelection(prev => ({ ...prev, colorName: log2FCFieldName }))
+        setPairwiseOpen(false)
+        setPairwiseResetKey(prev => prev + 1)
+
+        setLog2FCAppliedMessage(true)
+    }, [volcanoIsSuccess, log2FCFieldName, pairwiseTestParams])
 
     if (isLoading || isFetching) {
         return <div>Loading...</div>
     }
 
-    return (<div className="div--expand" style={{overflowY:"scroll"}}>
-        <div className="flex-column">
-            <div className="margin-bottom--little" style={{ padding: "1rem" }}>
-                <h4>Select Annotation Group</h4>
-                <AnnotationGroupSelectionMenu 
-                    selected_tags={_.isString(selectedAnnotationGroupTag) ? [selectedAnnotationGroupTag] : []} 
-                    onSelection={handleAnnotationGroupSelection}
-                    showTags={true}
-                    placeholder="Select annotation group..."
-                />
-            </div>
+    return (<div className="div--expand flex" style={{ alignContent: "flex-start" }}>
+        <div className="padding--medium" style={{ width: "400px", flexShrink: 0, height: "90vh", overflowY: "auto" }}>
+            <h4>Select Annotation Group</h4>
+            <AnnotationGroupSelectionMenu 
+                selected_tags={_.isString(selectedAnnotationGroupTag) ? [selectedAnnotationGroupTag] : []} 
+                onSelection={handleAnnotationGroupSelection}
+                showTags={true}
+                placeholder="Select annotation group..."
+            />
 
+            {selectedAnnotationGroupTag ? (
+                <div className="margin-bottom--little" style={{ marginTop: "1rem" }}>
+                    <button className="basic-button div--expand margin--little" style={pairwiseOpen ? { backgroundColor: HIGHLIGHT_COLOR, color: "white" } : {}}
+                        onClick={() => setPairwiseOpen(prev => !prev)}>
+                        <span>Pairwise Comparison</span>
+                    </button>
+                    <PersistentCollapse isOpen={pairwiseOpen} direction="vertical" duration={0.65}>
+                        <div className="padding--medium" style={{ overflowX: "auto" }}>
+                            <div style={{ minWidth: "600px" }}>
+                                <ConditionApplicationSelection
+                                    key={pairwiseResetKey}
+                                    submission_tag={submission_tag}
+                                    onConfirm={handlePairwiseConfirm}
+                                    reset_after_confirm={false}
+                                    isLoadingData={log2FCApplying}
+                                    showTable={true}
+                                    showAnnotationSubset={false}
+                                />
+                                {log2FCAppliedMessage ? (
+                                    <div className="margin--little">Log2 fold change applied</div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </PersistentCollapse>
+                </div>
+            ) : null}
+
+            {hoverDistribution.tag ? (
+                <div className="margin--medium">
+                    <span>Distribution of hovered annotation in samples:</span>
+                    <AnnotationMapDistribution
+                        submission_tag={submission_tag}
+                        tag={hoverDistribution.tag}
+                        tagType={hoverDistribution.tagType}
+                        activeTestParam={pairwiseTestParams}
+                        markerValue={hoverDistribution.markerValue}
+                        markerLabel={hoverDistribution.markerLabel}
+                    />
+                </div>
+            ) : null}
+        </div>
+
+        <div className="div--expand" style={{ overflowY: "scroll" }}>
             {!selectedAnnotationGroupTag ? (
                 <div className="center-items" style={{ padding: "2rem" }}>
                     <span>Select an annotation group to view the network</span>
                 </div>
             ) : (
                 <>
-                    <div className="margin-bottom--little" style={{ padding: "1rem", maxWidth: "500px" }}>
-                        <button className="basic-button div--expand margin--little" style={pairwiseOpen ? { backgroundColor: HIGHLIGHT_COLOR, color: "white" } : {}}
-                            onClick={() => setPairwiseOpen(prev => !prev)}>
-                            <span>Pairwise Comparison</span>
-                        </button>
-                        <PersistentCollapse isOpen={pairwiseOpen} direction="vertical" duration={0.65}>
-                            <div className="padding--medium">
-                                <ConditionApplicationSelection
-                                    submission_tag={submission_tag}
-                                    onConfirm={handlePairwiseConfirm}
-                                    reset_after_confirm={false}
-                                    // minimal={true}
-                                    showTable={true}
-                                    showAnnotationSubset={false}
-                                />
-                            </div>
-                        </PersistentCollapse>
-                    </div>
-
                     {isError ? <APIError error={error}/> : null}
 
                     {network_dataValid ? 
@@ -166,7 +206,8 @@ export function MitomapNetwork({ }) {
                                                 setTriggerResetAxisZoom,
                                                 selection,
                                                 setSelection : handleScatterSelection,
-                                                handleStringSearch,
+                                                showAxisSelection: false,
+                                                showMarksSelection: true,
                                                 downloadElements: ["network-scatter" + networkProps.type, enrichedNodes],
                                                 elementNames: ["SVG","DIVIDER",`Nodes (n = ${enrichedNodes.length})`],
                                                 fileNames: [`${submission_tag}-MitoMap.svg`,`${submission_tag}-Mitomap.txt`],
@@ -178,11 +219,15 @@ export function MitomapNetwork({ }) {
                                             sizeName: undefined,
                                             data,
                                             linkIdcs : network_data.links,
+                                            activeTestParam: pairwiseTestParams,
+                                            submission_tag,
+                                            activeAnnotationTag: selectedAnnotationGroupTag,
+                                            onHoverDistributionChange: setHoverDistribution,
                                             valid, findDataInRectangle, setHoverDataInRectangle,
                                             xaxisName, yaxisName, limits, rerenderAxis, findClosestPoint,
                                             tooltipSmall : true,
-                                            tooltipNames: log2FCFieldName ? ["tag", log2FCFieldName] : ["tag"],
-                                            tooltipNameIsNumeric: log2FCFieldName ? { [log2FCFieldName]: 2 } : {},
+                                            tooltipNames: ["tag"],
+                                            tooltipNameIsNumeric: {},
                                             labelNames : ["tag"],
                                             dataRerender : [networkProps.type, selectedAnnotationGroupTag, selection.colorName],
                                             ...hoverProps, ...filterProps, ...labelProps,
