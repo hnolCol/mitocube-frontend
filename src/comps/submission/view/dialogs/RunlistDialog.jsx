@@ -1,6 +1,5 @@
 import { Button, Callout, Code, Dialog, DialogBody, DialogFooter, Switch } from "@blueprintjs/core";
 import { useState } from "react";
-import { usePostRunlist } from "../../../../hooks/queries/submission.hooks";
 import { api } from "@/api";
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric";

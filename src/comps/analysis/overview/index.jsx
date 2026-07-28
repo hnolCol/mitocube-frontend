@@ -35,7 +35,7 @@ function SubmissionOverview() {
     const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 0})
     const fontColors = getColorPalette(5)
     return (
-        <div style={{ overflowY: "scroll", height: "85vh", padding: "1rem" }} className="flex flex-column">
+        <div style={{ overflowY: "scroll", height: "94vh", padding: "1rem" }} className="flex flex-column">
             <div className="flex justify-end margin-right--little"><QuickAccessBar submission_tag={submission_tag}/></div>
              <div id="top" className="flex flex-column center-items">
                 <div className="margin-top--little" style={{ maxWidth : "66vw"}}>

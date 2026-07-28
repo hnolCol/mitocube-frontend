@@ -2,7 +2,7 @@ import axios from "axios"
 import { useQuery } from "@tanstack/react-query";
 
 /**
- * 
+ * @description Fetches key figures from the API. TO DO: api-hooks MOVE TO API PACKAGE! 
  * @returns {Object[]}
  */
 async function getKeyFigures_API() {

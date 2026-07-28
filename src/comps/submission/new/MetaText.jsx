@@ -1,12 +1,9 @@
 
 import PropTypes from "prop-types"
-import { Header } from "../../core/base/Header"
 import TextFieldInput from "../../core/input/TextArea"
-import { useGetSubmissionMetatext } from "../../../hooks/queries/submission.hooks"
 import _ from "lodash"
 import Loading from "../../core/base/loading"
-import { MetaTextDialog } from "../../core/dialogs/MetaText"
-import { useState } from "react"
+import { api } from "@/api" 
 
 MetaText.propTypes = {
     onMetaTextChange: PropTypes.func.isRequired,
@@ -15,7 +12,7 @@ MetaText.propTypes = {
 
 function MetaText({ onMetaTextChange, metatextValues, allowTextForState = 0, allowTextBelowState = false }) {
  
-    const {data : metatext, isLoading : metatextIsLoading} = useGetSubmissionMetatext()
+    const {data : metatext, isLoading : metatextIsLoading} = api.submissions.metatexts.useGetSubmissionMetatext()
     return (
         <div>
             {metatextIsLoading ? <Loading /> : null}

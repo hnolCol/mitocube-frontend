@@ -1,7 +1,6 @@
-import { useGetSubmissionTag, useGetSubmissionMetatext, usePostSubmission } from "../../../hooks/queries/submission.hooks"
 import PropTypes from "prop-types"
 import APIError from "../../core/error/APIerror"
-import { useMemo, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { getUniqueValuesFromArrayOfObjectsByKey } from "../../../services/arrays/groupby"
 import { objectHasKey } from "../../../services/objects/checks"
 import _ from "lodash"
@@ -75,9 +74,9 @@ function InitialSubmission({
     const [submission, setSubmission] = useState({ ...initSubmissionState, sampleNames, attributes : {sampleNumber : sampleNames.length}})
     const [alertProps, setAlertProps] = useState({isOpen : false, children : <div></div>})
     
-    const { mutate: postSubmission, isLoading: submissionLoading, isError: submissionFailed, error: submissionError } = usePostSubmission()
-    const { data: metatext } = useGetSubmissionMetatext({}) 
-    const { data: submission_tag, isSuccess : submissionIDSuccess, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = useGetSubmissionTag({},{enabled : false})
+    const { mutate: postSubmission, isLoading: submissionLoading, isError: submissionFailed, error: submissionError } = api.submissions.core.usePostSubmission()
+    const { data: metatext } = api.submissions.metatexts.useGetSubmissionMetatext({}) 
+    const { data: submission_tag, isSuccess : submissionIDSuccess, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = api.submissions.core.useGetSubmissionTag({},{enabled : false})
     const { data: submissionPermission, isSuccess : permissionIsSuccess } = api.submissions.permissions.useGetSubmissionPermissions()
     
     
