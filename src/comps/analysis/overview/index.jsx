@@ -21,6 +21,7 @@ import { SubmissionGenotypesView } from "@/comps/core/base/genotype/SubmissionGe
 import { api } from "@/api";
 import { ResearchGroupTextByUser } from "@/comps/admin/researchgroup/ResearchGroupText";
 import { SubmissionProtocolsView } from "./SubmissionProtocolView";
+import { SubmissionViewScore } from "@/comps/submission/view/SubmissionViewScore";
 
 /**
  * @description React element to give an overview about a Dataset/Submission. 
@@ -67,7 +68,8 @@ function SubmissionOverview() {
             <div className="flex flex-column center-items" style={{width : "100%"}}>
             <div className="flex">
                 <SubmissionTag {...{ submission_tag, fontColor: fontColors[0] }} />
-                <SubmissionViews {...{ submission_tag, fontColor: fontColors[1] }} />
+                    <SubmissionViews {...{ submission_tag, fontColor: fontColors[1] }} />
+                    <SubmissionViewScore {...{ submission_tag, fontColor: fontColors[4] }} />
                 <SubmissionSampleCount  {...{ submission_tag, fontColor: fontColors[2] }} />
                 <SubmissionProteinGroupCount {...{ submission_tag, fontColor: fontColors[3] }} />
                 <SubmissionPeptideCount {...{ submission_tag, fontColor: fontColors[4] }} />

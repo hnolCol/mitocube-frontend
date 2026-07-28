@@ -6,6 +6,7 @@ import { LastViewed } from "./Views"
 
 import { api } from "@/api"
 import {  useNavigate } from "react-router"
+import { TrendingSubmissions } from "./TrendingSubmissions"
 
 function Welcome() {
 
@@ -37,7 +38,7 @@ function Welcome() {
                     <NewsView />
                     
                     <LastViewed user_tag={null} type="submissions" />
-                    
+                    <TrendingSubmissions />
                 </div>
      
             </div>

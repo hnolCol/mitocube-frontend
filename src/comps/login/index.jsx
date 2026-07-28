@@ -46,9 +46,7 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
         refetch: handleLoginAttempt } = api.authentication.login.useLoginUser(userInput, {
             enabled: false
         })  
-    
-    console.log(loginData, loginIsSuccess, loginIsError, loginError)
-    
+        
     useEffect(() => {
         if (loginIsSuccess) {
             setUserLoginResponse(prevValues => ({ ...prevValues, ...loginData }))

@@ -14,7 +14,7 @@ import APIError from "@/comps/core/error/APIerror"
 
 
 export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "date", "My Submissions"]
-
+export const SUBMISSION_SORT_BY_OPTION = ["date", "views"]
 
 SubmissionsByState.propTypes = {
     submissionFilter: PropTypes.object.isRequired,
@@ -148,6 +148,7 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             group_by_user: submissionByUser,
             group_by_date : submissionByDate,
             state: stateFilter,
+            sort_by_views : submissionsQuery.sort_by_views,
             genotype_tag: genotypeTagString,
             user_tags: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),  
             user_role: submissionFilter.user_role || null,
@@ -185,6 +186,7 @@ SubmissionContainer.propTypes = {
 
 export function SubmissionContainer({ submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery, validState, authenticationStatus, ...props}) {
     const [orderBy, setOrderBy] = useState("state")
+
     const fixedState = _.isNumber(validState)
     const stateFilter = _.isNumber(validState) ? _.toString(validState) : _.has(submissionFilter,"states") && submissionFilter.states.size > 0 
         ? _.join(Array.from(submissionFilter.states),";") 

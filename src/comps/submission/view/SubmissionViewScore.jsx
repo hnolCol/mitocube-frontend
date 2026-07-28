@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 
 
 
-export function SubmissionViews({ submission_tag, fontColor = "#000000" }) {
-    const { data: views } = api.submissions.views.useGetSubmissionViews({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
+export function SubmissionViewScore({ submission_tag, fontColor = "#000000" }) {
+    const { data: score } = api.submissions.views.useGetSubmissionViewScore({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
     return (
         <motion.button
@@ -15,8 +15,8 @@ export function SubmissionViews({ submission_tag, fontColor = "#000000" }) {
             className="submission-metric-view"
         >
             <div>
-                <h4>Views</h4>
-                <div style={{ color: fontColor }}>{views}</div>
+                <h4>Trending Score</h4>
+                <div style={{ color: fontColor }}>{_.round(score,2)}</div>
             </div>
         </motion.button>
     );

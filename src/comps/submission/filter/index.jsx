@@ -6,13 +6,14 @@ import { useEffect, useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
 import { GenotypeDatasetFilter } from "./GenotypeFilter"
 import { ConditionApplicationFilter } from "./ConditionApplicationFilter"
-import { SUBMISSIONS_BY_OPTIONS } from "../view/SubmissionContainer"
+import { SUBMISSIONS_BY_OPTIONS, SUBMISSION_SORT_BY_OPTION } from "../view/SubmissionContainer"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router-dom";
 import { UserDatasetFilter } from "./UserFilter"
 
 
 const LIMIT_OPTIONS = [20, 30, 50, 100, 150]
+
 
 export function SubmissionFilterSelection({
         submissionsQuery,
@@ -32,20 +33,34 @@ export function SubmissionFilterSelection({
     useEffect(() => { setSubmissionQuery(prevValues => { return { ...prevValues, plain: debouncedString } }) }, [debouncedString])
     
     const [searchParams, setSearchParams] = useSearchParams()
-
+    const selectedSortBy = SUBMISSION_SORT_BY_OPTION.includes(searchParams.get("sort_by")) ? searchParams.get("sort_by") : SUBMISSION_SORT_BY_OPTION[0]
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) 
         ? _.toNumber(searchParams.get("limit")) 
         : LIMIT_OPTIONS[0]
 
-        useEffect(() => {
+    
+    useEffect(() => {
             setSubmissionQuery(prevValues => {
                 return { ...prevValues, limit: selectedLimit }
             })
-        }, [selectedLimit])
-        
+    }, [selectedLimit])
+    
+    useEffect(() => {
+        setSubmissionQuery(prevValues => {
+            //sort by date is the default
+            return { ...prevValues, sort_by_views: selectedSortBy === "views" ? true : false }
+        })
+    }, [selectedSortBy])
+    
     const updateLimit = (limit) => {
         const newParams = new URLSearchParams(searchParams)
         newParams.set("limit", limit)
+        setSearchParams(newParams, { replace: true })
+    }
+
+    const updateSortBy = (sort_by) => {
+        const newParams = new URLSearchParams(searchParams)
+        newParams.set("sort_by", sort_by)
         setSearchParams(newParams, { replace: true })
     }
     return (
@@ -85,12 +100,19 @@ export function SubmissionFilterSelection({
             </div>
             <div style={{ marginTop: "0.5rem" }}>
     <h4>View By</h4>
-    <div className="flex center-items" >
+    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem" }}>
         {SUBMISSIONS_BY_OPTIONS.filter(option => option !== "My Submissions").map(option => (
             <OptionButton key={option} isSelected={orderBy === option} onClick={() => setOrderBy(option)} children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />
         ))}
-    </div>
-    <div className="flex center-items" style={{ marginTop: "0.5rem" }}>
+            </div>
+    <h4>Sort By</h4>
+    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem" }}>
+        {SUBMISSION_SORT_BY_OPTION.map(option => (
+            <OptionButton key={option} isSelected={selectedSortBy === option} onClick={() => updateSortBy(option)} children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />
+        ))}
+                    </div>
+    <h4>Filter By</h4>
+    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem" }}>
         <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
     </div>
     </div>
