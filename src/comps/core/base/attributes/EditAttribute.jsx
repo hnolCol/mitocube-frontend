@@ -52,7 +52,7 @@ export function EditAttribute({attribute_tag}) {
         }
     }, [isChildrenSuccess, isParentsSuccess, isGroupTagsSuccess, isAttributePropsSuccess, isMinStateSuccess, children_tags, parent_tags, group_tags, min_state, attributeProps])
 
-    const { mutate : patchAttribute, isSuccess, isPending, isError, error } = api.attributes.modifyAttributes.usePostAttribute()
+    const { mutate : patchAttribute, isSuccess, isPending, isError, error } = api.attributes.modifyAttributes.useUpdateAttribute()
 
     const handleTraitSelection = (path) => {
         const trait_tag = _.last(path).tag
