@@ -18,6 +18,10 @@ export function EditSample({ submission_tag, onClose, refetch }) {
     );
 
     const updateSample = api.samples.core.useUpdateSample();
+    const { data: exportData, refetch: refetchExport } = api.samples.core.useGetSamplesExport(
+        { tag: submission_tag },
+        { enabled: false }
+    );
     const [submissionState, setSubmissionState] = useState(null);
 
     useEffect(() => {
@@ -26,7 +30,6 @@ export function EditSample({ submission_tag, onClose, refetch }) {
         const n = samplesData.length;
         const sampleNames = samplesData.map(s => s.tag);
 
-        // build attribute table from resolved trait_tags
     
         function backendNodeToFrontend(node, id) {
             return {
@@ -119,6 +122,34 @@ export function EditSample({ submission_tag, onClose, refetch }) {
     };
     if (isLoading || !submissionState) return <Spinner />;
 
+    
+    const handleDownload = async () => {
+        const { data } = await refetchExport();
+        if (!_.isArray(data) || data.length === 0) return;
+    
+        const columns = _.uniq(data.flatMap(row => Object.keys(row)));
+        const orderedColumns = [
+            "sample_tag",
+            "replicate",
+            "genotype",
+            ...columns.filter(c => !["sample_tag", "replicate", "genotype"].includes(c))
+        ];
+    
+        const lines = [
+            orderedColumns.join("\t"),
+            ...data.map(row => orderedColumns.map(col => row[col] ?? "").join("\t"))
+        ];
+    
+        const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${submission_tag}_samples.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    };
     return (
         <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
             <div style={{ flex: 1, overflow: "auto" }}>
@@ -142,8 +173,9 @@ export function EditSample({ submission_tag, onClose, refetch }) {
             />
             </div>
             <div style={{ display: "flex", gap: "0.5rem", padding: "1rem", justifyContent: "flex-end", borderTop: "1px solid #e0e0e0" }}>
-            <Button text="Save" intent="primary" loading={isSaving} disabled={isSaving} onClick={handleSave} />                
-            <Button text="Cancel" intent="danger" onClick={onClose} />
+                <Button icon="download" text="Download" onClick={handleDownload} />
+                <Button text="Save" intent="primary" loading={isSaving} disabled={isSaving} onClick={handleSave} />
+                <Button text="Cancel" intent="danger" onClick={onClose} />
             </div>
         </div>
     );
