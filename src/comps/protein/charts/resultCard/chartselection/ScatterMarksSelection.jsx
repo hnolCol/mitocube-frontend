@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import ColorIconWithName from "../../../../core/svg/icons/chartSelection/Color"
 import SizeIconWithName from "../../../../core/svg/icons/chartSelection/Size"
-
+import _ from "lodash"
 
 
 /**
@@ -20,14 +20,14 @@ export function ScatterMarksSelection({keyNames, selection, onSelectionChange, m
             <ColorIconWithName
                 items={keyNames}
                 placeholder={selection.colorName}
-                selectedItems={[{ text: selection.colorName }]}
+                selectedItems={_.isString(selection.colorName) ? [selection.colorName] : []}
                 minimal={minimal}
                 itemIsAttribute={itemIsAttribute}
                 callbackKey="colorName" callback={(key, value) => onSelectionChange(key, selection.colorName === value ? undefined : value)} />
             <SizeIconWithName
                 items={keyNames}
                 placeholder={selection.sizeName}
-                selectedItems={[{ text: selection.sizeName }]}
+                selectedItems={_.isString(selection.sizeName) ? [selection.sizeName] : []}
                 minimal={minimal}
                 itemIsAttribute={itemIsAttribute}
                 callbackKey="sizeName" callback={(key, value) => onSelectionChange(key, selection.sizeName === value ? undefined : value)} />

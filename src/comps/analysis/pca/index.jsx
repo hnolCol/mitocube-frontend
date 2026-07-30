@@ -86,7 +86,8 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
 
     return (<div className="div--expand" style={{ overflowY: "scroll", height: "90vh " }}>
         <h2>Principal Component Analysis</h2>
-        {_.isObject(pcaresults) && _.isArray(pcaresults.variance_explained) ? <span>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained) * 10000) / 100}% of the total variance.</span> : null}
+        {_.isObject(pcaresults) && _.isArray(pcaresults.variance_explained) ?
+            <span>{pcaresults.variance_explained.length} components calculated, explaining {_.round(_.sum(pcaresults.variance_explained) * 10000) / 100}% of the total variance.</span> : null}
         
    
         <div className="flex" style={{ gap: "5rem", marginTop: "1rem" }}>
@@ -99,8 +100,10 @@ function PCAPlot({ submission_tag, ca_tags, pcaresults, isPCALoading, attribute_
                         idx: 0,
                         numericKeyNames,
                         selection,
-                        itemIsAttribute: true,
+                        itemIsAttribute: false,
+                        colorAndSizeAreAttributes: true,
                         numericIsAttribute: false,
+                        colorAndSizeKeyNames: attribute_tags,
                         setSelection: handleScatterSelection,
                         downloadElements: ["scatter_plot-pca-projection", pcaresults.projection],
                         elementNames: ["SVG", "DIVIDER", `Projected Data (${pcaresults.projection.length} x ${_.keys(pcaresults.projection[0]).length})`],

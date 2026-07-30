@@ -1,5 +1,6 @@
 
 import _ from "lodash"
+import { useEffect } from "react";
 import { Checkbox } from "@blueprintjs/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { ConditionApplicationsView } from "../../core/base/condition_applications/ConditionApplicationView";
@@ -16,17 +17,26 @@ import { api } from "@/api";
  * @returns {JSX.Element} The SampleItem component.
  */
 
-export function SampleItem({ tag, submission_tag, display_condition_applications = true }) {
+export function SampleItem({ tag, submission_tag, display_condition_applications = true, updateTrigger = undefined }) {
     const queryClient = useQueryClient();
-    const { data: sample } = api.samples.core.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 0 });
-    const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 0})
-    const { data : condition_applications} = api.samples.core.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 0})
+    const { data: sample, refetch : getSample } = api.samples.core.useGetSample({ tag }, { enabled: _.isString(tag), staleTime: 600000 });
+    const { data: hasGenotype, refetch : getHasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 600000})
+    const { data : condition_applications, refetch : getConditionApplications} = api.samples.core.useGetSampleConditionApplications({tag, group_by_attribute : true}, {enabled : _.isString(tag) && display_condition_applications, staleTime: 600000})
 
     const { mutate: setSampleExcluded } = api.samples.core.useSetSampleExcluded({
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ["getSampleInfo", tag] })
     });
 
     const excluded = _.isObject(sample) ? !!sample.excluded : false;
+
+    useEffect(() => { 
+        if (_.isString(tag) && _.isString(submission_tag) && _.isNumber(updateTrigger)) {
+            getSample();
+            getHasGenotype();
+            getConditionApplications();
+        }
+    }, [updateTrigger]);
+
 
     return (
         <div

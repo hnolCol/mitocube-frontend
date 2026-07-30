@@ -10,11 +10,12 @@ function buildReferenceIDs(n) {
     return _.range(n);
 }
 
-export function EditSample({ submission_tag, onClose, refetch }) {
+export function EditSample({ submission_tag, onClose}) {
 
+    const [submissionState, setSubmissionState] = useState(null);
     const { data: samplesData, isLoading, isSuccess } = api.submissions.samples.useGetSubmissionSamplesFull(
         { tag: submission_tag },
-        { enabled: _.isString(submission_tag), staleTime: 0 }
+        { enabled: _.isString(submission_tag)}
     );
 
     const updateSample = api.samples.core.useUpdateSample();
@@ -22,7 +23,7 @@ export function EditSample({ submission_tag, onClose, refetch }) {
         { tag: submission_tag },
         { enabled: false }
     );
-    const [submissionState, setSubmissionState] = useState(null);
+    
 
     useEffect(() => {
         if (!isSuccess || !_.isArray(samplesData)) return;
@@ -113,7 +114,7 @@ export function EditSample({ submission_tag, onClose, refetch }) {
                     })
                 )
             );
-            onClose();
+            onClose(null, true);
         } catch (e) {
             console.error("Save failed", e);
         } finally {

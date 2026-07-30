@@ -3,7 +3,7 @@ import DownloadIcon from '../../../../core/svg/icons/chartSelection/Download'
 import { downloadTxtFile } from '../../../../../services/downloads/txt'
 import { arrayOfObjectsToString } from '../../../../../services/arrays/transforms'
 import { downloadSVG } from '../../../../../services/downloads/svg'
-
+import _ from 'lodash'
 
 
 /**
@@ -16,17 +16,18 @@ import { downloadSVG } from '../../../../../services/downloads/svg'
  * @param {String[]} props.fileNames - The actual file names.
  * @returns 
  */
-export function DownloadData({ elements, elementNames, elementTypes, fileNames, itemIsAttribute=true }) {
+export function DownloadData({ elements, elementNames, elementTypes, fileNames, itemIsAttribute=false }) {
 
     const handleDownload = (elementName) => {
-        const idx = elementNames.indexOf(elementName)
+        const idx = elementNames.filter(elementName => elementName !== "DIVIDER").indexOf(elementName)
         if (elementTypes[idx] === "svg") {
             //if a svg is selected, the svg is returned by its id 
             downloadSVG(document.getElementById(elements[idx]), fileNames[idx])
         }
         else if (elementTypes[idx] === "data") {
             if (_.isArray(elements[idx]) && _.isObject(elements[idx][0])) {
-                const txtData = arrayOfObjectsToString({ data: elements[idx], keyNames : _.keys(elements[idx][0]) })
+                const txtData = arrayOfObjectsToString({ data: elements[idx], keyNames: _.keys(elements[idx][0]) })
+                console.log(txtData)
                 downloadTxtFile(txtData, fileNames[idx])
             }
         }

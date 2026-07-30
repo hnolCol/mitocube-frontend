@@ -1,5 +1,6 @@
 import PropType from "prop-types"
 import { XAxisName, YAxisName } from "../../svg/icons/chartSelection/ChartAxisNames";
+import _ from "lodash" 
 
 AxisSelection.propTypes = {
     keyNames: PropType.arrayOf(PropType.string).isRequired,
@@ -17,7 +18,7 @@ export function AxisSelection({ keyNames, selection, onSelectionChange, minimal,
         <div className="flex">
             <XAxisName
                 items={keyNames}
-                selectedItems={[{text : selection.xaxisName}]}
+                selectedItems={_.isString(selection.xaxisName) ? [selection.xaxisName] : []}
                 placeholder={selection.xaxisName}
                 callbackKey="xaxisName"
                 minimal={minimal}
@@ -28,7 +29,7 @@ export function AxisSelection({ keyNames, selection, onSelectionChange, minimal,
                 items={keyNames}
                 placeholder={selection.yaxisName}
                 minimal={minimal}
-                selectedItems={[{text : selection.yaxisName}]}
+                selectedItems={_.isString(selection.yaxisName) ? [selection.yaxisName] : []}
                 callbackKey="yaxisName"
                 callback={onSelectionChange}
                 itemIsAttribute={itemIsAttribute} 

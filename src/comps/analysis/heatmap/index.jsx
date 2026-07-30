@@ -298,6 +298,7 @@ function HeatmapViz({
                                             xaxisName,
                                             yaxisName,
                                             valid,
+                                            proteinTagMap, 
                                             labelNames: heatmapData.label_names,
                                         }} />
                                     </div>

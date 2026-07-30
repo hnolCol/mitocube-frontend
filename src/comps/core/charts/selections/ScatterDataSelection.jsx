@@ -54,12 +54,14 @@ ScatterDataSelection.defaultProps = {
  * @returns 
  */
 export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, selection, setSelection, minimal, handleStringSearch, downloadElements, elementNames, elementTypes, fileNames, itemIsAttribute = true, numericIsAttribute = true, chartIdx, 
-                                        setTriggerResetAxisZoom, onAnnotationSelect, showAxisSelection = true, showMarksSelection = true }) {
+                                        colorAndSizeKeyNames = [],
+                                        setTriggerResetAxisZoom, onAnnotationSelect, showAxisSelection = true, showMarksSelection = true, colorAndSizeAreAttributes = false }) {
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
     const onSelection = (key, value) => {
         setSelection(idx,key,value)
     }
+
     return (
         <div><h3>{title}</h3>
             <div className="flex center-items">
@@ -71,12 +73,12 @@ export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, se
                     itemIsAttribute={numericIsAttribute} /> : null}
                 {showMarksSelection ?
                     <ScatterMarksSelection
-                    keyNames={keyNames}
-                    selection={selection}
-                    onSelectionChange={onSelection}
-                        minimal={minimal}
-                    numericIsAttribute={numericIsAttribute}
-                    itemIsAttribute={itemIsAttribute} /> : null}
+                        keyNames={colorAndSizeKeyNames.length === 0 ? keyNames : colorAndSizeKeyNames}
+                        selection={selection}
+                        onSelectionChange={onSelection}
+                            minimal={minimal}
+                        numericIsAttribute={numericIsAttribute}
+                        itemIsAttribute={itemIsAttribute || colorAndSizeAreAttributes } /> : null}
                 
         
                 {_.isFunction(handleStringSearch) ? <StringSearch
