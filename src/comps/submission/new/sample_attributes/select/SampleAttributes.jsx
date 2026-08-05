@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
 import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
-import { useCallback, useMemo, useState } from "react"
+import { useState, useCallback, useMemo } from "react";
 import _ from "lodash"
 
 import { ReplicateMenu } from "./menu/ReplicateMenu"
@@ -16,7 +16,59 @@ import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog
 import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
 import { useHotkeys } from "@blueprintjs/core";
 
+function useSampleTableSelection({handleSelection}) {
+    const [selectedRows, setSelectedRows] = useState([]);
+    const [copiedRows, setCopiedRows] = useState([]);
+    const getCurrentSelection = () => { return selectedRows }
 
+    const handleCopy = useCallback(() => {
+            if (!handleSelection) return;
+
+            const selection = getCurrentSelection(); 
+            setCopiedRows(selection);
+
+            }, [handleSelection]);
+
+    const handlePaste = useCallback(async () => {
+            if (!handleSelection) return;
+
+            try {
+                setCopiedRows
+            } catch (e) {
+                console.error("Paste failed", e);
+            }
+        }, [handleSelection, copiedRows]);
+    
+    const hotkeys = useMemo(() => [
+        {
+            combo: "mod + c",
+            label: "Copy table selection",
+            preventDefault: true,
+            onKeyDown: handleCopy,
+        },
+        {
+            combo: "mod + v",
+            label: "Paste table selection",
+            preventDefault: true,
+            onKeyDown: handlePaste,
+        },
+    ], [handleCopy, handlePaste]);
+
+    const { handleKeyDown, handleKeyUp } = useHotkeys(hotkeys);
+
+    return {
+        selectedRows,
+        copiedRows,
+
+        setSelectedRows,
+        setCopiedRows,
+        getCurrentSelection,
+        handleKeyDown,
+        handleKeyUp,
+        handleCopy,
+        handlePaste
+    }
+}
 
 function AttributeSelectionHeader({
     selected_attribute_tag,
@@ -74,10 +126,8 @@ function SamplesAttributes({
     selected_proteome_tags
     }) {
 
-    const [selectedRows, setSelectedRows] = useState([])
-    const [copiedRows, setCopiedRows] = useState([])
-    const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
-    const getCurrentSelection = () => { return selectedRows }
+    
+    
      /**
      * @description Handles the selection based on the selection region. 
      * @param {import("@blueprintjs/table").Region} selectedRegion 
@@ -113,46 +163,12 @@ function SamplesAttributes({
         }
         setSelectedRows(rows)
     }
-        const handleCopy = useCallback(() => {
-            if (!handleSelection) return;
 
-            // TODO: replace with your actual selection model
-            const selection = getCurrentSelection(); 
-            setCopiedRows(selection);
-            
+    const { selectedRows, copiedRows, setSelectedRows, handleKeyDown, handleKeyUp, handleCopy, handlePaste } = useSampleTableSelection({handleSelection})
 
-            console.log(selection, "copied rows")
+    const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
 
-
-            }, [handleSelection]);
-
-        const handlePaste = useCallback(async () => {
-            if (!handleSelection) return;
-
-            try {
-                setCopiedRows
-            } catch (e) {
-                console.error("Paste failed", e);
-            }
-        }, [handleSelection, copiedRows]);
     
-        const hotkeys = useMemo(() => [
-        {
-            combo: "mod + c",
-            label: "Copy table selection",
-            preventDefault: true,
-            onKeyDown: handleCopy,
-        },
-        {
-            combo: "mod + v",
-            label: "Paste table selection",
-            preventDefault: true,
-            onKeyDown: handlePaste,
-        },
-    ], [handleCopy, handlePaste]);
-
-    const { handleKeyDown, handleKeyUp } = useHotkeys(hotkeys);
-
     const getSelectedSampleTags = () => {
         return selectedRows.map(
             row => `${submission_tag}|${sampleNames[row]}`

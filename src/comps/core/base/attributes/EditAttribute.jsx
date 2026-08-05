@@ -59,9 +59,7 @@ export function EditAttribute({attribute_tag}) {
         setAttribute(prevValues => { return { ...prevValues, required_trait_tags: addStringToArrayOrRemove({ array: prevValues.required_trait_tags, string: trait_tag }) } })
 
     }
-
-    console.log(attribute, parent_tags, children_tags, group_tags, attributeProps)
-
+    
     const handleAttributeSubmit = () => {
         patchAttribute({tag : attribute_tag, ...attribute}, {
             onSuccess: () => {

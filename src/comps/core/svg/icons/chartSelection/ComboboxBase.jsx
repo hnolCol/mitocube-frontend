@@ -64,7 +64,6 @@ function ComboboxIconBase({
     
     const itemsAreObjects = _.isObject(items[0])
     const checkedItems = _.isString(items[0])?items.map(v => {return {[textKey] : v}}):items
-    console.log(checkedItems, selectedItems, itemsAreObjects)
     const handleSelection = (item, e) => {
         const returnItem = itemsAreObjects ? item : item[textKey]
         if (_.isFunction(callback)) {

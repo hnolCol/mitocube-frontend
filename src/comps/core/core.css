@@ -541,6 +541,22 @@ h5 {
 }
 
 
+.basic-button--no-border {
+    background: transparent;
+    color: #2e528b;
+    border: none;
+    padding: 4px 8px;
+    margin-right: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 0.75rem;
+}
+
+.basic-button--no-border:hover {
+    text-decoration: underline;
+}
+
+
 .dropdown-button {
     width: 100%;
     padding: 4px 8px;

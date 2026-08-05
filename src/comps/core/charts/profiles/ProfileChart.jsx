@@ -30,9 +30,8 @@ export function _extractProteinName(proteinTag, proteinTagMap, sep = ";") {
 }
 
 function areSetsEqual(a, b) {
-    if (a === b) return true;
+   
     if (a.size !== b.size) return false;
-
     for (const value of a) {
         if (!b.has(value)) return false;
     }
@@ -230,7 +229,6 @@ function ProfileChartComponent({
 
 
                     {showHoverLabels && hoverDataInSubset.length > 0 && !(searchIndices.size > 0)  ? hoverDataInSubset.slice(0, 5).map((dataItem, idx) => {
-                        console.log(dataItem)
                         return <Text
                             x={xScale(yaxisName[0])+2}
                             y={yScale(yScale.domain()[1])}
@@ -251,17 +249,13 @@ function ProfileChartComponent({
         
 
 function areEqual(prevProps, nextProps) {
-    // console.log(prevProps.hoverIndices, nextProps.hoverIndices, "hoverIndices")
     if (prevProps.chartIdx !== nextProps.chartIdx) return false 
     if (prevProps.width !== nextProps.width) return false 
     if (prevProps.height !== nextProps.height) return false
     if (!areSetsEqual(prevProps.searchIndices, nextProps.searchIndices)) return false
     if (!areSetsEqual(prevProps.hoverIndices, nextProps.hoverIndices)) return false
     if (!areSetsEqual(prevProps.subsetIndices, nextProps.subsetIndices)) return false
-    // if (_.every(prevProps.hoverDataInSubset, (d, idx) => !_.isEqual(d, nextProps.hoverDataInSubset[idx]))) return false
     return true
-
-
 
 }
 

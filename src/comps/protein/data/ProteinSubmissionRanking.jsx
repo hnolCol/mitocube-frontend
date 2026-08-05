@@ -56,7 +56,8 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         <h3>Protein Submission Ranking</h3>
         <span>Features are ranked by statistic approaches. Find more information in the documentation.</span>
         <div className="flex" style={{gap : "3rem", marginTop : "1rem"}}>
-        <div><InteractiveChart
+            <div className="flex flex-column" style={{width : "375px"}}>
+                <InteractiveChart
             data={submissionStats}
             keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}>
             
@@ -150,7 +151,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                     <h3>Settings</h3>
                     <span>Choose metrics to display data.</span>
                     
-                    <div className="flex" style={{ marginBottom: "0.75rem", flexShrink: 0 }}>
+                    <div className="flex" style={{ marginBottom: "0.75rem", flexShrink: 0, maxWidth : "100%", flexWrap : "wrap", gap : "0.5rem"}}>
                             {METRICES.map(option => (
                                 <OptionButton key={option} onClick={() => setMetrics(option)} isSelected={option === metrics}>
                                     {option}
@@ -164,7 +165,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                 </div>
             </div>
 
-        <div style={{width : "75vw", borderLeft : "1px solid #ccc", paddingLeft : "2rem"}}>
+        <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem"}}>
 
             
             {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length ?

@@ -16,7 +16,8 @@ import { Attribute } from "@/comps/core/base/attributes/Attribute";
 import { useRef } from "react";
 
 
-function HeatmapLoad( {submission_tag} ) {
+function HeatmapLoad({ submission_tag }) {
+    
     const [testProps, setTestProps] = useState({ fdr: 0.05, n_clusters: 8, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
     const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] })
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
@@ -32,14 +33,10 @@ function HeatmapLoad( {submission_tag} ) {
         if (!_.isArray(sample_ca_attribute_tags) || !_.isArray(submissionSampleConditionApplications)) return []
         return _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())
     }, [_.join(sample_ca_attribute_tags, ";"), _.isArray(submissionSampleConditionApplications)])
-
-
     
     if (isError) return <APIError error={error} />
     if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div>Loading...</div>
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
-    
-
     
     return <WithTagMaps
         Component={HeatmapViz}
@@ -80,7 +77,6 @@ function HeatmapViz({
         setTestProps,
         viewProps,
         setViewProps,
-        ca_tags,
         caTagMap, 
         attributeTagMap,
         attribute_tags,
@@ -145,6 +141,14 @@ function HeatmapViz({
         }
     }, [_.join(viewProps.selectedCluster, ";")])
 
+
+    useEffect(() => {
+        if (_.isNumber(proteinSearchResults.trigger) && proteinSearchResults.values.length > 0) {
+            scrollContainerRef.current?.scrollTo({ top: 0, left: 0, behavior: "smooth" })
+        }
+    }, [proteinSearchResults.trigger])
+
+
     const passOnProps = useMemo(() => ({
         refetchedTrigger,
         setRequiredProteinTags,
@@ -167,7 +171,9 @@ function HeatmapViz({
     const filteredSampleConditionApplications = useMemo(() => {
         if (!_.isArray(submissionSampleConditionApplications) || !_.isArray(heatmapData.value_names)) return submissionSampleConditionApplications
         const valueNameSet = new Set(heatmapData.value_names)
-        return submissionSampleConditionApplications.filter(ca => valueNameSet.has(ca.tag))
+        const filtered = submissionSampleConditionApplications.filter(ca => valueNameSet.has(ca.tag))
+        const valueNameIndex = Object.fromEntries(heatmapData.value_names.map((name, idx) => [name, idx]))
+        return _.sortBy(filtered, ca => valueNameIndex[ca.tag])
     }, [submissionSampleConditionApplications, heatmapData.value_names])
 
     return (
@@ -332,7 +338,8 @@ function HeatmapViz({
                                                 isLabelFeatureTag: true,
                                                 selectedClusters: viewProps.selectedCluster.map(c => _.toNumber(c.tag)),
                                                 proteinIsLoading, 
-                                                scrollContainerRef
+                                                scrollContainerRef,
+                                                svgID : `heatmap-svg-${submission_tag}`
                                             }} />
                                     </div>
                                 </div>

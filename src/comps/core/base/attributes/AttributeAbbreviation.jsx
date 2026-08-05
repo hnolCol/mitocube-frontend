@@ -15,6 +15,6 @@ AttributeAbbreviation.propTypes = {
  * @returns 
  */
 export function AttributeAbbreviation({ attribute_tag, suffix ="=" }) {
-    const {data : abbr, isSuccess } = api.attributes.queryAttributes.useGetAttributeAbbreviation({tag : attribute_tag})
+    const {data : abbr, isSuccess } = api.attributes.queryAttributes.useGetAttributeAbbreviation({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     return (<span> {isSuccess && _.isString(abbr) && abbr.length > 0 ? abbr + suffix : null}</span>)
 }

@@ -15,6 +15,7 @@ import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import { FavoriteAnnotationSelection } from "@/comps/core/base/annotations/FavoriteAnnotationSelection";
 import { Checkbox } from "@/comps/core/base/states/Checkbox";
 import { AnnotationDistribution } from "@/comps/admin/annotations/AnnotationDistribution";
+import { getItemFromLocalStorage } from "@/services/localstorage";
 
 
 
@@ -29,9 +30,33 @@ function HiddenSuffixes({ hiddenSuffixes, setHiddenSuffixes }) {
         onChange={i => handleRemoveSuffix(i.text)}
         noResultsText="No hidden volcanos."
         fill={false}
-        buttonProps={{ icon: "eye-off", variant: "minimal", intent: _.isEmpty(hiddenSuffixes) ? "none" : "danger" }} />
+        buttonProps={{ icon: "eye-off", variant: "minimal", intent: _.isEmpty(hiddenSuffixes) ? "none" : "primary" }} />
 }
 
+
+
+function ResetVolcanoPlots({ submission_tag, resetVolcanoData }) {
+    
+    const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
+    const { itemFound : labelsFound, itemValue : labelIndices } = getItemFromLocalStorage({ itemName: "volcanoLabelIndices", parseJson: true })
+
+    if (!itemFound ||!_.has(itemValue, submission_tag)) return null
+    const handleReset = () => {
+        const newValue = { ...itemValue }
+        delete newValue[submission_tag]
+        localStorage.setItem("volcanoProps", JSON.stringify(newValue))
+
+        if (labelsFound) {
+            const newLabelIndices = { ...labelIndices }
+            delete newLabelIndices[submission_tag]
+            localStorage.setItem("volcanoLabelIndices", JSON.stringify(newLabelIndices))
+        }
+        resetVolcanoData()
+    }
+    return <Button icon="reset" intent="danger" onClick={handleReset} variant="minimal" />
+}
+
+const INIT_VOLCANO_DATA = { data: [], testParams: [], selection: [], suffixes: [], initialLabelIndices : new Set() }
 
 export function VolcanoPlotWrapper({ submission_tag }) {
     const [showHoverLabels, setShowHoverLabels] = useState(false)
@@ -41,7 +66,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [hiddenSuffix, setHiddenSuffix] = useState([])
     const [isFetching, setIsFetching] = useState(false)
     const [error, setError] = useState({ isOpen: false, message: "" })
-    const [volcanoData, setVolcanoData] = useState({ data: [], testParams: [], selection: [], suffixes: [], initialLabelIndices : new Set() })
+    const [volcanoData, setVolcanoData] = useState(INIT_VOLCANO_DATA)
     const [favoriteProteinSelection, setFavoriteProteinSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
     const [selectedAnnotations, setSelectedAnnotations] = useState([])
@@ -74,6 +99,14 @@ export function VolcanoPlotWrapper({ submission_tag }) {
         setAnnotationHoverResults(prevValues => {
             return { ...prevValues, values: annotationTag ? [annotationTag] : [], trigger: Math.random() }
         })
+    }
+
+    const resetVolcanoData = () => {
+        setVolcanoData(INIT_VOLCANO_DATA)
+        setTestParams({})
+        setHiddenSuffix([])
+        setFavoriteProteinSelection({ values: [], trigger: undefined, key: "tag" })
+        setIsFetching(false)
     }
 
     return (
@@ -133,21 +166,24 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                 </div>
                 <div className="flex margin--medium">
                     <div><Button variant="minimal" icon={pairWiseOpen ? "chevron-left" : "chevron-right"} onClick={() => setPairWiseOpen(prev => !prev)} /></div>
-                    <HiddenSuffixes hiddenSuffixes={hiddenSuffix} setHiddenSuffixes={setHiddenSuffix} />
+                    <div><HiddenSuffixes hiddenSuffixes={hiddenSuffix} setHiddenSuffixes={setHiddenSuffix} />
+                    <ResetVolcanoPlots submission_tag={submission_tag} resetVolcanoData={resetVolcanoData} /></div>
                 </div>
                 <div className="div--expand">
                     <VolcanoProteinWrapper {...{
-                    submission_tag,
-                    selectedTestParams: testParams,
-                    setIsFetching,
-                    onError: setError,
-                    hiddenSuffix,volcanoData, setVolcanoData,
-                    setHiddenSuffix,
-                        favoriteProteinSelection,
-                    proteinHoverResults,
-                    favoriteAnnotationSelection,
-                    annotationHoverResults,
-                    showHoverLabels
+                            submission_tag,
+                            selectedTestParams: testParams,
+                            setIsFetching,
+                            onError: setError,
+                            hiddenSuffix,
+                            volcanoData,
+                            setVolcanoData,
+                            setHiddenSuffix,
+                            favoriteProteinSelection,
+                            proteinHoverResults,
+                            favoriteAnnotationSelection,
+                            annotationHoverResults,
+                            showHoverLabels
                     }} />
                     </div>
                 </div>
@@ -167,7 +203,8 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                     proteinSearchProps={{submission_tag}}
                     {...{
                         submission_tag, 
-                        volcanoData, setVolcanoData,
+                        volcanoData,
+                        setVolcanoData,
                         selectedTestParams,
                         setIsFetching,
                         onError,

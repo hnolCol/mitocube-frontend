@@ -27,7 +27,6 @@ export function DownloadData({ elements, elementNames, elementTypes, fileNames, 
         else if (elementTypes[idx] === "data") {
             if (_.isArray(elements[idx]) && _.isObject(elements[idx][0])) {
                 const txtData = arrayOfObjectsToString({ data: elements[idx], keyNames: _.keys(elements[idx][0]) })
-                console.log(txtData)
                 downloadTxtFile(txtData, fileNames[idx])
             }
         }

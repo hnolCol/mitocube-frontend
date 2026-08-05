@@ -110,7 +110,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                 
 
                 return (
-                    <div style={{ width: "65vw", height : "80vh", overflowY : "scroll" }}>
+                    <div style={{ width: "100%", height : "80vh", overflowY : "scroll", paddingRight : "1rem" }}>
                         <ResponsiveGridLayout
                             className="layout"
                             layouts={layouts}
