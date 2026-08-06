@@ -1,0 +1,52 @@
+
+.attributeSelectionHeaderContainer {
+margin-right: 2rem;
+}
+.columnHeaderCellAttributeContainer {
+min-height: 3rem;
+}
+.attributeSelectionHeaderInner {
+min-height: 50px;
+max-height: 50px;
+}
+.genotypeHeaderContainer {
+min-height: 50px;
+max-height: 50px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+padding-left: 8px;
+padding-right: 4px;
+}
+.genotypeHeaderTitle {
+margin: 0;
+}
+.defaultHeaderContainer {
+min-height: 50px;
+max-height: 50px;
+display: flex;
+align-items: center;
+}
+.defaultHeaderTitle {
+margin: 0;
+}
+.genotypeTagContainer {
+display: flex;
+flex-wrap: wrap;
+}
+.cellContentWrapper {
+width: 100%;
+padding: 0;
+}
+.cellContentInner {
+display: flex;
+flex-wrap: wrap;
+flex: 1;
+min-width: 300px;
+}
+.tableContainer {
+padding-top: 1rem;
+padding-bottom: 1rem;
+height: 75vh;
+overflow-y: scroll;
+}

@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
 import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
-import { useState, useCallback, useMemo } from "react";
+import { memo, useState, useCallback, useMemo } from "react";
 import _ from "lodash"
 
 import { ReplicateMenu } from "./menu/ReplicateMenu"
@@ -15,11 +15,16 @@ import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
 import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
 import { useHotkeys } from "@blueprintjs/core";
+import "./sa.css"
+
+const getSampleAttrIndex = (columnIndex) => columnIndex - 3;
+const getGroupingInfoByColumnIndex = (columnIndex, groupings) => groupings[getSampleAttrIndex(columnIndex)];
+const getGroupingAttributeByColumnIndex = (columnIndex, groupings) => getGroupingInfoByColumnIndex(columnIndex, groupings);
 
 function useSampleTableSelection({handleSelection}) {
     const [selectedRows, setSelectedRows] = useState([]);
     const [copiedRows, setCopiedRows] = useState([]);
-    const getCurrentSelection = () => { return selectedRows }
+    const getCurrentSelection = useCallback(() => selectedRows, [selectedRows])
 
     const handleCopy = useCallback(() => {
             if (!handleSelection) return;
@@ -37,7 +42,7 @@ function useSampleTableSelection({handleSelection}) {
             } catch (e) {
                 console.error("Paste failed", e);
             }
-        }, [handleSelection, copiedRows]);
+        }, [handleSelection]);
     
     const hotkeys = useMemo(() => [
         {
@@ -70,14 +75,14 @@ function useSampleTableSelection({handleSelection}) {
     }
 }
 
-function AttributeSelectionHeader({
+const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
     selected_attribute_tag,
     sampleAttrIndex,
     onSampleAttributeSelect,
     disabled = false }) {
    
-    const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : _.isString(selected_attribute_tag), staleTime : Infinity})
-    const attributeSelected = _.isObject(attribute) && _.has(attribute,"text")
+    const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : typeof selected_attribute_tag === "string", staleTime : Infinity})
+    const attributeSelected = _.isObject(attribute) && attribute?.text
     return (
         <div style={{marginRight : "2rem"}}>
             {<AttributeInput {...{
@@ -88,7 +93,7 @@ function AttributeSelectionHeader({
             }} />}
         </div>
     )
-}
+})
 
 
 SamplesAttributes.propTypes = {
@@ -133,68 +138,84 @@ function SamplesAttributes({
      * @param {import("@blueprintjs/table").Region} selectedRegion 
      * @returns 
      */
-    const handleSelection = (selectedRegion) => {
-        //handle selection of rows
-        let rows = [] 
-        if (!_.isArray(selectedRegion)) return 
-        if (selectedRegion.length === 0) return 
-        if (!_.isObject(selectedRegion[0])) return 
-        if (!_.has(selectedRegion[0], "rows")) return 
-        if (!_.isArray(selectedRegion[0].rows)) return 
-        if (selectedRegion.length > 1) {
-            //cmd /ctrl based selection
-            // the indiividual selections can have overlapping rows or equal rows
-            // hence we need to check for overlapping rows
-            // the mapping returns either an integer (row) or an array ( multiple rows)
-            // therefore we need to flatten the array first
-            rows = _.uniq(_.flatten(selectedRegion.filter(selection => _.has(selection, "rows")).map(selection => {
-                if (selection.rows[0] === selection.rows[1]) return selection.rows[0]
-                return _.range(selection.rows[0],selection.rows[1]+1)
-            })))
-        }
-        else if (selectedRegion.length === 1 && _.has(selectedRegion[0],"rows")) {
-            //drag seelection
-            if (selectedRegion[0].rows[0] == selectedRegion[0].rows[1]) {
-                rows = [selectedRegion[0].rows[1]]
-            }
-            else {
-                rows = _.range(selectedRegion[0].rows[0],selectedRegion[0].rows[1]+1)
-            }
-        }
-        setSelectedRows(rows)
-    }
+    const handleSelection = useCallback((regions) => {
+        if (!regions?.length) return;
 
-    const { selectedRows, copiedRows, setSelectedRows, handleKeyDown, handleKeyUp, handleCopy, handlePaste } = useSampleTableSelection({handleSelection})
+        const rows = [
+            ...new Set(
+                regions.flatMap(region => {
+                    if (!region.rows) return [];
+
+                    const [start, end] = region.rows;
+
+                    return Array.from(
+                        { length: end - start + 1 },
+                        (_, i) => start + i
+                    );
+                })
+            ),
+        ];
+
+        setSelectedRows(currentRows =>
+            _.isEqual(currentRows, rows) ? currentRows : rows
+        );
+    }, []);
+
+
+    
+    const { selectedRows, copiedRows, setSelectedRows, handleKeyDown, handleKeyUp } = useSampleTableSelection({handleSelection})
 
     const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
 
     
-    const getSelectedSampleTags = () => {
-        return selectedRows.map(
-            row => `${submission_tag}|${sampleNames[row]}`
-        )
-    }
+    const selectedSampleTags = useMemo(
+        () => selectedRows.map(r => `${submission_tag}|${sampleNames[r]}`),
+        [selectedRows, submission_tag, sampleNames]
+    );
     
     /**
      * 
      * @param {Number} columnIndex 
      * @returns 
      */
-    const isGroupingAttributeDefined = (columnIndex) => {
-        const groupingAttribute = getGroupingAttributeByColumnIndex(columnIndex)
-        if (!_.isString(groupingAttribute)) return [false, undefined]
+    const isGroupingAttributeDefined = useCallback((columnIndex) => {
+        const groupingAttribute = getGroupingAttributeByColumnIndex(columnIndex, groupings)
+        if (typeof groupingAttribute !== "string") return [false, undefined]
         return [true, groupingAttribute]
-    }
+    }, [groupings])
     
     const { mutate } = api.samples.core.useInsertSampleGenotype()
 
-    const getGroupingInfoByColumnIndex = (columnIndex) => groupings[getSampleAttrIndex(columnIndex)];
+    const [rowHeights, setRowHeights] = useState([])
 
-    const getGroupingAttributeByColumnIndex = (columnIndex) => getGroupingInfoByColumnIndex(columnIndex);
+    const updateRowHeight = useCallback((rowIndex, element) => {
+        if (!element) return
+
+        const requiredHeight = Math.max(60, element.scrollHeight + 8)
+        setRowHeights(currentHeights => {
+            const currentHeight = currentHeights[rowIndex] ?? 60
+            if (requiredHeight <= currentHeight) return currentHeights
+
+            const nextHeights = [...currentHeights]
+            nextHeights[rowIndex] = requiredHeight
+            return nextHeights
+        })
+    }, [])
+
+    // Blueprint requires rowHeights to contain exactly one entry per table row.
+    const tableRowHeights = useMemo(
+        () => Array.from(
+            { length: sampleNames.length },
+            (_, rowIndex) => rowHeights[rowIndex] ?? 60
+        ),
+        [rowHeights, sampleNames.length]
+    )
+
+
     
-    const getSampleAttrIndex = (columnIndex) => columnIndex - 3;
+    
 
-    const renderBodyContextMenu = (r) => {
+    const renderBodyContextMenu = useCallback((r) => {
         // render context menu for attributes
         let targetColumns = r.target.cols
         let columnIndex = targetColumns[0]
@@ -231,7 +252,21 @@ function SamplesAttributes({
                 )
             }
         }
-    }
+    }, [
+        clearAttributeTableByRowIndex,
+        clearGenotypeColumn,
+        copiedRows,
+        genotypes,
+        handleGenotypeSelection,
+        isGroupingAttributeDefined,
+        numberReplicates,
+        onPasteRowsInAttribute,
+        onReplicateChange,
+        onSampleTraitSelection,
+        repeatSelection,
+        sampleNames.length,
+        selectedRows,
+    ])
 
     /**
      * @description Handles the genotype representation.
@@ -239,23 +274,23 @@ function SamplesAttributes({
      * @param {Number} columnIndex 
      * @returns 
      */
-    const renderGenotype = (rowIndex, columnIndex) => {
+    const renderGenotype = useCallback((rowIndex, columnIndex) => {
         const cellKey = `${rowIndex}-${columnIndex}-genotype`
-        if (!_.isArray(genotypes) || genotypes[rowIndex] === undefined) return <Cell key={cellKey}></Cell>
+        if (!_.isArray(genotypes) || genotypes[rowIndex] === undefined) return <Cell key={cellKey}></Cell>
         const selected_genotype_tags = genotypes[rowIndex]
         if (!_.isArray(selected_genotype_tags)) return null
         return <Cell key={cellKey}><div className="flex flex--wrap center-items">
                 {selected_genotype_tags.map(genotype_tag => {
-            return <div>
+            return <div key={`${rowIndex}-${columnIndex}-${genotype_tag}`} className="margin--little">
                 <Tag 
                     minimal={true} onRemove={() => handleGenotypeSelection([rowIndex], genotype_tag)}>
                  <GenotypeText tag={genotype_tag} />
             </Tag></div>
         })}</div>
         </Cell>
-    }
+    }, [genotypes, handleGenotypeSelection])
 
-    const renderCell = (rowIndex, columnIndex) => {
+    const renderCell = useCallback((rowIndex, columnIndex) => {
 
         const cellKey = `${rowIndex}-${columnIndex}`
         const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
@@ -281,7 +316,9 @@ function SamplesAttributes({
         let cellData = getSelectionByPath([{ "type": "attribute", tag: attribute_tag, "id": referenceID }], rowIndex, false)
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey} style={{ width: "100%", padding: 0 }}>
-            <div className="flex " style={{flexWrap : "wrap", flex: 1 , minWidth : "300px" }}>
+            <div
+                ref={(element) => updateRowHeight(rowIndex, element)}
+                className="flex cellContentInner">
                 {cellData.map(child => {
                     return <div
                         key={`${rowIndex}-${columnIndex}-${child.tag}-${referenceID}`}
@@ -301,7 +338,21 @@ function SamplesAttributes({
                     </div>})}
             </div>
         </Cell>
-    }
+    }, [
+        attributeTable.length,
+        checkAttributeRequiredTraits,
+        getSelectionByPath,
+        isGroupingAttributeDefined,
+        onSampleTraitSelection,
+        onTagRemove,
+        referenceIDs,
+        replicates,
+        sampleNames,
+        selectedRows,
+        selected_proteome_tags,
+        submission_tag,
+        updateRowHeight,
+    ])
 
 
 
@@ -311,7 +362,7 @@ function SamplesAttributes({
      * @param {Number} columnIndex 
      * @returns 
      */
-    const renderAttributeHeaderMenu = (columnIndex) => {
+    const renderAttributeHeaderMenu = useCallback((columnIndex) => {
         const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute_tag])?rowData[attribute_tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0
@@ -326,9 +377,9 @@ function SamplesAttributes({
                 <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(sampleAttrIndex)} />
                 
             </Menu>)
-    }
+    }, [attributeTable, clearColumnByAttributeTag, isGroupingAttributeDefined, removeSampleAttrByIndex])
 
-    const renderAttributeHeader = (columnIndex) => {
+    const renderAttributeHeader = useCallback((columnIndex) => {
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
         const attribute_tag = groupings[sampleAttrIndex] 
         return (
@@ -337,8 +388,8 @@ function SamplesAttributes({
                 selectCellsOnMenuClick={false}
                 isColumnSelected={false}
             >
-                    <div className="margin--little"
-                        style={{ minHeight: "50px", maxHeight: "50px" }}>
+                    <div className="margin--little attributeSelectionHeaderInner"
+                        >
                         <AttributeSelectionHeader
                             {...{
                                 selected_attribute_tag : attribute_tag,
@@ -349,21 +400,13 @@ function SamplesAttributes({
                             }} />
                     </div>
             </ColumnHeaderCell>)
-    }
+    }, [groupings, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length])
 
    
 
-    // const genotypeHeaderMenu = () => {
-    //     return <Menu small={true}>
-    //         <MenuItem text="Genotypes" disabled={true} />
-    //         <MenuDivider />
-    //         <MenuItem text="Clear" icon="clean" onClick={() =>  clearGenotypeColumn()} disabled={_.isObject(genotypeAttributes)} />
-    //     </Menu>
-    // }
-
-    const renderGenotypeHeader = () => (
+    const renderGenotypeHeader = useCallback(() => (
         <ColumnHeaderCell>
-            <div style={{ minHeight: "50px", maxHeight: "50px", display: "flex", alignItems: "center", justifyContent: "space-between", paddingLeft: "8px", paddingRight: "4px" }}>
+            <div className="genotypeHeaderContainer">
                 <h4 style={{ margin: 0 }}>Genotype</h4>
     
                 <Button
@@ -372,31 +415,38 @@ function SamplesAttributes({
                 />
             </div>
         </ColumnHeaderCell>
-    )
+    ), [])
 
-    const renderDefaultHeader = (headerName, menuRenderer) => {
+    const renderDefaultHeader = useCallback((headerName, menuRenderer) => {
 
         return <ColumnHeaderCell menuRenderer={menuRenderer}>
-            <div className="margin--little" style={{minHeight: "50px", maxHeight: "50px", display: "flex", alignItems: "center"}}>
-                <h4>{headerName}</h4></div>
+            <div className="defaultHeaderContainer">
+                <h4 className="defaultHeaderTitle">{headerName}</h4></div>
         </ColumnHeaderCell>
-    }
+    }, [])
 
-    const selectedRegionTransform = (e) => {
+    const selectedRegionTransform = useCallback((e) => {
         //cell selection to full row selection transformation
         if (!_.has(e, "rows")) return { rows: [], cols: [] } //prevents selection of table if column header is selected.
         return {
             rows: e.rows
         }
-    }
+    }, [])
 
 
-
+    const replicateHeader = useCallback(
+    () => renderDefaultHeader("Replicates"),
+    [renderDefaultHeader]
+    );
+    const sampleRunHeader = useCallback(
+    () => renderDefaultHeader("Sample Run"),
+    [renderDefaultHeader]
+);
     
 
     return (
     
-        <div style={{paddingTop:"1rem",paddingBottom:"1rem", height : "75vh", overflowY: "scroll"}}>
+        <div className="tableContainer">
             <HotkeysProvider>
                 <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} tabIndex={0}>
                 <Table2
@@ -406,16 +456,17 @@ function SamplesAttributes({
                     cellRendererDependencies={[rerenderTableDependency]}
                     bodyContextMenuRenderer={renderBodyContextMenu}
                     defaultRowHeight={60}
+                    rowHeights={tableRowHeights}
                     selectionModes={SelectionModes.CELLS}
                     minColumnWidth={300}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
                         cellRenderer={renderCell}
-                        columnHeaderCellRenderer={() => renderDefaultHeader("Sample Run")} />
+                        columnHeaderCellRenderer={sampleRunHeader} />
                     <Column
                         cellRenderer={renderCell}
-                        columnHeaderCellRenderer={() => renderDefaultHeader("Replicates")} />
+                        columnHeaderCellRenderer={replicateHeader} />
                     <Column
                         cellRenderer={renderGenotype}
                         columnHeaderCellRenderer={renderGenotypeHeader}
@@ -431,13 +482,11 @@ function SamplesAttributes({
             <AddGenotypeDialog
                 isOpen={isGenotypeDialogOpen}
                 onClose={(genotype_tag) => {
-
-                    const sample_tags = getSelectedSampleTags()
                 
-                    if (genotype_tag && sample_tags.length > 0) {
+                    if (genotype_tag && selectedSampleTags.length > 0) {
                 
                         mutate(
-                            { sample_tags, genotype_tag },
+                            { sample_tags : selectedSampleTags, genotype_tag },
                             {
                                 onSuccess: () => refetchGenotypes()
                             }

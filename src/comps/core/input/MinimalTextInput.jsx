@@ -23,12 +23,6 @@ MinimalTextInput.propTypes = {
     disabled: PropTypes.bool
 }
 
-MinimalTextInput.defaultProps = {
-    value: "",
-    disabled : false,
-    allowAminoAcidsOnly: false,
-    allowDNAOnly: false
-}
 
 /**
  * MinimalTextInput component for rendering a minimalistic text input field.
@@ -52,20 +46,16 @@ MinimalTextInput.defaultProps = {
 
 
 export function MinimalTextInput({
-    value,
+    value ="",
     onChange,
     placeholder = "Type here...",
     style = {},
-    // optional = false,
-    // hint = "",
-    // checkForMinLength = false,
-    // minLength = 0,
     prefix = "",
     suffix = "",
     suffix_trait_tag,
-    disabled,
-    allowAminoAcidsOnly,
-    allowDNAOnly
+    disabled = false,
+    allowAminoAcidsOnly = false,
+    allowDNAOnly = false
 }) {
 
     const { data: suffixTrait } = api.traits.queryTraits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });

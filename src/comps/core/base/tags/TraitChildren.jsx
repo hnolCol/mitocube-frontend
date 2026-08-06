@@ -9,8 +9,6 @@ import { TraitInput } from '../../input/api/TraitInput'
 import { MinimalTextInput } from '../../input/MinimalTextInput'
 import { FeatureInput } from '../../input/api/FeatureInput'
 import { Trait } from '../traits/Trait'
-import { use } from "react";
-import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 import { RemoveButton } from "../buttons/RemoveButton";
 
 
@@ -28,22 +26,22 @@ export function AttributeTraitInput({ has_selection, selection, childTrait, attr
     return (
     <div>
         <MinimalTextInput
-                                    value={getInput()}
-                                    placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : attribute.text}
-                                    disabled={!has_selection}
-                                    callbackKey={attribute.tag}
-                                    allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
-                                    allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
-                                    onChange={(value) => handleTraitValueInput(value)}
-                                    suffix_trait_tag={childTrait} />
+                value={getInput()}
+                placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : attribute.text}
+                disabled={!has_selection}
+                callbackKey={attribute.tag}
+                allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
+                allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
+                onChange={(value) => handleTraitValueInput(value)}
+                suffix_trait_tag={childTrait} />
                            
-                            {attributeHasTraits ?
-                                
-                                <TraitInput
-                                    attribute_tag={attribute.tag}
-                                    onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
-                                    selected_trait={has_selection ? selection[0].tag : undefined}
-                                    onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
+        {attributeHasTraits ?
+            
+            <TraitInput
+                attribute_tag={attribute.tag}
+                onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
+                selected_trait={has_selection ? selection[0].tag : undefined}
+                onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
             /> : null}
     </div>
     )
