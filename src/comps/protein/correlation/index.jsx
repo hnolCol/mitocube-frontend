@@ -1,7 +1,7 @@
 
 
 import { api } from "@/api";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { FeatureProfile } from "./FeatureProfile";
 import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationSelectionMenu";

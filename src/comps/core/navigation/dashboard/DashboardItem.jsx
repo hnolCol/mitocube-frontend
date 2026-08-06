@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 
 import "../navigation.css"
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { BaseDashboardIcon } from '../../svg/icons/dashboard/IconBase';
 import { getDashBoardIcon } from './Icons';
 

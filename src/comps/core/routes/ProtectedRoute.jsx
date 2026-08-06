@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router';
 import Loading from '../base/loading';
 
 

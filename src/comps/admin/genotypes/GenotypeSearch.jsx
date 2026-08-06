@@ -6,7 +6,7 @@ import { GenotypeContainer } from "./GenotypeContainer"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 
 
 GenotypeSearch.propTypes = {

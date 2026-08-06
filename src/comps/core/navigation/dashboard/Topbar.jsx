@@ -8,7 +8,7 @@ import _ from "lodash"
 import { BaseDialog } from "../dialogs/BaseDialog"
 import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
-import { Link } from "react-router-dom"
+import { Link } from "react-router"
 import { TermsOfUse } from "../../documents/TermsOfUse"
 import { api } from "@/api"
 
