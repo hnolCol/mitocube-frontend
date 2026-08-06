@@ -71,7 +71,8 @@ function useSampleTableSelection({handleSelection}) {
         handleKeyDown,
         handleKeyUp,
         handleCopy,
-        handlePaste
+        handlePaste,
+        setCopiedRows
     }
 }
 
@@ -163,7 +164,7 @@ function SamplesAttributes({
 
 
     
-    const { selectedRows, copiedRows, setSelectedRows, handleKeyDown, handleKeyUp } = useSampleTableSelection({handleSelection})
+    const { selectedRows, copiedRows, setSelectedRows, setCopiedRows, handleKeyDown, handleKeyUp } = useSampleTableSelection({handleSelection})
 
     const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
 
@@ -246,7 +247,8 @@ function SamplesAttributes({
                             clearAttributeTableByRowIndex,
                             repeatSelection,
                             copiedRows,
-                            onPaste: onPasteRowsInAttribute
+                            onPaste: onPasteRowsInAttribute,
+                            onCopy: () => setCopiedRows(selectedRows)
                         }}
                     />
                 )

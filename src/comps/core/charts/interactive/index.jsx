@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useCallback } from "react"
 import PropTypes from 'prop-types'
 import { addItemToArrayIfNotPresent } from "../../../../services/arrays/transforms"
 import _ from "lodash"
@@ -8,22 +8,6 @@ import { filterArrayBySearchStringByMultipleKeys, filterArrayBySearchStringBySin
 import { checkChartData } from "../../types/checks/data";
 import { checkInteractiveChartKeyNames } from "../../types/checks/chart";
 import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
-
-
-
-function makeid(length) {
-    let result = '';
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    const charactersLength = characters.length;
-    let counter = 0;
-    while (counter < length) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
-    }
-    return result;
-}
-
-let dataTest = _.range(2000).map(idx => {return {x : Math.random() * 1000, y : Math.random() * 5000, z : Math.random() * 4500,  label : makeid(5)}})
 
 
 /**
@@ -73,30 +57,84 @@ function InteractiveChart({
     
     const [resetAxisZoom, setResetAxisZoom] = useState(_.range(numberCharts).map(idx => { return { chartIdx: undefined } }))
 
-    const keyNamesFlatten = _.flattenDeep(keyNames.map(keys => Object.values(keys)))
-    const flattenKeyNames = _.join(keyNamesFlatten)
+    const keyNamesFlatten = useMemo(
+        () => [...new Set(
+            keyNames.flatMap(Object.values).flat()
+        )],
+        [keyNames]
+    )
+
+    const flattenKeyNames = useMemo(
+        () => keyNamesFlatten.join("|"),
+        [keyNamesFlatten]
+    )
+
     const limits  = useMemo(() => getMinMaxForMultipleKeyNames({data, keyNames : _.concat(keyNamesFlatten,extraLimitNames)}), [numberCharts,flattenKeyNames,dataName,_.join(extraLimitNames),data.length, dataUpdateTrigger])
     //get the indices in the data array that are valid (e.g. have valid numbers for xaxisName and yaxisName)
     const validIndices = useMemo(() => {
-        const isNumber = _.map(data, (d) => Object.fromEntries(_.map(keyNamesFlatten, keyName => [keyName,_.isNumber(d[keyName])])))
-        return Object.fromEntries(_.map(keyNames, ({xaxisName, yaxisName },chartIdx) => {
-            return([chartIdx, _.map(isNumber, d => isPointChart[chartIdx] ? d[xaxisName] && d[yaxisName ] : _.every(yaxisName, yName => d[yName]))])
-        }))
-    },[flattenKeyNames, dataName, data.length, dataUpdateTrigger])
+
+        return Object.fromEntries(
+            keyNames.map(({xaxisName,yaxisName},chartIdx)=>{
+
+                const yKeys = Array.isArray(yaxisName)
+                        ? yaxisName
+                        : [yaxisName]
+
+                    return [
+                        chartIdx,
+                        data.map(row =>
+                            isPointChart[chartIdx]
+                                ? Number.isFinite(row[xaxisName]) &&
+                                Number.isFinite(row[yaxisName])
+                                : yKeys.every(k =>
+                                    Number.isFinite(row[k])
+                                )
+                        )
+                    ]
+                })
+            )
+
+    },[data,keyNames,isPointChart])
 
     //create search trees for fast point finding in the array
-    const searchTrees = useMemo(() => {
-        return Object.fromEntries(_.range(numberCharts).filter(chartIdx => isPointChart[chartIdx]).map(chartIdx => {
-            let data_index = _.range(data.length).filter(idx => validIndices[chartIdx][idx])
-            let tree_data = data.filter((d,idx) => validIndices[chartIdx][idx])
-            const nPoints = tree_data.length 
-            const index = new KDBush(nPoints);
-            const { xaxisName, yaxisName } = keyNames[chartIdx]
-            _.forEach(tree_data, d => index.add(d[xaxisName], d[yaxisName]))
-            index.finish()
-            return [chartIdx, {tree : index, xaxisName, yaxisName , limits, data_index}]
-        }))
-    },[flattenKeyNames, numberCharts, dataName, data.length, dataUpdateTrigger])
+    const searchTrees = useMemo(()=>{
+
+    return Object.fromEntries(
+
+        keyNames.map((keys,chartIdx)=>{
+
+            if(!isPointChart[chartIdx])
+                return [chartIdx,null]
+
+            const valid = validIndices[chartIdx]
+            const indices=[]
+            const tree = new KDBush(
+                valid.filter(Boolean).length
+            )
+            data.forEach((d,i)=>{
+
+                if(valid[i]){
+                    tree.add(
+                        d[keys.xaxisName],
+                        d[keys.yaxisName]
+                    )
+                    indices.push(i)
+                }
+
+            })
+            tree.finish()
+            return [
+                chartIdx,
+                {
+                    tree,
+                    data_index:indices
+                }
+            ]
+
+        })
+    )
+
+},[data,keyNames,validIndices,isPointChart])
 
     useEffect(() => {
         if (initialLabelIndices === undefined) return
@@ -112,28 +150,103 @@ function InteractiveChart({
         dataName,
         data.length,
         dataUpdateTrigger])
-
-    useEffect(() => { 
-        if (externalSearchResult.trigger === undefined) return
-        if (!_.isArray(externalSearchResult.values)) return
-        setRerender(preValues => {return {...preValues, searchIndices : new Set(data.map((d,idx) => externalSearchResult.values.includes(d[externalSearchResult.key]) ? idx : null).filter(idx => idx !== null)), rerender : [Math.random()]}})
-    }, [externalSearchResult.trigger])   
     
-    useEffect(() => { 
+    
+    
+    const findIndicesByValues = useCallback((values, key) => {
+        if (!Array.isArray(values) || values.length === 0) {
+            return new Set();
+        }
 
-        if (externalHoverResult.trigger === undefined) return
-        if (!_.isArray(externalHoverResult.values)) return
-        const idcs  = new Set(data.map((d,idx) => externalHoverResult.values.includes(d[externalHoverResult.key]) ? idx : null).filter(idx => idx !== null))
-        setExternalHoverData(prevValues => { return {...prevValues, idcs, rerender : [Math.random()]}})
-        }, [externalHoverResult.trigger])
+        const valueSet = new Set(values);
+
+        return new Set(
+            data.reduce((indices, item, idx) => {
+                if (valueSet.has(item[key])) {
+                    indices.push(idx);
+                }
+                return indices;
+            }, [])
+        );
+    }, [data, dataUpdateTrigger]);
+
+    useEffect(() => {
+        if (externalSearchResult.trigger === undefined) return;
+
+        const searchIndices = findIndicesByValues(
+            externalSearchResult.values,
+            externalSearchResult.key
+        );
+
+        setRerender(prev => ({
+            ...prev,
+            searchIndices,
+            rerender: [Math.random()],
+        }));
+    }, [
+        externalSearchResult.trigger,
+        findIndicesByValues
+    ]);
+
+    useEffect(() => {
+    if (externalHoverResult.trigger === undefined) return;
+
+        const idcs = findIndicesByValues(
+            externalHoverResult.values,
+            externalHoverResult.key
+        );
+
+        setExternalHoverData(prev => ({
+            ...prev,
+            idcs,
+            rerender: [Math.random()],
+        }));
+    }, [
+        externalHoverResult.trigger,
+        findIndicesByValues
+    ]);
+
+    useEffect(() => {
+        if (externalLabelResult.trigger === undefined) return;
+
+        const idcs = findIndicesByValues(
+            externalLabelResult.values,
+            externalLabelResult.key
+        );
+
+        setExternalLabelData(prev => ({
+            ...prev,
+            idcs,
+            rerender: [Math.random()],
+        }));
+    }, [
+        externalLabelResult.trigger,
+        findIndicesByValues
+    ]);
+
+    // useEffect(() => { 
+    //     if (externalSearchResult.trigger === undefined) return
+    //     if (!_.isArray(externalSearchResult.values)) return
+    //     setRerender(preValues => {return {...preValues, searchIndices : new Set(data.map((d,idx) => externalSearchResult.values.includes(d[externalSearchResult.key]) ? idx : null).filter(idx => idx !== null)), rerender : [Math.random()]}})
+    // }, [externalSearchResult.trigger])   
+    
+
+
+    // useEffect(() => { 
+
+    //     if (externalHoverResult.trigger === undefined) return
+    //     if (!_.isArray(externalHoverResult.values)) return
+    //     const idcs  = new Set(data.map((d,idx) => externalHoverResult.values.includes(d[externalHoverResult.key]) ? idx : null).filter(idx => idx !== null))
+    //     setExternalHoverData(prevValues => { return {...prevValues, idcs, rerender : [Math.random()]}})
+    //     }, [externalHoverResult.trigger])
        
-    useEffect(() => { 
+    // useEffect(() => { 
 
-        if (externalLabelResult.trigger === undefined) return
-        if (!_.isArray(externalLabelResult.values)) return
-        const idcs  = new Set(data.map((d,idx) => externalLabelResult.values.includes(d[externalLabelResult.key]) ? idx : null).filter(idx => idx !== null))
-        setExternalLabelData(prevValues => { return {...prevValues, idcs, rerender : [Math.random()]}})
-        }, [externalLabelResult.trigger])
+    //     if (externalLabelResult.trigger === undefined) return
+    //     if (!_.isArray(externalLabelResult.values)) return
+    //     const idcs  = new Set(data.map((d,idx) => externalLabelResult.values.includes(d[externalLabelResult.key]) ? idx : null).filter(idx => idx !== null))
+    //     setExternalLabelData(prevValues => { return {...prevValues, idcs, rerender : [Math.random()]}})
+    //     }, [externalLabelResult.trigger])
        
     
     
@@ -181,11 +294,6 @@ function InteractiveChart({
 
     const setTriggerResetAxisZoom = (chartIdx) => {
         setResetAxisZoom(prevValues => {return {...prevValues, [chartIdx] : Math.random()}})
-    }
-
-    const handleItemSelection = (itemIndex = undefined) => {
-        //handle item selection by item Index
-        let selectedItems = addItemToArrayIfNotPresent({array : data, item : data[itemIndex]})
     }
 
     const handleNumericFilter = (chartIdx, keyName, min = -Infinity, max = Infinity) => {
@@ -241,7 +349,7 @@ function InteractiveChart({
         }
     }
 
-    const findClosestPoint = (chartIdx, minX, minY, maxX, maxY, point) => {
+    const findClosestPoint3 = (chartIdx, minX, minY, maxX, maxY, point) => {
 
         const idcs = findDataInRectangle(chartIdx, minX, minY, maxX, maxY)
         let labelIdcs = labelData.idcs
@@ -250,6 +358,39 @@ function InteractiveChart({
         saveIndicesToLocalStorage(labelIndicesKey, labelIdcs)
         setLabelData({idcs : labelIdcs, labelChart : chartIdx, rerender : [Math.random()], lastSelected : idcs})
     }
+
+    const findClosestPoint = (chartIdx, minX, minY, maxX, maxY, point) => {
+
+            const idcs=findDataInRectangle(
+                chartIdx,
+                minX,
+                minY,
+                maxX,
+                maxY
+            )
+
+
+            const labelIdcs=new Set(labelData.idcs)
+
+
+            idcs.forEach(idx=>{
+                if(labelIdcs.has(idx))
+                    labelIdcs.delete(idx)
+                else
+                    labelIdcs.add(idx)
+            })
+
+
+            setLabelData(prev=>({
+                idcs:labelIdcs,
+                labelChart:chartIdx,
+                lastSelected:idcs,
+                rerender : [Math.random()]
+            }))
+        }
+
+
+
     
     const chartProps = _.range(numberCharts).map(chartIdx => {
         const {xaxisName, yaxisName } = keyNames[chartIdx]
@@ -261,7 +402,6 @@ function InteractiveChart({
             xaxisName,
             yaxisName,
             limits,
-            handleItemSelection,
             findIndexInRectangle,
             findDataInRectangle,
             setHoverDataInRectangle,
