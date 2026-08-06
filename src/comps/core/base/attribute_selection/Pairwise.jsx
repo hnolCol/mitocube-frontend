@@ -406,7 +406,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             </Tooltip> : null}
         </div>
         <div>
-        <button className={inputIsSufficient ? `basic-button ${minimal ? "basic-button--small" : ""}` : "basic-button basic-button--excluded"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
+        <button className={inputIsSufficient ? `basic-button ${minimal ? "basic-button--small basic-button--highlighted" : ""}` : "basic-button basic-button--excluded " + "basic-button--highlighted"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
         <button disabled={isLoadingData} onClick={handleReset} className={`basic-button margin-top--little ${minimal ? "basic-button--small" : ""}`}>Reset</button>
         </div>
         {isLoadingData ? <strong><Loading /></strong>: null }

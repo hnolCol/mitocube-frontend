@@ -9,12 +9,9 @@ import { useMemo } from "react"
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch"
 import InteractiveChart from "../../core/charts/interactive";
 import viz from "@mitocube/viz"
-import StepCounts from "./StepCounts"
 import { downloadTxtFile, arrayOfObjectsToTabDel } from "@/services/downloads/txt"
 import ComparisonTree from "./TreeCount"
-
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette"
-import { downloadSVG } from "@/services/downloads/svg"
 
 // const mergeAndDownload = (svgID1, svgID2, viewBox = "0 0 500 1500") => {
 //     console.log(svgID1, svgID2)
@@ -191,30 +188,6 @@ export function ResultContainer({ setRequiredProteinTags, requiredProteinTags, d
                                                                
                                                             }} />
                                                     </div>
-                                                    {/* <div style={{display: "none", height : "0px"}}>
-                                                        <viz.charts.Heatmap
-                                                            {...{
-                                                                data,
-                                                                binHeight: 20,
-                                                                setRequiredProteinTags,
-                                                                proteinTagMap,
-                                                                refetchedTrigger: refetchTrigger,
-                                                                clusterName : undefined,
-                                                                valueNames: keyNames.yaxisName,
-                                                                colorNames: [],
-                                                                labelNames:label_names,
-                                                                ...filterProps,
-                                                                ...hoverProps,
-                                                                isLabelFeatureTag: true,
-                                                                proteinIsLoading, 
-                                                                scrollContainerRef,
-                                                                showColumnNames: true,
-                                                                maxHeight,
-                                                                marginBetweenValues: 15,
-                                                                svgID,
-                                                                exportMode : true
-                                                            }} />
-                                                    </div> */}
                                                 </div>
                                             </div>)
                                     })}
@@ -257,7 +230,6 @@ export function FilterBuilder({ submission_tag }) {
     }
     const editing = isAnyFieldEditing(tree)
     const hasNonAnnotationCondition = isAtLeastOneNonAnnotationCondition(tree)
-    console.log(hasNonAnnotationCondition)
     return <div className="div--expand">
         <div className="flex" style={{ gap: "2rem", width: "100%"}}>
             <div style={{
@@ -271,7 +243,7 @@ export function FilterBuilder({ submission_tag }) {
                 alignContent: "start",
             }}>
             
-            <div style={{ width: "100%",  display: "flex", flexDirection: "column", overflowY: "scroll", gap: "0.5rem", maxHeight : "40vh", paddingRight : "0.5rem"}}>   
+            <div style={{ width: "100%",  display: "flex", flexDirection: "column", overflowY: "scroll", gap: "0.5rem", maxHeight : "40vh", paddingRight : "0.5rem", paddingTop : "0.75rem"}}>
                 <FilterNode node={tree} onChange={setTree} init_submission_tag={submission_tag} />
             </div>
 

@@ -149,6 +149,7 @@ function ProfileChartComponent({
                 )
             }, [yaxisName, limits, chartHeight, margins.top])
 
+    
             const xScale = useMemo(() => {
                 // y scale for the scatter by yaxisNames
                 return scaleBand(
@@ -162,6 +163,7 @@ function ProfileChartComponent({
                 )
             }, [yaxisName, chartWidth, margins.left]);
 
+    
             const rerenderDeps = useMemo(
                 () => [...rerenderHover, ...rerenderBackground],
                 [rerenderHover, rerenderBackground]

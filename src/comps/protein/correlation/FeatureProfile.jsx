@@ -64,7 +64,6 @@ export function FeatureProfile({ tag, data, proteinTagMap, xaxisName, yaxisName,
                         splitName,
                         proteinTagMap,
                         splitByProtein: true,
-                        includeXs
                     }} /> 
 
                 })

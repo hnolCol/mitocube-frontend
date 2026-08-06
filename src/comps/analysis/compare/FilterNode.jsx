@@ -20,7 +20,10 @@ const TYPE_OPTIONS = [
     { tag: "not", text: "NOT", description : "The child must be false for this node to be true" },
 ];
 
-const GROUP_COLORS = ["#4285f4", "#f28b82", "#fbbc04", "#34a853"];
+const GROUP_COLORS = ["#1a50a8", "#ad5750", "#fbbc04", "#1b7934"];
+
+
+
 const PAIRWISE_CRITERIA_OPTIONS = [{ tag: "significant", text: "Significant (FDR < 0.05)" },
                         { tag: "not_significant", text: "Not Significant" },
                         { tag: "significant_increase", text: "Significant & Increased" },
