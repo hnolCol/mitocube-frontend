@@ -143,8 +143,14 @@ export function Network({
     const tooltipOpen = hoverPosition.length === 2 && hoverIndices.size > 0
     const originalHoveredIndices = Array.from(hoverIndices)
     const linkMaps = useMemo(() => _.fromPairs(Array.from(hoverIndices).map(hoverIdc => [hoverIdc,_.filter(linkIdcs, linkIdc => linkIdc[0] === hoverIdc || linkIdc[1] === hoverIdc)])),[rerenderBackground,svgID,hoverIndices])
-        useMemo( () => _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => hoverIndices.add(idx)))), [linkMaps])
-    
+
+    const expandedHoverIndices = useMemo(() => {
+        const expanded = new Set(hoverIndices)
+        _.forEach(_.values(linkMaps), linkIdcs => _.forEach(linkIdcs, linkIdc => _.forEach(linkIdc, idx => expanded.add(idx))))
+        return expanded
+    }, [linkMaps, hoverIndices])
+
+
     const hoveredIndex = tooltipOpen && originalHoveredIndices.length === 1 ? originalHoveredIndices[0] : null
     const hoveredNode = _.isNumber(hoveredIndex) ? data[hoveredIndex] : null
     const hoveredProteinValue = hoveredNode?.type === "protein" && _.isNumber(hoveredNode[colorName]) ? hoveredNode[colorName] : undefined
@@ -478,7 +484,7 @@ export function Network({
             {/* Rerender hover points */}
                     {validDataInput ? <ScatterPoints {...{
                         data: data,
-                        indices : hoverIndices,
+                        indices : expandedHoverIndices,
                         valid,
                         xScale,
                         yScale,
@@ -534,7 +540,7 @@ export function Network({
                     left={hoverPosition[0]}
                     top={hoverPosition[1]}>
                     <div className="flex flex-column justify-start" style={{gap : "0.5px"}}>
-                    {hoverIndices.size > 0 ? _.sortBy(Array.from(hoverIndices), index => data[index]?.type === "annotation" ? 0 : 1).map((index, i) => {
+                    {expandedHoverIndices.size > 0 ? _.sortBy(Array.from(expandedHoverIndices), index => data[index]?.type === "annotation" ? 0 : 1).map((index, i) => {
                             if (i == 10) return <div>...</div>
                             if (i > 10) return null
 

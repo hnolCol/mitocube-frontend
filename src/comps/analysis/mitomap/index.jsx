@@ -89,12 +89,13 @@ export function MitomapNetwork({ }) {
 
     const network_dataValid = isSuccess && _.isObject(network_data) && _.has(network_data, "nodes")
 
-    const enrichedNodes = network_dataValid
-        ? network_data.nodes.map(node => {
+    const enrichedNodes = useMemo(() => {
+        if (!network_dataValid) return []
+        return network_data.nodes.map(node => {
             if (!log2FCFieldName || node.type !== "protein") return node
             return { ...node, [log2FCFieldName]: log2FCByTag[node.tag] }
         })
-        : []
+    }, [network_dataValid, network_data, log2FCFieldName, log2FCByTag])
 
     const numericKeyNames = network_dataValid ? _.filter(_.keys(network_data.nodes[0]), keyName => _.isNumber(network_data.nodes[0][keyName])) : []
     const extraLimitNames = log2FCFieldName ? _.uniq([...numericKeyNames, log2FCFieldName]) : numericKeyNames
@@ -156,6 +157,8 @@ export function MitomapNetwork({ }) {
 
             {hoverDistribution.tag ? (
                 <div className="margin--medium">
+                    {_.isObject(pairwiseTestParams) && !_.isEmpty(pairwiseTestParams) ? (
+                        <>
                     <span>Distribution of hovered annotation in samples:</span>
                     <AnnotationMapDistribution
                         submission_tag={submission_tag}
@@ -165,6 +168,10 @@ export function MitomapNetwork({ }) {
                         markerValue={hoverDistribution.markerValue}
                         markerLabel={hoverDistribution.markerLabel}
                     />
+                        </>
+                    ) : (
+                        <span>Select a pairwise comparison above to view the distribution of the hovered annotation.</span>
+                    )}
                 </div>
             ) : null}
         </div>

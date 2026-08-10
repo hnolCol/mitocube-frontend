@@ -2,8 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import _ from "lodash"
 import { api } from "@/api"
 import { usePrefetchProteins, usePrefetchInterproFeatures } from "@/api/orchestrated/proteins"
+import { MoleculeViewer } from "./MoleculeViewer"
 import APIError from "../../core/error/APIerror"
 import viz from "@mitocube/viz"
+import { Drawer, Classes, Icon } from "@blueprintjs/core"
+
+const XL_PALETTE = ["#1D9E75", "#D85A30", "#3F7CAC", "#9B6DFF", "#E0A526", "#4C9A6A", "#C2477B", "#5B8C5A"]
 
 function PartnerCrosslinkFetcher({ tag, resource_tag, onData }) {
 
@@ -85,6 +89,60 @@ export function ProteinCrosslinkViewer({
 
     const { tagQueries: domainTagQueries } = usePrefetchInterproFeatures(requiredProteinDomains)
 
+    
+    const { data: topology } = api.features.proteinsQuery.useGetProteinTopology({ tag })
+
+    const { data: structure } = api.features.proteinsQuery.useGetProteinStructure({ tag })
+    const { data: partnerStructure } = api.features.proteinsQuery.useGetProteinStructure(
+        { tag: focusedPartnerTag },
+        { enabled: Boolean(focusedPartnerTag) }
+)
+    const labeledSitesForTag = useMemo(() => {
+        if (!_.isArray(crosslinks) || !focusedPartnerTag) return []
+        const sites = []
+        crosslinks.forEach(xl => {
+            const partner = xl.protein_tag_a === tag ? xl.protein_tag_b : xl.protein_tag_a
+            if (partner !== focusedPartnerTag) return // only this pair's crosslinks
+            if (xl.protein_tag_a === tag) sites.push({ residue: xl.pos_a, label: `${xl.pos_a}`, partnerTag: partner })
+            if (xl.protein_tag_b === tag) sites.push({ residue: xl.pos_b, label: `${xl.pos_b}`, partnerTag: partner })
+        })
+        return _.uniqBy(sites, "residue")
+    }, [crosslinks, tag, focusedPartnerTag])
+
+
+    const [selectedXlTag, setSelectedXlTag] = useState(null)
+
+    useEffect(() => {
+        setSelectedXlTag(null) 
+    }, [focusedPartnerTag])
+
+    const [showStructureDrawer, setShowStructureDrawer] = useState(false)
+
+    const crosslinkPairs = useMemo(() => {
+        if (!_.isArray(crosslinks) || !focusedPartnerTag) return []
+        const relevant = crosslinks.filter(xl => {
+            const partner = xl.protein_tag_a === tag ? xl.protein_tag_b : xl.protein_tag_a
+            return partner === focusedPartnerTag
+        })
+        return relevant.map((xl, i) => ({
+            xlTag: xl.tag,
+            tagResidue: xl.protein_tag_a === tag ? xl.pos_a : xl.pos_b,
+            partnerResidue: xl.protein_tag_a === focusedPartnerTag ? xl.pos_a : xl.pos_b,
+            color: XL_PALETTE[i % XL_PALETTE.length],
+        }))
+    }, [crosslinks, tag, focusedPartnerTag])
+
+
+
+    // const proteinDomainMap = useMemo(() => {
+    //     const map = {}
+    //     requiredProteinDomains.forEach((t, idx) => {
+    //         const q = domainTagQueries[idx]
+    //         if (q?.data) map[t] = q.data
+    //     })
+    //     return map
+    // }, [domainTagQueries, requiredProteinDomains])
+
     const proteinDomainMap = useMemo(() => {
         const map = {}
         requiredProteinDomains.forEach((t, idx) => {
@@ -93,6 +151,14 @@ export function ProteinCrosslinkViewer({
         })
         return map
     }, [domainTagQueries, requiredProteinDomains])
+    
+    useEffect(() => {
+        if (Object.keys(proteinDomainMap).length > 0) {
+            console.log("proteinDomainMap:", proteinDomainMap)
+            Object.entries(proteinDomainMap).forEach(([tag, features]) => {
+            })
+        }
+    }, [proteinDomainMap])
 
     const proteinsByTag = useMemo(() => {
         const map = {}
@@ -216,39 +282,88 @@ export function ProteinCrosslinkViewer({
                     />
                 ))}
 
-                {focusedPartnerTag && legendTypes.length > 0 && (
-                    <div style={{
-                        display: "flex", flexDirection: "column", gap: 6,
-                        fontSize: 11, color: "#444", minWidth: 120,
-                        paddingTop: 16, flexShrink: 0,
-                    }}>
-                        <div style={{ fontWeight: 600, marginBottom: 4, fontSize: 12 }}>Features</div>
-                        {legendTypes.map(type => (
-                            <div key={type} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                <div style={{
-                                    width: 12, height: 12, borderRadius: 2, flexShrink: 0,
-                                    backgroundColor: viz.colors.crosslinks.featureColor(type),
-                                    opacity: 0.9,
-                                }} />
-                                <span style={{ textTransform: "capitalize" }}>{type.replace(/_/g, " ")}</span>
-                            </div>
-                        ))}
-                    </div>
-                )}
 
-                <viz.charts.CrosslinkViewer
-                    tag={tag}
-                    crosslinks={crosslinks}
-                    allTags={allTags}
-                    proteinsByTag={proteinsByTag}
-                    interPartnerLinks={filteredInterPartnerLinks}
-                    focusedPartnerTag={focusedPartnerTag}
-                    showInterPartner={showInterPartner}
-                    selectedInterPartners={selectedInterPartners}
-                    onArcClick={handleArcClick}
-                    onLayoutComputed={handleLayoutComputed}
-                    getLabelText={(t, protein) => protein?.gene_name ?? t}
-                />
+                    <viz.charts.CrosslinkViewer
+                        tag={tag}
+                        crosslinks={crosslinks}
+                        allTags={allTags}
+                        proteinsByTag={proteinsByTag}
+                        interPartnerLinks={filteredInterPartnerLinks}
+                        focusedPartnerTag={focusedPartnerTag}
+                        showInterPartner={showInterPartner}
+                        selectedInterPartners={selectedInterPartners}
+                        onArcClick={handleArcClick}
+                        onOwnArcClick={() => setShowStructureDrawer(true)}
+                        onLayoutComputed={handleLayoutComputed}
+                        onLinkClick={(link) => setSelectedXlTag(link ? link.tag : null)}
+                        getLabelText={(t, protein) => protein?.gene_name ?? t}
+                    />
+
+                    {focusedPartnerTag && (
+                        <button
+                            className="basic-button"
+                            onClick={() => setShowStructureDrawer(true)}
+                            style={{ marginBottom: 8 }}
+                        >
+                            <Icon icon="cube" /> View structure & topology
+                        </button>
+                    )}
+
+                    <Drawer
+                        isOpen={showStructureDrawer}
+                        onClose={() => setShowStructureDrawer(false)}
+                        title={proteinsByTag[tag]?.label ?? tag}
+                        size="60%"
+                        position="right"
+                    >
+                        <div className={Classes.DRAWER_BODY}>
+                            <div className={Classes.DIALOG_BODY} style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                            {topology && (
+                                <div>
+                                    <div style={{ fontWeight: 600, marginBottom: 4 }}>Membrane Topology</div>
+                                    <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+                                        Predicted transmembrane topology for {proteinsByTag[tag]?.label ?? tag}, based on UniProt annotations.
+                                        Red markers show where crosslinked residues fall relative to the membrane.
+                                    </div>
+                                    <viz.charts.MembraneTopologyDiagram
+                                        aaLength={topology.length}
+                                        tmSegments={topology.tm_segments}
+                                        topologicalDomains={topology.topological_domains}
+                                        labeledSites={labeledSitesForTag}
+                                    />
+                                </div>
+                            )}
+                            {structure?.available && partnerStructure?.available && (
+                                <div>
+                                    <div style={{ fontWeight: 600, marginBottom: 4 }}>3D Structure</div>
+                                    <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+                                        AlphaFold-predicted structures for {proteinsByTag[tag]?.label ?? tag} and {proteinsByTag[focusedPartnerTag]?.label ?? focusedPartnerTag}. 
+                                        Matching colors mark residues involved in the same crosslink.
+                                    </div>
+                                        <MoleculeViewer
+                                            structures={[
+                                                {
+                                                    cifUrl: structure.cif_url,
+                                                    label: proteinsByTag[tag]?.label ?? tag,
+                                                    sites: crosslinkPairs.map(p => ({ residue: p.tagResidue, color: p.color, xlTag: p.xlTag })),
+                                                },
+                                                {
+                                                    cifUrl: partnerStructure.cif_url,
+                                                    label: proteinsByTag[focusedPartnerTag]?.label ?? focusedPartnerTag,
+                                                    sites: crosslinkPairs.map(p => ({ residue: p.partnerResidue, color: p.color, xlTag: p.xlTag })),
+                                                },
+                                            ]}
+                                            selectedXlTag={selectedXlTag}
+                                            
+                                        />
+                                    </div>
+                                )}
+                                {(structure && !structure.available) || (partnerStructure && !partnerStructure.available) ? (
+                                    <div style={{ padding: 20, color: "#888", fontSize: 13 }}>Structure not available for one or both proteins.</div>
+                                ) : null}
+                            </div>
+                        </div>
+                    </Drawer>
             </div>
         </div>
     )

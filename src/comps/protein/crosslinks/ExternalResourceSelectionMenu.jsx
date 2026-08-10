@@ -87,7 +87,7 @@ export function ExternalResourceSelectionMenu({
             <Drawer
                 isOpen={Boolean(infoResource)}
                 onClose={() => setInfoResource(null)}
-                title="External Source Information"
+                title="Crosslink Source Information"
                 size={Drawer.SIZE_SMALL}
             >
                 <div className={Classes.DRAWER_BODY}>
