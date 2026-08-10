@@ -1,7 +1,7 @@
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { FeatureContainer } from "./FeatureContainer";
 import { useOutletContext } from "react-router";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { FeatureDataView } from "./DataView";
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms";
 import _ from "lodash";

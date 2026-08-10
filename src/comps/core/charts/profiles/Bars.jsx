@@ -1,9 +1,7 @@
-import PropTypes, { array } from "prop-types"
+import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
-import { LinePath } from "@visx/shape"
 import Bar from "../barplot/Bar"
-import { getStandardDeviationAndAverage } from "../../../../services/statistics/average"
 import { getAverageAndErrorForKeysInArrayOfObject } from "../../../../services/arrays/groupby"
 import ErrorBar from "../error"
 
@@ -35,10 +33,7 @@ function ProfileBars({
     rerenderDependency = [], 
     searchIndices = new Set() ,
     filterIndices =  new Set()}){
-    // Scatter points that have a rerenderDependcy and are only rerendered if the dependency changes
-    // Hence, it requires to be checked outside if the scatter point should rerender 
-    const filterByIdx = filterIndices.size !== 0
-    const oapcityBySearch = searchIndices.size !== 0
+
 
     if (data.length === 0) return null 
     const dataMerged = getAverageAndErrorForKeysInArrayOfObject(data, yaxisName)
@@ -50,7 +45,7 @@ function ProfileBars({
                 const barX = xScale(yaxisName)
                 if (!_.isNumber(mean)) return null 
                 return <g>
-                    <Bar x={barX} y0={yScale(0)} width={barWidth} y1={yScale(mean)} />
+                    <Bar x={barX} y0={yScale(0)} width={barWidth} y1={yScale(mean)} stroke={stroke} />
                     {_.isNumber(errorValue) ? <ErrorBar
                         x={barX+barWidth/2}
                         y0={yScale(mean)} //bar start 

@@ -20,7 +20,7 @@ import { api } from "@/api"
  */
 function AttributeMenuItem({ attribute_tag, handleClick, active = false, selected = false, disabled = false }) {
 
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && attribute_tag.length > 0, staleTime: Infinity })
     return (
     <div>
             {isSuccess ? <MenuItem
@@ -64,7 +64,6 @@ function ComboboxIconBase({
     
     const itemsAreObjects = _.isObject(items[0])
     const checkedItems = _.isString(items[0])?items.map(v => {return {[textKey] : v}}):items
-
     const handleSelection = (item, e) => {
         const returnItem = itemsAreObjects ? item : item[textKey]
         if (_.isFunction(callback)) {

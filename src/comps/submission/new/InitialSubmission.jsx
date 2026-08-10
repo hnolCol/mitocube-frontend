@@ -123,13 +123,10 @@ function InitialSubmission({
         if (sampleNumber > attributeTable.length) {
             //add rows 
             const diff = sampleNumber - attributeTable.length
-            //get the attribute tags that are defined either by checking the existing once from a defined attributeTable otherwise from the grouping info. 
-            // const existingAttributeTags = attributeTable.length > 0?Object.keys(attributeTable[0]):submission.samplesAttributes.filter(groupInfo => _.isObject(groupInfo.attribute)).map(groupInfo => groupInfo.attribute.tag)
             _.forEach(_.range(diff), () => {
                 attributeTable.push( [] ) //Object.fromEntries(_.map(existingAttributeTags, groupingAttributeTag => [[groupingAttributeTag],[]])))
             })
                 }
-        
         _.forEach(sampleReferenceIDs, (refID, idx) => {
             if (_.isArray(attributeTable[idx]) && attributeTable[idx].length > 0) {
                 if (_.has(attributeTable[idx], 'id') && attributeTable[idx].id !== refID) {
@@ -163,9 +160,8 @@ function InitialSubmission({
         const maxReplicateID = _.toInteger(submission.numberReplicates)
         const validReplicates = submission.replicates.filter((rep, idx) => _.isNumber(rep) && idx < numberSamples && rep <= maxReplicateID)
         const numberReplicates = validReplicates.length
-        const attributeTable = submission.attributeTable.slice(0, numberSamples)
-        // const allEmptyGenoypes = _.every(genotypeAttributes.map(attrs => attrs.length === 0))
-        // const someEmptyGenotypes = _.some(genotypeAttributes.map(attrs => attrs.length === 0))
+        //filter for only "visible" sample attributes in the attribute table.
+        const attributeTable = submission.attributeTable.slice(0, numberSamples).map(sampleAttributes => sampleAttributes.filter(attr => submission.samplesAttributes.includes(attr.tag)))
         
         
         if (!_.isString(submission.title) || submission.title.length < 10) {
@@ -228,7 +224,7 @@ function InitialSubmission({
             submissionDetails["title"] = submission.title
             submissionDetails["sample_names"] = submission.sampleNames
             submissionDetails["replicates"] = validReplicates
-            submissionDetails["samples_attributes"] = attributeTable
+            submissionDetails["samples_attributes"] = attributeTable.map(sampleAttributes => sampleAttributes.filter(attr => submission.samplesAttributes.includes(attr.tag)))
             submissionDetails["dataset_attributes"] = submission.selected_traits
             submissionDetails["genotypes"] = submission.genotypes
             submissionDetails["collaborators"] = submission.collaborators.slice()
@@ -332,8 +328,7 @@ function InitialSubmission({
         // load a submission from the submission.
         const {itemFound, itemValue : submission} = getItemFromLocalStorage({itemName : "submission", parseJson : true})
         if (itemFound && _.isObject(submission)) {
-            console.log(submission)
-            console.log(submission.tag , "from storage")
+   
             setSubmission(prevValues => {return {...prevValues, ...submission, tag : submission.tag}}) //...prevValues, 
         }
         else {

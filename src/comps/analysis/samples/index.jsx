@@ -11,7 +11,7 @@ import { api } from "@/api";
 export function SubmissionSamples() {
     const { submission_tag } = useOutletContext();
     const [isEditOpen, setIsEditOpen] = useState(false);
-    const [containerKey, setContainerKey] = useState(0);
+    const [updateTrigger, setUpdateTrigger] = useState(undefined);
 
     const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
@@ -55,8 +55,11 @@ export function SubmissionSamples() {
 
     const handleClose = (e, updated = false) => {
         setIsEditOpen(false);
-        setContainerKey(prev => prev + 1);
-    };
+        console.log(updated, "updated");
+        if (updated) {
+            setUpdateTrigger(Math.random()); // Trigger a re-render of the SamplesContainer to fetch updated data
+        }
+    };  
 
     return (
         <div className="flex flex-column">
@@ -67,11 +70,13 @@ export function SubmissionSamples() {
         <div style={{ width: "80%", display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
             <Button icon="download" text="Download" onClick={handleDownload} />
             {canEdit && (
-            <Button icon="edit" text="Edit Samples" intent="primary" onClick={() => setIsEditOpen(true)} />
+                <div style={{ width: "90%", display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }}>
+                    <Button icon="edit" text="Edit Samples" intent="primary" onClick={() => setIsEditOpen(true)} />
+                </div>
             )}
         </div>
             <SamplesContainer
-                key={containerKey}
+                updateTrigger={updateTrigger}
                 submission_tag={submission_tag}
             />
             <EditSubmissionSamplesDialog

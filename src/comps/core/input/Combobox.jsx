@@ -136,7 +136,7 @@ export function Combobox({
                 onWheelCapture: (event) => event.stopPropagation()
             }}
             disabled={disabled}>
-            <button style={{width : fill ? "100%" : "auto"}} disabled={disabled} className={`basic-button ${minimal ? "basic-button--small" : ""}`} {...buttonProps}>{_.isString(value) ? value + value_suffix : placeholder}</button>
+            <Button style={{ width: fill ? "100%" : "auto" }} disabled={disabled} className={`basic-button ${minimal ? "basic-button--small" : ""}`} {...buttonProps}>{_.isString(value) ? value + value_suffix : placeholder}</Button>
         </Select>
     )
 }

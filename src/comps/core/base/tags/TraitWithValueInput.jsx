@@ -2,7 +2,7 @@
 import { motion } from "framer-motion"
 import _ from "lodash"
 import "./style.css"
-
+import React from "react"
 import { isHexColorLight } from "../../../../services/colors"
 import { RemoveButton } from '../buttons/RemoveButton'
 import PropTypes from 'prop-types'
@@ -13,7 +13,7 @@ import { AttributeTraitInput, TraitChildren } from "./TraitChildren"
 
 
 
-TraitWithValueInput.propTypes = {
+TraitWithValueInputComponent.propTypes = {
     attribute_tag : PropTypes.string.isRequired,
     trait_tag: PropTypes.string.isRequired,
     disableTooltip: PropTypes.bool,
@@ -33,7 +33,7 @@ TraitWithValueInput.propTypes = {
  * @param {Function} prop.onUserInput
  * @returns 
  */
-export function TraitWithValueInput({
+function TraitWithValueInputComponent({
         rowIndex,
         trait_tag, 
         attribute_tag = "",
@@ -141,4 +141,9 @@ export function TraitWithValueInput({
     )
 }
 
+function areEqual(prevProps, nextProps) {
 
+    return true
+}
+
+export const TraitWithValueInput = TraitWithValueInputComponent //React.memo(TraitWithValueInputComponent, areEqual)

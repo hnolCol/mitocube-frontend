@@ -1,8 +1,35 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
 import React from "react"
-import { Text } from "@visx/text"
 
+const isValidNumber = value => Number.isFinite(value)
+
+function buildPolylineSegments(d, yaxisName, xScale, yScale, halfBandWidth) {
+    const segments = []
+    let current = []
+
+    yaxisName.forEach(yName => {
+        const x = xScale(yName)
+        const y = yScale(d[yName])
+
+        const valid = isValidNumber(x) && isValidNumber(y)
+
+        if (valid) {
+            current.push(`${x + halfBandWidth},${y}`)
+        } else {
+            if (current.length > 1) {
+                segments.push(current.join(", "))
+            }
+            current = []
+        }
+    })
+
+    if (current.length > 1) {
+        segments.push(current.join(", "))
+    }
+
+    return segments
+}
 ProfileLine.propTypes = {
     data : PropTypes.array.isRequired,
     valid : PropTypes.arrayOf(PropTypes.bool).isRequired, // boolean
@@ -19,48 +46,59 @@ function ProfileLine({
     valid = [], 
     xaxisName, 
     yaxisName,
-    sizeName,
-    colorName, 
-    labelNames = [],
     xScale, 
     yScale, 
-    sizeScale, 
-    colorScale, 
     fill = "none",
     stroke = "#000000", 
     strokeWidth = 2, 
     rerenderDependency = [], 
-    searchIndices = new Set() ,
-    filterIndices = new Set(),
-    showPoints = true}) {
-
+    showPoints = true,
+}) {
     const halfBandWidth = xScale.bandwidth() / 2
     return(
         <g>
-            {data.map((d, idx) => <g key={`${idx}-profile-line`}>
-                <polyline
-                    points={_.join(_.map(yaxisName, yName => `${xScale(yName)+halfBandWidth},${yScale(d[yName])}`), ", ")}
-                    {...{ stroke, strokeWidth, fill }} />
-                {showPoints ? _.map(yaxisName, yName => <circle
-                    key={`${yName}-${idx}-profile-point`}
-                    {...{
-                        cx: xScale(yName) + halfBandWidth,
-                        cy: yScale(d[yName]),
-                        r: 5,
-                        fill: "#fff",
-                        stroke
-                    }} />) : null
-                }
-                {labelNames.length > 0 && yaxisName.length > 0 ?
-                    <Text
-                        x={xScale(yaxisName.at(-1))}
-                        y={yScale(yScale.domain().at(-1))}
-                        dy={-8}
-                        textAnchor="end"
-                        verticalAnchor="middle">
-                        {_.join(_.map(labelNames, labelName => d[labelName]), ", ")}
-                    </Text> : null}
-            </g>)}
+            {data.map((d, idx) => {
+                const segments = buildPolylineSegments(
+                    d,
+                    yaxisName,
+                    xScale,
+                    yScale,
+                    halfBandWidth
+                )
+
+                return (
+                    <g key={`${idx}-profile-line`}>
+                        {segments.map((points, i) => (
+                            <polyline
+                                key={`${idx}-segment-${i}`}
+                                points={points}
+                                {...{ stroke, strokeWidth, fill }}
+                            />
+                        ))}
+
+                        {showPoints &&
+                            _.map(yaxisName, yName => {
+                                const x = xScale(yName)
+                                const y = yScale(d[yName])
+
+                                if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                                    return null
+                                }
+
+                                return (
+                                    <circle
+                                        key={`${yName}-${idx}-profile-point`}
+                                        cx={x + halfBandWidth}
+                                        cy={y}
+                                        r={5}
+                                        fill="#fff"
+                                        stroke={stroke}
+                                    />
+                                )
+                            })}
+        </g>
+    )
+})}
 
 
 
@@ -76,7 +114,8 @@ function areEqual(prevProps, nextProps) {
     */
     if (!_.isArray(prevProps.rerenderDependency)) return false
     if (prevProps.rerenderDependency.length !== nextProps.rerenderDependency.length) return false 
-    if (_.some(prevProps.rerenderDependency, (value,idx) => nextProps.rerenderDependency[idx] !== value)) return false 
+    if (_.some(prevProps.rerenderDependency, (value, idx) => nextProps.rerenderDependency[idx] !== value)) return false 
+
     return true
   }
   export default React.memo(ProfileLine, areEqual);

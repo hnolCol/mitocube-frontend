@@ -3,7 +3,7 @@ import _ from "lodash"
 import Markdown from "react-markdown";
 import remarkGfm from 'remark-gfm'
 import { OptionButton } from "../base/buttons/OptionButton";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { OpenAIWarning } from "./OpenAIWarning";
 import { Protein } from "../base/protein/Protein";
 import APIError from "../error/APIerror";

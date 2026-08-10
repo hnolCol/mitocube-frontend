@@ -34,13 +34,13 @@ export function SampleSelectionTableView({ submission_tag, attribute_tags = [], 
     
     const { data: ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
 
-    const { data : condition_applications_raw} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
+    const { data : condition_applications_raw, isLoading : isLoadingConditionApplications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : _.join(attribute_tags,";")}, {enabled : _.isString(submission_tag)}    )
 
     const { data: samples } = api.submissions.samples.useGetSubmissionSamplesFull({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
 
     const excludedTags = _.isArray(samples) ? samples.filter(s => s.excluded).map(s => s.tag) : []
     const condition_applications = _.isArray(condition_applications_raw) ? condition_applications_raw.filter(ca => !excludedTags.includes(ca.tag)) : condition_applications_raw
-
+    if (isLoading || isLoadingConditionApplications) return <Loading />
     return (<div style={{maxHeight : "20vh", overflowY: "scroll", maxWidth : "500px", overflowX : "scroll"}}>
 
         {_.isArray(condition_applications) && condition_applications.length > 0 && _.isArray(ca_attributes) ?
@@ -139,7 +139,6 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
     useEffect(() => {
         setRerender([Math.random()])
     }, [_.join(pairwiseComp.left,";"), _.join(pairwiseComp.right,";")])
-
     const uniqueCAValuesJoined = _.isArray(condition_applications) ? _.uniq(condition_applications.map(ca => _.join(_.get(ca, [attribute_tag]).sort()))) : []
     const uniqueCAValues = uniqueCAValuesJoined.map(ca_tags => _.split(ca_tags, ","))
     
@@ -217,7 +216,7 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
     </div>
 }
 
-export function WithinCASelection({ submission_tag, attribute_tag, selected, onConfirm }) {
+export function WithinCASelection({ submission_tag, attribute_tag, selected, onConfirm, minimal = false }) {
     const { data: condition_applications } = api.submissions.condition_applications
         .useGetSubmissionSampleConditionApplications(
             { tag: submission_tag, attribute_tags: attribute_tag },
@@ -237,7 +236,8 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
             selected={selected}
             exclude_tags={[]}
             placeHolder="All (no filter)"
-            onConfirm={onConfirm} />
+            onConfirm={onConfirm}
+            minimal={minimal} />
         {selected.length > 0
             ? <span
                 style={{ cursor: "pointer", fontSize: "0.7rem" }}
@@ -255,6 +255,10 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
     const [sampleCounts, setSampleCounts] = useState({})
     const { data: ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)})
     
+
+    useEffect(() => {
+        setAttribute(undefined)
+    }, [submission_tag])
     
     const inputIsSufficient = _.isString(attribute)
     && pairwiseComp.left.length > 0
@@ -370,6 +374,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         <div key={attr_tag} className="margin-top--little flex center-items" style={{ gap: "0.5rem" }}>
                             <Attribute attribute_tag={attr_tag} />
                             <WithinCASelection
+                                minimal={minimal}
                                 submission_tag={submission_tag}
                                 attribute_tag={attr_tag}
                                 selected={withinFilters[attr_tag] ?? []}
@@ -401,7 +406,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             </Tooltip> : null}
         </div>
         <div>
-        <button className={inputIsSufficient ? `basic-button ${minimal ? "basic-button--small" : ""}` : "basic-button basic-button--excluded"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
+        <button className={inputIsSufficient ? `basic-button ${minimal ? "basic-button--small basic-button--highlighted" : ""}` : "basic-button basic-button--excluded " + "basic-button--highlighted"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
         <button disabled={isLoadingData} onClick={handleReset} className={`basic-button margin-top--little ${minimal ? "basic-button--small" : ""}`}>Reset</button>
         </div>
         {isLoadingData ? <strong><Loading /></strong>: null }

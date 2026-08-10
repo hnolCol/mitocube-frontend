@@ -31,7 +31,8 @@ export function VolcanoDataHandler({
         favoriteProteinSelection,
         favoriteAnnotationSelection,
         annotationHoverResults,
-        showHoverLabels = false}) {
+        showHoverLabels = false,
+        }) {
 
     
     
@@ -80,6 +81,8 @@ export function VolcanoDataHandler({
             })
         }
     }, [isReady, tagQueries])
+
+
 
     const { data: selectedAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: favoriteAnnotationSelection?.values?.[0] },
@@ -251,37 +254,7 @@ export function VolcanoDataHandler({
     const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
     const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
    
-    // Add this function right before the numericKeyNames line
-    const enrichDataWithAnnotations = (data) => {
-        if (!_.isArray(data) || data.length === 0) {
-            return data
-        }
-        
-        if (annotationMarkers.length === 0) {
-            return data
-        }
-        
-        console.log("Enriching data with", annotationMarkers.length, "annotation markers")
-        
-        let enrichedCount = 0
-        const enriched = data.map(dataPoint => {
-            // Check if this protein's tag is in any annotation marker
-            for (const marker of annotationMarkers) {
-                if (marker.proteinTags.includes(dataPoint.tag)) {
-                    enrichedCount++
-                    return {
-                        ...dataPoint,
-                        annotation_color: marker.color,
-                        annotation_tags: marker.annotationTags
-                    }
-                }
-            }
-            return dataPoint
-        })
-        
-        console.log("Enriched", enrichedCount, "data points out of", data.length)
-        return enriched
-    }
+    
         
     return (
         <div

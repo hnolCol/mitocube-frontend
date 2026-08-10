@@ -2,12 +2,10 @@
 import { api } from "@/api";
 import _ from "lodash";
 import { SampleItem } from './SampleItem';
-// Placeholder for SampleItems component
-// Replace this import with the actual SampleItems import in your project
-// import SampleItems from './SampleItems';
 
-export function SamplesContainer({ submission_tag }) {
-    const { data: sample_tags, } = api.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
+
+export function SamplesContainer({ submission_tag, updateTrigger = undefined }) {
+    const { data: sample_tags, } = api.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime : 600000});
 
     return (
         <div
@@ -26,11 +24,11 @@ export function SamplesContainer({ submission_tag }) {
                     // display: 'flex',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
                     gap: '24px',
-                    width: '80%'
+                    width: '90%'
                 }}
             >
                 {_.isArray(sample_tags) ? sample_tags.map((sample_tag, idx) => (
-                    <SampleItem key={`${sample_tag}_${idx}`} tag={sample_tag} submission_tag={submission_tag} />
+                    <SampleItem key={`${sample_tag}_${idx}`} tag={sample_tag} submission_tag={submission_tag} updateTrigger={updateTrigger} />
                 )) : null}
             </div>
         </div>)

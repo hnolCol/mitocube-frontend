@@ -8,7 +8,7 @@ import { GenotypeDatasetFilter } from "./GenotypeFilter"
 import { ConditionApplicationFilter } from "./ConditionApplicationFilter"
 import { SUBMISSIONS_BY_OPTIONS, SUBMISSION_SORT_BY_OPTION } from "../view/SubmissionContainer"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { UserDatasetFilter } from "./UserFilter"
 
 

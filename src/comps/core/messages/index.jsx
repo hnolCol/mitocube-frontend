@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import _ from "lodash"
 import "./style.css"
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 
 function Message({ title, date, message }) {
     

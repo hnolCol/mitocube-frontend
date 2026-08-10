@@ -3,7 +3,7 @@ import PropTypes from "prop-types"
 import { Header } from "../core/base/Header"
 
 import { useEffect, useState } from "react"
-import { useNavigate} from "react-router-dom"
+import { useNavigate} from "react-router"
 import APIError from "../core/error/APIerror"
 import axios from "axios"
 import _, { set } from "lodash"

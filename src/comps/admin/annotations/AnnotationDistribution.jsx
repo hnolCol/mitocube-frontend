@@ -39,8 +39,6 @@ export function AnnotationDistribution({ tag, submission_tag, width = 95, height
     // testParams = [{tag : submission_tag, annotation_tag : undefined , attribute_tag}, {tag : submission_tag, annotation_tag : tag , attribute_tag }]
 
     const {isReady, tagQueries } = usePrefetchTestQuantificationDistributions(testParams)
-
-    console.log("tagQueries", tagQueries)
     
     const pairedQueries = _.chunk(tagQueries, 2)
 

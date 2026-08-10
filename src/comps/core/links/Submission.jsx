@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { Link } from "react-router-dom"
+import { Link } from "react-router"
 import { api } from "@/api"
 /**
  * Highlights occurrences of search_string in text. Only works on exact matches.

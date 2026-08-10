@@ -5,7 +5,7 @@ import { useOutletContext } from "react-router"
 import { ProteinAbundance } from "../FeatureAbundance"
 
 import { OptionButton } from "../../../core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router"
 import { OpenAiPublicationSummary } from "../../../core/openai/OpenAiPublicationSummary"
 import { ProteinOverview } from "./ProteinOverview"
 
