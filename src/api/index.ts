@@ -44,7 +44,7 @@ import { cyperOpenAIAPI } from "./openai";
 import { diseasesQueryAPI, diseasesClinVarAPI } from "./diseases";
 import { phenotypeQueryAPI, phenotypeassociationQueryAPI } from "./phenotypes";
 import { variantsQueryAPI } from "./variants";
-import { crosslinksQueryAPI, externalresourceQueryAPI } from "./crosslinks";
+import { crosslinksQueryAPI, externalresourceQueryAPI, externalresourceModifyAPI } from "./crosslinks";
 import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
 export const api = {
     annotations : {
@@ -181,6 +181,7 @@ export const api = {
     },
     crosslinks : {
         crosslinks : crosslinksQueryAPI,
-        externalresources : externalresourceQueryAPI
+        externalresources : externalresourceQueryAPI,
+        externalresourcesModify : externalresourceModifyAPI
     }   
 };

@@ -25,7 +25,8 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "External Services", to : "/admin/externalservice"},
                 { text: "Annotations", to: "/admin/annotations"},
                 { text: "Protocols", to: "/admin/protocols"},
-                { text: "News", to: "/admin/news"}
+                { text: "News", to: "/admin/news"},
+                { text: "Crosslink Resources", to: "/admin/externalresources"},
                 ]} />
                 
                 <div className="no-scroll div--expand">
