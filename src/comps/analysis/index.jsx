@@ -18,7 +18,12 @@ function SubmissionAnalysisHeader({ }) {
     const params = useParams()
     const submission_tag = params.tag
     const urlStart = `/submissions/${submission_tag}`
-    const { data: submissionExists, isLoading: submissionExistsLoading } = api.submissions.core.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const { data: submissionExists, isLoading: isSubmissionExistsLoading } = api.submissions.core.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    const { data: permissions, isLoading: isPermissionsLoading } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag), staleTime: 60000 }
+    )
+        
     const { mutate: insertSubmissionView } = api.submissions.views.usePostSubmissionView()
 
 
@@ -55,15 +60,13 @@ function SubmissionAnalysisHeader({ }) {
                     { text: "Help", to : `${urlStart}/help`},
                     { text: "Comments", to: `${urlStart}/comments`}]} />   
             <div className="no-scroll div--expand">
-            {submissionExistsLoading ?  <Loading /> : null}
+            {isSubmissionExistsLoading || isPermissionsLoading ?  <Loading /> : null}
                 {(!submissionExists) ? <div className="margin--medium">Submission with tag <strong>{submission_tag}</strong> does not exist.</div> :
-                    
-                    <Outlet context={{ submission_tag }} />}
-            
-            </div>
-            
-        </div>
-    )
+                    (permissions?.view !== true) ? <div className="margin--medium">You do not have permission to view this submission.</div> :
+                        <Outlet context={{ submission_tag }} />
+                }
+            </div>              
+        </div>)
 }
 
 export default SubmissionAnalysisHeader

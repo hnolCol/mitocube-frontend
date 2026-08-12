@@ -19,7 +19,7 @@ export function Metatexts({ submission_tag, fill = false }) {
     const [dialogState, setDialogState] = useState({isOpen : false, title : "", text : "", tag : "", edit : false})
 
     // Get submission permissions and metatexts
-    const { data : permissions, isSuccess : isSuccessPermissions} = api.submissions.permissions.useGetSubmissionPermissionsByTag({tag : submission_tag}, { enabled : _.isString(submission_tag) && submission_tag.length > 0})
+    const { data : permissions, isSuccess : isSuccessPermissions} = api.submissions.permissions.useGetSubmissionPermissionsByTag({tag : submission_tag}, { enabled : _.isString(submission_tag) && submission_tag.length > 0, staleTime: 60000 })
     const { data: metatexts, isError, refetch } = api.submissions.metatexts.useGetMetatexts({ tag : submission_tag }, { enabled: _.isString(submission_tag) })
     
     const { mutate: deleteMetatext } = api.metatexts.useDeleteMetatext()
@@ -45,7 +45,7 @@ export function Metatexts({ submission_tag, fill = false }) {
             }
         })
     }
-
+    if (permissions?.view !== true) return <div className="margin--medium">You do not have permission to view this submission.</div>
     return (
         <div>
             <AddButton onSelect={() => setDialogState({ isOpen: true, edit: false, text: "", title: "" })} />

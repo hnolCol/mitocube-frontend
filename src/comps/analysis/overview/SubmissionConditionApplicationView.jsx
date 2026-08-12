@@ -46,7 +46,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
 
     const { data: permissions, isLoading: isPermissionsLoading } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
-        { enabled: _.isString(submission_tag) }
+        { enabled: _.isString(submission_tag), staleTime: 60000 }
     )
     
     const canEdit = permissions?.edit === true
@@ -112,7 +112,6 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         const cleaned = cleanForBackend(selected_traits)
         updateCA({ tag: submission_tag, selected_traits: cleaned })
     }
-
     if (permissions?.view !== true) {
         return <div>You do not have permission to view condition applications for this submission.</div>
     }
@@ -120,7 +119,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
 
     return (
         <div>
-            {isPermissionsLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%" }}>
+            {!isPermissionsLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%" }}>
                 <div className="flex center-items justify-space-between" >
                     <h3>Condition Applications</h3>
                     <MandatoryCheckBadge submission_tag={submission_tag} />

@@ -15,7 +15,7 @@ export function SubmissionSamples() {
 
     const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
-        { enabled: _.isString(submission_tag) }
+        { enabled: _.isString(submission_tag), staleTime: 60000 }
     );
 
     const canEdit = permissions?.edit === true;

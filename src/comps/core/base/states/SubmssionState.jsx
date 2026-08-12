@@ -18,7 +18,7 @@ export function StateIndicator({ submission_tag, allowUpdate = true, padding = "
     const { data : stateName, isSuccess : isSuccessStateName} = api.states.useGetStateName({tag : state}, { enabled : _.isNumber(state) && isSuccess})
     const { data : stateColor, isSuccess : isSuccessStateColor} = api.states.useGetStateColor({tag : state}, { enabled : _.isNumber(state) && isSuccess})
 
-    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0 })
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag({ tag: submission_tag }, { enabled: _.isString(submission_tag) && submission_tag.length > 0, staleTime: 60000 })
     
     const handleStateChange = (newState) => {
         if (!_.isNumber(newState) || !_.isString(submission_tag)) return
