@@ -57,7 +57,6 @@ function MinimalTextInputComponent({
     allowAminoAcidsOnly = false,
     allowDNAOnly = false
 }) {
-    console.log(value)
     const { data: suffixTrait } = api.traits.queryTraits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
 
     const handleValueChange = (e) => {

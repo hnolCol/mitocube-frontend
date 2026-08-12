@@ -55,7 +55,6 @@ export function SubmissionSamples() {
 
     const handleClose = (e, updated = false) => {
         setIsEditOpen(false);
-        console.log(updated, "updated");
         if (updated) {
             setUpdateTrigger(Math.random()); // Trigger a re-render of the SamplesContainer to fetch updated data
         }

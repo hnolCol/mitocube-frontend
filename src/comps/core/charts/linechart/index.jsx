@@ -82,8 +82,6 @@ function LineChart({
     const sortedyaxisNames = lineHighlighted ? _.concat(yaxisNames.filter(yaxisName => yaxisName !== highlightedYAxisName), [highlightedYAxisName]) : yaxisNames //resort names to have highlighted line on top (e.g. last)
     const sortedData = useMemo(() => _.isArray(data) ? _.orderBy(data, xaxisName) : [], [xAxisIsTime, xaxisName])
     
-    console.log(data,sortedData, yaxisNames)
-
 
 
     const handleMouseOver = (event, datum) => {

@@ -154,7 +154,6 @@ export function ProteinCrosslinkViewer({
     
     useEffect(() => {
         if (Object.keys(proteinDomainMap).length > 0) {
-            console.log("proteinDomainMap:", proteinDomainMap)
             Object.entries(proteinDomainMap).forEach(([tag, features]) => {
             })
         }

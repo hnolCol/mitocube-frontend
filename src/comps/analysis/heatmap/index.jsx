@@ -14,11 +14,12 @@ import { AttributeSelection } from "../../core/base/attributes/AttributeSelectio
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
 import { useRef } from "react";
+import { Loading } from "@/comps/core/base/states/Loading";
 
 
 function HeatmapLoad({ submission_tag }) {
     
-    const [testProps, setTestProps] = useState({ fdr: 0.05, n_clusters: 8, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
+    const [testProps, setTestProps] = useState({ fdr: 0.01, n_clusters: 8, selected_annotation_tags: [], selected_ca_attribute_tags: [] })
     const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] })
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     const { data: heatmapData, isLoading, isError, isFetching, error } = api.submissions.analysis.useGetSubmissionHeatmap({
@@ -26,7 +27,7 @@ function HeatmapLoad({ submission_tag }) {
         annotation_tag: testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags, ";") : undefined,
         fdr : testProps.fdr,
         n_clusters: testProps.n_clusters   
-    }, { enabled: _.isString(submission_tag), staleTime: 60000 })
+    }, { enabled: _.isString(submission_tag), staleTime: Infinity })
     
     const { data: submissionSampleConditionApplications, isLoading: sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 5000000 })
     
@@ -39,7 +40,7 @@ function HeatmapLoad({ submission_tag }) {
     }, [_.join(sample_ca_attribute_tags, ";"), _.isArray(submissionSampleConditionApplications)])
     
     if (isError) return <APIError error={error} />
-    if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div>Loading...</div>
+    if (isLoading || isFetching || sampleCaIsLoading || isLoadingCaAttributes) return <div><Loading /> Clustering data containing NaN may take some time...</div>
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) return <div>The returned data are not in the correct format. Must be an object with 'data' and 'cluster_indices'</div>
     
     return <WithTagMaps

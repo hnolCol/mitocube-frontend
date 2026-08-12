@@ -182,7 +182,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     }
 
     const handleRemove = (path) => {
-        console.log(path, "handleRemove", rowIndex, referenceID, "REMOVING?")
         if (_.isFunction(onRemove)) onRemove(path, [rowIndex], referenceID)
     }
 
@@ -219,10 +218,6 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                 {attribute.allow_input ?
                     <div className='flex flex-column'>
                         <div>
-
-                            {/* <div className='font-size--smallest'>
-                                {attribute.text}
-                            </div> */}
                         </div>
 
                         <div className='flex center-items'>

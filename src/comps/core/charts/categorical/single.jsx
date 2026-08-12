@@ -73,7 +73,6 @@ function SingleCategoricalChart({
     darkmode,
     children
 }) {
-    console.log(darkmode)
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])
     const splitColorScale = useMemo(() => {

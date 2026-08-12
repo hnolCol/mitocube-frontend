@@ -50,7 +50,6 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
    
   const handleDeleteDialogClose = () => {
       setIsDeleteOpen(false);
-      console.log("handleDeleteDialogClose called", typeof updateGenotypeList)
       updateGenotypeList();
       
     }

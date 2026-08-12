@@ -28,7 +28,7 @@ export function AnnotationGroupSelectionMenu({ placeholder = "Select annotation 
     const debouncedString = useDebounce(searchString, 50)
     const [limit, setLimit] = useState(1000)
 
-    const { data: annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({ search_string: debouncedString, limit, group_by_group: true })
+    const { data: annotation_search_results, isLoading, isError, isSuccess, refetch } = api.annotations.queryAnnotations.useGetAnnotationsBySearchString({ search_string: debouncedString, limit, group_by_group: true }, {staleTime: Infinity})
 
     // Fetch the selected group's full details for display
     const selectedTag = selected_tags.length > 0 ? selected_tags[0] : undefined

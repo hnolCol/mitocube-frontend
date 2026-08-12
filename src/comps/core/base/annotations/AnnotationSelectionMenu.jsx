@@ -63,6 +63,8 @@ export function AnnotationSelectionMenu({ placeholder = "Select annotations", on
         group_by_group: true,
         submission_tags: _.isArray(submission_tags) && submission_tags.length > 0 ? _.join(submission_tags, ";") : undefined,
         protein_tags: _.isArray(protein_tags) && protein_tags.length > 0 ? _.join(protein_tags, ";") : undefined
+    }, {
+        staleTime: Infinity,
     })
 
     useEffect(() => {
