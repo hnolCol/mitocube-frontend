@@ -120,7 +120,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
 
     return (
         <div>
-            {isPermissionLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%" }}>
+            {isPermissionsLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%" }}>
                 <div className="flex center-items justify-space-between" >
                     <h3>Condition Applications</h3>
                     <MandatoryCheckBadge submission_tag={submission_tag} />
