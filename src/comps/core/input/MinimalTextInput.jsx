@@ -1,13 +1,13 @@
 import _ from "lodash";
 import PropTypes from "prop-types";
 import { api } from "@/api"
-
+import React from "react";
 
 const AMINO_ACIDS = new Set(["A", "R", "N", "D", "C", "E", "Q", "G", "H", "I", "L", "K", "M", "F", "P", "S", "T", "W", "Y", "V"])
 const DNA_BASES = new Set(["A", "T", "C", "G"])
 
 
-MinimalTextInput.propTypes = {
+MinimalTextInputComponent.propTypes = {
     value: PropTypes.string.isRequired,
     onChange: PropTypes.func.isRequired,
     placeholder: PropTypes.string,
@@ -25,7 +25,7 @@ MinimalTextInput.propTypes = {
 
 
 /**
- * MinimalTextInput component for rendering a minimalistic text input field.
+ * MinimalTextInputComponent component for rendering a minimalistic text input field.
  * @param {Object} props - Component props.
  * @param {String} props.value - The current value of the input field.
  * @param {Function} props.onChange - Callback function to handle value changes.
@@ -45,7 +45,7 @@ MinimalTextInput.propTypes = {
  */
 
 
-export function MinimalTextInput({
+function MinimalTextInputComponent({
     value ="",
     onChange,
     placeholder = "Type here...",
@@ -57,7 +57,7 @@ export function MinimalTextInput({
     allowAminoAcidsOnly = false,
     allowDNAOnly = false
 }) {
-
+    console.log(value)
     const { data: suffixTrait } = api.traits.queryTraits.useGetTraitByTag({ tag: suffix_trait_tag }, { enabled: _.isString(suffix_trait_tag), staleTime: Infinity });
 
     const handleValueChange = (e) => {
@@ -107,3 +107,20 @@ export function MinimalTextInput({
         </div>
     );
 }
+
+function areEqual(prevProps, nextProps) {
+    if (prevProps.value !== nextProps.value) return false
+    if (prevProps.disabled !== nextProps.disabled) return false
+    if (prevProps.allowAminoAcidsOnly !== nextProps.allowAminoAcidsOnly) return false
+    if (prevProps.allowDNAOnly !== nextProps.allowDNAOnly) return false
+    if (prevProps.placeholder !== nextProps.placeholder) return false
+    if (!_.isEqual(prevProps.style, nextProps.style)) return false
+    if (prevProps.prefix !== nextProps.prefix) return false
+    if (prevProps.suffix !== nextProps.suffix) return false
+    if (prevProps.suffix_trait_tag !== nextProps.suffix_trait_tag) return false
+    return true
+        
+}       
+
+
+export const MinimalTextInput = React.memo(MinimalTextInputComponent, areEqual);

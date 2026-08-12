@@ -23,8 +23,8 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   const [update, setUpdate] = useState(undefined)
   const [currentTag, setCurrentTag] = useState(tag)
   
-  const { data: creator } = api.genotypes.queryGenotypes.useGetGenotypeCreator(currentTag, { enabled: showDetails})
-  const { data: permissions, isSuccess } = api.genotypes.queryGenotypes.useGetGenotypePermissions();
+  const { data: creator } = api.genotypes.queryGenotypes.useGetGenotypeCreator(currentTag, { enabled: showDetails, staleTime: Infinity })
+  const { data: permissions, isSuccess } = api.genotypes.queryGenotypes.useGetGenotypePermissions({}, {staleTime: 600000});
 
   const { mutate: deleteGenotype } = api.genotypes.modifyGenotypes.useDeleteGenotype({
     onSuccess: () => {
@@ -45,7 +45,7 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
       setCurrentTag(newTag)  // update tag when edit succeeds
   }
       setUpdate(Date.now())
-      setIsOpen()
+      setIsOpen(false)
     }
    
   const handleDeleteDialogClose = () => {
@@ -57,7 +57,7 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
 
   const { data: sampleCount } = api.genotypes.queryGenotypes.useGetGenotypeSampleCount(
     { genotype_tag: currentTag },
-    { staleTime: 60_000 }
+    { staleTime: 60000 }
   )
   
 

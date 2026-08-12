@@ -9,7 +9,7 @@ import { useEffect } from "react"
  */
 export function GenotypeText({tag, update}) {
 
-    const {data : genotypeText, isError, error, isSuccess, refetch} = api.genotypes.queryGenotypes.useGetGenotypeText({genotype_tag : tag})
+    const { data: genotypeText, isError, error, isSuccess, refetch } = api.genotypes.queryGenotypes.useGetGenotypeText({ genotype_tag: tag }, {enabled: _.isString(tag) && tag.length > 0, staleTime: Infinity })
     useEffect(() =>{
         if (_.isNumber(update)) refetch()
         

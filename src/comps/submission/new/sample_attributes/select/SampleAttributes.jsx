@@ -64,7 +64,6 @@ function useSampleTableSelection({handleSelection}) {
     return {
         selectedRows,
         copiedRows,
-
         setSelectedRows,
         setCopiedRows,
         getCurrentSelection,
@@ -72,7 +71,6 @@ function useSampleTableSelection({handleSelection}) {
         handleKeyUp,
         handleCopy,
         handlePaste,
-        setCopiedRows
     }
 }
 
@@ -241,7 +239,7 @@ function SamplesAttributes({
                     <AttributeContextMenuSearch
                         {...{
                             attribute_tag,
-                            selectedAttributeValues: prevSelection,
+                            selectedTraits: prevSelection,
                             onSampleTraitSelection,
                             rowIdces: selectedRows,
                             clearAttributeTableByRowIndex,

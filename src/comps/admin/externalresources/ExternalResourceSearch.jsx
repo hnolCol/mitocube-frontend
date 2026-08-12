@@ -4,7 +4,7 @@ import { ExternalResourceContainer } from "./ExternalResourceContainer"
 import _ from "lodash"
 import { Loading } from "@/comps/core/base/states/Loading"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams } from "react-router"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
@@ -29,7 +29,7 @@ export function ExternalResourceSearch({ refetchRef }) {
 
     if (refetchRef) refetchRef.current = refetch
 
-    const displayTags = _.isArray(tags)
+    const displayTags = isSuccess && _.isArray(tags)
         ? tags.filter(t => searchString.trim() === "" || t.toLowerCase().includes(searchString.toLowerCase()))
         : []
 

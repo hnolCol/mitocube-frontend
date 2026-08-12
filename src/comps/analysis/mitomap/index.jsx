@@ -29,7 +29,8 @@ export function MitomapNetwork({ }) {
         tag: submission_tag, 
         annotation_group_tag: selectedAnnotationGroupTag
     }, {
-        enabled: !_.isEmpty(submission_tag) && _.isString(selectedAnnotationGroupTag)
+        enabled: !_.isEmpty(submission_tag) && _.isString(selectedAnnotationGroupTag),
+        staleTime: 60000
     })
 
     const { data: volcanoData, isSuccess: volcanoIsSuccess, isLoading: volcanoIsLoading, isFetching: volcanoIsFetching} = api.submissions.analysis.useGetSubmissionVolcano({
@@ -39,7 +40,8 @@ export function MitomapNetwork({ }) {
         within_attribute_tags: pairwiseTestParams?.within_attribute_tags,
         within_ca_tags: pairwiseTestParams?.within_ca_tags
     }, {
-        enabled: _.isObject(pairwiseTestParams) && _.isString(pairwiseTestParams?.ca_tag_left) && _.isString(pairwiseTestParams?.ca_tag_right)
+        enabled: _.isObject(pairwiseTestParams) && _.isString(pairwiseTestParams?.ca_tag_left) && _.isString(pairwiseTestParams?.ca_tag_right),
+        staleTime: 60000
     })
 
     const log2FCApplying = _.isObject(pairwiseTestParams) && (volcanoIsLoading || volcanoIsFetching)

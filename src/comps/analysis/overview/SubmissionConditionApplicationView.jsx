@@ -13,6 +13,7 @@ import { MandatoryCheckDetail } from "@/comps/submission/MandatoryAttributes";
 import { MandatoryCheckBadge } from "@/comps/submission/MandatoryAttributes";
 import { StateHeader } from "@/comps/submission/view/StateHeader";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
+import { Loading } from "@/comps/core/base/states/Loading";
 
 
 export function SubmissionConditionApplicationView({ submission_tag, group_by_min_state = true, group_by_attribute = true }) {
@@ -43,7 +44,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         { enabled: _.isString(submission_tag) }
     )
 
-    const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+    const { data: permissions, isLoading: isPermissionsLoading } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag) }
     )
@@ -112,41 +113,45 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
         updateCA({ tag: submission_tag, selected_traits: cleaned })
     }
 
+    if (permissions?.view !== true) {
+        return <div>You do not have permission to view condition applications for this submission.</div>
+    }
 
 
     return (
         <div>
-            <div className="flex flex-column" style={{overflow: "hidden", width : "100%"}}>
+            {isPermissionLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%" }}>
                 <div className="flex center-items justify-space-between" >
                     <h3>Condition Applications</h3>
                     <MandatoryCheckBadge submission_tag={submission_tag} />
                     {canEdit && (
-                    <button className="dialog-button" onClick={handleOpen}>+</button>
+                        <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
                 </div>
                 <div style={{ height: "29vh", padding: "1rem", overflowY: "scroll" }}>
                     {group_by_min_state ? <div>
                         {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => {
                             return <div key={state_ca_item.state_tag}>
-                                    <StateHeader tag={state_ca_item.state_tag} />
-                                    {state_ca_item.attribute_conditions.map(attr_cond => {
-                                        return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}`} className="padding--tiny margin--tiny">
-                                            <strong><Attribute attribute_tag={attr_cond.attribute_tag} /></strong>
-                                            {attr_cond.condition_application_tags?.length > 0 ? attr_cond.condition_application_tags.map(ca_tag => {
-                                                return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
-                                                    <ConditionApplicationsView tag={ca_tag} show_attribute={false} />
-                                                </div>
-                                            }) : <div>No condition applications found for this attribute.</div>}
-                                        </div>
-                                    })}
-                                </div>})}
+                                <StateHeader tag={state_ca_item.state_tag} />
+                                {state_ca_item.attribute_conditions.map(attr_cond => {
+                                    return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}`} className="padding--tiny margin--tiny">
+                                        <strong><Attribute attribute_tag={attr_cond.attribute_tag} /></strong>
+                                        {attr_cond.condition_application_tags?.length > 0 ? attr_cond.condition_application_tags.map(ca_tag => {
+                                            return <div key={`${state_ca_item.state_tag}-${attr_cond.attribute_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
+                                                <ConditionApplicationsView tag={ca_tag} show_attribute={false} />
+                                            </div>
+                                        }) : <div>No condition applications found for this attribute.</div>}
+                                    </div>
+                                })}
+                            </div>
+                        })}
 
 
-                    </div> : null }
+                    </div> : null}
 
                     {!group_by_min_state ?
                         <div>
-                            {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}> 
+                            {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => <div key={state_ca_item.state_tag}>
                                 <StateHeader tag={state_ca_item.state_tag} />
                                 {state_ca_item.condition_application_tags?.length > 0 ? state_ca_item.condition_application_tags.map(ca_tag => (
                                     <div key={`${state_ca_item.state_tag}-${ca_tag}`} className="padding--tiny margin--tiny">
@@ -156,14 +161,14 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                             </div>)}
                         </div>
                         : null}
-                {!group_by_min_state && !group_by_attrbibute ? _.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
-                    submission_ca_tags.map(ca_tag => (
-                        <div key={ca_tag} className="padding--tiny margin--tiny">
-                            <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
-                        </div>
-                    )) : <div>No condition applications found for this submission.</div> : null}
+                    {!group_by_min_state && !group_by_attrbibute ? _.isArray(submission_ca_tags) && submission_ca_tags.length > 0 ?
+                        submission_ca_tags.map(ca_tag => (
+                            <div key={ca_tag} className="padding--tiny margin--tiny">
+                                <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
+                            </div>
+                        )) : <div>No condition applications found for this submission.</div> : null}
                 </div>
-            </div>
+            </div> : <Loading />}
 
             <Dialog
                 isOpen={dialogOpen}

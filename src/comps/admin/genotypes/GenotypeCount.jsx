@@ -7,11 +7,9 @@ import { api } from "@/api"
  * @param {String} props.tag The tag of the genotype to display the relationship count
  */
 export function GenotypeCount({tag}) {
-    const {data : sampleCount} = api.samples.count.useGetSampleCount({genotype_tag : tag})
+    const {data : sampleCount, isError, error, isSuccess} = api.samples.count.useGetSampleCount({genotype_tag : tag}, {staleTime : Infinity, enabled : _.isString(tag) && tag.length > 0})
 
     if (isError) console.log(error)
-
-
-    return <span>{isSuccess && _.isString(genotypeCount)?genotypeCount:null}</span>
+    return <span>{isSuccess && (_.isNumber(sampleCount) || _.isString(sampleCount))?sampleCount:null}</span>
 }
 

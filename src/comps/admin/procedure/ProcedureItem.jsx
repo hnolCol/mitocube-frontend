@@ -15,7 +15,7 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [update, setUpdate] = useState(undefined);
 
-    const { data: permissions, isSuccess } = api.maintenance.procedures.queryMaintenanceProcedures.useGetProcedurePermissions();
+    const { data: permissions, isSuccess } = api.maintenance.procedures.queryMaintenanceProcedures.useGetProcedurePermissions({}, {staleTime: 600000});
     const { mutate: deleteProcedure } = api.maintenance.procedures.modifyMaintenanceProcedures.useDeleteMaintenanceProcedure({
         onSuccess: () => {
             setIsDeleteOpen(true); 

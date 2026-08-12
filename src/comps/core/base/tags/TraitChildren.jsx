@@ -176,7 +176,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         const input = getSelectionByPath(track_path, rowIndex)
         if (_.isArray(input) && input.length > 0) {
 
-            return allow_multiple_selection ? input.map(i => i.value) : _.head(input).value
+            return input.map(i => i.value)[0]
         }
         return ""
     }

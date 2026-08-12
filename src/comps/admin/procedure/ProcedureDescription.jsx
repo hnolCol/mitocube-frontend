@@ -11,7 +11,7 @@ import { useEffect } from "react"
 export function ProcedureDescription({ procedure_tag, update }) {
 
     const { data: procedureDescription, isError, isSuccess, error, refetch } =
-        api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureDescription({ procedure_tag });
+        api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureDescription({ procedure_tag }, { enabled: _.isString(procedure_tag) && procedure_tag.length > 0, staleTime: Infinity });
 
     useEffect(() => {
         if (update) refetch();

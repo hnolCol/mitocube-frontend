@@ -26,7 +26,7 @@ export function ProcedureSearch() {
     const { data: tag, isLoading, isSuccess, isError, refetch : updateProcedureList } =
     api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureByQuery(
         { search_string: debouncedSearchString, limit: selectedLimit },
-        { staleTime: 2000 }
+        { staleTime: 60000 }
     )
 
         useEffect(() => {

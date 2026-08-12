@@ -91,7 +91,7 @@ const ScatterLegend = React.memo(
         showTooltip({
             tooltipTop : e.clientY,
             tooltipLeft: e.clientX,
-            tooltipData: { attributeValues, attribute, has_features_value : attribute.has_features_value }
+            tooltipData: { attribute : colorAttribute }
         })
     }
 

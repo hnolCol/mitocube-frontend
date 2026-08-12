@@ -119,8 +119,6 @@ export function Network({
     labelRerender = [],
     labelChart = -1,
     searchString = "",
-    attributeValuesByTag = {},
-    attributesByTag = {},
     suffix = "",
     indicateDataSize = true,
     legendWithAttributes = false,
@@ -583,8 +581,6 @@ export function Network({
                     resetSearchIdcs,
                     sizeLimit: limits[sizeName],
                     colorLimit: limits[colorName],
-                    attributesByTag,
-                    attributeValuesByTag,
                     genotypesByLabel
                 }} /> : <TextScatterLegend
                     {...{

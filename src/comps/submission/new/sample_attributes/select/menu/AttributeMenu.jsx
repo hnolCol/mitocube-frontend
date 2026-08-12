@@ -9,14 +9,14 @@ import { api } from "@/api"
 import useDebounce from "../../../../../../hooks/useDebounce"
 
 export function AttributeContextMenuSearch({ attribute_tag,
-                selectedAttributeValues,
+                selectedTraits,
                 onSampleTraitSelection,
                 rowIdces = [],
                 clearAttributeTableByRowIndex = undefined,
                 repeatSelection,
                 copiedRows = [], onPaste = () => {}, onCopy = () => {} }) {
     
-    const [currentSelection, setCurrentSelection] = useState([]) 
+    // const [currentSelection, setCurrentSelection] = useState([]) 
     const [searchString, setQuery] = useState("")
 
     const debouncedString = useDebounce(searchString,30)
@@ -32,10 +32,10 @@ export function AttributeContextMenuSearch({ attribute_tag,
     }, [])
 
 
-    useEffect(() => {
-        setCurrentSelection(selectedAttributeValues)
+    // useEffect(() => {
+    //     setCurrentSelection(selectedTraits)
        
-    }, [])
+    // }, [])
 
 
 
@@ -53,12 +53,12 @@ export function AttributeContextMenuSearch({ attribute_tag,
 
                 <Menu style={{ overflowY: "scroll", maxHeight: "40vh" }} onWheelCapture={e => e.stopPropagation()}>
                     {isLoading || isFetching ? <Loading /> : trait_tags.map((trait_tag, index) => {
-                        const indexInSelection = _.findIndex(currentSelection, ['tag', trait_tag])
+                        const indexInSelection = _.findIndex(selectedTraits, ['tag', trait_tag])
                         return <div key={`${index}-${trait_tag}-${indexInSelection}`}>
                             <TraitMenuItem
                                 tag={trait_tag}
                                 attribute_tag={attribute_tag}
-                                selected={_.includes(currentSelection, trait_tag)}
+                                selected={_.includes(selectedTraits, trait_tag)}
                                 onClick={(p) => onSampleTraitSelection(p, rowIdces)} />
                         </div>
                     })}

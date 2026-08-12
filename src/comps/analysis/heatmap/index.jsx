@@ -26,9 +26,13 @@ function HeatmapLoad({ submission_tag }) {
         annotation_tag: testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags, ";") : undefined,
         fdr : testProps.fdr,
         n_clusters: testProps.n_clusters   
-    }, { enabled: _.isString(submission_tag), staleTime: 50000 })
-    const { data: submissionSampleConditionApplications, isLoading : sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : 5000000})
-    const {data : sample_ca_attribute_tags, isLoading : isLoadingCaAttributes} = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)}    )
+    }, { enabled: _.isString(submission_tag), staleTime: 60000 })
+    
+    const { data: submissionSampleConditionApplications, isLoading: sampleCaIsLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 5000000 })
+    
+    const { data: sample_ca_attribute_tags, isLoading: isLoadingCaAttributes } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 600000 })
+    
+    
     const unique_ca_tags = useMemo(() => {
         if (!_.isArray(sample_ca_attribute_tags) || !_.isArray(submissionSampleConditionApplications)) return []
         return _.uniq(sample_ca_attribute_tags.map(tag => submissionSampleConditionApplications.map(ca => ca[tag]).flat()).flat())

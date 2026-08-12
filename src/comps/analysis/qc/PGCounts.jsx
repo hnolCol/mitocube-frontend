@@ -5,8 +5,8 @@ import { Loading } from "../../core/base/states/Loading"
 import { useEffect, useState } from "react"
 export function SamplePGCounts({ tag }) { 
     const [plotData, setPlotData] = useState([])
-    const {data : pgCount} = api.submissions.counts.useGetSubmissionProteinGroupCount({ tag })
-    const { data : samplePGCounts, isSuccess, isLoading } = api.submissions.counts.useGetSubmissionSampleProteinGroupCount({ tag })
+    const {data : pgCount} = api.submissions.counts.useGetSubmissionProteinGroupCount({ tag }, {staleTime : Infinity, enabled : _.isString(tag) && tag.length > 0})
+    const { data : samplePGCounts, isSuccess, isLoading } = api.submissions.counts.useGetSubmissionSampleProteinGroupCount({ tag }, {staleTime : Infinity, enabled : _.isString(tag) && tag.length > 0})
 
 
     useEffect(() => { 
@@ -29,15 +29,12 @@ export function SamplePGCounts({ tag }) {
     return (
         
         <div>
-
-
             {_.isArray(plotData) && plotData.length > 0 ? <LineChart
                 data={plotData}
                 xaxisName="idx"
                 yaxisNames={["count"]}
                 tooltipCircleNames={["count","Coverage (%)","tag","idx"]}
                 yaxisStartsAtZero={true} /> : null}
-
         </div>
     )
 }

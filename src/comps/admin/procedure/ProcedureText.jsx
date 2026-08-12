@@ -10,7 +10,7 @@ import { useEffect } from "react"
 export function ProcedureText({ procedure_tag, update }) {
 
     const { data: procedureText, isError, error, isSuccess, refetch } =
-        api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureText({ procedure_tag });
+        api.maintenance.procedures.queryMaintenanceProcedures.useGetMaintenanceProcedureText({ procedure_tag }, {enabled: _.isString(procedure_tag) && procedure_tag.length > 0, staleTime: Infinity });
 
     useEffect(() => {
         if (update) refetch();

@@ -34,7 +34,7 @@ export function GenotypeSearch({ }) {
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) ? _.toNumber(searchParams.get("limit")) : LIMIT_OPTIONS[0];
     const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString(
         { search_string: debouncedSearchString, limit: selectedLimit },
-        { staleTime: 2000 }
+        { staleTime: 6000 }
     );
     
     useEffect(() => {

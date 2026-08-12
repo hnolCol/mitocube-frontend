@@ -9,7 +9,7 @@ import _ from "lodash"
  */
 export function GenotypeProteins({tag}) {
 
-    const {data : genotypeProteins, isError, error, isSuccess} = api.genotypes.queryGenotypes.useGetGenotypeProteins({genotype_tag : tag})
+    const {data : genotypeProteins, isError, error, isSuccess} = api.genotypes.queryGenotypes.useGetGenotypeProteins({genotype_tag : tag}, {staleTime : Infinity, enabled : _.isString(tag) && tag.length > 0})
 
     if (isError) console.log(error)
 

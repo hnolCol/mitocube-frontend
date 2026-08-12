@@ -5,7 +5,6 @@ import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 
 export function ProtocolMinimalItem({ protocol_tag, onClick }) {
     const { data: protocol } = api.protocols.query.useGetProtocolByTag({ tag: protocol_tag }, { enabled: _.isString(protocol_tag) })
-    console.log(protocol, protocol_tag)
     return (
         <motion.button className="flex flex-column padding--medium"
             style={{
