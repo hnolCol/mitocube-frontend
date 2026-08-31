@@ -72,8 +72,4 @@ export function FeatureProfile({ tag, data, proteinTagMap, xaxisName, yaxisName,
 
         </div>
 
-//  (chartData) => chartData.map(({ data, chartIdx, xaxisName, yaxisName, valid, limits, ...rest }) => {
-//                 }) => { 
-//                 return <viz.charts.ProfileChart {...{ data, xaxisName, yaxisName, ...hoverProps, ...filterProps, ...labelProps, limits }} /> 
-
 }
