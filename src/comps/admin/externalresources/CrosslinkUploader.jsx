@@ -124,6 +124,21 @@ export function CrosslinkFileParser({ onCrosslinksLoaded }) {
         >
             <h3>Upload crosslinks from file</h3>
 
+            <div
+                style={{
+                    background: "#f9fafb",
+                    border: "1px solid #e5e7eb",
+                    borderRadius: 8,
+                    padding: 12,
+                    fontSize: 13,
+                    color: "#374151",
+                    lineHeight: 1.5,
+                }}
+            >
+                <span style={{ color: "#c0392b", fontWeight: 600 }}>Required columns:</span>{" "}
+                {REQUIRED_COLUMNS.map((col) => col.label).join(", ")}
+            </div>
+
             <label
                 style={{
                     padding: "12px",

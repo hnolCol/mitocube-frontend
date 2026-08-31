@@ -161,8 +161,9 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
         <Dialog style={{ minWidth: "min(920px,95vw)", height: "80vh"}} {...{ isOpen }} title={`Runlist : ${submission.title} (${submission.label})`} onClose={handleClose}>
             {runlistSubmitIsSuccess ? <DialogBody>
                 <h3>Runlist Created.</h3>
-                <p>Success. The runlist has been created. Please note that if you create another runlist for the submission
-                    it will overwrite the old one but a Timeline entry will be created to track the changes.
+                <p>Success. The runlist has been created. You can create additional runlists for this submission
+                    later, for example if the same samples are measured with a different setup  each one is kept
+                    separately and can be downloaded or deleted independently.
                     <Button text="Download" onClick={() => exportRunlistToTxtFile()} />
                 </p></DialogBody> : runlistLoading ? <Loading /> : runlistSubmitIsError ? <div><APIError error={runlistSubmitError} /></div> :
                 <DialogBody><div className="padding--medium">

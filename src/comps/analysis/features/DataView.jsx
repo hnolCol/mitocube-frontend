@@ -30,9 +30,10 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
     const {data : feature} = api.features.tag.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
     const { data: attributes, isLoading : isSampleCAAttributeLoading } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag), staleTime : Infinity})
     const containerRef = useRef(null);
+    const chartAreaRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
     useEffect(() => {
-        const el = containerRef.current;
+        const el = chartAreaRef.current;
         if (!el) return;
 
         const update = () => setSize({ width: el.clientWidth, height: el.clientHeight });
@@ -41,15 +42,16 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
         const ro = new ResizeObserver(update);
         ro.observe(el);
         return () => ro.disconnect();
-    }, [containerRef]);
+    }, [chartAreaRef]);
 
     return (
         <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
             {isLoading || isSampleCAAttributeLoading ? (
                 <div>Loading...</div>
             ) : (
-                    <div>
+                    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
                         {showTitle && <SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} />}
+                        <div ref={chartAreaRef} style={{ flex: 1, minHeight: 0 }}>
                 {_.isArray(data.data) && !_.every(data.data, q => q.value === null) ? <ResultChart
                         yaxisName="value"
                         featureTag={feature_tag}
@@ -63,6 +65,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
                         title={!showProteinNameInTitle ? "" :  _.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
                         onRemove={onRemove}
                         /> : <div>No data available or all quantified values are null.</div>}
+                        </div>
                     </div>
             )}
         </div>
