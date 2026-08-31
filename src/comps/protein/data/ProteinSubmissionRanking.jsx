@@ -20,7 +20,17 @@ const METRICES = ["log2_fc_vs_mean", "raw", "z_score_sample", "z_score_protein_g
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
     const [metrics, setMetrics] = useState(METRICES[0])
-    const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
+    const [submissionFilter, setSubmissionFilter] = useState({ ca_tags: [], include_sample_ca: true, user: [] })
+    const {data : submissionStats, isLoading} = api.features.ranking.useGetProteinGroupSubmissionStats(
+        {tag,
+        ca_tags: submissionFilter.ca_tags,
+        include_sample_ca: submissionFilter.include_sample_ca,
+        user_tags: (submissionFilter.user || []).map(u => u.tag)
+        },
+            { enabled: _.isString(tag) && tag.length > 0 }
+        )
+
+        console.log("submissionStats", submissionStats)
    
 // export function ProteinSubmissionRanking({ tag, N = 10 }) {
 //     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
