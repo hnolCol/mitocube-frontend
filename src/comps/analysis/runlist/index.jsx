@@ -1,5 +1,5 @@
-import { Button } from "@blueprintjs/core"
-import { useState, useMemo } from "react"
+import { Button, Tab, Tabs } from "@blueprintjs/core"
+import { useState, useMemo, useEffect } from "react"
 import { useOutletContext } from "react-router"
 import { api } from "@/api"
 import _ from "lodash"
@@ -8,7 +8,7 @@ import Loading from "../../core/base/loading"
 import { WellPosition } from "../../core/plate/wellplate"
 import { RunlistCreatorDialog } from "@/comps/submission/view/dialogs/RunlistDialog"
 import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile  } from "@/services/downloads/txt"
-
+import { CreatedAt } from "../../core/metrics/CreatedAt"
 
 function Run({ run }) {
     return (
@@ -33,14 +33,13 @@ function Runlist() {
     
     const { submission_tag } = useOutletContext()
     const [dialogOpen, setDialogOpen] = useState(false)
+    const [selectedRlTag, setSelectedRlTag] = useState(null)
 
-    const { data: runlist, isLoading, isFetching, isSuccess, isError, error, refetch } =
-        api.submissions.runlist.useGetRunlist({ tag: submission_tag })
+    const { data: runlists, isLoading, isFetching, isSuccess, isError, error, refetch } =
+        api.submissions.runlist.useGetRunlists({ tag: submission_tag })
 
     const { mutate: deleteRunlist, isLoading: isDeleting } = api.submissions.runlist.useDeleteRunlist({
-        onSuccess: () => {
-            refetch()
-        }
+        onSuccess: () => refetch()
     })
         
     const { data: samplesFull, isSuccess: samplesFullSuccess } =
@@ -54,17 +53,32 @@ function Runlist() {
         { enabled: _.isString(submission_tag) }
     )
 
-    const exportRunlistToTxtFile = () => {
-        if (!runlist) return;
-        
+    // keep the tab selection pointed at a valid runlist
+    useEffect(() => {
+        if (!runlists || runlists.length === 0) {
+            setSelectedRlTag(null)
+            return
+        }
+        if (!selectedRlTag || !runlists.some(rl => rl.tag === selectedRlTag)) {
+            setSelectedRlTag(runlists[0].tag)
+        }
+    }, [runlists])
+
+    const activeRunlist = useMemo(
+        () => runlists?.find(rl => rl.tag === selectedRlTag) ?? null,
+        [runlists, selectedRlTag]
+    )
+
+    const exportRunlistToTxtFile = (runlist) => {
+        if (!runlist) return
         let infoString = objectToKeyValueString({ obj: runlist, ignoreKeys: ["runs"] })
-        let runString = arrayObjectsToString({ array: runlist.runs})
-        downloadTxtFile(`${infoString}\n\n\n${runString}`, `${submission_tag}-${runlist.n_runs}-runs.txt`)
+        let runString = arrayObjectsToString({ array: runlist.runs })
+        downloadTxtFile(`${infoString}\n\n\n${runString}`, `${submission_tag}-${runlist.tag}-${runlist.n_runs}-runs.txt`)
     }
-  
-    const handleDeleteRunlist = () => {
+
+    const handleDeleteRunlist = (rl_tag) => {
         if (window.confirm("Are you sure you want to delete this runlist? This action cannot be undone.")) {
-            deleteRunlist({ tag: submission_tag })
+            deleteRunlist({ tag: submission_tag, rl_tag })
         }
     }
 
@@ -116,61 +130,79 @@ function Runlist() {
     return (
         <div className="padding--medium">
             <div className="flex center-items justify-space-between">
-                <h2>Runlist</h2>
+                <h2>Runlists</h2>
                 <Button
                     icon="add"
                     text="Generate Runlist"
                     onClick={() => setDialogOpen(true)}
-                    disabled={!submission || isSuccess}
+                    disabled={!submission}
                 />
             </div>
-            <p>Find the analytical runs associated with the projects below.</p>
+            <p>Find the analytical runs associated with the project below. A submission can have several runlists e.g. if the same samples are measured with two different setups.</p>
 
             {isLoading || isFetching ? <Loading /> :
                 isError ? (
                     error?.response?.status === 404 ? (
-                        <p className="text--muted">No runlist found.</p>
+                        <p className="text--muted">No runlists found.</p>
                     ) : (
                         <APIError error={error} />
                     )
                 ) :
-                isSuccess ? (
+                isSuccess && runlists?.length > 0 ? (
                     <div>
-                        <div className="flex center-items justify-space-between margin-bottom--medium">
-                            <div>
-                                <h3 className="margin--none">{runlist.n_runs} runs</h3>
-                                <div className="text--muted font-size--small">
-                                    {runlist.n_plates} plate{runlist.n_plates > 1 ? 's' : ''} • 
-                                    {runlist.scrambled ? ' Scrambled' : ' Sequential'} • 
-                                    {runlist.fractionated ? ` ${runlist.n_fractions} fractions` : ' No fractionation'}
+                        <Tabs
+                            id="runlist-tabs"
+                            selectedTabId={selectedRlTag}
+                            onChange={(newTabId) => setSelectedRlTag(newTabId)}
+                        >
+                            {runlists.map(rl => (
+                                <Tab
+                                    key={rl.tag}
+                                    id={rl.tag}
+                                    title={<span>{rl.n_runs} runs (<CreatedAt createdat={rl.created_at} />)</span>}
+                                />
+                            ))}
+                        </Tabs>
+
+                        {activeRunlist && (
+                            <div className="margin-top--medium">
+                                <div className="flex center-items justify-space-between margin-bottom--medium">
+                                    <div>
+                                        <h3 className="margin--none">{activeRunlist.n_runs} runs</h3>
+                                        <div className="text--muted font-size--small">
+                                            {activeRunlist.n_plates} plate{activeRunlist.n_plates > 1 ? 's' : ''} •
+                                            {activeRunlist.scrambled ? ' Scrambled' : ' Sequential'} •
+                                            {activeRunlist.fractionated ? ` ${activeRunlist.n_fractions} fractions` : ' No fractionation'}
+                                        </div>
+                                    </div>
+                                    <div className="flex center-items">
+                                        <Button
+                                            icon="download"
+                                            text="Download"
+                                            onClick={() => exportRunlistToTxtFile(activeRunlist)}
+                                            style={{ marginRight: "0.5rem" }}
+                                        />
+                                        <Button
+                                            icon="trash"
+                                            text="Delete"
+                                            onClick={() => handleDeleteRunlist(activeRunlist.tag)}
+                                            intent="danger"
+                                            loading={isDeleting}
+                                            disabled={isDeleting}
+                                        />
+                                    </div>
+                                </div>
+                                <div style={{
+                                    maxHeight: '70vh',
+                                    overflowY: 'auto',
+                                    paddingRight: '0.5rem'
+                                }}>
+                                    {activeRunlist.runs.map(run => <Run key={run.name} run={run} />)}
                                 </div>
                             </div>
-                            <div className="flex center-items">
-                                <Button 
-                                    icon="download" 
-                                    text="Download" 
-                                    onClick={exportRunlistToTxtFile}
-                                    style={{ marginRight: "0.5rem" }}
-                                />
-                                <Button 
-                                    icon="trash" 
-                                    text="Delete" 
-                                    onClick={handleDeleteRunlist}
-                                    intent="danger"
-                                    loading={isDeleting}
-                                    disabled={isDeleting}
-                                />
-                            </div>
-                        </div>
-                        <div style={{ 
-                            maxHeight: '70vh', 
-                            overflowY: 'auto',
-                            paddingRight: '0.5rem'  
-                        }}>
-                            {runlist.runs.map(run => <Run key={run.name} run={run} />)}
-                        </div>
+                        )}
                     </div>
-                ) : null}
+                ) : <p className="text--muted">No runlists found.</p>}
             {submission && (
                 <RunlistCreatorDialog
                     isOpen={dialogOpen}

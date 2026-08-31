@@ -12,14 +12,20 @@ import { FeatureDataView } from "../../analysis/features/DataView"
 import { RankingStats } from "../../core/base/submissions/RankingStats"
 import { api } from "@/api";
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { ConditionApplicationFilter } from "@/comps/submission/filter/ConditionApplicationFilter"
+import { UserDatasetFilter } from "@/comps/submission/filter/UserFilter"
 
 const METRICES = ["log2_fc_vs_mean", "raw", "z_score_sample", "z_score_protein_group"]
-
 
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
     const [metrics, setMetrics] = useState(METRICES[0])
     const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
+   
+// export function ProteinSubmissionRanking({ tag, N = 10 }) {
+//     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
+//     const [metrics, setMetrics] = useState(METRICES[0])
+//     const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
     const { feature_tags, submission_tags} = useMemo(() => {
         if (_.isArray(submissionStats)) {
             const topStats = _.uniqBy(_.slice(_.orderBy(submissionStats, ["score"], ["desc"]), 0, N), "submission_tag");
@@ -37,10 +43,9 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         setSelection(prevValues => { return { ...prevValues, [selectionKey]: keyName } })
     }
 
-    if (!_.isArray(submissionStats) || submissionStats.length === 0) {
+    if (isLoading || !_.isArray(submissionStats)) {
         return <div>Loading...</div>
     }
-
     
     const getSubmissionStats = (tag) => {
         if (!_.isArray(submissionStats)) return null
@@ -57,7 +62,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         <span>Features are ranked by statistic approaches. Find more information in the documentation.</span>
         <div className="flex" style={{gap : "3rem", marginTop : "1rem"}}>
             <div className="flex flex-column" style={{width : "375px"}}>
-                <InteractiveChart
+                {submissionStats.length > 0 ? <InteractiveChart
             data={submissionStats}
             keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}>
             
@@ -145,7 +150,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                         })}
 
         
-    </InteractiveChart>
+        </InteractiveChart> : <div>No submissions match the selected filters.</div>}
         
                 <div>
                     <h3>Settings</h3>
@@ -158,9 +163,19 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                                 </OptionButton>
                             ))}
                     </div>
-                    
-                    
-
+                    <div style={{ marginTop: "1rem" }}>
+                        <UserDatasetFilter
+                            submissionFilter={submissionFilter}
+                            setSubmissionFilter={setSubmissionFilter}
+                            infoText="Features from submissions created or collaborated on by the selected user(s) will be displayed."
+                        />
+                    </div>
+                    <ConditionApplicationFilter
+                        submissionFilter={submissionFilter}
+                        setSubmissionFilter={setSubmissionFilter}
+                        infoText="Features from submissions with the selected condition applications will be displayed."
+                    />
+            
                 
                 </div>
             </div>
@@ -168,13 +183,19 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem"}}>
 
             
-            {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length ?
-                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} /> : null}
+            {/* {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length ?
+                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} /> : null} */}
 
+            {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length && feature_tags.length > 0 ?
+                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} />
+                : <div>
+                    <h3>Feature Plots</h3>
+                   <span>No submissions match the selected filters.</span>
+                </div>}
+
+         </div>
+        </div>
     
-
-        </div>
-        </div>
 
     </div>
 }

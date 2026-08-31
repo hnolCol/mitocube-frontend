@@ -217,6 +217,14 @@ function InitialSubmission({
 
         else {
 
+            setAlertProps({
+                isOpen: true,
+                children: <p>Submitting, please wait...</p>,
+                intent: "none",
+                canEscapeKeyCancel: false,
+                canOutsideClickCancel: false
+            })
+
             // console.log(submission.extraMetaText, submission.metatext)
         
             let submissionDetails = {} // ...submission 
