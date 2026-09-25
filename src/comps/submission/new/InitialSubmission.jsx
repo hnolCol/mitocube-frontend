@@ -229,25 +229,21 @@ function InitialSubmission({
         
             let submissionDetails = {} // ...submission 
             // delete rendering float
-            submissionDetails["title"] = submission.title
-            submissionDetails["sample_names"] = submission.sampleNames
-            submissionDetails["replicates"] = validReplicates
-            submissionDetails["samples_attributes"] = attributeTable.map(sampleAttributes => sampleAttributes.filter(attr => submission.samplesAttributes.includes(attr.tag)))
-            submissionDetails["dataset_attributes"] = submission.selected_traits
-            submissionDetails["genotypes"] = submission.genotypes
-            submissionDetails["collaborators"] = submission.collaborators.slice()
-            submissionDetails["research_aim"] = submission.metatext["metatext:research_aim"]
-            submissionDetails["tag"] = submission.tag
-            submissionDetails["metatext"] = { ...submission.metatext, ...submission.extraMetaText.reduce((acc, meta) => { acc[meta.title] = meta.text; return acc }, {}) }
-            delete submissionDetails["rerenderTableDependency"]
-            delete submissionDetails["attributes"]
 
-            submissionDetails["datasetAttributes"] = _.fromPairs(_.keys(submission["datasetAttributeValues"])
-                .filter(key => _.isArray(submission["datasetAttributeValues"][key]) && submission["datasetAttributeValues"][key].length > 0).map(key => [key, submission["datasetAttributeValues"][key].map(t => t.tag)]))
+            submissionDetails = {
+                tag: submission.tag,
+                title: submission.title,
+                research_aim: submission.metatext["metatext:research_aim"],
+                collaborators: submission.collaborators.slice(),
+                genotypes: submission.genotypes,
+                replicates: validReplicates,
+                metatext: { ...submission.metatext, ...submission.extraMetaText.reduce((acc, meta) => { acc[meta.title] = meta.text; return acc }, {}) },
+                dataset_attributes: submission.selected_traits,
+                samples_attributes: attributeTable.map(sampleAttributes => sampleAttributes.filter(attr => submission.samplesAttributes.includes(attr.tag))),
+                sample_names: submission.sampleNames,
+                links: submission.links.filter(linkProps => linkProps.link !== "")
+            }
             
-            
-            submissionDetails["links"] = submission.links.filter(linkProps => linkProps.link !== "")
-            submissionDetails["genotypes"] = submission.genotypes
 
             postSubmission({ submission: submissionDetails },
                 {
@@ -284,19 +280,6 @@ function InitialSubmission({
         
 
     }
-
-    /**
-     * 
-     * @param {Object} loadingFileProps - The loading file props to find the index of the feature column, essential if the submission process
-     * is started from files loading. 
-     * @returns {String[]} The data index (feature tag) from a loaded data table file. 
-     */
-    const findFeatures = (loadingFileProps) => {
-        if (!submitExistingData) return undefined 
-        const feature_index = loadingFileProps.columnNames.indexOf(loadingFileProps.keyColumnName)
-        return loadingFileProps.dataArray.map(rowData => rowData[feature_index]) 
-    }
-
 
     /**
      * @description Closes the alert window and loggs the user out 
