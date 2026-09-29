@@ -1,13 +1,13 @@
 import { useMemo, useState } from "react";
 import _ from "lodash";
 import { scaleLinear } from "@visx/scale";
-import { HeatmapRect, HeatmapCircle } from "@visx/heatmap";
+import { HeatmapRect } from "@visx/heatmap";
 import { AxisBottom, AxisLeft } from "@visx/axis";
-import { TooltipWithBounds } from "@visx/tooltip";
-import { localPoint } from "@visx/event";
+import { Group } from "@visx/group";
 
 /**
  * Calculate Pearson correlation between two arrays
+ * Returns null if arrays are empty or have different lengths
  */
 function calculatePearsonCorrelation(arr1, arr2) {
     if (arr1.length !== arr2.length || arr1.length === 0) return null;
@@ -35,17 +35,45 @@ function calculatePearsonCorrelation(arr1, arr2) {
 }
 
 /**
- * PeptideCorrelationMatrix - Heatmap showing pairwise peptide correlations
+ * PeptideCorrelationMatrix - Heatmap showing pairwise peptide correlations.
+ * 
+ * Calculates Pearson correlation client-side from intensity data.
+ * Useful for identifying:
+ * - Clusters of highly correlated peptides (consistent measurement groups)
+ * - Peptides that don't correlate with others (potential isoforms or outliers)
  * 
  * @param {Object} props
- * @param {string[]} props.selectedPeptideTags - Tags of selected peptides
- * @param {string} props.hoverPeptideTag - Currently hovered peptide tag
- * @param {Object} props.intensityData - { peptide_tag: { sample_tag: intensity } }
- * @param {string[]} props.sampleTags - Array of all sample tags
- * @param {number} props.width - Component width
- * @param {number} props.height - Component height
- * @param {Function} props.onPeptideHover - Callback when peptide is hovered
+ * @param {string[]} props.selectedPeptideTags - Array of peptide tags to include in matrix
+ * @param {string} [props.hoverPeptideTag] - Currently hovered peptide tag for highlighting
+ * @param {Object} props.intensityData - Object mapping peptide tags to their data:
+ *   { peptide_tag: { intensities: { sample_tag: intensity }, ... } }
+ * @param {string[]} [props.sampleTags] - Optional array of sample tags.
+ *   If not provided, sample tags are extracted from the intensity data.
+ * @param {number} [props.width=600] - Component width in pixels
+ * @param {number} [props.height=500] - Component height in pixels
+ * @param {Function} [props.onPeptideHover] - Callback when a peptide is hovered: (peptideTag) => void
  * @returns {JSX.Element}
+ * 
+ * @example
+ * // Example intensityData structure:
+ * const intensityData = {
+ *   "PEP_001_001": {
+ *     tag: "PEP_001_001",
+ *     intensities: { "SAMPLE_A": 12345, "SAMPLE_B": 9876, "SAMPLE_C": 11234 }
+ *   },
+ *   "PEP_001_002": {
+ *     tag: "PEP_001_002",
+ *     intensities: { "SAMPLE_A": 8765, "SAMPLE_B": 7654, "SAMPLE_C": 9876 }
+ *   }
+ * };
+ * 
+ * // Usage:
+ * <PeptideCorrelationMatrix
+ *   selectedPeptideTags={["PEP_001_001", "PEP_001_002", "PEP_001_003"]}
+ *   hoverPeptideTag="PEP_001_001"
+ *   intensityData={intensityData}
+ *   onPeptideHover={(tag) => console.log("Hovered:", tag)}
+ * />
  */
 function PeptideCorrelationMatrix({
     selectedPeptideTags = [],
@@ -65,7 +93,7 @@ function PeptideCorrelationMatrix({
 
     // Filter to selected peptides that have data
     const validPeptides = useMemo(() => {
-        return selectedPeptideTags.filter(tag => intensityData[tag]);
+        return selectedPeptideTags.filter(tag => intensityData[tag]?.intensities);
     }, [selectedPeptideTags, intensityData]);
 
     // Get sample tags from data if not provided
@@ -73,8 +101,8 @@ function PeptideCorrelationMatrix({
         if (sampleTags.length > 0) return sampleTags;
         const samples = new Set();
         Object.values(intensityData).forEach(pepData => {
-            if (pepData && typeof pepData === 'object') {
-                Object.keys(pepData).forEach(s => samples.add(s));
+            if (pepData?.intensities && typeof pepData.intensities === 'object') {
+                Object.keys(pepData.intensities).forEach(s => samples.add(s));
             }
         });
         return Array.from(samples).sort();
@@ -83,8 +111,8 @@ function PeptideCorrelationMatrix({
     // Get intensity arrays for each peptide
     const getPeptideIntensities = (peptideTag) => {
         const pepData = intensityData[peptideTag];
-        if (!pepData) return [];
-        return allSampleTags.map(sample => pepData[sample] || null);
+        if (!pepData?.intensities) return [];
+        return allSampleTags.map(sample => pepData.intensities[sample] || null);
     };
 
     // Calculate correlation matrix
@@ -307,7 +335,7 @@ function PeptideCorrelationMatrix({
     );
 }
 
-// Helper component
+// Import Group from @visx/group
 import { Group } from "@visx/group";
 
 export default PeptideCorrelationMatrix;

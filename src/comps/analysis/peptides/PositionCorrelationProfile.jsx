@@ -5,9 +5,6 @@ import { LinePath } from "@visx/shape";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { GridRows, GridColumns } from "@visx/grid";
 import { Group } from "@visx/group";
-import { TooltipWithBounds } from "@visx/tooltip";
-import { localPoint } from "@visx/event";
-import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 /**
  * Calculate Pearson correlation between two arrays
@@ -38,19 +35,51 @@ function calculatePearsonCorrelation(arr1, arr2) {
 }
 
 /**
- * PositionCorrelationProfile - Shows average correlation vs. protein position
- * Helps identify regions with different isoforms or measurement issues
+ * PositionCorrelationProfile - Shows average correlation vs. protein position.
+ * 
+ * Helps identify regions with different isoforms or measurement issues.
+ * - High correlation across all positions: consistent measurement
+ * - Low correlation at N/C terminals: potential isoforms
+ * - Low correlation in middle: alternative splicing or modifications
  * 
  * @param {Object} props
- * @param {string[]} props.selectedPeptideTags - Tags of selected peptides
- * @param {string} props.hoverPeptideTag - Currently hovered peptide tag
- * @param {Object} props.intensityData - { peptide_tag: { sample_tag: intensity } }
- * @param {string[]} props.sampleTags - Array of all sample tags
- * @param {string} props.sequence - Protein amino acid sequence
- * @param {number} props.width - Component width
- * @param {number} props.height - Component height
- * @param {Function} props.onPeptideHover - Callback when peptide is hovered
+ * @param {string[]} props.selectedPeptideTags - Array of peptide tags to include
+ * @param {string} [props.hoverPeptideTag] - Currently hovered peptide tag for highlighting
+ * @param {Object} props.intensityData - Object mapping peptide tags to their data:
+ *   { peptide_tag: { start: number, end: number, intensities: { sample_tag: intensity }, ... } }
+ * @param {string[]} [props.sampleTags] - Optional array of sample tags.
+ *   If not provided, sample tags are extracted from the intensity data.
+ * @param {string} [props.sequence] - Protein amino acid sequence (for domain scaling)
+ * @param {number} [props.width=600] - Component width in pixels
+ * @param {number} [props.height=300] - Component height in pixels
+ * @param {Function} [props.onPeptideHover] - Callback when a peptide is hovered: (peptideTag) => void
  * @returns {JSX.Element}
+ * 
+ * @example
+ * // Example intensityData structure:
+ * const intensityData = {
+ *   "PEP_001_001": {
+ *     tag: "PEP_001_001",
+ *     start: 1,
+ *     end: 10,
+ *     intensities: { "SAMPLE_A": 12345, "SAMPLE_B": 9876, "SAMPLE_C": 11234 }
+ *   },
+ *   "PEP_001_002": {
+ *     tag: "PEP_001_002",
+ *     start: 11,
+ *     end: 25,
+ *     intensities: { "SAMPLE_A": 8765, "SAMPLE_B": 7654, "SAMPLE_C": 9876 }
+ *   }
+ * };
+ * 
+ * // Usage:
+ * <PositionCorrelationProfile
+ *   selectedPeptideTags={["PEP_001_001", "PEP_001_002", "PEP_001_003"]}
+ *   hoverPeptideTag="PEP_001_001"
+ *   intensityData={intensityData}
+ *   sequence="MKTIIALSYIFCLVFAGEAMSLEQ..."
+ *   onPeptideHover={(tag) => console.log("Hovered:", tag)}
+ * />
  */
 function PositionCorrelationProfile({
     selectedPeptideTags = [],
@@ -76,8 +105,8 @@ function PositionCorrelationProfile({
         if (sampleTags.length > 0) return sampleTags;
         const samples = new Set();
         Object.values(intensityData).forEach(pepData => {
-            if (pepData && typeof pepData === 'object') {
-                Object.keys(pepData).forEach(s => samples.add(s));
+            if (pepData?.intensities && typeof pepData.intensities === 'object') {
+                Object.keys(pepData.intensities).forEach(s => samples.add(s));
             }
         });
         return Array.from(samples).sort();
@@ -91,7 +120,7 @@ function PositionCorrelationProfile({
                 tag,
                 start: intensityData[tag]?.start || 0,
                 end: intensityData[tag]?.end || 0,
-                data: allSampleTags.map(sample => intensityData[tag]?.[sample] || null)
+                data: allSampleTags.map(sample => intensityData[tag]?.intensities?.[sample] || null)
             }));
     }, [selectedPeptideTags, intensityData, allSampleTags]);
 
@@ -324,7 +353,7 @@ function PositionCorrelationProfile({
     );
 }
 
-// Re-import Group for the return
+// Re-import Group from @visx/group for export
 import { Group as GroupViz } from "@visx/group";
 
 export default PositionCorrelationProfile;

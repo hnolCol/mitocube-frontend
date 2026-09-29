@@ -3,7 +3,11 @@ import PeptidesLoad from "./PeptidesLoad";
 
 /**
  * Main peptides analysis component for dataset view.
- * Uses the submission_tag from the outlet context.
+ * 
+ * This is the entry point for the peptides analysis tab.
+ * It uses the submission_tag from the outlet context and passes it to PeptidesLoad.
+ * 
+ * @returns {JSX.Element}
  */
 function DatasetPeptides() {
     const { submission_tag } = useOutletContext();

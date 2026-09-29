@@ -5,15 +5,50 @@ import _ from "lodash";
  * SequenceViewer component for visualizing peptides mapped to a protein sequence.
  * 
  * @param {Object} props
- * @param {string} props.sequence - The protein amino acid sequence
- * @param {Array} props.peptides - Array of peptide objects with tag, start, end, and metadata
- * @param {number} props.charactersPerLine - Number of amino acids to display per line (default: 60)
- * @param {number} props.charWidth - Width of each character in pixels (default: 14)
- * @param {number} props.lineHeight - Height of each line in pixels (default: 24)
- * @param {Object} props.colors - Custom colors for peptide highlights (default: palette)
- * @param {string} props.searchTerm - Optional search term to filter/highlight peptides
- * @param {Function} props.onPeptideClick - Optional callback when a peptide is clicked
+ * @param {string} props.sequence - The protein amino acid sequence (e.g., "MKTIIALSYIFCLVFA...")
+ * @param {Array<Object>} props.peptides - Array of peptide objects to display on the sequence
+ * @param {number} [props.charactersPerLine=60] - Number of amino acids to display per line
+ * @param {number} [props.charWidth=14] - Width of each character in pixels
+ * @param {number} [props.lineHeight=24] - Height of each line in pixels
+ * @param {Object} [props.colors] - Custom colors for peptide highlights
+ * @param {string} [props.searchTerm=""] - Optional search term to filter/highlight peptides
+ * @param {Function} [props.onPeptideClick] - Callback when a peptide is clicked: (peptide) => void
+ * @param {Function} [props.onPeptideHover] - Callback when a peptide is hovered: (peptide) => void
  * @returns {JSX.Element}
+ * 
+ * @example
+ * // Example peptides array:
+ * const peptides = [
+ *   {
+ *     tag: "PEP_001_001",           // Unique identifier for the peptide
+ *     start: 1,                     // 1-indexed start position in the sequence
+ *     end: 10,                      // 1-indexed end position in the sequence
+ *     sequence: "MKTIIALSYI",       // Amino acid sequence (optional, derived from sequence if missing)
+ *     score: 95.5,                  // Quality score (optional)
+ *     intensity: 12345.67,          // Signal intensity (optional)
+ *     missedCleavages: 0,          // Number of missed cleavages (optional)
+ *     modifications: ["Carbamidomethyl (C)"], // Array of modifications (optional)
+ *     submission_tag: "SUB_001"    // Source submission tag (optional)
+ *   },
+ *   {
+ *     tag: "PEP_001_002",
+ *     start: 11,
+ *     end: 25,
+ *     sequence: "FCLVFAGEAMSLEQ",
+ *     score: 88.2,
+ *     modifications: ["Carbamidomethyl (C)"]
+ *   }
+ *   // Note: Multiple peptides can have the same start/end positions
+ *   // (e.g., from missed cleavages or different charge states)
+ * ]
+ * 
+ * // Usage:
+ * <SequenceViewer
+ *   sequence="MKTIIALSYIFCLVFAGEAMSLEQ..."
+ *   peptides={peptides}
+ *   onPeptideClick={(peptide) => console.log("Selected:", peptide.tag)}
+ *   onPeptideHover={(peptide) => console.log("Hovered:", peptide.tag)}
+ * />
  */
 function SequenceViewer({
     sequence = "",
@@ -30,7 +65,8 @@ function SequenceViewer({
         highlight: "#ffeaa7"
     },
     searchTerm = "",
-    onPeptideClick
+    onPeptideClick,
+    onPeptideHover
 }) {
     const [hoveredPeptide, setHoveredPeptide] = useState(null);
     const [selectedPeptide, setSelectedPeptide] = useState(null);
@@ -70,28 +106,8 @@ function SequenceViewer({
         return tagMatch || seqMatch || modMatch;
     };
 
-    // Generate lines from the sequence
-    const sequenceLines = useMemo(() => {
-        const lines = [];
-        for (let i = 0; i < sequence.length; i += charactersPerLine) {
-            lines.push(sequence.slice(i, i + charactersPerLine));
-        }
-        return lines;
-    }, [sequence, charactersPerLine]);
-
-    // Calculate peptide position for rendering
-    const getPeptidePosition = (start, end) => {
-        const lineIndex = Math.floor(start / charactersPerLine);
-        const lineStart = lineIndex * charactersPerLine;
-        const x = (start - lineStart) * charWidth;
-        const width = (end - start + 1) * charWidth;
-        const y = lineIndex * lineHeight;
-        return { x, y, width, lineIndex };
-    };
-
-    // Generate color for each peptide group
+    // Generate color for each peptide based on its tag
     const getPeptideColor = (peptideTag, isMatch = false) => {
-        // Use a consistent color based on peptide tag for same peptides
         if (peptideTag) {
             let hash = 0;
             for (let i = 0; i < peptideTag.length; i++) {
@@ -110,14 +126,47 @@ function SequenceViewer({
         }
     };
 
-    // Calculate total width and height
-    const totalWidth = charactersPerLine * charWidth + 100; // Extra space for position numbers
-    const totalHeight = sequenceLines.length * lineHeight + 40;
+    const handlePeptideMouseEnter = (peptide) => {
+        setHoveredPeptide(peptide);
+        if (onPeptideHover) {
+            onPeptideHover(peptide);
+        }
+    };
+
+    const handlePeptideMouseLeave = () => {
+        setHoveredPeptide(null);
+        if (onPeptideHover) {
+            onPeptideHover(null);
+        }
+    };
+
+    // Calculate peptide position for rendering
+    const getPeptidePosition = (start, end) => {
+        const lineIndex = Math.floor(start / charactersPerLine);
+        const lineStart = lineIndex * charactersPerLine;
+        const x = (start - lineStart) * charWidth;
+        const width = (end - start + 1) * charWidth;
+        const y = lineIndex * lineHeight;
+        return { x, y, width, lineIndex };
+    };
+
+    // Generate lines from the sequence
+    const sequenceLines = useMemo(() => {
+        const lines = [];
+        for (let i = 0; i < sequence.length; i += charactersPerLine) {
+            lines.push(sequence.slice(i, i + charactersPerLine));
+        }
+        return lines;
+    }, [sequence, charactersPerLine]);
 
     // Count matching peptides
     const matchCount = useMemo(() => {
         return filteredPeptides.length;
     }, [filteredPeptides]);
+
+    // Calculate total width and height
+    const totalWidth = charactersPerLine * charWidth + 100; // Extra space for position numbers
+    const totalHeight = sequenceLines.length * lineHeight + 40;
 
     return (
         <div className="sequence-viewer" style={{ fontFamily: "monospace", margin: "1rem 0" }}>
@@ -167,7 +216,6 @@ function SequenceViewer({
                         const peptide = groupPeptides[0];
                         const { x, y, width } = getPeptidePosition(peptide.start - 1, peptide.end - 1);
                         const height = lineHeight - 4;
-                        const isMatch = isPeptideMatch(peptide);
                         
                         // For overlapping peptides at same position, stack them
                         return groupPeptides.map((p, idx) => {
@@ -186,8 +234,8 @@ function SequenceViewer({
                                     strokeWidth={pIsMatch ? 2 : 1}
                                     rx={2}
                                     style={{ pointerEvents: "auto", cursor: "pointer" }}
-                                    onMouseEnter={() => setHoveredPeptide(p)}
-                                    onMouseLeave={() => setHoveredPeptide(null)}
+                                    onMouseEnter={() => handlePeptideMouseEnter(p)}
+                                    onMouseLeave={handlePeptideMouseLeave}
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handlePeptideClick(p);
@@ -325,7 +373,7 @@ function SequenceViewer({
 
             {/* Legend */}
             <div style={{ marginTop: "1rem", fontSize: "12px", color: "#6c757d" }}>
-                <span>Note: Multiple peptides at the same position (e.g., from missed cleavages) are stacked.</span>
+                <span>Note: Multiple peptides at the same position (e.g., from missed cleavages) are stacked vertically.</span>
             </div>
         </div>
     );
