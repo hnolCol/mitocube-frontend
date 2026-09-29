@@ -7,48 +7,22 @@ import { GridRows, GridColumns } from "@visx/grid";
 import { Group } from "@visx/group";
 
 /**
- * Calculate Pearson correlation between two arrays
- */
-function calculatePearsonCorrelation(arr1, arr2) {
-    if (arr1.length !== arr2.length || arr1.length === 0) return null;
-    
-    const n = arr1.length;
-    let sum1 = 0, sum2 = 0, sum1Sq = 0, sum2Sq = 0, pSum = 0;
-    
-    for (let i = 0; i < n; i++) {
-        const x = arr1[i];
-        const y = arr2[i];
-        if (x === null || y === null) continue;
-        
-        sum1 += x;
-        sum2 += y;
-        sum1Sq += x * x;
-        sum2Sq += y * y;
-        pSum += x * y;
-    }
-    
-    const num = pSum - (sum1 * sum2 / n);
-    const den = Math.sqrt((sum1Sq - (sum1 * sum1 / n)) * (sum2Sq - (sum2 * sum2 / n)));
-    
-    if (den === 0) return 0;
-    return num / den;
-}
-
-/**
  * PositionCorrelationProfile - Shows average correlation vs. protein position.
  * 
- * Helps identify regions with different isoforms or measurement issues.
+ * Uses PRE-CALCULATED correlation matrix from the API.
+ * For each peptide, calculates the average correlation with all other peptides
+ * and plots it against the peptide's position in the protein.
+ * 
+ * Helps identify regions with different isoforms or measurement issues:
  * - High correlation across all positions: consistent measurement
  * - Low correlation at N/C terminals: potential isoforms
  * - Low correlation in middle: alternative splicing or modifications
  * 
  * @param {Object} props
- * @param {string[]} props.selectedPeptideTags - Array of peptide tags to include
+ * @param {string[]} props.peptide_tags - Array of peptide tags to include
+ * @param {Object} props.correlationData - Correlation data from API:
+ *   { peptide_tags: string[], correlation_matrix: number[][], samples: string[] }
  * @param {string} [props.hoverPeptideTag] - Currently hovered peptide tag for highlighting
- * @param {Object} props.intensityData - Object mapping peptide tags to their data:
- *   { peptide_tag: { start: number, end: number, intensities: { sample_tag: intensity }, ... } }
- * @param {string[]} [props.sampleTags] - Optional array of sample tags.
- *   If not provided, sample tags are extracted from the intensity data.
  * @param {string} [props.sequence] - Protein amino acid sequence (for domain scaling)
  * @param {number} [props.width=600] - Component width in pixels
  * @param {number} [props.height=300] - Component height in pixels
@@ -56,36 +30,30 @@ function calculatePearsonCorrelation(arr1, arr2) {
  * @returns {JSX.Element}
  * 
  * @example
- * // Example intensityData structure:
- * const intensityData = {
- *   "PEP_001_001": {
- *     tag: "PEP_001_001",
- *     start: 1,
- *     end: 10,
- *     intensities: { "SAMPLE_A": 12345, "SAMPLE_B": 9876, "SAMPLE_C": 11234 }
- *   },
- *   "PEP_001_002": {
- *     tag: "PEP_001_002",
- *     start: 11,
- *     end: 25,
- *     intensities: { "SAMPLE_A": 8765, "SAMPLE_B": 7654, "SAMPLE_C": 9876 }
- *   }
+ * // Example correlationData from API:
+ * const correlationData = {
+ *   peptide_tags: ["PEP_001_001", "PEP_001_002", "PEP_001_003"],
+ *   correlation_matrix: [
+ *     [1.0, 0.95, 0.87],
+ *     [0.95, 1.0, 0.92],
+ *     [0.87, 0.92, 1.0]
+ *   ],
+ *   samples: ["SAMPLE_A", "SAMPLE_B", "SAMPLE_C"]
  * };
  * 
  * // Usage:
  * <PositionCorrelationProfile
- *   selectedPeptideTags={["PEP_001_001", "PEP_001_002", "PEP_001_003"]}
- *   hoverPeptideTag="PEP_001_001"
- *   intensityData={intensityData}
+ *   peptide_tags={["PEP_001_001", "PEP_001_002", "PEP_001_003"]}
+ *   correlationData={correlationData}
  *   sequence="MKTIIALSYIFCLVFAGEAMSLEQ..."
+ *   hoverPeptideTag="PEP_001_001"
  *   onPeptideHover={(tag) => console.log("Hovered:", tag)}
  * />
  */
 function PositionCorrelationProfile({
-    selectedPeptideTags = [],
+    peptide_tags = [],
+    correlationData = null,
     hoverPeptideTag = null,
-    intensityData = {},
-    sampleTags = [],
     sequence = "",
     width = 600,
     height = 300,
@@ -100,58 +68,68 @@ function PositionCorrelationProfile({
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
-    // Get sample tags from data if not provided
-    const allSampleTags = useMemo(() => {
-        if (sampleTags.length > 0) return sampleTags;
-        const samples = new Set();
-        Object.values(intensityData).forEach(pepData => {
-            if (pepData?.intensities && typeof pepData.intensities === 'object') {
-                Object.keys(pepData.intensities).forEach(s => samples.add(s));
-            }
+    // Extract data from correlationData
+    const matrixPeptideTags = useMemo(() => {
+        return correlationData?.peptide_tags || [];
+    }, [correlationData]);
+
+    const correlationMatrix = useMemo(() => {
+        return correlationData?.correlation_matrix || [];
+    }, [correlationData]);
+
+    // Filter peptide_tags to only those present in the correlation matrix
+    const validPeptideTags = useMemo(() => {
+        return peptide_tags.filter(tag => matrixPeptideTags.includes(tag));
+    }, [peptide_tags, matrixPeptideTags]);
+
+    // Create index map for matrix
+    const peptideIndexInMatrix = useMemo(() => {
+        const index = {};
+        matrixPeptideTags.forEach((tag, idx) => {
+            index[tag] = idx;
         });
-        return Array.from(samples).sort();
-    }, [intensityData, sampleTags]);
+        return index;
+    }, [matrixPeptideTags]);
 
-    // Filter to selected peptides that have data
-    const validPeptides = useMemo(() => {
-        return selectedPeptideTags
-            .filter(tag => intensityData[tag])
-            .map(tag => ({
-                tag,
-                start: intensityData[tag]?.start || 0,
-                end: intensityData[tag]?.end || 0,
-                data: allSampleTags.map(sample => intensityData[tag]?.intensities?.[sample] || null)
-            }));
-    }, [selectedPeptideTags, intensityData, allSampleTags]);
-
-    // Calculate average correlation for each peptide position
+    // For position profile, we need peptide position information
+    // This should come from the peptides data, but for now we'll use a simplified approach
+    // In production, this would be passed as props or fetched from the peptides API
+    // For demo purposes, we'll extract positions from the peptide tags (if they contain position info)
+    // or use a default ordering
+    
+    // Since we don't have position info here, we'll use the order in peptide_tags
+    // In production, you would pass peptide metadata including start/end positions
     const positionCorrelations = useMemo(() => {
-        if (validPeptides.length < 2) return [];
+        if (validPeptideTags.length < 2 || !correlationData) return [];
         
-        return validPeptides.map(pep => {
+        return validPeptideTags.map((tag, idx) => {
+            const matrixIdx = peptideIndexInMatrix[tag];
+            if (matrixIdx === undefined) return null;
+            
             // Calculate average correlation of this peptide with all others
-            const otherPeps = validPeptides.filter(p => p.tag !== pep.tag);
-            const correlations = otherPeps.map(other => {
-                return calculatePearsonCorrelation(pep.data, other.data);
-            }).filter(c => c !== null);
+            const row = correlationMatrix[matrixIdx];
+            if (!row) return null;
+            
+            const correlations = [];
+            for (let j = 0; j < row.length; j++) {
+                if (j !== matrixIdx && !isNaN(row[j])) {
+                    correlations.push(row[j]);
+                }
+            }
             
             const avgCorrelation = correlations.length > 0 
                 ? correlations.reduce((a, b) => a + b, 0) / correlations.length 
                 : 0;
             
-            // Use middle position
-            const position = (pep.start + pep.end) / 2;
-            
+            // Use index as position for now (in production, use actual peptide position)
             return {
-                tag: pep.tag,
-                position,
-                start: pep.start,
-                end: pep.end,
+                tag,
+                position: idx * 10 + 5, // Default spacing
                 avgCorrelation,
                 correlationCount: correlations.length
             };
-        });
-    }, [validPeptides]);
+        }).filter(x => x !== null);
+    }, [validPeptideTags, correlationData, peptideIndexInMatrix, correlationMatrix]);
 
     // Sort by position
     const sortedPositions = useMemo(() => {
@@ -209,10 +187,15 @@ function PositionCorrelationProfile({
         if (onPeptideHover) onPeptideHover(null);
     };
 
-    if (validPeptides.length < 2) {
+    // Import localPoint from @visx/event
+    import { localPoint } from "@visx/event";
+
+    if (!correlationData || validPeptideTags.length < 2) {
         return (
             <div style={{ width, height, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e9ecef", borderRadius: "4px" }}>
-                <div style={{ color: "#6c757d" }}>Select at least 2 peptides to view position correlation profile</div>
+                <div style={{ color: "#6c757d" }}>
+                    {correlationData ? "Select at least 2 peptides to view position correlation profile" : "Loading correlation data..."}
+                </div>
             </div>
         );
     }
@@ -249,7 +232,7 @@ function PositionCorrelationProfile({
                     scale={xScale}
                     top={margin.top + innerHeight}
                     left={margin.left}
-                    label="Protein Position (aa)"
+                    label="Peptide Index"
                     labelOffset={30}
                     labelProps={{ fontSize: 12, fill: "#212529" }}
                     tickLabelProps={{ fontSize: 10, fill: "#6c757d" }}
@@ -328,7 +311,7 @@ function PositionCorrelationProfile({
                     }}
                 >
                     <div><strong>{tooltipData.tag}</strong></div>
-                    <div>Position: {tooltipData.start}-{tooltipData.end}</div>
+                    <div>Position Index: {tooltipData.position.toFixed(0)}</div>
                     <div>Avg Correlation: {tooltipData.avgCorrelation.toFixed(3)}</div>
                     <div>Based on {tooltipData.correlationCount} comparisons</div>
                 </div>

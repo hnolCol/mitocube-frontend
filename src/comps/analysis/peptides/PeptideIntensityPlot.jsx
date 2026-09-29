@@ -14,34 +14,43 @@ import { getColorPalette } from "@mitocube/viz/src/colors/palette";
  * Displays line charts for selected peptides showing their intensity values
  * across all samples. Supports hover interactions and highlighting.
  * 
+ * This component receives intensity data via the WithPeptideIntensities prefetch wrapper.
+ * 
  * @param {Object} props
  * @param {string[]} props.selectedPeptideTags - Array of peptide tags to display
  * @param {string} [props.hoverPeptideTag] - Currently hovered peptide tag for highlighting
  * @param {Object} props.intensityData - Object mapping peptide tags to their data:
- *   { peptide_tag: { sample_tag: intensity, sequence?: string, ... } }
- * @param {string[]} [props.sampleTags] - Optional array of sample tags in display order.
- *   If not provided, sample tags are extracted from the intensity data.
+ *   { peptide_tag: { tag: string, sequence?: string, intensities: { sample_tag: number } } }
+ * @param {string[]} [props.sampleTags] - Array of sample tags in display order
  * @param {number} [props.width=600] - Component width in pixels
  * @param {number} [props.height=300] - Component height in pixels
  * @param {Function} [props.onPeptideHover] - Callback when a peptide is hovered: (peptideTag) => void
  * @returns {JSX.Element}
  * 
  * @example
- * // Example intensityData structure:
+ * // Example intensityData from WithPeptideIntensities:
  * const intensityData = {
  *   "PEP_001_001": {
  *     tag: "PEP_001_001",
  *     sequence: "MKTIIALSYI",
- *     intensities: { "SAMPLE_A": 12345, "SAMPLE_B": 9876, "SAMPLE_C": 11234 }
+ *     intensities: {
+ *       "SAMPLE_A": 12345.67,
+ *       "SAMPLE_B": 9876.54,
+ *       "SAMPLE_C": 11234.90
+ *     }
  *   },
  *   "PEP_001_002": {
  *     tag: "PEP_001_002",
  *     sequence: "FCLVFAGEAMSLEQ",
- *     intensities: { "SAMPLE_A": 8765, "SAMPLE_B": 7654, "SAMPLE_C": 9876 }
+ *     intensities: {
+ *       "SAMPLE_A": 8765.43,
+ *       "SAMPLE_B": 7654.32,
+ *       "SAMPLE_C": 9876.54
+ *     }
  *   }
  * };
  * 
- * // Usage:
+ * // Usage (typically wrapped by WithPeptideIntensities):
  * <PeptideIntensityPlot
  *   selectedPeptideTags={["PEP_001_001", "PEP_001_002"]}
  *   hoverPeptideTag="PEP_001_001"
@@ -74,7 +83,7 @@ function PeptideIntensityPlot({
         // Extract from intensity data
         const samples = new Set();
         Object.values(intensityData).forEach(pepData => {
-            if (pepData && pepData.intensities && typeof pepData.intensities === 'object') {
+            if (pepData?.intensities && typeof pepData.intensities === 'object') {
                 Object.keys(pepData.intensities).forEach(s => samples.add(s));
             }
         });
