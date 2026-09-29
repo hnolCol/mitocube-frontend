@@ -6,11 +6,13 @@ import _ from "lodash";
  * 
  * @param {Object} props
  * @param {string} props.sequence - The protein amino acid sequence
- * @param {Array} props.peptides - Array of peptide objects with start, end, and metadata
+ * @param {Array} props.peptides - Array of peptide objects with tag, start, end, and metadata
  * @param {number} props.charactersPerLine - Number of amino acids to display per line (default: 60)
  * @param {number} props.charWidth - Width of each character in pixels (default: 14)
  * @param {number} props.lineHeight - Height of each line in pixels (default: 24)
  * @param {Object} props.colors - Custom colors for peptide highlights (default: palette)
+ * @param {string} props.searchTerm - Optional search term to filter/highlight peptides
+ * @param {Function} props.onPeptideClick - Optional callback when a peptide is clicked
  * @returns {JSX.Element}
  */
 function SequenceViewer({
@@ -24,24 +26,49 @@ function SequenceViewer({
         text: "#212529",
         peptideDefault: "#4285f4",
         peptideHover: "#ff6b6b",
+        peptideMatch: "#51cf66",
         highlight: "#ffeaa7"
-    }
+    },
+    searchTerm = "",
+    onPeptideClick
 }) {
     const [hoveredPeptide, setHoveredPeptide] = useState(null);
     const [selectedPeptide, setSelectedPeptide] = useState(null);
 
+    // Filter peptides by search term (search in tag, sequence, or modifications)
+    const filteredPeptides = useMemo(() => {
+        if (!searchTerm) return peptides;
+        const lowerSearch = searchTerm.toLowerCase();
+        return peptides.filter(peptide => {
+            const tagMatch = peptide.tag && peptide.tag.toLowerCase().includes(lowerSearch);
+            const seqMatch = peptide.sequence && peptide.sequence.toLowerCase().includes(lowerSearch);
+            const modMatch = peptide.modifications && peptide.modifications.some(m => m.toLowerCase().includes(lowerSearch));
+            return tagMatch || seqMatch || modMatch;
+        });
+    }, [peptides, searchTerm]);
+
     // Group peptides by their position ranges
     const peptideGroups = useMemo(() => {
         const groups = {};
-        peptides.forEach((peptide, idx) => {
+        filteredPeptides.forEach((peptide, idx) => {
             const key = `${peptide.start}-${peptide.end}`;
             if (!groups[key]) {
                 groups[key] = [];
             }
-            groups[key].push({ ...peptide, id: idx });
+            groups[key].push({ ...peptide, originalIndex: idx });
         });
         return groups;
-    }, [peptides]);
+    }, [filteredPeptides]);
+
+    // Check if a peptide matches the search term
+    const isPeptideMatch = (peptide) => {
+        if (!searchTerm) return false;
+        const lowerSearch = searchTerm.toLowerCase();
+        const tagMatch = peptide.tag && peptide.tag.toLowerCase().includes(lowerSearch);
+        const seqMatch = peptide.sequence && peptide.sequence.toLowerCase().includes(lowerSearch);
+        const modMatch = peptide.modifications && peptide.modifications.some(m => m.toLowerCase().includes(lowerSearch));
+        return tagMatch || seqMatch || modMatch;
+    };
 
     // Generate lines from the sequence
     const sequenceLines = useMemo(() => {
@@ -63,19 +90,34 @@ function SequenceViewer({
     };
 
     // Generate color for each peptide group
-    const getPeptideColor = (peptideId) => {
-        // Use a consistent color based on peptide ID for same peptides
-        const hue = (peptideId * 137) % 360;
-        return `hsl(${hue}, 80%, 60%)`;
+    const getPeptideColor = (peptideTag, isMatch = false) => {
+        // Use a consistent color based on peptide tag for same peptides
+        if (peptideTag) {
+            let hash = 0;
+            for (let i = 0; i < peptideTag.length; i++) {
+                hash = peptideTag.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const hue = Math.abs(hash) % 360;
+            return isMatch ? colors.peptideMatch : `hsl(${hue}, 80%, 60%)`;
+        }
+        return colors.peptideDefault;
     };
 
     const handlePeptideClick = (peptide) => {
-        setSelectedPeptide(selectedPeptide?.id === peptide.id ? null : peptide);
+        setSelectedPeptide(selectedPeptide?.tag === peptide.tag ? null : peptide);
+        if (onPeptideClick) {
+            onPeptideClick(peptide);
+        }
     };
 
     // Calculate total width and height
     const totalWidth = charactersPerLine * charWidth + 100; // Extra space for position numbers
     const totalHeight = sequenceLines.length * lineHeight + 40;
+
+    // Count matching peptides
+    const matchCount = useMemo(() => {
+        return filteredPeptides.length;
+    }, [filteredPeptides]);
 
     return (
         <div className="sequence-viewer" style={{ fontFamily: "monospace", margin: "1rem 0" }}>
@@ -83,7 +125,17 @@ function SequenceViewer({
                 <strong>Protein Sequence:</strong> {sequence.length} amino acids
                 {peptides.length > 0 && (
                     <span style={{ marginLeft: "1rem" }}>
-                        <strong>Peptides:</strong> {peptides.length} detected
+                        <strong>Peptides:</strong> {peptides.length} total
+                        {searchTerm && matchCount > 0 && (
+                            <span style={{ marginLeft: "0.5rem" }}>
+                                (<strong>{matchCount}</strong> matching search)
+                            </span>
+                        )}
+                        {searchTerm && matchCount === 0 && (
+                            <span style={{ marginLeft: "0.5rem", color: "#dc3545" }}>
+                                (No matches)
+                            </span>
+                        )}
                     </span>
                 )}
             </div>
@@ -115,21 +167,23 @@ function SequenceViewer({
                         const peptide = groupPeptides[0];
                         const { x, y, width } = getPeptidePosition(peptide.start - 1, peptide.end - 1);
                         const height = lineHeight - 4;
+                        const isMatch = isPeptideMatch(peptide);
                         
                         // For overlapping peptides at same position, stack them
                         return groupPeptides.map((p, idx) => {
                             const offset = idx * 2;
+                            const pIsMatch = isPeptideMatch(p);
                             return (
                                 <rect
-                                    key={`${p.id}-${idx}`}
+                                    key={`${p.tag || p.originalIndex}-${idx}`}
                                     x={x + 50} // Offset for position numbers
                                     y={y + 2 + offset}
                                     width={width}
                                     height={height - offset}
-                                    fill={hoveredPeptide?.id === p.id ? colors.peptideHover : getPeptideColor(p.id)}
-                                    fillOpacity={0.3}
-                                    stroke={hoveredPeptide?.id === p.id ? colors.peptideHover : getPeptideColor(p.id)}
-                                    strokeWidth={1}
+                                    fill={hoveredPeptide?.tag === p.tag ? colors.peptideHover : getPeptideColor(p.tag, pIsMatch)}
+                                    fillOpacity={pIsMatch ? 0.5 : 0.3}
+                                    stroke={hoveredPeptide?.tag === p.tag ? colors.peptideHover : getPeptideColor(p.tag, pIsMatch)}
+                                    strokeWidth={pIsMatch ? 2 : 1}
                                     rx={2}
                                     style={{ pointerEvents: "auto", cursor: "pointer" }}
                                     onMouseEnter={() => setHoveredPeptide(p)}
@@ -180,6 +234,8 @@ function SequenceViewer({
                                         
                                         // Check if this position is part of any peptide
                                         const isInPeptide = peptides.some(p => p.start <= position && p.end >= position);
+                                        // Check if this position has matching peptides (after search filter)
+                                        const hasMatchAtPosition = filteredPeptides.some(p => p.start <= position && p.end >= position);
                                         
                                         return (
                                             <span
@@ -190,10 +246,10 @@ function SequenceViewer({
                                                     display: "inline-flex",
                                                     alignItems: "center",
                                                     justifyContent: "center",
-                                                    backgroundColor: isInPeptide ? colors.highlight : "transparent",
+                                                    backgroundColor: hasMatchAtPosition ? colors.highlight : isInPeptide ? "#e9ecef" : "transparent",
                                                     fontFamily: "monospace",
                                                     fontSize: "12px",
-                                                    fontWeight: isInPeptide ? "bold" : "normal",
+                                                    fontWeight: hasMatchAtPosition ? "bold" : isInPeptide ? "600" : "normal",
                                                     cursor: "default"
                                                 }}
                                                 title={`Position ${position}`}
@@ -225,8 +281,9 @@ function SequenceViewer({
                         }}
                     >
                         <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
-                            Peptide {hoveredPeptide.id + 1}
+                            Peptide {hoveredPeptide.tag || hoveredPeptide.originalIndex + 1}
                         </div>
+                        <div><strong>Tag:</strong> {hoveredPeptide.tag || "-"}</div>
                         <div><strong>Sequence:</strong> {hoveredPeptide.sequence || sequence.slice(hoveredPeptide.start - 1, hoveredPeptide.end)}</div>
                         <div><strong>Position:</strong> {hoveredPeptide.start}-{hoveredPeptide.end}</div>
                         <div><strong>Length:</strong> {hoveredPeptide.end - hoveredPeptide.start + 1} aa</div>
@@ -258,7 +315,7 @@ function SequenceViewer({
                             borderRadius: "4px"
                         }}
                     >
-                        <h4 style={{ marginTop: 0 }}>Selected Peptide</h4>
+                        <h4 style={{ marginTop: 0 }}>Selected Peptide: {selectedPeptide.tag}</h4>
                         <pre style={{ margin: 0, fontSize: "12px" }}>
                             {JSON.stringify(selectedPeptide, null, 2)}
                         </pre>

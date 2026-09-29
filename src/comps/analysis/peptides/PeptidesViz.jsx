@@ -9,36 +9,39 @@ import SequenceViewer from "./SequenceViewer";
 /**
  * Example peptide data for demonstration
  * In production, this will come from the API
+ * 
+ * Note: Peptides from different submissions can be included to show
+ * peptides identified in this submission + peptides from reference submissions
  */
 const EXAMPLE_PROTEINS = [
     {
-        tag: "P12345",
-        name: "Example Protein 1",
+        tag: "PROT_001",
+        name: "Example Protein 1 - Cytochrome C",
         sequence: "MKTIIALSYIFCLVFAGEAMSLEQVAQDITTQGLQGLTGLQAPVLQAALREAGLESVTGLRPRGSHAAATRACLEAAAGPEALGAQAPLQGALQAGLQAPVLEAALQAGLQAPVLEAALQAGLQAP",
         peptides: [
-            { id: 0, start: 1, end: 10, sequence: "MKTIIALSYI", score: 95.5, intensity: 12345.67, missedCleavages: 0, modifications: [] },
-            { id: 1, start: 11, end: 25, sequence: "FCLVFAGEAMSLEQ", score: 88.2, intensity: 8765.43, missedCleavages: 0, modifications: ["Carbamidomethyl (C)"] },
-            { id: 2, start: 26, end: 40, sequence: "VAQDITTQGLQGLTG", score: 92.1, intensity: 15678.90, missedCleavages: 1, modifications: [] },
-            { id: 3, start: 26, end: 35, sequence: "VAQDITTQGL", score: 78.3, intensity: 6543.21, missedCleavages: 0, modifications: [] },
-            { id: 4, start: 41, end: 55, sequence: "LQAPVLQAALREAGL", score: 91.7, intensity: 11234.56, missedCleavages: 0, modifications: [] },
-            { id: 5, start: 56, end: 70, sequence: "ESVTGLRPRGSHAAA", score: 85.4, intensity: 9876.54, missedCleavages: 1, modifications: [] },
-            { id: 6, start: 71, end: 85, sequence: "TRACLEAAAGPEALG", score: 89.8, intensity: 13456.78, missedCleavages: 0, modifications: [] },
-            { id: 7, start: 86, end: 100, sequence: "AQAPLQGALQAGLQA", score: 93.2, intensity: 14567.89, missedCleavages: 0, modifications: [] },
-            { id: 8, start: 101, end: 120, sequence: "PVLEAALQAGLQAPVL", score: 87.6, intensity: 10234.56, missedCleavages: 1, modifications: [] }
+            { tag: "PEP_001_001", start: 1, end: 10, sequence: "MKTIIALSYI", score: 95.5, intensity: 12345.67, missedCleavages: 0, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_002", start: 11, end: 25, sequence: "FCLVFAGEAMSLEQ", score: 88.2, intensity: 8765.43, missedCleavages: 0, modifications: ["Carbamidomethyl (C)"], submission_tag: "SUB_001" },
+            { tag: "PEP_001_003", start: 26, end: 40, sequence: "VAQDITTQGLQGLTG", score: 92.1, intensity: 15678.90, missedCleavages: 1, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_004", start: 26, end: 35, sequence: "VAQDITTQGL", score: 78.3, intensity: 6543.21, missedCleavages: 0, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_005", start: 41, end: 55, sequence: "LQAPVLQAALREAGL", score: 91.7, intensity: 11234.56, missedCleavages: 0, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_006", start: 56, end: 70, sequence: "ESVTGLRPRGSHAAA", score: 85.4, intensity: 9876.54, missedCleavages: 1, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_007", start: 71, end: 85, sequence: "TRACLEAAAGPEALG", score: 89.8, intensity: 13456.78, missedCleavages: 0, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_008", start: 86, end: 100, sequence: "AQAPLQGALQAGLQA", score: 93.2, intensity: 14567.89, missedCleavages: 0, modifications: [], submission_tag: "SUB_001" },
+            { tag: "PEP_001_009", start: 101, end: 120, sequence: "PVLEAALQAGLQAPVL", score: 87.6, intensity: 10234.56, missedCleavages: 1, modifications: [], submission_tag: "SUB_001" }
         ]
     },
     {
-        tag: "P67890",
-        name: "Example Protein 2",
+        tag: "PROT_002",
+        name: "Example Protein 2 - Reference",
         sequence: "MAGICSEQUENCEDEMOFORPEPTIDEMAPPINGANDVISUALIZATIONTESTINGPURPOSESONLYTHANKYOU",
         peptides: [
-            { id: 0, start: 1, end: 10, sequence: "MAGICSEQU", score: 99.9, intensity: 50000.00, missedCleavages: 0, modifications: [] },
-            { id: 1, start: 11, end: 20, sequence: "NCEDMOFORP", score: 95.0, intensity: 45000.00, missedCleavages: 0, modifications: [] },
-            { id: 2, start: 21, end: 30, sequence: "EPTIDEMAPP", score: 90.0, intensity: 40000.00, missedCleavages: 0, modifications: [] },
-            { id: 3, start: 21, end: 28, sequence: "EPTIDEMA", score: 75.0, intensity: 25000.00, missedCleavages: 1, modifications: ["Oxidation (M)"] },
-            { id: 4, start: 31, end: 40, sequence: "INGANDVISU", score: 88.0, intensity: 38000.00, missedCleavages: 0, modifications: [] },
-            { id: 5, start: 41, end: 50, sequence: "ALIZATIONTE", score: 92.0, intensity: 42000.00, missedCleavages: 0, modifications: [] },
-            { id: 6, start: 51, end: 60, sequence: "STINGPURPO", score: 85.0, intensity: 35000.00, missedCleavages: 0, modifications: [] }
+            { tag: "PEP_REF_001", start: 1, end: 10, sequence: "MAGICSEQU", score: 99.9, intensity: 50000.00, missedCleavages: 0, modifications: [], submission_tag: "REF_001" },
+            { tag: "PEP_REF_002", start: 11, end: 20, sequence: "NCEDMOFORP", score: 95.0, intensity: 45000.00, missedCleavages: 0, modifications: [], submission_tag: "REF_001" },
+            { tag: "PEP_REF_003", start: 21, end: 30, sequence: "EPTIDEMAPP", score: 90.0, intensity: 40000.00, missedCleavages: 0, modifications: [], submission_tag: "REF_001" },
+            { tag: "PEP_REF_004", start: 21, end: 28, sequence: "EPTIDEMA", score: 75.0, intensity: 25000.00, missedCleavages: 1, modifications: ["Oxidation (M)"], submission_tag: "REF_001" },
+            { tag: "PEP_REF_005", start: 31, end: 40, sequence: "INGANDVISU", score: 88.0, intensity: 38000.00, missedCleavages: 0, modifications: [], submission_tag: "REF_001" },
+            { tag: "PEP_REF_006", start: 41, end: 50, sequence: "ALIZATIONTE", score: 92.0, intensity: 42000.00, missedCleavages: 0, modifications: [], submission_tag: "REF_001" },
+            { tag: "PEP_REF_007", start: 51, end: 60, sequence: "STINGPURPO", score: 85.0, intensity: 35000.00, missedCleavages: 0, modifications: [], submission_tag: "REF_001" }
         ]
     }
 ];
@@ -61,14 +64,13 @@ function PeptidesViz({
     showHoverLabels
 }) {
     const [selectedProteinIndex, setSelectedProteinIndex] = useState(0);
+    const [searchTerm, setSearchTerm] = useState("");
 
     // Use example data if no API data is available
     const displayData = useMemo(() => {
-        // If peptidesData is available from API, use it
         if (peptidesData && _.isArray(peptidesData.proteins)) {
             return peptidesData.proteins;
         }
-        // Otherwise use example data
         return EXAMPLE_PROTEINS;
     }, [peptidesData]);
 
@@ -102,6 +104,18 @@ function PeptidesViz({
                 </div>
             )}
 
+            {/* Search bar */}
+            <div style={{ marginBottom: "1rem", maxWidth: "600px" }}>
+                <input
+                    type="text"
+                    placeholder="Search peptides by tag, sequence, or modification..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                    style={{ width: "100%", padding: "8px", fontSize: "14px" }}
+                />
+            </div>
+
             {/* Protein info */}
             <div
                 style={{
@@ -123,6 +137,7 @@ function PeptidesViz({
                 sequence={selectedProtein.sequence}
                 peptides={selectedProtein.peptides}
                 charactersPerLine={60}
+                searchTerm={searchTerm}
             />
 
             {/* Peptides table */}
@@ -138,6 +153,7 @@ function PeptidesViz({
                     <thead>
                         <tr style={{ backgroundColor: "#f8f9fa" }}>
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>#</th>
+                            <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Tag</th>
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Sequence</th>
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Position</th>
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Length</th>
@@ -145,18 +161,20 @@ function PeptidesViz({
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Intensity</th>
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Missed Cleavages</th>
                             <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Modifications</th>
+                            <th style={{ padding: "8px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>Submission</th>
                         </tr>
                     </thead>
                     <tbody>
                         {selectedProtein.peptides.map((peptide, idx) => (
                             <tr
-                                key={peptide.id || idx}
+                                key={peptide.tag || idx}
                                 style={{
                                     borderBottom: "1px solid #dee2e6",
                                     backgroundColor: idx % 2 === 0 ? "white" : "#f8f9fa"
                                 }}
                             >
                                 <td style={{ padding: "8px" }}>{idx + 1}</td>
+                                <td style={{ padding: "8px", fontFamily: "monospace" }}>{peptide.tag || "-"}</td>
                                 <td style={{ padding: "8px", fontFamily: "monospace" }}>
                                     {peptide.sequence || selectedProtein.sequence.slice(peptide.start - 1, peptide.end)}
                                 </td>
@@ -165,9 +183,8 @@ function PeptidesViz({
                                 <td style={{ padding: "8px" }}>{peptide.score?.toFixed(2) || "-"}</td>
                                 <td style={{ padding: "8px" }}>{peptide.intensity?.toFixed(2) || "-"}</td>
                                 <td style={{ padding: "8px" }}>{peptide.missedCleavages || 0}</td>
-                                <td style={{ padding: "8px" }}>
-                                    {peptide.modifications?.join(", ") || "-"}
-                                </td>
+                                <td style={{ padding: "8px" }}>{peptide.modifications?.join(", ") || "-"}</td>
+                                <td style={{ padding: "8px" }}>{peptide.submission_tag || "-"}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -178,4 +195,3 @@ function PeptidesViz({
 }
 
 export default PeptidesViz;
-
