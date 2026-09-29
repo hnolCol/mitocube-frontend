@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import _ from "lodash";
 
 import { api } from "@/api";
@@ -8,39 +8,46 @@ import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
 import PeptidesViz from "./PeptidesViz";
 
 /**
- * Loads peptides data and passes it to PeptidesViz component.
- * Handles data fetching and state management for peptides analysis.
+ * Loads peptides data for a single protein and passes it to PeptidesViz component.
  * 
- * Makes two API calls:
- * 1. GET /submissions/{submission_tag}/peptides - Gets protein + peptide definitions
- * 2. GET /submissions/{submission_tag}/peptides/correlation - Gets correlation matrix
+ * Makes two API calls for a specific protein:
+ * 1. GET /submissions/{submission_tag}/peptides - Gets protein + peptide definitions (filtered by protein_tag)
+ * 2. GET /submissions/{submission_tag}/peptides/correlation - Gets correlation matrix for this protein's peptides
  * 
  * The intensity data is fetched on-demand via prefetch pattern (WithPeptideIntensities).
  * 
  * @param {Object} props
  * @param {string} props.submission_tag - The submission tag to load peptides for
+ * @param {string} props.protein_tag - The specific protein tag to analyze
  * @returns {JSX.Element}
  */
-function PeptidesLoad({ submission_tag }) {
-    const [requiredProteinTags, setRequiredProteinTags] = useState([]);
-    const [selectedProteinTag, setSelectedProteinTag] = useState(null);
-
+function PeptidesLoad({ submission_tag, protein_tag }) {
     // Fetch condition application data for ca_tags
     const { data: attribute_ca_tags, isSuccess: caIsSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications(
         { tag: submission_tag, return_unique: true },
         { enabled: _.isString(submission_tag), staleTime: Infinity }
     );
 
-    // Fetch peptide data for this submission (per protein)
-    const { data: peptidesData, isLoading: peptidesLoading, isError: peptidesError, error: peptidesErrorObj } = api.submissions.analysis.useGetSubmissionPeptides(
-        { tag: submission_tag },
-        { enabled: _.isString(submission_tag), staleTime: Infinity }
+    // Fetch peptide data for this specific protein in the submission
+    const { 
+        data: peptidesData, 
+        isLoading: peptidesLoading, 
+        isError: peptidesError, 
+        error: peptidesErrorObj 
+    } = api.submissions.analysis.useGetSubmissionPeptides(
+        { tag: submission_tag, protein_tag },
+        { enabled: _.isString(submission_tag) && _.isString(protein_tag), staleTime: Infinity }
     );
 
-    // Fetch correlation matrix for peptides
-    const { data: correlationData, isLoading: correlationLoading, isError: correlationError, error: correlationErrorObj } = api.submissions.analysis.useGetSubmissionPeptidesCorrelation(
-        { tag: submission_tag },
-        { enabled: _.isString(submission_tag), staleTime: Infinity }
+    // Fetch correlation matrix for this protein's peptides
+    const { 
+        data: correlationData, 
+        isLoading: correlationLoading, 
+        isError: correlationError, 
+        error: correlationErrorObj 
+    } = api.submissions.analysis.useGetSubmissionPeptidesCorrelation(
+        { tag: submission_tag, protein_tag },
+        { enabled: _.isString(submission_tag) && _.isString(protein_tag), staleTime: Infinity }
     );
 
     const { ca_attribute_tags, ca_tags } = useMemo(() => {
@@ -50,26 +57,18 @@ function PeptidesLoad({ submission_tag }) {
         return { ca_attribute_tags, ca_tags };
     }, [submission_tag, caIsSuccess, attribute_ca_tags]);
 
-    // Extract peptide tags from all proteins for prefetching
-    const peptideTags = useMemo(() => {
+    // Extract protein tags from peptides data for prefetching
+    const proteinTags = useMemo(() => {
         if (!peptidesData || !_.isArray(peptidesData.proteins)) return [];
-        return peptidesData.proteins.flatMap(p => p.peptides.map(pep => pep.tag));
+        return peptidesData.proteins.map(p => p.tag);
     }, [peptidesData]);
-
-    // Determine selected protein (first one by default)
-    const selectedProtein = useMemo(() => {
-        if (!peptidesData || !_.isArray(peptidesData.proteins) || peptidesData.proteins.length === 0) {
-            return null;
-        }
-        return peptidesData.proteins.find(p => p.tag === selectedProteinTag) || peptidesData.proteins[0];
-    }, [peptidesData, selectedProteinTag]);
 
     // Loading states
     if (peptidesLoading || correlationLoading) return <Loading />;
     if (peptidesError) return <div>Error loading peptides: {peptidesErrorObj?.message}</div>;
     if (correlationError) return <div>Error loading correlations: {correlationErrorObj?.message}</div>;
     if (!peptidesData || !_.isArray(peptidesData.proteins) || peptidesData.proteins.length === 0) {
-        return <div>No peptides data found for this submission.</div>;
+        return <div>No peptides data found for protein {protein_tag} in submission {submission_tag}.</div>;
     }
 
     return (
@@ -77,15 +76,11 @@ function PeptidesLoad({ submission_tag }) {
             Component={PeptidesViz}
             attribute_tags={ca_attribute_tags}
             ca_tags={ca_tags}
-            protein_tags={requiredProteinTags}
-            showProteinSearch={true}
-            proteinSearchProps={{ submission_tag }}
+            protein_tags={proteinTags}
             submission_tag={submission_tag}
             peptidesData={peptidesData}
             correlationData={correlationData}
-            selectedProteinTag={selectedProteinTag}
-            setSelectedProteinTag={setSelectedProteinTag}
-            setRequiredProteinTags={setRequiredProteinTags}
+            selectedProteinTag={protein_tag}
         />
     );
 }

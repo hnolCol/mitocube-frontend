@@ -20,3 +20,4 @@ export { default as PeptideCorrelationMatrix } from "./PeptideCorrelationMatrix"
 export { default as PositionCorrelationProfile } from "./PositionCorrelationProfile";
 export { default as PeptidesLoad } from "./PeptidesLoad";
 export { default as DatasetPeptides } from "./DatasetPeptides";
+export { ProteinSelector } from "./ProteinSelector";
