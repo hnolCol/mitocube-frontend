@@ -41,7 +41,7 @@
     "fast-uri": "^4.1.4",
     "framer-motion": "^10.12.4",
     "kdbush": "^4.0.2",
-    "moment": "^2.29.4",
+    "moment": "^2.31.0",
     "prop-types": "^15.8.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
