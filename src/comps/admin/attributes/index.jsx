@@ -12,7 +12,7 @@ import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { Dialog, DialogBody } from "@blueprintjs/core"
 import { InsertAttribute } from "@/comps/core/base/attributes/InsertAttribute"
 import { EditAttribute } from "@/comps/core/base/attributes/EditAttribute"
-
+import { ExportAttributesButton } from "./ExportAttributesAndTraits"
 
 export function AttributeQueryContainer({ search_string, limit = 50, attribute_groups = [], onEditAttributeClick }) {
 
@@ -81,7 +81,7 @@ export function AttributesAdminView() {
                 <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24, letterSpacing: -1 }}>Attributes</h2>
                 <div className="flex flex-column" style={{ marginBottom: 24 }}>
                     <div>
-                        <div className="flex center-items" style={{marginBottom : "1rem", gap : "1rem"}}><AddButton onSelect={() => setDialogProps({ isOpen: true, editMode : false })} /><div>Insert Attribute</div></div>
+                        <div className="flex center-items" style={{marginBottom : "1rem", gap : "1rem"}}><AddButton onSelect={() => setDialogProps({ isOpen: true, editMode : false })} /><div>Insert Attribute</div>  <ExportAttributesButton /></div>
                         <input
                             className="search-input"
                             type="text"

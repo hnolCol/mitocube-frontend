@@ -26,6 +26,7 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Annotations", to: "/admin/annotations"},
                 { text: "Protocols", to: "/admin/protocols"},
                 { text: "News", to: "/admin/news"},
+                { text: "Policy", to: "/admin/policy"},
                 { text: "Crosslink Resources", to: "/admin/externalresources"},
                 ]} />
                 

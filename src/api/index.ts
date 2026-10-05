@@ -46,6 +46,7 @@ import { phenotypeQueryAPI, phenotypeassociationQueryAPI } from "./phenotypes";
 import { variantsQueryAPI } from "./variants";
 import { crosslinksQueryAPI, externalresourceQueryAPI, externalresourceModifyAPI } from "./crosslinks";
 import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
+import { policyAPI } from "./policy";
 export const api = {
     annotations : {
         queryAnnotations : annotationsQueryAPI,
@@ -107,6 +108,7 @@ export const api = {
     },
     condition_applications: conditionApplicationAPI,
     news: newsAPI,
+    policy: policyAPI,
     users: {
         core : userCoreAPI,
         views : usersViewsAPI,
