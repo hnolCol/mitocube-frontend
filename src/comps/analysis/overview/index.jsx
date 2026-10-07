@@ -22,7 +22,7 @@ import { api } from "@/api";
 import { ResearchGroupTextByUser } from "@/comps/admin/researchgroup/ResearchGroupText";
 import { SubmissionProtocolsView } from "./SubmissionProtocolView";
 import { SubmissionViewScore } from "@/comps/submission/view/SubmissionViewScore";
-
+import { ExportMarkdownButton } from "./ExportMarkdown";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
@@ -36,7 +36,11 @@ function SubmissionOverview() {
     const fontColors = getColorPalette(5)
     return (
         <div style={{ overflowY: "scroll", height: "94vh", padding: "1rem" }} className="flex flex-column">
-            <div className="flex justify-end margin-right--little"><QuickAccessBar submission_tag={submission_tag}/></div>
+            <div className="flex justify-end align-center margin-right--little">
+                <ExportMarkdownButton {...{ submission_tag }}/>
+                <QuickAccessBar submission_tag={submission_tag}/>
+            </div>
+
              <div id="top" className="flex flex-column center-items">
                 <div className="margin-top--little" style={{ maxWidth : "66vw"}}>
                     <h1><SubmissionTitle tag={submission_tag} /></h1>

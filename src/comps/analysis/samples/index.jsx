@@ -30,11 +30,10 @@ export function SubmissionSamples() {
         if (!_.isArray(data) || data.length === 0) return;
 
         const columns = _.uniq(data.flatMap(row => Object.keys(row)));
+        const fixedColumns = ["sample_name", "sample_tag", "replicate", "genotype"];
         const orderedColumns = [
-        "sample_tag",
-        "replicate",
-        "genotype",
-        ...columns.filter(c => !["sample_tag", "replicate", "genotype"].includes(c))
+            ...fixedColumns.filter(c => columns.includes(c)),
+            ...columns.filter(c => !fixedColumns.includes(c))
         ];
 
         const lines = [
