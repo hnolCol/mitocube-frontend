@@ -1,35 +1,36 @@
 import { Outlet, useParams } from "react-router";
+import { NonIdealState } from "@blueprintjs/core";
 import Tabs from "../core/navigation/tabs";
 import Loading from "../core/base/loading";
 import _ from "lodash"
 import { useEffect } from "react";
 
 import { api } from "@/api";
-    
 
 
 /**
  * @description The header for the dataset view. Loads the metadata as well as the attributes. 
- * @param {*} param0 
- * @returns 
  */
 function SubmissionAnalysisHeader({ }) {
-    
     const params = useParams()
     const submission_tag = params.tag
     const urlStart = `/submissions/${submission_tag}`
-    const { data: submissionExists, isLoading: isSubmissionExistsLoading } = api.submissions.core.useGetSubmissionExists({ tag: submission_tag }, { enabled: _.isString(submission_tag) })
+
+    const { data: submissionExists, isLoading: isSubmissionExistsLoading } = api.submissions.core.useGetSubmissionExists(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) }
+    )
     const { data: permissions, isLoading: isPermissionsLoading } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
         { enabled: _.isString(submission_tag), staleTime: 60000 }
     )
-        
     const { mutate: insertSubmissionView } = api.submissions.views.usePostSubmissionView()
 
+    const canView = permissions?.view === true
 
     useEffect(() => {
         let timeoutId;
-        if (_.isString(submission_tag) && submission_tag.length > 0 && submissionExists) {
+        if (_.isString(submission_tag) && submission_tag.length > 0 && submissionExists && canView) {
             insertSubmissionView({ tag: submission_tag });
             timeoutId = setTimeout(() => {
                 insertSubmissionView({ tag: submission_tag });
@@ -38,7 +39,31 @@ function SubmissionAnalysisHeader({ }) {
         return () => {
             if (timeoutId) clearTimeout(timeoutId);
         };
-    }, [submission_tag, submissionExists]);
+    }, [submission_tag, submissionExists, canView]);
+
+    if (isSubmissionExistsLoading || isPermissionsLoading) {
+        return <Loading />
+    }
+
+    if (!submissionExists) {
+        return (
+            <NonIdealState
+                icon="search"
+                title="Submission not found"
+                description={<>Submission with tag <strong>{submission_tag}</strong> does not exist.</>}
+            />
+        )
+    }
+
+    if (!canView) {
+        return (
+            <NonIdealState
+                icon="lock"
+                title="No access"
+                description="You do not have permission to view this submission."
+            />
+        )
+    }
 
     return (
         <div className="no-scroll div--expand">
@@ -60,13 +85,10 @@ function SubmissionAnalysisHeader({ }) {
                     { text: "Help", to : `${urlStart}/help`},
                     { text: "Comments", to: `${urlStart}/comments`}]} />   
             <div className="no-scroll div--expand">
-            {isSubmissionExistsLoading || isPermissionsLoading ?  <Loading /> : null}
-                {(!submissionExists) ? <div className="margin--medium">Submission with tag <strong>{submission_tag}</strong> does not exist.</div> :
-                    (permissions?.view !== true) ? <div className="margin--medium">You do not have permission to view this submission.</div> :
-                        <Outlet context={{ submission_tag }} />
-                }
-            </div>              
-        </div>)
+                <Outlet context={{ submission_tag }} />
+            </div>
+        </div>
+    )
 }
 
 export default SubmissionAnalysisHeader

@@ -10,6 +10,7 @@ import { AttributeMinState } from "./AttributeMinState"
 import { TraitItem } from "./TraitItem"
 import { InsertTraitDialog } from "./InsertTraitDialog"
 import { api } from "@/api"
+import { ExportTraitsButton } from "./ExportAttributesAndTraits"
 
 export function AttributeDetailView() {
     const { tag } = useParams()
@@ -121,6 +122,7 @@ export function AttributeDetailView() {
                                 >
                                     Add trait
                                 </Button>
+                                <ExportTraitsButton tag={tag} />
                             </div>
                         </>
                     )}

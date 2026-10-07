@@ -10,6 +10,22 @@ import { RunlistCreatorDialog } from "@/comps/submission/view/dialogs/RunlistDia
 import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile  } from "@/services/downloads/txt"
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 
+// Sort key for runs. Returns a tuple of [sample_index, fraction_index] for sorting purposes. 
+const runSortKey = (name) => {
+    const p = name.split("_")
+    const isNum = (t) => /^\d+$/.test(t ?? "")
+    const sample = isNum(p[3]) ? parseInt(p[3], 10) : isNum(p[4]) ? parseInt(p[4], 10) : Infinity
+    const fracToken = p.find(t => /^frac-\d+$/.test(t))
+    const frac = fracToken ? parseInt(fracToken.slice(5), 10) : 0
+    return [sample, frac]
+}
+
+const runKey = (run) =>
+    run.fraction_index != null
+        ? [run.sample_index ?? Infinity, run.fraction_index]
+        : runSortKey(run.name)
+
+
 function Run({ run }) {
     return (
         <div className="div--round bg--lightgrey padding--medium flex justify-space-between center-items margin--little">
@@ -68,6 +84,15 @@ function Runlist() {
         () => runlists?.find(rl => rl.tag === selectedRlTag) ?? null,
         [runlists, selectedRlTag]
     )
+
+    const sortedRuns = useMemo(() => {
+        if (!activeRunlist) return []
+        return [...activeRunlist.runs].sort((a, b) => {
+            const [sa, fa] = runKey(a)
+            const [sb, fb] = runKey(b)
+            return sa - sb || fa - fb
+        })
+    }, [activeRunlist])
 
     const exportRunlistToTxtFile = (runlist) => {
         if (!runlist) return
@@ -133,7 +158,7 @@ function Runlist() {
                 <h2>Runlists</h2>
                 <Button
                     icon="add"
-                    text="Generate Runlist"
+                    text="Create Runlist"
                     onClick={() => setDialogOpen(true)}
                     disabled={!submission}
                 />
@@ -159,7 +184,11 @@ function Runlist() {
                                 <Tab
                                     key={rl.tag}
                                     id={rl.tag}
-                                    title={<span>{rl.n_runs} runs (<CreatedAt createdat={rl.created_at} />)</span>}
+                                    title={<span>
+                                        <strong>{rl.instrument_text ?? "No instrument"}</strong>
+                                        {` · ${rl.n_runs} runs`}
+                                        {rl.fractionated ? ` · ${rl.n_fractions} fractions` : ""}
+                                    </span>}
                                 />
                             ))}
                         </Tabs>
@@ -168,12 +197,17 @@ function Runlist() {
                             <div className="margin-top--medium">
                                 <div className="flex center-items justify-space-between margin-bottom--medium">
                                     <div>
-                                        <h3 className="margin--none">{activeRunlist.n_runs} runs</h3>
-                                        <div className="text--muted font-size--small">
+                                        <h3 className="margin--none" style={{ fontSize: "1rem" }}>
+                                        {activeRunlist.instrument_text ?? "No instrument"} · {activeRunlist.n_runs} runs
+                                        </h3>
+                                        <div className="text--muted" style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>
                                             {activeRunlist.n_plates} plate{activeRunlist.n_plates > 1 ? 's' : ''} •
                                             {activeRunlist.scrambled ? ' Scrambled' : ' Sequential'} •
                                             {activeRunlist.fractionated ? ` ${activeRunlist.n_fractions} fractions` : ' No fractionation'}
+                                            {activeRunlist.aggregated_on ? ` • Pooled on ${activeRunlist.aggregated_on.replace(/^att_/, "")}` : ''}
                                         </div>
+                                        <div className="text--muted" style={{ fontSize: "0.8rem" }}>
+                                            Created by {activeRunlist.user_firstname} {activeRunlist.user_lastname} • <CreatedAt createdat={activeRunlist.created_at} />                               </div>  
                                     </div>
                                     <div className="flex center-items">
                                         <Button
@@ -197,7 +231,7 @@ function Runlist() {
                                     overflowY: 'auto',
                                     paddingRight: '0.5rem'
                                 }}>
-                                    {activeRunlist.runs.map(run => <Run key={run.name} run={run} />)}
+                                    {sortedRuns.map(run => <Run key={run.name} run={run} />)}
                                 </div>
                             </div>
                         )}

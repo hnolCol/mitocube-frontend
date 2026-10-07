@@ -28,6 +28,8 @@ import { ProtectedRoute } from "./comps/core/routes/ProtectedRoute";
 /* Authentication / Login */
 import Login from "./comps/login";
 
+import { PolicyGate } from "./comps/admin/policy/PolicyGate";
+
 /* Submission area */
 import SubmissionHeader from "./comps/submission";
 import SubmissionView from "./comps/submission/view";
@@ -79,6 +81,7 @@ import { NewsManagement } from "./comps/admin/news/NewsManagement";
 import { AdminPhenotypeAssociations } from "./comps/admin/phenotypes/AdminPhenotypeAssociation";
 import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 import { AdminExternalResources } from "./comps/admin/externalresources/AdminExternalResources";
+import { PolicyManagement } from "./comps/admin/policy/PolicyManagement";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
 import Welcome from "./comps/welcome";
@@ -200,6 +203,8 @@ function App() {
       </div>
 
       <div className="dashboard__grid__fill-center">
+      <PolicyGate enabled={authenticationStatus.isAuth}>
+
         <Routes>
           <Route
             path="/"
@@ -347,6 +352,7 @@ function App() {
             <Route path="/admin/news" element={<NewsManagement />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />
              <Route path="/admin/externalresources" element={<AdminExternalResources />} />
+             <Route path="/admin/policy" element={<PolicyManagement />} />
           </Route>
 
           <Route
@@ -388,6 +394,7 @@ function App() {
             }
           />
         </Routes>
+        </PolicyGate>
       </div>
     </div>
   );
