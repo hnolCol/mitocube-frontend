@@ -13,7 +13,7 @@ export function getMaxAbsoluteValue(data) {
 /**
  * 
  * @param {Object} props
- * @param {Object[]} props.data - The data array of objects. Each item[keyName] is validated to be a number.  
+ * @param {Object[]} props.data - The data array of objects. Each item[keyName] is validated to be a number. 
  * Hence a keyName might also be missing in an item of the array. It will simply ignore. If a keyName is missing in all items
  * then the function will return -Infinity / Infinity for min and max. 
  * @param {String[]} props.keyNames - Array of keyNames that are used to access the numeric data in the data array for each item. 
@@ -21,18 +21,18 @@ export function getMaxAbsoluteValue(data) {
  */
 export function getMinMaxForMultipleKeyNames({data = [], keyNames = ["x","y"]}){
     const minMaxByKeyName = Object.fromEntries(keyNames.map(keyName => {return [keyName, {min : Infinity, max : -Infinity}]}))
-    return data.reduce((p,c) => {               
+    return data.reduce((p,c) => {        
         _.forEach(keyNames, keyName => {            
             const v = c[keyName]
             if (_.isNumber(v)) {
                 if (v >  p[keyName].max ) {
                     p[keyName].max = v
                 }
-                if (v <  p[keyName].min){
+                if (v < p[keyName].min){
                     p[keyName].min = v
                 }
             }
-        })       
+        })   
         return p 
     },minMaxByKeyName)
 }
@@ -51,6 +51,7 @@ export function getDomainWithBoundaries({ data, keyName, frac = 0.08}) {
     return domainWithMargin    
 }
 
+
 /**
  * @description Calculated the min and maximum in an array of objects. 
  * Data are filtered using ``_.isNumber()`` on individual items in the data for each keyName. If multiple keyNames are provided, then 
@@ -64,19 +65,22 @@ export function getDomainWithBoundaries({ data, keyName, frac = 0.08}) {
  * @returns {import("../../types/calculations").MinMaxResult} - The min max in the data array. 
  */
 export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], keyName = "x"}) {
-    if (_.isArray(keyName)) {             
+    if (_.isArray(keyName)) {     
         return (
             {
                 min: _.min(data.map(d => _.min(_.filter(keyName, key => _.isNumber(d[key])).map(key => d[key])))),
                 max: _.max(data.map(d => _.max(_.filter(keyName, key => _.isNumber(d[key])).map(key => d[key]))))
             } 
-    )       
+    )   
     }
+
+
     const filteredData = data.filter(d => _.isNumber(d[keyName]))
+    
     return ({
             min: _.minBy(filteredData, keyName)[keyName],
             max: _.maxBy(filteredData, keyName)[keyName]
-        }    
+        }
     )
 }
 
@@ -91,6 +95,7 @@ export function addMarginToBoundaries({ domain = { min: 1, max: 2 }, frac = 0.1 
         }
     )
 }
+
 
 /**
  * 
