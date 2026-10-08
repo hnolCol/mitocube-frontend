@@ -83,7 +83,7 @@ export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], k
 export function addMarginToBoundaries({ domain = { min: 1, max: 2 }, frac = 0.1 }) {
     //adds some margin to a domain which can be used for plotting.
     var m = Math.sqrt(Math.pow(domain.max-domain.min, 2)) * frac
-    if (m === 0) m += domain.max * 0.01 // add 10% of max if boundary is zero. 
+    if (m === 0) m += 1 // add 1 if boundary is zero. 
     return (
         {
             min: domain.min - m,
