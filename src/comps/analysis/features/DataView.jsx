@@ -33,6 +33,10 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
     const chartAreaRef = useRef(null);
     const [size, setSize] = useState({ width: 0, height: 0 });
     useEffect(() => {
+        // the chart area element only exists once loading finished (it is behind the
+        // loading gate), so the observer has to attach when that happens, not only on mount
+        if (isLoading || isSampleCAAttributeLoading) return;
+
         const el = chartAreaRef.current;
         if (!el) return;
 
@@ -42,7 +46,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
         const ro = new ResizeObserver(update);
         ro.observe(el);
         return () => ro.disconnect();
-    }, [chartAreaRef]);
+    }, [chartAreaRef, isLoading, isSampleCAAttributeLoading]);
 
     return (
         <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
