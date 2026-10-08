@@ -1,7 +1,7 @@
 
 
 import _ from "lodash"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
 import { useCycle } from "framer-motion"
@@ -53,6 +53,16 @@ function ResultChart({
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
     const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
+    // attribute_tags can arrive after mount (async attributes query). If the selection was
+    // initialized before the tags were available, adopt the default selection once they arrive
+    // (unless the user already picked a value manually).
+    useEffect(() => {
+        setSelection(prevSelection => {
+            const nextSelection = { colorName: attribute_tags[0], splitName: attribute_tags[1], subplotName: attribute_tags[2] }
+            const needsUpdate = _.some(prevSelection, (value, key) => !_.isString(value) && _.isString(nextSelection[key]))
+            return needsUpdate ? nextSelection : prevSelection
+        })
+    }, [_.join(attribute_tags, "-")])
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
     const selectionTags = selection
     // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())    
