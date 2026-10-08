@@ -1,5 +1,3 @@
-
-
 import _ from "lodash"
 import { useMemo, useState } from "react"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
@@ -13,13 +11,10 @@ import { downloadSVG } from "../../../../services/downloads/svg"
 import InfoIcon from "../../../core/svg/icons/chartSelection/Info"
 import { useNavigate } from "react-router"
 import { CategoricalChartSelection } from "./chartselection/CategoricalSelection"
-
 import viz from "@mitocube/viz"
-
 import { usePrefetchConditionApplicationTexts } from "@/api/orchestrated/conditionApplications"
 import { usePrefetchAttributes } from "@/api/orchestrated/attributes"
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton"
-
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
@@ -30,7 +25,6 @@ function ResultChart({
         { "y": 25.4, Genotype: "KO", Treatment: "DMSO", Time: "15min" },
         { "y": 25.2, Genotype: "KO", Treatment: "DMSO", Time: "15min" },
         { "y": 24.7, Genotype: "WT", Treatment: "DMSO", Time: "15min" },
-        { "y": 24.3, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
         { "y": 24, Genotype: "KO", Treatment: "DMSO", Time: "00min" },
         { "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
         { "y": 24.3, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
@@ -50,18 +44,15 @@ function ResultChart({
     title,
     showMenu = true,
     openMetadataDrawer,
-    onRemove
-}) {
+    onRemove}) {
     const redirect = useNavigate()
-    const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "lineplot")
+    const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "pointplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
     const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
     const selectionTags = selection
-
-    // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())
-    
+    // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())    
     const ca_tags = useMemo(() => {
         if (data.length === 0 || _.isEmpty(selection)) return []
         return _.uniq(
@@ -73,29 +64,22 @@ function ResultChart({
             .filter(Boolean)
         );
         }, [_.join(_.values(selection), "-"), featureTag, submission_tag, _.isArray(data) ? data.length : 0]) // we need to include featureTag and submission_tag in the dependency array, because the CA tags are derived from the selection which is reset when feature or submission changes.;
-
     const { isReady, tagQueries } = usePrefetchConditionApplicationTexts(ca_tags)
-
     const map = new Map()
     tagQueries.forEach((q, idx) => {
         const ca_tag = ca_tags[idx]
         if (q.data) map.set(ca_tag, q.data)
     })
-
-
     const { isReady: attributesReady, tagQueries: attributeQueries } = usePrefetchAttributes(attribute_tags)
     const attributeMap = new Map()
     attributeQueries.forEach((q, idx) => {
         const attr_tag = attribute_tags[idx]
         if (q.data) attributeMap.set(attr_tag, q.data.text) // we only need the text for attributes, as they are used for labelling and not for grouping like CA tags.
     })
-
     // const nomalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
     // const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
-
-
     const svgID = `${featureTag}-svg-id${submission_tag}`
-    
+
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
         const chartData = data
         if (chartType === "boxplot") {
@@ -106,25 +90,19 @@ function ResultChart({
                 yaxisName,
                 yaxisName)
         }
-        else if (["barplot", "lineplot"].includes(chartType)) {
+        else if (["barplot", "pointplot", "lineplot"].includes(chartType)) {
             //calculate average and standard deviation for lineplots and barplots.
             return getAverageAndErrorByGroups(chartData, keyNamesForSplitting, yaxisName)
         }
     }, [chartType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
 
-
-
-
-    const handleDataDownload = (dataType) => {
-       
+    const handleDataDownload = (dataType) => {        
         if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureTag}-${submission_tag}.txt`)
         else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureTag}-${submission_tag}.txt`)
         // else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureTag}.txt`)
         // else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
         else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureTag}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
     }
-
-    
 
     const handleInfo = (infoType) => {
         //handle info request
@@ -133,19 +111,16 @@ function ResultChart({
         }
         else {
             redirect("/submissions/"+submission_tag)
-        }
-        
+        }    
     }
-
-    
 
     return (
     <div>
             {width > 30 && height > 50 ?
                 <div className="margin--little"
                     style={{ width: width, height: height }}>
-        
-                        <div className="flex center-items padding--medium" >
+                
+                <div className="flex center-items padding--medium" >
                             <h4>{title}</h4>
                             {showMenu && (
                                 <div className="flex justify-space-between div--expand">
@@ -170,8 +145,7 @@ function ResultChart({
                             )}
                         </div>
             
-                <div className="flex" style={{ height: height  }}>
-
+            <div className="flex" style={{ height: height  }}>
                     {isReady && attributesReady ? <viz.charts.Categorical
                         width={width - 10 || undefined}
                         height={height - 40 || undefined}
@@ -188,11 +162,9 @@ function ResultChart({
                         attributeTagToText={attributeMap}
                         tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
                     /> : <span>Attributes loading not complete..</span>}
-
                 </div> 
             </div> : null}
         </div>
     )
 }
-
 export default ResultChart
