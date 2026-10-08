@@ -1,3 +1,5 @@
+
+
 import _ from "lodash"
 import { useMemo, useState } from "react"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
@@ -25,6 +27,7 @@ function ResultChart({
         { "y": 25.4, Genotype: "KO", Treatment: "DMSO", Time: "15min" },
         { "y": 25.2, Genotype: "KO", Treatment: "DMSO", Time: "15min" },
         { "y": 24.7, Genotype: "WT", Treatment: "DMSO", Time: "15min" },
+        { "y": 24.3, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
         { "y": 24, Genotype: "KO", Treatment: "DMSO", Time: "00min" },
         { "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
         { "y": 24.3, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
