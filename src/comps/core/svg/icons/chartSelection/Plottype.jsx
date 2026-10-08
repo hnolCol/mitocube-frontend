@@ -1,13 +1,10 @@
-
-
 import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import _ from "lodash"
 import IconBase from "./Base"
 import viz from "@mitocube/viz"
 
 function PlottypeIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], chartType = "barplot", colorIdx = 0, callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
-    
-    const colorPalette = getColorPalette(4)
+        const colorPalette = getColorPalette(4)
     const barWidth = 3
     const boxWidth = 8
     const marginBetween = 2
@@ -26,6 +23,9 @@ function PlottypeIcon({ height = 25, width = 25, placeholder = "", items = [{ te
                 }) : null}
             {chartType === "lineplot"?[{ cy: 3 }, { cy: 14 }, { cy: 8 }, { cy: 13 }].map((pointProps, idx) => {
                 return <circle key={`normr-line${idx}`} {...pointProps} cx={10 + idx * barWidth} {...pointProps} r={3}
+                    fill={colorPalette[idx]} stroke="none" />}) : null}
+            {chartType === "pointplot"?[{ cy: 5 }, { cy: 12 }, { cy: 7 }, { cy: 15 }].map((pointProps, idx) => {
+                return <circle key={`normr-point${idx}`} {...pointProps} cx={5 + idx * 5} r={2.2}
                     fill={colorPalette[idx]} stroke="none" />}) : null}
         </IconBase>
     )
