@@ -45,6 +45,7 @@ import DatasetHeatmap from "./comps/analysis/heatmap";
 import DatasetVolcanoPlot from "./comps/analysis/volcano";
 import DatasetQC from "./comps/analysis/qc";
 import DatasetPCA from "./comps/analysis/pca";
+import DatasetPeptides from "./comps/analysis/peptides";
 import DatasetHelp from "./comps/analysis/help";
 import Runlist from "./comps/analysis/runlist";
 import {SubmissionSamples} from "./comps/analysis/samples";
@@ -302,6 +303,7 @@ function App() {
           >
             <Route path="/submissions/:tag" element={<SubmissionOverview {...{ logout }} />} />
             <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{ logout }} />} />
+            <Route path="/submissions/:tag/peptides" element={<DatasetPeptides {...{ logout }} />} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
             <Route path="/submissions/:tag/volcano" element={<DatasetVolcanoPlot {...{ logout }} />} />
             <Route path="/submissions/:tag/compare" element={<SubmissionCompare {...{ logout }} />} />
