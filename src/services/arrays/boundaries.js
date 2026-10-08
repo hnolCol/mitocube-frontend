@@ -21,8 +21,8 @@ export function getMaxAbsoluteValue(data) {
  */
 export function getMinMaxForMultipleKeyNames({data = [], keyNames = ["x","y"]}){
     const minMaxByKeyName = Object.fromEntries(keyNames.map(keyName => {return [keyName, {min : Infinity, max : -Infinity}]}))
-    return data.reduce((p,c) => {        
-        _.forEach(keyNames, keyName => {
+    return data.reduce((p,c) => {               
+        _.forEach(keyNames, keyName => {            
             const v = c[keyName]
             if (_.isNumber(v)) {
                 if (v >  p[keyName].max ) {
@@ -64,7 +64,7 @@ export function getDomainWithBoundaries({ data, keyName, frac = 0.08}) {
  * @returns {import("../../types/calculations").MinMaxResult} - The min max in the data array. 
  */
 export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], keyName = "x"}) {
-    if (_.isArray(keyName)) {         
+    if (_.isArray(keyName)) {             
         return (
             {
                 min: _.min(data.map(d => _.min(_.filter(keyName, key => _.isNumber(d[key])).map(key => d[key])))),
@@ -83,7 +83,7 @@ export function getBoundariesFromArrayOfObjects({ data = [{ x: 1 }, { x: 2 }], k
 export function addMarginToBoundaries({ domain = { min: 1, max: 2 }, frac = 0.1 }) {
     //adds some margin to a domain which can be used for plotting.
     var m = Math.sqrt(Math.pow(domain.max-domain.min, 2)) * frac
-    if (m === 0) m += 1 // add 1 if boundary is zero. 
+    if (m === 0) m += domain.max * 0.01 // add 10% of max if boundary is zero. 
     return (
         {
             min: domain.min - m,
