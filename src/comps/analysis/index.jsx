@@ -71,7 +71,7 @@ function SubmissionAnalysisHeader({ }) {
                 tabs={[
                     { text: "Overview", to: urlStart },
                     { text: "Features", to: `${urlStart}/features` },
-                    { text: "Peptides", to: `${urlStart}/peptides` },
+                    { text: "Precursors", to: `${urlStart}/precursors` },
                     { text: "Samples", to: `${urlStart}/samples` },
                     { text: "Volcano", to: `${urlStart}/volcano` },
                     { text: "Exclusively", to: `${urlStart}/exclusively` },

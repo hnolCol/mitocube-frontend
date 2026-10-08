@@ -3,41 +3,43 @@ import { useSearchParams } from "react-router";
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms";
 import _ from "lodash";
 import { api } from "@/api";
-
+import { Loading } from "@/comps/core/base/states/Loading";
 import { ProteinSelector } from "./ProteinSelector";
-import PeptidesLoad from "./PeptidesLoad";
+import PrecursorsLoad from "./PrecursorsLoad";
 
 // Use a separator that won't conflict with ";" in tags
 const TAGS_SEPARATOR = "|";
 
 /**
- * Main peptides analysis component for dataset view.
- * 
- * This is the entry point for the peptides analysis tab.
- * It uses the submission_tag from the outlet context and manages protein selection.
- * 
+ * Main precursors analysis component for dataset view.
+ *
+ * This is the entry point for the precursors analysis tab.
+ * It uses the submission_tag from the outlet context and manages protein group selection.
+ *
  * Features:
- * - Searchable protein list (ProteinSelector)
+ * - Checks whether the submission has precursors overall (useGetSubmissionHasPrecursors)
+ * - Searchable protein group list (ProteinSelector)
  * - Multiple protein tabs can be opened
  * - URL-based state management for protein selection
- * 
+ *
  * @returns {JSX.Element}
  */
-function DatasetPeptides() {
+function DatasetPrecursors() {
     const { submission_tag } = useOutletContext();
     const [searchParams, setSearchParams] = useSearchParams();
-
-    // Get values from URL or fallback to defaults
     const searchString = searchParams.get("search") || "";
-    const selectedLimit = 50; // Default limit for protein search
-    
-    // Parse protein_tags from URL
+    const selectedLimit = 50;
+
+    const { data: hasPrecursors, isLoading: hasPrecursorsLoading } = api.submissions.analysis.useGetSubmissionHasPrecursors(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag), staleTime: Infinity }
+    );
+
     const proteinTagsString = searchParams.get("protein_tags") || "";
     const selectedProteinTags = proteinTagsString
         ? proteinTagsString.split(TAGS_SEPARATOR).filter(Boolean)
         : [];
 
-    // Handler for updating protein_tags
     const updateProteinTags = (tags) => {
         const value = tags.length > 0 ? tags.join(TAGS_SEPARATOR) : "";
         const newParams = new URLSearchParams(searchParams);
@@ -49,7 +51,6 @@ function DatasetPeptides() {
         setSearchParams(newParams, { replace: true });
     };
 
-    // Handler for updating search string
     const updateSearch = (value) => {
         const newParams = new URLSearchParams(searchParams);
         if (value === "") {
@@ -60,19 +61,42 @@ function DatasetPeptides() {
         setSearchParams(newParams, { replace: true });
     };
 
-    // Handler for clicking a protein in the selector
     const handleProteinClick = (protein_tag) => {
         updateProteinTags(addStringToArrayOrRemove({ array: selectedProteinTags, string: protein_tag }));
     };
 
-    // Handler for removing a protein tab
     const handleRemoveProtein = (protein_tag) => {
         updateProteinTags(selectedProteinTags.filter(t => t !== protein_tag));
     };
 
+    if (!_.isString(submission_tag)) return null;
+
+    if (hasPrecursorsLoading) return <Loading />;
+
+    if (hasPrecursors === false) {
+        return (
+            <div>
+                <h2>Precursors</h2>
+                <div style={{
+                    padding: "2rem",
+                    textAlign: "center",
+                    color: "#666",
+                    backgroundColor: "#f8f9fa",
+                    borderRadius: "5px",
+                    border: "1px solid #e9ecef"
+                }}>
+                    <p>No precursor data available for this submission.</p>
+                    <p style={{ fontSize: "0.9em" }}>
+                        Precursor quantifications have not been uploaded for submission {submission_tag}.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div>
-            <h2>Peptides</h2>
+            <h2>Precursors</h2>
             <div
                 style={{
                     display: "grid",
@@ -87,13 +111,13 @@ function DatasetPeptides() {
                         <input
                             type="text"
                             className="search-input margin-right--little"
-                            placeholder="Search for protein..."
+                            placeholder="Search for protein group..."
                             style={{ width: "100%" }}
                             value={searchString}
                             onChange={(e) => updateSearch(e.target.value)}
                         />
                     </div>
-                    
+
                     <ProteinSelector
                         search_string={searchString}
                         submission_tag={submission_tag}
@@ -102,8 +126,7 @@ function DatasetPeptides() {
                         onClickProtein={handleProteinClick}
                     />
                 </div>
-
-                {/* Column 2: Peptides Load for each selected protein */}
+                {/* Column 2: Precursors Load for each selected protein group */}
                 <div style={{ marginLeft: "2rem" }}>
                     {selectedProteinTags.length === 0 ? (
                         <div style={{
@@ -114,11 +137,11 @@ function DatasetPeptides() {
                             borderRadius: "5px",
                             border: "1px solid #e9ecef"
                         }}>
-                            <p>Select a protein from the left panel to view peptide analysis.</p>
+                            <p>Select a protein group from the left panel to view precursor analysis.</p>
                         </div>
                     ) : (
                         selectedProteinTags.map((protein_tag, index) => (
-                            <div 
+                            <div
                                 key={protein_tag}
                                 style={{
                                     marginBottom: "1rem",
@@ -128,7 +151,7 @@ function DatasetPeptides() {
                                     backgroundColor: "#fff"
                                 }}
                             >
-                                <div 
+                                <div
                                     style={{
                                         display: "flex",
                                         justifyContent: "space-between",
@@ -153,10 +176,10 @@ function DatasetPeptides() {
                                         }}
                                         title="Close this protein tab"
                                     >
-                                        \u00d7
+                                        ×
                                     </button>
                                 </div>
-                                <PeptidesLoad 
+                                <PrecursorsLoad
                                     submission_tag={submission_tag}
                                     protein_tag={protein_tag}
                                 />
@@ -169,6 +192,4 @@ function DatasetPeptides() {
     );
 }
 
-export default DatasetPeptides;
-
-import { useState } from "react";
+export default DatasetPrecursors;

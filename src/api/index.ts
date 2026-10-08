@@ -38,7 +38,7 @@ import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
-import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, proteinFavoritesAPI } from "./features";
+import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
 import { statsAPI } from "./stats";
 import { cyperOpenAIAPI } from "./openai";
 import { diseasesQueryAPI, diseasesClinVarAPI } from "./diseases";
@@ -80,6 +80,7 @@ export const api = {
         quantifications : featuresQuantificationsAPI,
         ranking : featuresRankingAPI,
         sequence : featuresSequenceAPI,
+        precursors : featuresPrecursorsAPI,
         tag : featuresTagAPI
     },
     submissions: {

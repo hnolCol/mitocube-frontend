@@ -9,26 +9,26 @@ import { localPoint } from "@visx/event";
 import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 /**
- * PeptideIntensityPlot - Visualizes peptide intensities across samples using @visx.
+ * PrecursorIntensityPlot - Visualizes precursor intensities across samples using @visx.
  * 
- * Displays line charts for selected peptides showing their intensity values
+ * Displays line charts for selected precursors showing their intensity values
  * across all samples. Supports hover interactions and highlighting.
  * 
- * This component receives intensity data via the WithPeptideIntensities prefetch wrapper.
+ * This component receives intensity data via the WithPrecursorIntensities prefetch wrapper.
  * 
  * @param {Object} props
- * @param {string[]} props.selectedPeptideTags - Array of peptide tags to display
- * @param {string} [props.hoverPeptideTag] - Currently hovered peptide tag for highlighting
- * @param {Object} props.intensityData - Object mapping peptide tags to their data:
- *   { peptide_tag: { tag: string, sequence?: string, intensities: { sample_tag: number } } }
+ * @param {string[]} props.selectedPrecursorTags - Array of precursor tags to display
+ * @param {string} [props.hoverPrecursorTag] - Currently hovered precursor tag for highlighting
+ * @param {Object} props.intensityData - Object mapping precursor tags to their data:
+ *   { precursor_tag: { tag: string, sequence?: string, intensities: { sample_tag: number } } }
  * @param {string[]} [props.sampleTags] - Array of sample tags in display order
  * @param {number} [props.width=600] - Component width in pixels
  * @param {number} [props.height=300] - Component height in pixels
- * @param {Function} [props.onPeptideHover] - Callback when a peptide is hovered: (peptideTag) => void
+ * @param {Function} [props.onPrecursorHover] - Callback when a precursor is hovered: (precursorTag) => void
  * @returns {JSX.Element}
  * 
  * @example
- * // Example intensityData from WithPeptideIntensities:
+ * // Example intensityData from WithPrecursorIntensities:
  * const intensityData = {
  *   "PEP_001_001": {
  *     tag: "PEP_001_001",
@@ -50,23 +50,23 @@ import { getColorPalette } from "@mitocube/viz/src/colors/palette";
  *   }
  * };
  * 
- * // Usage (typically wrapped by WithPeptideIntensities):
- * <PeptideIntensityPlot
- *   selectedPeptideTags={["PEP_001_001", "PEP_001_002"]}
- *   hoverPeptideTag="PEP_001_001"
+ * // Usage (typically wrapped by WithPrecursorIntensities):
+ * <PrecursorIntensityPlot
+ *   selectedPrecursorTags={["PEP_001_001", "PEP_001_002"]}
+ *   hoverPrecursorTag="PEP_001_001"
  *   intensityData={intensityData}
  *   sampleTags={["SAMPLE_A", "SAMPLE_B", "SAMPLE_C"]}
- *   onPeptideHover={(tag) => console.log("Hovered:", tag)}
+ *   onPrecursorHover={(tag) => console.log("Hovered:", tag)}
  * />
  */
-function PeptideIntensityPlot({
-    selectedPeptideTags = [],
-    hoverPeptideTag = null,
+function PrecursorIntensityPlot({
+    selectedPrecursorTags = [],
+    hoverPrecursorTag = null,
     intensityData = {},
     sampleTags = [],
     width = 600,
     height = 300,
-    onPeptideHover
+    onPrecursorHover
 }) {
     const [tooltipData, setTooltipData] = useState(null);
     const [tooltipLeft, setTooltipLeft] = useState(0);
@@ -90,14 +90,14 @@ function PeptideIntensityPlot({
         return Array.from(samples).sort();
     }, [intensityData, sampleTags]);
 
-    // Filter to selected peptides that have data
-    const validPeptides = useMemo(() => {
-        return selectedPeptideTags.filter(tag => intensityData[tag]?.intensities);
-    }, [selectedPeptideTags, intensityData]);
+    // Filter to selected precursors that have data
+    const validPrecursors = useMemo(() => {
+        return selectedPrecursorTags.filter(tag => intensityData[tag]?.intensities);
+    }, [selectedPrecursorTags, intensityData]);
 
-    // Get intensity arrays for each peptide
-    const getPeptideIntensities = (peptideTag) => {
-        const pepData = intensityData[peptideTag];
+    // Get intensity arrays for each precursor
+    const getPrecursorIntensities = (precursorTag) => {
+        const pepData = intensityData[precursorTag];
         if (!pepData?.intensities) return allSampleTags.map(() => null);
         return allSampleTags.map(sample => pepData.intensities[sample] || null);
     };
@@ -113,8 +113,8 @@ function PeptideIntensityPlot({
 
     const yScale = useMemo(() => {
         // Get all intensities for scaling
-        const allIntensities = validPeptides.flatMap(tag => {
-            return getPeptideIntensities(tag).filter(v => v !== null);
+        const allIntensities = validPrecursors.flatMap(tag => {
+            return getPrecursorIntensities(tag).filter(v => v !== null);
         });
         
         if (allIntensities.length === 0) return scaleLinear({ domain: [0, 1], range: [innerHeight, 0] });
@@ -128,26 +128,26 @@ function PeptideIntensityPlot({
             range: [innerHeight, 0],
             nice: true
         });
-    }, [validPeptides, allSampleTags, innerHeight]);
+    }, [validPrecursors, allSampleTags, innerHeight]);
 
-    // Color scale for peptides
+    // Color scale for precursors
     const colorScale = useMemo(() => {
-        const colorPalette = getColorPalette(validPeptides.length || 1);
+        const colorPalette = getColorPalette(validPrecursors.length || 1);
         return scaleOrdinal({
-            domain: validPeptides,
+            domain: validPrecursors,
             range: colorPalette
         });
-    }, [validPeptides]);
+    }, [validPrecursors]);
 
     // Handle mouse events for tooltips
-    const handleMouseMove = (event, peptideTag) => {
+    const handleMouseMove = (event, precursorTag) => {
         const point = localPoint(event);
         if (!point) return;
         
         const sampleIndex = Math.round(xScale.invert(point.x));
         if (sampleIndex < 0 || sampleIndex >= allSampleTags.length) return;
         
-        const pepData = intensityData[peptideTag];
+        const pepData = intensityData[precursorTag];
         if (!pepData?.intensities) return;
         
         const sampleTag = allSampleTags[sampleIndex];
@@ -155,10 +155,10 @@ function PeptideIntensityPlot({
         
         if (intensity !== undefined && intensity !== null) {
             setTooltipData({
-                peptideTag,
+                precursorTag,
                 sampleTag,
                 intensity,
-                peptideSequence: pepData.sequence || peptideTag
+                precursorSequence: pepData.sequence || precursorTag
             });
             setTooltipLeft(point.x + margin.left);
             setTooltipTop(point.y + margin.top);
@@ -167,17 +167,17 @@ function PeptideIntensityPlot({
 
     const handleMouseLeave = () => {
         setTooltipData(null);
-        if (onPeptideHover) onPeptideHover(null);
+        if (onPrecursorHover) onPrecursorHover(null);
     };
 
-    const handleMouseEnter = (peptideTag) => {
-        if (onPeptideHover) onPeptideHover(peptideTag);
+    const handleMouseEnter = (precursorTag) => {
+        if (onPrecursorHover) onPrecursorHover(precursorTag);
     };
 
-    if (validPeptides.length === 0) {
+    if (validPrecursors.length === 0) {
         return (
             <div style={{ width, height, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e9ecef", borderRadius: "4px" }}>
-                <div style={{ color: "#6c757d" }}>Select peptides to view intensities</div>
+                <div style={{ color: "#6c757d" }}>Select precursors to view intensities</div>
             </div>
         );
     }
@@ -230,12 +230,12 @@ function PeptideIntensityPlot({
                     tickLabelProps={{ fontSize: 10, fill: "#6c757d" }}
                 />
 
-                {/* Line paths for each peptide */}
+                {/* Line paths for each precursor */}
                 <Group top={margin.top} left={margin.left}>
-                    {validPeptides.map((peptideTag, pidx) => {
-                        const intensities = getPeptideIntensities(peptideTag);
-                        const color = colorScale(peptideTag);
-                        const isHovered = hoverPeptideTag === peptideTag;
+                    {validPrecursors.map((precursorTag, pidx) => {
+                        const intensities = getPrecursorIntensities(precursorTag);
+                        const color = colorScale(precursorTag);
+                        const isHovered = hoverPrecursorTag === precursorTag;
                         
                         // Create points array
                         const points = intensities.map((intensity, sidx) => ({
@@ -248,7 +248,7 @@ function PeptideIntensityPlot({
                         // Draw line
                         if (points.length > 1) {
                             return (
-                                <Group key={`peptide-line-${peptideTag}`}>
+                                <Group key={`precursor-line-${precursorTag}`}>
                                     <LinePath
                                         data={points}
                                         x={(d) => d.x}
@@ -258,15 +258,15 @@ function PeptideIntensityPlot({
                                         strokeOpacity={0.8}
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
-                                        onMouseMove={(e) => handleMouseMove(e, peptideTag)}
-                                        onMouseEnter={() => handleMouseEnter(peptideTag)}
+                                        onMouseMove={(e) => handleMouseMove(e, precursorTag)}
+                                        onMouseEnter={() => handleMouseEnter(precursorTag)}
                                         onMouseLeave={handleMouseLeave}
                                     />
                                     
                                     {/* Circles at each data point */}
                                     {points.map((point, idx) => (
                                         <circle
-                                            key={`point-${peptideTag}-${idx}`}
+                                            key={`point-${precursorTag}-${idx}`}
                                             cx={point.x}
                                             cy={point.y}
                                             r={isHovered ? 6 : 4}
@@ -274,8 +274,8 @@ function PeptideIntensityPlot({
                                             fillOpacity={0.8}
                                             stroke="white"
                                             strokeWidth={isHovered ? 2 : 1}
-                                            onMouseMove={(e) => handleMouseMove(e, peptideTag)}
-                                            onMouseEnter={() => handleMouseEnter(peptideTag)}
+                                            onMouseMove={(e) => handleMouseMove(e, precursorTag)}
+                                            onMouseEnter={() => handleMouseEnter(precursorTag)}
                                             onMouseLeave={handleMouseLeave}
                                         />
                                     ))}
@@ -288,11 +288,11 @@ function PeptideIntensityPlot({
 
                 {/* Legend */}
                 <Group top={margin.top} left={margin.left + innerWidth + 10}>
-                    {validPeptides.slice(0, 10).map((peptideTag, idx) => {
-                        const color = colorScale(peptideTag);
-                        const isHovered = hoverPeptideTag === peptideTag;
+                    {validPrecursors.slice(0, 10).map((precursorTag, idx) => {
+                        const color = colorScale(precursorTag);
+                        const isHovered = hoverPrecursorTag === precursorTag;
                         return (
-                            <Group key={`legend-${peptideTag}`} top={idx * 20}>
+                            <Group key={`legend-${precursorTag}`} top={idx * 20}>
                                 <line
                                     x1={0}
                                     y1={0}
@@ -308,14 +308,14 @@ function PeptideIntensityPlot({
                                     fill={isHovered ? "#ff6b6b" : "#212529"}
                                     fontWeight={isHovered ? "bold" : "normal"}
                                 >
-                                    {peptideTag}
+                                    {precursorTag}
                                 </text>
                             </Group>
                         );
                     })}
-                    {validPeptides.length > 10 && (
+                    {validPrecursors.length > 10 && (
                         <text x={0} y={210} fontSize={10} fill="#6c757d">
-                            +{validPeptides.length - 10} more
+                            +{validPrecursors.length - 10} more
                         </text>
                     )}
                 </Group>
@@ -338,14 +338,14 @@ function PeptideIntensityPlot({
                         zIndex: 1000
                     }}
                 >
-                    <div><strong>{tooltipData.peptideTag}</strong></div>
+                    <div><strong>{tooltipData.precursorTag}</strong></div>
                     <div>Sample: {tooltipData.sampleTag}</div>
                     <div>Intensity: {tooltipData.intensity.toFixed(2)}</div>
-                    <div>Seq: {tooltipData.peptideSequence.slice(0, 20)}{tooltipData.peptideSequence.length > 20 ? "..." : ""}</div>
+                    <div>Seq: {tooltipData.precursorSequence.slice(0, 20)}{tooltipData.precursorSequence.length > 20 ? "..." : ""}</div>
                 </div>
             )}
         </div>
     );
 }
 
-export default PeptideIntensityPlot;
+export default PrecursorIntensityPlot;
