@@ -1,15 +1,14 @@
-import { useMemo } from "react";
+import { useMemo } from "react"
 
 
 import { scaleBand, scaleLinear, scaleOrdinal } from "@visx/scale";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { GridColumns, GridRows } from "@visx/grid";
-
 import Bar from "./Bar";
 import ErrorBar from "../error";
 import { SVG } from "../SVG";
-import { getColorPalette, getAxisStrokeColor } from "@mitocube/viz/src/colors/palette";
-
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
+import { getAxisStrokeColor } from "@mitocube/viz/src/colors/stroke";
 import { addMarginToBoundaries, getBoundariesFromArrayOfObjects } from "../../../../services/arrays/boundaries";
 import _ from "lodash"
 
@@ -29,11 +28,12 @@ function Barplot({
     errorName = "e",
     showGrid = false,
     addLineAtYZero = true,
-    svgID = undefined}) {
-    
+    svgID = undefined
+}) {
+
     const chartWidth = width - margins.left - margins.right
     const chartHeight = height - margins.top - margins.bottom
-    
+
     const xScale = useMemo(() => {
         //x scale 
         const xDomain = _.map(data,(d => d[xaxisName]))
@@ -43,14 +43,13 @@ function Barplot({
             round: true,
             padding : 0.3
         }
-        )
+    )
     }, [width,xaxisName])
-    
+
     const yScale = useMemo(() => {
         // y scale 
         const yDomain = getBoundariesFromArrayOfObjects({ data, keyName: yaxisName })
         const yDomainWithMargin = addMarginToBoundaries({ domain: yDomain})
-
         return scaleLinear(
             {
                 domain: [yDomainWithMargin.max, yDomainWithMargin.min < 0 ? yDomainWithMargin.min : 0],
@@ -60,12 +59,10 @@ function Barplot({
         )
     }, [yaxisName, height])
 
-
     const colorScale = useMemo(() => {
         // color scale 
         if (colorName === undefined) return () => undefined //return a function that color the by in the default color if no colorName given
         const uniqueColorValues = _.uniqBy(data, colorName)
-
         return scaleOrdinal(
             {
                 domain: uniqueColorValues,
@@ -74,7 +71,6 @@ function Barplot({
         )
     }, [colorName])
 
-    
     return (
         <SVG {...{ width, height, svgID }}>
             <AxisLeft scale={yScale} left={margins.left} label={yaxisName} labelOffset={25} numTicks={8} />
@@ -97,7 +93,7 @@ function Barplot({
                     strokeWidth={0.5} />
                 
             </g> : null}
-            
+
             {addLineAtYZero && yScale.domain()[1] < 0 ?
                 <line
                     x1={xScale.range()[0]}
@@ -105,7 +101,7 @@ function Barplot({
                     y1={yScale(0)}
                     y2={yScale(0)}
                     stroke={getAxisStrokeColor()} /> : null}
-            
+
             {_.map(data, (d) => {
                 const x = xScale(d[xaxisName])
                 const bandWidth = xScale.bandwidth()
@@ -128,10 +124,8 @@ function Barplot({
                             width={bandWidth*0.5} /> : null}
                     </g>)
             })}
-
         </SVG>
     )
 }
-
 
 export default Barplot
