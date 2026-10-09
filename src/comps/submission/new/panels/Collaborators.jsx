@@ -1,5 +1,6 @@
 import { addStringToArrayOrRemove } from "../../../../services/arrays/transforms"
 import { UserInput } from "../../../core/input/api/UserInput"
+import { ConsortiumInput } from "../../../core/input/api/ConsortiumInput"
 
 export function CollaboratorsTab({submission, setSubmission}){
 
@@ -9,6 +10,15 @@ export function CollaboratorsTab({submission, setSubmission}){
             return {
                 ...prevValues,
                 collaborators:  addStringToArrayOrRemove({array : prevValues.collaborators, string : user})   
+            }
+        })
+    }
+
+    const handleConsortiumSelection = (consortium_tag) => {
+        setSubmission(prevValues => {
+            return {
+                ...prevValues,
+                consortium_tags: consortium_tag === null ? [] : [consortium_tag]
             }
         })
     }
@@ -24,6 +34,11 @@ export function CollaboratorsTab({submission, setSubmission}){
             isRequired={false}
             showLabel={true}
             helperText="Collaborators will also be informed about the state of your project. By default, collaborators cannot edit your submission." />
+
+        <ConsortiumInput
+            selected_consortium_tags={submission.consortium_tags || []}
+            onSelect={handleConsortiumSelection}
+            helperText="Share your submission with the selected consortium. All members of the consortiums research groups will be able to access it." />
     
         
 

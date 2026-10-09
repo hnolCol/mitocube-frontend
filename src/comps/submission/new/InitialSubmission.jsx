@@ -50,6 +50,7 @@ const initSubmissionState = {
             sampleNamesFixed: false,
             samplesAttributes : [], 
             collaborators : [],
+            consortium_tags : [],
             attributeTable: [],
             metatext: {},
             extraMetaText : [],
@@ -78,6 +79,7 @@ function InitialSubmission({
     const { data: metatext } = api.submissions.metatexts.useGetSubmissionMetatext({}) 
     const { data: submission_tag, isSuccess : submissionIDSuccess, isLoading: submissionIDLoading, error: submissionAPIError, isError: submissionIsError, refetch : refetchSubmissionID } = api.submissions.core.useGetSubmissionTag({},{enabled : false})
     const { data: submissionPermission, isSuccess : permissionIsSuccess } = api.submissions.permissions.useGetSubmissionPermissions()
+    const { mutate: shareSubmissionWithConsortium } = api.consortiums.useShareSubmissionWithConsortium()
     
     
     useEffect(() => {
@@ -247,7 +249,13 @@ function InitialSubmission({
 
             postSubmission({ submission: submissionDetails },
                 {
-                    onSuccess: (data) => setAlertProps({
+                    onSuccess: (data) => {
+                        const consortium_tags = _.isArray(submission.consortium_tags) ? submission.consortium_tags : []
+                        if (_.isString(submission.tag) && consortium_tags.length > 0) {
+                            consortium_tags.forEach(consortium_tag =>
+                                shareSubmissionWithConsortium({ consortium_tag, submission_tag: submission.tag }))
+                        }
+                        setAlertProps({
                         isOpen: true,
                         children: <div><h3>Submission Successful</h3>
                             <p>The submission was successful.
@@ -260,7 +268,8 @@ function InitialSubmission({
                             resetSubmission()
                             redirect("/submissions/view")
                         }
-                    }),
+                    })
+                    },
                     onError: (error) => {
                         setAlertProps({
                             isOpen: true,

@@ -36,6 +36,7 @@ import { proceduresModifyAPI, proceduresQueryAPI } from "./maintenance/procedure
 import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance/externalservice";
 import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
+import { consortiumsAPI } from "./consortiums";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
 import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
@@ -166,6 +167,8 @@ export const api = {
     },
         
     researchgroups : researchGroupsQueryAPI,
+
+    consortiums : consortiumsAPI,
 
     diseases : {
         query : diseasesQueryAPI,

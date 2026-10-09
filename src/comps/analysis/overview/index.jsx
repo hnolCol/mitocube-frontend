@@ -23,6 +23,7 @@ import { ResearchGroupTextByUser } from "@/comps/admin/researchgroup/ResearchGro
 import { SubmissionProtocolsView } from "./SubmissionProtocolView";
 import { SubmissionViewScore } from "@/comps/submission/view/SubmissionViewScore";
 import { ExportMarkdownButton } from "./ExportMarkdown";
+import { ConsortiumShares } from "@/comps/submission/view/ConsortiumShares";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
@@ -94,6 +95,7 @@ function SubmissionOverview() {
                 <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionProtocolsView {...{ submission_tag }} />
                 </div>
+                <ConsortiumShares {...{ submission_tag }} />
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
