@@ -20,7 +20,7 @@ import {
 } from "./submission";
 import { tokenAuthentication, userLogin, mfaAuthentication } from "./authentication";
 import { newsAPI } from "./news";
-import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI } from "./users";
+import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI, userCreateAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
@@ -36,7 +36,7 @@ import { proceduresModifyAPI, proceduresQueryAPI } from "./maintenance/procedure
 import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance/externalservice";
 import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
-import { consortiumsAPI } from "./consortiums";
+import { consortiumsAPI, pendingConsortiumShareRequestsAPI } from "./consortiums";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
 import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
@@ -119,6 +119,7 @@ export const api = {
         active : userActiveAPI,
         count : userCountAPI,
         modify : userCoreAPI,
+        create : userCreateAPI,
         roles : userRolesAPI,
         queryByQuery : queryUserByQueryAPI,
         edit : userEditAPI
@@ -171,6 +172,7 @@ export const api = {
     researchgroups : researchGroupsQueryAPI,
 
     consortiums : consortiumsAPI,
+    consortiumShareRequests : pendingConsortiumShareRequestsAPI,
 
     diseases : {
         query : diseasesQueryAPI,
