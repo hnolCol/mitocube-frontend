@@ -125,6 +125,7 @@ export function EditAttribute({attribute_tag}) {
             <h4>Attribute Groups</h4>
             <span>Select attribute groups. Select sample attribute if the attribute should be available for sample condition definition. </span>
             <div className="margin--little"><AttributeGroupSelection
+                allowAdd
                 onSelection={group_tag => setAttribute(prevValues => { return { ...prevValues, group_tags: addStringToArrayOrRemove({ array: prevValues.group_tags, string: group_tag }) } })}
                 selected_tags={attribute.group_tags} /></div>
         <h4>Value Input</h4>

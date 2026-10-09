@@ -83,6 +83,7 @@ import { AdminPhenotypeAssociations } from "./comps/admin/phenotypes/AdminPhenot
 import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 import { AdminExternalResources } from "./comps/admin/externalresources/AdminExternalResources";
 import { PolicyManagement } from "./comps/admin/policy/PolicyManagement";
+import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
 import Welcome from "./comps/welcome";
@@ -355,6 +356,7 @@ function App() {
              <Route path="/admin/protocols" element={<AdminProtocols />} />
              <Route path="/admin/externalresources" element={<AdminExternalResources />} />
              <Route path="/admin/policy" element={<PolicyManagement />} />
+              <Route path="/admin/plates" element={<PlatesAdmin />} />
           </Route>
 
           <Route

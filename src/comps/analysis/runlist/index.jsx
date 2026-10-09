@@ -30,7 +30,7 @@ function Run({ run }) {
     return (
         <div className="div--round bg--lightgrey padding--medium flex justify-space-between center-items margin--little">
             <div className="flex center-items">
-                <WellPosition positionLabel={run.position_label} />
+                <WellPosition position={run.position} />
                 <div className="margin-left--medium">
                     <div className="font-weight--bold">{run.name}</div>
                     <div className="font-size--small text--muted">Plate {run.plate_index + 1}</div>

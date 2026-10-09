@@ -28,6 +28,7 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "News", to: "/admin/news"},
                 { text: "Policy", to: "/admin/policy"},
                 { text: "Crosslink Resources", to: "/admin/externalresources"},
+                { text: "Plates", to: "/admin/plates" },
                 ]} />
                 
                 <div className="no-scroll div--expand">
