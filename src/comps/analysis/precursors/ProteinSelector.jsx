@@ -1,53 +1,54 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import _ from "lodash";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
 import { api } from "@/api";
 
 /**
- * ProteinSelector component for selecting proteins in peptides analysis.
- * Similar to FeatureContainer from features analysis.
- * 
- * Displays a searchable, scrollable list of proteins with selection state.
- * 
+ * ProteinSelector component for selecting proteins in the precursors analysis.
+ *
+ * Displays a searchable, scrollable list of protein groups with selection state.
+ *
  * @param {Object} props
- * @param {string} props.search_string - The search string to query proteins.
- * @param {string} props.submission_tag - The submission tag to filter proteins.
- * @param {number} props.limit - The maximum number of proteins to return.
- * @param {Function} props.onClickProtein - Callback function when a protein is clicked. Receives the protein tag.
- * @param {string[]} props.selected_protein_tags - Array of currently selected protein tags. Used to highlight selected proteins.
+ * @param {string} props.search_string - The search string to query protein groups.
+ * @param {string} props.submission_tag - The submission tag to filter protein groups.
+ * @param {number} props.limit - The maximum number of protein groups to return.
+ * @param {Function} props.onClickProtein - Callback function when a protein group is clicked. Receives the protein group tag.
+ * @param {string[]} props.selected_protein_tags - Array of currently selected protein group tags. Used to highlight selected entries.
  * @returns {JSX.Element}
  */
-export function ProteinSelector({ 
-    search_string, 
-    submission_tag, 
+export function ProteinSelector({
+    search_string,
+    submission_tag,
     limit = 50,
     onClickProtein,
     selected_protein_tags = []
 }) {
     const [savedData, setSavedData] = useState([]);
 
-    const { data: query_proteins, isLoading, isFetching, isSuccess } = api.submissions.analysis.useGetSubmissionPeptides(
-        { tag: submission_tag, search: search_string, limit },
+    const { data: query_proteins, isLoading, isFetching, isSuccess } = api.features.info.useGetFeaturesByQuery(
+        { search_string, limit, submission_tag, include_types: "protein_groups" },
         {
             staleTime: 60000,
-            placeholderData: savedData
+            placeholderData: savedData,
+            enabled: _.isString(submission_tag)
         }
     );
 
     useEffect(() => {
-        if (isSuccess && _.isArray(query_proteins?.proteins)) {
-            setSavedData(query_proteins.proteins);
+        if (isSuccess && _.isArray(query_proteins)) {
+            setSavedData(query_proteins);
         }
     }, [isSuccess, query_proteins]);
 
-    const displayedProteins = isLoading ? savedData : _.isArray(query_proteins?.proteins) ? query_proteins.proteins : savedData;
+    const displayedProteins = isLoading ? savedData : _.isArray(query_proteins) ? query_proteins : savedData;
 
     return (
         <div>
             <div className="font-size--smallest">
                 Showing | {_.isArray(displayedProteins) ? displayedProteins.length : 0} proteins
             </div>
-            <div 
+            <div
                 className="flex flex-column bg--lightgrey"
                 style={{
                     height: "78vh",
@@ -60,18 +61,17 @@ export function ProteinSelector({
                 }}
             >
                 <div className="font-size--smallest">
-                    {_.isArray(query_proteins?.proteins) && query_proteins.proteins.length === 0 && !isLoading && !isFetching 
-                        ? <span>No results found..</span> 
-                        : isLoading || isFetching 
-                            ? <span>Searching ...</span> 
+                    {_.isArray(query_proteins) && query_proteins.length === 0 && !isLoading && !isFetching
+                        ? <span>No results found..</span>
+                        : isLoading || isFetching
+                            ? <span>Searching ...</span>
                             : null
                     }
                 </div>
                 {_.isArray(displayedProteins) ? displayedProteins.map((protein, idx) => {
                     const selected = _.includes(selected_protein_tags, protein.tag);
-                    
                     return (
-                        <motion.div 
+                        <motion.div
                             key={`${protein.tag}-${idx}-result`}
                             whileHover={{ backgroundColor: "#f0f0f0" }}
                             className="flex flex-column"
@@ -87,7 +87,7 @@ export function ProteinSelector({
                         >
                             <div className="flex center-items" style={{ gap: "10px" }}>
                                 <div>
-                                    {selected ? 
+                                    {selected ?
                                         <span
                                             aria-label="Selected"
                                             title="Selected"
@@ -105,19 +105,16 @@ export function ProteinSelector({
                                                 fontWeight: 700,
                                             }}
                                         >
-                                            \u2713
-                                        </span> 
-                                    : null}
+                                            ✓
+                                        </span>
+                                        : null}
                                 </div>
                                 <div className="flex div--expand">
                                     <div style={{ fontWeight: selected ? 700 : 400 }}>
                                         <span style={{ fontFamily: "monospace" }}>{protein.tag}</span>
                                     </div>
-                                    <div style={{ fontSize: "0.85em", color: "#666" }}>
-                                        {protein.name || "Unnamed protein"}
-                                    </div>
                                     <div style={{ fontSize: "0.8em", color: "#888" }}>
-                                        {protein.sequence?.length || 0} aa, {protein.peptides?.length || 0} peptides
+                                        {_.isArray(protein.protein_tags) ? protein.protein_tags.length : 0} proteins
                                     </div>
                                 </div>
                             </div>
@@ -128,5 +125,3 @@ export function ProteinSelector({
         </div>
     );
 }
-
-import { useState, useEffect } from "react";

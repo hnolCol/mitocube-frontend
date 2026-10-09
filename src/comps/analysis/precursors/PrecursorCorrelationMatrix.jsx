@@ -1,29 +1,28 @@
 import { useMemo, useState } from "react";
 import _ from "lodash";
 import { scaleLinear } from "@visx/scale";
-import { HeatmapRect } from "@visx/heatmap";
 import { Group } from "@visx/group";
 
 /**
- * PeptideCorrelationMatrix - Heatmap showing pairwise peptide correlations.
+ * PrecursorCorrelationMatrix - Heatmap showing pairwise precursor correlations.
  * 
  * Uses PRE-CALCULATED correlation matrix from the API (not client-side).
  * This is more efficient as the server calculates Pearson correlations once.
  * 
  * @param {Object} props
- * @param {string[]} props.peptide_tags - Array of peptide tags to display in the matrix
+ * @param {string[]} props.precursor_tags - Array of precursor tags to display in the matrix
  * @param {Object} props.correlationData - Correlation data from API:
- *   { peptide_tags: string[], correlation_matrix: number[][], samples: string[] }
- * @param {string} [props.hoverPeptideTag] - Currently hovered peptide tag for highlighting
+ *   { precursor_tags: string[], correlation_matrix: number[][], samples: string[] }
+ * @param {string} [props.hoverPrecursorTag] - Currently hovered precursor tag for highlighting
  * @param {number} [props.width=600] - Component width in pixels
  * @param {number} [props.height=500] - Component height in pixels
- * @param {Function} [props.onPeptideHover] - Callback when a peptide is hovered: (peptideTag) => void
+ * @param {Function} [props.onPrecursorHover] - Callback when a precursor is hovered: (precursorTag) => void
  * @returns {JSX.Element}
  * 
  * @example
  * // Example correlationData from API:
  * const correlationData = {
- *   peptide_tags: ["PEP_001_001", "PEP_001_002", "PEP_001_003"],
+ *   precursor_tags: ["PEP_001_001", "PEP_001_002", "PEP_001_003"],
  *   correlation_matrix: [
  *     [1.0, 0.95, 0.87],   // PEP_001_001 correlations
  *     [0.95, 1.0, 0.92],   // PEP_001_002 correlations
@@ -33,20 +32,20 @@ import { Group } from "@visx/group";
  * };
  * 
  * // Usage:
- * <PeptideCorrelationMatrix
- *   peptide_tags={["PEP_001_001", "PEP_001_002", "PEP_001_003"]}
+ * <PrecursorCorrelationMatrix
+ *   precursor_tags={["PEP_001_001", "PEP_001_002", "PEP_001_003"]}
  *   correlationData={correlationData}
- *   hoverPeptideTag="PEP_001_001"
- *   onPeptideHover={(tag) => console.log("Hovered:", tag)}
+ *   hoverPrecursorTag="PEP_001_001"
+ *   onPrecursorHover={(tag) => console.log("Hovered:", tag)}
  * />
  */
-function PeptideCorrelationMatrix({
-    peptide_tags = [],
+function PrecursorCorrelationMatrix({
+    precursor_tags = [],
     correlationData = null,
-    hoverPeptideTag = null,
+    hoverPrecursorTag = null,
     width = 600,
     height = 500,
-    onPeptideHover
+    onPrecursorHover
 }) {
     const [tooltipData, setTooltipData] = useState(null);
 
@@ -56,63 +55,63 @@ function PeptideCorrelationMatrix({
     const innerHeight = height - margin.top - margin.bottom;
 
     // Extract data from correlationData
-    const matrixPeptideTags = useMemo(() => {
-        return correlationData?.peptide_tags || [];
+    const matrixPrecursorTags = useMemo(() => {
+        return correlationData?.precursor_tags || [];
     }, [correlationData]);
 
     const correlationMatrix = useMemo(() => {
         return correlationData?.correlation_matrix || [];
     }, [correlationData]);
 
-    // Filter peptide_tags to only those present in the correlation matrix
-    const validPeptideTags = useMemo(() => {
-        return peptide_tags.filter(tag => matrixPeptideTags.includes(tag));
-    }, [peptide_tags, matrixPeptideTags]);
+    // Filter precursor_tags to only those present in the correlation matrix
+    const validPrecursorTags = useMemo(() => {
+        return precursor_tags.filter(tag => matrixPrecursorTags.includes(tag));
+    }, [precursor_tags, matrixPrecursorTags]);
 
-    // Create sorted list of peptides for consistent ordering
-    const peptideOrder = useMemo(() => {
-        return [...validPeptideTags].sort();
-    }, [validPeptideTags]);
+    // Create sorted list of precursors for consistent ordering
+    const precursorOrder = useMemo(() => {
+        return [...validPrecursorTags].sort();
+    }, [validPrecursorTags]);
 
     // Create index maps
-    const peptideIndexInOrder = useMemo(() => {
+    const precursorIndexInOrder = useMemo(() => {
         const index = {};
-        peptideOrder.forEach((tag, idx) => {
+        precursorOrder.forEach((tag, idx) => {
             index[tag] = idx;
         });
         return index;
-    }, [peptideOrder]);
+    }, [precursorOrder]);
 
-    const peptideIndexInMatrix = useMemo(() => {
+    const precursorIndexInMatrix = useMemo(() => {
         const index = {};
-        matrixPeptideTags.forEach((tag, idx) => {
+        matrixPrecursorTags.forEach((tag, idx) => {
             index[tag] = idx;
         });
         return index;
-    }, [matrixPeptideTags]);
+    }, [matrixPrecursorTags]);
 
-    // Cell size based on number of peptides
+    // Cell size based on number of precursors
     const cellSize = useMemo(() => {
-        const maxCells = Math.max(peptideOrder.length, 20);
+        const maxCells = Math.max(precursorOrder.length, 20);
         return Math.min(Math.floor(innerWidth / maxCells), Math.floor(innerHeight / maxCells), 25);
-    }, [peptideOrder.length, innerWidth, innerHeight]);
+    }, [precursorOrder.length, innerWidth, innerHeight]);
 
     // Scales
     const xScale = useMemo(() => {
         return scaleLinear({
-            domain: [0, peptideOrder.length],
+            domain: [0, precursorOrder.length],
             range: [0, innerWidth],
             nice: true
         });
-    }, [peptideOrder.length, innerWidth]);
+    }, [precursorOrder.length, innerWidth]);
 
     const yScale = useMemo(() => {
         return scaleLinear({
-            domain: [0, peptideOrder.length],
+            domain: [0, precursorOrder.length],
             range: [0, innerHeight],
             nice: true
         });
-    }, [peptideOrder.length, innerHeight]);
+    }, [precursorOrder.length, innerHeight]);
 
     // Color scale for correlation values
     const colorScale = useMemo(() => {
@@ -124,37 +123,37 @@ function PeptideCorrelationMatrix({
 
     // Get correlation value from matrix
     const getCorrelation = (tagX, tagY) => {
-        const idxX = peptideIndexInMatrix[tagX];
-        const idxY = peptideIndexInMatrix[tagY];
+        const idxX = precursorIndexInMatrix[tagX];
+        const idxY = precursorIndexInMatrix[tagY];
         if (idxX === undefined || idxY === undefined) return null;
         if (idxX >= correlationMatrix.length || idxY >= correlationMatrix[idxX].length) return null;
         return correlationMatrix[idxX][idxY];
     };
 
-    const handleMouseEnter = (peptideTagX, peptideTagY) => {
-        const corr = getCorrelation(peptideTagX, peptideTagY);
+    const handleMouseEnter = (precursorTagX, precursorTagY) => {
+        const corr = getCorrelation(precursorTagX, precursorTagY);
         setTooltipData({
-            peptideX: peptideTagX,
-            peptideY: peptideTagY,
+            precursorX: precursorTagX,
+            precursorY: precursorTagY,
             correlation: corr
         });
-        if (onPeptideHover) {
-            onPeptideHover(peptideTagX);
+        if (onPrecursorHover) {
+            onPrecursorHover(precursorTagX);
         }
     };
 
     const handleMouseLeave = () => {
         setTooltipData(null);
-        if (onPeptideHover) {
-            onPeptideHover(null);
+        if (onPrecursorHover) {
+            onPrecursorHover(null);
         }
     };
 
-    if (!correlationData || validPeptideTags.length < 2) {
+    if (!correlationData || validPrecursorTags.length < 2) {
         return (
             <div style={{ width, height, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #e9ecef", borderRadius: "4px" }}>
                 <div style={{ color: "#6c757d" }}>
-                    {correlationData ? "Select at least 2 peptides to view correlations" : "Loading correlation data..."}
+                    {correlationData ? "Select at least 2 precursors to view correlations" : "Loading correlation data..."}
                 </div>
             </div>
         );
@@ -173,17 +172,17 @@ function PeptideCorrelationMatrix({
 
                 {/* Heatmap cells */}
                 <Group top={margin.top} left={margin.left}>
-                    {peptideOrder.map((tagY, rowIdx) => {
-                        return peptideOrder.map((tagX, colIdx) => {
+                    {precursorOrder.map((tagY, rowIdx) => {
+                        return precursorOrder.map((tagX, colIdx) => {
                             const correlation = getCorrelation(tagX, tagY);
-                            const isHoveredX = hoverPeptideTag === tagX;
-                            const isHoveredY = hoverPeptideTag === tagY;
+                            const isHoveredX = hoverPrecursorTag === tagX;
+                            const isHoveredY = hoverPrecursorTag === tagY;
                             const isDiagonal = tagX === tagY;
                             
                             if (correlation === null || correlation === undefined) return null;
                             
                             return (
-                                <HeatmapRect
+                                <rect
                                     key={`cell-${tagX}-${tagY}`}
                                     x={xScale(colIdx + 0.5) - cellSize / 2}
                                     y={yScale(rowIdx + 0.5) - cellSize / 2}
@@ -201,9 +200,9 @@ function PeptideCorrelationMatrix({
                     })}
                 </Group>
 
-                {/* Row labels (peptide tags on left) */}
-                {peptideOrder.map((tag, idx) => {
-                    const isHovered = hoverPeptideTag === tag;
+                {/* Row labels (precursor tags on left) */}
+                {precursorOrder.map((tag, idx) => {
+                    const isHovered = hoverPrecursorTag === tag;
                     return (
                         <text
                             key={`row-label-${tag}`}
@@ -219,9 +218,9 @@ function PeptideCorrelationMatrix({
                     );
                 })}
 
-                {/* Column labels (peptide tags on bottom) */}
-                {peptideOrder.map((tag, idx) => {
-                    const isHovered = hoverPeptideTag === tag;
+                {/* Column labels (precursor tags on bottom) */}
+                {precursorOrder.map((tag, idx) => {
+                    const isHovered = hoverPrecursorTag === tag;
                     return (
                         <text
                             key={`col-label-${tag}`}
@@ -268,7 +267,7 @@ function PeptideCorrelationMatrix({
                         zIndex: 1000
                     }}
                 >
-                    <div><strong>{tooltipData.peptideX}</strong> ↔ <strong>{tooltipData.peptideY}</strong></div>
+                    <div><strong>{tooltipData.precursorX}</strong> ↔ <strong>{tooltipData.precursorY}</strong></div>
                     <div>Pearson r: {tooltipData.correlation !== null ? tooltipData.correlation.toFixed(3) : "N/A"}</div>
                     <div style={{ fontSize: "10px", color: "#6c757d", marginTop: "5px" }}>
                         {tooltipData.correlation > 0.8 ? "Highly correlated" : 
@@ -284,4 +283,4 @@ function PeptideCorrelationMatrix({
 // Import Group from @visx/group
 import { Group as GroupViz } from "@visx/group";
 
-export default PeptideCorrelationMatrix;
+export default PrecursorCorrelationMatrix;
