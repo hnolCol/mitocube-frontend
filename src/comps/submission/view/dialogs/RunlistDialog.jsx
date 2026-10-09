@@ -1,15 +1,16 @@
-import { Button, Callout, Code, Dialog, DialogBody, DialogFooter, Switch } from "@blueprintjs/core";
-import { useState } from "react";
+import { Button, Callout, Code, Dialog, DialogBody, DialogFooter, Menu, MenuItem, Popover, Switch } from "@blueprintjs/core";
+import { useState, useMemo } from "react";
 import { api } from "@/api";
 import _ from "lodash"
 import NumericValueInput from "../../../core/input/Numeric";
 import APIError from "../../../core/error/APIerror";
 import Loading from "../../../core/base/loading";
 import { Combobox } from "../../../core/input/Combobox";
-import { WellPlates } from "../../../core/plate/wellplate"
+import { WellPlates, WellPlate } from "../../../core/plate/wellplate"
 import { getRandomID } from "../../../../services/random";
 import { objectToKeyValueString, arrayObjectsToString, downloadTxtFile } from "../../../../services/downloads/txt";
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
+import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog";
 /**
  * 
  * @param {import("../../../../types/submissions").Submission} submission 
@@ -38,7 +39,8 @@ const initPlates = {
     },
     selectedWells: {
         [initplateLabel]: initSelectedWells
-    }
+    },
+    plateTags: {}   // plateLabel -> tag of the physical plate in the database
 }
 /**
  * 
@@ -66,7 +68,127 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
 
     const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
     const [selectedInstrument, setSelectedInstrument] = useState(null)
-    
+    const [createPlateOpen, setCreatePlateOpen] = useState(false)
+
+    // physical plates from the database
+    const { data: dbPlates, refetch: refetchPlates } = api.plates.plates.useGetPlates({ enabled: isOpen })
+    const activePlateTag = plates.plateTags?.[plates.activePlateLabel]
+    const activePlate = (dbPlates || []).find(p => p.tag === activePlateTag)
+    const { data: occupiedWells } = api.plates.plates.useGetPlateOccupied({ tag: activePlateTag }, { enabled: isOpen && !!activePlateTag })
+
+    // occupied wells of the active plate as position integers (same encoding as WellPlate: row * max(rows, columns) + column)
+    const occupiedPositions = useMemo(() => {
+        if (!activePlateTag || !occupiedWells) return []
+        const { rows, columns } = plates.plateDimensions[plates.activePlateLabel]
+        const maxDimension = Math.max(rows, columns)
+        return occupiedWells.map(w => w.row_index * maxDimension + w.column_index)
+    }, [occupiedWells, activePlateTag, plates.activePlateLabel, plates.plateDimensions])
+
+    // wraps setPlates so that used wells on the active plate can never be selected
+    const setPlatesWithoutOccupied = (updater) => {
+        setPlates(prev => {
+            const next = typeof updater === "function" ? updater(prev) : updater
+            if (occupiedPositions.length === 0) return next
+            const label = next.activePlateLabel
+            const wells = next.selectedWells?.[label]
+            if (!wells) return next
+            return {
+                ...next,
+                selectedWells: {
+                    ...next.selectedWells,
+                    [label]: { ...wells, selected: wells.selected.filter(p => !occupiedPositions.includes(p)) }
+                }
+            }
+        })
+    }
+
+    // updates the well selection of the selected plate, used wells can never be selected
+    const setSelectedWellsForPlate = (plateLabel, updatedSelectedWells) => {
+        setPlates(prev => ({
+            ...prev,
+            selectedWells: {
+                ...prev.selectedWells,
+                [plateLabel]: {
+                    ...updatedSelectedWells,
+                    selected: updatedSelectedWells.selected.filter(p => !occupiedPositions.includes(p))
+                }
+            }
+        }))
+    }
+
+    // removes the plate assignment of a tab
+    const unassignPlate = (plateLabel) => {
+        setPlates(prev => ({
+            ...prev,
+            selectedWells: { ...prev.selectedWells, [plateLabel]: initSelectedWells },
+            plateTags: { ...prev.plateTags, [plateLabel]: undefined }
+        }))
+    }
+
+    // adds a new plate tab and makes it active
+    const addPlateTab = () => {
+        const plateLabel = getRandomID(5)
+        setPlates(prev => ({
+            ...prev,
+            activePlateLabel: plateLabel,
+            labels: [...prev.labels, plateLabel],
+            plateDimensions: { ...prev.plateDimensions, [plateLabel]: { rows: 8, columns: 12 } },
+            selectedWells: { ...prev.selectedWells, [plateLabel]: initSelectedWells }
+        }))
+    }
+
+    // puts a newly created plate into the active tab if it has no plate yet, otherwise into a new tab
+    const addPlateWithPlate = (plate) => {
+        setPlates(prev => {
+            const activeIsEmpty = !prev.plateTags?.[prev.activePlateLabel]
+            const plateLabel = activeIsEmpty ? prev.activePlateLabel : getRandomID(5)
+            return {
+                ...prev,
+                activePlateLabel: plateLabel,
+                labels: activeIsEmpty ? prev.labels : [...prev.labels, plateLabel],
+                plateDimensions: { ...prev.plateDimensions, [plateLabel]: { rows: plate.rows, columns: plate.columns } },
+                selectedWells: { ...prev.selectedWells, [plateLabel]: initSelectedWells },
+                plateTags: { ...prev.plateTags, [plateLabel]: plate.tag }
+            }
+        })
+    }
+
+    // removes a plate tab (✕ above the wells). The last remaining tab is only cleared.
+    const removePlateTab = (plateLabel) => {
+        if (plates.labels.length <= 1) {
+            unassignPlate(plateLabel)
+            return
+        }
+        setPlates(prev => {
+            const labels = prev.labels.filter(label => label !== plateLabel)
+            return {
+                ...prev,
+                activePlateLabel: prev.activePlateLabel === plateLabel ? labels[0] : prev.activePlateLabel,
+                labels,
+                plateDimensions: _.omit(prev.plateDimensions, plateLabel),
+                selectedWells: _.omit(prev.selectedWells, plateLabel),
+                plateTags: _.omit(prev.plateTags, plateLabel)
+            }
+        })
+    }
+
+    const plateItems = (dbPlates || []).map(p => ({
+        ...p,
+        text: p.name,
+        description: `${p.rows * p.columns} wells${p.location ? ` • ${p.location}` : ""}`
+    }))
+
+    // menu with the plates that can be picked for a tab
+    const plateMenu = (label, freePlates) => (
+        <Menu>
+            {freePlates.length === 0 && <MenuItem disabled text="No plates available" />}
+            {freePlates.map(p => (
+                <MenuItem key={p.tag} text={p.text} label={p.description}
+                    onClick={() => { setPlates(prev => ({ ...prev, activePlateLabel: label })); assignPlate(p) }} />
+            ))}
+        </Menu>
+    )
+
     const totalWellsSelected = _.sum(_.values(plates.selectedWells).map(selWells => selWells.selected.length))
     const wellsNeeded = getNumberOfSamples(
         submission,
@@ -74,11 +196,14 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
         runlistProps.fractionate ? runlistProps.n_fractions : 1
     )
     
+    const allPlatesAssigned = plates.labels.every(label => !!plates.plateTags?.[label])
+
     const isFormValid =
         !!selectedInstrument &&
         (!runlistProps.fractionate || (_.toInteger(runlistProps.n_fractions) > 0)) &&
         totalWellsSelected >= wellsNeeded &&
-        totalWellsSelected > 0
+        totalWellsSelected > 0 &&
+        allPlatesAssigned
     
     const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypes()
     const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
@@ -87,6 +212,22 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     )
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
+    }
+
+
+    /**
+     * @description Assigns a physical plate from the database to the active plate tab.
+     * The grid takes the format of the plate and the well selection is reset.
+     * @param {Object} plate The plate (from the database).
+     */
+    const assignPlate = (plate) => {
+        if (!plate) return
+        setPlates(prev => ({
+            ...prev,
+            plateDimensions: { ...prev.plateDimensions, [prev.activePlateLabel]: { rows: plate.rows, columns: plate.columns } },
+            selectedWells: { ...prev.selectedWells, [prev.activePlateLabel]: initSelectedWells },
+            plateTags: { ...prev.plateTags, [prev.activePlateLabel]: plate.tag }
+        }))
     }
     /**
      * 
@@ -140,7 +281,8 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
             scramble_across_plates: runlistProps.scramble_across_plates,
             n_fractions: runlistProps.n_fractions === "" || !runlistProps.fractionate ? undefined : _.toInteger(runlistProps.n_fractions),
             free_plate_positions: freePlatePositions,
-            instrument_tag: selectedInstrument?.tag
+            instrument_tag: selectedInstrument?.tag,
+            plate_tags: plates.labels.map(label => plates.plateTags[label])
         }
         
         submitRunlistProps({ tag: submission.tag, runlist_props })
@@ -314,7 +456,56 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                     <p>In total total of <strong>{getNumberOfSamples(submission, runlistProps.aggregate_on, runlistProps.fractionate ? runlistProps.n_fractions : 1)}</strong> free well plate positions are required. <br/>
                     Current Selection : <strong>{_.sum(_.values(plates.selectedWells).map(selWells => selWells.selected.length))}</strong>.</p>
                     </div>
-                    <WellPlates plates={plates} setPlates={setPlates}/>
+
+                    <div className="flex center-items flex-wrap" style={{ gap: "0.5rem", marginBottom: "0.75rem" }}>
+                        {plates.labels.map((label, i) => {
+                            const tag = plates.plateTags?.[label]
+                            const plate = (dbPlates || []).find(p => p.tag === tag)
+                            // plates already picked in other tabs are not offered again
+                            const usedTags = plates.labels.filter(l => l !== label).map(l => plates.plateTags?.[l]).filter(Boolean)
+                            const freePlates = plateItems.filter(p => !usedTags.includes(p.tag))
+                            return (
+                                <div key={label} className="flex center-items"
+                                    style={{
+                                        border: "1px solid #abb3bf",
+                                        borderRadius: "4px",
+                                        padding: "0 0.15rem 0 0.5rem",
+                                        background: label === plates.activePlateLabel ? "#e5e8eb" : "transparent"
+                                    }}>
+                                    {/* no plate: clicking the text opens the plate list; with a plate it only switches the tab */}
+                                    <Popover placement="bottom-start" disabled={!!tag} content={plateMenu(label, freePlates)}>
+                                        <span style={{ marginRight: "0.25rem", cursor: "pointer" }}
+                                            onClick={() => setPlates(prev => ({ ...prev, activePlateLabel: label }))}>
+                                            {`${i + 1}: ${plate?.name || "no plate"}`}
+                                        </span>
+                                    </Popover>
+                                    <Popover placement="bottom-start" content={plateMenu(label, freePlates)}>
+                                        <Button small minimal icon="edit" title="Select plate" />
+                                    </Popover>
+                                    <Button small minimal icon="cross" title="Remove plate"
+                                            disabled={!tag && plates.labels.length === 1}
+                                            onClick={() => removePlateTab(label)} />
+                                </div>
+                            )
+                        })}
+                        <Button small minimal icon="plus" title="Add plate" onClick={addPlateTab} />
+                        <Button small minimal icon="add" text="New plate" onClick={() => setCreatePlateOpen(true)} />
+                    </div>
+
+                    {occupiedWells?.length > 0 && (
+                        <p className="text--muted">
+                            Already used on this plate (cannot be selected): {occupiedWells.map(w => w.position).join(", ")}
+                        </p>
+                    )}
+                    {activePlateTag ? (
+                        <WellPlate
+                            {...plates.plateDimensions[plates.activePlateLabel]}
+                            plateLabel={plates.activePlateLabel}
+                            selectedWells={plates.selectedWells[plates.activePlateLabel]}
+                            setSelectedWells={setSelectedWellsForPlate}
+                            deleteWellPlate={removePlateTab}
+                        />
+                    ) : null}
                 </div>
                 </DialogBody>}
             
@@ -323,6 +514,12 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                 <Button text="Reset" onClick={resetDialog} icon="reset"/>
                 <Button text="Cancel" onClick={handleClose} intent="danger" disabled={runlistLoading}/>
             </div>} />
+
+            <PlateCreateDialog
+                isOpen={createPlateOpen}
+                onClose={() => setCreatePlateOpen(false)}
+                onCreated={(plate) => { refetchPlates(); addPlateWithPlate(plate) }}
+            />
         </Dialog>
     )
 }

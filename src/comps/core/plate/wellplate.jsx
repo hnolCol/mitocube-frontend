@@ -8,19 +8,19 @@ import { Combobox } from "../input/Combobox"
 import { getRandomID } from "../../../services/random"
 
 const initSelectedWells = { isMouseDown: false, selected: [], lastClicked: undefined, fromRectangleSelection: false, rectangleSelectionStarted: undefined, currentRectangleSelection: [] }
-const wellPlates = [
+export const wellPlates = [
     { text: "15 wells", description: "3 rows x 5 columns (PAL)", rows: 3, columns: 5 },
     { text: "54 wells", description: "6 rows x 9 columns (PAL)", rows: 6, columns: 9 },
     { text: "96 wells", description: "8 rows x 12 columns", rows: 8, columns: 12 },
     { text: "384 wells", description: "16 rows x 24 columns", rows : 16, columns : 24}]
 
 
-export function WellPosition({positionLabel}) {
+export function WellPosition({position}) {
 
     return (<div className="well-border prevent-select">
     <div className={`well__base bg--grey}`}>
         <div>
-            {positionLabel}
+            {position}
         </div>
         </div>  
         </div>

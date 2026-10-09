@@ -47,6 +47,8 @@ import { variantsQueryAPI } from "./variants";
 import { crosslinksQueryAPI, externalresourceQueryAPI, externalresourceModifyAPI } from "./crosslinks";
 import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
 import { policyAPI } from "./policy";
+import { platesAPI } from "./plates";
+
 export const api = {
     annotations : {
         queryAnnotations : annotationsQueryAPI,
@@ -185,5 +187,8 @@ export const api = {
         crosslinks : crosslinksQueryAPI,
         externalresources : externalresourceQueryAPI,
         externalresourcesModify : externalresourceModifyAPI
-    }   
+    } ,
+    plates : {
+        plates : platesAPI
+    }     
 };
