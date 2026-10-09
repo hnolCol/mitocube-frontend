@@ -31,7 +31,7 @@ export function MinimalUserIcon({ user_tag, tooltip_enabled = true }) {
                 <Menu small={true}>
                 <MenuItem text={`${user.firstname} ${user.lastname}`}
                         icon="envelope"
-                        labelElement={<div style={{ maxWidth : "10rem" ,fontSize: "0.7rem", textAlign: "right" }}><div>{user.email}</div><div>{`${user.research_group} @${user.institute}`}</div></div>} />
+                        labelElement={<div style={{ maxWidth : "10rem" ,fontSize: "0.7rem", textAlign: "right" }}><div>{user.email}</div><div>{`${_.isArray(user.research_group_tags) ? user.research_group_tags.join(", ") : user.research_group_tags} @${user.institute}`}</div></div>} />
 
                 </Menu>}
             >
@@ -52,11 +52,11 @@ export function MinimalUserIcon({ user_tag, tooltip_enabled = true }) {
 
 export function UserIconWithTooltip({ userLabel, usersByLabel, selected = false }) {
     if (!_.has(usersByLabel, userLabel)) return null 
-    const { firstname, lastname, email, label, institute, research_group } = usersByLabel[userLabel][0]
+    const { firstname, lastname, email, label, institute, research_group, research_group_tags } = usersByLabel[userLabel][0]
     const text = firstname[0]+lastname[0]
     return (
         <Popover content={<Menu small={true}>
-            <MenuItem text={`${firstname} ${lastname}`} icon="envelope" labelElement={<div style={{ width: "14rem", fontSize: "0.6rem", textAlign: "left" }}><div>{institute}</div><div>{research_group}</div></div>} />
+            <MenuItem text={`${firstname} ${lastname}`} icon="envelope" labelElement={<div style={{ width: "14rem", fontSize: "0.6rem", textAlign: "left" }}><div>{institute}</div><div>{_.isArray(research_group_tags) ? research_group_tags.join(", ") : research_group}</div></div>} />
 
         </Menu>} interactionKind="hover" position="top">
         <BaseDashboardIcon width={30} height={30}>

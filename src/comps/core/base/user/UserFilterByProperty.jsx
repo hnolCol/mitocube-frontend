@@ -99,7 +99,15 @@ export function UserLevelFilterButton({submissionKey = "users", userLabels, leve
 
 export function HierarchicalUserView({ users, userLabelsInSubmission, submissionFilter, setSubmissionFilter, firstLevel = "institute", secondLevel = "research_group"}) {
     //groups user by institute and research group
-    const groupedUser = groupListByProperty(users, firstLevel)
+    // a user can be member of multiple research groups (research_group_tags) - expand
+    // each user so it appears under each of its research groups.
+    const expandedUsers = _.flatMap(users, user => {
+        const groupTags = _.isArray(user.research_group_tags) && user.research_group_tags.length > 0
+            ? user.research_group_tags
+            : _.isString(user.research_group) ? [user.research_group] : [user[secondLevel]]
+        return groupTags.map(research_group => ({ ...user, research_group }))
+    })
+    const groupedUser = groupListByProperty(expandedUsers, firstLevel)
     const researchGroupGroupedUser = _.fromPairs(_.keys(groupedUser).map(instName => [instName,groupListByProperty(groupedUser[instName],secondLevel)]))
 
     

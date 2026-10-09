@@ -29,6 +29,7 @@ import { ProtectedRoute } from "./comps/core/routes/ProtectedRoute";
 import Login from "./comps/login";
 
 import { PolicyGate } from "./comps/admin/policy/PolicyGate";
+import { PendingConsortiumShareRequestDialog } from "./comps/core/base/user/PendingConsortiumShareRequestDialog";
 
 /* Submission area */
 import SubmissionHeader from "./comps/submission";
@@ -399,6 +400,7 @@ function App() {
           />
         </Routes>
         </PolicyGate>
+        <PendingConsortiumShareRequestDialog />
       </div>
     </div>
   );

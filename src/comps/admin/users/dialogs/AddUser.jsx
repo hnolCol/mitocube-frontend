@@ -10,9 +10,9 @@ const USER_INPUT = [
     { type: "text", tag: "email", placeholder: "Enter user email" }]
 
 export function AddUserDialog({onCancel}) {
-    const { mutate: postUser, isPending } = api.users.modify.usePostUser()
-    const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group : "", institute : "", role : 1})
-    const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) 
+    const { mutate: postUser, isPending } = api.users.create.usePostUser()
+    const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group_tags : [], institute : "", role : 1})
+    const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) || !_.isArray(formData.research_group_tags) || formData.research_group_tags.length === 0 
 
     const handleInsert = (e) => {
         e.preventDefault()
@@ -45,10 +45,17 @@ export function AddUserDialog({onCancel}) {
                 ))}
                 <div style={{width : "100%"}}>
                 <ResearchGroupInput
-                        selected_rg_tags={formData.research_group ? [formData.research_group] : []}
-                        onSelect={(tag) => setFormData((prev) => ({ ...prev, research_group: tag }))}
-                        placeholder={_.isString(formData.research_group) && formData.research_group.length > 0 ? "Research Group Selected" :  "Select Research Group"}
+                        selected_rg_tags={formData.research_group_tags}
+                        onSelect={(tag) => setFormData((prev) => ({
+                            ...prev,
+                            research_group_tags: prev.research_group_tags.includes(tag)
+                                ? prev.research_group_tags.filter(t => t !== tag)
+                                : [...prev.research_group_tags, tag]
+                        }))}
+                        placeholder={_.isArray(formData.research_group_tags) && formData.research_group_tags.length > 0 ? `${formData.research_group_tags.length} Research Group(s) Selected` :  "Select Research Group(s)"}
                     />
+                    {_.isArray(formData.research_group_tags) && formData.research_group_tags.length > 0 ?
+                        <div className="font-size--smallest margin-top--little">{formData.research_group_tags.join(", ")}</div> : null}
                 </div>
 
                 <div className="font-size--small color--grey">
