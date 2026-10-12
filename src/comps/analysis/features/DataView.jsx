@@ -1,6 +1,7 @@
 import _ from "lodash";
 import PropTypes from "prop-types"; 
 import { api } from "@/api";
+import { Button } from "@blueprintjs/core";
 
 import ResultChart from "../../protein/charts/resultCard/chart";
 import {Responsive, WidthProvider } from "react-grid-layout"
@@ -170,8 +171,19 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
         setLayouts(allLayouts);
         saveStoredLayouts(layoutStorageKey, allLayouts);
     };
+
+    const handleResetLayout = () => {
+        const defaults = buildLayouts(feature_tags, submission_tags);
+        layoutsRef.current = defaults;
+        setLayouts(defaults);
+        saveStoredLayouts(layoutStorageKey, defaults);
+    };
+
     return <div>
-        <h3>Feature Plots</h3>
+        <h3 style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+            Feature Plots
+            <Button icon="reset" intent="danger" variant="minimal" onClick={handleResetLayout} text="Reset layout" />
+        </h3>
         <div className="flex">
 
             {_.isArray(feature_tags) ? feature_tags.map((feature_tag, idx) => {
