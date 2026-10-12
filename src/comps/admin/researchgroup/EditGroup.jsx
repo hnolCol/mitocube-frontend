@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import _ from "lodash";
 import { api } from "@/api";
 import APIError from "../../core/error/APIerror";
-import { EditableUserList } from "../../core/base/user/EditUserList";
+import { UserInput } from "@/comps/core/input/api/UserInput";
 import { Loading } from "../../core/base/states/Loading";
 
 const research_group_input = ["text", "abbreviation", "institute", "profile_text", "address", "email", "url"]
@@ -83,11 +83,17 @@ function EditResearchGroupHeads({ tag, isOpen }) {
     return <div>
         <h3>Principal Investigator (PI)</h3>
         {headsIsLoading ? <Loading /> :
-            <EditableUserList
-                selected_user_tags={_.isArray(head_tags) ? head_tags : []}
-                title={"Current PIs"}
-                onSelect={addHead}
-                onRemove={removeHead}
-                isLoading={postHeadIsPending || deleteHeadIsPending} />}
+            <UserInput
+                label="Principal Investigator (PI)"
+                helperText="The selected user is made a head (PI) of the research group. Removing a tag removes the user as head (PI)."
+                showIsRequired={false}
+                selected_users={_.isArray(head_tags) ? head_tags : []}
+                onUserSelect={(key, user_tag) => {
+                    if (_.isArray(head_tags) && head_tags.includes(user_tag)) {
+                        removeHead(user_tag)
+                    } else {
+                        addHead(user_tag)
+                    }
+                }} />}
     </div>
 }
