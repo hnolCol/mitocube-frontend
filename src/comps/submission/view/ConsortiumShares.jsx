@@ -5,68 +5,93 @@ import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
 import { ConsortiumTagWithText } from "./ConsortiumText"
 
-ConsortiumShares.propTypes = {
-    submission_tag: PropTypes.string.isRequired
+ConsortiumShare.propTypes = {
+    consortium_tag: PropTypes.string.isRequired,
+    submission_tag: PropTypes.string.isRequired,
+    pendingRequests: PropTypes.array,
+    onInvalidate: PropTypes.func
 }
 
 /**
- * @description Shows the consortiums a submission is shared with and allows the owner/curator
- * to add or remove shares. If the user is not a research group head (PI), the share is
- * created with status pending and must be approved by a PI of the owners research group
- * (backend behaviour). Pending requests of a users own submissions are shown here,
- * pending requests the user (as PI) can approve are handled in PendingConsortiumShareRequests.
+ * @description One consortium row in the consortium sharing panel. Resolves the shared and
+ * pending state for this consortium and allows to share/unshare the submission with it.
+ * @param {Object} props
+ * @param {String} props.consortium_tag Consortium tag
+ * @param {String} props.submission_tag Submission tag
+ * @param {Object[]} props.pendingRequests Pending share requests of the current user
+ * @param {Function} props.onInvalidate Callback to invalidate the share queries
+ * @returns {JSX.Element} The consortium share row.
  */
-export function ConsortiumShares({ submission_tag }) {
-    const queryClient = useQueryClient()
-    const { data: userConsortiums } = api.consortiums.useGetUserConsortiums({}, { staleTime: 300000 })
-    const { data: pendingRequests, isLoading: isPendingLoading } = api.consortiumShareRequests.useGetPendingConsortiumShareRequests(
-        {}, { staleTime: 300000, retry: false }
+function ConsortiumShare({ consortium_tag, submission_tag, pendingRequests = [], onInvalidate }) {
+    const { data: submission_tags, isLoading } = api.consortiums.useGetConsortiumSubmissions(
+        { tag: consortium_tag }, { enabled: _.isString(consortium_tag), staleTime: 300000 }
     )
-    const consortiumTags = _.isArray(userConsortiums) ? userConsortiums : []
-    const { data: submissionsByConsortium, isLoading } = api.consortiums.useGetConsortiumSubmissions(
-        { tag: consortiumTags.length > 0 ? consortiumTags[0] : undefined },
-        { enabled: consortiumTags.length > 0 }
-    )
-    const invalidate = () => {
-        queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
-        queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
-    }
-    const { mutate: shareSubmission } = api.consortiums.useShareSubmissionWithConsortium({ onSuccess: invalidate })
-    const { mutate: unshareSubmission } = api.consortiums.useUnshareSubmissionFromConsortium({ onSuccess: invalidate })
-    if (consortiumTags.length === 0) return null
-    const sharedConsortiums = _.isArray(submissionsByConsortium) && submissionsByConsortium.includes(submission_tag)
-        ? [consortiumTags[0]]
-        : []
-    const pendingForSubmission = _.isArray(pendingRequests)
-        ? pendingRequests.filter(r => r.submission_tag === submission_tag)
-        : []
-    const isPendingInConsortium = (consortium_tag) => pendingForSubmission.some(r => r.consortium_tag === consortium_tag)
-    const handleToggleShare = (consortium_tag) => {
-        if (sharedConsortiums.includes(consortium_tag)) {
+    const { mutate: shareSubmission, isPending: shareIsPending } = api.consortiums.useShareSubmissionWithConsortium({ onSuccess: onInvalidate })
+    const { mutate: unshareSubmission, isPending: unshareIsPending } = api.consortiums.useUnshareSubmissionFromConsortium({ onSuccess: onInvalidate })
+
+    const isShared = _.isArray(submission_tags) && submission_tags.includes(submission_tag)
+    const isPending = pendingRequests.some(r => r.consortium_tag === consortium_tag && r.submission_tag === submission_tag)
+
+    const handleToggleShare = () => {
+        if (isShared) {
             unshareSubmission({ consortium_tag, submission_tag })
         } else {
             shareSubmission({ consortium_tag, submission_tag })
         }
     }
+
+    return <div className="flex justify-between align-center margin--little">
+        <ConsortiumTagWithText tag={consortium_tag} />
+        <Button
+            small={true}
+            loading={isLoading || shareIsPending || unshareIsPending}
+            intent={isShared ? "danger" : isPending ? "warning" : "primary"}
+            text={isShared ? "Remove share" : isPending ? "Pending approval" : "Share"}
+            disabled={isPending}
+            onClick={handleToggleShare} />
+    </div>
+}
+
+ConsortiumShares.propTypes = {
+    submission_tag: PropTypes.string.isRequired
+}
+
+/**
+ * @description Shows all consortiums of the user the submission can be shared with and allows
+ * the owner/curator to add or remove a share per consortium. If the user is not a research
+ * group head (PI), the share is created with status pending and must be approved by a PI of
+ * the owners research group (backend behaviour). Pending requests the user (as PI) can
+ * approve are handled in PendingConsortiumShareRequests.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element|null} The consortium sharing panel.
+ */
+export function ConsortiumShares({ submission_tag }) {
+    const queryClient = useQueryClient()
+    const { data: userConsortiums, isLoading: isConsortiumsLoading } = api.consortiums.useGetUserConsortiums({}, { staleTime: 300000 })
+    const { data: pendingRequests, isLoading: isPendingLoading } = api.consortiumShareRequests.useGetPendingConsortiumShareRequests(
+        {}, { staleTime: 300000, retry: false }
+    )
+    const consortiumTags = _.isArray(userConsortiums) ? userConsortiums : []
+    if (!isConsortiumsLoading && consortiumTags.length === 0) return null
+
+    const invalidate = () => {
+        queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
+        queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
+    }
+
     return <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)" }}>
         <h3>Consortium Sharing</h3>
         <p className="font-size--small">
             Share this submission with a consortium. All members of the consortiums research groups will be able to access it.
             If you are not a research group head (PI), the share request must be approved by a PI of your research group first.
         </p>
-        {isLoading || isPendingLoading ? <p>Loading..</p> :
-            consortiumTags.map(consortium_tag => {
-                const isShared = sharedConsortiums.includes(consortium_tag)
-                const isPending = isPendingInConsortium(consortium_tag)
-                return <div key={consortium_tag} className="flex justify-between align-center margin--little">
-                    <ConsortiumTagWithText tag={consortium_tag} />
-                    <Button
-                        small={true}
-                        intent={isShared ? "danger" : isPending ? "warning" : "primary"}
-                        text={isShared ? "Remove share" : isPending ? "Pending approval" : "Share"}
-                        disabled={isPending}
-                        onClick={() => handleToggleShare(consortium_tag)} />
-                </div>
-            })}
+        {isConsortiumsLoading || isPendingLoading ? <p>Loading..</p> :
+            consortiumTags.map(consortium_tag => <ConsortiumShare
+                key={consortium_tag}
+                consortium_tag={consortium_tag}
+                submission_tag={submission_tag}
+                pendingRequests={_.isArray(pendingRequests) ? pendingRequests : []}
+                onInvalidate={invalidate} />)}
     </div>
 }

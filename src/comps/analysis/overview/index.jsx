@@ -24,6 +24,7 @@ import { SubmissionProtocolsView } from "./SubmissionProtocolView";
 import { SubmissionViewScore } from "@/comps/submission/view/SubmissionViewScore";
 import { ExportMarkdownButton } from "./ExportMarkdown";
 import { ConsortiumShares } from "@/comps/submission/view/ConsortiumShares";
+import { ConsortiumShareStatus } from "@/comps/submission/view/ConsortiumShareStatus";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
@@ -51,6 +52,9 @@ function SubmissionOverview() {
                 
                 <div className="margin-top--little">
                     <StateIndicator submission_tag={submission_tag}/>
+                </div>
+                <div className="margin-top--little">
+                    <ConsortiumShareStatus submission_tag={submission_tag}/>
                 </div>
                 
                 <AuthorList {...{
