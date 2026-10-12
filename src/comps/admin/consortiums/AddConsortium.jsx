@@ -5,6 +5,7 @@ import { titleFormat } from "@/services/format/string";
 import { api } from "@/api";
 
 const consortium_input = ["text", "abbreviation", "email", "profile_text", "url"]
+const consortium_required_input = ["text", "abbreviation", "email"]
 
 /**
  * @description Dialog to define a new consortium.
@@ -22,12 +23,11 @@ export function AddConsortiumDialog({ isOpen, onClose }) {
     }
 
     const handleAdd = () => {
-        _.forEach(consortium_input, inputKey => {
-            if (!_.has(consortium, inputKey) || !_.isString(consortium[inputKey]) || consortium[inputKey].length === 0) {
-                alert(`Please enter a valid ${titleFormat(inputKey)}.`)
-                return
-            }
-        })
+        const invalidInput = _.find(consortium_required_input, inputKey => !_.has(consortium, inputKey) || !_.isString(consortium[inputKey]) || consortium[inputKey].length === 0)
+        if (_.isString(invalidInput)) {
+            alert(`Please enter a valid ${titleFormat(invalidInput)}.`)
+            return
+        }
         mutate({ consortium }, { onSuccess: () => { alert("Consortium added successfully."); onClose() } })
     }
 
