@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import { copyTextToClipboard } from "../../../services/clipboard"
 import { useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
+import { RequestConsortiumShareButton } from "@/comps/submission/view/RequestConsortiumShareButton"
 
 import { api } from "@/api";
 
@@ -38,6 +39,7 @@ export function QuickAccessBar({ submission_tag }) {
     return (
         <div className="flex flex-column" style={{alignItems:"flex-end",paddingRight:"0.5rem"}}>
             <div className="flex">
+            <RequestConsortiumShareButton submission_tag={submission_tag} />
             <TooltipButton icon="tag" content="Copy submission tag" onClick={() => {
                     copyTextToClipboard(submission_tag)
                     setMsg("Tag copied!")
