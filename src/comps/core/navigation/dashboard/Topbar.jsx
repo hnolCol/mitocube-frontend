@@ -12,6 +12,7 @@ import { Link } from "react-router"
 import { TermsOfUse } from "../../documents/TermsOfUse"
 import { api } from "@/api"
 import { PendingConsortiumShareRequestButton } from "../../base/user/PendingConsortiumShareRequestButton"
+import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
 
 /**
  * 
@@ -67,6 +68,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <Link to="/index"><Header text={backendInfoIsSucces ? backendInfo.app_name : null} /></Link>
             </div>
             <div className="flex">
+                <ConsortiumShareDecisionsButton />
                 <PendingConsortiumShareRequestButton />
                 <div className="flex flex-column justify-center">
                     <Code>role: {userRole}</Code>
