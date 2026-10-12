@@ -5,6 +5,7 @@ import { api } from "@/api";
 import { CreatedAt } from "@/comps/core/metrics/CreatedAt";
 import { ResearchGroupUsersCount } from "./ResearchGroupUsersCount";
 import { ResearchGroupSubmissionsCount } from "./ResearchGroupSubmissionCount";
+import { ResearchGroupPI } from "./ResearchGroupPI";
 
 export function ResearchGroupItem({ tag, setEditUsersDialog, setEditDialog }) {
     
@@ -29,6 +30,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog, setEditDialog }) {
                         <span>{research_group.address}</span>
                         <span>Link : <a href={research_group.url} target="_blank" rel="noopener noreferrer">{research_group.url}</a></span>
                     </div>
+                    <ResearchGroupPI tag={tag} onAddPI={() => setEditDialog(prevValues => { return { ...prevValues, isOpen: true, tag } })} />
                     
                     </div> 
                 <div className="flex">
