@@ -4,7 +4,7 @@ import { addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 import { motion } from "framer-motion"
 import { ResearchGroupItem } from "./ResearchGroupItem"
 
-export function ResearchGroupContainer({ tags, updateResearchGroupList, setEditUsersDialog }) {
+export function ResearchGroupContainer({ tags, updateResearchGroupList, setEditUsersDialog, setEditDialog }) {
 
   const [showDetailTags, setShowDetailsTags] = useState([])
 
@@ -25,7 +25,7 @@ return (
                     onClick={(e) => handleClick(e, tag)}
                     style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%" }}
                 >
-                    <ResearchGroupItem tag={tag} setEditUsersDialog={setEditUsersDialog} />
+                    <ResearchGroupItem tag={tag} setEditUsersDialog={setEditUsersDialog} setEditDialog={setEditDialog} />
                 </motion.button>
             </div>
         )) : null}

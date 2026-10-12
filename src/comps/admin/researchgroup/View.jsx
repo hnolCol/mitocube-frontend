@@ -7,7 +7,7 @@ import useDebounce from "../../../hooks/useDebounce"
 
 const LIMIT_OPTIONS = [20, 50, 100, 200]
 
-export function ResearchGroupView({ refetchTrigger, setEditUsersDialog }) {
+export function ResearchGroupView({ refetchTrigger, setEditUsersDialog, setEditDialog }) {
     const [limit, setLimit] = useState(20)
     const [searchString, setSearchString] = useState("")
     const debounced = useDebounce(searchString, 300)
@@ -44,6 +44,7 @@ export function ResearchGroupView({ refetchTrigger, setEditUsersDialog }) {
                 tags={research_group_tags}
                 updateResearchGroupList={refetch}
                 setEditUsersDialog={setEditUsersDialog}
+                setEditDialog={setEditDialog}
             />
         </div>
     )

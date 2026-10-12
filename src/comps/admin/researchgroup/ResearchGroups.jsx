@@ -3,6 +3,7 @@ import { AddResearchGroupDialog } from "./AddGroup";
 import { useState } from "react";
 import { ResearchGroupView } from "./View";
 import { EditResearchGroupUsersDialog } from "./EditGroupUsers";
+import { EditResearchGroupDialog } from "./EditGroup";
 
 
 /**
@@ -13,6 +14,7 @@ export function AdminResearchGroup({ }) {
     const [refetchTrigger, setRefetchTrigger] = useState(undefined)
     const [isAddDialogOpen, setIsOpen] = useState(false)
     const [editUsersDialog, setEditUsersDialog] = useState({ isOpen: false, tag: undefined, title: undefined })
+    const [editDialog, setEditDialog] = useState({ isOpen: false, tag: undefined })
     
     const handleAddDialogClose = () => {
         setIsOpen(false)
@@ -28,6 +30,10 @@ export function AdminResearchGroup({ }) {
             tag={editUsersDialog.tag}
             title={editUsersDialog.title}
             onClose={() => setEditUsersDialog({ isOpen: false, tag: undefined, title : undefined })} />
+        <EditResearchGroupDialog
+            isOpen={editDialog.isOpen}
+            tag={editDialog.tag}
+            onClose={() => setEditDialog({ isOpen: false, tag: undefined })} />
 
         <h2>Research Groups</h2>
 
@@ -36,6 +42,6 @@ export function AdminResearchGroup({ }) {
             onClick={() => setIsOpen(prevValue => !prevValue)}
             icon={"plus"} />
         
-        <ResearchGroupView refetchTrigger={refetchTrigger} setEditUsersDialog={setEditUsersDialog} />
+        <ResearchGroupView refetchTrigger={refetchTrigger} setEditUsersDialog={setEditUsersDialog} setEditDialog={setEditDialog} />
     </div>
 }

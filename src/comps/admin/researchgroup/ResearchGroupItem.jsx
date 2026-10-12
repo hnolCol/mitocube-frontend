@@ -6,7 +6,7 @@ import { CreatedAt } from "@/comps/core/metrics/CreatedAt";
 import { ResearchGroupUsersCount } from "./ResearchGroupUsersCount";
 import { ResearchGroupSubmissionsCount } from "./ResearchGroupSubmissionCount";
 
-export function ResearchGroupItem({ tag, setEditUsersDialog }) {
+export function ResearchGroupItem({ tag, setEditUsersDialog, setEditDialog }) {
     
     const { data: research_group, isSuccess, isLoading, isFetching } = api.researchgroups.useGetResearchGroupByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     return (<div className="div--round padding--medium" style={{ backgroundColor: "#fefefe", width: "100%" }}>
@@ -14,6 +14,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
     {isSuccess && _.isObject(research_group) ?<ContextMenu content={<Menu>
             <MenuItem text={`${research_group.text}`} disabled />
             <MenuDivider />
+            <MenuItem text="Edit" label="" onClick={() => setEditDialog(prevValues => { return { ...prevValues, isOpen: true, tag } })} />
             <MenuItem text="Edit users" label="" onClick={() => setEditUsersDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit users for ${research_group.name}.` } })} />
             <MenuItem text="Block all users" label="" disabled />
             <MenuItem text="Delete" intent="danger" label="" disabled/>
