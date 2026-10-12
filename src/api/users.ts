@@ -10,7 +10,6 @@ export const userCoreAPI = hooks.users.createCoreUsersAPI(apiClient);
 export const userEditAPI = hooks.users.createEditUserAPI(apiClient);
 
 import { useMutation } from "@tanstack/react-query";
-import { apiClient } from "./client";
 
 async function postUserWithGroupTags_API({ firstname, lastname, email, role, research_group_tags, institute }) {
     const res = await apiClient.post('/users', { firstname, lastname, email, role, research_group_tags, institute })

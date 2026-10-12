@@ -40,14 +40,14 @@ function PCAPlot({
     const pcaResultsValid = _.isObject(pcaresults) && _.isArray(pcaresults.drivers) && _.isArray(pcaresults.projection);
     const numericKeyNames = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.drivers) : [];
     const numericKeyNamesProjection = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.projection) : [];
-
     useEffect(() => {
+        
         if (!_.isObject(pcaresults) && !isPCALoading) return;
         setSelection({
             xaxisName: numericKeyNames[0],
             yaxisName: numericKeyNames[1],
             tooltipNames: [],
-            colorName: undefined,
+            colorName: attribute_tags[0],
         });
     }, [_.isObject(pcaresults)]);
 

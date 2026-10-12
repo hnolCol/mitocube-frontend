@@ -62,9 +62,8 @@ const ScatterLegend = React.memo(
         colorLimit = {},
         sizeLimit = {},
         colorNameIsAttribute = false,
-        sizeNameIsAttribute = false,
-        colorNameIsGenotype = false,
-        sizeNameIsGenotype = false}) {
+        sizeNameIsAttribute = false })
+    {
     
         const {
             tooltipData,
@@ -78,8 +77,7 @@ const ScatterLegend = React.memo(
 
     const { data: colorAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute, staleTime: Infinity })
     const { data: sizeAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute, staleTime: Infinity })
-
-        
+    
 
     /**
      * 
@@ -124,9 +122,7 @@ const ScatterLegend = React.memo(
                         <LegendOrdinal scale={colorScale}>
                             {(labels) => labels.map((label, idx) => {   
                                 if (idx > 25) return null 
-                                // const attributeValues = findAttributeValues(colorAttribute,label.text)
-                                // if (attributeValues.length === 0) return null d
-                                // const label = getLegendLabelFromAttributeValues(colorAttribute, attributeValues)
+                               
                                 return (
 
                                     <LegendItem key={`${idx}-${label.text}-colorcat`}
@@ -153,12 +149,10 @@ const ScatterLegend = React.memo(
                     </LegendLinear></div> : null}
                 {_.has(sizeScale,"domain")?_.isString(sizeName) && _.isString(data[0][sizeName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
-                        <h4>{"SIZE ATTR"}</h4>
+                        <h4>{_.isObject(sizeAttribute) && _.isString(sizeAttribute.text) ? sizeAttribute.text : ""}</h4>
                         <LegendOrdinal scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {  
-                                // const attributeValues = findAttributeValues(sizeAttribute,label.text)
-                                // if (attributeValues.length === 0) return null 
-                                // const label = getLegendLabelFromAttributeValues(sizeAttribute, attributeValues)
+                              
                                 if (idx > 25) return null 
                                 return (
                                         <LegendItem key={`${idx}-${label}-sizecat`} onMouseEnter={() => filterDataInKeyByValue(chartIdx, sizeName, label.datum)}> 
@@ -169,7 +163,7 @@ const ScatterLegend = React.memo(
                             })}
                         </LegendOrdinal></div> :
                         <div className="margin-left--little">
-                        <h4>{"SIZE ATTR"}</h4>
+                        <h4>{_.isObject(sizeAttribute) && _.isString(sizeAttribute.text) ? sizeAttribute.text : ""}</h4>
                         <LegendSize scale={sizeScale}>
                             {(labels) => labels.map((label, idx) => {
                                 if (idx > 25) return null 
@@ -185,18 +179,6 @@ const ScatterLegend = React.memo(
 
             </div>
                 
-            {tooltipOpen && _.isObject(tooltipData) ?
-                <Tooltip top={tooltipTop} left={tooltipLeft} key={Math.random()}>
-                    <div>{tooltipData.attributeValues.map(attributeValue => <div>
-                        <h4>{tooltipData.has_features_value ? attributeValue.gene_names : attributeValue.text }</h4>
-                        <div style={{ maxWidth: "min(33vw,400px)" }}>
-                            <p>{tooltipData.has_features_value ? attributeValue.tag: null}</p>
-                            {tooltipData.has_features_value ? attributeValue.protein_name : attributeValue.description}
-                        </div>
-                    </div>)}
-                    </div>
-            </Tooltip> : null}
-
         </div>
     )
     }, areEqual)

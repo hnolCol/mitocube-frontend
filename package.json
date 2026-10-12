@@ -26,6 +26,7 @@
     "@visx/gradient": "^3.0.0",
     "@visx/grid": "^3.0.1",
     "@visx/group": "^3.0.0",
+    "@visx/heatmap": "^4.0.0",
     "@visx/hierarchy": "^3.0.0",
     "@visx/legend": "^3.0.0",
     "@visx/network": "^3.3.0",

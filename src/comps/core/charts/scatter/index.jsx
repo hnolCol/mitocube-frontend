@@ -706,7 +706,6 @@ export function ScatterPlot({
                                     if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
                                     if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
                                     
-                                    
                                     return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
                                     
 
@@ -737,7 +736,8 @@ export function ScatterPlot({
                     resetSearchIdcs,
                     sizeLimit: limits[sizeName],
                     colorLimit: limits[colorName],
-                    colorNameIsAttribute : true,
+                    colorNameIsAttribute: true,
+                    sizeNameIsAttribute: true,
                 }} /> : <TextScatterLegend
                     {...{
                         chartIdx,
