@@ -5,6 +5,7 @@ import { api } from "@/api";
 import ResultChart from "../../protein/charts/resultCard/chart";
 import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
+import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
@@ -76,36 +77,99 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
     );
 }
 
-export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw" }) {
-        // build a simple initial layout (you can adjust sizing/positions as needed)
-        const initialLayouts = feature_tags.map((ft, i) => ({
-            i: `${ft}-${i}-${submission_tags[i]}`,
-            x: (i % 6) * 2,
-            y: Math.floor(i / 6) * 6,
-            w: 2,
-            h: 2,
-        }));
-    
-    const COLS_LG = 8;
-    const ITEM_W = 2;
-    const ITEM_H = 2;
-    const itemsPerRow = Math.floor(COLS_LG / ITEM_W); // 4
-    const colsByBreakpoint = { lg: 8, md: 7, sm: 6, xs: 3 };
+const COLS_LG = 8;
+const ITEM_W = 2;
+const ITEM_H = 2;
+const colsByBreakpoint = { lg: 8, md: 7, sm: 6, xs: 3 };
 
-    function buildLayout(cols) {
+function buildLayout(feature_tags, submission_tags, cols) {
+    const perRow = Math.max(1, Math.floor(cols / ITEM_W));
+    return feature_tags.map((ft, i) => ({
+        i: `${ft}-${i}-${submission_tags[i]}`,
+        x: (i % perRow) * ITEM_W,
+        y: Math.floor(i / perRow) * ITEM_H,
+        w: ITEM_W,
+        h: ITEM_H,
+    }));
+}
+
+function buildLayouts(feature_tags, submission_tags) {
+    return Object.fromEntries(
+        Object.entries(colsByBreakpoint).map(([bp, cols]) => [bp, buildLayout(feature_tags, submission_tags, cols)])
+    );
+}
+
+function mergeLayouts(prevLayouts, feature_tags, submission_tags) {
+    const nextLayouts = {};
+    for (const bp of Object.keys(colsByBreakpoint)) {
+        const cols = colsByBreakpoint[bp];
+        const prevItems = _.keyBy(_.get(prevLayouts, bp, []), "i");
         const perRow = Math.max(1, Math.floor(cols / ITEM_W));
-        return feature_tags.map((ft, i) => ({
-            i: `${ft}-${i}-${submission_tags[i]}`,
-            x: (i % perRow) * ITEM_W,
-            y: Math.floor(i / perRow) * ITEM_H,
-            w: ITEM_W,
-            h: ITEM_H,
-        }));
+        nextLayouts[bp] = feature_tags.map((ft, i) => {
+            const id = `${ft}-${i}-${submission_tags[i]}`;
+            const prev = prevItems[id];
+            if (prev) return { ...prev, i: id };
+            return {
+                i: id,
+                x: (i % perRow) * ITEM_W,
+                y: Math.floor(i / perRow) * ITEM_H,
+                w: ITEM_W,
+                h: ITEM_H,
+            };
+        });
+    }
+    return nextLayouts;
+}
+
+const LAYOUTS_STORAGE_KEY = "featureDataGridLayouts";
+
+function loadStoredLayouts(storageKey) {
+    if (!_.isString(storageKey)) return null;
+    try {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: LAYOUTS_STORAGE_KEY, parseJson: true });
+        if (!itemFound || !_.isObject(itemValue)) return null;
+        const stored = itemValue[storageKey];
+        if (!_.isObject(stored)) return null;
+        return stored;
+    } catch (error) {
+        console.error("Error loading grid layouts from localStorage:", error);
+        return null;
+    }
+}
+
+function saveStoredLayouts(storageKey, layouts) {
+    if (!_.isString(storageKey)) return;
+    try {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: LAYOUTS_STORAGE_KEY, parseJson: true });
+        const all = itemFound && _.isObject(itemValue) ? itemValue : {};
+        all[storageKey] = layouts;
+        saveInLocalStorage({ itemName: LAYOUTS_STORAGE_KEY, itemValue: JSON.stringify(all) });
+    } catch (error) {
+        console.error("Error saving grid layouts to localStorage:", error);
+    }
+}
+
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey }) {
+    const [layouts, setLayouts] = useState(() => {
+        const stored = loadStoredLayouts(layoutStorageKey);
+        return stored ? mergeLayouts(stored, feature_tags, submission_tags) : buildLayouts(feature_tags, submission_tags);
+    });
+
+    const tagsKey = feature_tags.join("|") + "#" + submission_tags.join("|");
+    const layoutsRef = useRef(layouts);
+    layoutsRef.current = layouts;
+    const tagsKeyRef = useRef(tagsKey);
+    if (tagsKeyRef.current !== tagsKey) {
+        tagsKeyRef.current = tagsKey;
+        const merged = mergeLayouts(layoutsRef.current, feature_tags, submission_tags);
+        layoutsRef.current = merged;
+        setLayouts(merged);
     }
 
-    const layouts = Object.fromEntries(
-        Object.entries(colsByBreakpoint).map(([bp, cols]) => [bp, buildLayout(cols)])
-    );
+    const handleLayoutChange = (_layout, allLayouts) => {
+        setLayouts(allLayouts);
+        saveStoredLayouts(layoutStorageKey, allLayouts);
+    };
     return <div>
         <h3>Feature Plots</h3>
         <div className="flex">
@@ -128,6 +192,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                             isDraggable={true}
                             measureBeforeMount={false}
                             useCSSTransforms={true}
+                            onLayoutChange={handleLayoutChange}
                         >
                             {feature_tags.map((feature_tag, i) => {
                                 const itemKey = `${feature_tag}-${i}-${submission_tags[i]}`;
