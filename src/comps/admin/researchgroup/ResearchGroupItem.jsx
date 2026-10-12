@@ -5,8 +5,9 @@ import { api } from "@/api";
 import { CreatedAt } from "@/comps/core/metrics/CreatedAt";
 import { ResearchGroupUsersCount } from "./ResearchGroupUsersCount";
 import { ResearchGroupSubmissionsCount } from "./ResearchGroupSubmissionCount";
+import { ResearchGroupPI } from "./ResearchGroupPI";
 
-export function ResearchGroupItem({ tag, setEditUsersDialog }) {
+export function ResearchGroupItem({ tag, setEditUsersDialog, setEditDialog }) {
     
     const { data: research_group, isSuccess, isLoading, isFetching } = api.researchgroups.useGetResearchGroupByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     return (<div className="div--round padding--medium" style={{ backgroundColor: "#fefefe", width: "100%" }}>
@@ -14,6 +15,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
     {isSuccess && _.isObject(research_group) ?<ContextMenu content={<Menu>
             <MenuItem text={`${research_group.text}`} disabled />
             <MenuDivider />
+            <MenuItem text="Edit" label="" onClick={() => setEditDialog(prevValues => { return { ...prevValues, isOpen: true, tag } })} />
             <MenuItem text="Edit users" label="" onClick={() => setEditUsersDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit users for ${research_group.name}.` } })} />
             <MenuItem text="Block all users" label="" disabled />
             <MenuItem text="Delete" intent="danger" label="" disabled/>
@@ -28,6 +30,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog }) {
                         <span>{research_group.address}</span>
                         <span>Link : <a href={research_group.url} target="_blank" rel="noopener noreferrer">{research_group.url}</a></span>
                     </div>
+                    <ResearchGroupPI tag={tag} onAddPI={() => setEditDialog(prevValues => { return { ...prevValues, isOpen: true, tag } })} />
                     
                     </div> 
                 <div className="flex">
