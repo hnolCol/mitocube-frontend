@@ -10,11 +10,42 @@ import { Attribute } from "@/comps/core/base/attributes/Attribute";
 import { Tooltip } from "@blueprintjs/core";
 import { AnnotationSelection } from "@/comps/core/charts/selections/AnnotationSelection";
 import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu";
+import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage";
 
 const OPTIONS = ["All", "Protein Groups", "Precursors"];
 const LIMITS = [20, 100, 200, 500];
 // Use a separator that won't conflict with ";" in tags, e.g. "|"
 const TAGS_SEPARATOR = "|";
+const SELECTED_TAGS_STORAGE_KEY = "featureDataSelectedTags";
+
+function getStoredProteinGroupTags(submission_tag) {
+    if (!_.isString(submission_tag)) return [];
+    try {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: SELECTED_TAGS_STORAGE_KEY, parseJson: true });
+        if (!itemFound || !_.isObject(itemValue)) return [];
+        const stored = itemValue[submission_tag];
+        return _.isArray(stored) ? stored.filter(_.isString) : [];
+    } catch (error) {
+        console.error("Error loading selected tags from localStorage:", error);
+        return [];
+    }
+}
+
+function storeProteinGroupTags(submission_tag, tags) {
+    if (!_.isString(submission_tag)) return;
+    try {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: SELECTED_TAGS_STORAGE_KEY, parseJson: true });
+        const all = itemFound && _.isObject(itemValue) ? itemValue : {};
+        if (_.isEmpty(tags)) {
+            delete all[submission_tag];
+        } else {
+            all[submission_tag] = tags;
+        }
+        saveInLocalStorage({ itemName: SELECTED_TAGS_STORAGE_KEY, itemValue: JSON.stringify(all) });
+    } catch (error) {
+        console.error("Error saving selected tags to localStorage:", error);
+    }
+}
  
 
 const metrics_labels = {
@@ -79,11 +110,11 @@ export function DatasetFeatureView() {
     const selectedAnnotationTag = searchParams.get("annotation_tag") || null;
     const selected_annotation_tags = selectedAnnotationTag ? [selectedAnnotationTag] : [] 
     
-    // Parse protein_group_tags from URL
+    // Parse protein_group_tags from URL, or restore the last stored selection for this submission
     const proteinGroupTagsString = searchParams.get("protein_group_tags") || "";
     const proteinGroupTags = proteinGroupTagsString
         ? proteinGroupTagsString.split(TAGS_SEPARATOR).filter(Boolean)
-        : [];
+        : getStoredProteinGroupTags(submission_tag);
     // Handlers to update URL params
     const updateParam = (key, value) => {
         const newParams = new URLSearchParams(searchParams);
@@ -101,6 +132,7 @@ export function DatasetFeatureView() {
     const updateProteinGroupTags = (tags) => {
         const value = tags.length > 0 ? tags.join(TAGS_SEPARATOR) : "";
         updateParam("protein_group_tags", value);
+        storeProteinGroupTags(submission_tag, tags);
     };
 
     return (
@@ -204,7 +236,7 @@ export function DatasetFeatureView() {
 
                 {/* Column 2: FeatureDataView only */}
                 <div style={{marginLeft : "2rem"}}>
-                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} metrics={selectedMetrics} onRemove={(tag) => {
+                    <FeatureDataView feature_tags={proteinGroupTags} submission_tags={proteinGroupTags.map(_ => submission_tag)} showTitle={false} metrics={selectedMetrics} layoutStorageKey={submission_tag} onRemove={(tag) => {
                         updateProteinGroupTags(addStringToArrayOrRemove({ array: proteinGroupTags, string: tag }));
                     }} />
                 </div>
