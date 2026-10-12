@@ -17,6 +17,7 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Proteomes", to: "/admin/proteomes" },
                 // { text: "Filter sets", to: "/admin/sets" },
                 { text: "Research Group", to: "/admin/researchgroup" },
+                { text: "Consortiums", to: "/admin/consortiums" },
                 { text: "Phenotype", to: "/admin/phenotypes"},
                 // { text: "ShareToken", to: "/admin/sharetoken" },
                 { text: "Symptoms", to: "/admin/symptoms"},

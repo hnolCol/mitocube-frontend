@@ -71,6 +71,7 @@ import AdminHeader from "./comps/admin";
 import { AdminGenotypes } from "./comps/admin/genotypes/Genotypes";
 import { AdminProteomes } from "./comps/admin/proteomes/Proteomes";
 import { AdminResearchGroup } from "./comps/admin/researchgroup/ResearchGroups";
+import { AdminConsortium } from "./comps/admin/consortiums/Consortiums";
 import { UsersAdminView } from "./comps/admin/users/index";
 import { UserView } from "./comps/admin/users/View";
 import { AttributesAdminView } from "./comps/admin/attributes/index";
@@ -347,6 +348,7 @@ function App() {
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
             {/* <Route path="/admin/sets" element={<AdminFilterSets />} /> */}
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
+            <Route path="/admin/consortiums" element={<AdminConsortium />} />
             <Route path="/admin/phenotypes" element={<AdminPhenotypeAssociations />} />
             <Route path="/admin/symptoms" element={<AdminSymptoms />} />
             <Route path="/admin/spareparts" element={<AdminSparepart />} />
