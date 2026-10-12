@@ -1,15 +1,17 @@
 import _ from "lodash"
-import { Tag } from "@blueprintjs/core"
+import { Tag, Tooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { ConsortiumText } from "./ConsortiumText"
 
 /**
- * @description Renders the shared status badge of one consortium for a submission.
+ * @description Renders the share status badge of one consortium for a submission. Hovering the
+ * badge shows the consortium and its share status. Renders nothing if the submission is neither
+ * shared with nor pending for the consortium.
  * @param {Object} props
  * @param {String} props.tag Consortium tag
  * @param {String} props.submission_tag Submission tag
  * @param {Boolean} props.isPending True if a share request for this consortium is pending PI approval
- * @returns {JSX.Element} The share status tag.
+ * @returns {JSX.Element|null} The share status tag with tooltip.
  */
 function ConsortiumShareStatusTag({ tag, submission_tag, isPending }) {
     const { data: submission_tags, isSuccess } = api.consortiums.useGetConsortiumSubmissions(
@@ -17,20 +19,26 @@ function ConsortiumShareStatusTag({ tag, submission_tag, isPending }) {
     )
     const isShared = isSuccess && _.isArray(submission_tags) && submission_tags.includes(submission_tag)
     if (!isShared && !isPending) return null
-    return <Tag
-        minimal={true}
-        round={true}
-        intent={isPending ? "warning" : "success"}
-        icon={isPending ? "time" : "endorsed"}>
-        <ConsortiumText tag={tag} />
-        {isPending ? " : share pending PI approval" : " : shared with consortium"}
-    </Tag>
+    return <Tooltip
+        content={<div className="flex flex-column" style={{ gap: "0.1rem" }}>
+            <span><ConsortiumText tag={tag} /></span>
+            <span>{isPending ? "Share pending PI approval" : "Submission is shared with this consortium"}</span>
+        </div>}
+        placement="bottom">
+        <Tag
+            minimal={true}
+            round={true}
+            intent={isPending ? "warning" : "success"}
+            icon={isPending ? "time" : "endorsed"}>
+            {isPending ? "Pending share approval" : "Shared with consortium"}
+        </Tag>
+    </Tooltip>
 }
 
 /**
  * @description Indicates on the submission overview if the submission is shared with a
- * consortium or if a share request is pending approval by a PI. Renders nothing if the
- * submission is neither shared nor pending.
+ * consortium or if a share request is pending approval by a PI. Hovering a badge shows the
+ * consortium it refers to. Renders nothing if the submission is neither shared nor pending.
  * @param {Object} props
  * @param {String} props.submission_tag Submission tag
  * @returns {JSX.Element|null} The consortium share status indicators.
