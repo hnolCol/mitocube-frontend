@@ -16,29 +16,15 @@ export function AddResearchGroupDialog({ isOpen, onClose }) {
     const { mutate: postResearchGroupHead, isPending: addHeadIsPending } = api.researchgroups.usePostResearchGroupHead()
     const [researchGroup, setResearchGroup] = useState()
     const [piUserTag, setPiUserTag] = useState(undefined)
-    const { refetch: findResearchGroupTags } = api.researchgroups.useGetResearchGroupsByQuery(
-        { search_string: researchGroup?.text, limit: 200 },
-        { enabled: false }
-    )
     
     const onChange = (key,value) => {
         setResearchGroup(prevValues => {return{...prevValues,[key] : value}}) 
     }
 
     /**
-     * @description Resolves the tag of the newly created research group by searching for its
-     * exact text. The tag is only returned if the match is unambiguous.
-     * @returns {Promise<String|undefined>} The research group tag.
-     */
-    const resolveResearchGroupTag = async () => {
-        const { data: research_group_tags } = await findResearchGroupTags()
-        if (!_.isArray(research_group_tags) || research_group_tags.length !== 1) return undefined
-        return research_group_tags[0]
-    }
-
-    /**
      * @description Adds the selected PI (head) to the newly created research group. The user is
-     * first added as a member (required by the backend) and then made a head (PI).
+     * first added as a member (required by the backend) and then made a head (PI). Requires the
+     * backend POST /researchgroups endpoint to return the tag of the created research group.
      * @param {String} tag Research group tag
      * @returns {Promise} Resolves when the PI was added or no PI was selected.
      */
@@ -58,15 +44,15 @@ export function AddResearchGroupDialog({ isOpen, onClose }) {
             alert(`Please enter a valid ${titleFormat(invalidInput)}.`)
             return
         }  
-        mutate(researchGroup, {onSuccess : async () => {
+        mutate(researchGroup, {onSuccess : async (tag) => {
+            if (!_.isString(tag)) {
+                alert("Research group added successfully, but the backend did not return its tag. The PI cannot be set automatically. Please set the PI via Edit.")
+                onClose()
+                return
+            }
             try {
-                const tag = await resolveResearchGroupTag()
-                if (_.isString(tag)) {
-                    await addPIOnCreation(tag)
-                    alert("Research group added successfully.")
-                } else {
-                    alert("Research group added successfully. The PI could not be set automatically because the research group tag could not be resolved unambiguously. Please set the PI via Edit.")
-                }
+                await addPIOnCreation(tag)
+                alert("Research group added successfully.")
             } catch (piError) {
                 alert(`Research group added, but the PI could not be set: ${piError.message}. Please set the PI via Edit.`)
             }
