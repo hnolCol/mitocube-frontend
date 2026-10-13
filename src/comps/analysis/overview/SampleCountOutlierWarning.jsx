@@ -1,5 +1,6 @@
 import { api } from "@/api";
 import _ from "lodash";
+import { useNavigate } from "react-router";
 
 /**
  * Shows a warning below the sample count when quantification data exists and
@@ -12,6 +13,7 @@ import _ from "lodash";
  * @returns {JSX.Element|null}
  */
 export function SampleCountOutlierWarning({ submission_tag }) {
+    const navigate = useNavigate();
     const { data: quantificationExists } = api.submissions.quantifications.useGetSubmissionQuantificationExists(
         { tag: submission_tag, quantification_type: "protein_groups" },
         { staleTime: 60000, enabled: _.isString(submission_tag) }
@@ -54,7 +56,13 @@ export function SampleCountOutlierWarning({ submission_tag }) {
             {outliers.length === 1 ? "1 sample has" : `${outliers.length} samples have`} a protein group count
             strongly deviating from the cohort median ({_.round(cohortMedian)}).{" "}
             {outliers.slice(0, 3).map((o) => o.tag).join(", ")}
-            {outliers.length > 3 ? `, …` : ""} — consider checking the QC tab and excluding outlier samples.
+            {outliers.length > 3 ? ", …" : ""}{" "}
+            <a
+                onClick={() => navigate(`/submissions/${submission_tag}/qc`)}
+                style={{ color: "#b5560c", fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
+            >
+                Details
+            </a>
         </span>
     );
 }
