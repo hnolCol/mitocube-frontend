@@ -44,7 +44,7 @@ const QUANTIFICATION_TYPES = {
         uploadHook: () => api.submissions.quantifications.usePostPrecursorQuantification(),
         existsType: null,
         showSampleTagCopy: true,
-        updateStatsAfterUpload: false,
+        updateStatsAfterUpload: true,
         requiredColumns: [
             { key: "sample_tag", label: "Sample Tag" },
             { key: "peptide_tag", label: "Stripped Sequence" },
