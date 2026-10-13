@@ -31,7 +31,7 @@ function DatasetPrecursors() {
     const selectedLimit = 50;
 
     const { data: hasPrecursors, isLoading: hasPrecursorsLoading } = api.submissions.analysis.useGetSubmissionHasPrecursors(
-        { tag: submission_tag },
+        { submission_tag: submission_tag },
         { enabled: _.isString(submission_tag), staleTime: Infinity }
     );
 
@@ -71,9 +71,12 @@ function DatasetPrecursors() {
 
     if (!_.isString(submission_tag)) return null;
 
+    // Check for precursor data first. Only render the protein search once the
+    // existence of precursors is confirmed - otherwise warn the user that there
+    // is nothing to see because no data is available.
     if (hasPrecursorsLoading) return <Loading />;
 
-    if (hasPrecursors === false) {
+    if (hasPrecursors !== true) {
         return (
             <div>
                 <h2>Precursors</h2>
@@ -85,9 +88,11 @@ function DatasetPrecursors() {
                     borderRadius: "5px",
                     border: "1px solid #e9ecef"
                 }}>
+                    <h3>Nothing to see here</h3>
                     <p>No precursor data available for this submission.</p>
                     <p style={{ fontSize: "0.9em" }}>
-                        Precursor quantifications have not been uploaded for submission {submission_tag}.
+                        There is nothing to see because no precursor quantifications have been uploaded
+                        for submission {submission_tag} yet.
                     </p>
                 </div>
             </div>
