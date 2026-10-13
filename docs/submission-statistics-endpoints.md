@@ -58,10 +58,12 @@ Missing (group, year) combinations are simply absent; the chart renders gaps.
 - Access control: reuse the router's existing `Depends(get_user_from_token)` dependency;
   the routes return only aggregate counts (no submission tags), so no per-submission
   `check_submission_access` is needed.
-- Open decision: for submissions whose users span multiple groups, count once per
-  group (current `get_submissions_count` semantics: `[:CREATED|COLLABORATES]`) or
-  attribute to the creator only. Suggest creator-only for A/B to keep sums meaningful,
-  and creator-based for C.
+- Attribution (decided): count submissions via the `[:CREATED]` relationship only,
+  i.e. attribute each submission to its creator and hence to the creator's research
+  group. This means group totals sum to the actual submission count. Note this
+  differs from `ResearchGroup.get_submissions_count`, which traverses
+  `[:CREATED|COLLABORATES]` — do not reuse that method as-is; use the creator-only
+  traversal for these statistics endpoints.
 
 ## Frontend wiring
 
