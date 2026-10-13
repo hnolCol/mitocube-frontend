@@ -72,9 +72,11 @@ export function ConsortiumShares({ submission_tag }) {
     const { data: pendingRequests, isLoading: isPendingLoading } = api.consortiumShareRequests.useGetPendingConsortiumShareRequests(
         {}, { staleTime: 300000, retry: false }
     )
+    console.log(userConsortiums, pendingRequests)
+
     const consortiumTags = _.isArray(userConsortiums) ? userConsortiums : []
     if (!isConsortiumsLoading && consortiumTags.length === 0) return null
-
+    
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
