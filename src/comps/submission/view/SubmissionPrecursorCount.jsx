@@ -4,10 +4,10 @@ import { Loading } from "../../core/base/states/Loading";
 import { motion } from "framer-motion";
 
 
-export function SubmissionPeptideCount({ submission_tag }) {
+export function SubmissionPrecursorCount({ submission_tag, fontColor = "#000000" }) {
 
 
-    const { data : peptide_count, isLoading } = api.submissions.counts.useGetSubmissionPeptideCount({ tag : submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
+    const { data : precursor_count, isLoading } = api.features.precursors.useGetPrecursorCount({ submission_tag }, { enabled: !!submission_tag, staleTime: 60000 });
 
 
     return (
@@ -18,8 +18,8 @@ export function SubmissionPeptideCount({ submission_tag }) {
             className="submission-metric-view"
         >
             <div>
-                <h4>Peptides</h4>
-                {isLoading ? <Loading /> : <span>{peptide_count}</span>}
+                <h4>Precursors</h4>
+                {isLoading ? <Loading /> : <span style={{ color: fontColor }}>{precursor_count}</span>}
             </div>
         </motion.button>
     );
