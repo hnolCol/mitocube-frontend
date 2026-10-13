@@ -24,7 +24,7 @@ import { api } from "@/api"
 import PropTypes from "prop-types"
 import { BaseInput } from "./BaseInput"
 
-function ResearchGroupTitle({ tag }) {
+export function ResearchGroupTitle({ tag }) {
     const { data: rg } = api.researchgroups.useGetResearchGroupByTag(
         { tag },
         { enabled: tag && tag.length > 0 }
