@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { api } from "@/api";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
