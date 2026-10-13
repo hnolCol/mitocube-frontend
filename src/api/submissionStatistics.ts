@@ -3,27 +3,27 @@ import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "./client";
 
 /**
- * Submission statistics endpoints. These are planned backend endpoints
- * (see docs/submission-statistics-endpoints.md) and are not yet served by the
- * API. Each hook fails gracefully until the backend implements the route.
+ * Submission statistics endpoints under /stats/submissions/counts (backend
+ * router src/routers/stats/submissions.py, see docs/submission-statistics-endpoints.md).
+ * All endpoints return flat rows: [{ group, year, value }].
  */
 
 async function getResearchGroupSubmissionCounts_API({ years, state }) {
-    const res = await apiClient.get("/submissions/statistics/research-groups/submission-counts", {
-        params: { years: years ? _.join(years, ";") : undefined, state }
+    const res = await apiClient.get("/stats/submissions/counts/submissions", {
+        params: { group_by: "research_group", years: years ? _.join(years, ";") : undefined, state }
     })
     return res.data
 }
 
 async function getResearchGroupSampleCounts_API({ years, state }) {
-    const res = await apiClient.get("/submissions/statistics/research-groups/sample-counts", {
-        params: { years: years ? _.join(years, ";") : undefined, state }
+    const res = await apiClient.get("/stats/submissions/counts/samples", {
+        params: { group_by: "research_group", years: years ? _.join(years, ";") : undefined, state }
     })
     return res.data
 }
 
 async function getUserSubmissionCounts_API({ years, state, research_group_tags }) {
-    const res = await apiClient.get("/submissions/statistics/users/submission-counts", {
+    const res = await apiClient.get("/stats/submissions/counts/users", {
         params: {
             years: years ? _.join(years, ";") : undefined,
             state,

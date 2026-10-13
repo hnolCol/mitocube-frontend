@@ -1,18 +1,27 @@
 # Submission Statistics — Backend Endpoint Plan
 
-The frontend statistics tab (`src/comps/submission/statistics`) now renders:
+Checked against the backend (`hnolCol/mitocube-backend`, branch `neo4j_comp`):
 
-- A) Submissions per research group with year comparison
-- B) Samples per research group with year comparison
-- C) Submissions per user, subsettable by research group
+- The submissions stats router is `src/routers/stats/submissions.py` with prefix
+  **`/api/stats/submissions`** (currently only `/{submission_tag}/views` and `/durations`).
+- Existing count routes use `/api/submissions/counts/...` (per-submission counts) and
+  `/api/researchgroups/{tag}/submissions/count` (single group).
+- `GET /api/submissions/count?group=state|user|attribute|attribute_value`
+  (`src/routers/submission/submission.py:576`) is the existing precedent for grouped
+  counting, backed by `db.submission_filter.get_counts()`.
 
-All three use a shared grouped bar chart (`src/comps/core/charts/yearcomparison`) that
-encodes **years by opacity** (current year opaque, previous year 45%, older years 20%)
-and **groups (research groups / users) by color**, exactly as requested.
+The new endpoints follow the scheme the backend already uses — statistics live under
+the stats router, grouped counts under `counts`:
+
+```
+GET /api/stats/submissions/counts/submissions   # A) submissions per research group
+GET /api/stats/submissions/counts/samples       # B) samples per research group
+GET /api/stats/submissions/counts/users         # C) submissions per user (research-group subsettable)
+```
 
 ## Data contract
 
-Every endpoint returns a flat array of rows:
+All endpoints return a flat array of rows (this is what the frontend hooks expect):
 
 ```json
 [
@@ -22,81 +31,64 @@ Every endpoint returns a flat array of rows:
 ]
 ```
 
-- `group`: display label. For users endpoints, preferably the full name
-  (the frontend falls back to the raw value if it is a tag).
-- `year`: calendar year of the submission date (integer).
+- `group`: display label (research group text for A/B, user full name for C).
+- `year`: calendar year derived from the submission's `created_at` (integer).
 - `value`: the count.
 
 Missing (group, year) combinations are simply absent; the chart renders gaps.
 
-## Required endpoints
+## Query parameters (all optional)
 
-Base path: `/api`
+- `group_by` (A/B): `research_group` — reserve for later `instrument`, `attribute:{tag}`, etc.
+- `years`: semicolon-separated years, e.g. `2024;2025` — default: all years.
+- `state`: semicolon-separated submission state tags — filter by state.
+- `research_group_tags` (C only): semicolon-separated — restrict to users of these groups.
 
-### 1. Submissions per research group (A)
+## Implementation notes for the backend
 
-```
-GET /submissions/statistics/research-groups/submission-counts
-Query params:
-  - years (optional, semicolon-separated, e.g. `2024;2025`) — restrict to these years, default: all
-  - state (optional, semicolon-separated submission state tags) — filter by submission state
-Response: rows as above, `group` = research group name.
-```
-
-Aggregation: count submissions grouped by (research group of the submitting user, year of submission date).
-If a submission has multiple users from different groups, count it once per group (or deduplicate by
-choosing the group of the submitting/first author — needs a backend decision).
-
-### 2. Samples per research group (B)
-
-```
-GET /submissions/statistics/research-groups/sample-counts
-Query params: same as #1
-Response: rows as above, `value` = number of samples.
-```
-
-Aggregation: sum of `sample_count` per submission grouped by (research group, year).
-
-### 3. Submissions per user, subsettable by research group (C)
-
-```
-GET /submissions/statistics/users/submission-counts
-Query params:
-  - years (optional, semicolon-separated)
-  - state (optional, semicolon-separated)
-  - research_group_tags (optional, semicolon-separated) — restrict to users of these groups
-Response: rows as above, `group` = user full name (or user tag).
-```
-
-Aggregation: count submissions grouped by (user, year). If `research_group_tags` is given,
-only include users that belong to at least one of the given groups.
+- Add the routes to `src/routers/stats/submissions.py` (same router, tag `"Statistics"`).
+- Reuse the Neo4j patterns from `src/lib/database/neo4j/ResearchGroup.py`
+  (`get_submissions_count`, `get_samples_count`, `get_submission_tags`):
+  extend the `MATCH (rg:ResearchGroup)<-[:MEMBER_OF]-(u:User)-[:CREATED]->(s:Submission)`
+  traversal with `RETURN rg.tag AS group, s.created_at.year AS year, count(s) AS value`.
+  For B, traverse further over `[:HAS_SAMPLE]` and `count(sa)`.
+- Suggested DB-layer signature:
+  `db.submission_filter.get_counts_by_year(by : Literal["research_group","user"], years : List[int] = None, state = None, research_group_tags = None) -> pd.DataFrame`
+  mirroring the existing `db.submission_filter.get_counts()` (`src/lib/database/neo4j/Submission.py:1518`).
+- Access control: reuse the router's existing `Depends(get_user_from_token)` dependency;
+  the routes return only aggregate counts (no submission tags), so no per-submission
+  `check_submission_access` is needed.
+- Open decision: for submissions whose users span multiple groups, count once per
+  group (current `get_submissions_count` semantics: `[:CREATED|COLLABORATES]`) or
+  attribute to the creator only. Suggest creator-only for A/B to keep sums meaningful,
+  and creator-based for C.
 
 ## Frontend wiring
 
 The hooks live in `src/api/submissionStatistics.ts` and are registered as
-`api.stats.submissions` in `src/api/index.ts`. They already call the endpoints above,
-so implementing the routes on the backend is enough to light the charts up — no further
-frontend changes needed. While the endpoints are missing, the sections show a
-"Failed to load statistics." message instead of crashing.
+`api.stats.submissions` in `src/api/index.ts`. They already call the three endpoints
+above with the exact paths and params listed here, so implementing the routes lights
+the charts up without further frontend changes. While the endpoints are missing, the
+sections show a "Failed to load statistics." message instead of crashing.
 
 ## D) Suggested further statistics
 
-Prioritized by value vs. implementation cost:
+Prioritized by value vs. implementation cost — all can reuse the same `{group, year, value}`
+contract and the same route family:
 
 1. **Submissions per attribute** (instrument, organ, cell line, genotype, disease …):
-   `GET /submissions/statistics/attributes/{attribute_tag}/submission-counts` — the same
-   grouped year comparison, but `group` = attribute value. High value, since sample
-   attributes are already curated meticulously.
-2. **Submission state funnel**: `GET /submissions/statistics/state-funnel` — count of
-   submissions per state (created → submitted → approved → published), to see where
+   `GET /api/stats/submissions/counts/submissions?group_by=attribute:{attribute_tag}` —
+   the existing `get_counts` already traverses `HAS_VALUES_FOR_ATTRIBUTE`, so the
+   year-bucketed variant is cheap.
+2. **Submission state funnel**: `GET /api/stats/submissions/counts/states` — count of
+   submissions per state (created → submitted → approved → done), shows where
    submissions get stuck.
-3. **Time-to-approval boxplots**: per-year quantiles of (approval date - submission date).
-   The existing duration boxplot could be subset by research group/user.
+3. **Time-to-approval distribution**: per-year quantiles of
+   (approval date − submission date) — extends the existing `/durations` route with
+   `group_by_year` / `group_by_research_group` params.
 4. **Dataset size trends**: quantified protein groups / peptides / samples per year
-   (totals, not per group) — shows platform growth.
-5. **Active users**: distinct submitting users per year (research-group subsettable).
-6. **Instrument utilization by submissions**: which instruments the submissions were run
-   on per year (relates to the performance tab).
-
-All of these can reuse the flat `{ group, year, value }` contract, so the frontend chart
-components need no changes.
+   (totals) — shows platform growth.
+5. **Active users**: distinct submitting users per year (research-group subsettable) —
+   same traversal as C with `count(DISTINCT u)`.
+6. **Instrument utilization by submissions**: submissions per instrument per year
+   (ties into the performance tab).
