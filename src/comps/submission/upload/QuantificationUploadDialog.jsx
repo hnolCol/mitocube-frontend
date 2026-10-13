@@ -4,8 +4,7 @@ import _ from "lodash";
 import { useState } from "react";
 import { api } from "@/api";
 import { useQueryClient } from "@tanstack/react-query";
-import { ProteinQuantificationUploader } from "../../core/base/files/ChunkProteinUploader";
-import { PrecursorQuantificationUploader } from "../../core/base/files/ChunkPrecursorUploader";
+import { QuantificationUploader } from "../../core/base/files/QuantificationUploader";
 import { HIGHLIGHT_COLOR } from "../../core/colors/colorPalette";
 
 const QUANTIFICATION_TYPES = [
@@ -86,11 +85,11 @@ export function QuantificationUploadDialog({ submission_tag }) {
                         {activeType.description}
                     </div>
                     <div style={{ maxHeight: "70vh", overflowY: "auto" }}>
-                        {quantificationType === "protein" ? (
-                            <ProteinQuantificationUploader key="protein" submission_tag={submission_tag} />
-                        ) : (
-                            <PrecursorQuantificationUploader key="precursor" submission_tag={submission_tag} />
-                        )}
+                        <QuantificationUploader
+                            key={quantificationType}
+                            submission_tag={submission_tag}
+                            quantification_type={quantificationType}
+                        />
                     </div>
                 </Dialog>
                 <motion.button
