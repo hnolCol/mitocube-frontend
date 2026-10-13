@@ -1,7 +1,7 @@
 import { Dialog } from "@blueprintjs/core";
 import { motion } from "framer-motion";
 import _ from "lodash";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { api } from "@/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { QuantificationUploader } from "../../core/base/files/QuantificationUploader";
@@ -34,6 +34,28 @@ const QUANTIFICATION_TYPES = [
 export function QuantificationUploadDialog({ submission_tag }) {
     const [isOpen, setOpen] = useState(false);
     const [quantificationType, setQuantificationType] = useState("protein");
+    const [uploadInProgress, setUploadInProgress] = useState(false);
+
+    const confirmWhileUploading = useCallback(
+        (action) => {
+            if (uploadInProgress && !window.confirm("An upload is still in progress. Closing the dialog or navigating away will abort it. Continue?")) {
+                return;
+            }
+            action();
+        },
+        [uploadInProgress]
+    );
+
+    // Warn when the user leaves the page while an upload is running
+    useEffect(() => {
+        if (!uploadInProgress) return;
+        const handler = (e) => {
+            e.preventDefault();
+            e.returnValue = "";
+        };
+        window.addEventListener("beforeunload", handler);
+        return () => window.removeEventListener("beforeunload", handler);
+    }, [uploadInProgress]);
 
     const { data: permissions, isSuccess } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
         { tag: submission_tag },
@@ -45,7 +67,7 @@ export function QuantificationUploadDialog({ submission_tag }) {
 
     const activeType = QUANTIFICATION_TYPES.find((t) => t.key === quantificationType);
 
-    const closeDialog = () => setOpen(false);
+    const closeDialog = () => confirmWhileUploading(() => setOpen(false));
 
     return (
         <div className="flex flex-column" style={{ gap: "0.5rem" }}>
@@ -54,7 +76,7 @@ export function QuantificationUploadDialog({ submission_tag }) {
                     isOpen={isOpen}
                     title={activeType.dialogTitle}
                     onClose={closeDialog}
-                    canEscapeKeyClose={true}
+                    canEscapeKeyClose={!uploadInProgress}
                     canOutsideClickClose={false}
                 >
                     <div style={{ display: "flex", gap: 8, padding: "12px 20px 0 20px" }}>
@@ -63,7 +85,7 @@ export function QuantificationUploadDialog({ submission_tag }) {
                             return (
                                 <button
                                     key={type.key}
-                                    onClick={() => setQuantificationType(type.key)}
+                                    onClick={() => confirmWhileUploading(() => setQuantificationType(type.key))}
                                     style={{
                                         flex: 1,
                                         padding: "8px 12px",
@@ -89,6 +111,7 @@ export function QuantificationUploadDialog({ submission_tag }) {
                             key={quantificationType}
                             submission_tag={submission_tag}
                             quantification_type={quantificationType}
+                            onUploadStatusChange={(status) => setUploadInProgress(status === "uploading")}
                         />
                     </div>
                 </Dialog>

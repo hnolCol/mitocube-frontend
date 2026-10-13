@@ -108,7 +108,7 @@ const formatTime = (seconds) => {
  * @param {string} props.quantification_type - "protein" or "precursor"
  * @returns {JSX.Element}
  */
-export function QuantificationUploader({ submission_tag, quantification_type = "protein" }) {
+export function QuantificationUploader({ submission_tag, quantification_type = "protein", onUploadStatusChange }) {
     const type = QUANTIFICATION_TYPES[quantification_type] || QUANTIFICATION_TYPES.protein;
 
     // State for file and headers
@@ -118,7 +118,14 @@ export function QuantificationUploader({ submission_tag, quantification_type = "
 
     // State for upload progress and control
     const [progress, setProgress] = useState(0);
-    const [uploadStatus, setUploadStatus] = useState("idle"); // idle, uploading, paused, completed, error
+    const [uploadStatus, setUploadStatusState] = useState("idle"); // idle, uploading, paused, completed, error
+    const setUploadStatus = useCallback(
+        (status) => {
+            setUploadStatusState(status);
+            if (onUploadStatusChange) onUploadStatusChange(status);
+        },
+        [onUploadStatusChange]
+    );
     const [totalChunks, setTotalChunks] = useState(0);
     const [uploadedChunks, setUploadedChunks] = useState(0);
     const [failedChunks, setFailedChunks] = useState([]);
