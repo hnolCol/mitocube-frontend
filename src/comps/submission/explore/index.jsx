@@ -1,11 +1,13 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { Button, InputGroup, Spinner } from "@blueprintjs/core"
+import { InputGroup, Spinner } from "@blueprintjs/core"
 import moment from "moment"
 import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
 import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
+import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
+import { Button } from "@blueprintjs/core"
 
 ExploreSubmissionRow.propTypes = {
     submission: PropTypes.object.isRequired,
@@ -44,7 +46,7 @@ function ExploreSubmissionRow({ submission, user_tag }) {
             requested_for_group_tag: _.isString(selectedGroup) ? selectedGroup : undefined
         })
     }
-    return <div className="flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
+    return <div className="explore-submission-row flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
         <div className="flex flex-column">
             <span className="font-size--small font-weight--bold">{submission.title}</span>
             <div className="font-size--smallest">
@@ -55,12 +57,15 @@ function ExploreSubmissionRow({ submission, user_tag }) {
                 <span className="font-size--smallest">{moment.unix(submission.created_at / 1000).format("YYYY-MM-DD")}</span> : null}
         </div>
         <div className="flex">
-            <Button
-                small={true}
-                intent={requested ? "warning" : "primary"}
-                text={requested ? "Pending approval" : "Request collaboration"}
-                disabled={requested}
-                onClick={() => setIsRequestOpen(true)} />
+            {requested ?
+                <span className="font-size--smallest padding--little">Pending approval</span> :
+                <TooltipButton
+                    className="explore-submission-row__request"
+                    intent="primary"
+                    icon="social-media"
+                    small={true}
+                    content="Request collaboration"
+                    onClick={() => setIsRequestOpen(true)} />}
         </div>
         {isRequestOpen ? <CollaborationRequestForm
             submission={submission}

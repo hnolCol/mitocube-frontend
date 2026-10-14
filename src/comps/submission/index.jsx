@@ -9,6 +9,7 @@ function SubmissionHeader({ }) {
         <div className="no-scroll div--expand">
             <Tabs tabs={[
                 { text: "Submissions", to: "/submissions" },
+                { text: "Explore", to: "/submissions/explore" },
                 { text: "New Submission", to: "/submissions/new" },
                 { text: "Statistics", to: "/submissions/statistics" },
                 { text : "Help", to : "/submissions/help"}]} />

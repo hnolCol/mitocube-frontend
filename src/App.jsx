@@ -296,16 +296,15 @@ function App() {
               path="/submissions/statistics"
               element={<SubmissionStatistics {...{ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} />}
             />
+            <Route
+              path="/submissions/explore"
+              element={
+                <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                  <SubmissionExplore user_tag={authenticationStatus.tag} />
+                </ProtectedRoute>
+              }
+            />
           </Route>
-
-          <Route
-            path="/submissions/explore"
-            element={
-              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-                <SubmissionExplore user_tag={authenticationStatus.tag} />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/submissions/:tag"
             element={

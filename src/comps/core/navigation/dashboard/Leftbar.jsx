@@ -10,7 +10,6 @@ function Leftbar ({
     basePathName,
     navigationItems = [
         { name: "Explore Datasets", linkTo: "/datasets", iconName: "Dataset"},
-        { name: "Explore Submissions & Collaborate", linkTo: "/submissions/explore", iconName: "Dataset"},
         { name: "Explore protein-centric data", linkTo: "/protein", iconName: "Protein" },
         // { name: "Explore post-translational modifications", linkTo: "/ptm", iconName: "Ptm"},
         { name: "Performance Monitoring", linkTo: "/performance", iconName: "PerformanceMonitor" },
