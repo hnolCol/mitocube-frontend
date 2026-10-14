@@ -87,6 +87,9 @@ function SubmissionOverview() {
                     paddingBottom: "0.5rem",
                 }}
             >
+            <div className="flex flex-column center-items" style={{ width: "100%" }}>
+                <h2 style={{ margin: 0 }}><SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} /></h2>
+            </div>
             <div className="flex">
                 <SubmissionTag {...{ submission_tag, fontColor: fontColors[0] }} />
                     <SubmissionViews {...{ submission_tag, fontColor: fontColors[1] }} />
