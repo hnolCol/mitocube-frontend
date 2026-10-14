@@ -692,3 +692,12 @@ h5 {
     height: min(100px, 4vh);
     position: relative;
 }
+.explore-submission-row__request {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.explore-submission-row:hover .explore-submission-row__request,
+.explore-submission-row__request:focus-visible {
+    opacity: 1;
+}
