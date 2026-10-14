@@ -8,7 +8,7 @@ import { UserItem } from "./UserItem";
 import  { motion } from "framer-motion";
 import { Dialog } from "@blueprintjs/core";
 import { AddUserDialog } from "./dialogs/AddUser";
-export function UsersAdminView() {
+export function UsersAdminView({ authenticationStatus }) {
     const [dialogState, setDialogState] = useState({ isOpen: false })
     const [searchString, setSearchString] = useState()
     const debouncedSearchString = useDebounce(searchString, 30)
@@ -69,7 +69,7 @@ export function UsersAdminView() {
                             <div className="flex flex-column" style={{height : "65vh", overflowY: "scroll"}}>
                                 {user_tags.map((user_tag, idx) => (
                                     <div key={`${user_tag}-${idx}`} className="margin-right--little margin-bottom--little">
-                                        <UserItem  tag={user_tag} />
+                                        <UserItem  tag={user_tag} canBlock={_.toNumber(authenticationStatus?.role) === 4} />
                                     </div>
                                 ))}
                             </div>

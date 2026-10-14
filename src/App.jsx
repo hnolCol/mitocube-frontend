@@ -341,7 +341,7 @@ function App() {
           >
             {/* <Route index element={<div>Admin Settings</div>} />  */}
             <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
-            <Route path="/admin/users" element={<UsersAdminView />} />
+            <Route path="/admin/users" element={<UsersAdminView {...{ authenticationStatus }} />} />
             {/* <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} /> */}
             <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
