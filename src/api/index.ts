@@ -42,6 +42,7 @@ import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintena
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
 import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
 import { statsAPI } from "./stats";
+import { submissionStatisticsAPI } from "./submissionStatistics";
 import { cyperOpenAIAPI } from "./openai";
 import { diseasesQueryAPI, diseasesClinVarAPI } from "./diseases";
 import { phenotypeQueryAPI, phenotypeassociationQueryAPI } from "./phenotypes";
@@ -164,7 +165,8 @@ export const api = {
         permissions : instrumentsPermissionsAPI
     },
     stats : {
-        submissionDurations : statsAPI
+        submissionDurations : statsAPI,
+        submissions : submissionStatisticsAPI
     },
     openai : {
         cyper : cyperOpenAIAPI
