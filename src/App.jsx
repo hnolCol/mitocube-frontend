@@ -30,6 +30,8 @@ import Login from "./comps/login";
 
 import { PolicyGate } from "./comps/admin/policy/PolicyGate";
 import { PendingConsortiumShareRequestDialog } from "./comps/core/base/user/PendingConsortiumShareRequestDialog";
+import { PendingCollaborationRequestDialog } from "./comps/core/base/user/PendingCollaborationRequestDialog";
+import { SubmissionExplore } from "./comps/submission/explore";
 
 /* Submission area */
 import SubmissionHeader from "./comps/submission";
@@ -297,6 +299,14 @@ function App() {
           </Route>
 
           <Route
+            path="/submissions/explore"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <SubmissionExplore user_tag={authenticationStatus.tag} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/submissions/:tag"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
@@ -403,6 +413,7 @@ function App() {
         </Routes>
         </PolicyGate>
         <PendingConsortiumShareRequestDialog />
+        <PendingCollaborationRequestDialog />
       </div>
     </div>
   );

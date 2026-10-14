@@ -13,6 +13,8 @@ import { TermsOfUse } from "../../documents/TermsOfUse"
 import { api } from "@/api"
 import { PendingConsortiumShareRequestButton } from "../../base/user/PendingConsortiumShareRequestButton"
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
+import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
+import { MessagesButton } from "@/comps/messages"
 
 /**
  * 
@@ -70,6 +72,8 @@ function Topbar({authenticationStatus,logout, user_tag}) {
             <div className="flex">
                 <ConsortiumShareDecisionsButton />
                 <PendingConsortiumShareRequestButton />
+                <PendingCollaborationRequestButton />
+                <MessagesButton user_tag={user_tag} />
                 <div className="flex flex-column justify-center">
                     <Code>role: {userRole}</Code>
                 </div>

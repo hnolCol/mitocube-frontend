@@ -3,6 +3,8 @@ import { copyTextToClipboard } from "../../../services/clipboard"
 import { useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { RequestConsortiumShareButton } from "@/comps/submission/view/RequestConsortiumShareButton"
+import { CollaborationRequestsButton } from "@/comps/submission/view/CollaborationRequestsButton"
+import { SubmissionMessagesButton } from "@/comps/submission/view/SubmissionMessagesButton"
 
 import { api } from "@/api";
 
@@ -39,6 +41,8 @@ export function QuickAccessBar({ submission_tag }) {
     return (
         <div className="flex flex-column" style={{alignItems:"flex-end",paddingRight:"0.5rem"}}>
             <div className="flex">
+            <SubmissionMessagesButton submission_tag={submission_tag} />
+            <CollaborationRequestsButton submission_tag={submission_tag} />
             <RequestConsortiumShareButton submission_tag={submission_tag} />
             <TooltipButton icon="tag" content="Copy submission tag" onClick={() => {
                     copyTextToClipboard(submission_tag)
