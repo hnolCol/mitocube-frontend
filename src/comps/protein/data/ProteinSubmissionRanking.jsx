@@ -3,9 +3,10 @@
 
 
 import _ from "lodash"
+import { Button } from "@blueprintjs/core"
 import InteractiveChart from "../../core/charts/interactive"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { ScatterPlot } from "../../core/charts/scatter"
 
 import { FeatureDataView } from "../../analysis/features/DataView"
@@ -17,10 +18,17 @@ import { UserDatasetFilter } from "@/comps/submission/filter/UserFilter"
 
 const METRICES = ["log2_fc_vs_mean", "raw", "z_score_sample", "z_score_protein_group"]
 
+const LOAD_STEP = 10
+
 export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
     const [metrics, setMetrics] = useState(METRICES[0])
+    const [visibleCount, setVisibleCount] = useState(N)
     const [submissionFilter, setSubmissionFilter] = useState({ ca_tags: [], include_sample_ca: true, user: [] })
+
+    useEffect(() => {
+        setVisibleCount(N)
+    }, [tag, N])
     const {data : submissionStats, isLoading} = api.features.ranking.useGetProteinGroupSubmissionStats(
         {tag,
         ca_tags: submissionFilter.ca_tags,
@@ -36,16 +44,20 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
 //     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
 //     const [metrics, setMetrics] = useState(METRICES[0])
 //     const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
-    const { feature_tags, submission_tags} = useMemo(() => {
-        if (_.isArray(submissionStats)) {
-            const topStats = _.uniqBy(_.slice(_.orderBy(submissionStats, ["score"], ["desc"]), 0, N), "submission_tag");
+    const { feature_tags, submission_tags, totalSubmissions } = useMemo(() => {
+        if (_.isArray(submissionStats) && submissionStats.length > 0) {
+            const uniqueStats = _.uniqBy(_.orderBy(submissionStats, ["score"], ["desc"]), "submission_tag");
+            const topStats = _.slice(uniqueStats, 0, visibleCount);
             return {
                 feature_tags: topStats.map(stat => tag), //all the same feature tag, which is the one in the props
-                submission_tags: topStats.map(stat => stat.submission_tag)
+                submission_tags: topStats.map(stat => stat.submission_tag),
+                totalSubmissions: uniqueStats.length
             };
         }
-        return { feature_tags: [], submission_tags: [] };
-    }, [_.isArray(submissionStats) && submissionStats.length > 0, tag, N])
+        return { feature_tags: [], submission_tags: [], totalSubmissions: 0 };
+    }, [_.isArray(submissionStats) && submissionStats.length > 0, tag, visibleCount])
+
+    const hasMoreSubmissions = totalSubmissions > feature_tags.length
 
 
     const numericKeyNames = _.isArray(submissionStats) && submissionStats.length > 0 ? _.filter(_.keys(submissionStats[0]), keyName => _.isNumber(submissionStats[0][keyName])) : []
@@ -197,11 +209,17 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                 <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} /> : null} */}
 
             {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length && feature_tags.length > 0 ?
-                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} />
+                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} layoutStorageKey={`protein-${tag}`} />
                 : <div>
                     <h3>Feature Plots</h3>
                    <span>No submissions match the selected filters.</span>
                 </div>}
+
+            {hasMoreSubmissions ? <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                <span>Showing {feature_tags.length} of {totalSubmissions} submissions.</span>
+                <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)} text="Load more" />
+                <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(totalSubmissions)} text="Load all" />
+            </div> : null}
 
          </div>
         </div>
