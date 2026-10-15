@@ -3,7 +3,6 @@
 
 
 import _ from "lodash"
-import { Button } from "@blueprintjs/core"
 import InteractiveChart from "../../core/charts/interactive"
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection"
 import { useEffect, useMemo, useState } from "react"
@@ -230,8 +229,12 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                 <span style={{ fontWeight: 600, color: "#374151" }}>
                     Showing {feature_tags.length} of {totalSubmissions} submissions
                 </span>
-                <Button intent="primary" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)} icon="add" text={`Load ${_.min([LOAD_STEP, totalSubmissions - feature_tags.length])} more`} />
-                <Button intent="primary" variant="outlined" onClick={() => setVisibleCount(totalSubmissions)} text="Load all" />
+                <button className="basic-button bg--blue-light" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)}>
+                    Load {_.min([LOAD_STEP, totalSubmissions - feature_tags.length])} more
+                </button>
+                <button className="basic-button" onClick={() => setVisibleCount(totalSubmissions)}>
+                    Load all
+                </button>
             </div> : null}
 
          </div>
