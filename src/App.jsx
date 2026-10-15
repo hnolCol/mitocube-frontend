@@ -87,6 +87,8 @@ import { AdminPhenotypeAssociations } from "./comps/admin/phenotypes/AdminPhenot
 import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 import { AdminExternalResources } from "./comps/admin/externalresources/AdminExternalResources";
 import { PolicyManagement } from "./comps/admin/policy/PolicyManagement";
+import { ImpressumManagement } from "./comps/admin/impressum/ImpressumManagement";
+import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
@@ -367,7 +369,8 @@ function App() {
             <Route path="/admin/news" element={<NewsManagement />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />
              <Route path="/admin/externalresources" element={<AdminExternalResources />} />
-             <Route path="/admin/policy" element={<PolicyManagement />} />
+             <Route path="/admin/policy" element={<PolicyManagement />} />,
+             <Route path="/admin/impressum" element={<ImpressumManagement />} />,
               <Route path="/admin/plates" element={<PlatesAdmin />} />
           </Route>
 
@@ -394,6 +397,12 @@ function App() {
         />
           
 
+          <Route
+            path="/impressum"
+            element={
+              <Impressum />
+            }
+          />
           <Route
             path="/contact"
             element={

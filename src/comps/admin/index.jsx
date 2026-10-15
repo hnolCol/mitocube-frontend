@@ -28,6 +28,7 @@ function AdminHeader({ authenticationStatus }) {
                 { text: "Protocols", to: "/admin/protocols"},
                 { text: "News", to: "/admin/news"},
                 { text: "Policy", to: "/admin/policy"},
+                { text: "Impressum", to: "/admin/impressum"},
                 { text: "Crosslink Resources", to: "/admin/externalresources"},
                 { text: "Plates", to: "/admin/plates" },
                 ]} />

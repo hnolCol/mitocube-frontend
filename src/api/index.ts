@@ -25,6 +25,7 @@ import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
 import { backendInfoAPI, statisticsInfoAPI, termsInfoAPI } from "./info";
+import { impressumAPI } from "./impressum";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
 import { genotypesQueryAPI, genotypesModifyAPI, genotypesCAQueryAPI } from "./genotypes";
@@ -50,6 +51,7 @@ import { variantsQueryAPI } from "./variants";
 import { crosslinksQueryAPI, externalresourceQueryAPI, externalresourceModifyAPI } from "./crosslinks";
 import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
 import { policyAPI } from "./policy";
+import { similarSubmissionsAPI } from "./submission";
 import { platesAPI } from "./plates";
 
 export const api = {
@@ -92,6 +94,7 @@ export const api = {
         core : submissionCoreAPI,
         title : submissionTitleAPI,
         analysis: submissionAnalysisAPI,
+        similar: similarSubmissionsAPI,
         metatexts: submissionMetatextAPI,
         permissions: submissionPermissionsAPI,
         states : submissionStateAPI,
@@ -115,6 +118,7 @@ export const api = {
     condition_applications: conditionApplicationAPI,
     news: newsAPI,
     policy: policyAPI,
+    impressum: impressumAPI,
     users: {
         core : userCoreAPI,
         views : usersViewsAPI,
