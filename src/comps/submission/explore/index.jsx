@@ -200,6 +200,8 @@ function ExploreTagSearch({ searchString, setSearchString, selected_ca_tags, sel
             placement="bottom-start"
             minimal={true}
             enforceFocus={false}
+            autoFocus={false}
+            shouldReturnFocusOnClose={false}
             content={<div style={{ minWidth: "400px", maxHeight: "50vh", overflowY: "auto", padding: "0.25rem" }}>
                 {(isCALoading || isUserLoading) && (!_.isArray(ca_tags) || !_.isArray(user_tags)) ?
                     <div className="flex center-items padding--little"><Spinner size={20} /></div> : null}
