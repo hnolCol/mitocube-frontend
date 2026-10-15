@@ -38,6 +38,10 @@ function ExploreSubmissionRow({ submission, user_tag }) {
     const { data: userResearchGroups } = api.researchgroups.useGetResearchGroupsOfUser(
         { user_tag }, { enabled: _.isString(user_tag), staleTime: 300000 }
     )
+    const { data: permissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission.tag }, { enabled: _.isString(submission.tag), staleTime: 60000, retry: false }
+    )
+    const hasAccess = permissions?.view === true
     const ownerName = _.isString(submission.owner_firstname) || _.isString(submission.owner_lastname) ?
         `${_.isString(submission.owner_firstname) ? submission.owner_firstname : ""} ${_.isString(submission.owner_lastname) ? submission.owner_lastname : ""}`.trim() :
         submission.owner_tag
@@ -48,7 +52,7 @@ function ExploreSubmissionRow({ submission, user_tag }) {
             requested_for_group_tag: _.isString(selectedGroup) ? selectedGroup : undefined
         })
     }
-    return <div className="explore-submission-row flex flex-column padding--little bg--lightgrey div--round">
+    return <div className={`explore-submission-row flex flex-column padding--little div--round ${hasAccess ? "bg--lightgrey" : ""}`}>
         <div className="flex justify-between align-center">
             <div className="flex flex-column">
                 <span className="font-size--small font-weight--bold">{submission.title}</span>
@@ -60,15 +64,17 @@ function ExploreSubmissionRow({ submission, user_tag }) {
                     <span className="font-size--smallest"><CreatedAt createdat={submission.created_at} /></span> : null}
             </div>
             <div className="flex align-center" style={{ marginLeft: "auto", paddingLeft: "1rem" }}>
-                {requested ?
-                    <span className="font-size--smallest padding--little">Pending approval</span> :
-                    <TooltipButton
-                        className="explore-submission-row__request"
-                        intent="primary"
-                        icon="social-media"
-                        small={true}
-                        content="Request collaboration"
-                        onClick={() => setIsRequestOpen(true)} />}
+                {hasAccess ?
+                    <span className="font-size--smallest padding--little">You have access</span> :
+                    requested ?
+                        <span className="font-size--smallest padding--little">Pending approval</span> :
+                        <TooltipButton
+                            className="explore-submission-row__request"
+                            intent="primary"
+                            icon="social-media"
+                            small={true}
+                            content="Request collaboration"
+                            onClick={() => setIsRequestOpen(true)} />}
             </div>
         </div>
         {isRequestOpen ? <CollaborationRequestForm
