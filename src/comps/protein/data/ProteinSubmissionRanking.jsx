@@ -215,10 +215,23 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                    <span>No submissions match the selected filters.</span>
                 </div>}
 
-            {hasMoreSubmissions ? <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                <span>Showing {feature_tags.length} of {totalSubmissions} submissions.</span>
-                <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)} text="Load more" />
-                <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(totalSubmissions)} text="Load all" />
+            {hasMoreSubmissions ? <div style={{
+                marginTop: "1.5rem",
+                marginBottom: "1rem",
+                padding: "1rem",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "1rem",
+                background: "#f3f4f6",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px"
+            }}>
+                <span style={{ fontWeight: 600, color: "#374151" }}>
+                    Showing {feature_tags.length} of {totalSubmissions} submissions
+                </span>
+                <Button intent="primary" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)} icon="add" text={`Load ${_.min([LOAD_STEP, totalSubmissions - feature_tags.length])} more`} />
+                <Button intent="primary" variant="outlined" onClick={() => setVisibleCount(totalSubmissions)} text="Load all" />
             </div> : null}
 
          </div>
