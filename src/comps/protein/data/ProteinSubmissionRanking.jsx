@@ -37,8 +37,6 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
             { enabled: _.isString(tag) && tag.length > 0 }
         )
 
-        console.log("submissionStats", submissionStats)
-   
 // export function ProteinSubmissionRanking({ tag, N = 10 }) {
 //     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
 //     const [metrics, setMetrics] = useState(METRICES[0])

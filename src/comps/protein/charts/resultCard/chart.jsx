@@ -4,7 +4,6 @@ import _ from "lodash"
 import { useEffect, useMemo, useState } from "react"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
-import { useCycle } from "framer-motion"
 import PlottypeIcon from "../../../core/svg/icons/chartSelection/Plottype"
 import DownloadIcon from "../../../core/svg/icons/chartSelection/Download"
 import { downloadTxtFile } from "../../../../services/downloads/txt"
@@ -17,6 +16,35 @@ import viz from "@mitocube/viz"
 import { usePrefetchConditionApplicationTexts } from "@/api/orchestrated/conditionApplications"
 import { usePrefetchAttributes } from "@/api/orchestrated/attributes"
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton"
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
+
+const CARD_STATES_STORAGE_KEY = "featureDataCardStates"
+const CHART_TYPES = ["boxplot", "barplot", "pointplot", "lineplot"]
+
+function loadStoredCardState(storageKey) {
+    if (!_.isString(storageKey)) return null
+    try {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: CARD_STATES_STORAGE_KEY, parseJson: true })
+        if (!itemFound || !_.isObject(itemValue)) return null
+        const stored = itemValue[storageKey]
+        return _.isObject(stored) ? stored : null
+    } catch (error) {
+        console.error("Error loading card state from localStorage:", error)
+        return null
+    }
+}
+
+function saveStoredCardState(storageKey, state) {
+    if (!_.isString(storageKey)) return
+    try {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: CARD_STATES_STORAGE_KEY, parseJson: true })
+        const all = itemFound && _.isObject(itemValue) ? itemValue : {}
+        all[storageKey] = state
+        saveInLocalStorage({ itemName: CARD_STATES_STORAGE_KEY, itemValue: JSON.stringify(all) })
+    } catch (error) {
+        console.error("Error saving card state to localStorage:", error)
+    }
+}
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
@@ -49,10 +77,17 @@ function ResultChart({
     openMetadataDrawer,
     onRemove}) {
     const redirect = useNavigate()
-    const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "pointplot", "lineplot")
+    const cardStateKey = `${featureTag}-${submission_tag}`
+    const storedCardState = loadStoredCardState(cardStateKey)
+    const [chartType, setChartType] = useState(CHART_TYPES.includes(storedCardState?.chartType) ? storedCardState.chartType : CHART_TYPES[0])
+    const cyclePlotTypes = () => setChartType(prev => CHART_TYPES[(CHART_TYPES.indexOf(prev) + 1) % CHART_TYPES.length])
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
-    const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
+    const [selection, setSelection] = useState(() => {
+        const defaults = { colorName: attribute_tags[0], splitName: attribute_tags[1], subplotName: attribute_tags[2] }
+        const storedSelection = _.isObject(storedCardState?.selection) ? storedCardState.selection : null
+        return _.isObject(storedSelection) ? { ...defaults, ..._.pick(storedSelection, _.keys(defaults)) } : defaults
+    })
     // attribute_tags can arrive after mount (async attributes query). If the selection was
     // initialized before the tags were available, adopt the default selection once they arrive
     // (unless the user already picked a value manually).
@@ -63,6 +98,9 @@ function ResultChart({
             return needsUpdate ? nextSelection : prevSelection
         })
     }, [_.join(attribute_tags, "-")])
+    useEffect(() => {
+        saveStoredCardState(cardStateKey, { chartType, selection })
+    }, [cardStateKey, chartType, selection])
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
     const selectionTags = selection
     // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())    
@@ -127,8 +165,6 @@ function ResultChart({
         }    
     }
 
-    console.log(width, height, attribute_tags, isReady && attributesReady);
-
     return (<div>
             {width > 30 && height > 50 ?
                 <div className="margin--little"
@@ -160,7 +196,7 @@ function ResultChart({
                         </div>
             
             <div className="flex" style={{ height: height  }}>
-                    {isReady && attributesReady ? <viz.charts.Categorical
+                    <viz.charts.Categorical
                         width={width - 10 || undefined}
                         height={height - 40 || undefined}
                         margins={{ left: 60, right: 15, top: 8, bottom: 90 }}
@@ -175,7 +211,8 @@ function ResultChart({
                         caTagToText={map}
                         attributeTagToText={attributeMap}
                         tooltipNames={_.concat([{ text: "N", type: "default" }], keyNamesForSplitting.map((k) => { return { text: k, type: "attribute" } }))}
-                    /> : <span>Attributes loading not complete..</span>}
+                    />
+                    {!(isReady && attributesReady) ? <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>Loading labels...</span> : null}
                 </div> 
             </div> : null}
         </div>

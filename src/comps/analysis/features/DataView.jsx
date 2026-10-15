@@ -9,6 +9,28 @@ import { useEffect, useRef, useState } from "react";
 import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 
+function LazyMount({ children }) {
+    const ref = useRef(null);
+    const [isVisible, setIsVisible] = useState(false);
+    useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        if (typeof IntersectionObserver !== "function") {
+            setIsVisible(true);
+            return;
+        }
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                setIsVisible(true);
+                observer.disconnect();
+            }
+        }, { root: null, rootMargin: "200px" });
+        observer.observe(el);
+        return () => observer.disconnect();
+    }, []);
+    return <div ref={ref} style={{ width: "100%", height: "100%" }}>{isVisible ? children : null}</div>;
+}
+
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 FeatureDataView.propTypes = {
@@ -211,6 +233,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                 return (
                                     <div key={itemKey} data-grid={layouts.lg[i]}>
                                         <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%" }}>
+                                        <LazyMount>
                                             <FeatureData
                                                 feature_tag={feature_tag}
                                                 submission_tag={submission_tags[i]}
@@ -219,6 +242,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                                 onRemove={onRemove}
                                                 metrics={metrics}
                                             />
+                                        </LazyMount>
                                         </div>
                                     </div>
                                 );
