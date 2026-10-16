@@ -27,6 +27,7 @@ export function ResearchGroupStatistics({ stateFilter }) {
             isError={isSubmissionsError}
             error={submissionsError}
             yaxisLabel="Submissions"
+            xaxisLabel="Research Group"
             svgID="rg-submission-counts-chart"
         />
         <YearComparisonSection
@@ -38,6 +39,7 @@ export function ResearchGroupStatistics({ stateFilter }) {
             isError={isSamplesError}
             error={samplesError}
             yaxisLabel="Samples"
+            xaxisLabel="Research Group"
             svgID="rg-sample-counts-chart"
         />
     </div>
