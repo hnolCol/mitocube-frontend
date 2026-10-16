@@ -78,11 +78,18 @@ function SimilarSubmissionItem({ similar, user_tag }) {
             requested_for_group_tag: _.isString(selectedGroup) ? selectedGroup : undefined
         })
     }
+    const genotype_count = _.isArray(matched.genotypes) ? matched.genotypes.length : 0
+    const condition_application_count = _.isArray(matched.condition_applications) ? matched.condition_applications.length : 0
+    const trait_count = _.isArray(matched.traits) ? matched.traits.length : 0
+    const match_count_parts = [
+        genotype_count > 0 ? `${genotype_count} genotype${genotype_count === 1 ? "" : "s"}` : null,
+        condition_application_count > 0 ? `${condition_application_count} condition application${condition_application_count === 1 ? "" : "s"}` : null,
+        trait_count > 0 ? `${trait_count} trait${trait_count === 1 ? "" : "s"}` : null
+    ].filter(_.isString)
     return <div className="flex flex-column padding--little bg--lightgrey div--round">
         <div className="flex justify-between align-center">
             <SubmissionLink tag={similar.submission_tag} />
             <div className="flex align-center" style={{ gap: "0.5rem" }}>
-                <Tag minimal={true} round={true}>{`${(similar.score * 100).toFixed(0)} % match`}</Tag>
                 {similar.access === "no_access" ?
                     requested ?
                         <span className="font-size--smallest padding--little">Pending approval</span> :
@@ -93,23 +100,34 @@ function SimilarSubmissionItem({ similar, user_tag }) {
                             content="Request collaboration"
                             onClick={() => setIsRequestOpen(prev => !prev)} />
                     : null}
+                <Tag minimal={true} round={true}>{`${(similar.score * 100).toFixed(0)} % match`}</Tag>
             </div>
         </div>
-        {_.isArray(matched.genotypes) && matched.genotypes.length > 0 ?
+        {match_count_parts.length > 0 ?
+            <div className="flex align-center margin-top--little" style={{ gap: "0.35rem" }}>
+                <span className="font-size--smallest font-weight--bold">Matching:</span>
+                <span className="font-size--smallest">{match_count_parts.join(", ")}</span>
+                {condition_application_count > 0 ?
+                    <TooltipButton
+                        icon="info-sign"
+                        small={true}
+                        content={<div className="flex flex-column" style={{ gap: "0.25rem", maxWidth: "30rem" }}>
+                            <span className="font-weight--bold">Shared condition applications</span>
+                            {matched.condition_applications.map(ca_tag =>
+                                <div key={ca_tag} className="flex align-center bg--white div--round padding--little">
+                                    <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
+                                </div>)}
+                        </div>} />
+                    : null}
+            </div> : null}
+        {genotype_count > 0 ?
             <div className="flex flex-column margin-top--little">
                 <span className="font-size--smallest font-weight--bold">Shared genotypes</span>
                 <div className="flex flex--wrap" style={{ gap: "0.25rem" }}>
                     {matched.genotypes.map(tag => <div key={tag} className="bg--white div--round padding--little"><GenotypeItem tag={tag} /></div>)}
                 </div>
             </div> : null}
-        {_.isArray(matched.condition_applications) && matched.condition_applications.length > 0 ?
-            <div className="flex flex-column margin-top--little">
-                <span className="font-size--smallest font-weight--bold">Shared condition applications</span>
-                <div className="flex flex--wrap align-center" style={{ gap: "0.25rem" }}>
-                    {matched.condition_applications.map(ca_tag => <div key={ca_tag} className="flex align-center bg--white div--round padding--little"><ConditionApplicationsView tag={ca_tag} show_attribute={true} /></div>)}
-                </div>
-            </div> : null}
-        {_.isArray(matched.traits) && matched.traits.length > 0 ?
+        {trait_count > 0 ?
             <div className="flex flex-column margin-top--little">
                 <span className="font-size--smallest font-weight--bold">Shared traits</span>
                 <div className="flex flex--wrap align-center" style={{ gap: "0.25rem" }}>

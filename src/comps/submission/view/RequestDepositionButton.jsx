@@ -26,8 +26,9 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
     const [isOpen, setIsOpen] = useState(false)
     const [comment, setComment] = useState("")
     const [confirmation, setConfirmation] = useState(null)
+    const [error, setError] = useState(null)
     if (!_.isFinite(_.toNumber(userRole)) || _.toNumber(userRole) < CURATOR_ROLE) return null
-    const close = () => { setIsOpen(false); setConfirmation(null); setComment("") }
+    const close = () => { setIsOpen(false); setConfirmation(null); setError(null); setComment("") }
     return <>
         <TooltipButton
             icon="upload"
@@ -47,16 +48,29 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
                 <p className="font-size--small">Submission: <strong>{submission_tag}</strong></p>
                 {_.isString(confirmation) ?
                     <Callout intent="success" title="Deposition requested">{confirmation}</Callout> :
-                    <TextArea
-                        fill={true}
-                        placeholder="Optional comment for the curators (e.g. special requirements for the PRIDE submission)"
-                        value={comment}
-                        onChange={e => setComment(e.target.value)} />}
+                    <>
+                        <TextArea
+                            fill={true}
+                            placeholder="Optional comment for the curators (e.g. special requirements for the PRIDE submission)"
+                            value={comment}
+                            onChange={e => setComment(e.target.value)} />
+                        {_.isString(error) ?
+                            <Callout intent="danger" title="Request failed" className="margin-top--little">
+                                {error}
+                                <div className="font-size--small margin-top--little">
+                                    The deposition request was not created. Check the details above and try again.
+                                </div>
+                            </Callout> : null}
+                    </>}
             </DialogBody>
             <DialogFooter actions={<>
                 <Button text="Close" onClick={close} />
                 {!_.isString(confirmation) ?
-                    <DepositionRequestButton submission_tag={submission_tag} comment={comment} onConfirmed={setConfirmation} /> : null}
+                    <DepositionRequestButton
+                        submission_tag={submission_tag}
+                        comment={comment}
+                        onError={setError}
+                        onConfirmed={setConfirmation} /> : null}
             </>} />
         </Dialog>
     </>
@@ -65,7 +79,8 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
 DepositionRequestButton.propTypes = {
     submission_tag: PropTypes.string.isRequired,
     comment: PropTypes.string,
-    onConfirmed: PropTypes.func
+    onConfirmed: PropTypes.func,
+    onError: PropTypes.func
 }
 
 /**
@@ -75,15 +90,33 @@ DepositionRequestButton.propTypes = {
  * @param {String} props.submission_tag Submission tag
  * @param {String} [props.comment] Optional comment for the curators
  * @param {Function} props.onConfirmed Callback with the confirmation message
+ * @param {Function} props.onError Callback with the error message if the request failed
  * @returns {JSX.Element} The submit button.
  */
-function DepositionRequestButton({ submission_tag, comment, onConfirmed }) {
+function DepositionRequestButton({ submission_tag, comment, onConfirmed, onError }) {
     const { mutate, isPending } = api.requests.depositions.usePostDepositionRequest()
+    const getRequestErrorMessage = (error) => {
+        const status = error?.response?.status
+        const detail = error?.response?.data?.detail
+        if (_.isString(detail)) return status === 409 ? `Conflict: ${detail}` : detail
+        if (_.isArray(detail)) {
+            const messages = detail.map(d => [d?.loc?.filter(_.isString).join(" / "), d?.msg]
+                .filter(s => _.isString(s) && s.length > 0).join(": "))
+            return status === 409 ? `Conflict: ${messages.join("; ")}` : messages.join("; ")
+        }
+        if (_.isString(error?.response?.data?.message)) return error.response.data.message
+        if (_.isString(error?.message)) return error.message
+        return "An unknown error occurred while creating the deposition request. Please try again."
+    }
     return <Button
         intent="primary"
         text="Request deposition"
         loading={isPending}
-        onClick={() => mutate({ submission_tag, database: "PRIDE", comment }, {
-            onSuccess: (request_tag) => onConfirmed(`The deposition request was created and the curators were notified (request tag: ${request_tag}).`)
-        })} />
+        onClick={() => {
+            onError(null)
+            mutate({ submission_tag, database: "PRIDE", comment }, {
+                onSuccess: (request_tag) => onConfirmed(`The deposition request was created and the curators were notified (request tag: ${request_tag}).`),
+                onError: (error) => onError(getRequestErrorMessage(error))
+            })
+        }} />
 }
