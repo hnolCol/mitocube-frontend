@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { useMemo, useState } from "react"
-import { GroupedYearComparisonChart } from "@/comps/core/charts/yearcomparison"
+import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
 /**
@@ -17,6 +17,7 @@ export function YearComparisonSection({
     isError,
     error,
     yaxisLabel = "Count",
+    xaxisLabel = undefined,
     controls = null,
     svgID = "year-comparison-chart"
 }) {
@@ -54,6 +55,7 @@ export function YearComparisonSection({
                 years={visibleYears}
                 groups={visibleGroups}
                 yaxisLabel={yaxisLabel}
+                xaxisLabel={xaxisLabel}
                 svgID={svgID}
             />
         </div> : null}
