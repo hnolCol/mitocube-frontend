@@ -159,7 +159,7 @@ DepositionRequestButton.propTypes = {
  * @returns {JSX.Element} The submit button.
  */
 function DepositionRequestButton({ submission_tag, comment, onConfirmed, onError, onRequested }) {
-    const { mutate, isPending } = api.requests.depositions.usePostDepositionRequest()
+    const { mutate, isPending } = api.requests.depositionRequests.usePostDepositionRequest()
     const getRequestErrorMessage = (error) => {
         const status = error?.response?.status
         const detail = error?.response?.data?.detail
