@@ -7,6 +7,9 @@ import { api } from "@/api"
 import { SubmissionLink } from "@/comps/core/links/Submission"
 import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
 import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
+import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView"
+import { Trait } from "@/comps/core/base/traits/Trait"
+import { GenotypeItem } from "@/comps/admin/genotypes/GenotypeItem"
 
 const ACCESS_GROUPS = [
     {
@@ -93,11 +96,26 @@ function SimilarSubmissionItem({ similar, user_tag }) {
             </div>
         </div>
         {_.isArray(matched.genotypes) && matched.genotypes.length > 0 ?
-            <div className="font-size--smallest">Genotypes: {matched.genotypes.join(", ")}</div> : null}
+            <div className="flex flex-column margin-top--little">
+                <span className="font-size--smallest font-weight--bold">Shared genotypes</span>
+                <div className="flex flex--wrap" style={{ gap: "0.25rem" }}>
+                    {matched.genotypes.map(tag => <div key={tag} className="bg--white div--round padding--little"><GenotypeItem tag={tag} /></div>)}
+                </div>
+            </div> : null}
         {_.isArray(matched.condition_applications) && matched.condition_applications.length > 0 ?
-            <div className="font-size--smallest">Condition applications: {matched.condition_applications.join(", ")}</div> : null}
+            <div className="flex flex-column margin-top--little">
+                <span className="font-size--smallest font-weight--bold">Shared condition applications</span>
+                <div className="flex flex--wrap align-center" style={{ gap: "0.25rem" }}>
+                    {matched.condition_applications.map(ca_tag => <div key={ca_tag} className="flex align-center bg--white div--round padding--little"><ConditionApplicationsView tag={ca_tag} show_attribute={true} /></div>)}
+                </div>
+            </div> : null}
         {_.isArray(matched.traits) && matched.traits.length > 0 ?
-            <div className="font-size--smallest">Traits: {matched.traits.join(", ")}</div> : null}
+            <div className="flex flex-column margin-top--little">
+                <span className="font-size--smallest font-weight--bold">Shared traits</span>
+                <div className="flex flex--wrap align-center" style={{ gap: "0.25rem" }}>
+                    {matched.traits.map(trait_tag => <div key={trait_tag} className="flex align-center bg--white div--round padding--little"><Trait trait_tag={trait_tag} /></div>)}
+                </div>
+            </div> : null}
         {isRequestOpen ?
             <div className="flex flex-column margin-top--little padding--little bg--white div--round">
                 <span className="font-size--small">Request collaboration for this submission</span>
