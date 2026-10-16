@@ -53,8 +53,8 @@ export function QuickAccessBar({ submission_tag, userRole }) {
                     copyTextToClipboard(submission_tag)
                     setMsg("Tag copied!")
                 }} />
-            <TooltipButton icon="info-sign" content="Tab delimited submission summary to paste in excel. " onClick={() => fetchSummaryString()} loading={summaryIsFetching | summaryIsLoading} />
-            <TooltipButton icon="numbered-list" onClick={() => fetchSampleNames()} loading={sampleNamesIsFetching | sampleNamesIsLoading} content = "Tab delimited sample name information."/>
+            <TooltipButton icon="info-sign" content="Tab delimited submission summary to paste in excel. " onClick={() => fetchSummaryString()} loading={summaryIsFetching || summaryIsLoading} />
+            <TooltipButton icon="numbered-list" onClick={() => fetchSampleNames()} loading={sampleNamesIsFetching || sampleNamesIsLoading} content = "Tab delimited sample name information."/>
             
         </div>
             <div className="font-size--smallest">{msg}</div>

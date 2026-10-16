@@ -127,8 +127,6 @@ function ResultChart({
         }    
     }
 
-    console.log(width, height, attribute_tags, isReady && attributesReady);
-
     return (<div>
             {width > 30 && height > 50 ?
                 <div className="margin--little"

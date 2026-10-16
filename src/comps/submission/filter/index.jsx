@@ -70,13 +70,13 @@ export function SubmissionFilterSelection({
         <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
             
         <h3>{header} ({isSuccess ? Math.min(submissionQueryResult.query_count, selectedLimit) : "0"}/{isSuccess ? submissionQueryResult.query_count : "0"})</h3>
-                <div className="flex center-items" style={{ width: "100%" }}>
-                    <div>
+                <div className="flex center-items" style={{ width: "100%"}}>
+                    <div style={{ width: "100%", marginRight: "0.55rem" }}>
                         <input
                             className="search-input"
                             value={searchString}
                             onChange={(e) => setSearchString(e.target.value)}
-                            placeholder="Search by label, metatext ..."
+                            placeholder="Search by title, tag, or metatext ..."
                          />
                     </div>
             
@@ -98,6 +98,9 @@ export function SubmissionFilterSelection({
                             </OptionButton>
                         ))}
                     </div>
+            <div style={{ marginTop: "0.5rem" }}>
+                    <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
+            </div>
             </div>
             <div style={{ marginTop: "0.5rem" }}>
     <h4>View By</h4>
@@ -112,12 +115,15 @@ export function SubmissionFilterSelection({
             <OptionButton key={option} isSelected={selectedSortBy === option} onClick={() => updateSortBy(option)} children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />
         ))}
                     </div>
-    <h4>Filter By</h4>
 
     <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
-         <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
-        <ConsortiumFilter {...{ submissionFilter, setSubmissionFilter }} />
-     </div>
+         
+        </div>
+    <h4>Consortium Submissions</h4>
+    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
+         <ConsortiumFilter {...{ submissionFilter, setSubmissionFilter }} />
+    </div>
+        
     </div>
             {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
     
