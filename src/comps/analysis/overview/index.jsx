@@ -59,9 +59,6 @@ function SubmissionOverview({ user_tag }) {
                 <div className="margin-top--little">
                     <ConsortiumShareStatus submission_tag={submission_tag}/>
                 </div>
-                <div className="margin-top--little">
-                    <DepositionStatus submission_tag={submission_tag}/>
-                </div>
                 
                 <AuthorList {...{
                     submission_tag,
@@ -124,6 +121,9 @@ function SubmissionOverview({ user_tag }) {
                 <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "auto" }}>
                     <h3>Similar Submissions</h3>
                     <SimilarSubmissions {...{ submission_tag, user_tag }} />
+                </div>
+                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "auto" }}>
+                    <DepositionStatus submission_tag={submission_tag} />
                 </div>
                 {/* <ConsortiumShares {...{ submission_tag }} /> */}
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>

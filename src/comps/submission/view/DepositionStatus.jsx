@@ -28,7 +28,7 @@ export function DepositionStatus({ submission_tag }) {
     if (!_.isArray(requests) || requests.length === 0) return null
     const depositedRequest = requests.find(request => request.status === "deposited" && _.isString(request.identifier) && request.identifier.length > 0)
     const pendingRequests = requests.filter(request => request.status === "pending")
-    return <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)" }}>
+    return <div className="flex flex-column">
         <h3>Data Deposition</h3>
         {depositedRequest ?
             <DepositedRequestRow request={depositedRequest} /> :
