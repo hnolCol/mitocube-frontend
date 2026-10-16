@@ -10,7 +10,7 @@ import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
 import { SubmissionTag } from "../../submission/view/SubmissionTag";
 import { SubmissionViews } from "../../submission/view/SubmissionViews";
 import { SubmissionProteinGroupCount } from "../../submission/view/SubmissionProteinGroupCount";
-import { SubmissionUpload } from "../../submission/upload/SubmissionFeatureUpload";
+
 import { SubmissionSampleCount } from "../../submission/view/SubmissionSampleCount";
 import { SubmissionPrecursorCount } from "../../submission/view/SubmissionPrecursorCount";
 import { SampleCountOutlierWarning } from "./SampleCountOutlierWarning";
@@ -104,7 +104,6 @@ function SubmissionOverview({ user_tag }) {
                 </div>
             </div>
             <div>
-                <SubmissionUpload {...{ submission_tag }}/>
                 <SampleCountOutlierWarning {...{ submission_tag }}/>
             </div>
             <div className="flex flex--wrap align-start" style={{ gap: "2rem", marginTop: "1rem" }}>
