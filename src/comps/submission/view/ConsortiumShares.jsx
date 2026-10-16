@@ -1,16 +1,15 @@
 import PropTypes from "prop-types";
 import _ from "lodash";
-import { useState } from "react";
 import { Button, Tag } from "@blueprintjs/core";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
-import { ConsortiumTagWithText } from "./ConsortiumText";
+import { ConsortiumText } from "./ConsortiumText";
 
 ConsortiumShare.propTypes = {
     consortium_tag: PropTypes.string.isRequired,
     submission_tag: PropTypes.string.isRequired,
-    pendingRequests: PropTypes.array,
+    pendingConsortiumTags: PropTypes.arrayOf(PropTypes.string),
     onInvalidate: PropTypes.func
 }
 
@@ -21,30 +20,22 @@ ConsortiumShare.propTypes = {
  * @param {Object} props
  * @param {String} props.consortium_tag Consortium tag
  * @param {String} props.submission_tag Submission tag
- * @param {Object[]} props.pendingRequests Pending share requests of the current user
+ * @param {String[]} props.pendingConsortiumTags Consortium tags with a pending share request for this submission
  * @param {Function} props.onInvalidate Callback to invalidate the share queries
  * @returns {JSX.Element} The consortium share row.
  */
-function ConsortiumShare({ consortium_tag, submission_tag, pendingRequests = [], onInvalidate }) {
-    const [requested, setRequested] = useState(false)
-    const { data: submission_tags, isLoading } = api.consortiums.useGetConsortiumSubmissions(
+function ConsortiumShare({ consortium_tag, submission_tag, pendingConsortiumTags = [], onInvalidate }) {
+    const { data: submission_tags } = api.consortiums.useGetConsortiumSubmissions(
         { tag: consortium_tag }, { enabled: _.isString(consortium_tag), staleTime: 300000 }
     )
     const { mutate: shareSubmission, isPending: shareIsPending, isError: shareFailed, error: shareError } = api.consortiums.useShareSubmissionWithConsortium({
-        onSuccess: () => {
-            setRequested(true)
-            onInvalidate()
-        }
+        onSuccess: onInvalidate
     })
     const { mutate: unshareSubmission, isPending: unshareIsPending, isError: unshareFailed, error: unshareError } = api.consortiums.useUnshareSubmissionFromConsortium({
-        onSuccess: () => {
-            setRequested(false)
-            onInvalidate()
-        }
+        onSuccess: onInvalidate
     })
     const isShared = _.isArray(submission_tags) && submission_tags.includes(submission_tag)
-    const isPendingRequest = pendingRequests.some(r => r.consortium_tag === consortium_tag && r.submission_tag === submission_tag)
-    const isPending = isPendingRequest || (requested && !isShared && !isLoading)
+    const isPending = pendingConsortiumTags.includes(consortium_tag)
     const isWorking = shareIsPending || unshareIsPending
     const handleToggleShare = () => {
         if (isShared) {
@@ -55,7 +46,7 @@ function ConsortiumShare({ consortium_tag, submission_tag, pendingRequests = [],
     }
     const handleRevokeRequest = () => unshareSubmission({ consortium_tag, submission_tag })
     return <div className="flex justify-between align-center margin--little">
-        <ConsortiumTagWithText tag={consortium_tag} />
+        <ConsortiumText tag={consortium_tag} />
         <div className="flex align-center flex-column">
             {shareFailed ? <APIAxiosError error={shareError} /> : null}
             {unshareFailed ? <APIAxiosError error={unshareError} /> : null}
@@ -98,14 +89,15 @@ ConsortiumShares.propTypes = {
 export function ConsortiumShares({ submission_tag }) {
     const queryClient = useQueryClient()
     const { data: userConsortiums, isLoading: isConsortiumsLoading } = api.consortiums.useGetUserConsortiums({}, { staleTime: 300000 })
-    const { data: pendingRequests, isLoading: isPendingLoading } = api.consortiumShareRequests.useGetPendingConsortiumShareRequests(
-        {}, { staleTime: 300000, retry: false }
+    const { data: pendingConsortiumTags, isLoading: isPendingLoading } = api.consortiums.useGetPendingConsortiumShares(
+        { submission_tag }, { staleTime: 300000 }
     )
     const consortiumTags = _.isArray(userConsortiums) ? userConsortiums : []
     if (!isConsortiumsLoading && consortiumTags.length === 0) return null
 
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
+        queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShares"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
     }
     return <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)" }}>
@@ -119,7 +111,7 @@ export function ConsortiumShares({ submission_tag }) {
                 key={consortium_tag}
                 consortium_tag={consortium_tag}
                 submission_tag={submission_tag}
-                pendingRequests={_.isArray(pendingRequests) ? pendingRequests : []}
+                pendingConsortiumTags={_.isArray(pendingConsortiumTags) ? pendingConsortiumTags : []}
                 onInvalidate={invalidate} />)}
     </div>
 }

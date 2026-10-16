@@ -158,6 +158,7 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["trait_tag"], keyName: "tag" }),
             ca_search_string: submissionFilter.ca_search_string || null,
             include_sample_ca: submissionFilter.include_sample_ca || false,
+            consortium_tags: submissionFilter.consortium_tags?.join(";"),
         }, { staleTime: 0 })
     return (<div>
 
@@ -214,6 +215,7 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
         attribute_value_tag: getValueByKeyAndMergeToString({ array: submissionFilter["attribute_value_tag"], keyName: "tag" }),
         include_sample_ca: submissionFilter.include_sample_ca || false,
         ca_search_string: submissionFilter.ca_search_string || null,
+        consortium_tags: submissionFilter.consortium_tags?.join(";"),
     }, { staleTime: 5000 })
 
     return (

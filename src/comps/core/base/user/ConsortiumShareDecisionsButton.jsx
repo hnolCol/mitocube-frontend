@@ -49,7 +49,7 @@ function PendingShareRequestRow({ request, onInvalidate }) {
             {_.isString(request.requested_by) ? <div className="font-size--smallest">by <UserFullName tag={request.requested_by} /></div> : null}
         </div>
         <div className="flex">
-            <Button small={true} intent="success" text="Accept" disabled={isWorking} onClick={() => approve({ consortium_tag: request.consortium_tag, submission_tag: request.submission_tag })} />
+            <Button small={true} intent="primary" text="Accept" disabled={isWorking} onClick={() => approve({ consortium_tag: request.consortium_tag, submission_tag: request.submission_tag })} />
             <Button small={true} intent="danger" text="Deny" disabled={isWorking} onClick={() => deny({ consortium_tag: request.consortium_tag, submission_tag: request.submission_tag })} />
         </div>
     </div>

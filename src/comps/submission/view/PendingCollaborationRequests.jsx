@@ -21,11 +21,12 @@ PendingCollaborationRequestsList.propTypes = {
 export function PendingCollaborationRequestsList({ isDialogTitle = false }) {
     const queryClient = useQueryClient()
     const { data: pendingRequests, isLoading, isError } = api.collaborations.useGetPendingCollaborationRequests(
-        {}, { staleTime: 60000, retry: false }
+        {}, { staleTime: 30000, refetchInterval: 60000, refetchOnWindowFocus: true, retry: false }
     )
     const invalidate = () => {
-        queryClient.invalidateQueries({ queryKey: ["getPendingCollaborationRequests"] })
-        queryClient.invalidateQueries({ queryKey: ["getSubmissionCollaborationRequests"] })
+        queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
+        queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
+        queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShares"] })
     }
     const { mutate: approve, isPending: isApproving } = api.collaborations.usePostApproveCollaborationRequest({ onSuccess: invalidate })
     const { mutate: deny, isPending: isDenying } = api.collaborations.usePostDenyCollaborationRequest({ onSuccess: invalidate })
@@ -48,7 +49,7 @@ export function PendingCollaborationRequestsList({ isDialogTitle = false }) {
                         <div className="font-size--smallest">{_.truncate(request.message, { length: 120 })}</div> : null}
                 </div>
                 <div className="flex">
-                    <Button small={true} intent="success" text="Approve" loading={isWorking} onClick={() => approve({ request_tag: request.tag })} />
+                    <Button small={true} intent="primary" text="Approve" loading={isWorking} onClick={() => approve({ request_tag: request.tag })} />
                     <Button small={true} intent="danger" text="Deny" className="margin-left--little" loading={isWorking} onClick={() => deny({ request_tag: request.tag })} />
                 </div>
             </div>

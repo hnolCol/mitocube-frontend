@@ -35,7 +35,7 @@ function CollaborationRequestRow({ request, onInvalidate }) {
                 <div className="font-size--smallest">{moment.unix(request.created_at / 1000).format("YYYY-MM-DD")}</div> : null}
         </div>
         <div className="flex">
-            <Button small={true} intent="success" text="Approve" loading={isWorking} onClick={() => approve({ request_tag: request.tag })} />
+            <Button small={true} intent="primary" text="Approve" loading={isWorking} onClick={() => approve({ request_tag: request.tag })} />
             <Button small={true} intent="danger" text="Deny" className="margin-left--little" loading={isWorking} onClick={() => deny({ request_tag: request.tag })} />
         </div>
     </div>

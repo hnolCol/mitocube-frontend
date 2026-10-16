@@ -10,6 +10,7 @@ import { SUBMISSIONS_BY_OPTIONS, SUBMISSION_SORT_BY_OPTION } from "../view/Submi
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router";
 import { UserDatasetFilter } from "./UserFilter"
+import { ConsortiumFilter } from "./ConsortiumFilter"
 
 
 const LIMIT_OPTIONS = [20, 30, 50, 100, 150]
@@ -112,9 +113,11 @@ export function SubmissionFilterSelection({
         ))}
                     </div>
     <h4>Filter By</h4>
-    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem" }}>
-        <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
-    </div>
+
+    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
+         <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
+        <ConsortiumFilter {...{ submissionFilter, setSubmissionFilter }} />
+     </div>
     </div>
             {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
     
