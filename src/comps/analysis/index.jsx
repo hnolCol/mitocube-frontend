@@ -11,7 +11,7 @@ import { api } from "@/api";
 /**
  * @description The header for the dataset view. Loads the metadata as well as the attributes. 
  */
-function SubmissionAnalysisHeader({ }) {
+function SubmissionAnalysisHeader({ authenticationStatus }) {
     const params = useParams()
     const submission_tag = params.tag
     const urlStart = `/submissions/${submission_tag}`
@@ -86,7 +86,7 @@ function SubmissionAnalysisHeader({ }) {
                     { text: "Help", to : `${urlStart}/help`},
                     { text: "Comments", to: `${urlStart}/comments`}]} />   
             <div className="no-scroll div--expand">
-                <Outlet context={{ submission_tag }} />
+                <Outlet context={{ submission_tag, authenticationStatus }} />
             </div>
         </div>
     )

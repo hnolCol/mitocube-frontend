@@ -26,6 +26,7 @@ import { SubmissionViewScore } from "@/comps/submission/view/SubmissionViewScore
 import { ExportMarkdownButton } from "./ExportMarkdown";
 import { ConsortiumShares } from "@/comps/submission/view/ConsortiumShares";
 import { ConsortiumShareStatus } from "@/comps/submission/view/ConsortiumShareStatus";
+import { DepositionStatus } from "@/comps/submission/view/DepositionStatus";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
@@ -33,7 +34,7 @@ import { ConsortiumShareStatus } from "@/comps/submission/view/ConsortiumShareSt
  */
 function SubmissionOverview() {
 
-    const { submission_tag } = useOutletContext()   
+    const { submission_tag, authenticationStatus } = useOutletContext()   
     const { data: users, isLoading, isFetching } = api.submissions.users.useGetSubmissionUsers({ tag: submission_tag })
     const { data: hasGenotype } = api.submissions.core.useGetSubmissionHasGenotype({tag : submission_tag}, { enabled: _.isString(submission_tag), defaultValue : false, staleTime: 0})
     const fontColors = getColorPalette(5)
@@ -41,7 +42,7 @@ function SubmissionOverview() {
         <div style={{ overflowY: "scroll", height: "94vh", padding: "1rem" }} className="flex flex-column">
             <div className="flex justify-end align-center margin-right--little">
                 <ExportMarkdownButton {...{ submission_tag }}/>
-                <QuickAccessBar submission_tag={submission_tag}/>
+                <QuickAccessBar submission_tag={submission_tag} userRole={authenticationStatus?.role} />
             </div>
 
              <div id="top" className="flex flex-column center-items">
@@ -56,6 +57,9 @@ function SubmissionOverview() {
                 </div>
                 <div className="margin-top--little">
                     <ConsortiumShareStatus submission_tag={submission_tag}/>
+                </div>
+                <div className="margin-top--little">
+                    <DepositionStatus submission_tag={submission_tag}/>
                 </div>
                 
                 <AuthorList {...{
