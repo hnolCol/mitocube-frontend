@@ -1,1 +1,1 @@
-export { QuantificationUploadDialog as SubmissionUpload } from "./QuantificationUploadDialog";
+export { QuantificationActions as SubmissionUpload } from "./QuantificationUploadDialog";
