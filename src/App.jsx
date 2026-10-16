@@ -315,7 +315,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route path="/submissions/:tag" element={<SubmissionOverview {...{ logout }} />} />
+            <Route path="/submissions/:tag" element={<SubmissionOverview {...{ logout, user_tag : authenticationStatus.tag }} />} />
             <Route path="/submissions/:tag/features" element={<DatasetFeatureView {...{ logout }} />} />
             <Route path="/submissions/:tag/precursors" element={<DatasetPrecursors {...{ logout }} />} />
             <Route path="/submissions/:tag/samples" element={<SubmissionSamples {...{ logout }} />} />
