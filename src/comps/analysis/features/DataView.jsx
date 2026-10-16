@@ -50,15 +50,16 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
         return () => ro.disconnect();
     }, [chartAreaRef, isLoading, isSampleCAAttributeLoading]);
 
+    const hasData = _.isArray(data?.data) && !_.every(data.data, q => q.value === null);
     return (
         <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
             {isLoading || isSampleCAAttributeLoading ? (
                 <div>Loading...</div>
             ) : (
                     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                        {showTitle && <SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} />}
+                        {showTitle && hasData && <SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} />}
                         <div ref={chartAreaRef} style={{ flex: 1, minHeight: 0 }}>
-                {_.isArray(data.data) && !_.every(data.data, q => q.value === null) ? <ResultChart
+                        {hasData ? <ResultChart
                         yaxisName="value"
                         featureTag={feature_tag}
                         submission_tag={submission_tag}

@@ -103,7 +103,7 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                     <>
                         {options?.formats?.length === 0 && (
                             <Callout intent="warning" style={{ marginBottom: "1rem" }}>
-                                No plate formats defined. Add traits to the "Plates" attribute (value e.g. 8x12) in the attributes admin view.
+                                No formats defined. Add traits to the "Container Format" attribute (value e.g. 8x12) in the attributes admin view.
                             </Callout>
                         )}
 

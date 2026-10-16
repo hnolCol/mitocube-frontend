@@ -47,17 +47,13 @@ export function ConsortiumShareStatus({ submission_tag }) {
     const { data: consortium_tags, isSuccess } = api.consortiums.useGetUserConsortiums(
         {}, { staleTime: 300000, retry: false }
     )
-    const { data: pendingRequests } = api.consortiumShareRequests.useGetPendingConsortiumShareRequests(
-        {}, { staleTime: 60000, retry: false }
+    const { data: pendingTags } = api.consortiums.useGetPendingConsortiumShares(
+        { submission_tag }, { staleTime: 60000 }
     )
 
     if (!isSuccess || !_.isArray(consortium_tags) || consortium_tags.length === 0) return null
 
-    const pendingConsortiumTags = _.isArray(pendingRequests)
-        ? pendingRequests
-            .filter(request => request.submission_tag === submission_tag)
-            .map(request => request.consortium_tag)
-        : []
+    const pendingConsortiumTags = _.isArray(pendingTags) ? pendingTags : []
 
     return <div className="flex" style={{ gap: "0.3rem", flexWrap: "wrap", justifyContent: "center" }}>
         {consortium_tags.map(consortium_tag => <ConsortiumShareStatusTag

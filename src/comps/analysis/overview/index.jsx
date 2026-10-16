@@ -87,10 +87,10 @@ function SubmissionOverview() {
                     paddingBottom: "0.5rem",
                 }}
             >
-            <div className="flex align-center" style={{ width: "100%", justifyContent: "center", gap: "0.5rem" }}>
+            {/* <div className="flex align-center" style={{ width: "100%", justifyContent: "center", gap: "0.5rem" }}>
                 <h2 style={{ margin: 0 }}><SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} /></h2>
                 <StateIndicator submission_tag={submission_tag} />
-            </div>
+            </div> */}
             <div className="flex">
                 <SubmissionTag {...{ submission_tag, fontColor: fontColors[0] }} />
                     <SubmissionViews {...{ submission_tag, fontColor: fontColors[1] }} />
@@ -116,7 +116,7 @@ function SubmissionOverview() {
                 <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionProtocolsView {...{ submission_tag }} />
                 </div>
-                <ConsortiumShares {...{ submission_tag }} />
+                {/* <ConsortiumShares {...{ submission_tag }} /> */}
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>
                     {metadata.links.map(link => <div key={link.id}><a href={link.url} target="_blank" rel="noopener noreferrer"><strong>{titleFormat(link.comment)}</strong></a></div>)}
