@@ -5,6 +5,7 @@ import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { RequestConsortiumShareButton } from "@/comps/submission/view/RequestConsortiumShareButton"
 import { CollaborationRequestsButton } from "@/comps/submission/view/CollaborationRequestsButton"
 import { RequestDepositionButton } from "@/comps/submission/view/RequestDepositionButton"
+import { SubmissionUpload } from "@/comps/submission/upload/SubmissionFeatureUpload"
 import { SubmissionMessagesButton } from "@/comps/submission/view/SubmissionMessagesButton"
 
 import { api } from "@/api";
@@ -45,6 +46,7 @@ export function QuickAccessBar({ submission_tag, userRole }) {
             <div className="flex">
             <SubmissionMessagesButton submission_tag={submission_tag} />
             <CollaborationRequestsButton submission_tag={submission_tag} />
+            <SubmissionUpload {...{ submission_tag }} />
             <RequestConsortiumShareButton submission_tag={submission_tag} />
             <RequestDepositionButton submission_tag={submission_tag} userRole={userRole} />
             <TooltipButton icon="tag" content="Copy submission tag" onClick={() => {

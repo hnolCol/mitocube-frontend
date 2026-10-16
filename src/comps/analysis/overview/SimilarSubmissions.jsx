@@ -104,14 +104,14 @@ function SimilarSubmissionItem({ similar, user_tag }) {
             </div>
         </div>
         {match_count_parts.length > 0 ?
-            <div className="flex align-center margin-top--little" style={{ gap: "0.35rem" }}>
+            <div className="flex align-center margin-top--little" style={{ gap: "0.35rem", alignItems: "center" }}>
                 <span className="font-size--smallest font-weight--bold">Matching:</span>
                 <span className="font-size--smallest">{match_count_parts.join(", ")}</span>
                 {condition_application_count > 0 ?
                     <TooltipButton
                         icon="info-sign"
                         small={true}
-                        content={<div className="flex flex-column" style={{ gap: "0.25rem", maxWidth: "30rem" }}>
+                        content={<div className="flex flex-column" style={{ gap: "0.25rem", maxWidth: "30rem", color: "#1c1c1c" }}>
                             <span className="font-weight--bold">Shared condition applications</span>
                             {matched.condition_applications.map(ca_tag =>
                                 <div key={ca_tag} className="flex align-center bg--white div--round padding--little">

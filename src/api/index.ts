@@ -53,7 +53,7 @@ import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
 import { policyAPI } from "./policy";
 import { similarSubmissionsAPI } from "./submission";
 import { platesAPI } from "./plates";
-import { depositionsAPI } from "./depositions";
+import { depositionsAPI, depositionRequestsAPI } from "./depositions";
 
 export const api = {
     annotations : {
@@ -208,6 +208,7 @@ export const api = {
         plates : platesAPI
     } ,
     requests : {
-        depositions : depositionsAPI
+        depositions : depositionsAPI,
+        depositionRequests : depositionRequestsAPI
     }
 };
