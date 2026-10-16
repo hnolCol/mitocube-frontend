@@ -12,6 +12,7 @@ import { Link } from "react-router"
 import { TermsOfUse } from "../../documents/TermsOfUse"
 import { api } from "@/api"
 import { PendingConsortiumShareRequestButton } from "../../base/user/PendingConsortiumShareRequestButton"
+import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButton"
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
 import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
 import { MessagesButton } from "@/comps/messages"
@@ -71,6 +72,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
             </div>
             <div className="flex">
                 <ConsortiumShareDecisionsButton />
+                <DepositionRequestsButton userRole={userRole} />
                 <PendingConsortiumShareRequestButton />
                 <PendingCollaborationRequestButton />
                 <MessagesButton user_tag={user_tag} />
