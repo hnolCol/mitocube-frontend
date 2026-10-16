@@ -26,12 +26,13 @@ import { SubmissionViewScore } from "@/comps/submission/view/SubmissionViewScore
 import { ExportMarkdownButton } from "./ExportMarkdown";
 import { ConsortiumShares } from "@/comps/submission/view/ConsortiumShares";
 import { ConsortiumShareStatus } from "@/comps/submission/view/ConsortiumShareStatus";
+import { SimilarSubmissions } from "./SimilarSubmissions";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
  * @returns 
  */
-function SubmissionOverview() {
+function SubmissionOverview({ user_tag }) {
 
     const { submission_tag } = useOutletContext()   
     const { data: users, isLoading, isFetching } = api.submissions.users.useGetSubmissionUsers({ tag: submission_tag })
@@ -115,6 +116,10 @@ function SubmissionOverview() {
                 </div>
                 <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
                     <SubmissionProtocolsView {...{ submission_tag }} />
+                </div>
+                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "auto" }}>
+                    <h3>Similar Submissions</h3>
+                    <SimilarSubmissions {...{ submission_tag, user_tag }} />
                 </div>
                 {/* <ConsortiumShares {...{ submission_tag }} /> */}
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
