@@ -4,6 +4,7 @@ import { useGetSubmissionSummaryString } from "../../../hooks/queries/submission
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { RequestConsortiumShareButton } from "@/comps/submission/view/RequestConsortiumShareButton"
 import { CollaborationRequestsButton } from "@/comps/submission/view/CollaborationRequestsButton"
+import { RequestDepositionButton } from "@/comps/submission/view/RequestDepositionButton"
 import { SubmissionMessagesButton } from "@/comps/submission/view/SubmissionMessagesButton"
 
 import { api } from "@/api";
@@ -11,9 +12,10 @@ import { api } from "@/api";
 /**
  * @param {Object} props
  * @param {String} props.submission_tag - The submission tag for which the quick access control should be established.
+ * @param {Number|String} [props.userRole] - The role of the current user. The deposition request button is only shown to curators and admins.
  * @returns 
  */
-export function QuickAccessBar({ submission_tag }) {
+export function QuickAccessBar({ submission_tag, userRole }) {
     
     const [msg, setMsg] = useState()
     const { isLoading : summaryIsLoading, isFetching : summaryIsFetching, isError : isSubmissionSummaryError, refetch: fetchSummaryString } = useGetSubmissionSummaryString(
@@ -44,6 +46,7 @@ export function QuickAccessBar({ submission_tag }) {
             <SubmissionMessagesButton submission_tag={submission_tag} />
             <CollaborationRequestsButton submission_tag={submission_tag} />
             <RequestConsortiumShareButton submission_tag={submission_tag} />
+            <RequestDepositionButton submission_tag={submission_tag} userRole={userRole} />
             <TooltipButton icon="tag" content="Copy submission tag" onClick={() => {
                     copyTextToClipboard(submission_tag)
                     setMsg("Tag copied!")
