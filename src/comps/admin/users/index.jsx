@@ -16,9 +16,10 @@ export function UsersAdminView({ authenticationStatus }) {
 
     const [dialogState, setDialogState] = useState({ isOpen: false })
     const [alertState, setAlertState] = useState({ isOpen: false })
-    const [selectedRole, setSelectedRole] = useState(ROLE_FILTER_NONE)
+    const { searchString, setSearchString, debouncedSearchString, limit, setLimit, numberParam: roleParam } =
+        useSearchParamState({ limitOptions: LIMIT_OPTIONS, numberParam: { key: "role", options: [1, 2, 4], noneValue: ROLE_FILTER_NONE } })
 
-    const { searchString, setSearchString, debouncedSearchString, limit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
+    const selectedRole = roleParam?.value ?? ROLE_FILTER_NONE
     const roles = selectedRole === ROLE_FILTER_NONE ? undefined : [selectedRole]
 
     const [refreshKey, setRefreshKey] = useState(0)
@@ -73,7 +74,7 @@ export function UsersAdminView({ authenticationStatus }) {
                         <span className="font-size--small">Filter by role:</span>
                         <UserRoleSelection
                             selectedRole={selectedRole}
-                            onRoleChange={(role_tag) => setSelectedRole(prev => prev === _.toNumber(role_tag) ? ROLE_FILTER_NONE : _.toNumber(role_tag))}
+                            onRoleChange={(role_tag) => roleParam?.setValue(selectedRole === _.toNumber(role_tag) ? ROLE_FILTER_NONE : _.toNumber(role_tag))}
                         />
                         <span className="font-size--small padding-left--little">Limit:</span>
                         {LIMIT_OPTIONS.map(option => (
