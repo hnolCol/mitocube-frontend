@@ -3,6 +3,7 @@ import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
 import { StateSelection } from "../filter/StateSelection"
 import { UserDatasetFilter } from "../filter/UserFilter"
 import { ConditionApplicationFilter } from "../filter/ConditionApplicationFilter"
+import { GenotypeDatasetFilter } from "@/comps/submission/filter/GenotypeFilter"
 
 export function StatisticsFilterSelection({ submissionFilter, setSubmissionFilter, children }) {
 
