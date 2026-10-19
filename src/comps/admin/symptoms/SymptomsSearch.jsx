@@ -13,14 +13,8 @@ const LIMIT_OPTIONS = [10, 25, 50, 100]
 export function SymptomsSearch() {
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false });
-    const [searchString, setSearchString] = useState("")
-    const debouncedSearchString = useDebounce(searchString, 300)
+    const { searchString, setSearchString, debouncedSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
     const [symptomsToDisplay, setSymptomsToDisplay] = useState([])
-    const [searchParams, setSearchParams] = useSearchParams()
-
-    const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit")))
-        ? _.toNumber(searchParams.get("limit"))
-        : LIMIT_OPTIONS[0]
 
     const { data: tag, isLoading, isSuccess, isError, refetch : updateSymptomList } =
     api.maintenance.symptoms.querySymptoms.useGetSymptomByQuery(
@@ -34,13 +28,6 @@ export function SymptomsSearch() {
         }
     }, [isSuccess, _.join(tag)])
 
-    const updateParam = (key, value) => {
-        const newParams = new URLSearchParams(searchParams)
-        if (!value) newParams.delete(key)
-        else newParams.set(key, value)
-        setSearchParams(newParams, { replace: true })
-        
-    }
 
     const handleClose = (updateSymptoms = false) => {
         setDialogProps({ isOpen: false });
