@@ -7,16 +7,16 @@ import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { SymptomsContainer } from "./SymptomsContainer"
 import { AddSymptomDialog } from "./AddSymptomsDialog"
 import { AddButton } from "../../core/base/buttons/AddButton"
+import { useSearchParams } from "react-router"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
 export function SymptomsSearch() {
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false });
-    const [searchString, setSearchString] = useState("")
-    const debouncedSearchString = useDebounce(searchString, 300)
     const [symptomsToDisplay, setSymptomsToDisplay] = useState([])
     const [searchParams, setSearchParams] = useSearchParams()
+    const { searchString, setSearchString, debouncedSearchString, limit, setLimit } = useSearchParamState({ limitOptions: [50, 100, 200], limitAllValue: Infinity, debounceDelay: 30 })
 
     const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit")))
         ? _.toNumber(searchParams.get("limit"))
