@@ -30,10 +30,12 @@ export function AdminReports({ authenticationStatus }) {
         api.reports.year.useGetReportYears({ staleTime: Infinity, retry: false })
     const availableYears = _.isArray(years) ? _.sortBy(_.map(years, _.toNumber)) : []
     const [selectedYear, setSelectedYear] = useState(null)
-    const year = _.isFinite(_.toNumber(selectedYear)) ? _.toNumber(selectedYear) : _.last(availableYears)
+    const year = selectedYear != null && _.isFinite(_.toNumber(selectedYear))
+        ? _.toNumber(selectedYear)
+        : (_.isEmpty(availableYears) ? null : _.last(availableYears))
     const { data: report, isLoading: reportIsLoading, isError: reportIsError, error: reportError } =
         api.reports.year.useGetYearReport(
-            { year }, { enabled: isCurator && _.isFinite(year), staleTime: 50000, retry: false })
+            { year }, { enabled: isCurator && year != null && _.isFinite(year), staleTime: 50000, retry: false })
     const download = api.reports.year.useDownloadYearReport()
 
     if (!isCurator) {
