@@ -1,8 +1,8 @@
 import _ from "lodash"
 import { useEffect, useMemo, useState } from "react"
-import { Button, Checkbox, Menu, MenuItem, Popover } from "@blueprintjs/core"
+import { Menu, MenuItem, Popover } from "@blueprintjs/core"
 import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
-import { addStringToArrayOrRemove } from "@/services/arrays/transforms"
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
 /**
  * Shared shell for year-comparison statistics. Expects rows of the form
@@ -29,12 +29,13 @@ export function YearComparisonSection({
 
     useEffect(() => {
         if (selectedYears === null && years.length > 0) {
-            setSelectedYears(_.takeRight(years, 2))
+            setSelectedYears(_.takeRight(years, 3))
         }
     }, [years, selectedYears])
 
     const visibleYears = selectedYears === null ? years : years.filter(y => selectedYears.includes(y))
     const visibleRows = selectedYears === null ? rows : rows.filter(d => selectedYears.includes(d.year))
+    const remainingYears = years.filter(y => !visibleYears.includes(y))
     const visibleGroups = _.uniq(visibleRows.map(d => d.group))
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
@@ -49,21 +50,25 @@ export function YearComparisonSection({
         {isSuccess && rows.length > 0 ? <div className="flex flex-column">
             <div className="flex" style={{ gap: "0.3rem", margin: "0.3rem 0" }}>
                 <span style={{ fontSize: "0.75rem", color: "#888", alignSelf: "center" }}>Years:</span>
-                <Popover
+                {visibleYears.map(year => <OptionButton
+                    key={year}
+                    isSelected={true}
+                    onClick={() => setSelectedYears(visibleYears.filter(y => y !== year))}
+                >
+                    {year}
+                </OptionButton>)}
+                {remainingYears.length > 0 ? <Popover
                     placement="bottom"
                     content={<Menu>
-                        {years.map(year => <MenuItem
+                        {remainingYears.map(year => <MenuItem
                             key={year}
-                            text={<Checkbox
-                                checked={visibleYears.includes(year)}
-                                label={year}
-                            />}
-                            onClick={() => setSelectedYears(addStringToArrayOrRemove({ array: visibleYears, string: year }))}
+                            text={year}
+                            onClick={() => setSelectedYears(_.union(visibleYears, [year]))}
                         />)}
                     </Menu>}
                 >
-                    <Button small text={visibleYears.length === years.length ? "All years" : visibleYears.join(", ")} rightIcon="chevron-down" />
-                </Popover>
+                    <OptionButton isSelected={false}>More years…</OptionButton>
+                </Popover> : null}
             </div>
             <GroupedYearComparisonChart
                 data={visibleRows}
