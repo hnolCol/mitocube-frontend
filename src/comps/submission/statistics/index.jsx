@@ -5,6 +5,7 @@ import { PerYearDistributions } from "./PerYearDistributions"
 import { QuantifiedProteinGroupsStatistics } from "./QuantifiedProteins"
 import { ResearchGroupStatistics } from "./ResearchGroupStatistics"
 import { UserStatistics } from "./UserStatistics"
+import { YearlyTotalsSection } from "./YearlyTotals"
 
 function ActiveFiltersBanner({ submissionFilter, setSubmissionFilter }) {
 
@@ -55,6 +56,7 @@ function SubmissionStatistics({ submissionFilter, setSubmissionFilter }) {
             <h3>Statistics</h3>
             <p>Explore submissions and samples by research group, user and year, as well as submission durations and quantified protein groups.</p>
             <ActiveFiltersBanner {...{ submissionFilter, setSubmissionFilter }} />
+            <YearlyTotalsSection statisticsFilter={statisticsFilter} />
             <ResearchGroupStatistics statisticsFilter={statisticsFilter} />
             <UserStatistics stateFilter={stateFilter} statisticsFilter={statisticsFilter} />
             <SubmissionDuration statisticsFilter={statisticsFilter} />
