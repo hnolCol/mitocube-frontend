@@ -43,6 +43,7 @@ export function UserStatistics({ stateFilter }) {
         isError={isError}
         error={error}
         yaxisLabel="Submissions"
+        xaxisLabel="User"
         controls={controls}
         svgID="user-submission-counts-chart"
     />
