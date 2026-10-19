@@ -17,15 +17,19 @@ GroupedTabs.propTypes = {
 TabItem.propTypes = {
     text: PropTypes.string.isRequired,
     to: PropTypes.string.isRequired,
-    active: PropTypes.bool
+    active: PropTypes.bool,
+    onSelect: PropTypes.func
 }
 
-function TabItem({ text, to, active = false }) {
+function TabItem({ text, to, active = false, onSelect }) {
     const redirect = useNavigate()
     return <button
         className={"padding--little tabs__item " + `${active ? "tabs__item-active" : "tabs__item-inactive"}`}
-        style={{ border: "none", backgroundColor: "transparent", cursor: "pointer", display: "flex" }}
-        onClick={() => redirect(to)}
+        style={{ border: "none", backgroundColor: "transparent", cursor: "pointer", display: "flex", width: "100%" }}
+        onClick={() => {
+            redirect(to)
+            if (_.isFunction(onSelect)) onSelect()
+        }}
     >
         {text}
     </button>
@@ -62,6 +66,7 @@ function GroupedTabs({ groups }) {
                         text={tab.text}
                         to={tab.to}
                         active={activeTab?.to === tab.to}
+                        onSelect={() => setOpenGroup(null)}
                     />)}
                 </div>}
             >

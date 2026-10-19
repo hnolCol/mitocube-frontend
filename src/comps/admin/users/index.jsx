@@ -23,7 +23,9 @@ export function UsersAdminView({ authenticationStatus }) {
     const debouncedSearchString = useDebounce(searchString, 300)
     const roles = selectedRole === ROLE_FILTER_NONE ? undefined : [selectedRole]
 
-    const { data: user_tags, isLoading, isError } = api.users.queryByQuery.useGetUserByQuery({
+    const [refreshKey, setRefreshKey] = useState(0)
+
+    const { data: user_tags, isLoading, isError, refetch } = api.users.queryByQuery.useGetUserByQuery({
         search_string: debouncedSearchString,
         roles,
         limit
@@ -54,6 +56,8 @@ export function UsersAdminView({ authenticationStatus }) {
                             onCreated={() => {
                                 setDialogState({ isOpen: false })
                                 setAlertState({ isOpen: true })
+                                setRefreshKey(k => k + 1)
+                                refetch()
                             }}
                         />
                     </Dialog>
@@ -102,7 +106,7 @@ export function UsersAdminView({ authenticationStatus }) {
                     </div>
                     <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "3rem", paddingRight: "0.5rem" }} className="flex flex-column">
                         {_.isArray(user_tags) ? user_tags.map((user_tag, idx) => (
-                            <div key={`${user_tag}-${idx}`} className="margin-bottom--little">
+                            <div key={`${user_tag}-${idx}-${refreshKey}`} className="margin-bottom--little">
                                 <UserItem tag={user_tag} canBlock={isAdmin} canEditRole={isAdmin} />
                             </div>
                         )) : null}
