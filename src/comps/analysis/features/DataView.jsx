@@ -210,7 +210,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                             {feature_tags.map((feature_tag, i) => {
                                 const itemKey = `${feature_tag}-${i}-${submission_tags[i]}`;
                                 return (
-                                    <div key={itemKey} data-grid={layouts.lg[i]}>
+                                    <div key={itemKey}>
                                         <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%" }}>
                                             <FeatureData
                                                 feature_tag={feature_tag}

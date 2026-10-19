@@ -55,7 +55,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
             };
         }
         return { feature_tags: [], submission_tags: [], totalSubmissions: 0 };
-    }, [_.isArray(submissionStats) && submissionStats.length > 0, tag, visibleCount])
+    }, [submissionStats, tag, visibleCount])
 
     const hasMoreSubmissions = totalSubmissions > feature_tags.length
 
