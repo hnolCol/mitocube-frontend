@@ -2,6 +2,9 @@ import _ from "lodash"
 import { api } from "@/api"
 import { PerYearBoxplotSection } from "./PerYearBoxplotSection"
 
+const SUBMITTED_STATE_TAG = 0
+const DONE_STATE_TAG = 4
+
 /**
  * Per-year distribution statistics: project duration quantiles and samples
  * per submission quantiles, one boxplot box per year.
@@ -9,8 +12,8 @@ import { PerYearBoxplotSection } from "./PerYearBoxplotSection"
 export function PerYearDistributions({ stateFilter }) {
     const { data: durationData, isLoading: isLoadingDurations, isSuccess: isDurationsSuccess, isError: isDurationsError, error: durationsError } =
         api.stats.submissionDurations.useGetSubmissionDuration({
-            state_01: "submitted",
-            state_02: "done",
+            state_01: SUBMITTED_STATE_TAG,
+            state_02: DONE_STATE_TAG,
             aggregate: "dist",
             group_by_year: true,
             state: stateFilter
