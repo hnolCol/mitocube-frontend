@@ -46,21 +46,23 @@ function StateFunnelRow({ tag, value, max, total }) {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
     >
-        <span style={{ width: "9rem", fontSize: "0.85rem", textAlign: "right" }}>
+        <span style={{ width: "9rem", flexShrink: 0, fontSize: "0.85rem", textAlign: "right", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
             {_.isString(stateName) ? stateName : tag}
         </span>
-        <div
-            style={{
-                height: "1.4rem",
-                width: `${Math.max((value / max) * 100, 1.5)}%`,
-                backgroundColor: _.isString(stateColor) ? stateColor : "#999",
-                opacity: hovered ? 0.8 : 1,
-                borderRadius: "3px",
-                transition: "opacity 0.1s",
-                minWidth: "0.5rem"
-            }}
-        />
-        <span style={{ fontSize: "0.85rem", color: "#555" }}>
+        <div style={{ flex: "1 1 0%", minWidth: 0, display: "flex", alignItems: "center" }}>
+            <div
+                style={{
+                    height: "1.4rem",
+                    width: `${(value / max) * 100}%`,
+                    minWidth: "2px",
+                    backgroundColor: _.isString(stateColor) ? stateColor : "#999",
+                    opacity: hovered ? 0.8 : 1,
+                    borderRadius: "0 3px 3px 0",
+                    transition: "opacity 0.1s"
+                }}
+            />
+        </div>
+        <span style={{ flexShrink: 0, fontSize: "0.85rem", color: "#555" }}>
             {value} ({share.toFixed(1)}%)
         </span>
     </div>
