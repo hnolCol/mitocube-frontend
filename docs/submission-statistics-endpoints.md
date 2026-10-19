@@ -78,11 +78,16 @@ Missing (group, year) combinations are simply absent; the chart renders gaps.
 
 ## Frontend wiring
 
-The hooks live in `src/api/submissionStatistics.ts` and are registered as
-`api.stats.submissions` in `src/api/index.ts`. They already call the three endpoints
-above with the exact paths and params listed here, so implementing the routes lights
-the charts up without further frontend changes. While the endpoints are missing, the
+The hooks are provided by `@mitocube/api-hooks` (`createSubmissionDurationsAPI`,
+stats submissions) and re-exported with domain-friendly names in
+`src/api/submissionStatistics.ts`, registered as `api.stats.submissions` in
+`src/api/index.ts`. The package hooks accept the filter params either as
+semicolon-joined strings or as arrays. All statistics sections spread the shared
+`statisticsFilter` object into these hooks. While the endpoints are missing, the
 sections show a "Failed to load statistics." message instead of crashing.
+
+Note: the grouped count rows use the key `value` (backend
+`GroupedCountResponseModel`: `{ group, year, value }`).
 
 The statistics page (`src/comps/submission/statistics`) additionally forwards
 `user_tags`, `genotype_tags`, `ca_tags` and `include_sample_ca` (see above) to every statistics section.
