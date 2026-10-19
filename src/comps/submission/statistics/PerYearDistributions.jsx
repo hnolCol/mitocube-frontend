@@ -9,19 +9,19 @@ const DONE_STATE_TAG = 4
  * Per-year distribution statistics: project duration quantiles and samples
  * per submission quantiles, one boxplot box per year.
  */
-export function PerYearDistributions({ stateFilter }) {
+export function PerYearDistributions({ stateFilter, statisticsFilter }) {
     const { data: durationData, isLoading: isLoadingDurations, isSuccess: isDurationsSuccess, isError: isDurationsError, error: durationsError } =
         api.stats.submissionDurations.useGetSubmissionDuration({
             state_01: SUBMITTED_STATE_TAG,
             state_02: DONE_STATE_TAG,
             aggregate: "dist",
             group_by_year: true,
-            state: stateFilter
+            ...statisticsFilter
         }, { retry: false })
 
     const { data: samplesData, isLoading: isLoadingSamples, isSuccess: isSamplesSuccess, isError: isSamplesError, error: samplesError } =
         api.stats.submissionDurations.useGetSamplesPerSubmission({
-            state: stateFilter
+            ...statisticsFilter
         }, { retry: false })
 
     return <div>

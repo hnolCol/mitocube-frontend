@@ -8,8 +8,8 @@ import _ from "lodash"
  * 
  * @returns 
  */
-export function QuantifiedProteinGroupsStatistics() {
-    const { data } = api.submissions.counts.useGetSubmissionProteinGroupCount({})
+export function QuantifiedProteinGroupsStatistics({ statisticsFilter }) {
+    const { data } = api.submissions.counts.useGetSubmissionProteinGroupCount(statisticsFilter)
     if (!data) {
         return <div>Loading...</div>
     }

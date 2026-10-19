@@ -42,6 +42,13 @@ Missing (group, year) combinations are simply absent; the chart renders gaps.
 - `group_by` (A/B): `research_group` — reserve for later `instrument`, `attribute:{tag}`, etc.
 - `years`: semicolon-separated years, e.g. `2024;2025` — default: all years.
 - `state`: semicolon-separated submission state tags — filter by state.
+- `user_tags`: semicolon-separated user tags — restrict to submissions created or
+  collaborated on by these users (statistics-specific filter, mirrors the
+  `user_tags` param of the submission query endpoints).
+- `ca_tags`: semicolon-separated condition application tags — restrict to
+  submissions that contain these condition applications.
+- `include_sample_ca` (boolean, default `false`): when `ca_tags` is given, also
+  match sample-level condition applications (not only submission-level).
 - `research_group_tags` (C only): semicolon-separated — restrict to users of these groups.
 
 ## Implementation notes for the backend
@@ -72,6 +79,16 @@ The hooks live in `src/api/submissionStatistics.ts` and are registered as
 above with the exact paths and params listed here, so implementing the routes lights
 the charts up without further frontend changes. While the endpoints are missing, the
 sections show a "Failed to load statistics." message instead of crashing.
+
+The statistics page (`src/comps/submission/statistics`) additionally forwards
+`user_tags`, `ca_tags` and `include_sample_ca` (see above) to every statistics section.
+The same parameters should therefore also be accepted by:
+
+- `GET /api/stats/submissions/durations` (submission duration quantiles;
+  `useGetSubmissionDuration` from `@mitocube/api-hooks`),
+- the samples-per-submission quantiles route used by `useGetSamplesPerSubmission`,
+- the quantified protein groups count route used by
+  `api.submissions.counts.useGetSubmissionProteinGroupCount`.
 
 ## D) Suggested further statistics
 
