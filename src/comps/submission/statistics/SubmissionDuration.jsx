@@ -4,7 +4,7 @@ import _ from "lodash"
 import { useRef } from "react"
 import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
 
-export function SubmissionDuration({ }) {
+export function SubmissionDuration({ statisticsFilter }) {
     const { data: submissionDuration, isLoading: isLoadingDuration } = api.stats.submissionDurations.useGetSubmissionDuration(statisticsFilter)
     const chartRef = useRef(null)
 

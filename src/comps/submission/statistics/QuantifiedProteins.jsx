@@ -9,7 +9,7 @@ import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
  * 
  * @returns 
  */
-export function QuantifiedProteinGroupsStatistics() {
+export function QuantifiedProteinGroupsStatistics({ statisticsFilter }) {
     const { data } = api.submissions.counts.useGetSubmissionProteinGroupCount(statisticsFilter)
     const chartRef = useRef(null)
 
