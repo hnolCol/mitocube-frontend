@@ -18,6 +18,7 @@ GET /api/stats/submissions/counts/submissions   # A) submissions per research gr
 GET /api/stats/submissions/counts/samples       # B) samples per research group
 GET /api/stats/submissions/counts/users         # C) submissions per user (research-group subsettable)
 GET /api/stats/submissions/counts/states         # D) submissions per state (state funnel)
+GET /api/stats/submissions/counts/protein-groups # E) dataset size trend per year
 ```
 
 ## Data contract
@@ -92,6 +93,16 @@ The statistics page (`src/comps/submission/statistics`) additionally forwards
 `[{ "state_tag": 2, "value": 31 }, ...]` - the number of submissions currently in
 each state, subsettable by `user_tags`, `genotype_tags`, `ca_tags` and
 `include_sample_ca` (not by `state`, since state is the grouping variable).
+
+### E) Dataset size trend rows
+
+`GET /api/stats/submissions/counts/protein-groups` returns one row per year of
+the form `{ "year": 2024, "protein_groups": 158342, "submissions": 23 }` -
+the sum of quantified protein groups of all submissions created in that year and
+the number of such submissions. Subsettable by `years`, `state`, `user_tags`,
+`genotype_tags`, `ca_tags` and `include_sample_ca` (all optional, same
+semantics as above). The frontend derives both the total and the
+average-per-submission view from these rows; no `aggregate` param is required.
 The same parameters should therefore also be accepted by:
 
 - `GET /api/stats/submissions/durations` (submission duration quantiles;

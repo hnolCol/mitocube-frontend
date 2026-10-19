@@ -8,6 +8,7 @@ import { UserStatistics } from "./UserStatistics"
 import { YearlyTotalsSection } from "./YearlyTotals"
 import { StateFunnelSection } from "./StateFunnel"
 import { GrowthTrendsSection, ActiveUsersSection } from "./GrowthTrends"
+import { DatasetSizeTrendSection } from "./DatasetSizeTrend"
 
 function ActiveFiltersBanner({ submissionFilter, setSubmissionFilter }) {
 
@@ -62,6 +63,7 @@ function SubmissionStatistics({ submissionFilter, setSubmissionFilter }) {
             <StateFunnelSection statisticsFilter={statisticsFilter} />
             <GrowthTrendsSection statisticsFilter={statisticsFilter} />
             <ActiveUsersSection statisticsFilter={statisticsFilter} />
+            <DatasetSizeTrendSection statisticsFilter={statisticsFilter} />
             <ResearchGroupStatistics statisticsFilter={statisticsFilter} />
             <UserStatistics stateFilter={stateFilter} statisticsFilter={statisticsFilter} />
             <SubmissionDuration statisticsFilter={statisticsFilter} />
