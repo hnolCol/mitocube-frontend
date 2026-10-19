@@ -85,7 +85,7 @@ function GroupedTabs({ groups }) {
                 >
                     {group.text}
                     {isGroupActive && activeTab ? <span style={{ fontSize: "0.75rem", color: "#888" }}>/ {activeTab.text}</span> : null}
-                    <span style={{ fontSize: "0.6rem", color: "#888" }}>▾</span>
+                    <span className="action-button--small">▾</span>
                 </button>
             </Popover>
         })}
