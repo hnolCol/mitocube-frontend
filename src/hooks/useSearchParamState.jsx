@@ -9,6 +9,7 @@ import useDebounce from "./useDebounce"
  * URL (replace, so no history spam while typing). The limit is validated
  * against the given options and persisted the same way. An optional
  * limitAllValue (e.g. Infinity, encoded as "all") selects all entries.
+ * An optional numberParam config persists a second validated numeric param.
  * @param {Object} props
  * @param {String} props.searchKey URL param key for the search string, default "q".
  * @param {String} props.limitKey URL param key for the limit, default "limit".
@@ -58,5 +59,25 @@ export function useSearchParamState({ searchKey = "q", limitKey = "limit", limit
         setSearchParams(newParams, { replace: true })
     }
 
-    return { searchString, setSearchString, debouncedSearchString, limit, setLimit }
+    let numberParam = undefined
+    if (_.isObject(numberParamConfig) && _.isString(numberParamConfig.key)
+        && _.isArray(numberParamConfig.options) && numberParamConfig.options.length > 0) {
+        const options = numberParamConfig.options.map(_.toNumber)
+        const noneValue = _.isNumber(numberParamConfig.noneValue) ? numberParamConfig.noneValue : options[0]
+        const paramValue = _.toNumber(searchParams.get(numberParamConfig.key))
+        const value = options.includes(paramValue) ? paramValue : noneValue
+        const setNumberParamValue = (newValue) => {
+            const newParams = new URLSearchParams(searchParams)
+            const numeric = _.toNumber(newValue)
+            if (options.includes(numeric) && numeric !== noneValue) {
+                newParams.set(numberParamConfig.key, numeric)
+            } else {
+                newParams.delete(numberParamConfig.key)
+            }
+            setSearchParams(newParams, { replace: true })
+        }
+        numberParam = { value, setValue: setNumberParamValue }
+    }
+
+    return { searchString, setSearchString, debouncedSearchString, limit, setLimit, numberParam }
 }
