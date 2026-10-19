@@ -639,21 +639,6 @@ h5 {
     
 }
 
-.action-button--small {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background-color: #efefef;
-    color: var(--highlight-color, #466688);
-    font-size: 0.8rem;
-    cursor: pointer;
-    padding: 0;
-}
-
 .opacity--disabled {
     opacity: 0.5;
     cursor: not-allowed;
