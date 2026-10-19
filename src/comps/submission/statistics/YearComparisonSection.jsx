@@ -1,7 +1,8 @@
 import _ from "lodash"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { Button, Checkbox, Menu, MenuItem, Popover } from "@blueprintjs/core"
 import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
-import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { addStringToArrayOrRemove } from "@/services/arrays/transforms"
 
 /**
  * Shared shell for year-comparison statistics. Expects rows of the form
@@ -24,10 +25,16 @@ export function YearComparisonSection({
     const rows = _.isArray(data) ? data : []
     const years = useMemo(() => _.uniq(rows.map(d => d.year)).sort((a, b) => a - b), [rows])
     const groups = useMemo(() => _.uniq(rows.map(d => d.group)), [rows])
-    const [hiddenYears, setHiddenYears] = useState([])
+    const [selectedYears, setSelectedYears] = useState(null)
 
-    const visibleYears = years.filter(y => !hiddenYears.includes(y))
-    const visibleRows = rows.filter(d => !hiddenYears.includes(d.year))
+    useEffect(() => {
+        if (selectedYears === null && years.length > 0) {
+            setSelectedYears(_.takeRight(years, 2))
+        }
+    }, [years, selectedYears])
+
+    const visibleYears = selectedYears === null ? years : years.filter(y => selectedYears.includes(y))
+    const visibleRows = selectedYears === null ? rows : rows.filter(d => selectedYears.includes(d.year))
     const visibleGroups = _.uniq(visibleRows.map(d => d.group))
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
@@ -42,13 +49,21 @@ export function YearComparisonSection({
         {isSuccess && rows.length > 0 ? <div className="flex flex-column">
             <div className="flex" style={{ gap: "0.3rem", margin: "0.3rem 0" }}>
                 <span style={{ fontSize: "0.75rem", color: "#888", alignSelf: "center" }}>Years:</span>
-                {years.map(year => <OptionButton
-                    key={year}
-                    isSelected={!hiddenYears.includes(year)}
-                    onClick={() => setHiddenYears(hiddenYears.includes(year) ? hiddenYears.filter(y => y !== year) : [...hiddenYears, year])}
+                <Popover
+                    placement="bottom"
+                    content={<Menu>
+                        {years.map(year => <MenuItem
+                            key={year}
+                            text={<Checkbox
+                                checked={visibleYears.includes(year)}
+                                label={year}
+                            />}
+                            onClick={() => setSelectedYears(addStringToArrayOrRemove({ array: visibleYears, string: year }))}
+                        />)}
+                    </Menu>}
                 >
-                    {year}
-                </OptionButton>)}
+                    <Button small text={visibleYears.length === years.length ? "All years" : visibleYears.join(", ")} rightIcon="chevron-down" />
+                </Popover>
             </div>
             <GroupedYearComparisonChart
                 data={visibleRows}
