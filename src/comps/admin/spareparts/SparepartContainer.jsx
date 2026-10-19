@@ -19,18 +19,26 @@ export function SparepartContainer({ tags, updateSparepartList }) {
         <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "5rem", paddingRight: "0.5rem" }} className="flex flex-column">
             {tags.map((tag, idx) => (
                 <div  key={`${tag}-${idx}`} className="flex" style={{ marginBottom: "0.8rem" }}>
-                <motion.button
+                <motion.div
                     className="flex"
+                    role="button"
+                    tabIndex={0}
                     whileHover={{ backgroundColor: "#efefef" }}
                     onClick={(e) => handleClick(e, tag)}
-                    style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%"}}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            handleClick(e, tag)
+                        }
+                    }}
+                    style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%", cursor: "pointer" }}
                 >
                   <SparepartItem 
                         tag={tag}
                         updateSparepartList={updateSparepartList}
                         showDetails={showDetailTags.includes(tag)} 
                     />
-                </motion.button>
+                </motion.div>
                 </div>
             ))}
         </div>
