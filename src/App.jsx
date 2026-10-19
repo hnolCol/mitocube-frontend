@@ -90,6 +90,7 @@ import { PolicyManagement } from "./comps/admin/policy/PolicyManagement";
 import { ImpressumManagement } from "./comps/admin/impressum/ImpressumManagement";
 import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
+import { AdminReports } from "./comps/admin/reports/Reports";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
 import Welcome from "./comps/welcome";
@@ -372,6 +373,7 @@ function App() {
              <Route path="/admin/policy" element={<PolicyManagement />} />,
              <Route path="/admin/impressum" element={<ImpressumManagement />} />,
               <Route path="/admin/plates" element={<PlatesAdmin />} />
+              <Route path="/admin/reports" element={<AdminReports {...{ authenticationStatus }} />} />
           </Route>
 
           <Route
