@@ -24,8 +24,8 @@ TabItem.propTypes = {
 function TabItem({ text, to, active = false, onSelect }) {
     const redirect = useNavigate()
     return <button
-        className={"padding--little tabs__item " + `${active ? "tabs__item-active" : "tabs__item-inactive"}`}
-        style={{ border: "none", backgroundColor: "transparent", cursor: "pointer", display: "flex", width: "100%" }}
+        className={"basic-button--small " + `${active ? "basic-button--highlighted" : ""}`}
+        style={{ cursor: "pointer", display: "flex", width: "100%", margin: "0.15rem 0", fontWeight: active ? 600 : 400 }}
         onClick={() => {
             redirect(to)
             if (_.isFunction(onSelect)) onSelect()
@@ -85,7 +85,7 @@ function GroupedTabs({ groups }) {
                 >
                     {group.text}
                     {isGroupActive && activeTab ? <span style={{ fontSize: "0.75rem", color: "#888" }}>/ {activeTab.text}</span> : null}
-                    <span style={{ fontSize: "0.6rem", color: "#888" }}>▾</span>
+                    <span className="basic-button--small">▾</span>
                 </button>
             </Popover>
         })}
