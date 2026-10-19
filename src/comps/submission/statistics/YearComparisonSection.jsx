@@ -94,6 +94,7 @@ export function YearComparisonSection({
                     data={visibleRows}
                     years={visibleYears}
                     groups={visibleGroups}
+                    colorGroups={groups}
                     width={chartAreaWidth || 640}
                     maxGroups="auto"
                     yaxisLabel={yaxisLabel}
