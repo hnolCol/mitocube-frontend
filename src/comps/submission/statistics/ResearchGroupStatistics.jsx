@@ -8,11 +8,11 @@ import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
  * Years are encoded by bar opacity, research groups by color.
  * Submittable to the research group filter selection.
  */
-export function ResearchGroupStatistics({ stateFilter }) {
+export function ResearchGroupStatistics({ statisticsFilter }) {
     const { data: submissionData, isLoading: isLoadingSubmissions, isSuccess: isSubmissionsSuccess, isError: isSubmissionsError, error: submissionsError } =
-        api.stats.submissions.useGetResearchGroupSubmissionCounts({ state: stateFilter }, { retry: false })
+        api.stats.submissions.useGetResearchGroupSubmissionCounts({ ...statisticsFilter }, { retry: false })
     const { data: sampleData, isLoading: isLoadingSamples, isSuccess: isSamplesSuccess, isError: isSamplesError, error: samplesError } =
-        api.stats.submissions.useGetResearchGroupSampleCounts({ state: stateFilter }, { retry: false })
+        api.stats.submissions.useGetResearchGroupSampleCounts({ ...statisticsFilter }, { retry: false })
 
     const submissionRows = _.isArray(submissionData) ? submissionData : []
     const sampleRows = _.isArray(sampleData) ? sampleData : []

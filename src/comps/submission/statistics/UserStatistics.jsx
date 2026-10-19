@@ -1,6 +1,6 @@
 import _ from "lodash"
-import { useState } from "react"
 import { api } from "@/api"
+import { useState } from "react"
 import { YearComparisonSection } from "./YearComparisonSection"
 import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
 
@@ -8,11 +8,11 @@ import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
  * Submissions per user (C), subsettable by research groups.
  * Users are the colored groups, years are encoded by bar opacity.
  */
-export function UserStatistics({ stateFilter }) {
+export function UserStatistics({ stateFilter, statisticsFilter }) {
     const [research_group_tags, setResearchGroupTags] = useState([])
 
     const { data, isLoading, isSuccess, isError, error } = api.stats.submissions.useGetUserSubmissionCounts(
-        { state: stateFilter, research_group_tags },
+        { ...statisticsFilter, research_group_tags },
         { retry: false }
     )
 

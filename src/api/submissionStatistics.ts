@@ -1,64 +1,53 @@
-import _ from "lodash";
-import { useQuery } from "@tanstack/react-query";
+import hooks from "@mitocube/api-hooks";
 import { apiClient } from "./client";
 
 /**
- * Submission statistics endpoints under /stats/submissions/counts (backend
- * router src/routers/stats/submissions.py, see docs/submission-statistics-endpoints.md).
- * All endpoints return flat rows: [{ group, year, value }].
+ * Submission statistics wiring. All endpoints live under
+ * /stats/submissions/counts (backend router src/routers/stats/submissions.py,
+ * see docs/submission-statistics-endpoints.md) and are provided by the
+ * @mitocube/api-hooks stats submissions API, which accepts the statistics
+ * filter params (state, user_tags, genotype_tags, ca_tags, include_sample_ca)
+ * either as semicolon-joined strings or arrays.
  */
 
-async function getResearchGroupSubmissionCounts_API({ years, state }) {
-    const res = await apiClient.get("/stats/submissions/counts/submissions", {
-        params: { group_by: "research_group", years: years ? _.join(years, ";") : undefined, state }
-    })
-    return res.data
+const statsAPI = hooks.stats.submissions.createSubmissionDurationsAPI(apiClient)
+
+const useGetResearchGroupSubmissionCounts = ({ years, state, user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
+    return statsAPI.useGetSubmissionCountsByYear({
+        group_by: "research_group",
+        years, state, user_tags, genotype_tags, ca_tags, include_sample_ca
+    }, useQueryOptions)
 }
 
-async function getResearchGroupSampleCounts_API({ years, state }) {
-    const res = await apiClient.get("/stats/submissions/counts/samples", {
-        params: { group_by: "research_group", years: years ? _.join(years, ";") : undefined, state }
-    })
-    return res.data
+const useGetResearchGroupSampleCounts = ({ years, state, user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
+    return statsAPI.useGetSampleCountsByResearchGroup({
+        group_by: "research_group",
+        years, state, user_tags, genotype_tags, ca_tags, include_sample_ca
+    }, useQueryOptions)
 }
 
-async function getUserSubmissionCounts_API({ years, state, research_group_tags }) {
-    const res = await apiClient.get("/stats/submissions/counts/users", {
-        params: {
-            years: years ? _.join(years, ";") : undefined,
-            state,
-            research_group_tags: research_group_tags ? _.join(research_group_tags, ";") : undefined
-        }
-    })
-    return res.data
+const useGetUserSubmissionCounts = ({ years, state, research_group_tags, user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
+    return statsAPI.useGetSubmissionCountsByUser({
+        years, state, research_group_tags, user_tags, genotype_tags, ca_tags, include_sample_ca
+    }, useQueryOptions)
 }
 
-const useGetResearchGroupSubmissionCounts = ({ years, state } = {}, useQueryOptions = {}) => {
-    return useQuery({
-        queryKey: ["getResearchGroupSubmissionCounts", years, state],
-        queryFn: () => getResearchGroupSubmissionCounts_API({ years, state }),
-        ...useQueryOptions
-    })
+const useGetSubmissionStateCounts = ({ user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
+    return statsAPI.useGetSubmissionCountsByState({
+        user_tags, genotype_tags, ca_tags, include_sample_ca
+    }, useQueryOptions)
 }
 
-const useGetResearchGroupSampleCounts = ({ years, state } = {}, useQueryOptions = {}) => {
-    return useQuery({
-        queryKey: ["getResearchGroupSampleCounts", years, state],
-        queryFn: () => getResearchGroupSampleCounts_API({ years, state }),
-        ...useQueryOptions
-    })
-}
-
-const useGetUserSubmissionCounts = ({ years, state, research_group_tags } = {}, useQueryOptions = {}) => {
-    return useQuery({
-        queryKey: ["getUserSubmissionCounts", years, state, research_group_tags],
-        queryFn: () => getUserSubmissionCounts_API({ years, state, research_group_tags }),
-        ...useQueryOptions
-    })
+const useGetProteinGroupCounts = ({ years, state, user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
+    return statsAPI.useGetProteinGroupCountsByYear({
+        years, state, user_tags, genotype_tags, ca_tags, include_sample_ca
+    }, useQueryOptions)
 }
 
 export const submissionStatisticsAPI = {
     useGetResearchGroupSubmissionCounts,
     useGetResearchGroupSampleCounts,
-    useGetUserSubmissionCounts
+    useGetUserSubmissionCounts,
+    useGetSubmissionStateCounts,
+    useGetProteinGroupCounts
 }

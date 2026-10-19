@@ -5,7 +5,7 @@ import { useRef } from "react"
 import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
 
 export function SubmissionDuration({ }) {
-    const { data: submissionDuration } = api.stats.submissionDurations.useGetSubmissionDuration({})
+    const { data: submissionDuration, isLoading: isLoadingDuration } = api.stats.submissionDurations.useGetSubmissionDuration(statisticsFilter)
     const chartRef = useRef(null)
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
