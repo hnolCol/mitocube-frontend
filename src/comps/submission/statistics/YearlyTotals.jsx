@@ -77,7 +77,7 @@ export function YearlyTotalsSection({ statisticsFilter }) {
             let groupSeries = groups
                 .map((group, gi) => ({
                     group,
-                    color: schemeCategory10[gi % 10],
+                    color: schemeCategory10[(gi + 1) % 10],
                     valuesPerYear: allYears.map(year => _.sumBy(source.filter(d => d.group === group && d.year === year), "value"))
                 }))
                 .filter(s => _.sum(s.valuesPerYear) > 0)
@@ -199,13 +199,30 @@ export function YearlyTotalsSection({ statisticsFilter }) {
                             fill={s.color}
                         />)}
                     </Group>)}
+                    {showSamplesAxis ? <Group>
+                        <LinePath
+                            data={years}
+                            x={xCenter}
+                            y={(year, i) => samplesScale(samplesPerYear[i] || 0)}
+                            stroke={SAMPLES_COLOR}
+                            strokeWidth={2}
+                            curve={curveMonotoneX}
+                        />
+                        {years.map((year, i) => <Circle
+                            key={year}
+                            cx={xCenter(year)}
+                            cy={samplesScale(samplesPerYear[i] || 0)}
+                            r={3.5}
+                            fill={SAMPLES_COLOR}
+                        />)}
+                    </Group> : null}
                     {years.map((year, i) => <BlueprintTooltip
                         key={year}
                         content={<div style={{ maxWidth: "14rem" }}>
                             <div><strong>{year}</strong></div>
                             {series.map(s => <div key={s.group} className="flex center-items" style={{ gap: "0.3rem" }}>
                                 <span style={{ width: "0.6rem", height: "0.6rem", backgroundColor: s.color, display: "inline-block", borderRadius: "2px" }} />
-                                {s.group}: {s.valuesPerYear[i]} submissions
+                                {s.group}: {s.valuesPerYear[i] || 0} submissions
                             </div>)}
                             {showSamplesAxis ? <div>{samplesPerYear[i]} samples (total)</div> : null}
                         </div>}
