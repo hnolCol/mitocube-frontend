@@ -1,12 +1,11 @@
 import { api } from "@/api"
 import PropTypes from "prop-types"
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { useEffect, useState } from "react"
 import { GenotypeContainer } from "./GenotypeContainer"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router";
 
 
 GenotypeSearch.propTypes = {
@@ -25,13 +24,8 @@ const LIMIT_OPTIONS = [10, 25, 50, 100]
 
 export function GenotypeSearch({ }) {
 
-    const [searchString, setSearchString] = useState("")
-    const debouncedSearchString = useDebounce(searchString, 300)
+    const { searchString, setSearchString, debouncedSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
     const [genotypesToDisplay, setGenotypesToDisplay] = useState([]) // array of genotype tags to be displayed, saving them allows to have no blinking when typing in search box.
-    const [searchParams, setSearchParams] = useSearchParams(); 
-
-    // Determine selected limit from URL params
-    const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit"))) ? _.toNumber(searchParams.get("limit")) : LIMIT_OPTIONS[0];
     const { data: genotype_tags, isLoading, isSuccess, isError, error, refetch : updateGenotypeList } = api.genotypes.queryGenotypes.useGetGenotypesBySearchString(
         { search_string: debouncedSearchString, limit: selectedLimit },
         { staleTime: 6000 }
@@ -43,16 +37,6 @@ export function GenotypeSearch({ }) {
         }
     }, [isSuccess, _.join(genotype_tags)])
 
-       // Handlers to update URL params
-    const updateParam = (key, value) => {
-        const newParams = new URLSearchParams(searchParams);
-        if (value === "" || value === undefined || value === null) {
-            newParams.delete(key);
-        } else {
-            newParams.set(key, value);
-        }
-        setSearchParams(newParams, { replace: true });
-    };
 
     const handleClose = (updateGenotypes = false) => {
         setHotkeysDialogProps({ isOpen: false });
@@ -83,7 +67,7 @@ export function GenotypeSearch({ }) {
                 {LIMIT_OPTIONS.map(option => (
                     <OptionButton
                         key={option}
-                        onClick={() => updateParam("limit", option)}
+                        onClick={() => setLimit(option)}
                         isSelected={option === selectedLimit}
                     >
                         {option}

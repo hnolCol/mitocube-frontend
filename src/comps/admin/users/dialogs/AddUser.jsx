@@ -9,8 +9,8 @@ const USER_INPUT = [
     { type: "text", tag: "lastname", placeholder: "Enter user last name" },
     { type: "text", tag: "email", placeholder: "Enter user email" }]
 
-export function AddUserDialog({onCancel}) {
-    const { mutate: postUser, isPending } = api.users.create.usePostUser()
+export function AddUserDialog({onCancel, onCreated}) {
+    const { mutate: postUser, isPending } = api.users.create.usePostUser({ onSuccess: () => { if (_.isFunction(onCreated)) onCreated() } })
     const [formData, setFormData] = useState({firstname : "", lastname : "", email : "", research_group_tags : [], institute : "", role : 1})
     const disabledButton = !_.isString(formData.firstname) || formData.firstname.length === 0 || !_.isString(formData.lastname) || formData.lastname.length === 0 || !_.isString(formData.email) || formData.email.length === 0 || !formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/) || !_.isArray(formData.research_group_tags) || formData.research_group_tags.length === 0 
 

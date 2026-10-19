@@ -1,7 +1,7 @@
 import { api } from "@/api"
 import { useState } from "react"
 import _ from "lodash"
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { Loading } from "@/comps/core/base/states/Loading"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { PhenotypeAssociationContainer } from "./PhenotypeAssociationContainer"
@@ -9,9 +9,8 @@ import { PhenotypeAssociationContainer } from "./PhenotypeAssociationContainer"
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
 export function PhenotypeAssociationSearch() {
-    const [searchString, setSearchString] = useState("")
-    const debouncedSearchString = useDebounce(searchString, 300)
-    const [limit, setLimit] = useState(LIMIT_OPTIONS[0])
+
+    const { searchString, setSearchString, debouncedSearchString, limit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
     const [tagsToDisplay, setTagsToDisplay] = useState([])
 
     const { data: tags, isLoading, isSuccess, isError, refetch: updateList } = api.phenotypes.associations.useFindPhenotypeAssociations(
