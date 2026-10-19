@@ -27,6 +27,7 @@ export function YearComparisonSection({
     const years = useMemo(() => _.uniq(rows.map(d => d.year)).sort((a, b) => a - b), [rows])
     const groups = useMemo(() => _.uniq(rows.map(d => d.group)), [rows])
     const [selectedYears, setSelectedYears] = useState(null)
+    const [showAllGroups, setShowAllGroups] = useState(false)
     const [chartAreaWidth, setChartAreaWidth] = useState(null)
     const chartAreaRef = useRef(null)
 
@@ -88,6 +89,12 @@ export function YearComparisonSection({
                 >
                     <OptionButton isSelected={false}>More years…</OptionButton>
                 </Popover> : null}
+                {visibleGroups.length > 1 ? <OptionButton
+                    isSelected={showAllGroups}
+                    onClick={() => setShowAllGroups(!showAllGroups)}
+                >
+                    {showAllGroups ? "Top groups" : "All groups"}
+                </OptionButton> : null}
             </div>
             <div ref={chartAreaRef} style={{ width: "100%" }}>
                 <GroupedYearComparisonChart
@@ -96,7 +103,7 @@ export function YearComparisonSection({
                     groups={visibleGroups}
                     colorGroups={groups}
                     width={chartAreaWidth || 640}
-                    maxGroups="auto"
+                    maxGroups={showAllGroups ? null : "auto"}
                     yaxisLabel={yaxisLabel}
                     xaxisLabel={xaxisLabel}
                     svgID={svgID}
