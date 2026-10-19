@@ -33,7 +33,10 @@ export function StatisticsFilterSelection({ submissionFilter, setSubmissionFilte
                 <div style={{ marginTop: "0.5rem" }}>
                     <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
                 </div>
-                <div style={{ marginTop: "1rem" }}>
+                <div style={{ marginTop: "0.5rem" }}>
+                    <GenotypeDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
+                </div>
+                <div style={{ marginTop: "0.5rem" }}>
                     <ConditionApplicationFilter
                         {...{ setSubmissionFilter, submissionFilter }}
                         infoText="Only submissions containing the selected condition applications are included in the statistics."

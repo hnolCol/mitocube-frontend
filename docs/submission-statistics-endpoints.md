@@ -45,6 +45,8 @@ Missing (group, year) combinations are simply absent; the chart renders gaps.
 - `user_tags`: semicolon-separated user tags — restrict to submissions created or
   collaborated on by these users (statistics-specific filter, mirrors the
   `user_tags` param of the submission query endpoints).
+- `genotype_tags`: semicolon-separated genotype tags — restrict to submissions
+  in which these genotypes were utilized.
 - `ca_tags`: semicolon-separated condition application tags — restrict to
   submissions that contain these condition applications.
 - `include_sample_ca` (boolean, default `false`): when `ca_tags` is given, also
@@ -81,7 +83,7 @@ the charts up without further frontend changes. While the endpoints are missing,
 sections show a "Failed to load statistics." message instead of crashing.
 
 The statistics page (`src/comps/submission/statistics`) additionally forwards
-`user_tags`, `ca_tags` and `include_sample_ca` (see above) to every statistics section.
+`user_tags`, `genotype_tags`, `ca_tags` and `include_sample_ca` (see above) to every statistics section.
 The same parameters should therefore also be accepted by:
 
 - `GET /api/stats/submissions/durations` (submission duration quantiles;

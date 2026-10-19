@@ -10,8 +10,9 @@ function ActiveFiltersBanner({ submissionFilter, setSubmissionFilter }) {
 
     const hasStateFilter = _.has(submissionFilter, "states") && submissionFilter.states.size > 0
     const hasUserFilter = _.isArray(submissionFilter.user) && submissionFilter.user.length > 0
+    const hasGenotypeFilter = _.isArray(submissionFilter.genotype_tag) && submissionFilter.genotype_tag.length > 0
     const hasCAFilter = _.isArray(submissionFilter.ca_tags) && submissionFilter.ca_tags.length > 0
-    const hasActiveFilter = hasStateFilter || hasUserFilter || hasCAFilter
+    const hasActiveFilter = hasStateFilter || hasUserFilter || hasGenotypeFilter || hasCAFilter
 
     if (!hasActiveFilter) {
         return <p>The statistics below are calculated on all submissions.</p>
@@ -24,6 +25,7 @@ function ActiveFiltersBanner({ submissionFilter, setSubmissionFilter }) {
         <span style={{ fontWeight: "500" }}>Filtered statistics:</span>
         {hasStateFilter ? <span>States ({submissionFilter.states.size})</span> : null}
         {hasUserFilter ? <span>Users ({submissionFilter.user.length})</span> : null}
+        {hasGenotypeFilter ? <span>Genotypes ({submissionFilter.genotype_tag.length})</span> : null}
         {hasCAFilter ? <span>Condition Applications ({submissionFilter.ca_tags.length})</span> : null}
         <span className="basic-button--small" style={{ cursor: "pointer" }} onClick={() => setSubmissionFilter({})}>
             Clear ✕
@@ -40,9 +42,12 @@ function SubmissionStatistics({ submissionFilter, setSubmissionFilter }) {
     const caTagsFilter = _.isArray(submissionFilter.ca_tags) && submissionFilter.ca_tags.length > 0
         ? _.join(submissionFilter.ca_tags, ";")
         : null
+    const genotypeTagsFilter = _.isArray(submissionFilter.genotype_tag) && submissionFilter.genotype_tag.length > 0
+        ? _.join(submissionFilter.genotype_tag, ";")
+        : null
     const includeSampleCA = _.has(submissionFilter, "include_sample_ca") ? submissionFilter.include_sample_ca : false
 
-    const statisticsFilter = { state: stateFilter, user_tags: userTagsFilter, ca_tags: caTagsFilter, include_sample_ca: includeSampleCA }
+    const statisticsFilter = { state: stateFilter, user_tags: userTagsFilter, genotype_tags: genotypeTagsFilter, ca_tags: caTagsFilter, include_sample_ca: includeSampleCA }
 
     return <StatisticsFilterSelection
         {...{ submissionFilter, setSubmissionFilter }}
