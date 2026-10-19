@@ -1,10 +1,9 @@
 import { api } from "@/api";
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router"
 import { SymptomsContainer } from "./SymptomsContainer"
 import { AddSymptomDialog } from "./AddSymptomsDialog"
 import { AddButton } from "../../core/base/buttons/AddButton"
@@ -76,7 +75,7 @@ export function SymptomsSearch() {
                 {LIMIT_OPTIONS.map(option => (
                     <OptionButton
                         key={option}
-                        onClick={() => updateParam("limit", option)}
+                        onClick={() => setLimit(option)}
                         isSelected={option === selectedLimit}
                     >
                         {option}

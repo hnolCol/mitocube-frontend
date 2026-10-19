@@ -1,6 +1,6 @@
 import { api } from "@/api"
 import { useState } from "react"
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { UserCount } from "./Count"
 import _ from "lodash"
 import { Alert, Dialog } from "@blueprintjs/core"
@@ -16,11 +16,9 @@ export function UsersAdminView({ authenticationStatus }) {
 
     const [dialogState, setDialogState] = useState({ isOpen: false })
     const [alertState, setAlertState] = useState({ isOpen: false })
-    const [searchString, setSearchString] = useState("")
-    const [limit, setLimit] = useState(LIMIT_OPTIONS[0])
     const [selectedRole, setSelectedRole] = useState(ROLE_FILTER_NONE)
 
-    const debouncedSearchString = useDebounce(searchString, 300)
+    const { searchString, setSearchString, debouncedSearchString, limit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
     const roles = selectedRole === ROLE_FILTER_NONE ? undefined : [selectedRole]
 
     const [refreshKey, setRefreshKey] = useState(0)

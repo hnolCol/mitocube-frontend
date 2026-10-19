@@ -1,10 +1,9 @@
 import { api } from "@/api";
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router"
 import { SparepartContainer } from "./SparepartContainer"
 import { AddSparepartDialog } from "./AddSparepartDialog"
 import { AddButton } from "../../core/base/buttons/AddButton"
@@ -14,14 +13,8 @@ const LIMIT_OPTIONS = [10, 25, 50, 100]
 export function SparepartSearch() {
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false });
-    const [searchString, setSearchString] = useState("")
-    const debouncedSearchString = useDebounce(searchString, 300)
+    const { searchString, setSearchString, debouncedSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
     const [sparepartToDisplay, setSparepartToDisplay] = useState([])
-    const [searchParams, setSearchParams] = useSearchParams()
-
-    const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit")))
-        ? _.toNumber(searchParams.get("limit"))
-        : LIMIT_OPTIONS[0]
 
     const { data: tag, isLoading, isSuccess, isError, refetch: updateSparepartList } =
     api.maintenance.spareparts.querySpareParts.useGetSparePartByQuery(
@@ -35,12 +28,6 @@ export function SparepartSearch() {
         }
     }, [isSuccess, _.join(tag)])
 
-    const updateParam = (key, value) => {
-        const newParams = new URLSearchParams(searchParams)
-        if (!value) newParams.delete(key)
-        else newParams.set(key, value)
-        setSearchParams(newParams, { replace: true })
-    }
 
     const handleClose = (updateSpareparts = false) => {
         setDialogProps({ isOpen: false });
@@ -75,7 +62,7 @@ export function SparepartSearch() {
                 {LIMIT_OPTIONS.map(option => (
                     <OptionButton
                         key={option}
-                        onClick={() => updateParam("limit", option)}
+                        onClick={() => setLimit(option)}
                         isSelected={option === selectedLimit}
                     >
                         {option}
