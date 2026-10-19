@@ -1,14 +1,22 @@
 
 import _ from "lodash"
 
-export function downloadTxtFile(txtData, fileName) {
-    //download txt file
-    const element = document.createElement("a");
-    const file = new Blob([txtData], {type: 'text/plain'});
-    element.href = URL.createObjectURL(file);
-    element.download = fileName;
-    document.body.appendChild(element); // Required for this to work in FireFox
-    element.click();
+/**
+ * @description Download text content as a .txt file. Appends the .txt
+ * extension if missing and revokes the object URL afterwards.
+ * @param {string} txtData - The text content to download.
+ * @param {string} fileName - The file name, .txt is appended if missing.
+ */
+export function downloadTxtFile(txtData, fileName = "file.txt") {
+    const element = document.createElement("a")
+    const file = new Blob([txtData], { type: "text/plain;charset=utf-8" })
+    const href = URL.createObjectURL(file)
+    element.href = href
+    element.download = fileName.endsWith(".txt") ? fileName : fileName + ".txt"
+    document.body.appendChild(element) // Required for this to work in Firefox
+    element.click()
+    document.body.removeChild(element)
+    URL.revokeObjectURL(href)
 }
   
 

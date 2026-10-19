@@ -1,7 +1,9 @@
 import _ from "lodash"
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Button, Menu, MenuItem, Popover } from "@blueprintjs/core"
 import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { arrayObjectsToString, downloadTxtFile } from "@/services/downloads/txt"
 
 /**
  * Shared shell for year-comparison statistics. Expects rows of the form
@@ -24,10 +26,30 @@ export function YearComparisonSection({
     const rows = _.isArray(data) ? data : []
     const years = useMemo(() => _.uniq(rows.map(d => d.year)).sort((a, b) => a - b), [rows])
     const groups = useMemo(() => _.uniq(rows.map(d => d.group)), [rows])
-    const [hiddenYears, setHiddenYears] = useState([])
+    const [selectedYears, setSelectedYears] = useState(null)
+    const [showAllGroups, setShowAllGroups] = useState(false)
+    const [chartAreaWidth, setChartAreaWidth] = useState(null)
+    const chartAreaRef = useRef(null)
 
-    const visibleYears = years.filter(y => !hiddenYears.includes(y))
-    const visibleRows = rows.filter(d => !hiddenYears.includes(d.year))
+    useEffect(() => {
+        const el = chartAreaRef.current
+        if (!el || typeof ResizeObserver === "undefined") return
+        const update = () => setChartAreaWidth(el.clientWidth)
+        update()
+        const observer = new ResizeObserver(update)
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [])
+
+    useEffect(() => {
+        if (selectedYears === null && years.length > 0) {
+            setSelectedYears(_.takeRight(years, 3))
+        }
+    }, [years, selectedYears])
+
+    const visibleYears = selectedYears === null ? years : years.filter(y => selectedYears.includes(y))
+    const visibleRows = selectedYears === null ? rows : rows.filter(d => selectedYears.includes(d.year))
+    const remainingYears = years.filter(y => !visibleYears.includes(y))
     const visibleGroups = _.uniq(visibleRows.map(d => d.group))
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
@@ -42,22 +64,51 @@ export function YearComparisonSection({
         {isSuccess && rows.length > 0 ? <div className="flex flex-column">
             <div className="flex" style={{ gap: "0.3rem", margin: "0.3rem 0" }}>
                 <span style={{ fontSize: "0.75rem", color: "#888", alignSelf: "center" }}>Years:</span>
-                {years.map(year => <OptionButton
+                {visibleYears.map(year => <OptionButton
                     key={year}
-                    isSelected={!hiddenYears.includes(year)}
-                    onClick={() => setHiddenYears(hiddenYears.includes(year) ? hiddenYears.filter(y => y !== year) : [...hiddenYears, year])}
+                    isSelected={true}
+                    onClick={() => setSelectedYears(visibleYears.filter(y => y !== year))}
                 >
                     {year}
                 </OptionButton>)}
+                <Button
+                    small
+                    icon="download"
+                    text="Download all years"
+                    onClick={() => downloadTxtFile(arrayObjectsToString({ array: rows }), `${svgID}_all_years`)}
+                />
+                {remainingYears.length > 0 ? <Popover
+                    placement="bottom"
+                    content={<Menu>
+                        {remainingYears.map(year => <MenuItem
+                            key={year}
+                            text={year}
+                            onClick={() => setSelectedYears(_.union(visibleYears, [year]))}
+                        />)}
+                    </Menu>}
+                >
+                    <OptionButton isSelected={false}>More years…</OptionButton>
+                </Popover> : null}
+                {visibleGroups.length > 1 ? <OptionButton
+                    isSelected={showAllGroups}
+                    onClick={() => setShowAllGroups(!showAllGroups)}
+                >
+                    {showAllGroups ? "Top groups" : "All groups"}
+                </OptionButton> : null}
             </div>
-            <GroupedYearComparisonChart
-                data={visibleRows}
-                years={visibleYears}
-                groups={visibleGroups}
-                yaxisLabel={yaxisLabel}
-                xaxisLabel={xaxisLabel}
-                svgID={svgID}
-            />
+            <div ref={chartAreaRef} style={{ width: "100%" }}>
+                <GroupedYearComparisonChart
+                    data={visibleRows}
+                    years={visibleYears}
+                    groups={visibleGroups}
+                    colorGroups={groups}
+                    width={chartAreaWidth || 640}
+                    maxGroups={showAllGroups ? null : "auto"}
+                    yaxisLabel={yaxisLabel}
+                    xaxisLabel={xaxisLabel}
+                    svgID={svgID}
+                />
+            </div>
         </div> : null}
     </div>
 }

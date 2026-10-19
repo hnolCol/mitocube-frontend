@@ -1,6 +1,7 @@
 import { SubmissionFilterSelection } from "../filter"
 import _ from "lodash"
 import { SubmissionDuration } from "./SubmissionDuration"
+import { PerYearDistributions } from "./PerYearDistributions"
 import { QuantifiedProteinGroupsStatistics } from "./QuantifiedProteins"
 import { ResearchGroupStatistics } from "./ResearchGroupStatistics"
 import { UserStatistics } from "./UserStatistics"
@@ -22,6 +23,7 @@ function SubmissionStatistics({ submissionsQuery, setSubmissionQuery, submission
             <ResearchGroupStatistics stateFilter={stateFilter} />
             <UserStatistics stateFilter={stateFilter} />
             <SubmissionDuration />
+            <PerYearDistributions stateFilter={stateFilter} />
             <QuantifiedProteinGroupsStatistics />
         </div>} />
 }
