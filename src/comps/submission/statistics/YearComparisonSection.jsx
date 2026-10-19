@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Button, Menu, MenuItem, Popover } from "@blueprintjs/core"
 import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
@@ -27,6 +27,18 @@ export function YearComparisonSection({
     const years = useMemo(() => _.uniq(rows.map(d => d.year)).sort((a, b) => a - b), [rows])
     const groups = useMemo(() => _.uniq(rows.map(d => d.group)), [rows])
     const [selectedYears, setSelectedYears] = useState(null)
+    const [chartAreaWidth, setChartAreaWidth] = useState(null)
+    const chartAreaRef = useRef(null)
+
+    useEffect(() => {
+        const el = chartAreaRef.current
+        if (!el || typeof ResizeObserver === "undefined") return
+        const update = () => setChartAreaWidth(el.clientWidth)
+        update()
+        const observer = new ResizeObserver(update)
+        observer.observe(el)
+        return () => observer.disconnect()
+    }, [])
 
     useEffect(() => {
         if (selectedYears === null && years.length > 0) {
@@ -77,14 +89,18 @@ export function YearComparisonSection({
                     <OptionButton isSelected={false}>More years…</OptionButton>
                 </Popover> : null}
             </div>
-            <GroupedYearComparisonChart
-                data={visibleRows}
-                years={visibleYears}
-                groups={visibleGroups}
-                yaxisLabel={yaxisLabel}
-                xaxisLabel={xaxisLabel}
-                svgID={svgID}
-            />
+            <div ref={chartAreaRef} style={{ width: "100%" }}>
+                <GroupedYearComparisonChart
+                    data={visibleRows}
+                    years={visibleYears}
+                    groups={visibleGroups}
+                    width={chartAreaWidth || 640}
+                    maxGroups="auto"
+                    yaxisLabel={yaxisLabel}
+                    xaxisLabel={xaxisLabel}
+                    svgID={svgID}
+                />
+            </div>
         </div> : null}
     </div>
 }
