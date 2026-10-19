@@ -1,8 +1,9 @@
 import _ from "lodash"
 import { useEffect, useMemo, useState } from "react"
-import { Menu, MenuItem, Popover } from "@blueprintjs/core"
+import { Button, Menu, MenuItem, Popover } from "@blueprintjs/core"
 import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { arrayObjectsToString, downloadTxtFile } from "@/services/downloads/txt"
 
 /**
  * Shared shell for year-comparison statistics. Expects rows of the form
@@ -57,6 +58,12 @@ export function YearComparisonSection({
                 >
                     {year}
                 </OptionButton>)}
+                <Button
+                    small
+                    icon="download"
+                    text="Download all years"
+                    onClick={() => downloadTxtFile(arrayObjectsToString({ array: rows }), `${svgID}_all_years`)}
+                />
                 {remainingYears.length > 0 ? <Popover
                     placement="bottom"
                     content={<Menu>
