@@ -15,9 +15,12 @@ import useDebounce from "./useDebounce"
  * @param {Number[]} props.limitOptions Valid limit options, default [10, 25, 50, 100].
  * @param {Number} props.limitAllValue Limit value meaning "all", encoded as "all" in the URL, default undefined.
  * @param {Number} props.debounceDelay Debounce delay in ms, default 300.
- * @returns {{ searchString: String, setSearchString: Function, debouncedSearchString: String, limit: Number, setLimit: Function }}
+ * @param {Object} props.numberParam Optional second numeric param persisted in the URL,
+ * e.g. { key: "role", options: [1, 2, 4], noneValue: -1 } - values are validated against
+ * options, noneValue removes the param from the URL.
+ * @returns {{ searchString: String, setSearchString: Function, debouncedSearchString: String, limit: Number, setLimit: Function, numberParam: { value: Number, setValue: Function } }}
  */
-export function useSearchParamState({ searchKey = "q", limitKey = "limit", limitOptions = [10, 25, 50, 100], limitAllValue = undefined, debounceDelay = 300 } = {}) {
+export function useSearchParamState({ searchKey = "q", limitKey = "limit", limitOptions = [10, 25, 50, 100], limitAllValue = undefined, debounceDelay = 300, numberParam: numberParamConfig = undefined } = {}) {
 
     const [searchParams, setSearchParams] = useSearchParams()
 
