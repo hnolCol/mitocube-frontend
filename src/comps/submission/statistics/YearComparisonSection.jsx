@@ -75,12 +75,12 @@ export function YearComparisonSection({
                         {year}
                     </OptionButton>
                 })}
-                <Button
-                    small
-                    icon="download"
-                    text="Download all years"
+                 <button 
+                    className="basic-button--small"
                     onClick={() => downloadTxtFile(arrayObjectsToString({ array: rows }), `${svgID}_all_years`)}
-                />
+                >
+                    Download
+                </button>
                 {remainingYears.length > 0 ? <Popover
                     placement="bottom"
                     content={<Menu>

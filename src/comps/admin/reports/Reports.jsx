@@ -8,7 +8,7 @@ import APIError from "../../core/error/APIerror"
 
 const CURATOR_ROLE = 2
 
-Reports.propTypes = {
+AdminReports.propTypes = {
     authenticationStatus: PropTypes.shape({ role: PropTypes.oneOfType([PropTypes.number, PropTypes.string]) })
 }
 
