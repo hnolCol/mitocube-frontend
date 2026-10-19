@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Button, Menu, MenuItem, Popover } from "@blueprintjs/core"
 import { GroupedYearComparisonChart } from "@mitocube/viz/src/charts/yearcomparison"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
 import { arrayObjectsToString, downloadTxtFile } from "@/services/downloads/txt"
 
 /**
@@ -28,6 +29,7 @@ export function YearComparisonSection({
     const groups = useMemo(() => _.uniq(rows.map(d => d.group)), [rows])
     const pinnedYears = useMemo(() => _.takeRight(years, 3), [years])
     const [extraYears, setExtraYears] = useState([])
+    const [hiddenPinnedYears, setHiddenPinnedYears] = useState([])
     const [showAllGroups, setShowAllGroups] = useState(false)
     const [chartAreaWidth, setChartAreaWidth] = useState(null)
     const chartAreaRef = useRef(null)
@@ -42,8 +44,9 @@ export function YearComparisonSection({
         return () => observer.disconnect()
     }, [])
 
+    const shownYears = years.filter(y => (pinnedYears.includes(y) || extraYears.includes(y)) && !hiddenPinnedYears.includes(y))
     const visibleYears = years.filter(y => pinnedYears.includes(y) || extraYears.includes(y))
-    const visibleRows = rows.filter(d => visibleYears.includes(d.year))
+    const visibleRows = rows.filter(d => shownYears.includes(d.year))
     const remainingYears = years.filter(y => !visibleYears.includes(y))
     const visibleGroups = _.uniq(visibleRows.map(d => d.group))
 
@@ -61,13 +64,18 @@ export function YearComparisonSection({
                 <span style={{ fontSize: "0.75rem", color: "#888", alignSelf: "center" }}>Years:</span>
                 {visibleYears.map(year => {
                     const isPinned = pinnedYears.includes(year)
-                    return isPinned ? <span
-                        key={year}
-                        className="padding--little margin-left--little"
-                        style={{ backgroundColor: "#efefef", borderRadius: "5px", fontSize: "0.85rem", cursor: "default" }}
-                    >
-                        {year}
-                    </span> : <OptionButton
+                    if (isPinned) {
+                        const isShown = !hiddenPinnedYears.includes(year)
+                        return <button
+                            key={year}
+                            className="basic-button--small"
+                            style={{ backgroundColor: isShown ? undefined : "#f9f9f9", opacity: isShown ? undefined : 0.5 }}
+                            onClick={() => setHiddenPinnedYears(isShown ? _.union(hiddenPinnedYears, [year]) : hiddenPinnedYears.filter(y => y !== year))}
+                        >
+                            {year}
+                        </button>
+                    }
+                    return <OptionButton
                         key={year}
                         isSelected={true}
                         onClick={() => setExtraYears(extraYears.filter(y => y !== year))}
@@ -81,6 +89,7 @@ export function YearComparisonSection({
                 >
                     Download
                 </button>
+                <DownloadSvgButton chartRef={chartAreaRef} fileName={`${svgID}.svg`} />
                 {remainingYears.length > 0 ? <Popover
                     placement="bottom"
                     content={<Menu>
@@ -103,7 +112,7 @@ export function YearComparisonSection({
             <div ref={chartAreaRef} style={{ width: "100%" }}>
                 <GroupedYearComparisonChart
                     data={visibleRows}
-                    years={visibleYears}
+                    years={shownYears}
                     groups={visibleGroups}
                     colorGroups={groups}
                     width={chartAreaWidth || 640}
