@@ -2,7 +2,6 @@ import _ from "lodash"
 import { useMemo, useRef, useState, useEffect } from "react"
 import { LinePath, Circle } from "@visx/shape"
 import { AxisBottom, AxisLeft, AxisRight } from "@visx/axis"
-import { GridRows } from "@visx/grid"
 import { Group } from "@visx/group"
 import { scaleLinear, scaleBand } from "@visx/scale"
 import { curveMonotoneX } from "@visx/curve"
@@ -10,9 +9,11 @@ import { schemeCategory10 } from "d3-scale-chromatic"
 import { Tooltip as BlueprintTooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
+import { arrayObjectsToString, downloadTxtFile } from "@/services/downloads/txt"
 
 const HEIGHT = 340
-const MARGIN = { top: 20, right: 60, bottom: 40, left: 60 }
+const MARGIN = { top: 20, right: 70, bottom: 50, left: 70 }
 const SUBMISSIONS_COLOR = "#4a90d9"
 const SAMPLES_COLOR = "#d9822b"
 
@@ -24,6 +25,10 @@ const SPLIT_OPTIONS = [
 
 const MAX_SERIES = 7
 const OTHERS_COLOR = "#9aa0a6"
+
+const AXIS_LABEL_PROPS = { fontSize: "0.8rem", textAnchor: "middle" }
+const TICK_LABEL_PROPS = () => ({ fontSize: 10, textAnchor: "end", verticalAnchor: "middle" })
+const TICK_LABEL_PROPS_RIGHT = () => ({ fontSize: 10, textAnchor: "start", verticalAnchor: "middle" })
 
 /**
  * Submissions (left y-axis) and samples (right y-axis) per year as line graphs.
@@ -97,6 +102,12 @@ export function YearlyTotalsSection({ statisticsFilter }) {
         return { years: allYears, series, samplesPerYear }
     }, [subs, smps, usrs, split])
 
+    const downloadRows = useMemo(() => years.map((year, i) => ({
+        year,
+        ..._.fromPairs(series.flatMap(s => [[s.group, s.valuesPerYear[i]]])),
+        samples_total: samplesPerYear[i]
+    })), [years, series, samplesPerYear])
+
     const width = _.isNumber(chartAreaWidth) && chartAreaWidth > 0 ? chartAreaWidth : 600
     const innerWidth = Math.max(width - MARGIN.left - MARGIN.right, 50)
     const innerHeight = HEIGHT - MARGIN.top - MARGIN.bottom
@@ -141,6 +152,13 @@ export function YearlyTotalsSection({ statisticsFilter }) {
                 >
                     {option.label}
                 </OptionButton>)}
+                {isSuccess && hasData ? <button
+                    className="basic-button--small"
+                    onClick={() => downloadTxtFile(arrayObjectsToString({ array: downloadRows }), "submissions_samples_per_year")}
+                >
+                    Download
+                </button> : null}
+                {isSuccess && hasData ? <DownloadSvgButton chartRef={chartAreaRef} fileName="submissions_samples_per_year.svg" /> : null}
             </div>
         </div>
         <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
@@ -155,31 +173,32 @@ export function YearlyTotalsSection({ statisticsFilter }) {
         {isSuccess && !hasData ? <div>No data available yet.</div> : null}
         {isSuccess && hasData ? <div ref={chartAreaRef}>
             <svg width={width} height={HEIGHT}>
-                <GridRows
-                    scale={submissionsScale}
-                    width={innerWidth}
-                    left={MARGIN.left}
-                    top={MARGIN.top}
-                    stroke="#e0e0e0"
-                />
                 <AxisBottom
                     top={MARGIN.top + innerHeight}
                     scale={xScale}
                     tickFormat={_.toString}
+                    tickLength={3}
+                    tickLabelProps={() => ({ fontSize: 10, textAnchor: "middle", verticalAnchor: "start" })}
                 />
                 <AxisLeft
                     scale={submissionsScale}
                     left={MARGIN.left}
                     numTicks={5}
                     label="Submissions"
-                    labelOffset={-45}
+                    labelOffset={30}
+                    labelProps={AXIS_LABEL_PROPS}
+                    tickLength={3}
+                    tickLabelProps={TICK_LABEL_PROPS}
                 />
                 {showSamplesAxis ? <AxisRight
                     scale={samplesScale}
                     left={MARGIN.left + innerWidth}
                     numTicks={5}
                     label="Samples"
-                    labelOffset={45}
+                    labelOffset={30}
+                    labelProps={AXIS_LABEL_PROPS}
+                    tickLength={3}
+                    tickLabelProps={TICK_LABEL_PROPS_RIGHT}
                 /> : null}
                 <Group>
                     {series.map(s => <Group key={s.group}>

@@ -2,16 +2,21 @@ import _ from "lodash"
 import { useMemo, useRef, useState, useEffect } from "react"
 import { LinePath, Circle } from "@visx/shape"
 import { AxisBottom, AxisLeft, AxisRight } from "@visx/axis"
-import { GridRows } from "@visx/grid"
 import { Group } from "@visx/group"
 import { scaleLinear, scaleBand } from "@visx/scale"
 import { curveMonotoneX } from "@visx/curve"
 import { Tooltip as BlueprintTooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
+import { arrayObjectsToString, downloadTxtFile } from "@/services/downloads/txt"
 
 const HEIGHT = 320
-const MARGIN = { top: 20, right: 70, bottom: 40, left: 60 }
+const MARGIN = { top: 20, right: 70, bottom: 50, left: 70 }
+
+const AXIS_LABEL_PROPS = { fontSize: "0.8rem", textAnchor: "middle" }
+const TICK_LABEL_PROPS = () => ({ fontSize: 10, textAnchor: "end", verticalAnchor: "middle" })
+const TICK_LABEL_PROPS_RIGHT = () => ({ fontSize: 10, textAnchor: "start", verticalAnchor: "middle" })
 const TOTALS_COLOR = "#7b4fd9"
 const AVERAGE_COLOR = "#2f9b45"
 const SAMPLES_COLOR = "#d9822b"
@@ -92,6 +97,12 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
     }), [maxSamples, innerHeight])
 
     const hasData = years.length > 0 && primaryValues.filter(_.isNumber).length > 0
+    const downloadRows = years.map((year, i) => ({
+        year,
+        protein_groups: view === "total" ? pgPerYear[i] : avgPerYear[i],
+        submissions: submissionsPerYear[i],
+        samples: samplesPerYear[i]
+    }))
     const primaryColor = view === "total" ? TOTALS_COLOR : AVERAGE_COLOR
     const xCenter = year => (xScale(year) + xScale.bandwidth() / 2) || MARGIN.left
     const primaryValue = i => _.isNumber(primaryValues[i]) ? primaryValues[i] : null
@@ -107,6 +118,13 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
                 >
                     {option.label}
                 </OptionButton>)}
+                {isSuccess && hasData ? <button
+                    className="basic-button--small"
+                    onClick={() => downloadTxtFile(arrayObjectsToString({ array: downloadRows }), "dataset_size_trend")}
+                >
+                    Download
+                </button> : null}
+                {isSuccess && hasData ? <DownloadSvgButton chartRef={chartAreaRef} fileName="dataset_size_trend.svg" /> : null}
             </div>
         </div>
         <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
@@ -119,16 +137,33 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
         {isSuccess && !hasData ? <div>No data available yet.</div> : null}
         {isSuccess && hasData ? <div ref={chartAreaRef}>
             <svg width={width} height={HEIGHT}>
-                <GridRows scale={leftScale} width={innerWidth} left={MARGIN.left} top={MARGIN.top} stroke="#e0e0e0" />
-                <AxisBottom top={MARGIN.top + innerHeight} scale={xScale} tickFormat={_.toString} />
+                <AxisBottom
+                    top={MARGIN.top + innerHeight}
+                    scale={xScale}
+                    tickFormat={_.toString}
+                    tickLength={3}
+                    tickLabelProps={() => ({ fontSize: 10, textAnchor: "middle", verticalAnchor: "start" })}
+                />
                 <AxisLeft
                     scale={leftScale}
                     left={MARGIN.left}
                     numTicks={5}
                     label={view === "total" ? "Protein Groups (total)" : "Protein Groups (avg/submission)"}
-                    labelOffset={-55}
+                    labelOffset={40}
+                    labelProps={AXIS_LABEL_PROPS}
+                    tickLength={3}
+                    tickLabelProps={TICK_LABEL_PROPS}
                 />
-                <AxisRight scale={samplesScale} left={MARGIN.left + innerWidth} numTicks={5} label="Samples" labelOffset={55} />
+                <AxisRight
+                    scale={samplesScale}
+                    left={MARGIN.left + innerWidth}
+                    numTicks={5}
+                    label="Samples"
+                    labelOffset={40}
+                    labelProps={AXIS_LABEL_PROPS}
+                    tickLength={3}
+                    tickLabelProps={TICK_LABEL_PROPS_RIGHT}
+                />
                 <Group>
                     <LinePath
                         data={years}
