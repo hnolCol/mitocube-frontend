@@ -61,25 +61,24 @@ export function AttributesAdminView() {
 
     
     return (
-        <div style={{
-            width: "90vw",
-            height : "85vh",
-            margin: "40px auto",
-            padding: 32,
-            background: "#fff",
-            borderRadius: 10,
-            boxShadow: "0 4px 24px rgba(0,0,0,0.08)"
-        }}>
+        <div
+            className="div--expand padding--medium"
+            style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
+        >
+            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
 
                 <Dialog style={{width : "min(950px,70vw)"}} isOpen={dialogProps.isOpen} onClose={() => setDialogProps({ isOpen: false })} title="Add Attribute" canOutsideClickClose={false} canEscapeKeyClose={true}> 
                 <DialogBody>
                     {dialogProps.isOpen && !dialogProps.editMode ? <InsertAttribute /> : <EditAttribute attribute_tag={dialogProps.attribute_tag} />}
                 </DialogBody>   
                 </Dialog>
-                <h2 style={{ fontWeight: 700, fontSize: 28, marginBottom: 24, letterSpacing: -1 }}>Attributes</h2>
+                <h3>Attributes</h3>
                 <div className="flex flex-column" style={{ marginBottom: 24 }}>
                     <div>
-                        <div className="flex center-items" style={{marginBottom : "1rem", gap : "1rem"}}><AddButton onSelect={() => setDialogProps({ isOpen: true, editMode : false })} /><div>Insert Attribute</div>  <ExportAttributesButton /></div>
+                        <div className="flex">
+                    <AddButton onSelect={() => setDialogProps({ isOpen: true, editMode : false })} />
+                    <ExportAttributesButton />
+                </div>
                         <input
                             className="search-input"
                             type="text"
@@ -139,6 +138,6 @@ export function AttributesAdminView() {
                     </div>
                 </div>
             </div>
-
+        </div>
     )
 }
