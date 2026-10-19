@@ -54,6 +54,7 @@ import { policyAPI } from "./policy";
 import { similarSubmissionsAPI } from "./submission";
 import { platesAPI } from "./plates";
 import { depositionsAPI, depositionRequestsAPI } from "./depositions";
+import { yearReportAPI } from "./reports";
 
 export const api = {
     annotations : {
@@ -210,5 +211,8 @@ export const api = {
     requests : {
         depositions : depositionsAPI,
         depositionRequests : depositionRequestsAPI
+    },
+    reports : {
+        year : yearReportAPI
     }
 };
