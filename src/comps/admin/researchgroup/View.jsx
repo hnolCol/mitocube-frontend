@@ -3,14 +3,12 @@ import { useEffect, useState } from "react"
 import { api } from "@/api"
 import { ResearchGroupContainer } from "./ResearchGroupContainer"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 
 const LIMIT_OPTIONS = [20, 50, 100, 200]
 
 export function ResearchGroupView({ refetchTrigger, setEditUsersDialog, setEditDialog, setEditPIDialog }) {
-    const [limit, setLimit] = useState(20)
-    const [searchString, setSearchString] = useState("")
-    const debounced = useDebounce(searchString, 300)
+    const { searchString, setSearchString, debounced, limit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
 
     const { data: research_group_tags, refetch } = api.researchgroups.useGetResearchGroups(
         { limit, search_string: debounced || undefined },

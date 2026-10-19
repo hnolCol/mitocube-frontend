@@ -7,7 +7,7 @@ import { ConsortiumContainer } from "./ConsortiumContainer";
 import { EditConsortiumGroupsDialog } from "./EditConsortiumGroups";
 import { ConsortiumSubmissionsDialog } from "./Submissions";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
-import useDebounce from "../../../hooks/useDebounce";
+import { useSearchParamState } from "../../../hooks/useSearchParamState";
 
 const LIMIT_OPTIONS = [20, 50, 100, 200]
 
@@ -64,9 +64,7 @@ export function AdminConsortium({ }) {
  * @returns {JSX.Element} The consortium list view.
  */
 export function ConsortiumView({ refetchTrigger, setEditGroupsDialog, setSubmissionsDialog }) {
-    const [limit, setLimit] = useState(20)
-    const [searchString, setSearchString] = useState("")
-    const debounced = useDebounce(searchString, 300)
+    const { searchString, setSearchString, debounced, limit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
 
     const { data: consortium_tags, refetch } = api.consortiums.useGetConsortiums(
         { limit, search_string: debounced || undefined },

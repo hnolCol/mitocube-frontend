@@ -4,28 +4,17 @@ import { ExternalResourceContainer } from "./ExternalResourceContainer"
 import _ from "lodash"
 import { Loading } from "@/comps/core/base/states/Loading"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
-import { useSearchParams } from "react-router"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
 export function ExternalResourceSearch({ refetchRef }) {
 
-    const [searchString, setSearchString] = useState("")
-    const [searchParams, setSearchParams] = useSearchParams()
-
-    const selectedLimit = LIMIT_OPTIONS.includes(_.toNumber(searchParams.get("limit")))
-        ? _.toNumber(searchParams.get("limit"))
-        : LIMIT_OPTIONS[0]
+    const { searchString, setSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
 
     const { data: tags, isLoading, isSuccess, isError, refetch } =
         api.crosslinks.externalresources.useGetExternalResources({ limit: selectedLimit })
 
-    const updateParam = (key, value) => {
-        const newParams = new URLSearchParams(searchParams)
-        if (value === "" || value === undefined || value === null) newParams.delete(key)
-        else newParams.set(key, value)
-        setSearchParams(newParams, { replace: true })
-    }
 
     if (refetchRef) refetchRef.current = refetch
 
@@ -48,7 +37,7 @@ export function ExternalResourceSearch({ refetchRef }) {
                 {LIMIT_OPTIONS.map(option => (
                     <OptionButton
                         key={option}
-                        onClick={() => updateParam("limit", option)}
+                        onClick={() => setLimit(option)}
                         isSelected={option === selectedLimit}
                     >
                         {option}

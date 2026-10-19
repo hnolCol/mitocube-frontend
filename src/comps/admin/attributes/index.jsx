@@ -1,5 +1,5 @@
 import { useState } from "react"
-import useDebounce from "../../../hooks/useDebounce"
+import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { AttributeGroupSelection } from "./Groups"
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms"
 import _ from "lodash"
@@ -54,11 +54,9 @@ export function AttributeQueryContainer({ search_string, limit = 50, attribute_g
  * @returns {JSX.Element} The AttributesAdminView component
  */
 export function AttributesAdminView() {
-    const [limit, setLimit] = useState(50) // Default limit
     const [dialogProps, setDialogProps] = useState({ isOpen: false, editMode: false, attribute_tag: null })
-    const [searchString, setSearchString] = useState()
     const [attribute_groups, setAttributeGroups] = useState([])
-    const debouncedSearchString = useDebounce(searchString, 30)
+    const { searchString, setSearchString, debouncedSearchString, limit, setLimit } = useSearchParamState({ limitOptions: [50, 100, 200], limitAllValue: Infinity, debounceDelay: 30 })
     
 
     
