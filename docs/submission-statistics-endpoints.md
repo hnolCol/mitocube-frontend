@@ -17,6 +17,7 @@ the stats router, grouped counts under `counts`:
 GET /api/stats/submissions/counts/submissions   # A) submissions per research group
 GET /api/stats/submissions/counts/samples       # B) samples per research group
 GET /api/stats/submissions/counts/users         # C) submissions per user (research-group subsettable)
+GET /api/stats/submissions/counts/states         # D) submissions per state (state funnel)
 ```
 
 ## Data contract
@@ -84,6 +85,13 @@ sections show a "Failed to load statistics." message instead of crashing.
 
 The statistics page (`src/comps/submission/statistics`) additionally forwards
 `user_tags`, `genotype_tags`, `ca_tags` and `include_sample_ca` (see above) to every statistics section.
+
+### D) State funnel rows
+
+`GET /api/stats/submissions/counts/states` returns rows of the form
+`[{ "state_tag": 2, "value": 31 }, ...]` - the number of submissions currently in
+each state, subsettable by `user_tags`, `genotype_tags`, `ca_tags` and
+`include_sample_ca` (not by `state`, since state is the grouping variable).
 The same parameters should therefore also be accepted by:
 
 - `GET /api/stats/submissions/durations` (submission duration quantiles;

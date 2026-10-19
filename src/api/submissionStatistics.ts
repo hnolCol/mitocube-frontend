@@ -41,6 +41,18 @@ async function getResearchGroupSampleCounts_API({ years, state, user_tags, genot
     return res.data
 }
 
+async function getSubmissionStateCounts_API({ user_tags, genotype_tags, ca_tags, include_sample_ca }) {
+    const res = await apiClient.get("/stats/submissions/counts/states", {
+        params: {
+            user_tags,
+            genotype_tags,
+            ca_tags,
+            include_sample_ca
+        }
+    })
+    return res.data
+}
+
 async function getUserSubmissionCounts_API({ years, state, user_tags, genotype_tags, ca_tags, include_sample_ca, research_group_tags }) {
     const res = await apiClient.get("/stats/submissions/counts/users", {
         params: {
@@ -54,6 +66,14 @@ async function getUserSubmissionCounts_API({ years, state, user_tags, genotype_t
         }
     })
     return res.data
+}
+
+const useGetSubmissionStateCounts = ({ user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
+    return useQuery({
+        queryKey: ["getSubmissionStateCounts", user_tags, genotype_tags, ca_tags, include_sample_ca],
+        queryFn: () => getSubmissionStateCounts_API({ user_tags, genotype_tags, ca_tags, include_sample_ca }),
+        ...useQueryOptions
+    })
 }
 
 const useGetResearchGroupSubmissionCounts = ({ years, state, user_tags, genotype_tags, ca_tags, include_sample_ca } = {}, useQueryOptions = {}) => {
@@ -81,6 +101,7 @@ const useGetUserSubmissionCounts = ({ years, state, user_tags, genotype_tags, ca
 }
 
 export const submissionStatisticsAPI = {
+    useGetSubmissionStateCounts,
     useGetResearchGroupSubmissionCounts,
     useGetResearchGroupSampleCounts,
     useGetUserSubmissionCounts
