@@ -9,6 +9,7 @@ import { addItemToArrayOrRemoveIfPresentByTag, addStringToArrayOrRemove } from "
 import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationSelectionMenu";
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
+import { getUniqueValuesInArrayOfObjects } from "../../../services/arrays/unique";
 
 /**
  * Main heatmap visualization component.
@@ -92,6 +93,16 @@ function HeatmapViz({
         proteinTagMap,
         proteinIsLoading
     }), [refetchedTrigger, setRequiredProteinTags, proteinTagMap, proteinIsLoading]);
+
+    const clusterItems = useMemo(() => {
+        const clusterValues = getUniqueValuesInArrayOfObjects({ data: heatmapData.data, keyName: "cluster" });
+        const clusterColorMap = Object.fromEntries(clusterValues.map((value, idx) => [String(value), colorPalette[idx % colorPalette.length]]));
+        return _.keys(heatmapData.cluster_indices).sort().map((i) => ({
+            tag: i,
+            text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`,
+            clusterColor: clusterColorMap[String(i)]
+        }));
+    }, [heatmapData, colorPalette]);
 
     const keyNames = useMemo(() => [
         {
@@ -228,11 +239,7 @@ function HeatmapViz({
                                                 setViewProps({ ...viewProps, selectedCluster: addItemToArrayOrRemoveIfPresentByTag({ array: viewProps.selectedCluster, item }) });
                                                 setProteinSearchTrigger(Math.random());
                                             }}
-                                            items={_.keys(heatmapData.cluster_indices).sort().map((i, idx) => ({
-                                                tag: i,
-                                                text: `Cluster ${i} (${heatmapData.cluster_indices[i].length} features)`,
-                                                clusterColor: colorPalette[idx % colorPalette.length]
-                                            }))}
+                                            items={clusterItems}
                                             colorKey="clusterColor"
                                             placeholder={viewProps.selectedCluster.length > 0 ? `${viewProps.selectedCluster.length} clusters selected` : "Select cluster"}
                                         />
