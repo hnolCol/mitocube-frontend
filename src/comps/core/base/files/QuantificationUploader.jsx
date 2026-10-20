@@ -139,7 +139,7 @@ export function QuantificationUploader({ submission_tag, quantification_type = "
     const cancelledRef = useRef(false);
     const activeUploadsRef = useRef(0);
 
-    const { mutateAsync } = type.uploadHook()();
+    const { mutateAsync } = type.uploadHook();
     const { mutate: updateStats, isLoading: isUpdatingStats, isSuccess: isUpdatingStatsSuccess } =
         api.submissions.ranking.useUpdateSubmissionStats();
 
