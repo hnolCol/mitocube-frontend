@@ -1,5 +1,6 @@
 import _ from "lodash"
-import { Drawer } from "@blueprintjs/core"
+import { Button, Drawer } from "@blueprintjs/core"
+import { useNavigate } from "react-router"
 import { SubmissionTitle } from "./SubmissionTitle"
 import { SubmissionDate } from "./SubmissionDate"
 import { SubmissionSampleCount } from "./SubmissionSampleCount"
@@ -7,10 +8,9 @@ import { SubmissionProteinGroupCount } from "./SubmissionProteinGroupCount"
 import { SubmissionPrecursorCount } from "./SubmissionPrecursorCount"
 import { SubmissionConditionApplicationView } from "../../analysis/overview/SubmissionConditionApplicationView"
 import { SubmissionProtocolsView } from "../../analysis/overview/SubmissionProtocolView"
+import { ResearchAim } from "../../analysis/overview/Researchaim"
 import { AuthorList } from "../../core/authors/AuthorList"
 import { Metatexts } from "../../core/metatext/SubmissionMetatext"
-import { Button } from "@blueprintjs/core"
-import { useNavigate } from "react-router"
 
 export function SubmissionMetadataDrawer({ isOpen, submission_tag, onClose }) {
     const redirect = useNavigate()
@@ -43,6 +43,7 @@ export function SubmissionMetadataDrawer({ isOpen, submission_tag, onClose }) {
             <div className="bg--lightgrey padding--little">
                 <SubmissionProtocolsView submission_tag={submission_tag} />
             </div>
+            <ResearchAim submission_tag={submission_tag} showEdit={false} />
             <div>
                 <Metatexts submission_tag={submission_tag} fill={false} />
             </div>

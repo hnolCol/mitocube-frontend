@@ -98,7 +98,7 @@ export function ResearchAim({ submission_tag, showEdit = true }) {
                 ) : (
                     <div>
                         <div
-                            onClick={handleEditClick}
+                            onClick={showEdit ? handleEditClick : undefined}
                             style={{
                                 cursor: "pointer",
                                 borderRadius: 8,
@@ -111,7 +111,7 @@ export function ResearchAim({ submission_tag, showEdit = true }) {
                             onKeyPress={e => { if (e.key === "Enter") handleEditClick() }}
                         >
                             <Content text={research_aim} />
-                            <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>(Click to add/edit)</div>
+                            {showEdit ? <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>(Click to add/edit)</div> : null}
                         </div>
                         {research_aim_found && (
                                     <div className="intent-text--error" style={{ marginTop: 8 }}>

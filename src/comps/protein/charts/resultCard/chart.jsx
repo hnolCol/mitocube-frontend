@@ -2,8 +2,7 @@
 
 import _ from "lodash"
 import { useEffect, useMemo, useState } from "react"
-import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
-import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
+import { getAverageAndErrorByGroups, getQuantilesByGroups } from "../../../../services/arrays/groupby"
 import { useCycle } from "framer-motion"
 import PlottypeIcon from "../../../core/svg/icons/chartSelection/Plottype"
 import DownloadIcon from "../../../core/svg/icons/chartSelection/Download"
@@ -50,8 +49,6 @@ function ResultChart({
     onRemove}) {
     const redirect = useNavigate()
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "pointplot", "lineplot")
-    const [normalization, setNormalization] = useState(NormalizationModes[0])
-    // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
     const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
     // attribute_tags can arrive after mount (async attributes query). If the selection was
     // initialized before the tags were available, adopt the default selection once they arrive
@@ -65,7 +62,7 @@ function ResultChart({
     }, [_.join(attribute_tags, "-")])
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
     const selectionTags = selection
-    // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())    
+    
     const ca_tags = useMemo(() => {
         if (data.length === 0 || _.isEmpty(selection)) return []
         return _.uniq(
@@ -89,8 +86,6 @@ function ResultChart({
         const attr_tag = attribute_tags[idx]
         if (q.data) attributeMap.set(attr_tag, q.data.text) // we only need the text for attributes, as they are used for labelling and not for grouping like CA tags.
     })
-    // const nomalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)
-    // const showNormalizedData = normalizedData.length > 0 && normalization !== "raw"
     const svgID = `${featureTag}-svg-id${submission_tag}`
 
     const { groupedAggratedData, minMaxYDomain } = useMemo(() => {
@@ -107,13 +102,11 @@ function ResultChart({
             //calculate average and standard deviation for lineplots and barplots.
             return getAverageAndErrorByGroups(chartData, keyNamesForSplitting, yaxisName)
         }
-    }, [chartType, yaxisName, _.join(keyNamesForSplitting,"-"), data, normalization])
+    }, [chartType, yaxisName, _.join(keyNamesForSplitting,"-"), data])
 
     const handleDataDownload = (dataType) => {        
         if (dataType.text === "Raw") downloadTxtFile(arrayOfObjectsToString({ data, keyNames: Object.keys(data[0])}), `raw-${featureTag}-${submission_tag}.txt`)
         else if (dataType.text === "Aggregated") downloadTxtFile(arrayOfObjectsToString({ data: groupedAggratedData, keyNames: Object.keys(groupedAggratedData[0]) }), `aggregatedData-${featureTag}-${submission_tag}.txt`)
-        // else if (dataType.text === "Normalized") downloadTxtFile(arrayOfObjectsToString({ data: normalizedData, keyNames: Object.keys(normalizedData[0]) }), `normlizedData-${featureTag}.txt`)
-        // else if (dataType === "PNG") console.log("asd") //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
         else if (dataType.text === "SVG") downloadSVG(document.getElementById(`${svgID}`), `${featureTag}-${submission_tag}.svg`) //saveSvgAsPng.saveSvgAsPng(document.getElementById(`${svgID}`), `FeatureImage-(${proteinID}-${submission_tag}).png`, imageOptions)
     }
 

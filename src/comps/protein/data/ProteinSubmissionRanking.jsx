@@ -38,12 +38,6 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
             { enabled: _.isString(tag) && tag.length > 0 }
         )
 
-        console.log("submissionStats", submissionStats)
-   
-// export function ProteinSubmissionRanking({ tag, N = 10 }) {
-//     const [selection, setSelection] = useState({ xaxisName: "eta_squared", yaxisName: "score", colorName: undefined, tooltipNames: [], sizeName: undefined, filterTag: undefined })
-//     const [metrics, setMetrics] = useState(METRICES[0])
-//     const {data : submissionStats} = api.features.ranking.useGetProteinGroupSubmissionStats({tag}, { enabled: _.isString(tag) && tag.length > 0 })
     const { feature_tags, submission_tags, totalSubmissions } = useMemo(() => {
         if (_.isArray(submissionStats) && submissionStats.length > 0) {
             const uniqueStats = _.uniqBy(_.orderBy(submissionStats, ["score"], ["desc"]), "submission_tag");
