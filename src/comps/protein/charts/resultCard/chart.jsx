@@ -120,7 +120,9 @@ function ResultChart({
     const handleInfo = (infoType) => {
         //handle info request
         if (infoType === "Metadata") {
-            openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, submission_tag : submission_tag}})
+            if (_.isFunction(openMetadataDrawer)) {
+                openMetadataDrawer(prevValues => {return {...prevValues, isOpen : true, submission_tag : submission_tag}})
+            }
         }
         else {
             redirect("/submissions/"+submission_tag)
