@@ -1,5 +1,5 @@
 import { Divider } from "@blueprintjs/core"
-import { useGetTermsOfUse } from "../../../hooks/queries/terms.hook"
+import { api } from "@/api"
 import { getFormatDateFromTimestamp } from "../../../services/date/format"
 import Loading from "../base/loading"
 import _ from "lodash"
@@ -51,7 +51,7 @@ function TermsSummary({ useterms }) {
 
 export function TermsOfUse() {
 
-    const { data: useterms, isLoading, isFetching, isSuccess } = useGetTermsOfUse()
+    const { data: useterms, isLoading, isFetching, isSuccess } = api.info.terms.useGetTermsOfUse()
     
     return (<div style={{maxHeight : "800px", minWidth : "min(700,80vw)"}}>
         <h2>Use of terms</h2>

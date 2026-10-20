@@ -27,7 +27,7 @@ export function AdminReports({ authenticationStatus }) {
     const userRole = _.get(authenticationStatus, "role", 0)
     const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
     const { data: years, isLoading: yearsIsLoading, isError: yearsIsError, error: yearsError } =
-        api.reports.year.useGetReportYears({ staleTime: Infinity, retry: false })
+        api.reports.year.useGetReportYears({}, { staleTime: Infinity, retry: false })
     const availableYears = _.isArray(years) ? _.sortBy(_.map(years, _.toNumber)) : []
     const [selectedYear, setSelectedYear] = useState(null)
     const year = selectedYear != null && _.isFinite(_.toNumber(selectedYear))

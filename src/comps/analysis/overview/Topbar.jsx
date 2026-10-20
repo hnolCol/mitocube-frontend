@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react"
 import { copyTextToClipboard } from "../../../services/clipboard"
-import { useGetSubmissionSummaryString } from "../../../hooks/queries/submission.hooks"
 import TooltipButton from "../../core/base/buttons/TooltipButton"
 import { RequestConsortiumShareButton } from "@/comps/submission/view/RequestConsortiumShareButton"
 import { CollaborationRequestsButton } from "@/comps/submission/view/CollaborationRequestsButton"
@@ -19,7 +18,7 @@ import { api } from "@/api";
 export function QuickAccessBar({ submission_tag, userRole }) {
     
     const [msg, setMsg] = useState()
-    const { isLoading : summaryIsLoading, isFetching : summaryIsFetching, isError : isSubmissionSummaryError, refetch: fetchSummaryString } = useGetSubmissionSummaryString(
+    const { isLoading : summaryIsLoading, isFetching : summaryIsFetching, isError : isSubmissionSummaryError, refetch: fetchSummaryString } = api.submissions.summary.useGetSubmissionSummaryString(
         { tag: submission_tag },
         {
             enabled: false, //only use refetch function to get the data. 
