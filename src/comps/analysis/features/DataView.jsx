@@ -26,7 +26,7 @@ const metrics_labels = {
     "log2_fc_vs_mean": "Log2FC vs mean",
 }
 
-export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", openMetadataDrawer }) {
+export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", openMetadataDrawer, isHighlighted = false }) {
 
     const { data, isLoading } = api.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag, metrics }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
     const {data : feature} = api.features.tag.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
@@ -52,7 +52,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
 
     const hasData = _.isArray(data?.data) && !_.every(data.data, q => q.value === null);
     return (
-        <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
+        <div ref={containerRef} style={{ width: "100%", height: "100%", outline: isHighlighted ? "3px solid #7961F9" : "none", outlineOffset: "-3px", borderRadius: isHighlighted ? "3px" : undefined }}>
             {isLoading || isSampleCAAttributeLoading ? (
                 <div>Loading...</div>
             ) : (
@@ -152,7 +152,7 @@ function saveStoredLayouts(storageKey, layouts) {
     }
 }
 
-export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey }) {
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey, highlightedSubmissionTag }) {
     const [metadataDrawer, setMetadataDrawer] = useState({ isOpen: false, submission_tag: undefined })
     const [layouts, setLayouts] = useState(() => {
         const stored = loadStoredLayouts(layoutStorageKey);
@@ -227,6 +227,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                                 onRemove={onRemove}
                                                 metrics={metrics}
                                                 openMetadataDrawer={setMetadataDrawer}
+                                                isHighlighted={highlightedSubmissionTag !== undefined && highlightedSubmissionTag === submission_tags[i]}
                                             />
                                         </div>
                                     </div>

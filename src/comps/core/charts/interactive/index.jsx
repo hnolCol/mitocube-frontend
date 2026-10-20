@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from "react"
+import { useEffect, useMemo, useState, useCallback, useRef } from "react"
 import PropTypes from 'prop-types'
 import { addItemToArrayIfNotPresent } from "../../../../services/arrays/transforms"
 import _ from "lodash"
@@ -42,12 +42,15 @@ function InteractiveChart({
     initialLabelIndices = undefined,
     externalSearchResult = { values: [], key: "tag", trigger: undefined },
     externalLabelResult = {values : [], key : "tag", trigger : undefined},
-    externalHoverResult = { values: [], key: "tag", trigger: undefined } }) {
+    externalHoverResult = { values: [], key: "tag", trigger: undefined },
+    onHoverDataChange }) {
     
     
     const numberCharts = keyNames.length
     //hovering data 
     const [hoverData, setHoverData] = useState({data : [], idcs : new Set(), rerender : [Math.random()], rect : [], hoverChart : -1, hoverTags : []})
+    const onHoverDataChangeRef = useRef(onHoverDataChange)
+    onHoverDataChangeRef.current = onHoverDataChange
     //label data, the data that are annotated. 
     const [labelData, setLabelData] = useState({ idcs : new Set(), rerender : [Math.random()], labelChart : -1, lastSelected : undefined})
     //background scatter indicates hovering over the data points. This allows quick rendering, as all chart components only rerender if the value rerender changes.
@@ -280,6 +283,22 @@ function InteractiveChart({
             hoverTags : Array.from(idcs).map(idx => data[idx].tag)
         })
     }
+
+    const clearHoverData = (chartIdx) => {
+        if (hoverData.idcs.size === 0) return
+        setHoverData({
+            rerender: [Math.random()],
+            rect: [],
+            idcs: new Set(),
+            hoverChart: chartIdx,
+            hoverTags: []
+        })
+    }
+
+    useEffect(() => {
+        if (!_.isFunction(onHoverDataChangeRef.current)) return
+        onHoverDataChangeRef.current(hoverData)
+    }, [hoverData])
     
     const setHoverDataByDataIndex = (chartIdx, idcs) => {
         let arr = Array.from(idcs).map(idc => data[idc])
@@ -405,6 +424,7 @@ function InteractiveChart({
             findIndexInRectangle,
             findDataInRectangle,
             setHoverDataInRectangle,
+            clearHoverData,
             handleNumericFilter,
             handleStringSearch,
             handleSearchByDataIndex,
