@@ -79,10 +79,10 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         return <RankingStats attribute_tag={stats.attribute_tag} submission_tag={stats.submission_tag}  stats={metrices}/>
     }
     
-    return <div>
+    return <div style={{display : "flex", flexDirection : "column", height : "100%", minHeight : 0}}>
         <h3>Protein Submission Ranking</h3>
         <span>Features are ranked by statistic approaches. Find more information in the documentation.</span>
-        <div className="flex" style={{gap : "3rem", marginTop : "1rem"}}>
+        <div className="flex" style={{gap : "3rem", marginTop : "1rem", flex : 1, minHeight : 0}}>
             <div className="flex flex-column" style={{width : "375px"}}>
                 {submissionStats.length > 0 ? <InteractiveChart
             data={submissionStats}
@@ -202,26 +202,23 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                 </div>
             </div>
 
-        <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem"}}>
-
-            
-            {/* {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length ?
-                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} /> : null} */}
-
-            {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length && feature_tags.length > 0 ?
-                <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} layoutStorageKey={`protein-${tag}`} />
-                : <div>
-                    <h3>Feature Plots</h3>
-                   <span>No submissions match the selected filters.</span>
-                </div>}
-
-            {hasMoreSubmissions ? <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                <span>Showing {feature_tags.length} of {totalSubmissions} submissions.</span>
-                <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)} text="Load more" />
-                <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(totalSubmissions)} text="Load all" />
-            </div> : null}
-
-         </div>
+        <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem", display : "grid", gridTemplateRows : "1fr 80px", rowGap : "0.5rem", height : "100%", minHeight : 0}}>
+            <div style={{minHeight : 0, overflowY : "auto"}}>
+                {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length && feature_tags.length > 0 ?
+                    <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} layoutStorageKey={`protein-${tag}`} />
+                    : <div>
+                        <h3>Feature Plots</h3>
+                        <span>No submissions match the selected filters.</span>
+                    </div>}
+            </div>
+            <div style={{display : "flex", gap : "0.5rem", alignItems : "center"}}>
+                {hasMoreSubmissions ? <>
+                    <span>Showing {feature_tags.length} of {totalSubmissions} submissions.</span>
+                    <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(prev => prev + LOAD_STEP)} text="Load more" />
+                    <Button intent="primary" variant="minimal" onClick={() => setVisibleCount(totalSubmissions)} text="Load all" />
+                </> : null}
+            </div>
+        </div>
         </div>
     
 
