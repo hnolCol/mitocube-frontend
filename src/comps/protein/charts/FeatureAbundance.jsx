@@ -38,7 +38,12 @@ export function ProteinAbundance({ tag }) {
         
     }
 
-    const boxplotData = _.isObject(sample_feature_abundance) ? _.keys(sample_feature_abundance).map(k => sample_feature_abundance[k]) : []
+    // the backend returns an object keyed by condition application tags if an attribute is selected,
+    // otherwise a list of quantile objects (a single distribution over all samples). Keys of a list are
+    // indices (e.g. "0") which must not be treated as condition application tags.
+    const abundanceIsStratified = _.isPlainObject(sample_feature_abundance)
+    const abundanceCaTags = abundanceIsStratified ? _.keys(sample_feature_abundance) : []
+    const boxplotData = _.isObject(sample_feature_abundance) ? (abundanceIsStratified ? abundanceCaTags.map(k => sample_feature_abundance[k]) : sample_feature_abundance) : []
     return <div>
         
         <MinimalAttributeSelection onAttributeSelect={handleAttributeSelection} selectedItem={abundanceProps.attribute_tag} attribute_groups={_.join(["dataset","sample"], ";")}/>
@@ -50,13 +55,20 @@ export function ProteinAbundance({ tag }) {
                 children={<span>{value_type.label}</span>} />)}
         </div>
         
-        {boxplotData.length > 0 ? <WithTagMaps Component={Boxplot} ca_tags={_.keys(sample_feature_abundance)} attribute_tags={[]} {...{
+        {boxplotData.length > 0 ? (abundanceIsStratified ? <WithTagMaps Component={Boxplot} ca_tags={abundanceCaTags} attribute_tags={[]} {...{
             width: 30 + (55 * (boxplotData.length + 1)),
             data: boxplotData,
             rerender: abundanceProps.rerender,
-            xaxis_ca_tags: _.keys(sample_feature_abundance), yAxisLabel: abundanceProps.value_type === "raw" ? "log2 intensity" : "Z Score",
+            xaxis_ca_tags: abundanceCaTags, yAxisLabel: abundanceProps.value_type === "raw" ? "log2 intensity" : "Z Score",
             
-        }} /> : null}
+        }} /> : <Boxplot {...{
+            width: 30 + (55 * (boxplotData.length + 1)),
+            data: boxplotData,
+            rerender: abundanceProps.rerender,
+            xaxis_ca_tags: ["All samples"],
+            yAxisLabel: abundanceProps.value_type === "raw" ? "log2 intensity" : "Z Score",
+            caTagMap: new Map([["All samples", "All samples"]])
+        }} />) : null}
 
     
     </div>
