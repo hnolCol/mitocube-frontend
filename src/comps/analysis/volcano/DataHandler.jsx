@@ -1,6 +1,6 @@
 
 import _ from "lodash"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { Card } from "@blueprintjs/core";
@@ -260,10 +260,27 @@ export function VolcanoDataHandler({
     useEffect(() => {setIsFetching(false)},[isSuccess])        
     
     const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
-    const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-   
-    
-        
+    const extraLimits = useMemo(() => _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k)), [volcanoData.selection, numericKeyNames])
+
+    const chartKeyNames = useMemo(() => volcanoData.suffixes.map((suffix, idx) => ({
+        xaxisName: volcanoData.selection[idx].xaxisName,
+        yaxisName: volcanoData.selection[idx].yaxisName
+    })), [volcanoData.suffixes, volcanoData.selection])
+
+    const isPointChart = useMemo(() => _.range(volcanoData.testParams.length).map(() => true), [volcanoData.testParams])
+
+    const externalLabelResult = useMemo(() => {
+        const values = _.uniq([...(favoriteProteinSelection?.values || []), ...(showHoverLabels && _.isArray(selectedAnnotationProteins) ? selectedAnnotationProteins : [])])
+        return { values, trigger: values.join("|"), key: "tag" }
+    }, [favoriteProteinSelection, selectedAnnotationProteins, showHoverLabels])
+
+    const externalHoverResult = useMemo(() => {
+        const values = _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])])
+        return { values, trigger: values.join("|"), key: "tag" }
+    }, [proteinHoverResults, hoveredAnnotationProteins])
+
+    const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
+
     return (
         <div
             className="div--expand flex flex--wrap"
@@ -278,27 +295,11 @@ export function VolcanoDataHandler({
                 data={volcanoData.data}
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
-                externalLabelResult={{
-                    values: _.uniq([...(favoriteProteinSelection?.values || []), ...(showHoverLabels && _.isArray(selectedAnnotationProteins) ? selectedAnnotationProteins : [])]),
-                    trigger: (selectedAnnotationProteins?.length > 0) ? Math.random() : (favoriteProteinSelection?.trigger || 0),
-                    key: "tag"
-                }}
-                externalHoverResult={{
-                    values: _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])]),
-                    trigger: (hoveredAnnotationProteins?.length > 0) ? Math.random() : (proteinHoverResults?.trigger || 0),
-                    key: "tag"
-                }}
-                // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
-                keyNames={
-                    volcanoData.suffixes.map((suffix, idx) => {
-                        return {
-                            xaxisName: volcanoData.selection[idx].xaxisName,
-                            yaxisName: volcanoData.selection[idx].yaxisName
-                        }
-                    })
-                }
-                isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}
-                passOnProps={{ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }}
+                externalLabelResult={externalLabelResult}
+                externalHoverResult={externalHoverResult}
+                keyNames={chartKeyNames}
+                isPointChart={isPointChart}
+                passOnProps={passOnProps}
                 labelIndicesKey="volcanoLabelIndices"
                 labelIndicesDataKey={submission_tag}
                 initialLabelIndices={volcanoData.initialLabelIndices}
