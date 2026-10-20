@@ -128,7 +128,7 @@ export function SubmissionFilterSelection({
             {fixedState ? null : <StateSelection {...{ submissionFilter, setSubmissionFilter }} />} 
     
         <div style={{ height: "1fr", overflowY: "scroll", paddingRight: "1rem" }}>
-                <GenotypeDatasetFilter {...{setSubmissionFilter, submissionFilter}} />
+            <GenotypeDatasetFilter {...{setSubmissionFilter, submissionFilter}} />
 
         <div style={{ marginTop: "1rem" }}>
             <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />

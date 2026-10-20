@@ -202,12 +202,11 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                 </div>
             </div>
 
-        <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem", display : "grid", gridTemplateRows : "1fr 80px", rowGap : "0.5rem", height : "100%", minHeight : 0}}>
+        <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem", display : "grid", gridTemplateRows : "1fr 40px", rowGap : "0.5rem", height : "100%", minHeight : 0}}>
             <div style={{minHeight : 0, overflowY : "auto"}}>
                 {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length && feature_tags.length > 0 ?
                     <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} layoutStorageKey={`protein-${tag}`} />
                     : <div>
-                        <h3>Feature Plots</h3>
                         <span>No submissions match the selected filters.</span>
                     </div>}
             </div>

@@ -58,7 +58,7 @@ export function ProteinPage() {
                 )}
                 </div>
             {/* <ProteinFilter tag={feature_tag} /> */}
-            <div className="flex flex-column div--expand padding--little" style={{overflowY:"scroll", height : "88vh"}}>
+            <div className="flex flex-column div--expand padding--little" style={{overflowY:"hidden", height : "88vh"}}>
 
             {selectedView === "overview" ? <ProteinOverview feature_tag={feature_tag} /> : null }
             {selectedView === "data" ? <ProteinSubmissionRanking tag={feature_tag} /> : null     }

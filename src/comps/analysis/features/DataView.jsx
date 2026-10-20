@@ -8,7 +8,7 @@ import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
 import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
-
+import { SubmissionMetadataDrawer } from "../../submission/view/SubmissionMetadataDrawer";
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 FeatureDataView.propTypes = {
@@ -182,7 +182,7 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
         saveStoredLayouts(layoutStorageKey, defaults);
     };
 
-    return <div>
+    return <div style={{ overflowY: "hidden", height: "100%" }}>
         <SubmissionMetadataDrawer
             isOpen={metadataDrawer.isOpen}
             submission_tag={metadataDrawer.submission_tag}
