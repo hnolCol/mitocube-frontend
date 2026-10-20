@@ -1,1 +1,0 @@
-export { ProteinQuantificationUploader } from "./QuantificationUploader";
