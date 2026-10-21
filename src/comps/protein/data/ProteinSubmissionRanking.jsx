@@ -25,6 +25,12 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
     const [metrics, setMetrics] = useState(METRICES[0])
     const [visibleCount, setVisibleCount] = useState(N)
     const [submissionFilter, setSubmissionFilter] = useState({ ca_tags: [], include_sample_ca: true, user: [] })
+    const [hoveredSubmissionTag, setHoveredSubmissionTag] = useState(undefined)
+
+    const handleHoverDataChange = (hoverData) => {
+        const hoverTag = _.isArray(hoverData.hoverTags) && hoverData.hoverTags.length > 0 ? hoverData.hoverTags[hoverData.hoverTags.length - 1] : undefined
+        setHoveredSubmissionTag(prev => prev === hoverTag ? prev : hoverTag)
+    }
 
     useEffect(() => {
         setVisibleCount(N)
@@ -86,6 +92,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
             <div className="flex flex-column" style={{width : "375px"}}>
                 {submissionStats.length > 0 ? <InteractiveChart
             data={submissionStats}
+            onHoverDataChange={handleHoverDataChange}
             keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}>
             
              {
@@ -105,6 +112,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                         findIndexInRectangle,
                         findDataInRectangle,
                         setHoverDataInRectangle,
+                        clearHoverData,
                         findClosestPoint,
                         handleNumericFilter,
                         handleStringSearch,
@@ -205,7 +213,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
         <div style={{width : "100%", borderLeft : "1px solid #ccc", paddingLeft : "2rem", display : "grid", gridTemplateRows : "1fr 40px", rowGap : "0.5rem", height : "100%", minHeight : 0}}>
             <div style={{minHeight : 0, overflowY : "auto"}}>
                 {_.isArray(feature_tags) && _.isArray(submission_tags) && feature_tags.length === submission_tags.length && feature_tags.length > 0 ?
-                    <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} layoutStorageKey={`protein-${tag}`} />
+                    <FeatureDataView feature_tags={feature_tags} submission_tags={submission_tags} showProteinNameInTitle={false} metrics={metrics} layoutStorageKey={`protein-${tag}`} highlightedSubmissionTag={hoveredSubmissionTag} />
                     : <div>
                         <span>No submissions match the selected filters.</span>
                     </div>}

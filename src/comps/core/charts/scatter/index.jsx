@@ -124,6 +124,7 @@ export function ScatterPlot({
     filterDataInKeyByValue,
     resetSearchIdcs,
     setHoverDataInRectangle,
+    clearHoverData,
     centerXAxisAtZero = false,
     defaultRadius = 7,
     rerenderHover,
@@ -677,6 +678,7 @@ export function ScatterPlot({
                     onMouseMove={handleMouseHover}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
+                    onMouseLeave={clearHoverData ? () => clearHoverData(chartIdx) : undefined}
                     fill="#ffffff"
                     opacity={0.0} />
         

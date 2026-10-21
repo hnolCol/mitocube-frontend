@@ -55,7 +55,7 @@ export function ChartTopLeftLabel({ margins, labelTexts, textOffset = 1, totalYO
                 verticalAnchor : "start",
                 textAnchor : "start"
             }
-            if (isFeature[textIdx]) return <Protein tag={text} inSVG={true} svgTextProps={textProps}/>
+            if (isFeature[textIdx]) return <Protein key={`label-${text}-${textIdx}`} tag={text} inSVG={true} svgTextProps={textProps}/>
             return <Text
                     key={`${text}-${textIdx}`}
                     fill={color[textIdx]}
@@ -219,6 +219,7 @@ function ProfileChartComponent({
                     {showSearchLabels && searchIndices.size > 0 ? Array.from(searchIndices).slice(0, 5).map((dataIdx,idx) => {
         
                         return <Text
+                            key={`search-label-${dataIdx}`}
                             x={xScale(yaxisName[yaxisName.length - 1])-2}
                             y={yScale(yScale.domain()[1])}
                             fontSize={13}
@@ -232,6 +233,7 @@ function ProfileChartComponent({
 
                     {showHoverLabels && hoverDataInSubset.length > 0 && !(searchIndices.size > 0)  ? hoverDataInSubset.slice(0, 5).map((dataItem, idx) => {
                         return <Text
+                            key={`hover-label-${dataItem.tag}-${idx}`}
                             x={xScale(yaxisName[0])+2}
                             y={yScale(yScale.domain()[1])}
                             fontSize={13}
