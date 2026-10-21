@@ -1,4 +1,4 @@
-import { Code, Dialog, DialogBody, DialogFooter, Menu, MenuDivider, MenuItem, Popover, Position } from "@blueprintjs/core"
+import { Code, Dialog, DialogBody, DialogFooter, Menu, MenuDivider, MenuItem, Popover, Position, Tooltip } from "@blueprintjs/core"
 import { BaseDashboardIcon } from "../../svg/icons/dashboard/IconBase"
 import UserDashboardIcon from "../../svg/icons/dashboard/User"
 import BasicMenu from "../../menu"
@@ -16,6 +16,7 @@ import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButt
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
 import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
 import { MessagesButton } from "@/comps/messages"
+import { RoleRights } from "../../base/user/RoleRights"
 
 /**
  * 
@@ -29,6 +30,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
     const [dialogProps, setDialogProps] = useState({isOpen : false})
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
     const { data : userRole } =  api.users.roles.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
+    const { data : roles } = api.users.roles.useGetUserRoles({ staleTime : Infinity })
     const { data : user, isSuccess} = api.users.core.useGetPublicUserByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const initials = isSuccess ? `${user.firstname.charAt(0)}${user.lastname.charAt(0)}`.toUpperCase() : ""
     if (!authenticationStatus.isAuth) return <div className="flex justify-end"><div className="bg--grey margin--little"><BasicMenu disabled={true} /> </div></div>
@@ -43,6 +45,20 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 children: <EditUser userLabel={authenticationStatus.label} />,
                 style: { width: "600px" },
                 useDialogBody : true,
+            }
+        })
+    }
+
+    const onShowRoleRights = () => {
+
+        setDialogProps(prevValues => {
+            return {
+                ...prevValues,
+                isOpen: true,
+                title: "User roles & rights",
+                children: <RoleRights userRoles={roles} currentRole={userRole} />,
+                useDialogBody: true,
+                style: { width: "700px" }
             }
         })
     }
@@ -77,7 +93,9 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <PendingCollaborationRequestButton />
                 <MessagesButton user_tag={user_tag} />
                 <div className="flex flex-column justify-center">
-                    <Code>role: {userRole}</Code>
+                    <Tooltip content="Show the rights connected to the user roles" position={Position.BOTTOM}>
+                        <Code style={{ cursor: "pointer" }} onClick={onShowRoleRights}>role: {userRole}</Code>
+                    </Tooltip>
                 </div>
                 <div className="bg--grey margin--little">
                     <Popover position={Position.BOTTOM_LEFT} content={<Menu>
