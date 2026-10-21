@@ -168,6 +168,7 @@ export function ScatterPlot({
 
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
+    const [axisDomainRerender, setAxisDomainRerender] = useState(0)
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
@@ -207,6 +208,7 @@ export function ScatterPlot({
             xScale.domain([xDomain.min, xDomain.max])
             yScale.domain([yDomain.max, yDomain.min])
             setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : undefined, currentYDomain : undefined}})
+            setAxisDomainRerender(prevValue => prevValue + 1)
             
     }
      }, [triggerResetAxis])
@@ -485,6 +487,7 @@ export function ScatterPlot({
                 yScale.domain([yScale.invert(zoomActive.y), yScale.invert(zoomActive.y + zoomActive.height)])
 
                 setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : xScale.domain(), currentYDomain : yScale.domain()}})
+                setAxisDomainRerender(prevValue => prevValue + 1)
             }
 
         }, [zoomActive.zoomed])
@@ -633,7 +636,7 @@ export function ScatterPlot({
                                 labelNames,
                                 index: labelIndex,
                                 opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
+                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, axisDomainRerender, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
                         }} />
                     }) : null}
                 </g>
