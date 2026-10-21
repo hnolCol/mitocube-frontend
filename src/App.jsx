@@ -108,6 +108,7 @@ import hooks from "@mitocube/api-hooks"
 import { api } from "./api";
 import { SubmissionCompare } from "./comps/analysis/compare";
 import { queryClient } from "./api/queryClient";
+import { UNAUTHORIZED_EVENT } from "./api/apiClient";
 
 
 
@@ -187,6 +188,12 @@ function App() {
         redirect(redirectPath + redirectSearch);
     }
   }, [tokenValidSuccess, _.isObject(isTokenValid), tokenValidIsError]);
+
+  useEffect(() => {
+    const onUnauthorized = () => logout();
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, []);
 
   /**
    * @description Logs the user out by deleting the token from local storage and removing the axios default
