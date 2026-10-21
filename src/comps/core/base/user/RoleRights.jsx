@@ -66,6 +66,12 @@ const ROLE_RIGHTS = {
     }
 }
 
+const prettyRoleName = (name) =>
+    _.chain(_.words(name))
+        .map(_.capitalize)
+        .join(" ")
+        .value()
+
 /**
  * @description Overview of the platform user roles and the rights connected to
  * them. The role names and tags are fetched from the backend; the rights
@@ -80,15 +86,12 @@ const ROLE_RIGHTS = {
 export function RoleRights({ userRoles, currentRole }) {
 
     const [expandedRole, setExpandedRole] = useState(_.toNumber(currentRole))
-    const roles = _.isObject(userRoles?.roles)
-        ? _.map(_.keys(userRoles.roles), (role_tag) => ({
-            tag: _.toNumber(role_tag),
-            name: userRoles.roles[role_tag] || ROLE_FALLBACK_NAMES[_.toNumber(role_tag)]
-        }))
-        : _.map(_.keys(ROLE_FALLBACK_NAMES), (role_tag) => ({
-            tag: _.toNumber(role_tag),
-            name: ROLE_FALLBACK_NAMES[role_tag]
-        }))
+    const backendRoles = _.mapKeys(_.get(userRoles, "roles", {}), (name, tag) => _.toNumber(tag))
+    const roleTags = _.union(_.keys(ROLE_FALLBACK_NAMES), _.keys(backendRoles))
+    const roles = _.sortBy(roleTags, (tag) => _.toNumber(tag)).map((role_tag) => ({
+        tag: _.toNumber(role_tag),
+        name: prettyRoleName(backendRoles[_.toNumber(role_tag)] || ROLE_FALLBACK_NAMES[_.toNumber(role_tag)])
+    }))
 
     return (
         <div className="flex flex-column" style={{ gap: "0.5rem" }}>
