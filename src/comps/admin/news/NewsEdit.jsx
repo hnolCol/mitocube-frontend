@@ -11,12 +11,7 @@ EditNews.propTypes = {
     onSuccess: PropTypes.func
 }
 
-EditNews.defaultProps = {
-    onClose: () => {},
-    onSuccess: () => {}
-}
-
-export function EditNews({ news_tag, onClose, onSuccess }) {
+export function EditNews({ news_tag, onClose = () => {}, onSuccess = () => {} }) {
     const [formData, setFormData] = useState({ 
         title: "", 
         content: "", 

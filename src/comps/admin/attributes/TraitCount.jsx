@@ -7,10 +7,6 @@ TraitCount.propTypes = {
     tag: PropTypes.string.isRequired,
     text: PropTypes.string
 }
-TraitCount.defaultProps = {
-    text : "Trait"
-}
-
 
 /**
  * 
@@ -19,7 +15,7 @@ TraitCount.defaultProps = {
  * @param {String} props.text - The text to display before the count     
  * @returns {JSX.Element} The trait count component
  */
-export function TraitCount({tag , text }) {
+export function TraitCount({tag , text = "Trait" }) {
     const { data: count, isError, isFetching } = api.traits.queryTraits.useGetTraitCount({tag}, {
         staleTime: 60000, placeholderData: (prev) => prev || 0, enabled : tag && tag.length > 0
     })

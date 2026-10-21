@@ -10,9 +10,6 @@ FilterSelection.propTypes = {
     proteome_tags: PropType.arrayOf(PropType.string).isRequired
 } 
 
-FilterSelection.defaultProps = {
-    callbackKey: "filterSetNames"
-}
 
 /**
  * @description Select a filter set (e.g. list of proteins). Compared to other chart selection
@@ -23,7 +20,7 @@ FilterSelection.defaultProps = {
  * @param {Function} props.onSelectionChange - The callback function upon a selection. 
  * @returns {import("react").ReactElement} The filters selection item
  */
-export function FilterSelection({ selection, onSelectionChange, proteome_tags, callbackKey}) {
+export function FilterSelection({ selection, onSelectionChange, proteome_tags, callbackKey = "filterSetNames"}) {
     
     return <FilterInput
         onItemSelect={filterSetItem => onSelectionChange(callbackKey ,filterSetItem)}

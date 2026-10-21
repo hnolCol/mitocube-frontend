@@ -11,8 +11,6 @@ import { OptionButton } from "../../core/base/buttons/OptionButton"
 GenotypeSearch.propTypes = {
 }
 
-GenotypeSearch.defaultProps = {
-}
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 

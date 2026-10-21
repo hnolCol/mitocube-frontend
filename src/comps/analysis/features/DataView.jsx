@@ -15,10 +15,6 @@ FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
     submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired
 }
-FeatureDataView.defaultProps = {
-    features: []
-};
-
 const metrics_labels = {
     "raw": "Raw values",
     "z_score_sample": "Z-scores (sample-wise)",

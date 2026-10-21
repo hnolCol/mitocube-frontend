@@ -9,10 +9,10 @@ function Bar({
     width,
     y1, // the actual height of the bar
     y0, // the baseline of the bar
-    fill,
-    stroke,
-    strokeWidth,
-    opacity}) {
+    fill = "#efefef",
+    stroke = "#000000",
+    strokeWidth = 0.5,
+    opacity = 1}) {
     // provide box coordinates in pixel 
     const barHeight = y0 > y1 ? y0-y1 : y1-y0
     const barBaseLine = y0 > y1 ? y1 : y0
@@ -40,12 +40,6 @@ function areEqual(prevProps, nextProps) {
 
 }
   
-Bar.defaultProps = {
-    fill: "#efefef",
-    stroke: "#000000",
-    strokeWidth: 0.5,
-    opacity: 1 
-}
 
 Bar.propTypes = {
     x: PropType.number.isRequired,

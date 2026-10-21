@@ -23,9 +23,6 @@ SubmissionsByState.propTypes = {
     minimal: PropTypes.bool
 }
 
-SubmissionsByState.defaultProps = {
-    minimal: true
-}
 /**
  * @description The component that displays a list of submissions grouped by their state.
  * It uses the SubmissionItem component to display each submission.
@@ -35,7 +32,7 @@ SubmissionsByState.defaultProps = {
  * @param {boolean} [props.minimal = true] - If true, uses MinimalSubmissionItem, otherwise uses SubmissionItem.
  * @returns {JSX.Element} The SubmissionsByState component.
  */
-export function SubmissionsByState({ submission_by_state, minimal}) {
+export function SubmissionsByState({ submission_by_state, minimal = true}) {
 
     
     const { data: submissionStates } = api.submissions.states.useGetStates()

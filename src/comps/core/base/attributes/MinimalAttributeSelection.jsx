@@ -14,10 +14,6 @@ MinimalAttributeSelection.propTypes = {
     attribute_groups: PropTypes.arrayOf(PropTypes.string)
 
 }
-MinimalAttributeSelection.defaultProps = {
-    debounce: 100
-}
-
 /**
  * 
  * @param {Object} props 

@@ -11,7 +11,7 @@ import { XAxisName, YAxisName } from "../../../../core/svg/icons/chartSelection/
  * @param {Boolean} props.minimal If the minimal style should be used. The selection will then not be displayed next to the icon. 
  * @returns 
  */
-export function ChartAxisSelection({ keyNames, selection, onSelectionChange, minimal }) {
+export function ChartAxisSelection({ keyNames, selection, onSelectionChange, minimal = true }) {
     return (
         <div className="flex">
             <XAxisName
@@ -33,9 +33,6 @@ export function ChartAxisSelection({ keyNames, selection, onSelectionChange, min
 }
 
 
-ChartAxisSelection.defaultProps = {
-    minimal: true 
-}
 
 ChartAxisSelection.propTypes = {
     keyNames: PropTypes.arrayOf(PropTypes.string).isRequired,

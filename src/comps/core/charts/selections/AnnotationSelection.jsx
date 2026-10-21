@@ -12,11 +12,8 @@ AnnotationSelection.propTypes = {
     minimal: PropTypes.bool,
 }
 
-AnnotationSelection.defaultProps = {
-    minimal: true,
-}
 
-export function AnnotationSelection({ onAnnotationSelect, minimal }) {
+export function AnnotationSelection({ onAnnotationSelect, minimal = true }) {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedAnnotationTags, setSelectedAnnotationTags] = useState([])
     const [selectedColor, setSelectedColor] = useState("#E74C3C")

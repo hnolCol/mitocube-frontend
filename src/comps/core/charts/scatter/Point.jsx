@@ -11,7 +11,7 @@ import { isPropHexColorString } from "../../types/checks/color";
  *  
  * @returns 
  */
-function Point({idx, p, r, opacity,  fill, stroke, strokeWidth,  circleProps, mouseOver, mouseOverParams}) {
+function Point({idx, p, r = 4, opacity = 0.95, fill = "red", stroke = "#262626", strokeWidth = 1, circleProps = {}, mouseOver, mouseOverParams}) {
     const xValue = p[0]
     const yValue = p[1]
  
@@ -32,14 +32,6 @@ function Point({idx, p, r, opacity,  fill, stroke, strokeWidth,  circleProps, mo
     )
   }
 
-Point.defaultProps = {
-    r: 4,
-    opacity: 0.95,
-    fill: "red",
-    stroke: "#262626",
-    strokeWidth: 1,
-    circleProps: {}
-}
 
 
 Point.propTypes = {

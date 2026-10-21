@@ -29,49 +29,31 @@ SingleCategoricalChart.propTypes = {
     children: PropTypes.func
 }
 
-SingleCategoricalChart.defaultProps = {
-    width: 600,
-    height: 300,
-    data: [
+function SingleCategoricalChart({
+    width = 600,
+    height = 300,
+    data = [
         { y: 5, T: "A", G: "WT", O: "0.5h" },
         { y: 4, T: "B", G: "WT", O: "0.5h" },
         { y: 10, T: "C", G: "WT", O: "0.5h" }
     ],
-    margins: {
+    margins = {
         left: 15,
         right: 5,
         bottom: 30,
         top: 5
     },
-    yaxisName: "y",
-    colorName: "Treatment",
-    innerColorPadding: 0.1,
-    outerColorPadding: 0.2,
-    svgID: undefined,
-    svgRef: undefined,
-    colorPalette: [],
-    minMaxYDomain: undefined,
-    yScaleStartsAtZero: true,
-    darkmode: false,
-    children: () => null
-}
-
-function SingleCategoricalChart({
-    width,
-    height,
-    data,
-    margins,
-    yaxisName,
-    colorName,
-    innerColorPadding,
-    outerColorPadding,
+    yaxisName = "y",
+    colorName = "Treatment",
+    innerColorPadding = 0.1,
+    outerColorPadding = 0.2,
     svgID,
     svgRef,
-    colorPalette,
+    colorPalette = [],
     minMaxYDomain,
-    yScaleStartsAtZero,
-    darkmode,
-    children
+    yScaleStartsAtZero = true,
+    darkmode = false,
+    children = () => null
 }) {
     const {chartHeight,chartWidth} = getChartWidthAndHeightWithMargins({width,height,margins})
     const uniqueColorValues = _.uniqBy(data, colorName).map(d => d[colorName])

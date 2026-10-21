@@ -53,14 +53,6 @@ AttributesInput.propTypes = {
 }
 
 
-AttributesInput.defaultProps = {
-    selected_traits : [],
-    min_state: 5,
-    min_search_string_length: 0,
-    showSelection: true,
-    matchTargetWidth: true,
-    placeHolderText: "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)"
-}
 /**
  * @description Select dataset attributes using the API backend for searching through the attributes and traits. 
  * @param {Object} props 
@@ -78,13 +70,13 @@ AttributesInput.defaultProps = {
  * @returns {JSX.Element} The rendered AttributesInput component.
  */
 export function AttributesInput({
-        min_state,
-        min_search_string_length, //set to 0 if you want to search without any string... (E.g. getting all)
+        min_state = 5,
+        min_search_string_length = 0, //set to 0 if you want to search without any string... (E.g. getting all)
         handleTraitSelection,
-        showSelection, 
-        matchTargetWidth,
-        placeHolderText,
-        selected_traits,
+        showSelection = true, 
+        matchTargetWidth = true,
+        placeHolderText = "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)",
+        selected_traits = [],
     submission_tag,
     checkMandatoryAttributes = true,
     disabled = false,

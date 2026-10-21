@@ -15,13 +15,6 @@ MetaTextDialog.propTypes = {
     edit: PropTypes.bool
 }   
 
-MetaTextDialog.defaultProps = { 
-    isOpen : false,
-    title : "",
-    tag : "",
-    text : "",
-    edit : false
-}
 /**
  * This component renders a dialog for creating or editing metatext associated with a submission.
  * @param {Object} props 
@@ -34,7 +27,7 @@ MetaTextDialog.defaultProps = {
  * @param {Function} props.onClose - Function to call when the dialog is closed. 
  * @returns 
  */
-export function MetaTextDialog({submission_tag, isOpen = false, tag, title, text, edit, onClose }) {
+export function MetaTextDialog({submission_tag, isOpen = false, tag, title = "", text = "", edit = false, onClose }) {
     const [metatext, setMetatext] = useState({ title: "", text: "", disabled: false });
     
     const {mutate : postMetatext, isLoading } = api.submissions.metatexts.usePostMetatext()

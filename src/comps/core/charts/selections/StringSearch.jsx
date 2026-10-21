@@ -19,12 +19,6 @@ StringSearch.propTypes = {
     minimal: PropType.bool
 }
 
-StringSearch.defaultProps = {
-    minimal: true,
-    debounce: 200,
-    callbackKey: "filterNames"
-}
-
 /**
  * @description Component to allow for string search. The component allows to select a keyName(s) in which the
  * search should be performed (multiple keyNames cam be selected).  
@@ -41,7 +35,7 @@ StringSearch.defaultProps = {
  * @param {Number} props.debounce - The milliseconds to wait until the search string is passed to onSearchStringChange. 
  * @returns 
  */
-export function StringSearch({ keyNames, selection, onSelectionChange, handleStringSearch, minimal, debounce, callbackKey }) {
+export function StringSearch({ keyNames, selection, onSelectionChange, handleStringSearch, minimal = true, debounce = 200, callbackKey = "filterNames" }) {
     const [searchString, setSearchString] = useState("")
     const debounceString = useDebounce(searchString, debounce)
 

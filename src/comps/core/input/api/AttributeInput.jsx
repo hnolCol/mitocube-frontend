@@ -42,10 +42,6 @@ AttributeInput.propTypes = {
 }
 
 
-AttributeInput.defaultProps = {
-    disabled : false 
-}
-
 /**
  * 
  * @param {Object} props 
@@ -57,7 +53,7 @@ AttributeInput.defaultProps = {
  * @param {Boolean} props.disabled - If the selection is disabled. 
  * @returns 
  */
-export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled }) {
+export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled = false }) {
 
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 50)

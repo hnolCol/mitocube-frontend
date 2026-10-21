@@ -8,9 +8,6 @@ OptionButton.propTypes = {
     isSelected: PropTypes.bool,
 };
     
-OptionButton.defaultProps = {
-    isSelected: false,
-};
 /**
  * @description A button component that can be used as an option selector. It accepts an onClick function, children as the content of the button, and a boolean isSelected to determine if the button is currently selected
  * @param {Object} props 
@@ -19,7 +16,7 @@ OptionButton.defaultProps = {
  * @param {boolean} props.isSelected - Whether the button is selected or not, used to style the button differently when selected. 
  * @returns 
  */
-export function OptionButton({ onClick, children, isSelected }) {
+export function OptionButton({ onClick, children, isSelected = false }) {
     
     return (
         <motion.button

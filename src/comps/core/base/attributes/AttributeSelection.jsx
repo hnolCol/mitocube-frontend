@@ -11,11 +11,6 @@ AttributeSelection.propTypes = {
     onSelect: PropTypes.func.isRequired
 }
 
-AttributeSelection.defaultProps = {
-    attribute_tags: [],
-    selected: []
-}
-
 export function AttributeButton({ tag, minimal = false }) {
     const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
 
@@ -32,7 +27,7 @@ export function AttributeButton({ tag, minimal = false }) {
  * @param {Boolean} props.minimal Whether to use the minimal button style.
  * @returns 
  */
-export function AttributeSelection({ attribute_tags, selected, onSelect, minimal = false }) { 
+export function AttributeSelection({ attribute_tags = [], selected = [], onSelect, minimal = false }) { 
     const handleSelect = (attribute_tag) => {
         onSelect(attribute_tag)
     }

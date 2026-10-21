@@ -7,7 +7,7 @@ import { checkFullMargin } from '../../types/checks/chart'
 import { isPropSet } from '../../types/checks/data'
 
 
-export function FilterIndicator({ width, margins, searchIndices, iconSize, textOffset, activeColor}) {
+export function FilterIndicator({ width, margins, searchIndices, iconSize = 20, textOffset = -1, activeColor = "#a9a9a9"}) {
 
     const hexColor = searchIndices.size === 0 ? activeColor: "#000"
     return (
@@ -17,12 +17,6 @@ export function FilterIndicator({ width, margins, searchIndices, iconSize, textO
         </Group> 
     )
 }
-FilterIndicator.defaultProps = {
-    iconSize: 20,
-    textOffset: -1,
-    activeColor: "#a9a9a9"
-}
-
 
 FilterIndicator.propTypes = {
     width: PropType.number.isRequired,

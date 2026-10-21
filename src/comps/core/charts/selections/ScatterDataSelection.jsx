@@ -26,19 +26,6 @@ ScatterDataSelection.propTypes = {
 }
 
 
-ScatterDataSelection.defaultProps = {
-    title: "",
-    idx: 1,
-    numericKeyNames: [],
-    selection: {},
-    minimal: true,
-    downloadElements: [],
-    elementNames: [],
-    elementTypes: [],
-    fileNames: [],
-    onAnnotationSelect: null
-    
-}
 
 /**
  * 
@@ -53,9 +40,9 @@ ScatterDataSelection.defaultProps = {
 
  * @returns 
  */
-export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, selection, setSelection, minimal, handleStringSearch, downloadElements, elementNames, elementTypes, fileNames, itemIsAttribute = true, numericIsAttribute = true, chartIdx, 
+export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = [], itemIsAttribute = true, numericIsAttribute = true, chartIdx, 
                                         colorAndSizeKeyNames = [],
-                                        setTriggerResetAxisZoom, onAnnotationSelect, showAxisSelection = true, showMarksSelection = true, colorAndSizeAreAttributes = false }) {
+                                        setTriggerResetAxisZoom, onAnnotationSelect = null, showAxisSelection = true, showMarksSelection = true, colorAndSizeAreAttributes = false }) {
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
     const onSelection = (key, value) => {

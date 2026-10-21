@@ -33,9 +33,4 @@ function DeleteButton(props) {
     )
 }
 
-DeleteButton.defaultProps = {
-    callback : undefined,
-    callbackValue : null,
-}
-
 export default DeleteButton
