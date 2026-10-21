@@ -6,7 +6,6 @@ const TOKEN_INVALID_DETAILS = [
   "Token expired. Please login again.",
   "Token not verified.",
   "Token invalid.",
-  "The required user role is not matched.",
   "Could not validate credentials. User not found or password incorrect.",
   "User is blocked and cannot login."
 ];
