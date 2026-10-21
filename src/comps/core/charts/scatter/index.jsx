@@ -250,7 +250,11 @@ export function ScatterPlot({
                 if (tag.includes(";")) return tag.split(";") 
                 return tag
             }).flat()
-            setRequiredProteinTags(prevValues => [...new Set([...prevValues, ...hoverProteinTags])])
+            if (hoverProteinTags.length === 0) return
+            setRequiredProteinTags(prevValues => {
+                const nextValues = [...new Set([...prevValues, ...hoverProteinTags])]
+                return nextValues.length === prevValues.length ? prevValues : nextValues
+            })
         }, [rerenderHover])    
     
     
