@@ -20,9 +20,16 @@ ScatterDataSelection.propTypes = {
     minimal: PropType.bool,
     downloadElements: PropType.arrayOf(PropType.oneOf(["svg", "data"])),
     elementNames: PropType.arrayOf(PropType.string),
-    elementTypes: PropType.arrayOf(),
+    elementTypes: PropType.arrayOf(PropType.string),
     fileNames: PropType.arrayOf(PropType.string),
-    onAnnotationSelect: PropType.func 
+    onAnnotationSelect: PropType.func,
+    setSelection: PropType.func.isRequired,
+    chartIdx: PropType.number,
+    colorAndSizeKeyNames: PropType.arrayOf(PropType.string),
+    setTriggerResetAxisZoom: PropType.func,
+    showAxisSelection: PropType.bool,
+    showMarksSelection: PropType.bool,
+    colorAndSizeAreAttributes: PropType.bool
 }
 
 

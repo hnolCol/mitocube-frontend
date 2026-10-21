@@ -1,15 +1,8 @@
 import { Select } from "@blueprintjs/select";
 import { AttributeMenuItem } from "../../input/api/AttributeInput";
-import { Button } from "@blueprintjs/core";
 import PropTypes from "prop-types";
 import _ from "lodash";
 import { api } from "@/api"
-
-AttributeSelection.propTypes = {
-    attribute_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
-    selected: PropTypes.arrayOf(PropTypes.string).isRequired,
-    onSelect: PropTypes.func.isRequired
-}
 
 export function AttributeButton({ tag, minimal = false }) {
     const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
@@ -17,6 +10,10 @@ export function AttributeButton({ tag, minimal = false }) {
     return <button className={`${minimal ? "basic-button--small" : "basic-button"}`}> {_.isObject(attribute) ? attribute.text : "Select Attribute"} </button>
 }
 
+AttributeButton.propTypes = {
+    tag: PropTypes.string,
+    minimal: PropTypes.bool,
+}
 
 /**
  * @description A selection component for attributes. Requires the attribute tags to select from. Does not support searching.
@@ -37,4 +34,11 @@ export function AttributeSelection({ attribute_tags = [], selected = [], onSelec
     }
     return <Select items={attribute_tags} filterable={false} onItemSelect={handleSelect} itemRenderer={renderItem}><AttributeButton minimal={minimal} tag={_.isArray(selected) && selected.length > 0 ? selected[0] : undefined} /></Select>
 
+}
+
+AttributeSelection.propTypes = {
+    attribute_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
+    selected: PropTypes.arrayOf(PropTypes.string).isRequired,
+    onSelect: PropTypes.func.isRequired,
+    minimal: PropTypes.bool,
 }

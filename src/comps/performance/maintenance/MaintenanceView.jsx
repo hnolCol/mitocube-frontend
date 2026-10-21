@@ -19,7 +19,9 @@ import { useEffect } from "react";
 
 MaintenanceEventItem.propTypes = {
     maintenance_event_tag: PropTypes.string.isRequired,
-    showInstrument: PropTypes.bool
+    instrument_tag: PropTypes.string,
+    showInstrument: PropTypes.bool,
+    setRefetchInstrumentStateTrigger: PropTypes.func
 }   
 
 /**
@@ -122,7 +124,9 @@ export function MaintenanceEventItem({ maintenance_event_tag, instrument_tag, sh
 
 
 MaintenanceView.propTypes = {
-    instrument_tag : PropTypes.string.isRequired
+    instrument_tag : PropTypes.string.isRequired,
+    setRefetchInstrumentStateTrigger: PropTypes.func,
+    onRefetchReady: PropTypes.func
 }
 
 /**

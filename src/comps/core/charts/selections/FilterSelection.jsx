@@ -24,6 +24,6 @@ export function FilterSelection({ selection, onSelectionChange, proteome_tags, c
     
     return <FilterInput
         onItemSelect={filterSetItem => onSelectionChange(callbackKey ,filterSetItem)}
-        selectedItems={_.isArray(selection[callbackKey ]) ? selection[key] : []}
+        selectedItems={_.isArray(selection[callbackKey]) ? selection[callbackKey] : []}
         proteome_tags={proteome_tags}/>
 }

@@ -15,7 +15,8 @@ MethodEditingDialog.propTypes = {
     methodsHeader : PropTypes.string.isRequired, //header in params file that contains the methods defined as object{title : string, details:string }
     onClose: PropTypes.func.isRequired,
     handleDataChange: PropTypes.func.isRequired, // defines what happens when the params file changed.
-    sectionSuggestions : PropTypes.array //sections of methods that are suggested to the user. Should be moved to the API.
+    sectionSuggestions : PropTypes.array, //sections of methods that are suggested to the user. Should be moved to the API.
+    experimentalDetailHeaders: PropTypes.arrayOf(PropTypes.string)
 }
 
 

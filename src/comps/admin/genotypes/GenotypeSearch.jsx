@@ -1,5 +1,4 @@
 import { api } from "@/api"
-import PropTypes from "prop-types"
 import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { useEffect, useState } from "react"
 import { GenotypeContainer } from "./GenotypeContainer"
@@ -7,9 +6,6 @@ import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 
-
-GenotypeSearch.propTypes = {
-}
 
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]

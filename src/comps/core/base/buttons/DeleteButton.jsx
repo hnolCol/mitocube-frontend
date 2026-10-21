@@ -1,19 +1,17 @@
 import { motion } from "framer-motion"
+import PropTypes from "prop-types"
 
-function DeleteButton(props) {
+function DeleteButton({ callback, callbackValue }) {
 
     const handleCallback = (e) => {
-        
-        if (props.callback!==undefined){
+        if (callback !== undefined){
             e.stopPropagation()
-            props.callback(props.callbackValue)
-            }
+            callback(callbackValue)
+        }
     }
-
 
     return(
             <div className="fixed-box">
-               
                 <motion.svg width={"80%"} height={"80%"} viewBox="0 0 20 20" 
                     > 
                     <motion.g 
@@ -28,9 +26,12 @@ function DeleteButton(props) {
                     </motion.g>
                 </motion.svg>
                 </div>
-               
-      
     )
+}
+
+DeleteButton.propTypes = {
+    callback: PropTypes.func,
+    callbackValue: PropTypes.any,
 }
 
 export default DeleteButton

@@ -16,7 +16,8 @@ StringSearch.propTypes = {
     selection: PropType.object,
     onSelectionChange: PropType.func.isRequired,
     handleStringSearch: PropType.func.isRequired,
-    minimal: PropType.bool
+    minimal: PropType.bool,
+    debounce: PropType.number
 }
 
 /**

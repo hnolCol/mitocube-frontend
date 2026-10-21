@@ -18,8 +18,12 @@ export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "date", "My Submissions"
 export const SUBMISSION_SORT_BY_OPTION = ["date", "views"]
 
 SubmissionsByState.propTypes = {
-    submissionFilter: PropTypes.object.isRequired,
-    submissionsQuery: PropTypes.object.isRequired,
+    submission_by_state: PropTypes.object.isRequired,
+    minimal: PropTypes.bool
+}
+
+SubmissionsByUser.propTypes = {
+    submission_by_user: PropTypes.object.isRequired,
     minimal: PropTypes.bool
 }
 
@@ -88,6 +92,15 @@ SubmissionsByDate.propTypes = {
     submission_by_date: PropTypes.object.isRequired,
     minimal: PropTypes.bool
 }
+
+SubmissionBy.propTypes = {
+    submissionBy: PropTypes.string,
+    submissionFilter: PropTypes.object.isRequired,
+    submissionsQuery: PropTypes.object.isRequired,
+    minimal: PropTypes.bool,
+    validState: PropTypes.number
+}
+
 export function SubmissionsByDate({ submission_by_date, minimal = true}) {
     const date_tags = _.keys(submission_by_date)
     return (

@@ -1,4 +1,3 @@
-import React from "react";
 import PropTypes from 'prop-types';
 import _ from "lodash";
 import { isPropHexColorString } from "../../types/checks/color";
@@ -40,6 +39,7 @@ Point.propTypes = {
     r: PropTypes.number,
     opacity: PropTypes.number,
     fill: isPropHexColorString,
+    stroke: isPropHexColorString,
     strokeWidth: PropTypes.number,
     mouseOver: PropTypes.func,
     mouseOverParams: PropTypes.object

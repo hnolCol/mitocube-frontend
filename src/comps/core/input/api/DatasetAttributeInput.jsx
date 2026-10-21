@@ -43,6 +43,14 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     </div>
 }
 
+AttributeWithTraitsMenuItem.propTypes = {
+    tag: PropTypes.string.isRequired,
+    trait_tags: PropTypes.arrayOf(PropTypes.string),
+    handleTraitSelection: PropTypes.func,
+    selected_traits: PropTypes.arrayOf(PropTypes.string),
+    isMissing: PropTypes.bool,
+}
+
 AttributesInput.propTypes = {
     // selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
     min_state: PropTypes.number,
@@ -50,6 +58,12 @@ AttributesInput.propTypes = {
     showSelection: PropTypes.bool,
     matchTargetWidth: PropTypes.bool,
     placeHolderText: PropTypes.string,
+    handleTraitSelection: PropTypes.func,
+    selected_traits: PropTypes.arrayOf(PropTypes.string),
+    submission_tag: PropTypes.string,
+    checkMandatoryAttributes: PropTypes.bool,
+    disabled: PropTypes.bool,
+    attribute_tags: PropTypes.arrayOf(PropTypes.string),
 }
 
 

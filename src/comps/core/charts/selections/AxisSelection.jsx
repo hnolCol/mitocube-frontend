@@ -6,7 +6,8 @@ AxisSelection.propTypes = {
     keyNames: PropType.arrayOf(PropType.string).isRequired,
     selection: PropType.object.isRequired,
     onSelectionChange: PropType.func.isRequired,
-    minimal: PropType.bool
+    minimal: PropType.bool,
+    itemIsAttribute: PropType.bool
 }
 
 

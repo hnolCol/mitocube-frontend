@@ -1,13 +1,7 @@
 import { motion } from "framer-motion";
-import {  PropTypes, func, node } from "prop-types";
+import PropTypes from "prop-types";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
 
-OptionButton.propTypes = {
-    onClick: func.isRequired,
-    children: PropTypes.node.isRequired,
-    isSelected: PropTypes.bool,
-};
-    
 /**
  * @description A button component that can be used as an option selector. It accepts an onClick function, children as the content of the button, and a boolean isSelected to determine if the button is currently selected
  * @param {Object} props 
@@ -17,7 +11,6 @@ OptionButton.propTypes = {
  * @returns 
  */
 export function OptionButton({ onClick, children, isSelected = false }) {
-    
     return (
         <motion.button
             className="padding--little margin-left--little"
@@ -37,3 +30,8 @@ export function OptionButton({ onClick, children, isSelected = false }) {
     );
 }
 
+OptionButton.propTypes = {
+    onClick: PropTypes.func.isRequired,
+    children: PropTypes.node.isRequired,
+    isSelected: PropTypes.bool,
+};

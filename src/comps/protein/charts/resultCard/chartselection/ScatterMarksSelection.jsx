@@ -38,6 +38,8 @@ ScatterMarksSelection.propTypes = {
     keyNames: PropTypes.arrayOf(PropTypes.string).isRequired,
     selection: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string,PropTypes.arrayOf(PropTypes.string)])).isRequired,
     onSelectionChange: PropTypes.func.isRequired,
-    minimal: PropTypes.bool 
+    minimal: PropTypes.bool,
+    itemIsAttribute: PropTypes.bool,
+    numericIsAttribute: PropTypes.bool
 
 }

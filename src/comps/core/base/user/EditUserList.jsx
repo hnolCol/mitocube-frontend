@@ -15,6 +15,7 @@ SelectableUser.propTypes = {
     onSelect: PropTypes.func.isRequired,
     isSelected: PropTypes.bool.isRequired,
     onRemove: PropTypes.func,
+    isLoading: PropTypes.bool,
 }
 
 /**
