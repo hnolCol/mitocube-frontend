@@ -1,16 +1,20 @@
-import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
-import _ from "lodash"
+import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette"
 import IconBase from "./Base"
 import viz from "@mitocube/viz"
 
-function PlottypeIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], chartType = "barplot", colorIdx = 0, callbackKey = undefined, callback = undefined,callbackValueOnly = false}) {
-        const colorPalette = getColorPalette(4)
+/**
+ * @description Plot-type icon. Opens a dropdown to select the chart type. The icon adapts to the currently selected chartType.
+ * @param {String} props.chartType - The currently selected chart type ("barplot", "boxplot", "lineplot", "pointplot").
+ * @param {Number} props.colorIdx - Index into the color palette used for the icon marks.
+ */
+function PlottypeIcon({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], chartType = "barplot", colorIdx = 0, callbackKey = undefined, callback = undefined, callbackValueOnly = false }) {
+    const colorPalette = getColorPalette(4)
     const barWidth = 3
     const boxWidth = 8
     const marginBetween = 2
     return (
-        <IconBase {...{height,placeholder,items,callback,callbackKey,callbackValueOnly}}>
-            {chartType === "barplot"?[{ height: 3 }, { height: 14 }, { height: 8 }, { height: 12 }, { height: 1 }, { height: 4 }].map((rectProps, idx) =>
+        <IconBase {...{ height, placeholder, items, callback, callbackKey, callbackValueOnly }}>
+            {chartType === "barplot" ? [{ height: 3 }, { height: 14 }, { height: 8 }, { height: 12 }, { height: 1 }, { height: 4 }].map((rectProps, idx) =>
                 <rect key={`normr-${idx}`} {...rectProps} x={4 + idx * barWidth} y={15 - rectProps.height} height={rectProps.height} width={barWidth}
                     fill={colorPalette[idx]} stroke="none" />) : null}
             {chartType === "boxplot" ? [
@@ -18,15 +22,15 @@ function PlottypeIcon({ height = 25, width = 25, placeholder = "", items = [{ te
                 { min: 16, q25: 12, median: 5, q75: 3, max: 2 },
                 { min: 14, q25: 12, median: 8, q75: 6, max: 1 }].map((boxplotProps, idx) => {
                     return (
-                        <viz.primitives.Box key={`${idx}-plotType-box`} {...boxplotProps} width={boxWidth-marginBetween} x={marginBetween + (boxWidth/2) + boxWidth * idx} fill={colorPalette[idx]} strokeWidth={0.5} />
-                )
+                        <viz.primitives.Box key={`${idx}-plotType-box`} {...boxplotProps} width={boxWidth - marginBetween} x={marginBetween + (boxWidth / 2) + boxWidth * idx} fill={colorPalette[idx]} strokeWidth={0.5} />
+                    )
                 }) : null}
-            {chartType === "lineplot"?[{ cy: 3 }, { cy: 14 }, { cy: 8 }, { cy: 13 }].map((pointProps, idx) => {
+            {chartType === "lineplot" ? [{ cy: 3 }, { cy: 14 }, { cy: 8 }, { cy: 13 }].map((pointProps, idx) => {
                 return <circle key={`normr-line${idx}`} {...pointProps} cx={10 + idx * barWidth} {...pointProps} r={3}
-                    fill={colorPalette[idx]} stroke="none" />}) : null}
-            {chartType === "pointplot"?[{ cy: 5 }, { cy: 12 }, { cy: 7 }, { cy: 15 }].map((pointProps, idx) => {
+                    fill={colorPalette[idx]} stroke="none" /> }) : null}
+            {chartType === "pointplot" ? [{ cy: 5 }, { cy: 12 }, { cy: 7 }, { cy: 15 }].map((pointProps, idx) => {
                 return <circle key={`normr-point${idx}`} {...pointProps} cx={5 + idx * 5} r={2.2}
-                    fill={colorPalette[idx]} stroke="none" />}) : null}
+                    fill={colorPalette[idx]} stroke="none" /> }) : null}
         </IconBase>
     )
 }

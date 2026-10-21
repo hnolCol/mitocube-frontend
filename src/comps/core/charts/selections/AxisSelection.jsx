@@ -1,19 +1,29 @@
 import PropType from "prop-types"
-import { XAxisName, YAxisName } from "../../svg/icons/chartSelection/ChartAxisNames";
-import _ from "lodash" 
+import _ from "lodash"
+import { XAxisName, YAxisName } from "../../svg/icons/chartSelection/ChartAxisNames"
 
 AxisSelection.propTypes = {
     keyNames: PropType.arrayOf(PropType.string).isRequired,
     selection: PropType.object.isRequired,
     onSelectionChange: PropType.func.isRequired,
-    minimal: PropType.bool
+    minimal: PropType.bool,
+    itemIsAttribute: PropType.bool
 }
 
 AxisSelection.defaultProps = {
-    minimal: true
+    minimal: true,
+    itemIsAttribute: true
 }
 
-export function AxisSelection({ keyNames, selection, onSelectionChange, minimal, itemIsAttribute = true }) {
+/**
+ * @description X and y axis selection. Opens two dropdowns to select the key names plotted on the axes.
+ * @param {String[]} props.keyNames - The selectable (numeric) key names.
+ * @param {Object} props.selection - The current selection. Must contain xaxisName and yaxisName if already selected.
+ * @param {Function} props.onSelectionChange - Called as onSelectionChange(callbackKey, value) with callbackKey "xaxisName" or "yaxisName".
+ * @param {Boolean} props.minimal - If true the selected value is not shown next to the icon.
+ * @param {Boolean} props.itemIsAttribute - If true the items are treated as attribute tags (fetched from the backend).
+ */
+export function AxisSelection({ keyNames, selection, onSelectionChange, minimal, itemIsAttribute }) {
     return (
         <div className="flex">
             <XAxisName
@@ -23,17 +33,15 @@ export function AxisSelection({ keyNames, selection, onSelectionChange, minimal,
                 callbackKey="xaxisName"
                 minimal={minimal}
                 callback={onSelectionChange}
-                itemIsAttribute={itemIsAttribute}
-            />
+                itemIsAttribute={itemIsAttribute} />
             <YAxisName
                 items={keyNames}
-                placeholder={selection.yaxisName}
-                minimal={minimal}
                 selectedItems={_.isString(selection.yaxisName) ? [selection.yaxisName] : []}
+                placeholder={selection.yaxisName}
                 callbackKey="yaxisName"
+                minimal={minimal}
                 callback={onSelectionChange}
-                itemIsAttribute={itemIsAttribute} 
-            />
+                itemIsAttribute={itemIsAttribute} />
         </div>
     )
 }
