@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const UNAUTHORIZED_EVENT = "mitocube-unauthorized";
+export const TOKEN_EXPIRED_DETAIL = "Token expired. Please login again.";
 
 // 401 details that mean the token/session itself is no longer usable
 const TOKEN_INVALID_DETAILS = [
@@ -45,7 +46,7 @@ export function createApiClient({ baseURL, getToken }) {
         (status === 401 && TOKEN_INVALID_DETAILS.includes(detail)) ||
         (status === 403 && USER_BLOCKED_DETAILS.includes(detail))
       )) {
-        window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT, { detail: { status } }));
+        window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT, { detail: { status, reason: detail } }));
       }
       // central error handling
       return Promise.reject(error);

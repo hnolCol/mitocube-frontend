@@ -130,6 +130,7 @@ const initApplicationInfo = {
 
 function App() {
   const [tokenFromStorage, setTokenFromStorage] = useState({ token: undefined, locationPathName: "/" });
+  const [logoutReason, setLogoutReason] = useState(undefined);
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus);
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo);
 
@@ -190,7 +191,10 @@ function App() {
   }, [tokenValidSuccess, _.isObject(isTokenValid), tokenValidIsError]);
 
   useEffect(() => {
-    const onUnauthorized = () => logout();
+    const onUnauthorized = (event) => {
+      setLogoutReason(event?.detail?.reason)
+      logout()
+    };
     window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
     return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
   }, []);
@@ -224,7 +228,7 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Login {...{ setAuthenticationStatus, redirectedFrom: tokenFromStorage.locationPathName }} />}
+            element={<Login {...{ setAuthenticationStatus, redirectedFrom: tokenFromStorage.locationPathName, logoutReason }} />}
           />
 
           {/* Redirected after successful login */}
