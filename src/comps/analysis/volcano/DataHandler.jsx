@@ -358,6 +358,7 @@ export function VolcanoDataHandler({
                                                 fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
                                                 elementTypes: ["svg", "data"],
                                                 itemIsAttribute: false,
+                                                numericIsAttribute: false,
                                                 // onAnnotationSelect: handleAnnotationSelect,
                                                 handleSearchByDataIndex
                                             }} /> : null}
