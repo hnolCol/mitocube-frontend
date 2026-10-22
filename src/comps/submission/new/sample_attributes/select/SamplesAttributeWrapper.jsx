@@ -312,8 +312,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             const rowIndex = lastIdx + 1 + idx 
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToHierarchy(fillValues.at(idx % rowIdcs.length).slice(), id)
-                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...addIDToHierarchy(v, id)]
+                const v = addIDToHierarchy(_.cloneDeep(fillValues.at(idx % rowIdcs.length)), id)
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...v]
                
             }
         })
@@ -403,22 +403,54 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         update({ attributeTable: d });
     }
 
+    /**
+     * @description Pastes previously copied attribute subtrees into the given rows.
+     * The copied hierarchies are deep-cloned per target row so that no objects or
+     * arrays are shared between rows. Shared children arrays would make edits in one
+     * sample mutate the subtrees of other samples.
+     * @param {String} attribute_tag 
+     * @param {Number[]} copiedRows - The row indices the values were copied from.
+     * @param {Number[]} rowIdces - The row indices the values are pasted into.
+     */
     const onPasteRowsForAttribute = (attribute_tag, copiedRows, rowIdces) => {
+
+        if (!_.isArray(copiedRows) || copiedRows.length === 0) return
 
         let d = submission.attributeTable.slice()
         const selection = copiedRows.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
 
-        _.forEach(rowIdces, rowIndex => {  
+        _.forEach(rowIdces, (rowIndex, idx) => {  
             
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToHierarchy(selection.at(rowIndex % copiedRows.length).slice(), id)
-                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag && p.id === id), ...v]
+                const v = addIDToHierarchy(_.cloneDeep(selection.at(idx % copiedRows.length)), id)
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...v]
                
             }
         })
 
         update({ attributeTable: d });
+    }
+
+    /**
+     * @description Pastes previously copied genotype tags into the given rows.
+     * @param {Number[]} copiedRows - The row indices the genotypes were copied from.
+     * @param {Number[]} rowIdces - The row indices the genotypes are pasted into.
+     */
+    const onPasteRowsForGenotype = (copiedRows, rowIdces) => {
+
+        if (!_.isArray(copiedRows) || copiedRows.length === 0) return
+
+        let genotypes = submission.genotypes.slice()
+        const selection = copiedRows.map(rowIdx => _.isArray(genotypes[rowIdx]) ? genotypes[rowIdx].slice() : []).slice()
+
+        _.forEach(rowIdces, (rowIndex, idx) => {
+            if (rowIndex < submission.sampleNames.length) {
+                genotypes[rowIndex] = selection.at(idx % copiedRows.length).slice()
+            }
+        })
+
+        update({ genotypes });
     }
 
     
@@ -485,6 +517,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 onSampleTraitSelection={onSampleTraitSelection}
                 onTagRemove={onSampleAttrRemove}
                 onPasteRowsInAttribute = {onPasteRowsForAttribute}
+                onPasteRowsInGenotype = {onPasteRowsForGenotype}
                     {...{
                         // attributes: attributesAllowedForDataset,
                     genotypes : submission.genotypes,

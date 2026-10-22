@@ -124,6 +124,7 @@ function SamplesAttributes({
     numberReplicates = 0,
     genotypes,
     handleGenotypeSelection,
+    onPasteRowsInGenotype,
     repeatSelection,
     onPasteRowsInAttribute,
     checkAttributeRequiredTraits,
@@ -225,7 +226,7 @@ function SamplesAttributes({
             case 1:
                 return <ReplicateMenu {...{ numberReplicates, onReplicateChange, selectedRows }} />;
             case 2:
-                return <GenotypeContextMenu {...{ genotypes, selectedRows, handleGenotypeSelection, clearGenotypeColumn }} />;
+                return <GenotypeContextMenu {...{ genotypes, selectedRows, handleGenotypeSelection, clearGenotypeColumn, copiedRows, onPaste: onPasteRowsInGenotype, onCopy: () => setCopiedRows(selectedRows) }} />;
             default: {
 
                 //let sampleAttribute = groupings[getSampleAttrIndex(columnIndex)] //first column blocked
@@ -261,6 +262,7 @@ function SamplesAttributes({
         isGroupingAttributeDefined,
         numberReplicates,
         onPasteRowsInAttribute,
+        onPasteRowsInGenotype,
         onReplicateChange,
         onSampleTraitSelection,
         repeatSelection,
@@ -488,7 +490,7 @@ function SamplesAttributes({
                         mutate(
                             { sample_tags : selectedSampleTags, genotype_tag },
                             {
-                                onSuccess: () => refetchGenotypes()
+                                onSuccess: () => handleGenotypeSelection(selectedRows, genotype_tag)
                             }
                         )
                     }
