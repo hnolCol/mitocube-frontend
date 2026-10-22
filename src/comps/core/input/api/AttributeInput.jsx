@@ -15,7 +15,7 @@ import { api } from "@/api";
  * @param {Object} props.menuItemProps - The properties for a menu item (blueprint)
  * @returns
  */
-export function AttributeMenuItem({ tag, menuItemProps, onItemSelect, selected = false}) {
+export function AttributeMenuItem({ tag, menuItemProps, selected = false}) {
 
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, {staleTime : Infinity, enabled: _.isString(tag) && tag.length > 0})
 
@@ -34,17 +34,20 @@ export function AttributeMenuItem({ tag, menuItemProps, onItemSelect, selected =
 
 
 
+AttributeMenuItem.propTypes = {
+    tag: PropTypes.string.isRequired,
+    menuItemProps: PropTypes.object.isRequired,
+    selected: PropTypes.bool,
+}
+
 AttributeInput.propTypes = {
+    text: PropTypes.string,
+    attribute_groups: PropTypes.arrayOf(PropTypes.string),
     onItemSelect: PropTypes.func.isRequired,
-    param_name: PropTypes.string,
     min_state: PropTypes.number,
     disabled : PropTypes.bool
 }
 
-
-AttributeInput.defaultProps = {
-    disabled : false 
-}
 
 /**
  * 
@@ -57,7 +60,7 @@ AttributeInput.defaultProps = {
  * @param {Boolean} props.disabled - If the selection is disabled. 
  * @returns 
  */
-export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled }) {
+export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled = false }) {
 
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 50)

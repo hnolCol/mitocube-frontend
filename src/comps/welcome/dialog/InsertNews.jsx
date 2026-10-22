@@ -8,16 +8,13 @@ InsertNews.propTypes = {
     onSuccess : PropTypes.func
 }
 
-InsertNews.defaultProps = {
-    onSuccess : () => {}
-}
 /**
  * 
  * @param {Object} props 
  * @param {Function} props.onSuccess - Callback function to be called upon successful news insertion. 
  * @returns 
  */
-export function InsertNews({onSuccess}) {
+export function InsertNews({onSuccess = () => {}}) {
     const [formData, setFormData] = useState({ title: "", content: "", submission_tags: [], feature_tags: [] })
     const { mutate : postNews, isLoading } = api.news.usePostNews()
     

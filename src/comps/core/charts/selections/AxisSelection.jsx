@@ -6,14 +6,12 @@ AxisSelection.propTypes = {
     keyNames: PropType.arrayOf(PropType.string).isRequired,
     selection: PropType.object.isRequired,
     onSelectionChange: PropType.func.isRequired,
-    minimal: PropType.bool
+    minimal: PropType.bool,
+    itemIsAttribute: PropType.bool
 }
 
-AxisSelection.defaultProps = {
-    minimal: true
-}
 
-export function AxisSelection({ keyNames, selection, onSelectionChange, minimal, itemIsAttribute = true }) {
+export function AxisSelection({ keyNames, selection, onSelectionChange, minimal = true, itemIsAttribute = true }) {
     return (
         <div className="flex">
             <XAxisName

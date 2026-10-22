@@ -15,7 +15,7 @@ import { isPropHexColorString } from '../../types/checks/color'
  * @param {Boolean} props.cap If a cap should be added to the error. 
  * @returns 
  */
-function ErrorBar({ x, y0, y1, width, cap, stroke, ...rest }) {
+function ErrorBar({ x, y0, y1, width = 0, cap = true, stroke = getAxisStrokeColor(), ...rest }) {
     
     if (!areAllValuesNumbers([x,y0,y1])) return null 
     return (
@@ -46,11 +46,6 @@ function ErrorBar({ x, y0, y1, width, cap, stroke, ...rest }) {
 }
 
 
-ErrorBar.defaultProps = {
-    cap: true,
-    stroke: getAxisStrokeColor(),
-    width: 0
-}
 
 ErrorBar.propTypes = {
     x: PropType.number.isRequired,

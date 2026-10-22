@@ -4,17 +4,13 @@ import { isPropHexColorString } from "../../types/checks/color";
 
 
 
-function AxisBackground({x, y, height, width, fill}) {
+function AxisBackground({x, y, height, width, fill = "#fafafa"}) {
     
     return (
         <rect {...{x,y,width,height,fill}} />
     )
 }
 
-
-AxisBackground.defaultProps = {
-    fill : "#fafafa"
-}
 
 AxisBackground.propTypes = {
     x: PropTypes.number.isRequired,

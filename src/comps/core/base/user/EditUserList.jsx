@@ -15,18 +15,16 @@ SelectableUser.propTypes = {
     onSelect: PropTypes.func.isRequired,
     isSelected: PropTypes.bool.isRequired,
     onRemove: PropTypes.func,
+    isLoading: PropTypes.bool,
 }
 
-SelectableUser.defaultProps = {
-    isSelected: false 
-}
 /**
  * @description Selectable users using the 'isSelected' state (managed from outisde) and function to remove (onRemove) or
  * to select the user from a list (onSelect)
  * @param {*} param0 
  * @returns 
  */
-function SelectableUser({ tag, onRemove, onSelect, isSelected, isLoading }) {
+function SelectableUser({ tag, onRemove, onSelect, isSelected = false, isLoading }) {
     //get public user data
     const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
 

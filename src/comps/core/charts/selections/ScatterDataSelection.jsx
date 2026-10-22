@@ -18,27 +18,21 @@ ScatterDataSelection.propTypes = {
     selection: PropType.object,
     handleStringSearch: PropType.func.isRequired, 
     minimal: PropType.bool,
-    downloadElements: PropType.arrayOf(PropType.oneOf(["svg", "data"])),
+    downloadElements: PropType.arrayOf(PropType.oneOfType([PropType.string, PropType.arrayOf(PropType.object)])),
     elementNames: PropType.arrayOf(PropType.string),
-    elementTypes: PropType.arrayOf(),
+    elementTypes: PropType.arrayOf(PropType.oneOf(["svg", "data"])),
     fileNames: PropType.arrayOf(PropType.string),
-    onAnnotationSelect: PropType.func 
+    onAnnotationSelect: PropType.func,
+    setSelection: PropType.func.isRequired,
+    chartIdx: PropType.number,
+    colorAndSizeKeyNames: PropType.arrayOf(PropType.string),
+    setTriggerResetAxisZoom: PropType.func,
+    showAxisSelection: PropType.bool,
+    showMarksSelection: PropType.bool,
+    colorAndSizeAreAttributes: PropType.bool
 }
 
 
-ScatterDataSelection.defaultProps = {
-    title: "",
-    idx: 1,
-    numericKeyNames: [],
-    selection: {},
-    minimal: true,
-    downloadElements: [],
-    elementNames: [],
-    elementTypes: [],
-    fileNames: [],
-    onAnnotationSelect: null
-    
-}
 
 /**
  * 
@@ -53,9 +47,9 @@ ScatterDataSelection.defaultProps = {
 
  * @returns 
  */
-export function ScatterDataSelection({ keyNames, title, idx, numericKeyNames, selection, setSelection, minimal, handleStringSearch, downloadElements, elementNames, elementTypes, fileNames, itemIsAttribute = true, numericIsAttribute = true, chartIdx, 
+export function ScatterDataSelection({ keyNames, title = "", idx = 1, numericKeyNames = [], selection = {}, setSelection, minimal = true, handleStringSearch, downloadElements = [], elementNames = [], elementTypes = [], fileNames = [], itemIsAttribute = true, numericIsAttribute = true, chartIdx, 
                                         colorAndSizeKeyNames = [],
-                                        setTriggerResetAxisZoom, onAnnotationSelect, showAxisSelection = true, showMarksSelection = true, colorAndSizeAreAttributes = false }) {
+                                        setTriggerResetAxisZoom, onAnnotationSelect = null, showAxisSelection = true, showMarksSelection = true, colorAndSizeAreAttributes = false }) {
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
     const onSelection = (key, value) => {
