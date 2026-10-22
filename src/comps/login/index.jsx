@@ -11,12 +11,14 @@ import { checkBasicEmailPattern } from "../../services/checks/email"
 import { saveInLocalStorage } from "../../services/localstorage"
 import { api } from "../../api"
 import QRCode from "react-qr-code"
+import { TOKEN_EXPIRED_DETAIL } from "../../api/apiClient"
 import { Loading } from "../core/base/states/Loading"
 
 
 Login.propTypes = {
     setAuthenticationStatus: PropTypes.func.isRequired,
     redirectedFrom : PropTypes.string,
+    logoutReason : PropTypes.string,
     inputProps: PropTypes.object
 }
 
@@ -28,7 +30,7 @@ Login.propTypes = {
  * @param {string} props.redirectedFrom - If the user is redirected from a specific website, then this url can be used to redirect them back after login.
  * @returns 
  */
-function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fill: true } }) {
+function Login({setAuthenticationStatus, redirectedFrom = "/" , logoutReason, inputProps = { fill: true } }) {
     const redirect = useNavigate()
     const [mfaSetup, setMFASetup] = useState(false)
     const [userInput, setUserInput] = useState({password : undefined, username : undefined, verificationCode : undefined})
@@ -173,6 +175,13 @@ function Login({setAuthenticationStatus, redirectedFrom = "/" ,inputProps = { fi
                 <div className="margin-bottom--little">
                     <Header text= { userHasMFAEnabled ? "Multi-Factor Authorization Code" : userLoginResponse.success && _.isString(userLoginResponse.token) ? "Verification Code" : "User Login" } />
                 </div>
+                {logoutReason === TOKEN_EXPIRED_DETAIL ? (
+                    <div className="margin-bottom--little" style={{ maxWidth: "min(800px,70vw)" }}>
+                        <span className="color--grey">
+                            You were logged out because your session token expired. Please log in again.
+                        </span>
+                    </div>
+                ) : null}
                 <span className="margin--little" style={{maxWidth : "min(800px,70vw)"}}>{!userHasMFAEnabled && ((loginIsSuccess && !userLoginResponse.mfa_enabled) || (userLoginResponse.success && _.isString(userLoginResponse.token))) ? <span>MFA is <strong>not enabled for this account.</strong> You will receive an email with a one-time password that allows you to setup the MFA.</span> : ""}</span>
                 {
                     userHasMFAEnabled ? <div> 

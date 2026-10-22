@@ -108,6 +108,7 @@ import hooks from "@mitocube/api-hooks"
 import { api } from "./api";
 import { SubmissionCompare } from "./comps/analysis/compare";
 import { queryClient } from "./api/queryClient";
+import { UNAUTHORIZED_EVENT } from "./api/apiClient";
 
 
 
@@ -129,6 +130,7 @@ const initApplicationInfo = {
 
 function App() {
   const [tokenFromStorage, setTokenFromStorage] = useState({ token: undefined, locationPathName: "/" });
+  const [logoutReason, setLogoutReason] = useState(undefined);
   const [authenticationStatus, setAuthenticationStatus] = useState(initAuthenticationStatus);
   const [applicationInfo, setApplicationInfo] = useState(initApplicationInfo);
 
@@ -188,6 +190,15 @@ function App() {
     }
   }, [tokenValidSuccess, _.isObject(isTokenValid), tokenValidIsError]);
 
+  useEffect(() => {
+    const onUnauthorized = (event) => {
+      setLogoutReason(event?.detail?.reason)
+      logout()
+    };
+    window.addEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+    return () => window.removeEventListener(UNAUTHORIZED_EVENT, onUnauthorized);
+  }, []);
+
   /**
    * @description Logs the user out by deleting the token from local storage and removing the axios default
    * Authorization header. It will also redirect the user to '/'
@@ -217,7 +228,7 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Login {...{ setAuthenticationStatus, redirectedFrom: tokenFromStorage.locationPathName }} />}
+            element={<Login {...{ setAuthenticationStatus, redirectedFrom: tokenFromStorage.locationPathName, logoutReason }} />}
           />
 
           {/* Redirected after successful login */}
