@@ -1,6 +1,5 @@
 
-import _, { rest }  from "lodash"
-import { removeKeyInArrayOfObjects } from "../../../../../services/arrays/filter"
+import _ from "lodash"
 import { addStringToArrayOrRemove } from "../../../../../services/arrays/transforms"
 import SamplesAttributes from "./SampleAttributes"
 import { useState } from "react"
@@ -116,37 +115,6 @@ export const findAndInsertTree = (
         );
 };
 
-export function replaceHierarchy(oldData, newNode) {
-  if (!Array.isArray(oldData) || oldData.length === 0) {
-    return [newNode];
-  }
-
-  function replace(nodes) {
-    return nodes.map((node) => {
-      // Replace matching node completely
-      if (
-        node.tag === newNode.tag &&
-        node.type === newNode.type
-      ) {
-        return newNode;
-      }
-
-      // Traverse children
-      if (Array.isArray(node.children) && node.children.length > 0) {
-        return {
-          ...node,
-          children: replace(node.children),
-        };
-      }
-
-      return node;
-    });
-  }
-
-  return replace(oldData);
-}
-
-
 
 export const checkPathExists = (data, path, ignore_id = false) => {
     if (!_.isArray(data) || data.length === 0) return false; // No data to search
@@ -206,11 +174,6 @@ export const findChildrenByPath = (data, path, ignore_id = false) => {
     return findChildrenByPath(node.children, restPath);
     }
 
-
-export const findID = (data, path) => {
-    const node = findPath(data, path);
-    return node ? node.id : undefined;
-}
 
 export function addIDToPath(path, id) {
     return path.map(p => { return { ...p, id } })
@@ -312,8 +275,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             const rowIndex = lastIdx + 1 + idx 
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToHierarchy(fillValues.at(idx % rowIdcs.length).slice(), id)
-                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...addIDToHierarchy(v, id)]
+                const v = addIDToHierarchy(_.cloneDeep(fillValues.at(idx % rowIdcs.length)), id)
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...v]
                
             }
         })
@@ -403,22 +366,108 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         update({ attributeTable: d });
     }
 
+    /**
+     * @description Pastes previously copied attribute subtrees into the given rows.
+     * The copied hierarchies are deep-cloned per target row so that no objects or
+     * arrays are shared between rows. Shared children arrays would make edits in one
+     * sample mutate the subtrees of other samples.
+     * @param {String} attribute_tag 
+     * @param {Number[]} copiedRows - The row indices the values were copied from.
+     * @param {Number[]} rowIdces - The row indices the values are pasted into.
+     */
     const onPasteRowsForAttribute = (attribute_tag, copiedRows, rowIdces) => {
+
+        if (!_.isArray(copiedRows) || copiedRows.length === 0) return
 
         let d = submission.attributeTable.slice()
         const selection = copiedRows.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
 
-        _.forEach(rowIdces, rowIndex => {  
+        _.forEach(rowIdces, (rowIndex, idx) => {  
             
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToHierarchy(selection.at(rowIndex % copiedRows.length).slice(), id)
-                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag && p.id === id), ...v]
+                const v = addIDToHierarchy(_.cloneDeep(selection.at(idx % copiedRows.length)), id)
+                d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...v]
                
             }
         })
 
         update({ attributeTable: d });
+    }
+
+    /**
+     * @description Pastes a column of values (e.g. copied from Excel) into the input
+     * of the given rows. The values are assigned to the trait that is already selected
+     * in each row under the given attribute (e.g. "Mouse ID").
+     * @param {String} attribute_tag 
+     * @param {String[]} values - One value per row (excess values are ignored).
+     * @param {Number[]} rowIdces - The row indices the values are pasted into.
+     */
+    const onPasteValuesForAttribute = (attribute_tag, values, rowIdces) => {
+
+        if (!_.isArray(values) || values.length === 0) return
+        if (!_.isArray(rowIdces) || rowIdces.length === 0) return
+
+        let d = submission.attributeTable.slice()
+
+        _.forEach(rowIdces, (rowIndex, idx) => {
+            const value = values[idx]
+            if (value === undefined || rowIndex >= submission.sampleNames.length) return
+
+            const attributeNode = d[rowIndex].find(p => p.type === "attribute" && p.tag === attribute_tag)
+            const traitTag = _.isArray(attributeNode?.children) && attributeNode.children.length > 0 ? attributeNode.children[0].tag : undefined
+            if (!_.isString(traitTag)) return
+
+            findAndInsertTree(d[rowIndex], addIDToPath([
+                { type: "attribute", tag: attribute_tag },
+                { type: "trait", tag: traitTag, value }
+            ], submission.referenceIDs[rowIndex]), {})
+        })
+
+        update({ attributeTable: d });
+    }
+
+    /**
+     * @description Pastes previously copied genotype tags into the given rows.
+     * @param {Number[]} copiedRows - The row indices the genotypes were copied from.
+     * @param {Number[]} rowIdces - The row indices the genotypes are pasted into.
+     */
+    const onPasteRowsForGenotype = (copiedRows, rowIdces) => {
+
+        if (!_.isArray(copiedRows) || copiedRows.length === 0) return
+
+        let genotypes = submission.genotypes.slice()
+        const selection = copiedRows.map(rowIdx => _.isArray(genotypes[rowIdx]) ? genotypes[rowIdx].slice() : []).slice()
+
+        _.forEach(rowIdces, (rowIndex, idx) => {
+            if (rowIndex < submission.sampleNames.length) {
+                genotypes[rowIndex] = selection.at(idx % copiedRows.length).slice()
+            }
+        })
+
+        update({ genotypes });
+    }
+
+    /**
+     * @description Repeats the genotypes of the selected rows over all following rows.
+     * The pattern of the selected rows is cycled until the last sample.
+     * @param {Number[]} rowIdcs - The row indices whose genotypes are repeated.
+     */
+    const onRepeatRowsForGenotype = (rowIdcs) => {
+
+        if (!_.isArray(rowIdcs) || rowIdcs.length === 0) return
+
+        let genotypes = submission.genotypes.slice()
+        const selection = rowIdcs.map(rowIdx => _.isArray(genotypes[rowIdx]) ? genotypes[rowIdx].slice() : []).slice()
+        const lastIdx = rowIdcs.at(-1)
+        const diff = submission.sampleNames.length - lastIdx - 1
+
+        _.forEach(_.range(1, diff + 1), idx => {
+            const rowIndex = lastIdx + idx
+            genotypes[rowIndex] = selection.at(idx % rowIdcs.length).slice()
+        })
+
+        update({ genotypes });
     }
 
     
@@ -485,6 +534,9 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 onSampleTraitSelection={onSampleTraitSelection}
                 onTagRemove={onSampleAttrRemove}
                 onPasteRowsInAttribute = {onPasteRowsForAttribute}
+                onPasteRowsInGenotype = {onPasteRowsForGenotype}
+                onRepeatRowsInGenotype = {onRepeatRowsForGenotype}
+                onPasteValuesInAttribute = {onPasteValuesForAttribute}
                     {...{
                         // attributes: attributesAllowedForDataset,
                     genotypes : submission.genotypes,
@@ -504,6 +556,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     onReplicateChange,
                     handleGenotypeSelection,
                     repeatSelection,
+                    onRepeatRowsInGenotype,
+                    onPasteValuesInAttribute,
                     selected_proteome_tags
                         }} />
             </div>
