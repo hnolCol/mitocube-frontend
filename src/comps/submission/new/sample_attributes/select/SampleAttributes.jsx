@@ -1,7 +1,7 @@
 import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { HotkeysProvider, Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
+import { Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
 import { memo, useState, useCallback, useMemo } from "react";
 import _ from "lodash"
 
@@ -14,63 +14,21 @@ import { api } from "@/api"
 import { AttributeInput } from "../../../../core/input/api/AttributeInput"
 import { AddGenotypeDialog } from "../../../../admin/genotypes/AddGentoypeDialog"
 import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
-import { useHotkeys } from "@blueprintjs/core";
 import "./sa.css"
 
 const getSampleAttrIndex = (columnIndex) => columnIndex - 3;
 const getGroupingInfoByColumnIndex = (columnIndex, groupings) => groupings[getSampleAttrIndex(columnIndex)];
 const getGroupingAttributeByColumnIndex = (columnIndex, groupings) => getGroupingInfoByColumnIndex(columnIndex, groupings);
 
-function useSampleTableSelection({handleSelection}) {
+function useSampleTableSelection() {
     const [selectedRows, setSelectedRows] = useState([]);
     const [copiedRows, setCopiedRows] = useState([]);
-    const getCurrentSelection = useCallback(() => selectedRows, [selectedRows])
-
-    const handleCopy = useCallback(() => {
-            if (!handleSelection) return;
-
-            const selection = getCurrentSelection(); 
-            setCopiedRows(selection);
-
-            }, [handleSelection]);
-
-    const handlePaste = useCallback(async () => {
-            if (!handleSelection) return;
-
-            try {
-                setCopiedRows
-            } catch (e) {
-                console.error("Paste failed", e);
-            }
-        }, [handleSelection]);
-    
-    const hotkeys = useMemo(() => [
-        {
-            combo: "mod + c",
-            label: "Copy table selection",
-            preventDefault: true,
-            onKeyDown: handleCopy,
-        },
-        {
-            combo: "mod + v",
-            label: "Paste table selection",
-            preventDefault: true,
-            onKeyDown: handlePaste,
-        },
-    ], [handleCopy, handlePaste]);
-
-    const { handleKeyDown, handleKeyUp } = useHotkeys(hotkeys);
 
     return {
         selectedRows,
         copiedRows,
         setSelectedRows,
         setCopiedRows,
-        getCurrentSelection,
-        handleKeyDown,
-        handleKeyUp,
-        handleCopy,
-        handlePaste,
     }
 }
 
@@ -126,6 +84,7 @@ function SamplesAttributes({
     handleGenotypeSelection,
     onPasteRowsInGenotype,
     onRepeatRowsInGenotype,
+    onPasteValuesInAttribute,
     repeatSelection,
     onPasteRowsInAttribute,
     checkAttributeRequiredTraits,
@@ -164,7 +123,7 @@ function SamplesAttributes({
 
 
     
-    const { selectedRows, copiedRows, setSelectedRows, setCopiedRows, handleKeyDown, handleKeyUp } = useSampleTableSelection({handleSelection})
+    const { selectedRows, copiedRows, setSelectedRows, setCopiedRows } = useSampleTableSelection()
 
     const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
 
@@ -248,7 +207,8 @@ function SamplesAttributes({
                             repeatSelection,
                             copiedRows,
                             onPaste: onPasteRowsInAttribute,
-                            onCopy: () => setCopiedRows(selectedRows)
+                            onCopy: () => setCopiedRows(selectedRows),
+                            onPasteValues: onPasteValuesInAttribute
                         }}
                     />
                 )
@@ -265,6 +225,7 @@ function SamplesAttributes({
         onPasteRowsInAttribute,
         onPasteRowsInGenotype,
         onRepeatRowsInGenotype,
+        onPasteValuesInAttribute,
         onReplicateChange,
         onSampleTraitSelection,
         repeatSelection,
@@ -451,8 +412,6 @@ function SamplesAttributes({
     return (
     
         <div className="tableContainer">
-            <HotkeysProvider>
-                <div onKeyDown={handleKeyDown} onKeyUp={handleKeyUp} tabIndex={0}>
                 <Table2
                     //enableColumnInteractionBar = {false}
                     enableGhostCells={true}
@@ -503,8 +462,6 @@ function SamplesAttributes({
                 selectedRows={selectedRows}
                 submission_tag={submission_tag}
             />
-            </div>
-            </HotkeysProvider>
         </div>
     )
 }
