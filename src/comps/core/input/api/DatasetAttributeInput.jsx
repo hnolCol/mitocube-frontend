@@ -43,6 +43,14 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     </div>
 }
 
+AttributeWithTraitsMenuItem.propTypes = {
+    tag: PropTypes.string.isRequired,
+    trait_tags: PropTypes.arrayOf(PropTypes.string),
+    handleTraitSelection: PropTypes.func,
+    selected_traits: PropTypes.arrayOf(PropTypes.string),
+    isMissing: PropTypes.bool,
+}
+
 AttributesInput.propTypes = {
     // selected_traits :   PropTypes.objectOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
     min_state: PropTypes.number,
@@ -50,17 +58,15 @@ AttributesInput.propTypes = {
     showSelection: PropTypes.bool,
     matchTargetWidth: PropTypes.bool,
     placeHolderText: PropTypes.string,
+    handleTraitSelection: PropTypes.func,
+    selected_traits: PropTypes.arrayOf(PropTypes.string),
+    submission_tag: PropTypes.string,
+    checkMandatoryAttributes: PropTypes.bool,
+    disabled: PropTypes.bool,
+    attribute_tags: PropTypes.arrayOf(PropTypes.string),
 }
 
 
-AttributesInput.defaultProps = {
-    selected_traits : [],
-    min_state: 5,
-    min_search_string_length: 0,
-    showSelection: true,
-    matchTargetWidth: true,
-    placeHolderText: "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)"
-}
 /**
  * @description Select dataset attributes using the API backend for searching through the attributes and traits. 
  * @param {Object} props 
@@ -78,13 +84,13 @@ AttributesInput.defaultProps = {
  * @returns {JSX.Element} The rendered AttributesInput component.
  */
 export function AttributesInput({
-        min_state,
-        min_search_string_length, //set to 0 if you want to search without any string... (E.g. getting all)
+        min_state = 5,
+        min_search_string_length = 0, //set to 0 if you want to search without any string... (E.g. getting all)
         handleTraitSelection,
-        showSelection, 
-        matchTargetWidth,
-        placeHolderText,
-        selected_traits,
+        showSelection = true, 
+        matchTargetWidth = true,
+        placeHolderText = "Search dataset attribute (HEK, HeLa, Heart, Muscle, ...)",
+        selected_traits = [],
     submission_tag,
     checkMandatoryAttributes = true,
     disabled = false,

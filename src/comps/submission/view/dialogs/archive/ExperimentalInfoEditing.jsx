@@ -6,9 +6,6 @@ import _ from "lodash"
 import { Popover2 } from '@blueprintjs/popover2'
 import PropTypes from "prop-types"
 
-MethodEditingDialog.defaultProps = {
-    experimentalDetailHeaders : ["Research Aim","Additional Information","Sample Preparation"]
-}
 
 
 MethodEditingDialog.propTypes = {
@@ -18,7 +15,8 @@ MethodEditingDialog.propTypes = {
     methodsHeader : PropTypes.string.isRequired, //header in params file that contains the methods defined as object{title : string, details:string }
     onClose: PropTypes.func.isRequired,
     handleDataChange: PropTypes.func.isRequired, // defines what happens when the params file changed.
-    sectionSuggestions : PropTypes.array //sections of methods that are suggested to the user. Should be moved to the API.
+    sectionSuggestions : PropTypes.array, //sections of methods that are suggested to the user. Should be moved to the API.
+    experimentalDetailHeaders: PropTypes.arrayOf(PropTypes.string)
 }
 
 
@@ -30,8 +28,8 @@ function MethodEditingDialog({
         onClose,
         handleDataChange,
         sectionSuggestions = ["Protein Digestion", "Liquid Chromatography & Mass Spectrometry", "Data Analysis"],
+        experimentalDetailHeaders = ["Research Aim","Additional Information","Sample Preparation"],
         ...rest }) {
-    
     const [textDetails, setText] = useState({ "sections": {}, "infoText": "" })
     const [newHeader,setNewHeader] = useState("")
 

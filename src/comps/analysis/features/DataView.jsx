@@ -13,12 +13,25 @@ const ResponsiveGridLayout = WidthProvider(Responsive);
 
 FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
-    submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired
+    submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired,
+    showTitle: PropTypes.bool,
+    showProteinNameInTitle: PropTypes.bool,
+    onRemove: PropTypes.func,
+    metrics: PropTypes.string,
+    layoutStorageKey: PropTypes.string,
+    highlightedSubmissionTag: PropTypes.string
 }
-FeatureDataView.defaultProps = {
-    features: []
-};
 
+FeatureData.propTypes = {
+    feature_tag: PropTypes.string.isRequired,
+    submission_tag: PropTypes.string.isRequired,
+    showTitle: PropTypes.bool,
+    showProteinNameInTitle: PropTypes.bool,
+    onRemove: PropTypes.func,
+    metrics: PropTypes.string,
+    openMetadataDrawer: PropTypes.func,
+    isHighlighted: PropTypes.bool
+}
 const metrics_labels = {
     "raw": "Raw values",
     "z_score_sample": "Z-scores (sample-wise)",

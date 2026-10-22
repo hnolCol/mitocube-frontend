@@ -18,28 +18,21 @@ ScatterDataSelection.propTypes = {
     setSelection: PropType.func.isRequired,
     handleStringSearch: PropType.func,
     minimal: PropType.bool,
-    downloadElements: PropType.arrayOf(PropType.oneOf(["svg", "data"])),
+    downloadElements: PropType.arrayOf(PropType.oneOfType([PropType.string, PropType.arrayOf(PropType.object)])),
     elementNames: PropType.arrayOf(PropType.string),
-    elementTypes: PropType.arrayOf(PropType.string),
+    elementTypes: PropType.arrayOf(PropType.oneOf(["svg", "data"])),
     fileNames: PropType.arrayOf(PropType.string),
-    itemIsAttribute: PropType.bool,
-    numericIsAttribute: PropType.bool,
-    onAnnotationSelect: PropType.func
+    onAnnotationSelect: PropType.func,
+    setSelection: PropType.func.isRequired,
+    chartIdx: PropType.number,
+    colorAndSizeKeyNames: PropType.arrayOf(PropType.string),
+    setTriggerResetAxisZoom: PropType.func,
+    showAxisSelection: PropType.bool,
+    showMarksSelection: PropType.bool,
+    colorAndSizeAreAttributes: PropType.bool
 }
 
-ScatterDataSelection.defaultProps = {
-    title: "",
-    minimal: true,
-    selection: {},
-    handleStringSearch: undefined,
-    downloadElements: [],
-    elementNames: [],
-    elementTypes: [],
-    fileNames: [],
-    itemIsAttribute: true,
-    numericIsAttribute: true,
-    onAnnotationSelect: null
-}
+
 
 /**
  * @description Toolbar above a scatter chart to select the plotted key names (x/y axis, color, size),
@@ -66,28 +59,28 @@ ScatterDataSelection.defaultProps = {
  * @param {Boolean} props.colorAndSizeAreAttributes - If the color/size items should be treated as attribute tags regardless of itemIsAttribute.
  * @returns
  */
-export function ScatterDataSelection({
-    keyNames,
-    title,
-    idx,
-    numericKeyNames,
-    selection,
-    setSelection,
-    minimal,
-    handleStringSearch,
-    downloadElements,
-    elementNames,
-    elementTypes,
-    fileNames,
-    itemIsAttribute,
-    numericIsAttribute,
-    chartIdx,
-    colorAndSizeKeyNames = [],
-    setTriggerResetAxisZoom,
-    onAnnotationSelect,
-    showAxisSelection = true,
-    showMarksSelection = true,
-    colorAndSizeAreAttributes = false }) {
+export function ScatterDataSelection({ 
+  keyNames, 
+  title = "", 
+  idx = 1, 
+  numericKeyNames = [], 
+  selection = {}, 
+  setSelection, 
+  minimal = true, 
+  handleStringSearch, 
+  downloadElements = [], 
+  elementNames = [], 
+  elementTypes = [], 
+  fileNames = [], 
+  itemIsAttribute = true, 
+  numericIsAttribute = true, 
+  chartIdx,                         
+  colorAndSizeKeyNames = [],                             
+  setTriggerResetAxisZoom, 
+  onAnnotationSelect = null, 
+  showAxisSelection = true, 
+  showMarksSelection = true, 
+  colorAndSizeAreAttributes = false }) {
 
     const nonNumericKeyNames = keyNames.filter(keyName => !numericKeyNames.includes(keyName))
     const onSelection = (key, value) => setSelection(idx, key, value)

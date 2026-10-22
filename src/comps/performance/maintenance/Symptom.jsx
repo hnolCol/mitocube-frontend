@@ -33,6 +33,4 @@ Symptom.propTypes = {
   onRemove: PropTypes.func,
 }
 
-Symptom.defaultProps = {
-  onRemove: undefined,
-}
+

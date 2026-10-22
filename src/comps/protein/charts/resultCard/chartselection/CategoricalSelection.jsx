@@ -13,7 +13,7 @@ import _ from "lodash"
  * @param {Boolean} props.minimal If the minimal style should be used. The selection will then not be displayed next to the icon. 
  * @returns 
  */
-export function CategoricalChartSelection({ keyNames, selection, onSelectionChange, minimal, vertical = false }) {
+export function CategoricalChartSelection({ keyNames, selection = {}, onSelectionChange, minimal = true, vertical = false }) {
 
     const handleSelection = (key, item) => {
         onSelectionChange(prevValues => {
@@ -48,15 +48,11 @@ export function CategoricalChartSelection({ keyNames, selection, onSelectionChan
     </div>
 }
 
-CategoricalChartSelection.defaultProps = {
-    minimal: true,
-    selection: {}
-}
-
 CategoricalChartSelection.propTypes = {
     keyNames: PropTypes.arrayOf(PropTypes.string).isRequired,
     selection: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string,PropTypes.arrayOf(PropTypes.string)])).isRequired,
     onSelectionChange: PropTypes.func.isRequired,
-    minimal: PropTypes.bool 
+    minimal: PropTypes.bool,
+    vertical: PropTypes.bool
 
 }

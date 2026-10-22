@@ -47,7 +47,9 @@ export function DownloadData({ elements, elementNames, elementTypes, fileNames, 
 
 
 DownloadData.propTypes = {
+    elements: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.object)])),
     elementTypes : PropTypes.arrayOf(PropTypes.oneOf(['svg','data'])),
     elementNames: PropTypes.arrayOf(PropTypes.string),
-    fileNames: PropTypes.arrayOf(PropTypes.string)
+    fileNames: PropTypes.arrayOf(PropTypes.string),
+    itemIsAttribute: PropTypes.bool
 }

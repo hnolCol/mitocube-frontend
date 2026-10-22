@@ -16,7 +16,14 @@ import { AnnotationSelectionMenu } from "../annotations/AnnotationSelectionMenu"
 import { api } from "@/api"
 
 CAGroupSelection.propTypes = {
-    ca_tags : PropTypes.arrayOf(PropTypes.string).isRequired
+    ca_tags : PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
+    active: PropTypes.bool,
+    selected: PropTypes.arrayOf(PropTypes.string),
+    exclude_tags: PropTypes.arrayOf(PropTypes.string),
+    onConfirm: PropTypes.func.isRequired,
+    placeHolder: PropTypes.string,
+    backgroundColor: PropTypes.string,
+    minimal: PropTypes.bool
 }
 
 

@@ -14,7 +14,7 @@ import _ from "lodash"
  * @param {Boolean} props.minimal If the minimal style should be used. The selection will then not be displayed next to the icon. 
  * @returns 
  */
-export function ScatterMarksSelection({keyNames, selection, onSelectionChange, minimal, itemIsAttribute = true, numericIsAttribute = true}) {
+export function ScatterMarksSelection({keyNames, selection = {}, onSelectionChange, minimal = true, itemIsAttribute = true, numericIsAttribute = true}) {
     return (
         <div className="flex">
             <ColorIconWithName
@@ -34,15 +34,12 @@ export function ScatterMarksSelection({keyNames, selection, onSelectionChange, m
         </div>
     )
 }
-ScatterMarksSelection.defaultProps = {
-    minimal: true,
-    selection: {}
-}
-
 ScatterMarksSelection.propTypes = {
     keyNames: PropTypes.arrayOf(PropTypes.string).isRequired,
     selection: PropTypes.objectOf(PropTypes.oneOfType([PropTypes.string,PropTypes.arrayOf(PropTypes.string)])).isRequired,
     onSelectionChange: PropTypes.func.isRequired,
-    minimal: PropTypes.bool 
+    minimal: PropTypes.bool,
+    itemIsAttribute: PropTypes.bool,
+    numericIsAttribute: PropTypes.bool
 
 }

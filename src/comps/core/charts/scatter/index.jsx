@@ -60,24 +60,6 @@ ScatterPlot.propTypes = {
 }
 
 
-ScatterPlot.defaultProps = {
-    width: 500,
-    height: 500,
-    svgID : "scatterplot",
-    margins: {
-        left: 50,
-        top: 10,
-        right: 5,
-        bottom: 60
-    },
-    tooltipNames : ["label"],
-    tooltipNameIsAttribute: {},
-    tooltipNameIsGenotype: {},
-    tooltipNameIsFeature: {},
-    tooltipNameIsNumeric: {},
-    tooltipNameIsFeatures: {}
-}
-
 /**
  * 
  * @param {Object} props 
@@ -106,9 +88,14 @@ ScatterPlot.defaultProps = {
  */
 export function ScatterPlot({
     chartIdx,
-    width,
-    height,
-    margins,
+    width = 500,
+    height = 500,
+    margins = {
+        left: 50,
+        top: 10,
+        right: 5,
+        bottom: 60
+    },
     data,
     valid,
     limits,
@@ -118,8 +105,8 @@ export function ScatterPlot({
     yaxisLabel,
     colorName,
     sizeName,
-    svgID,
-    tooltipNames,
+    svgID = "scatterplot",
+    tooltipNames = ["label"],
     labelNames = [],
     filterDataInKeyByValue,
     resetSearchIdcs,

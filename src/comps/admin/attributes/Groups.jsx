@@ -14,12 +14,7 @@ AttributeGroupSelection.propTypes = {
     allowAdd: PropTypes.bool,
 }
 
-AttributeGroupSelection.defaultProps = {
-    selected_tags: [],
-    allowAdd: false,
-}
-
-export function AttributeGroupSelection({ onSelection, selected_tags, allowAdd }) {
+export function AttributeGroupSelection({ onSelection, selected_tags = [], allowAdd = false }) {
 
     const [newGroup, setNewGroup] = useState("")
     const [addedGroups, setAddedGroups] = useState([])

@@ -51,6 +51,7 @@ export function UsersAdminView({ authenticationStatus }) {
                     </Alert>
                     <Dialog isOpen={dialogState.isOpen} onClose={() => setDialogState({ isOpen: false })} title="Add new user">
                         <AddUserDialog
+                            authenticationStatus={authenticationStatus}
                             onCancel={() => setDialogState({ isOpen: false })}
                             onCreated={() => {
                                 setDialogState({ isOpen: false })

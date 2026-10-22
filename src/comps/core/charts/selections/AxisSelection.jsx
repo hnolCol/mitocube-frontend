@@ -10,11 +10,6 @@ AxisSelection.propTypes = {
     itemIsAttribute: PropType.bool
 }
 
-AxisSelection.defaultProps = {
-    minimal: true,
-    itemIsAttribute: true
-}
-
 /**
  * @description X and y axis selection. Opens two dropdowns to select the key names plotted on the axes.
  * @param {String[]} props.keyNames - The selectable (numeric) key names.
@@ -23,7 +18,7 @@ AxisSelection.defaultProps = {
  * @param {Boolean} props.minimal - If true the selected value is not shown next to the icon.
  * @param {Boolean} props.itemIsAttribute - If true the items are treated as attribute tags (fetched from the backend).
  */
-export function AxisSelection({ keyNames, selection, onSelectionChange, minimal, itemIsAttribute }) {
+export function AxisSelection({ keyNames, selection, onSelectionChange, minimal = true, itemIsAttribute = true }) {
     return (
         <div className="flex">
             <XAxisName
