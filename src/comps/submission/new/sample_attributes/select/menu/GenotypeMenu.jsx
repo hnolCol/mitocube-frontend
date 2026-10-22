@@ -78,7 +78,7 @@ export function GenotypeMenuItem({ genotype_tag, handleClick, handleFocus, index
 }
 
 //tODO make this connected to API instead of loading the genotypes first.
-export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, proteome_tags, clearGenotypeColumn, copiedRows = [], onPaste = () => {}, onCopy = () => {} }) {
+export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, proteome_tags, clearGenotypeColumn, copiedRows = [], onPaste = () => {}, onCopy = () => {}, onRepeat = () => {} }) {
     
     const [queryString, setQueryString] = useState("")
     const search_string = useDebounce(queryString, 200)
@@ -138,6 +138,7 @@ export function GenotypeContextMenu({ selectedRows, handleGenotypeSelection, pro
   : null}
             </Menu>
             <MenuDivider />
+            <MenuItem text={`Repeat Selection (${selectedRows.length} rows)`} icon="clean" onClick={() => onRepeat(selectedRows)} />
             <MenuItem text={`Copy selected rows (${selectedRows.length} row(s))`} icon="clipboard" onClick={() => onCopy(selectedRows)} />
             {copiedRows.length > 0 && <MenuItem text={`Paste copied genotypes to selection (${selectedRows.length} row(s))`} icon="th-derived" onClick={() => onPaste(copiedRows, selectedRows)} />}
             <MenuItem text="Clear Selection" icon="clean" onClick={() => clearGenotypeColumn(selectedRows)}/>

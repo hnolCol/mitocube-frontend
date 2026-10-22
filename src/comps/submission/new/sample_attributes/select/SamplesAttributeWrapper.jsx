@@ -453,6 +453,28 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
         update({ genotypes });
     }
 
+    /**
+     * @description Repeats the genotypes of the selected rows over all following rows.
+     * The pattern of the selected rows is cycled until the last sample.
+     * @param {Number[]} rowIdcs - The row indices whose genotypes are repeated.
+     */
+    const onRepeatRowsForGenotype = (rowIdcs) => {
+
+        if (!_.isArray(rowIdcs) || rowIdcs.length === 0) return
+
+        let genotypes = submission.genotypes.slice()
+        const selection = rowIdcs.map(rowIdx => _.isArray(genotypes[rowIdx]) ? genotypes[rowIdx].slice() : []).slice()
+        const lastIdx = rowIdcs.at(-1)
+        const diff = submission.sampleNames.length - lastIdx - 1
+
+        _.forEach(_.range(1, diff + 1), idx => {
+            const rowIndex = lastIdx + idx
+            genotypes[rowIndex] = selection.at(idx % rowIdcs.length).slice()
+        })
+
+        update({ genotypes });
+    }
+
     
     /**
      * 
@@ -518,6 +540,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 onTagRemove={onSampleAttrRemove}
                 onPasteRowsInAttribute = {onPasteRowsForAttribute}
                 onPasteRowsInGenotype = {onPasteRowsForGenotype}
+                onRepeatRowsInGenotype = {onRepeatRowsForGenotype}
                     {...{
                         // attributes: attributesAllowedForDataset,
                     genotypes : submission.genotypes,
@@ -537,6 +560,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     onReplicateChange,
                     handleGenotypeSelection,
                     repeatSelection,
+                    onRepeatRowsInGenotype,
                     selected_proteome_tags
                         }} />
             </div>
