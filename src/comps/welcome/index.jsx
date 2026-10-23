@@ -7,6 +7,7 @@ import { LastViewed } from "./Views"
 import { api } from "@/api"
 import {  useNavigate } from "react-router"
 import { TrendingSubmissions } from "./TrendingSubmissions"
+import { getDashBoardIcon } from "../core/navigation/dashboard/Icons"
 
 function Welcome() {
 
@@ -27,9 +28,24 @@ function Welcome() {
                     <h3>Where would you like to go?</h3>
                 <div className="flex justify-space-around" style={{width : "max(90vw, 90%)"}}>
                     
-                    <button className="basic-button" onClick={() => navigate("/submissions/new")}><span style={{fontSize: "1.5rem"}}>New Submission</span></button>
-                    <button className="basic-button" onClick={() => navigate("/datasets")}><span style={{fontSize: "1.5rem"}}>Explore Datasets</span></button>
-                    <button className="basic-button" onClick={() => navigate("/protein/selection")}><span style={{fontSize: "1.5rem"}}>Explore Proteins</span></button>
+                    <button className="basic-button" onClick={() => navigate("/submissions/new")}>
+                        <div className="flex center-items flex-column">
+                            {getDashBoardIcon("SampleSubmission", { fillColor: "#466688" })}
+                            <span style={{fontSize: "1.5rem"}}>New Submission</span>
+                        </div>
+                    </button>
+                    <button className="basic-button" onClick={() => navigate("/datasets")}>
+                        <div className="flex center-items flex-column">
+                            {getDashBoardIcon("Dataset", { fillColor: "#466688" })}
+                            <span style={{fontSize: "1.5rem"}}>Explore Datasets</span>
+                        </div>
+                    </button>
+                    <button className="basic-button" onClick={() => navigate("/protein/selection")}>
+                        <div className="flex center-items flex-column">
+                            {getDashBoardIcon("Protein", { fillColor: "#466688" })}
+                            <span style={{fontSize: "1.5rem"}}>Explore Proteins</span>
+                        </div>
+                    </button>
                     
 
                     </div>
