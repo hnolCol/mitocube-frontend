@@ -556,8 +556,6 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                     onReplicateChange,
                     handleGenotypeSelection,
                     repeatSelection,
-                    onRepeatRowsInGenotype,
-                    onPasteValuesInAttribute,
                     selected_proteome_tags
                         }} />
             </div>
