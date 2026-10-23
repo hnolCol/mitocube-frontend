@@ -109,6 +109,7 @@ function MinimalTextInputComponent({
 
 function areEqual(prevProps, nextProps) {
     if (prevProps.value !== nextProps.value) return false
+    if (prevProps.onChange !== nextProps.onChange) return false
     if (prevProps.disabled !== nextProps.disabled) return false
     if (prevProps.allowAminoAcidsOnly !== nextProps.allowAminoAcidsOnly) return false
     if (prevProps.allowDNAOnly !== nextProps.allowDNAOnly) return false
