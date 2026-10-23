@@ -179,6 +179,57 @@ export function addIDToPath(path, id) {
     return path.map(p => { return { ...p, id } })
 }
 
+/**
+ * @description Collects the input fields available under the given attribute in a
+ * sample row. A field is a trait whose attribute has "allow_input" semantics: for a
+ * flat input attribute (e.g. "Mouse ID") the selected trait itself carries the value;
+ * for nested hierarchies (e.g. technique -> esiRNA -> concentration/duration) each
+ * child attribute's selected trait is a separate input field.
+ * @param {Object[]} row - The attribute nodes of a single sample row.
+ * @param {String} attribute_tag - The attribute to search under.
+ * @returns {{path: Object[], attribute_tag: String, trait_tag: String}[]} Input fields.
+ */
+export const collectInputFields = (row, attribute_tag) => {
+    const attributeNode = _.isArray(row) ? row.find(p => p.type === "attribute" && p.tag === attribute_tag) : undefined
+    if (!attributeNode) return []
+
+    const selectedTrait = _.isArray(attributeNode.children) && attributeNode.children.length > 0
+        ? attributeNode.children.find(c => c.type === "trait")
+        : undefined
+    if (!selectedTrait) return []
+
+    // nested: one input field per selected child attribute under the selected trait
+    const childAttributes = _.isArray(selectedTrait.children)
+        ? selectedTrait.children.filter(c => c.type === "attribute")
+        : []
+    if (childAttributes.length > 0) {
+        return childAttributes
+            .map(childAttribute => {
+                const childTrait = _.isArray(childAttribute.children) && childAttribute.children.length > 0
+                    ? childAttribute.children.find(c => c.type === "trait")
+                    : undefined
+                if (!childTrait) return undefined
+                return {
+                    path: [
+                        { type: "trait", tag: selectedTrait.tag },
+                        { type: "attribute", tag: childAttribute.tag },
+                        { type: "trait", tag: childTrait.tag }
+                    ],
+                    attribute_tag: childAttribute.tag,
+                    trait_tag: childTrait.tag
+                }
+            })
+            .filter(Boolean)
+    }
+
+    // flat input attribute: the selected trait itself carries the value
+    return [{
+        path: [{ type: "trait", tag: selectedTrait.tag }],
+        attribute_tag,
+        trait_tag: selectedTrait.tag
+    }]
+}
+
 export function addIDToHierarchy(data, id) {
     return data.map(item => {
         const newItem = { ...item, id };
@@ -403,24 +454,38 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      * @param {String[]} values - One value per row (excess values are ignored).
      * @param {Number[]} rowIdces - The row indices the values are pasted into.
      */
-    const onPasteValuesForAttribute = (attribute_tag, values, rowIdces) => {
+    /**
+     * @description Pastes a column of values (e.g. copied from Excel) into the given
+     * input field of the given rows. If there are more values than selected rows, the
+     * values are filled downwards starting at the first selected row (Excel-like).
+     * @param {String} attribute_tag - The sample attribute (table column).
+     * @param {Object[]} fieldPath - The trait path of the input field within the row's hierarchy.
+     * @param {String[]} values - One value per row (excess values fill further rows).
+     * @param {Number[]} rowIdces - The row indices the values are pasted into.
+     */
+    const onPasteValuesForAttribute = (attribute_tag, fieldPath, values, rowIdces) => {
 
         if (!_.isArray(values) || values.length === 0) return
         if (!_.isArray(rowIdces) || rowIdces.length === 0) return
+        if (!_.isArray(fieldPath) || fieldPath.length === 0) return
 
         let d = submission.attributeTable.slice()
 
-        _.forEach(rowIdces, (rowIndex, idx) => {
+        // Excel-like: fill downwards from the first selected row for all pasted values.
+        const firstRow = _.min(rowIdces)
+        const targetRows = values.length > rowIdces.length
+            ? _.range(firstRow, firstRow + values.length)
+            : rowIdces
+
+        _.forEach(targetRows, (rowIndex, idx) => {
             const value = values[idx]
             if (value === undefined || rowIndex >= submission.sampleNames.length) return
 
-            const attributeNode = d[rowIndex].find(p => p.type === "attribute" && p.tag === attribute_tag)
-            const traitTag = _.isArray(attributeNode?.children) && attributeNode.children.length > 0 ? attributeNode.children[0].tag : undefined
-            if (!_.isString(traitTag)) return
-
             findAndInsertTree(d[rowIndex], addIDToPath([
                 { type: "attribute", tag: attribute_tag },
-                { type: "trait", tag: traitTag, value }
+                ...fieldPath.map((t, fieldIdx) => fieldIdx === fieldPath.length - 1
+                    ? { type: t.type, tag: t.tag, value }
+                    : { type: t.type, tag: t.tag })
             ], submission.referenceIDs[rowIndex]), {})
         })
 
