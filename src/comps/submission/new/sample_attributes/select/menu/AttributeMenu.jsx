@@ -30,13 +30,19 @@ export function AttributeContextMenuSearch({ attribute_tag,
         
     }, [])
 
-
-    // useEffect(() => {
-    //     setCurrentSelection(selectedTraits)
-       
-    // }, [])
-
-
+    const handlePasteFromClipboard = async () => {
+        try {
+            const text = await navigator.clipboard.readText()
+            const values = text
+                .split(/\r?\n/)
+                .map(line => line.split(/\t|\s*,\s*/)[0].trim())
+                .filter(v => v.length > 0)
+            onPasteValues(attribute_tag, values, rowIdces)
+        }
+        catch (e) {
+            console.error("Clipboard read failed", e)
+        }
+    }
 
     return (
         <div>
