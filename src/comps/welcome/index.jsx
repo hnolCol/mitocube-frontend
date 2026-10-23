@@ -8,6 +8,7 @@ import { api } from "@/api"
 import {  useNavigate } from "react-router"
 import { TrendingSubmissions } from "./TrendingSubmissions"
 import { getDashBoardIcon } from "../core/navigation/dashboard/Icons"
+import { BaseDashboardIcon } from "../core/svg/icons/dashboard/IconBase"
 
 function Welcome() {
 
@@ -30,19 +31,25 @@ function Welcome() {
                     
                     <button className="basic-button" onClick={() => navigate("/submissions/new")}>
                         <div className="flex center-items flex-column">
-                            {getDashBoardIcon("SampleSubmission", { fillColor: "#466688" })}
+                            <BaseDashboardIcon width={100} height={100}>
+                                {getDashBoardIcon("SampleSubmission", { fillColor: "#466688" })}
+                            </BaseDashboardIcon>
                             <span style={{fontSize: "1.5rem"}}>New Submission</span>
                         </div>
                     </button>
                     <button className="basic-button" onClick={() => navigate("/datasets")}>
                         <div className="flex center-items flex-column">
-                            {getDashBoardIcon("Dataset", { fillColor: "#466688" })}
+                            <BaseDashboardIcon width={100} height={100}>
+                                {getDashBoardIcon("Dataset", { fillColor: "#466688" })}
+                            </BaseDashboardIcon>
                             <span style={{fontSize: "1.5rem"}}>Explore Datasets</span>
                         </div>
                     </button>
                     <button className="basic-button" onClick={() => navigate("/protein/selection")}>
                         <div className="flex center-items flex-column">
-                            {getDashBoardIcon("Protein", { fillColor: "#466688" })}
+                            <BaseDashboardIcon width={100} height={100}>
+                                {getDashBoardIcon("Protein", { fillColor: "#466688" })}
+                            </BaseDashboardIcon>
                             <span style={{fontSize: "1.5rem"}}>Explore Proteins</span>
                         </div>
                     </button>
