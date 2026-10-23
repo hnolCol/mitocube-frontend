@@ -5,3 +5,4 @@ export const attributesModifyAPI = hooks.attributes.createModifyAttributesAPI(ap
 export const attributesQueryAPI = hooks.attributes.createQueryAttributesAPI(apiClient);
 export const traitsModifyAPI = hooks.traits.createModifyTraitsAPI(apiClient);
 export const traitsQueryAPI = hooks.traits.createQueryTraitsAPI(apiClient);
+export const attributesRequestsAPI = hooks.attributes.createAttributeRequestsAPI(apiClient);

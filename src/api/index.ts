@@ -23,8 +23,8 @@ import { newsAPI } from "./news";
 import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI, userCreateAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
-import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI } from "./attributes";
 import { backendInfoAPI, statisticsInfoAPI, termsInfoAPI } from "./info";
+import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI, attributesRequestsAPI } from "./attributes";
 import { impressumAPI } from "./impressum";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
@@ -63,7 +63,8 @@ export const api = {
     },
     attributes : { 
         queryAttributes : attributesQueryAPI,
-        modifyAttributes : attributesModifyAPI
+        modifyAttributes : attributesModifyAPI,
+        requests : attributesRequestsAPI
     },
     traits : {
         queryTraits : traitsQueryAPI,

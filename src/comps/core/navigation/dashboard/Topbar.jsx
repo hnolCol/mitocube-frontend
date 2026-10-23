@@ -16,6 +16,8 @@ import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButt
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
 import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
 import { MessagesButton } from "@/comps/messages"
+import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
+import { PendingTraitRequestsButton } from "../../base/user/PendingTraitRequestButton"
 
 /**
  * 
@@ -75,6 +77,8 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <DepositionRequestsButton userRole={userRole} />
                 <PendingConsortiumShareRequestButton />
                 <PendingCollaborationRequestButton />
+                <PendingAttributeRequestsButton userRole={userRole} />
+                <PendingTraitRequestsButton userRole={userRole} />
                 <MessagesButton user_tag={user_tag} />
                 <div className="flex flex-column justify-center">
                     <Code>role: {userRole}</Code>
