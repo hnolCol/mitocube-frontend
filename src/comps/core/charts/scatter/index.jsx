@@ -60,24 +60,6 @@ ScatterPlot.propTypes = {
 }
 
 
-ScatterPlot.defaultProps = {
-    width: 500,
-    height: 500,
-    svgID : "scatterplot",
-    margins: {
-        left: 50,
-        top: 10,
-        right: 5,
-        bottom: 60
-    },
-    tooltipNames : ["label"],
-    tooltipNameIsAttribute: {},
-    tooltipNameIsGenotype: {},
-    tooltipNameIsFeature: {},
-    tooltipNameIsNumeric: {},
-    tooltipNameIsFeatures: {}
-}
-
 /**
  * 
  * @param {Object} props 
@@ -106,9 +88,14 @@ ScatterPlot.defaultProps = {
  */
 export function ScatterPlot({
     chartIdx,
-    width,
-    height,
-    margins,
+    width = 500,
+    height = 500,
+    margins = {
+        left: 50,
+        top: 10,
+        right: 5,
+        bottom: 60
+    },
     data,
     valid,
     limits,
@@ -118,12 +105,13 @@ export function ScatterPlot({
     yaxisLabel,
     colorName,
     sizeName,
-    svgID,
-    tooltipNames,
+    svgID = "scatterplot",
+    tooltipNames = ["label"],
     labelNames = [],
     filterDataInKeyByValue,
     resetSearchIdcs,
     setHoverDataInRectangle,
+    clearHoverData,
     centerXAxisAtZero = false,
     defaultRadius = 7,
     rerenderHover,
@@ -167,6 +155,7 @@ export function ScatterPlot({
 
 }) {
     const [zoomActive, setZoomActive] = useState(initZoomState)
+    const [axisDomainRerender, setAxisDomainRerender] = useState(0)
     // Plots an array of points. Each item in the array 
     // must be an object including the following keys: x, y, r
     const validDataInput = _.isArray(data) && _.isString(yaxisName) && _.isString(xaxisName)
@@ -206,6 +195,7 @@ export function ScatterPlot({
             xScale.domain([xDomain.min, xDomain.max])
             yScale.domain([yDomain.max, yDomain.min])
             setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : undefined, currentYDomain : undefined}})
+            setAxisDomainRerender(prevValue => prevValue + 1)
             
     }
      }, [triggerResetAxis])
@@ -250,7 +240,11 @@ export function ScatterPlot({
                 if (tag.includes(";")) return tag.split(";") 
                 return tag
             }).flat()
-            setRequiredProteinTags(prevValues => [...new Set([...prevValues, ...hoverProteinTags])])
+            if (hoverProteinTags.length === 0) return
+            setRequiredProteinTags(prevValues => {
+                const nextValues = [...new Set([...prevValues, ...hoverProteinTags])]
+                return nextValues.length === prevValues.length ? prevValues : nextValues
+            })
         }, [rerenderHover])    
     
     
@@ -480,6 +474,7 @@ export function ScatterPlot({
                 yScale.domain([yScale.invert(zoomActive.y), yScale.invert(zoomActive.y + zoomActive.height)])
 
                 setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : xScale.domain(), currentYDomain : yScale.domain()}})
+                setAxisDomainRerender(prevValue => prevValue + 1)
             }
 
         }, [zoomActive.zoomed])
@@ -628,7 +623,7 @@ export function ScatterPlot({
                                 labelNames,
                                 index: labelIndex,
                                 opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
+                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, axisDomainRerender, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
                         }} />
                     }) : null}
                 </g>
@@ -673,6 +668,7 @@ export function ScatterPlot({
                     onMouseMove={handleMouseHover}
                     onMouseDown={handleMouseDown}
                     onMouseUp={handleMouseUp}
+                    onMouseLeave={clearHoverData ? () => clearHoverData(chartIdx) : undefined}
                     fill="#ffffff"
                     opacity={0.0} />
         

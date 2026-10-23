@@ -1,6 +1,6 @@
 
 import _ from "lodash"
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { Card } from "@blueprintjs/core";
@@ -45,8 +45,17 @@ export function VolcanoDataHandler({
     useEffect(() => {
         if (volcanoData.suffixes.length > 0) return //already have data, no need to wait for prefetching, and don't want to overwrite existing data with prefetching results
         if (isReady && _.isArray(tagQueries) && tagQueries.length > 0) {
-            
-            const arrays = tagQueries.map(q => q.data.stats)
+            const seenSuffixes = new Set()
+            const uniquePairs = []
+            prefetchedTestParams.forEach((testParams, idx) => {
+                const q = tagQueries[idx]
+                if (!_.isObject(q?.data) || !_.isString(q.data.suffix) || seenSuffixes.has(q.data.suffix)) return
+                seenSuffixes.add(q.data.suffix)
+                uniquePairs.push({ testParams, query: q })
+            })
+            if (uniquePairs.length === 0) return
+
+            const arrays = uniquePairs.map(({ query }) => query.data.stats)
             const updatedData = Array.from(
             arrays
                 .flat()
@@ -65,9 +74,9 @@ export function VolcanoDataHandler({
 
             const { itemFound, itemValue } = getItemFromLocalStorage({ itemName : "volcanoLabelIndices", parseJson : true }) // we want to keep the same labeled indices when prefetching data, so we need to get the labeled indices from local storage and save them again after we have the prefetching results, to trigger a rerender of the charts with the new data but the same labeled indices
             const labelIndices = itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag) ? new Set(itemValue[submission_tag]) : new Set()
-            const suffixes = tagQueries.map(q => q.data.suffix)
-            const selection = tagQueries.map(q => { return { xaxisName: `log2FC ${q.data.suffix}`, yaxisName: `-log10 p-value ${q.data.suffix}`, colorName: `Significant ${q.data.suffix}`, tooltipNames: [], sizeName: undefined } })
-            const testParams = prefetchedTestParams.slice()
+            const suffixes = uniquePairs.map(({ query }) => query.data.suffix)
+            const selection = uniquePairs.map(({ query }) => { return { xaxisName: `log2FC ${query.data.suffix}`, yaxisName: `-log10 p-value ${query.data.suffix}`, colorName: `Significant ${query.data.suffix}`, tooltipNames: [], sizeName: undefined } })
+            const testParams = uniquePairs.map(({ testParams }) => testParams)
      
             setVolcanoData(prevValues => {
                 return {
@@ -116,7 +125,11 @@ export function VolcanoDataHandler({
     useEffect(() => {
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
         if (itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag)) {
-            setPrefetchedTestParams(itemValue[submission_tag])
+            const storedParams = _.uniqWith(
+                itemValue[submission_tag].map(item => _.omit(item, "_nonce")),
+                _.isEqual
+            )
+            setPrefetchedTestParams(storedParams)
         }
     }, [])
 
@@ -142,16 +155,11 @@ export function VolcanoDataHandler({
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
 
         // Check if the item already exists to prevent duplicates
-        const newItem = { ...selectedTestParams, tag: submission_tag }
+        const newItem = { ..._.omit(selectedTestParams, "_nonce"), tag: submission_tag }
         let updatedItems = [newItem]
         if (itemFound && _.isObject(itemValue) && _.has(itemValue, submission_tag)) {
-            const existingItems = itemValue[submission_tag]
-            const isDuplicate = _.some(existingItems, item => _.isEqual(item, newItem))
-            if (!isDuplicate) {
-                updatedItems = _.concat(existingItems, newItem)
-            } else {
-                updatedItems = existingItems
-            }
+            const existingItems = itemValue[submission_tag].map(item => _.omit(item, "_nonce"))
+            updatedItems = _.uniqWith(_.concat(existingItems, newItem), _.isEqual)
         }
 
         saveInLocalStorage({
@@ -168,7 +176,7 @@ export function VolcanoDataHandler({
                 ...prevValues,
                 data: updatedData,
                 suffixes : _.concat(prevValues.suffixes, data.suffix),
-                testParams: _.concat(prevValues.testParams, selectedTestParams),
+                testParams: _.concat(prevValues.testParams, _.omit(selectedTestParams, "_nonce")),
                 selection: _.concat(prevValues.selection,
                     {
                     xaxisName: `log2FC ${data.suffix}`,
@@ -198,7 +206,7 @@ export function VolcanoDataHandler({
 
     const testParamsUpdate = _.isObject(selectedTestParams)  &&
         !_.isEmpty(selectedTestParams) &&
-        !isItemInArrayDeepComp({ array: volcanoData.testParams, item: selectedTestParams })
+        !isItemInArrayDeepComp({ array: volcanoData.testParams, item: _.omit(selectedTestParams, "_nonce") })
     
     const handleHiddenSuffix = (suffix) => {
         setHiddenSuffix(prevValues => addStringToArrayIfNotPresent({ array: prevValues, string: suffix }))
@@ -252,15 +260,33 @@ export function VolcanoDataHandler({
     useEffect(() => {setIsFetching(false)},[isSuccess])        
     
     const numericKeyNames = _.isArray(volcanoData.data) && volcanoData.data.length > 0 ? _.keys(volcanoData.data[0]).filter(keyName => _.isNumber(volcanoData.data[0][keyName])) : []
-    const extraLimits = _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k))
-   
-    
-        
+    const extraLimits = useMemo(() => _.flatten(_.keys(volcanoData.selection).map(k => [volcanoData.selection[k].colorName, volcanoData.selection[k].sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k)), [volcanoData.selection, numericKeyNames])
+
+    const chartKeyNames = useMemo(() => volcanoData.suffixes.map((suffix, idx) => ({
+        xaxisName: volcanoData.selection[idx].xaxisName,
+        yaxisName: volcanoData.selection[idx].yaxisName
+    })), [volcanoData.suffixes, volcanoData.selection])
+
+    const isPointChart = useMemo(() => _.range(volcanoData.testParams.length).map(() => true), [volcanoData.testParams])
+
+    const externalLabelResult = useMemo(() => {
+        const values = _.uniq([...(favoriteProteinSelection?.values || []), ...(showHoverLabels && _.isArray(selectedAnnotationProteins) ? selectedAnnotationProteins : [])])
+        return { values, trigger: values.join("|"), key: "tag" }
+    }, [favoriteProteinSelection, selectedAnnotationProteins, showHoverLabels])
+
+    const externalHoverResult = useMemo(() => {
+        const values = _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])])
+        return { values, trigger: values.join("|"), key: "tag" }
+    }, [proteinHoverResults, hoveredAnnotationProteins])
+
+    const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
+
     return (
         <div
             className="div--expand flex flex--wrap"
             style={{
-                overflowY: "scroll",
+                overflowY: "auto",
+                maxHeight: "90vh",
                 gap: "0.5rem",
                 marginLeft: "2rem"
             }}> 
@@ -269,27 +295,11 @@ export function VolcanoDataHandler({
                 data={volcanoData.data}
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
-                externalLabelResult={{
-                    values: _.uniq([...(favoriteProteinSelection?.values || []), ...(showHoverLabels && _.isArray(selectedAnnotationProteins) ? selectedAnnotationProteins : [])]),
-                    trigger: (selectedAnnotationProteins?.length > 0) ? Math.random() : (favoriteProteinSelection?.trigger || 0),
-                    key: "tag"
-                }}
-                externalHoverResult={{
-                    values: _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])]),
-                    trigger: (hoveredAnnotationProteins?.length > 0) ? Math.random() : (proteinHoverResults?.trigger || 0),
-                    key: "tag"
-                }}
-                // _.filter([selection.colorName,selection.sizeName], keyName => numericKeyNames.includes(keyName))
-                keyNames={
-                    volcanoData.suffixes.map((suffix, idx) => {
-                        return {
-                            xaxisName: volcanoData.selection[idx].xaxisName,
-                            yaxisName: volcanoData.selection[idx].yaxisName
-                        }
-                    })
-                }
-                isPointChart={_.range(volcanoData.testParams.length).map(_ => true)}
-                passOnProps={{ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }}
+                externalLabelResult={externalLabelResult}
+                externalHoverResult={externalHoverResult}
+                keyNames={chartKeyNames}
+                isPointChart={isPointChart}
+                passOnProps={passOnProps}
                 labelIndicesKey="volcanoLabelIndices"
                 labelIndicesDataKey={submission_tag}
                 initialLabelIndices={volcanoData.initialLabelIndices}
@@ -348,6 +358,7 @@ export function VolcanoDataHandler({
                                                 fileNames: [`${submission_tag}-VolcanoPlot.svg`, `${submission_tag}-VolcanoPlot-Data.txt`],
                                                 elementTypes: ["svg", "data"],
                                                 itemIsAttribute: false,
+                                                numericIsAttribute: false,
                                                 // onAnnotationSelect: handleAnnotationSelect,
                                                 handleSearchByDataIndex
                                             }} /> : null}

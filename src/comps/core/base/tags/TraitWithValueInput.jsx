@@ -56,6 +56,7 @@ function TraitWithValueInputComponent({
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
     const allows_multiple_traits = true //wanted to make this an attribute property, but it is not yet implemented in the backend. For now, we will assume that all attributes allow multiple traits.
+    const allow_multiple_selection = true
     const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(traitPath, rowIndex) : undefined 
     const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
     /**

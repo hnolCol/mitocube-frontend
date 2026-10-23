@@ -2,6 +2,18 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import { HTMLSelect } from "@blueprintjs/core"
 import { api } from "@/api"
+import { ConsortiumText } from "@/comps/submission/view/ConsortiumText"
+
+ConsortiumOptionText.propTypes = {
+    tag: PropTypes.string.isRequired
+}
+
+function ConsortiumOptionText({ tag }) {
+    const { data: consortium, isSuccess } = api.consortiums.useGetConsortiumByTag(
+        { tag }, { enabled: _.isString(tag) && tag.length > 0, staleTime: 300000 }
+    )
+    return isSuccess && _.isObject(consortium) ? `${consortium.text} (${consortium.abbreviation})` : tag
+}
 
 ConsortiumInput.propTypes = {
     selected_consortium_tags: PropTypes.arrayOf(PropTypes.string),
@@ -28,7 +40,7 @@ export function ConsortiumInput({ selected_consortium_tags = [], onSelect, helpe
             onChange={handleSelect}
             fill={true}>
             <option value="">No consortium sharing</option>
-            {userConsortiums.map(consortium_tag => <option key={consortium_tag} value={consortium_tag}>{consortium_tag}</option>)}
+            {userConsortiums.map(consortium_tag => <option key={consortium_tag} value={consortium_tag}><ConsortiumOptionText tag={consortium_tag} /></option>)}
         </HTMLSelect>
         {_.isString(helperText) ? <p className="font-size--small">{helperText}</p> : null}
     </div>

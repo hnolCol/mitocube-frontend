@@ -8,17 +8,30 @@ import {Responsive, WidthProvider } from "react-grid-layout"
 import { useEffect, useRef, useState } from "react";
 import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage";
 import { SubmissionTitle } from "../../submission/view/SubmissionTitle";
-
+import { SubmissionMetadataDrawer } from "../../submission/view/SubmissionMetadataDrawer";
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
 FeatureDataView.propTypes = {
     feature_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
-    submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired
+    submission_tags : PropTypes.arrayOf(PropTypes.string).isRequired,
+    showTitle: PropTypes.bool,
+    showProteinNameInTitle: PropTypes.bool,
+    onRemove: PropTypes.func,
+    metrics: PropTypes.string,
+    layoutStorageKey: PropTypes.string,
+    highlightedSubmissionTag: PropTypes.string
 }
-FeatureDataView.defaultProps = {
-    features: []
-};
 
+FeatureData.propTypes = {
+    feature_tag: PropTypes.string.isRequired,
+    submission_tag: PropTypes.string.isRequired,
+    showTitle: PropTypes.bool,
+    showProteinNameInTitle: PropTypes.bool,
+    onRemove: PropTypes.func,
+    metrics: PropTypes.string,
+    openMetadataDrawer: PropTypes.func,
+    isHighlighted: PropTypes.bool
+}
 const metrics_labels = {
     "raw": "Raw values",
     "z_score_sample": "Z-scores (sample-wise)",
@@ -26,7 +39,7 @@ const metrics_labels = {
     "log2_fc_vs_mean": "Log2FC vs mean",
 }
 
-export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw" }) {
+export function FeatureData({ feature_tag, submission_tag, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", openMetadataDrawer, isHighlighted = false }) {
 
     const { data, isLoading } = api.features.data.useGetFeatureDataForSubmission({ tag: feature_tag, submission_tag, metrics }, { enabled: _.isString(feature_tag) && _.isString(submission_tag), staleTime: 600000 });
     const {data : feature} = api.features.tag.useGetFeatureByTag({ tag : feature_tag }, { enabled : _.isString(feature_tag)})
@@ -52,7 +65,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
 
     const hasData = _.isArray(data?.data) && !_.every(data.data, q => q.value === null);
     return (
-        <div ref={containerRef} style={{ width: "100%", height: "100%"}}>
+        <div ref={containerRef} style={{ width: "100%", height: "100%", outline: isHighlighted ? "3px solid #7961F9" : "none", outlineOffset: "-3px", borderRadius: isHighlighted ? "3px" : undefined }}>
             {isLoading || isSampleCAAttributeLoading ? (
                 <div>Loading...</div>
             ) : (
@@ -71,6 +84,7 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
                         height={size.height || undefined}
                         title={!showProteinNameInTitle ? "" :  _.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
                         onRemove={onRemove}
+                        openMetadataDrawer={openMetadataDrawer}
                         /> : <div>No data available or all quantified values are null.</div>}
                         </div>
                     </div>
@@ -151,7 +165,8 @@ function saveStoredLayouts(storageKey, layouts) {
     }
 }
 
-export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey }) {
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey, highlightedSubmissionTag }) {
+    const [metadataDrawer, setMetadataDrawer] = useState({ isOpen: false, submission_tag: undefined })
     const [layouts, setLayouts] = useState(() => {
         const stored = loadStoredLayouts(layoutStorageKey);
         return stored ? mergeLayouts(stored, feature_tags, submission_tags) : buildLayouts(feature_tags, submission_tags);
@@ -180,7 +195,12 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
         saveStoredLayouts(layoutStorageKey, defaults);
     };
 
-    return <div>
+    return <div style={{ overflowY: "hidden", height: "100%" }}>
+        <SubmissionMetadataDrawer
+            isOpen={metadataDrawer.isOpen}
+            submission_tag={metadataDrawer.submission_tag}
+            onClose={() => setMetadataDrawer({ isOpen: false, submission_tag: undefined })}
+        />
         <h3 style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
             Feature Plots
             <Button icon="reset" intent="danger" variant="minimal" onClick={handleResetLayout} text="Reset layout" />
@@ -219,6 +239,8 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                                 showProteinNameInTitle={showProteinNameInTitle}
                                                 onRemove={onRemove}
                                                 metrics={metrics}
+                                                openMetadataDrawer={setMetadataDrawer}
+                                                isHighlighted={highlightedSubmissionTag !== undefined && highlightedSubmissionTag === submission_tags[i]}
                                             />
                                         </div>
                                     </div>

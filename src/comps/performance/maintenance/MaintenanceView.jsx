@@ -19,11 +19,9 @@ import { useEffect } from "react";
 
 MaintenanceEventItem.propTypes = {
     maintenance_event_tag: PropTypes.string.isRequired,
-    showInstrument: PropTypes.bool
-}   
-
-MaintenanceEventItem.defaultProps = {
-    showInstrument: true
+    instrument_tag: PropTypes.string,
+    showInstrument: PropTypes.bool,
+    setRefetchInstrumentStateTrigger: PropTypes.func
 }   
 
 /**
@@ -36,7 +34,7 @@ MaintenanceEventItem.defaultProps = {
  * It also allows to add or remove symptoms and procedures from the maintenance event. 
  * @returns 
  */
-export function MaintenanceEventItem({ maintenance_event_tag, instrument_tag, showInstrument, setRefetchInstrumentStateTrigger }) {
+export function MaintenanceEventItem({ maintenance_event_tag, instrument_tag, showInstrument = true, setRefetchInstrumentStateTrigger }) {
     
     const { data: maintenance_event, isLoading, isError, refetch } = api.maintenance.core.useGetMaintenanceEventByTag({ tag: maintenance_event_tag })
     const {
@@ -126,7 +124,9 @@ export function MaintenanceEventItem({ maintenance_event_tag, instrument_tag, sh
 
 
 MaintenanceView.propTypes = {
-    instrument_tag : PropTypes.string.isRequired
+    instrument_tag : PropTypes.string.isRequired,
+    setRefetchInstrumentStateTrigger: PropTypes.func,
+    onRefetchReady: PropTypes.func
 }
 
 /**

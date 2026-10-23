@@ -1,19 +1,14 @@
 import { Text } from "@visx/text"
-import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 
 /**
- * 
- * @param {Object} props 
- * @param {Number} props.height 
- * @param {Number} props.width 
- * @param {String} props.placeholder 
- * @param {String | Number} props.callbackKey
- * @returns {import("react").ReactElement} - The combobox for the tooltip selection. 
+ * @description Text-selection icon (e.g. tooltip names). Opens a dropdown to select text key names.
+ * @param {String} props.text - The letter drawn inside the icon
  */
-export function TextIconWithName({ height = 25, width = 25, text = "T", placeholder = "", items = [{ text: "Menu1" }], selectedItems = [], callbackKey = undefined, callback = undefined, callbackValueOnly = false, minimal = false, textKey ="text" , itemIsAttribute = true}) {
+export function TextIconWithName({ height = 25, width = 25, text = "T", ...props }) {
     return (
-        <ComboboxIconBase {...{ height, width, placeholder, items, callback, callbackKey, callbackValueOnly, selectedItems, minimal, textKey, itemIsAttribute }}>
+        <ComboboxIconBase {...{ height, width, ...props }}>
             <Text x={width / 2} y={height / 2} verticalAnchor="middle" textAnchor="middle">{text}</Text>
-        </ComboboxIconBase>)
+        </ComboboxIconBase>
+    )
 }

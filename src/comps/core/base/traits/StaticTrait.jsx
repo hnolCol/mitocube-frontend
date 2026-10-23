@@ -18,13 +18,6 @@ StaticTrait.propTypes = {
     showDescription: PropType.bool
 }
 
-StaticTrait.defaultProps = {
-    popoverPosition: "top",
-    disableTooltip: false,
-    highlight: false,
-    suffix: "",
-    showDescription: false
-}
 /**
  * @description Static trait is the representation of a trait/attribute value. 
  * Static means that the user cannot set any defined unit based input.
@@ -42,11 +35,11 @@ export function StaticTrait({
     attribute_tag,
     trait_tag,
     submission_tag,
-    highlight,
-    disableTooltip,
-    popoverPosition,
-    suffix,
-    showDescription
+    highlight = false,
+    disableTooltip = false,
+    popoverPosition = "top",
+    suffix = "",
+    showDescription = false
 }) {
 
     

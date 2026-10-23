@@ -4,12 +4,12 @@ import { api } from "@/api";
 import _ from "lodash"
 
 export function usePrefetchProteins(tags: string[]) {
-  
-  const tagQueries = api.features.proteinsQuery.useGetProteins({tags}, { enabled : _.isArray(tags) && tags.length > 0, staleTime : Infinity });
+  const uniqueTags = _.uniq(tags);
+  const tagQueries = api.features.proteinsQuery.useGetProteins({tags: uniqueTags}, { enabled : _.isArray(uniqueTags) && uniqueTags.length > 0, staleTime : Infinity });
 
   const isReady = tagQueries.every(q => q.isSuccess);
   const isLoading = tagQueries.some(q => q.isLoading);
-  if (tags.length === 0) return { isReady: true, tagQueries: [], isLoading: false };
+  if (uniqueTags.length === 0) return { isReady: true, tagQueries: [], isLoading: false };
   return { isReady, tagQueries, isLoading };
 }
 

@@ -16,15 +16,16 @@ import {
     submissionUserAPI,
     submissionViewsAPI,
     submissionRunlistAPI,
-    submissionProtocolsAPI
+    submissionProtocolsAPI,
+    submissionSummaryAPI
 } from "./submission";
 import { tokenAuthentication, userLogin, mfaAuthentication } from "./authentication";
 import { newsAPI } from "./news";
 import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI, userCreateAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
-import { backendInfoAPI, statisticsInfoAPI, termsInfoAPI } from "./info";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI, attributesRequestsAPI } from "./attributes";
+import { backendInfoAPI, statisticsInfoAPI, termsInfoAPI, keyFiguresInfoAPI } from "./info";
 import { impressumAPI } from "./impressum";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
@@ -111,7 +112,8 @@ export const api = {
         users : submissionUserAPI,
         views: submissionViewsAPI,
         protocols : submissionProtocolsAPI,
-        runlist : submissionRunlistAPI
+        runlist : submissionRunlistAPI,
+        summary : submissionSummaryAPI
     },
     authentication: {
         login: userLogin,
@@ -143,7 +145,8 @@ export const api = {
     info: { 
         backend : backendInfoAPI,
         statistics : statisticsInfoAPI,
-        terms : termsInfoAPI
+        terms : termsInfoAPI,
+        keyfigures : keyFiguresInfoAPI
     },
     maintenance : {
         core : maintenanceCoreAPI,

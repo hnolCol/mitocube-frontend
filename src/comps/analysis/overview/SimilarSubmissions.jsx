@@ -9,7 +9,7 @@ import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
 import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
 import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView"
 import { Trait } from "@/comps/core/base/traits/Trait"
-import { GenotypeItem } from "@/comps/admin/genotypes/GenotypeItem"
+import { GenotypeText } from "@/comps/admin/genotypes/GentotypeText"
 
 const ACCESS_GROUPS = [
     {
@@ -124,7 +124,7 @@ function SimilarSubmissionItem({ similar, user_tag }) {
             <div className="flex flex-column margin-top--little">
                 <span className="font-size--smallest font-weight--bold">Shared genotypes</span>
                 <div className="flex flex--wrap" style={{ gap: "0.25rem" }}>
-                    {matched.genotypes.map(tag => <div key={tag} className="bg--white div--round padding--little"><GenotypeItem tag={tag} /></div>)}
+                    {matched.genotypes.map(tag => <div key={tag} className="bg--white div--round padding--little"><GenotypeText tag={tag} /></div>)}
                 </div>
             </div> : null}
         {trait_count > 0 ?

@@ -14,7 +14,7 @@ import FilterIcon from '../../../../core/svg/icons/chartSelection/Filter'
  * @param {Boolean} props.minimal
  * @returns 
  */
-export function ChartStringSearch({ keyNames, selection, onSelectionChange, handleStringSearch, minimal, debounceDuration, callbackKey}) {
+export function ChartStringSearch({ keyNames, selection = {}, onSelectionChange, handleStringSearch, minimal = true, debounceDuration = 200, callbackKey = "filterNames"}) {
     const [searchString, setSearchString] = useState("")
     const debounceString = useDebounce(searchString, debounceDuration)
 
@@ -43,13 +43,6 @@ export function ChartStringSearch({ keyNames, selection, onSelectionChange, hand
                 })} />
         </div>
     )
-}
-
-ChartStringSearch.defaultProps = {
-    minimal: true,
-    selection: {},
-    debounceDuration: 200,
-    callbackKey : "filterNames"
 }
 
 ChartStringSearch.propTypes = {
