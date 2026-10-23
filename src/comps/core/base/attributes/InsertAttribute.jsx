@@ -13,9 +13,9 @@ import { StateSelectionMenu } from "../states/StateSelectionMenu";
 
 import { APIAxiosError } from "../states/APIError";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
-import { Alert, DialogBody } from "@blueprintjs/core";
+import { Alert, Button, DialogBody } from "@blueprintjs/core";
 
-const REQUIRED_COLUMNS = [
+const TRAIT_COLUMNS = [
     { key: "text", label: "Text" },
     { key: "description", label: "Description" },
     { key: "priority", label: "Priority" },
@@ -34,15 +34,22 @@ const INITIAL_ATTRIBUTE_STATE = {
 }
 
 
-export function LoadTraitsFromFile({onFileRead}) {
-        const [columnIndex, setColumnIndex] = useState({
-        text : undefined,
+/**
+ * @description Reads traits from a tab-separated .txt file with a header row.
+ * The user maps the file columns to the trait fields.
+ * @param {Object} props
+ * @param {Function} props.onFileRead - called with [{ text, description, priority? }]
+ * @param {Boolean} [props.includePriority=true] - set false for user requests; priority is then neither mapped nor returned
+ */
+export function LoadTraitsFromFile({ onFileRead, includePriority = true }) {
+    const columns = includePriority ? TRAIT_COLUMNS : TRAIT_COLUMNS.filter(c => c.key !== "priority")
+    const [columnIndex, setColumnIndex] = useState({
+        text: undefined,
         description: undefined,
         priority: undefined,
-        });
+    });
     const [file, setFile] = useState(null);
     const [headers, setHeaders] = useState([]);
-    const [progress, setProgress] = useState(0);
 
     const handleFileChange = (e) => {
         if (e.target.files.length > 0) {
@@ -69,6 +76,7 @@ export function LoadTraitsFromFile({onFileRead}) {
     };
 
     const readFile = async () => {
+        if (!file || columnIndex.text === undefined) return
 
         const reader = new FileReader();
         reader.onload = async (event) => {
@@ -77,33 +85,34 @@ export function LoadTraitsFromFile({onFileRead}) {
             // Remove header
             lines.shift();
 
-            // Load complete file and map to objects based on selected columns
-            const file = lines
+            const traits = lines
                 .filter((line) => line.trim() !== "")
                 .map((line) => {
                     const cols = line.split(/\t/);
-                    return {
-                        text: cols[columnIndex.text],
-                        description: cols[columnIndex.description],
-                        priority: cols[columnIndex.priority],
-                    };
-                });
-            onFileRead(file);
+                    const trait = {
+                        text: (cols[columnIndex.text] || "").trim(),
+                        description: columnIndex.description !== undefined ? (cols[columnIndex.description] || "").trim() : "",
+                    }
+                    if (includePriority && columnIndex.priority !== undefined) {
+                        const priority = parseInt(cols[columnIndex.priority])
+                        trait.priority = Number.isFinite(priority) ? priority : 500
+                    }
+                    return trait
+                })
+                .filter((t) => t.text.length > 0);
+            onFileRead(traits);
             setFile(null);
             setHeaders([]);
-
         };
 
         reader.readAsText(file);
-       
     };
 
 
     return (
         <div>
-         <div style={{ width: "100%", marginBottom: 20, marginTop: 20 }}>
+            <div style={{ width: "100%", marginBottom: 20, marginTop: 20 }}>
                 <label
-                    // htmlFor="modern-file-upload"
                     style={{
                         display: "block",
                         width: "100%",
@@ -137,7 +146,7 @@ export function LoadTraitsFromFile({onFileRead}) {
                                 height="28"
                                 fill="none"
                                 viewBox="0 0 24 24"
-                                style={{ verticalAlign: "middle", marginRight: 8, color: HIGHLIGHT_COLOR}}
+                                style={{ verticalAlign: "middle", marginRight: 8, color: HIGHLIGHT_COLOR }}
                             >
                                 <path
                                     fill="currentColor"
@@ -148,22 +157,19 @@ export function LoadTraitsFromFile({onFileRead}) {
                         </>
                     )}
                     <input
-                        id="modern-file-upload"
                         type="file"
                         accept=".txt"
                         onChange={handleFileChange}
-                        style={{
-                            display: "none",
-                        }}
+                        style={{ display: "none" }}
                     />
                 </label>
             </div>
-        {headers.length > 0 && (
+            {headers.length > 0 && (
                 <div style={{ width: "100%", marginBottom: 20 }}>
-                    <h4 style={{ marginBottom: 8 }}>Map Required Columns:</h4>
-                    {REQUIRED_COLUMNS.map((col) => (
+                    <h4 style={{ marginBottom: 8 }}>Map Columns:</h4>
+                    {columns.map((col) => (
                         <div key={col.key} style={{ marginBottom: 10 }}>
-                            <label style={{ marginRight: 8 }}>{col.label}:</label>
+                            <label style={{ marginRight: 8 }}>{col.label}{col.key === "text" ? " (required)" : ""}:</label>
                             <select
                                 value={columnIndex[col.key] ?? ""}
                                 onChange={(e) => handleHeaderSelect(col.key, Number(e.target.value))}
@@ -188,28 +194,125 @@ export function LoadTraitsFromFile({onFileRead}) {
                         </div>
                     ))}
                 </div>
-    )
-            }
-            <button className="basic-button" onClick={readFile}>Read traits from file</button>
-    </div>
+            )}
+            <button
+                className="basic-button"
+                onClick={readFile}
+                disabled={!file || columnIndex.text === undefined}
+            >
+                Read traits from file
+            </button>
+        </div>
     )
 }
 
 
-export function InsertAttribute({ }) {
+/**
+ * @description Editable list of traits (text, description and optionally priority).
+ * @param {Object} props
+ * @param {Object[]} props.traits
+ * @param {Function} props.onChange - called with the new traits array
+ * @param {Boolean} [props.showPriority=true]
+ */
+export function TraitListEditor({ traits, onChange, showPriority = true }) {
+    const list = _.isArray(traits) ? traits : []
 
-    const [attribute, setAttribute] = useState(INITIAL_ATTRIBUTE_STATE);
+    const updateTrait = (idx, patch) => onChange(list.map((t, i) => i === idx ? { ...t, ...patch } : t))
+    const removeTrait = (idx) => onChange(list.filter((_t, i) => i !== idx))
+    const addTrait = () => onChange([...list, { text: "", description: "", ...(showPriority ? { priority: 500 } : {}) }])
+
+    const duplicateTexts = new Set(
+        _.chain(list).map(t => (t.text || "").trim().toLowerCase()).filter(Boolean).countBy().pickBy(n => n > 1).keys().value()
+    )
+
+    return (
+        <div className="flex flex-column" style={{ gap: "0.3rem" }}>
+            {list.length > 0 && (
+                <div className="flex font-size--smallest" style={{ gap: "0.5rem", color: "#6B7280" }}>
+                    <div style={{ flex: 2 }}>Text</div>
+                    <div style={{ flex: 4 }}>Description</div>
+                    {showPriority && <div style={{ width: 90 }}>Priority</div>}
+                    <div style={{ width: 30 }} />
+                </div>
+            )}
+            {list.map((t, idx) => {
+                const isDuplicate = duplicateTexts.has((t.text || "").trim().toLowerCase())
+                return (
+                    <div key={idx} className="flex center-items" style={{ gap: "0.5rem" }}>
+                        <input
+                            className="text-input"
+                            style={{ flex: 2, borderColor: isDuplicate || !(t.text || "").trim() ? "#d32f2f" : undefined }}
+                            type="text"
+                            placeholder="Trait text"
+                            value={t.text || ""}
+                            onChange={(e) => updateTrait(idx, { text: e.target.value })}
+                        />
+                        <input
+                            className="text-input"
+                            style={{ flex: 4 }}
+                            type="text"
+                            placeholder="Description"
+                            value={t.description || ""}
+                            onChange={(e) => updateTrait(idx, { description: e.target.value })}
+                        />
+                        {showPriority && (
+                            <input
+                                className="text-input"
+                                style={{ width: 90 }}
+                                type="number"
+                                value={_.toString(t.priority ?? 500)}
+                                onChange={(e) => updateTrait(idx, { priority: parseInt(e.target.value) || 500 })}
+                            />
+                        )}
+                        <Button minimal={true} small={true} icon="trash" intent="danger" onClick={() => removeTrait(idx)} />
+                    </div>
+                )
+            })}
+            <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                <Button small={true} icon="plus" text="Add trait" onClick={addTrait} />
+                {list.length > 0 && <Button small={true} minimal={true} icon="cross" text="Remove all" onClick={() => onChange([])} />}
+            </div>
+            {duplicateTexts.size > 0 && (
+                <div className="font-size--smallest" style={{ color: "#862323" }}>Duplicate trait texts: {[...duplicateTexts].join(", ")}</div>
+            )}
+        </div>
+    )
+}
+
+
+/**
+ * @param {Object} props
+ * @param {Object} [props.initialAttribute] - prefill values (e.g. from a user request)
+ * @param {Function} [props.onSubmit] - if given, called with the attribute instead of inserting it directly
+ * @param {String} [props.title]
+ * @param {String} [props.submitLabel]
+ * @param {Boolean} [props.isSubmitting] - pending state when onSubmit is used
+ */
+export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert Attribute", submitLabel = "Submit", isSubmitting = false }) {
+
+    const [attribute, setAttribute] = useState(
+        _.isObject(initialAttribute) ? { ...INITIAL_ATTRIBUTE_STATE, ...initialAttribute } : INITIAL_ATTRIBUTE_STATE
+    );
     const [isErrorSuccessAlert, setIsErrorSuccessAlert] = useState(false)
     const { mutate : postAttribute, isSuccess, isPending, isError, error } = api.attributes.modifyAttributes.usePostAttribute()
+    const isBusy = _.isFunction(onSubmit) ? isSubmitting : isPending
 
     const handleTraitSelection = (path) => {
         const trait_tag = _.last(path).tag
         setAttribute(prevValues => { return { ...prevValues, required_trait_tags: addStringToArrayOrRemove({ array: prevValues.required_trait_tags, string: trait_tag }) } })
-
     }
 
+    const cleanTraits = (traits) => (traits || [])
+        .map(t => ({ ...t, text: (t.text || "").trim(), description: (t.description || "").trim() }))
+        .filter(t => t.text.length > 0)
+
     const handleAttributeSubmit = () => {
-        postAttribute(attribute, {
+        const payload = { ...attribute, traits: cleanTraits(attribute.traits) }
+        if (_.isFunction(onSubmit)) {
+            onSubmit(payload)
+            return
+        }
+        postAttribute(payload, {
             onSuccess: () => {
                 setAttribute(INITIAL_ATTRIBUTE_STATE)
                 setIsErrorSuccessAlert(true)
@@ -239,13 +342,22 @@ export function InsertAttribute({ }) {
             valid = false
             missingFields.push("Cannot allow input if the attribute has children.")
         }
-        
+        const traitTexts = cleanTraits(attribute.traits).map(t => t.text.toLowerCase())
+        if (traitTexts.length !== new Set(traitTexts).size) {
+            valid = false
+            missingFields.push("Trait texts must be unique.")
+        }
         return { valid, missingFields }
     }
 
-    const handleFileRead = (file) => {
-        setAttribute(prevValues => { return { ...prevValues, traits: file } })
-        // You can process the file data here, e.g., send it to an API or update state
+    const handleFileRead = (fileTraits) => {
+        // append to the existing list so curators can combine file and manual edits
+        setAttribute(prevValues => {
+            const existing = prevValues.traits || []
+            const known = new Set(existing.map(t => (t.text || "").trim().toLowerCase()))
+            const added = fileTraits.filter(t => !known.has(t.text.toLowerCase()))
+            return { ...prevValues, traits: [...existing, ...added] }
+        })
     }
 
     const { valid, missingFields } = checkValid()
@@ -261,7 +373,7 @@ export function InsertAttribute({ }) {
         <Alert isOpen={isPending} onClose={() => {}} confirmButtonText="Close" intent="primary">
             <div>Inserting attribute...</div>
         </Alert>
-        <h3>Insert Attribute</h3>
+        <h3>{title}</h3>
         <input className="text-input" type="text" placeholder="Attribute text" value={attribute.text} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, text: e.target.value } })} />
         <input className="text-input" type="number" placeholder="Priority" value={_.toString(attribute.priority)} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, priority: parseInt(e.target.value) } })} />
         
@@ -333,14 +445,20 @@ export function InsertAttribute({ }) {
         
             
         <h3>Traits <span style={{ fontSize: 14, color: "#6B7280", fontWeight: 400 }}>Optional</span></h3>
-        <div className="bg--lightgrey" style={{ marginLeft: "2rem" }}>
-            <span>You can either upload a txt file here or add the traits later via the admin/attributes tab. </span>
-            <span>The uploaded traits will be available for selection immediately. The txt file must contain a text, description and priority. For example: text : heart, description : Heart tissue., priority : 600. The default priority is 500.</span>
+        <div className="bg--lightgrey padding--little" style={{ marginLeft: "2rem" }}>
+            <span>Add traits manually, upload a txt file, or add them later via the admin/attributes tab. </span>
+            <span>The txt file must be tab-separated with a header row and contain a text, description and priority column. The default priority is 500. Uploaded traits are appended to the list below and can be edited before submitting.</span>
             <LoadTraitsFromFile onFileRead={handleFileRead} />
-            {_.isArray(attribute.traits) && attribute.traits.length > 0 && <h3>{attribute.traits.length} traits loaded</h3>}
+            <div className="margin-top--little">
+                {_.isArray(attribute.traits) && attribute.traits.length > 0 && <h4>{attribute.traits.length} trait{attribute.traits.length === 1 ? "" : "s"}</h4>}
+                <TraitListEditor
+                    traits={attribute.traits}
+                    onChange={(traits) => setAttribute(prevValues => ({ ...prevValues, traits }))}
+                />
+            </div>
         </div>
        
-        <button className="dialog-button" style={{backgroundColor : valid && !isPending ? HIGHLIGHT_COLOR :"lightgrey", color : valid && !isPending ? "white" : "darkgrey"}} onClick={handleAttributeSubmit} disabled={!valid || isPending}>Submit</button>
+        <button className="dialog-button" style={{backgroundColor : valid && !isBusy ? HIGHLIGHT_COLOR :"lightgrey", color : valid && !isBusy ? "white" : "darkgrey"}} onClick={handleAttributeSubmit} disabled={!valid || isBusy}>{isBusy ? "Submitting..." : submitLabel}</button>
         <div className="font-size--smallest flex flex-column" style={{color: "#862323"}}>{missingFields.map(field => <div key={field}>{field}</div>)}</div>
 
     </div>

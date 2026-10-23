@@ -8,17 +8,61 @@ import { UserFullName, UserInput } from "@/comps/core/input/api/UserInput"
 
 const USER_COLORS = ["#2D72D2", "#238551", "#C87619", "#7961DB", "#CD4246", "#00A396", "#D1980B", "#D13913"]
 
+/** System sender of read-only notifications (no user node behind it). */
+const SUPPORT_SENDER_TAG = "mitocube-support"
+const SUPPORT_SENDER_NAME = "MitoCube Support"
+const SUPPORT_COLOR = "#183A6D"
+
 /**
  * @description Stable color for a user tag (same user, same color).
  * @param {String} tag User tag
  * @returns {String} Hex color.
  */
 function userColor(tag) {
+    if (tag === SUPPORT_SENDER_TAG) return SUPPORT_COLOR
     if (!_.isString(tag)) return "#5F6B7C"
     let hash = 0
     for (let i = 0; i < tag.length; i++) hash = (hash * 31 + tag.charCodeAt(i)) | 0
     return USER_COLORS[Math.abs(hash) % USER_COLORS.length]
 }
+
+SenderName.propTypes = {
+    tag: PropTypes.string
+}
+
+/**
+ * @description Name of a message sender. The support sender is not a user, so it is
+ * rendered as "MitoCube Support" instead of being looked up.
+ * @param {Object} props
+ * @param {String} props.tag Sender tag
+ * @returns {JSX.Element} The sender name.
+ */
+function SenderName({ tag }) {
+    if (tag === SUPPORT_SENDER_TAG) return <span>{SUPPORT_SENDER_NAME}</span>
+    return <UserFullName tag={tag} />
+}
+
+const STATUS_COLORS = { approved: "#1C7C3C", denied: "#A82A2A" }
+
+MessageContent.propTypes = {
+    message: PropTypes.object.isRequired
+}
+
+/**
+ * @description Message text. In support notifications the words "approved" and
+ * "denied" are highlighted green/red; other messages are rendered as plain text.
+ * @param {Object} props
+ * @param {Object} props.message Message data
+ * @returns {JSX.Element} The message content.
+ */
+function MessageContent({ message }) {
+    if (message.sender_tag !== SUPPORT_SENDER_TAG || !_.isString(message.content)) return <>{message.content}</>
+    return <>{message.content.split(/\b(approved|denied)\b/i).map((part, i) => {
+        const color = STATUS_COLORS[part.toLowerCase()]
+        return color ? <b key={i} style={{ color }}>{part}</b> : <span key={i}>{part}</span>
+    })}</>
+}
+
 
 /**
  * @description Short timestamp: HH:mm today, "D MMM" this year, otherwise YYYY-MM-DD.
@@ -97,6 +141,7 @@ function SubmissionChip({ submission_tag }) {
 /**
  * @description Panel showing the messages of a conversation as chat bubbles and an input to reply.
  * Loading the messages marks the conversation as read for the current user (backend behaviour).
+ * Read-only conversations (notifications from MitoCube Support) have no reply input.
  * @param {Object} props
  * @param {String} props.conversation_tag Conversation tag
  * @param {String} [props.user_tag] Tag of the current user
@@ -118,9 +163,10 @@ export function ConversationDialog({ conversation_tag, user_tag, onClose }) {
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }, [_.isArray(messages) ? messages.length : 0])
+    const isReadOnly = _.isObject(conversation) && conversation.read_only === true
     const participants = _.isObject(conversation) && _.isArray(conversation.user_tags) ? conversation.user_tags : []
     const otherParticipants = participants.filter(tag => tag !== user_tag)
-    const canSend = _.isString(message) && message.trim().length > 0
+    const canSend = !isReadOnly && _.isString(message) && message.trim().length > 0
     const handleSend = () => {
         if (canSend) postMessage({ conversation_tag, content: message })
     }
@@ -139,9 +185,11 @@ export function ConversationDialog({ conversation_tag, user_tag, onClose }) {
                 <Button small={true} minimal={true} icon="cross" onClick={onClose} /> : null}
         </div>
         <div className="font-size--smallest" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
-            {otherParticipants.map(tag => <span key={tag} style={{ color: userColor(tag), fontWeight: 600 }}>
-                <UserFullName tag={tag} />
-            </span>)}
+            {isReadOnly ?
+                <span style={{ color: SUPPORT_COLOR, fontWeight: 600 }}>{SUPPORT_SENDER_NAME}</span> :
+                otherParticipants.map(tag => <span key={tag} style={{ color: userColor(tag), fontWeight: 600 }}>
+                    <UserFullName tag={tag} />
+                </span>)}
             {_.isObject(conversation) && _.isString(conversation.submission_tag) ?
                 <SubmissionChip submission_tag={conversation.submission_tag} /> : null}
         </div>
@@ -157,23 +205,28 @@ export function ConversationDialog({ conversation_tag, user_tag, onClose }) {
                         }}>
                             {!isMe ?
                                 <div className="font-size--smallest" style={{ fontWeight: 600, color: userColor(msg.sender_tag) }}>
-                                    <UserFullName tag={msg.sender_tag} />
+                                    <SenderName tag={msg.sender_tag} />
                                 </div> : null}
-                            <div className="font-size--small" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{msg.content}</div>
+                            <div className="font-size--small" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}><MessageContent message={msg} /></div>
                             <div style={{ fontSize: 10, opacity: 0.7, textAlign: "right", marginTop: 2 }}>{formatTime(msg.created_at)}</div>
                         </div>
                     </div>
                 }) : null)}
         </div>
-        <div className="flex margin-top--little">
-            <InputGroup
-                fill={true}
-                placeholder="Write a message.."
-                value={message}
-                onChange={e => setMessage(e.target.value)}
-                onKeyDown={e => { if (e.key === "Enter") handleSend() }} />
-            <Button small={true} intent="primary" text="Send" loading={isPending} disabled={!canSend} onClick={handleSend} />
-        </div>
+        {isReadOnly ?
+            <div className="font-size--small margin-top--little" style={{ color: "#738091", display: "flex", alignItems: "center", gap: 6 }}>
+                <Icon icon="info-sign" size={12} color="#738091" />
+                This is a notification from {SUPPORT_SENDER_NAME}. Replies are not possible.
+            </div> :
+            <div className="flex margin-top--little">
+                <InputGroup
+                    fill={true}
+                    placeholder="Write a message.."
+                    value={message}
+                    onChange={e => setMessage(e.target.value)}
+                    onKeyDown={e => { if (e.key === "Enter") handleSend() }} />
+                <Button small={true} intent="primary" text="Send" loading={isPending} disabled={!canSend} onClick={handleSend} />
+            </div>}
     </div>
 }
 
@@ -187,7 +240,8 @@ ConversationRow.propTypes = {
 /**
  * @description One conversation row in the conversations list (inbox style). Unread
  * conversations are highlighted with a tint, bold text and a dot. Conversations about a
- * submission get a document avatar and a chip with the submission title.
+ * submission get a document avatar and a chip with the submission title. Read-only
+ * notifications are shown as coming from MitoCube Support.
  * @param {Object} props
  * @param {Object} props.conversation Conversation data
  * @param {String} [props.user_tag] Tag of the current user
@@ -197,6 +251,7 @@ ConversationRow.propTypes = {
  */
 function ConversationRow({ conversation, user_tag, onSelect, hideSubmission = false }) {
     const [hover, setHover] = useState(false)
+    const isReadOnly = conversation.read_only === true
     const others = _.isArray(conversation.user_tags)
         ? conversation.user_tags.filter(tag => tag !== user_tag)
         : []
@@ -204,9 +259,12 @@ function ConversationRow({ conversation, user_tag, onSelect, hideSubmission = fa
     const hasTitle = _.isString(conversation.title) && conversation.title.length > 0
     const isAboutSubmission = _.isString(conversation.submission_tag)
     const time = formatConversationTime(_.isNumber(conversation.last_message_at) ? conversation.last_message_at : conversation.created_at)
-    const names = others.length > 0
-        ? others.map((tag, i) => <span key={tag} style={{ color: userColor(tag) }}>{i > 0 ? ", " : ""}<UserFullName tag={tag} /></span>)
-        : <span>Only you</span>
+    const names = isReadOnly
+        ? <span style={{ color: SUPPORT_COLOR }}>{SUPPORT_SENDER_NAME}</span>
+        : others.length > 0
+            ? others.map((tag, i) => <span key={tag} style={{ color: userColor(tag) }}>{i > 0 ? ", " : ""}<UserFullName tag={tag} /></span>)
+            : <span>Only you</span>
+    const avatarIcon = isReadOnly ? "notifications" : isAboutSubmission ? "document" : others.length > 1 ? "people" : "person"
     return <div
         onClick={() => _.isFunction(onSelect) && onSelect(conversation.tag)}
         onMouseEnter={() => setHover(true)}
@@ -217,16 +275,16 @@ function ConversationRow({ conversation, user_tag, onSelect, hideSubmission = fa
             background: hover ? "#EDEFF2" : unread ? "#EEF4FB" : "white"
         }}>
         <div style={{
-            width: 36, height: 36, borderRadius: isAboutSubmission ? 8 : "50%", flexShrink: 0,
+            width: 36, height: 36, borderRadius: isAboutSubmission && !isReadOnly ? 8 : "50%", flexShrink: 0,
             display: "flex", alignItems: "center", justifyContent: "center",
-            background: unread ? "#2D72D2" : "#D3D8DE"
+            background: unread ? (isReadOnly ? SUPPORT_COLOR : "#2D72D2") : "#D3D8DE"
         }}>
-            <Icon icon={isAboutSubmission ? "document" : others.length > 1 ? "people" : "person"} size={16} color={unread ? "white" : "#5F6B7C"} />
+            <Icon icon={avatarIcon} size={16} color={unread ? "white" : "#5F6B7C"} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span style={{ fontWeight: unread ? 700 : 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                    {hasTitle ? conversation.title : names}
+                {hasTitle ? (isReadOnly ? <MessageContent message={{ sender_tag: SUPPORT_SENDER_TAG, content: conversation.title }} /> : conversation.title) : names}
                 </span>
                 {isAboutSubmission && !hideSubmission ? <SubmissionChip submission_tag={conversation.submission_tag} /> : null}
             </div>

@@ -1,22 +1,24 @@
-
 import _ from "lodash"
 import { useParams, useNavigate } from "react-router"
-import { Button, Code, Intent } from "@blueprintjs/core"
+import { Button, Intent } from "@blueprintjs/core"
 import { useState } from "react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Loading } from "../../core/base/states/Loading"
 import APIError from "../../core/error/APIerror"
-import { AttributeMinState } from "./AttributeMinState"
 import { TraitItem } from "./TraitItem"
 import { InsertTraitDialog } from "./InsertTraitDialog"
 import { api } from "@/api"
 import { ExportTraitsButton } from "./ExportAttributesAndTraits"
+import { RequestTraitButton } from "@/comps/core/base/attributes/RequestTraitButton"
 
-export function AttributeDetailView() {
+const CURATOR_ROLE = 2
+
+export function AttributeDetailView({ userRole }) {
     const { tag } = useParams()
     const redirect = useNavigate()
     const queryClient = useQueryClient()
     const [addOpen, setAddOpen] = useState(false)
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
     const {
         data: attribute,
@@ -36,7 +38,7 @@ export function AttributeDetailView() {
     )
 
     const handleTraitAdded = () => {
-        queryClient.invalidateQueries(["traitsByTag", tag])
+        queryClient.invalidateQueries({ queryKey: ["traitsByTag", tag] })
     }
 
     return (
@@ -115,14 +117,17 @@ export function AttributeDetailView() {
                                         )
                                     </span>
                                 </h3>
-                                <Button
-                                    icon="plus"
-                                    intent={Intent.PRIMARY}
-                                    onClick={() => setAddOpen(true)}
-                                >
-                                    Add trait
-                                </Button>
+                                {isCurator && (
+                                    <Button
+                                        icon="plus"
+                                        intent={Intent.PRIMARY}
+                                        onClick={() => setAddOpen(true)}
+                                    >
+                                        Add trait
+                                    </Button>
+                                )}
                                 <ExportTraitsButton tag={tag} />
+                                <RequestTraitButton userRole={userRole} attribute_tag={tag} />
                             </div>
                         </>
                     )}
@@ -155,12 +160,14 @@ export function AttributeDetailView() {
                 </div>
             </div>
 
-            <InsertTraitDialog
-                isOpen={addOpen}
-                onClose={() => setAddOpen(false)}
-                attribute_tag={tag}
-                onSuccess={handleTraitAdded}
-            />
+            {isCurator && (
+                <InsertTraitDialog
+                    isOpen={addOpen}
+                    onClose={() => setAddOpen(false)}
+                    attribute_tag={tag}
+                    onSuccess={handleTraitAdded}
+                />
+            )}
         </div>
     )
 }

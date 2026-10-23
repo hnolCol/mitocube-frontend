@@ -363,10 +363,10 @@ function App() {
             }
           >
             {/* <Route index element={<div>Admin Settings</div>} />  */}
-            <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
+            <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/users" element={<UsersAdminView {...{ authenticationStatus }} />} />
             {/* <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} /> */}
-            <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus }} />} />
+            <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
             {/* <Route path="/admin/sets" element={<AdminFilterSets />} /> */}
@@ -404,7 +404,7 @@ function App() {
                     isAuthenticated={authenticationStatus.isAuth}
                     isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}
                 >
-                    <AttributeDetailView />
+                    <AttributeDetailView userRole={authenticationStatus.role} />
                 </ProtectedRoute>
             }
         />

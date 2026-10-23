@@ -16,6 +16,8 @@ import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButt
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
 import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
 import { MessagesButton } from "@/comps/messages"
+import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
+import { PendingTraitRequestsButton } from "../../base/user/PendingTraitRequestButton"
 import { RoleRights } from "../../base/user/RoleRights"
 
 /**
@@ -91,6 +93,8 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <DepositionRequestsButton userRole={userRole} />
                 <PendingConsortiumShareRequestButton />
                 <PendingCollaborationRequestButton />
+                <PendingAttributeRequestsButton userRole={userRole} />
+                <PendingTraitRequestsButton userRole={userRole} />
                 <MessagesButton user_tag={user_tag} />
                 <div className="flex flex-column justify-center">
                     <Tooltip content="Show the rights connected to the user roles" position={Position.BOTTOM}>
