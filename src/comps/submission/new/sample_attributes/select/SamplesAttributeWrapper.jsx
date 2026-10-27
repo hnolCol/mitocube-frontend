@@ -354,7 +354,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     const onSampleTraitSelection = (path, rowIdces, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false, singleTrait = false, enforceAtLevel = 1) => {
         let d = submission.attributeTable.slice()
         rowIdces
-            .filter(rowIndex => rowIndex < submission.sampleNames.length).filter(rowIndex => !checkPathExists (d[rowIndex], path, false))
+            .filter(rowIndex => rowIndex < submission.sampleNames.length)
+            .filter(rowIndex => !checkPathExists(d[rowIndex], path, false))
             .forEach(rowIndex => {
                  findAndInsertTree(d[rowIndex], addIDToPath(path, submission.referenceIDs[rowIndex]), {
                      enforceSingleVariantPerGroup ,

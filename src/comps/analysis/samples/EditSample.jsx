@@ -3,7 +3,6 @@ import _ from "lodash";
 import { useEffect, useState } from "react";
 import { Button, Spinner } from "@blueprintjs/core";
 import { SampleAttributeTableWrapper } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper";
-import { render } from "react-dom";
 import { api } from "@/api";
 
 function buildReferenceIDs(n) {

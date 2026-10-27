@@ -18,10 +18,7 @@ import { api } from "@/api";
 export function QuickAccessBar({ submission_tag, userRole }) {
     
     const [msg, setMsg] = useState()
-    const { isLoading: summaryIsLoading, isFetching: summaryIsFetching, isError: isSubmissionSummaryError, refetch: fetchSummaryString } = api.submissions.summary.useGetSubmissionSummaryString(
-        { tag: submission_tag },
-        { enabled: false }
-    )
+
     const { isLoading: sampleNamesIsLoading, isFetching: sampleNamesIsFetching, isError: isSampleNamesError, refetch: fetchSampleNames } = api.submissions.samples.useGetSubmissionSampleTags({ tag: submission_tag }, { enabled: false })
 
     const handleCopySampleNames = () => {
@@ -32,18 +29,11 @@ export function QuickAccessBar({ submission_tag, userRole }) {
         })
     }
 
-    const handleCopySummary = () => {
-        fetchSummaryString().then(({ data, status }) => {
-            if (status === "error" || data === undefined || data === null) return
-            copyTextToClipboard(data)
-            setMsg("Summary string copied to clipboard.")
-        })
-    }
+   
 
     useEffect(() => {
-        if (isSubmissionSummaryError) setMsg("Retrieving the submission summary resulted in an error.")
-        else if (isSampleNamesError) setMsg("Retrieving the sample names resulted in an error.")
-    },[isSubmissionSummaryError, isSampleNamesError])
+        if (isSampleNamesError) setMsg("Retrieving the sample names resulted in an error.")
+    },[isSampleNamesError])
     
     return (
         <div className="flex flex-column" style={{alignItems:"flex-end",paddingRight:"0.5rem"}}>
@@ -57,7 +47,6 @@ export function QuickAccessBar({ submission_tag, userRole }) {
                     copyTextToClipboard(submission_tag)
                     setMsg("Tag copied!")
                 }} />
-            <TooltipButton icon="info-sign" content="Tab delimited submission summary to paste in excel. " onClick={handleCopySummary} loading={summaryIsFetching || summaryIsLoading} />
             <TooltipButton icon="numbered-list" onClick={handleCopySampleNames} loading={sampleNamesIsFetching || sampleNamesIsLoading} content = "Tab delimited sample name information."/>
             
         </div>
