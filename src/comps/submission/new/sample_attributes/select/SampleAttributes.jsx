@@ -147,18 +147,22 @@ function SamplesAttributes({
     
     const { mutate } = api.samples.core.useInsertSampleGenotype()
 
-    const [rowHeights, setRowHeights] = useState([])
+    const [rowHeights, setRowHeights] = useState({})
 
-    const updateRowHeight = useCallback((rowIndex, element) => {
-        if (!element) return
-
-        const requiredHeight = Math.max(60, element.scrollHeight + 8)
+    const updateRowHeight = useCallback((rowIndex, columnIndex, element) => {
         setRowHeights(currentHeights => {
-            const currentHeight = currentHeights[rowIndex] ?? 60
-            if (requiredHeight <= currentHeight) return currentHeights
+            if (!element) {
+                if (currentHeights[rowIndex]?.[columnIndex] === undefined) return currentHeights
+                const nextHeights = { ...currentHeights }
+                delete nextHeights[rowIndex][columnIndex]
+                return nextHeights
+            }
 
-            const nextHeights = [...currentHeights]
-            nextHeights[rowIndex] = requiredHeight
+            const requiredHeight = Math.max(60, element.scrollHeight + 8)
+            if (currentHeights[rowIndex]?.[columnIndex] === requiredHeight) return currentHeights
+
+            const nextHeights = { ...currentHeights }
+            nextHeights[rowIndex] = { ...nextHeights[rowIndex], [columnIndex]: requiredHeight }
             return nextHeights
         })
     }, [])
@@ -167,7 +171,10 @@ function SamplesAttributes({
     const tableRowHeights = useMemo(
         () => Array.from(
             { length: sampleNames.length },
-            (_, rowIndex) => rowHeights[rowIndex] ?? 60
+            (_, rowIndex) => {
+                const cellHeights = Object.values(rowHeights[rowIndex] ?? {})
+                return cellHeights.length > 0 ? Math.max(...cellHeights) : 60
+            }
         ),
         [rowHeights, sampleNames.length]
     )
@@ -287,7 +294,7 @@ function SamplesAttributes({
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey} style={{ width: "100%", padding: 0 }}>
             <div
-                ref={(element) => updateRowHeight(rowIndex, element)}
+                ref={(element) => updateRowHeight(rowIndex, columnIndex, element)}
                 className="flex cellContentInner">
                 {cellData.map(child => {
                     return <div
