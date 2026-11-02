@@ -178,7 +178,7 @@ export function MitomapNetwork({ }) {
             ) : null}
         </div>
 
-        <div className="div--expand" style={{ overflowY: "scroll" }}>
+        <div className="div--expand container--scroll-y-hide-x">
             {!selectedAnnotationGroupTag ? (
                 <div className="center-items" style={{ padding: "2rem" }}>
                     <span>Select an annotation group to view the network</span>

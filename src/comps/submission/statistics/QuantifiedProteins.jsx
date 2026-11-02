@@ -21,7 +21,7 @@ export function QuantifiedProteinGroupsStatistics({ statisticsFilter }) {
     }
     const quantiles = getQuantiles(data.map(d => d.count), [0.0, 0.25, 0.5, 0.75, 1.0], 1.8, false)
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
+        <div className="flex justify-between center-items flex--wrap gap--default">
             <h4 className="margin--none-reset">Quantified Protein Groups</h4>
             <div className="flex gap--little">
                 <DownloadSvgButton chartRef={chartRef} fileName="quantified_protein_groups.svg" />

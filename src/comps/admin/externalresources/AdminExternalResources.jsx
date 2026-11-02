@@ -8,7 +8,7 @@ export function AdminExternalResources() {
     const refetchRef = useRef(null)
 
     return (
-        <div className="div--expand padding--medium" style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+        <div className="div--expand padding--medium flex-column--full-height">
             <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Crosslink Resources</h3>
                 <div className="flex">

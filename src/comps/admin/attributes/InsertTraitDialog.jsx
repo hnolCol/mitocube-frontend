@@ -131,11 +131,7 @@ export function InsertTraitDialog({
                             gap: "0.5rem",
                         }}
                     >
-                        <button
-                            className="dialog-button"
-                            style={{ backgroundColor: "#ec7160ff" }}
-                            onClick={onClose}
-                        >
+                        <button className="dialog-button dialog-button--danger" onClick={onClose}>
                             Close
                         </button>
                         <button

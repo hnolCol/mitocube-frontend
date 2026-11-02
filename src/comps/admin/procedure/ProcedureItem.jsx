@@ -84,12 +84,12 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <th className="table-head-cell">Description</th>
                 <td><ProcedureDescription procedure_tag={procedure_tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Priority</th>
+                <th className="table-head-cell">Priority</th>
                 <td><ProcedurePriority procedure_tag={procedure_tag} update={update} /></td>
             </tr>
             </tbody>

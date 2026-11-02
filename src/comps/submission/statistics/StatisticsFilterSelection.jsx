@@ -25,7 +25,7 @@ export function StatisticsFilterSelection({ submissionFilter, setSubmissionFilte
                         intent={hasActiveFilter ? "danger" : "none"}
                     />
                 </div>
-                <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+                <span className="font-size--smallest margin-top-bottom--smallest">
                     The statistics below are calculated only on the submissions that match the selected filters.
                 </span>
                 <div className="margin-top--little">

@@ -139,7 +139,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
     return (
         <div style={{ width: "100%", paddingRight: "0.1rem"}}>
             <h4>Condition Applications</h4>
-            <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+            <span className="font-size--smallest margin-top-bottom--smallest">
                 {infoText}
             </span>
             <Popover

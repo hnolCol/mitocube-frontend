@@ -159,11 +159,7 @@ export function InsertAnnotationGroup({
 
             <div className="div--expand flex flex-column justify-space-between">
                 <div className="flex justify-end gap--medium">
-                    <button
-                        className="dialog-button"
-                        style={{ backgroundColor: "#ec7160ff" }}
-                        onClick={onClose}
-                    >
+                    <button className="dialog-button dialog-button--danger" onClick={onClose}>
                         Close
                     </button>
 
@@ -193,7 +189,7 @@ export function AddAnnotationGroupDialog({ isOpen, onClose, onSuccess }) {
     return (
         <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(65vh, 1500px)" }} canOutsideClickClose={false}>
             <div className="padding--medium height--nearly-full">
-                <div style={{ height: "100%", width: "95%" }}>
+                <div className="height--full-width--most">
                     <InsertAnnotationGroup onClose={onClose} onSuccess={onSuccess} />
                 </div>
             </div>

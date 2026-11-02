@@ -82,27 +82,27 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <th className="table-head-cell">Description</th>
                 <td><SparepartDescription tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Company</th>
+                <th className="table-head-cell">Company</th>
                 <td><SparepartCompany tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Product ID</th>
+                <th className="table-head-cell">Product ID</th>
                 <td><SparepartProductID tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Price</th>
+                <th className="table-head-cell">Price</th>
                 <td><SparepartPrice tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Link</th>
+                <th className="table-head-cell">Link</th>
                 <td><SparepartLink tag={tag} update={update} /></td>
             </tr>
             </tbody>

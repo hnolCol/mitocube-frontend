@@ -114,7 +114,7 @@ export function GrowthTrendsSection({ statisticsFilter }) {
     }))
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
+        <div className="flex justify-between center-items flex--wrap gap--default">
             <h4 className="margin--none-reset">Growth Trends</h4>
             <div className="flex center-items gap--little">
                 {VIEW_OPTIONS.map(option => <OptionButton
@@ -264,7 +264,7 @@ export function ActiveUsersSection({ statisticsFilter }) {
     const downloadRows = years.map((year, i) => ({ year, active_users: activeUsersPerYear[i] }))
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
+        <div className="flex justify-between center-items flex--wrap gap--default">
             <h4 className="margin--none-reset">Active Users per Year</h4>
             {isSuccess && hasData ? <div className="flex center-items gap--little">
                 <button
@@ -279,7 +279,7 @@ export function ActiveUsersSection({ statisticsFilter }) {
         <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
             Distinct users with at least one submission per year. Shows whether growth is driven by more users or more submissions per user.
         </p>
-        {isError ? <div style={{ color: "#a82a2a" }}>Failed to load statistics. {_.get(error, "message", "")}</div> : null}
+        {isError ? <div className="font-color--error">Failed to load statistics. {_.get(error, "message", "")}</div> : null}
         {isLoading ? <div>Loading...</div> : null}
         {isSuccess && !hasData ? <div>No data available yet.</div> : null}
         {isSuccess && hasData ? <div ref={chartAreaRef}>

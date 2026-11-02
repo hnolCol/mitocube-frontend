@@ -125,21 +125,21 @@ export function AnnotationItem({ tag, showDetails = false, updateAnnotationList 
         >
           <tbody>
             <tr>
-              <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>
+              <th className="table-head-cell">
                 Publication
               </th>
               <td>{annotation.publication || "-"}</td>
             </tr>
 
             <tr>
-              <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>
+              <th className="table-head-cell">
                 PubMed ID
               </th>
               <td>{annotation.pubmed_id || "-"}</td>
             </tr>
 
             <tr>
-              <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>
+              <th className="table-head-cell">
                 Group
               </th>
               <td>{annotation.group_tag}</td>

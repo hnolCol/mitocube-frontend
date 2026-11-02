@@ -8,7 +8,7 @@ export function AddSparepartDialog({ isOpen, onClose }) {
     return (
         <Dialog isOpen={isOpen} title="Add Sparepart" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium height--nearly-full">
-                <div style={{ height: "100%", width: "95%" }}>
+                <div className="height--full-width--most">
                     <InsertEditSparePart onClose={onClose} />
                 </div>
             </div>
@@ -23,7 +23,7 @@ export function EditSparepartDialog({ isOpen, onClose, tag }) {
     return (
         <Dialog  isOpen={isOpen} title="Edit Sparepart" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(70vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium height--nearly-full">
-                <div style={{ height: "100%", width: "95%" }}>
+                <div className="height--full-width--most">
                     {isSparepartSuccess ? (
                         <InsertEditSparePart
                             isEditing={true}

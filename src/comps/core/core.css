@@ -773,3 +773,33 @@ h5 {
 .font-weight--semibold {
     font-weight: 600;
 }
+
+/* Tables */
+.table-head-cell {
+    padding-right: 0.5rem;
+    font-weight: 600;
+}
+
+/* Dialog close button variant */
+.dialog-button--danger {
+    background-color: #ec7160ff;
+}
+
+/* Layout: full-height column that fits its parent */
+.flex-column--full-height {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+/* Chart / content container leaving a margin */
+.height--full-width--most {
+    height: 100%;
+    width: 95%;
+}
+
+/* Error / warning text */
+.font-color--error {
+    color: #a82a2a;
+}

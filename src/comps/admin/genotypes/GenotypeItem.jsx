@@ -96,11 +96,11 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
       >
         <tbody>
           <tr>
-          <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+          <th className="table-head-cell">Description</th>
             <td><GenotypeDescription tag={currentTag} update={update}/></td>
           </tr>
           <tr>
-          <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Created by</th>
+          <th className="table-head-cell">Created by</th>
           <td>{creator ?? "—"}</td>
         </tr>
         </tbody>

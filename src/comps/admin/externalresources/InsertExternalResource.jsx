@@ -140,7 +140,7 @@ export function InsertExternalResource({ onClose }) {
             {submitError && <APIError error={submitError} />}
 
             <div className="flex justify-end" style={{ gap: "0.4rem", marginTop: "auto" }}>
-                <button className="dialog-button" style={{ backgroundColor: "#ec7160ff" }} onClick={() => onClose(false)}>
+                <button className="dialog-button dialog-button--danger" onClick={() => onClose(false)}>
                     Close
                 </button>
                 <button

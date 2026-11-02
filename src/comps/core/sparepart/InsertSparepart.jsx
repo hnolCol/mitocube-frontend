@@ -106,7 +106,7 @@ export function InsertEditSparePart({
             
             <div className="div--expand flex flex-column justify-space-between">
             <div className="flex justify-end gap--medium">
-                <button className="dialog-button" style={{ backgroundColor: "#ec7160ff" }} onClick={onClose}>Close</button>
+                <button className="dialog-button dialog-button--danger" onClick={onClose}>Close</button>
                 {isEditing ? 
                     <button className="dialog-button" disabled={isUpdateLoading} onClick={editSparepart}>{isUpdateLoading ? "Editing..." : "Edit"}</button> : 
                     <button className="dialog-button" disabled={isLoading} onClick={insertSparepart}>{isLoading ? "Inserting..." : "Insert"}</button> }

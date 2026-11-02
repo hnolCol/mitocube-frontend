@@ -23,7 +23,7 @@ export function StateFunnelSection({ statisticsFilter }) {
         <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
             Number of submissions currently in each state. Large bars in intermediate states indicate where submissions get stuck.
         </p>
-        {isError ? <div style={{ color: "#a82a2a" }}>Failed to load statistics. {_.get(error, "message", "")}</div> : null}
+        {isError ? <div className="font-color--error">Failed to load statistics. {_.get(error, "message", "")}</div> : null}
         {isLoading ? <div>Loading...</div> : null}
         {isSuccess && rows.length === 0 ? <div>No data available yet.</div> : null}
         {isSuccess && rows.length > 0 ? <div>

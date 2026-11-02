@@ -60,10 +60,7 @@ export function AttributesAdminView({ userRole }) {
     const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
     return (
-        <div
-            className="div--expand padding--medium"
-            style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
-        >
+        <div className="div--expand padding--medium flex-column--full-height">
             <div className="flex flex-column margin--medium padding--medium gap--medium-small">
 
                 <Dialog style={{width : "min(950px,70vw)"}} isOpen={dialogProps.isOpen} onClose={() => setDialogProps({ isOpen: false })} title="Add Attribute" canOutsideClickClose={false} canEscapeKeyClose={true}> 

@@ -158,12 +158,7 @@ export function TraitItem({ tag, attribute_tag }) {
                         >
                             Cancel
                         </button>
-                        <button
-                            className="dialog-button"
-                            style={{ backgroundColor: "#ec7160ff" }}
-                            onClick={handleConfirmDelete}
-                            disabled={isDeleting}
-                        >
+                        <button className="dialog-button dialog-button--danger" onClick={handleConfirmDelete} disabled={isDeleting}>
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
                     </div>

@@ -87,12 +87,12 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <th className="table-head-cell">Description</th>
                 <td><SymptomDescription tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Priority</th>
+                <th className="table-head-cell">Priority</th>
                 <td><SymptomPriority tag={tag} update={update} /></td>
             </tr>
             </tbody>

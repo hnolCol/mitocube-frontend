@@ -12,10 +12,7 @@ export function AdminPhenotypeAssociations() {
     const [refreshKey, setRefreshKey] = useState(0)
 
     return (
-        <div
-            className="div--expand padding--medium"
-            style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
-        >
+        <div className="div--expand padding--medium flex-column--full-height">
             <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Phenotype Associations</h3>
                 <div className="flex">

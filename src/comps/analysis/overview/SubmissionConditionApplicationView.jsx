@@ -195,10 +195,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                         // checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                     />
                     <div className="flex justify-end gap--default">
-                        <button 
-                            className="dialog-button" 
-                            style={{ backgroundColor: "#ec7160ff" }} 
-                            onClick={handleClose}>
+                        <button className="dialog-button dialog-button--danger" onClick={handleClose}>
                             Close
                         </button>
                         <button 

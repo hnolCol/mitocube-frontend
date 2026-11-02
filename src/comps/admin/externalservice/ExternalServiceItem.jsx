@@ -85,32 +85,32 @@ export function ExternalServiceItem({ tag, showDetails = false, updateExternalSe
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Name</th>
+                <th className="table-head-cell">Name</th>
                 <td><ExternalServiceName tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Email</th>
+                <th className="table-head-cell">Email</th>
                 <td><ExternalServiceEmail tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Company</th>
+                <th className="table-head-cell">Company</th>
                 <td><ExternalServiceCompany tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Cost</th>
+                <th className="table-head-cell">Cost</th>
                 <td><ExternalServiceCosts tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Billing Nummber</th>
+                <th className="table-head-cell">Billing Nummber</th>
                 <td><ExternalServiceBillingNumber tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Internal ID</th>
+                <th className="table-head-cell">Internal ID</th>
                 <td><ExternalServiceInternalID tag={tag} update={update} /></td>
             </tr>
             </tbody>

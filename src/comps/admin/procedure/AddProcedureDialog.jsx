@@ -8,7 +8,7 @@ export function AddProcedureDialog({ isOpen, onClose }) {
     return (
         <Dialog isOpen={isOpen} title="Add Procedure" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(55vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium height--nearly-full">
-                <div style={{ height: "100%", width: "95%" }}>
+                <div className="height--full-width--most">
                     <InsertEditProcedure onClose={onClose} />
                 </div>
             </div>
@@ -24,7 +24,7 @@ export function EditProcedureDialog({ isOpen, onClose, procedure_tag }) {
     return (
         <Dialog  isOpen={isOpen} title="Edit Procedure" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(55vh, 900px)" }} canOutsideClickClose={false}>
             <div className="padding--medium height--nearly-full">
-                <div style={{ height: "100%", width: "95%" }}>
+                <div className="height--full-width--most">
                     {isProcedureSuccess ? (
                         <InsertEditProcedure
                             isEditing={true}
