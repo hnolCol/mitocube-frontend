@@ -59,3 +59,63 @@
 .welcome-nav__button:hover .welcome-nav__label {
     color: #2f4864;
 }
+
+.welcome-panel {
+    background: #ffffff;
+    border: 1px solid #d3dbe5;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(70, 102, 136, 0.08);
+    padding: 1.25rem 1.25rem;
+}
+
+.welcome-panel h3 {
+    margin-top: 0;
+    color: #2f4864;
+}
+
+.welcome-panel__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.news-item {
+    width: 100%;
+    box-sizing: border-box;
+    background: #fbfcfe;
+    border: 1px solid #d3dbe5;
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 1px 2px rgba(70, 102, 136, 0.06);
+    transition: all 0.2s ease;
+}
+
+.news-item:hover {
+    border-color: #c3cedd;
+    background: #f8fafc;
+    box-shadow: 0 4px 14px rgba(70, 102, 136, 0.12);
+}
+
+.submission-item-btn {
+    width: 100%;
+    box-sizing: border-box;
+    background: #fbfcfe;
+    border: 1px solid #d3dbe5;
+    border-radius: 10px;
+    padding: 0.6rem 0.9rem;
+    box-shadow: 0 1px 2px rgba(70, 102, 136, 0.06);
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.submission-item-btn:hover {
+    border-color: #c3cedd;
+    background: #f8fafc;
+    box-shadow: 0 4px 14px rgba(70, 102, 136, 0.12);
+}
+
+.submission-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
