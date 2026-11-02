@@ -127,7 +127,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                         </button>
 
                         <PersistentCollapse isOpen={quickSelectOpen.conditions} direction="vertical" duration={0.65} >        
-                            <div className="padding--medium"><ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching }} /></div>
+                            <div className="padding--medium"><ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching, autoSelectDefaults: true }} /></div>
                         </PersistentCollapse>
 
 

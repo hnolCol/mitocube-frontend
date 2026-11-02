@@ -11,6 +11,7 @@ import { api } from "@/api";
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
 import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
 import { usePrefetchVolcanoData } from "@/api/orchestrated/volcanoData";
+import { VolcanoCompareButton, VolcanoListButton } from "./SignificantProteins";
 
 
 
@@ -281,6 +282,8 @@ export function VolcanoDataHandler({
 
     const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
 
+    const visibleSuffixes = useMemo(() => _.isArray(volcanoData.suffixes) ? volcanoData.suffixes.filter(suffix => !hiddenSuffix.includes(suffix)) : [], [volcanoData.suffixes, hiddenSuffix])
+
     return (
         <div
             className="div--expand flex flex--wrap"
@@ -290,6 +293,13 @@ export function VolcanoDataHandler({
                 gap: "0.5rem",
                 marginLeft: "2rem"
             }}> 
+
+        {visibleSuffixes.length > 1 && _.isArray(volcanoData.data) ?
+            <VolcanoCompareButton
+                data={volcanoData.data}
+                suffixes={visibleSuffixes}
+                proteinTagMap={proteinTagMap}
+                setRequiredProteinTags={setRequiredProteinTags} /> : null}
         
         <InteractiveChart
                 data={volcanoData.data}
@@ -340,7 +350,12 @@ export function VolcanoDataHandler({
                                     style={{ width: "600px", maxWidth: "750px", height: "500px", position: "relative" }}
                                     key={chartIdx}>
                                     
-                                    <div style={{ position: "absolute", right: 5, top: 5 }}>
+                                    <div style={{ position: "absolute", right: 5, top: 5 }} className="flex center-items">
+                                        <VolcanoListButton
+                                            data={volcanoData.data}
+                                            suffix={volcanoData.suffixes[chartIdx]}
+                                            proteinTagMap={proteinTagMap}
+                                            setRequiredProteinTags={setRequiredProteinTags} />
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
                                         </div>
