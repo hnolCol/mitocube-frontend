@@ -7,6 +7,7 @@ import _ from "lodash"
 
 import { ReplicateMenu } from "./menu/ReplicateMenu"
 import { AttributeContextMenuSearch } from "./menu/AttributeMenu"
+import { collectInputFields } from "./SamplesAttributeWrapper"
 import { GenotypeContextMenu } from "./menu/GenotypeMenu"
 import { TraitWithValueInput } from "../../../../core/base/tags/TraitWithValueInput"
 
@@ -196,6 +197,9 @@ function SamplesAttributes({
                 //find row indices from the selected region
                 // if there is no attribute values, then a numeric value can be inserted by the user
                 const prevSelection = [] //_.uniqBy(_.flatten(selectedRows.map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)), "tag")
+                // input fields available under this attribute in the selected rows (for clipboard paste)
+                const pasteSourceRow = attributeTable[selectedRows[0]]
+                const inputFields = collectInputFields(pasteSourceRow, attribute_tag)
                 return (
                     <AttributeContextMenuSearch
                         {...{
@@ -208,7 +212,8 @@ function SamplesAttributes({
                             copiedRows,
                             onPaste: onPasteRowsInAttribute,
                             onCopy: () => setCopiedRows(selectedRows),
-                            onPasteValues: onPasteValuesInAttribute
+                            onPasteValues: onPasteValuesInAttribute,
+                            inputFields
                         }}
                     />
                 )

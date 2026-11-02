@@ -14,7 +14,8 @@ export function AttributeContextMenuSearch({ attribute_tag,
                 rowIdces = [],
                 clearAttributeTableByRowIndex = undefined,
                 repeatSelection,
-                copiedRows = [], onPaste = () => {}, onCopy = () => {}, onPasteValues = () => {} }) {
+                copiedRows = [], onPaste = () => {}, onCopy = () => {}, onPasteValues = () => {},
+                inputFields = [] }) {
     
     const [searchString, setQuery] = useState("")
 
@@ -30,14 +31,19 @@ export function AttributeContextMenuSearch({ attribute_tag,
         
     }, [])
 
-    const handlePasteFromClipboard = async () => {
+    const readClipboardValues = async () => {
+        const text = await navigator.clipboard.readText()
+        return text
+            .split(/\r?\n/)
+            .map(line => line.split(/\t|\s*,\s*/)[0].trim())
+            .filter(v => v.length > 0)
+    }
+
+    const handlePasteFromClipboard = async (field) => {
         try {
-            const text = await navigator.clipboard.readText()
-            const values = text
-                .split(/\r?\n/)
-                .map(line => line.split(/\t|\s*,\s*/)[0].trim())
-                .filter(v => v.length > 0)
-            onPasteValues(attribute_tag, values, rowIdces)
+            const values = await readClipboardValues()
+            if (values.length === 0) return
+            onPasteValues(attribute_tag, field.path, values, rowIdces)
         }
         catch (e) {
             console.error("Clipboard read failed", e)
@@ -70,7 +76,16 @@ export function AttributeContextMenuSearch({ attribute_tag,
                 </Menu>
                 <MenuDivider />
                 <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces, attribute_tag)} />
-                <MenuItem text={`Paste values from clipboard into selection (${rowIdces.length} row(s))`} icon="clipboard" onClick={handlePasteFromClipboard} />
+                {inputFields.length === 1
+                    ? <MenuItem text={`Paste values from clipboard into ${inputFields[0].trait_tag} (${rowIdces.length} row(s))`} icon="clipboard" onClick={() => handlePasteFromClipboard(inputFields[0])} />
+                    : inputFields.length > 1
+                        ? inputFields.map(field =>
+                            <MenuItem
+                                key={field.attribute_tag}
+                                text={`Paste values from clipboard into ${field.attribute_tag} (${rowIdces.length} row(s))`}
+                                icon="clipboard"
+                                onClick={() => handlePasteFromClipboard(field)} />)
+                        : null}
                 <MenuItem text={`Clear Selection (${rowIdces.length} row(s))`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces, attribute_tag)} />
                 <MenuItem text={`Copy selected rows (${rowIdces.length} row(s))`} icon="clipboard" onClick={() => onCopy(attribute_tag, rowIdces)} />
 
