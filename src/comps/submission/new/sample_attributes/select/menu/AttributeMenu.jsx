@@ -43,7 +43,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
         try {
             const values = await readClipboardValues()
             if (values.length === 0) return
-            onPasteValues(attribute_tag, field.path, values, rowIdces)
+            onPasteValues(attribute_tag, field, values, rowIdces)
         }
         catch (e) {
             console.error("Clipboard read failed", e)
@@ -81,8 +81,8 @@ export function AttributeContextMenuSearch({ attribute_tag,
                     : inputFields.length > 1
                         ? inputFields.map(field =>
                             <MenuItem
-                                key={field.attribute_tag}
-                                text={`Paste values from clipboard into ${field.attribute_tag} (${rowIdces.length} row(s))`}
+                                key={`${field.attribute_tag}-${field.trait_tag}`}
+                                text={`Paste values from clipboard into ${field.attribute_tag} / ${field.trait_tag} (${rowIdces.length} row(s))`}
                                 icon="clipboard"
                                 onClick={() => handlePasteFromClipboard(field)} />)
                         : null}

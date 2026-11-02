@@ -134,7 +134,7 @@ function TraitWithValueInputComponent({
                     </div>
                     {_.isFunction(onRemove) ?
                             <div style={{ paddingLeft: "0.5rem", paddingRight: "0.5rem", position: "absolute", right: 0, top : 2}}>
-                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove([{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }], [rowIndex], referenceID)} />
+                                <RemoveButton fontColor={fontColor} onRemove={(e) => onRemove([{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }], [rowIndex], referenceID)} />
                             </div>
                             : null}
                 </motion.div> : null }
