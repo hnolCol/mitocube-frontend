@@ -37,7 +37,7 @@ export function PlatesAdmin() {
             className="div--expand padding--medium"
             style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
         >
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Plates</h3>
                 <p className="font-size--small" style={{ color: "#888" }}>
                     Plates are the physical well plates in the lab in which samples are stored.
@@ -111,7 +111,7 @@ function PlateItem({ plate, onDelete, disabled }) {
     const [showDetails, setShowDetails] = useState(false)
 
     return (
-        <div className="flex" style={{ marginBottom: "0.8rem" }}>
+        <div className="flex margin-bottom--little">
             <button
                 className="flex"
                 onClick={() => setShowDetails(prev => !prev)}
@@ -126,7 +126,7 @@ function PlateItem({ plate, onDelete, disabled }) {
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = "#efefef"}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = "#fff"}
             >
-                <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+                <div className="flex flex-column padding--medium width--full">
                     <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                         <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>
                             <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>{plate.name}</span>

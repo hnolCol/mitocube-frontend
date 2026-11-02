@@ -78,7 +78,7 @@ export function SVGHeader({svgID = undefined, svgFileName = "download.svg", txtF
 
             
             <div className="flex center-items">
-                <Checkbox label="Grid" style={{ margin: 0 }} checked={showGrid} onChange={_.isFunction(onShowGridChange)?onShowGridChange:undefined}/>
+                <Checkbox className="margin--none-reset" label="Grid" checked={showGrid} onChange={_.isFunction(onShowGridChange)?onShowGridChange:undefined}/>
             </div>
         </div>
     )

@@ -29,10 +29,10 @@ export function ProtocolView({ protocol_tag, handleEdit, updateTrigger }) {
     if (isError) return <APIAxiosError error={error} />
     return (<div style={{ height: "95vh", overflowY: "scroll", padding: "2rem" }}>
         <div>
-        <div className="flex" style={{ gap: "0.2rem" }}>
+        <div className="flex gap--tiny">
             <span>Created at: </span><CreatedAt createdat={protocol?.created_at } /> <span>by</span><UserName tag={protocol?.user_tag} /></div>
         {isModified ?
-            <div className="flex" style={{ gap: "0.2rem" }}>
+            <div className="flex gap--tiny">
                 <span>Last modified at: </span><CreatedAt createdat={protocol?.modified_at } />
                 <span>by</span>
                 <div className="flex">{protocol?.modified_user_tags.map(modified_user_tag => <UserName key={modified_user_tag} tag={modified_user_tag} />)}</div>

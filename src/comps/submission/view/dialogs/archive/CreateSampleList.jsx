@@ -107,7 +107,7 @@ function CreateSampleList({dataID, token, onClose, handleDataChange, isOpen = tr
                             onChange={e => handleInput("internalID",e.target.value)}/> 
                     </div>
             <p>After creation of the sample list, the download will be enabled.</p>
-            <div className="flex justify-space-between" style={{marginTop:"1rem"}}>
+            <div className="flex justify-space-between margin-top--medium">
                 <div>
                         <Button
                             text="Create"

@@ -29,7 +29,7 @@ function SelectableUser({ tag, onRemove, onSelect, isSelected = false, isLoading
     const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag },{ enabled : _.isString(tag)})
 
     return (<motion.div className="padding--little div--round" style={{backgroundColor : "#fefefe"}} whileHover={{backgroundColor : "#efefef"}}>
-        {isSuccess && _.isObject(user) ? <div className="flex padding--little center-items" style={{justifyContent: "space-between"}}>
+        {isSuccess && _.isObject(user) ? <div className="flex padding--little center-items justify-space-between">
             <div><UserIcon text={user.firstname.charAt(0) + user.lastname.charAt(0)} /></div>
             <div style={{ justifyContent: "center" }} className="flex flex-column"><div>{user.firstname} {user.lastname}</div></div>
             <div style={{float: "right"}}>

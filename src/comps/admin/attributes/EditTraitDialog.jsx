@@ -75,7 +75,7 @@ export function EditTraitDialog({
                     <strong>Editing trait</strong> <Tag minimal style={{fontWeight: 700 }}>{trait?.tag}</Tag>
                 </div>
 
-                    <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                    <div className="flex flex-column gap--default">
                         <input
                             className="text-input"
                             type="text"

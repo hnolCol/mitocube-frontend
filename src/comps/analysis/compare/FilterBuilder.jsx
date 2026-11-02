@@ -261,7 +261,7 @@ export function FilterBuilder({ submission_tag }) {
 
             {isPending ? <Loading /> : isSuccess || isError ? <div style={{overflowY : "scroll", width: "100%", marginTop : "1rem", borderTop : "1px solid #000000", paddingTop : "0.5rem", maxHeight : "40vh"}}>
                     {isSuccess ?
-                        <div className="flex flex-column" style={{ marginTop: "1rem" }}>
+                        <div className="flex flex-column margin-top--medium">
                             <h3>Comparison Results</h3>
                             {/* <StepCounts steps={data.step_counts} /> */}
                             <ComparisonTree tree={data.tree} />
@@ -271,10 +271,10 @@ export function FilterBuilder({ submission_tag }) {
                     <div style={{marginTop : "1rem", borderTop : "1px solid #000000", paddingTop : "0.5rem", height : "200px"}}>
                         <h3>Download Results</h3>
                     <div className="flex center-items justify-space-around" style={{ width: "100%", backgroundColor: "#efefef" }}>
-                            <button style={{ width: "100%" }} className="basic-button" onClick={() => downloadTxtFile(arrayOfObjectsToTabDel(data.heatmap.data, _.keys(data.heatmap.data[0])), `submission_compare.txt`)} >Heatmap Data</button>
-                            {/* <button style={{ width: "100%" }} className="basic-button" onClick={() => downloadSVG(document.getElementById(`compare-svg-${submission_tag}`), "heatmap_compare_results.svg")} >Heatmap</button>
-                            <button style={{ width: "100%" }} className="basic-button" onClick={() => mergeAndDownload(`heatmap-column-names-svg-compare-svg-${submission_tag}`, `compare-svg-${submission_tag}`, `0 0 ${data.heatmap.value_names.length * 25 + 200} ${data.heatmap.data.length * 25}`)} >Heatmap Merge</button> */}
-                        <button style={{ width: "100%" }} className="basic-button" onClick={() => downloadTxtFile(JSON.stringify(data.tree, null, 4), `compare_tree.txt`)} >Counts</button>
+                            <button className="basic-button width--full" onClick={() => downloadTxtFile(arrayOfObjectsToTabDel(data.heatmap.data, _.keys(data.heatmap.data[0])), `submission_compare.txt`)} >Heatmap Data</button>
+                            {/* <button className="basic-button width--full" onClick={() => downloadSVG(document.getElementById(`compare-svg-${submission_tag}`), "heatmap_compare_results.svg")} >Heatmap</button>
+                            <button className="basic-button width--full" onClick={() => mergeAndDownload(`heatmap-column-names-svg-compare-svg-${submission_tag}`, `compare-svg-${submission_tag}`, `0 0 ${data.heatmap.value_names.length * 25 + 200} ${data.heatmap.data.length * 25}`)} >Heatmap Merge</button> */}
+                        <button className="basic-button width--full" onClick={() => downloadTxtFile(JSON.stringify(data.tree, null, 4), `compare_tree.txt`)} >Counts</button>
                     </div> </div> : null}
                 </div>
         </div>

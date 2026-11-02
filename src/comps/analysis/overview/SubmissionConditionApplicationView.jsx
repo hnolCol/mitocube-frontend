@@ -175,7 +175,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                 title="Edit Condition Applications"
                 style={{ minWidth: "min(80vw,1100px)" }}
             >
-                <div className="padding--medium flex flex-column margin--medium" style={{ gap: "1rem" }}>
+                <div className="padding--medium flex flex-column margin--medium gap--medium">
 
                 <AttributesInput
                     handleTraitSelection={handleTraitSelection}
@@ -194,7 +194,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                         handleTraitRemove={handleRemove}
                         // checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                     />
-                    <div className="flex justify-end" style={{ gap: "0.5rem" }}>
+                    <div className="flex justify-end gap--default">
                         <button 
                             className="dialog-button" 
                             style={{ backgroundColor: "#ec7160ff" }} 

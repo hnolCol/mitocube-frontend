@@ -110,7 +110,7 @@ function AuthorsEditor({ submission_tag, users, onClose }) {
                 {editTarget === "owner" ? (
                     <AuthorChange excludedUserTags={owner_tag ? [owner_tag] : []} onUserSelected={handleOwnerSelected} />
                 ) : (
-                    <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                    <div className="flex center-items gap--default">
                         {isLoadingOwner ? (
                             <Spinner size={16} />
                         ) : isOwnerError ? (

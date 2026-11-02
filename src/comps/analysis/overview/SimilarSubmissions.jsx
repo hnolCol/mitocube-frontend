@@ -89,7 +89,7 @@ function SimilarSubmissionItem({ similar, user_tag }) {
     return <div className="flex flex-column padding--little bg--lightgrey div--round">
         <div className="flex justify-between align-center">
             <SubmissionLink tag={similar.submission_tag} />
-            <div className="flex align-center" style={{ gap: "0.5rem" }}>
+            <div className="flex align-center gap--default">
                 {similar.access === "no_access" ?
                     requested ?
                         <span className="font-size--smallest padding--little">Pending approval</span> :
@@ -123,14 +123,14 @@ function SimilarSubmissionItem({ similar, user_tag }) {
         {genotype_count > 0 ?
             <div className="flex flex-column margin-top--little">
                 <span className="font-size--smallest font-weight--bold">Shared genotypes</span>
-                <div className="flex flex--wrap" style={{ gap: "0.25rem" }}>
+                <div className="flex flex--wrap gap--smallest">
                     {matched.genotypes.map(tag => <div key={tag} className="bg--white div--round padding--little"><GenotypeText tag={tag} /></div>)}
                 </div>
             </div> : null}
         {trait_count > 0 ?
             <div className="flex flex-column margin-top--little">
                 <span className="font-size--smallest font-weight--bold">Shared traits</span>
-                <div className="flex flex--wrap align-center" style={{ gap: "0.25rem" }}>
+                <div className="flex flex--wrap align-center gap--smallest">
                     {matched.traits.map(trait_tag => <div key={trait_tag} className="flex align-center bg--white div--round padding--little"><Trait trait_tag={trait_tag} /></div>)}
                 </div>
             </div> : null}
@@ -190,8 +190,8 @@ export function SimilarSubmissions({ submission_tag, limit = 5, user_tag }) {
         {ACCESS_GROUPS.map(group => {
             const items = similar.filter(s => s.access === group.key || (group.key === "scope" && s.access === null))
             if (items.length === 0) return null
-            return <div key={group.key} className="flex flex-column" style={{ gap: "0.25rem" }}>
-                <div className="flex align-center" style={{ gap: "0.5rem" }}>
+            return <div key={group.key} className="flex flex-column gap--smallest">
+                <div className="flex align-center gap--default">
                     <TooltipButton
                         icon={group.icon}
                         intent={group.intent}
@@ -200,7 +200,7 @@ export function SimilarSubmissions({ submission_tag, limit = 5, user_tag }) {
                         content={group.description} />
                     <span className="font-weight--bold">{group.title}</span>
                 </div>
-                <div className="flex flex-column" style={{ gap: "0.25rem" }}>
+                <div className="flex flex-column gap--smallest">
                     {items.map(s => <SimilarSubmissionItem key={s.submission_tag} similar={s} user_tag={user_tag} />)}
                 </div>
             </div>

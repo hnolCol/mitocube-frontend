@@ -115,8 +115,8 @@ export function GrowthTrendsSection({ statisticsFilter }) {
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
         <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>Growth Trends</h4>
-            <div className="flex center-items" style={{ gap: "0.3rem" }}>
+            <h4 className="margin--none-reset">Growth Trends</h4>
+            <div className="flex center-items gap--little">
                 {VIEW_OPTIONS.map(option => <OptionButton
                     key={option.key}
                     isSelected={view === option.key}
@@ -209,15 +209,15 @@ export function GrowthTrendsSection({ statisticsFilter }) {
                 </Group>
             </svg>
             <div className="flex center-items" style={{ gap: "1rem", fontSize: "0.8rem", marginTop: "0.25rem" }}>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SUBMISSIONS_COLOR, display: "inline-block" }} />
                     Submissions
                 </span>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SAMPLES_COLOR, display: "inline-block" }} />
                     Samples
                 </span>
-                {medianDurationsPerYear.some(_.isNumber) ? <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                {medianDurationsPerYear.some(_.isNumber) ? <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: MEDIAN_COLOR, display: "inline-block" }} />
                     Median project duration (days)
                 </span> : null}
@@ -265,8 +265,8 @@ export function ActiveUsersSection({ statisticsFilter }) {
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
         <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>Active Users per Year</h4>
-            {isSuccess && hasData ? <div className="flex center-items" style={{ gap: "0.3rem" }}>
+            <h4 className="margin--none-reset">Active Users per Year</h4>
+            {isSuccess && hasData ? <div className="flex center-items gap--little">
                 <button
                     className="basic-button--small"
                     onClick={() => downloadTxtFile(arrayObjectsToString({ array: downloadRows }), "active_users_per_year")}

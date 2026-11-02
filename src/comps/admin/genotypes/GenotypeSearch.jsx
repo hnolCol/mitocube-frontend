@@ -69,7 +69,7 @@ export function GenotypeSearch({ }) {
                 ))}
             </div>
     
-            <div style={{ height: "2rem"}}>
+            <div className="height--small">
                 {isError ? <span>Error in searching for genotypes..</span> : isLoading ? <Loading /> : null}
             </div>
     

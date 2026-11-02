@@ -19,7 +19,7 @@ export function StateFunnelSection({ statisticsFilter }) {
     const max = _.max([_.maxBy(rows, "value")?.value, 1])
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <h4 style={{ margin: 0 }}>Submissions per State</h4>
+        <h4 className="margin--none-reset">Submissions per State</h4>
         <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
             Number of submissions currently in each state. Large bars in intermediate states indicate where submissions get stuck.
         </p>

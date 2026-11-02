@@ -44,7 +44,7 @@ export function ExternalResourceSearch({ refetchRef }) {
                     </OptionButton>
                 ))}
             </div>
-            <div style={{ height: "2rem" }}>
+            <div className="height--small">
                 {isError ? <span>Error searching external resources...</span> : isLoading ? <Loading /> : null}
             </div>
             <ExternalResourceContainer tags={displayTags} />

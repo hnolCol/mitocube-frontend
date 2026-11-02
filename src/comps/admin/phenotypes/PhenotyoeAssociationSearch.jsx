@@ -44,7 +44,7 @@ export function PhenotypeAssociationSearch() {
                     </OptionButton>
                 ))}
             </div>
-            <div style={{ height: "2rem" }}>
+            <div className="height--small">
                 {isError ? <span>Error loading phenotype associations.</span> : isLoading ? <Loading /> : null}
             </div>
             <PhenotypeAssociationContainer tags={tagsToDisplay} updateList={updateList} />

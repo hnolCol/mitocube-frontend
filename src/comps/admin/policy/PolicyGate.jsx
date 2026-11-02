@@ -45,7 +45,7 @@ export function PolicyGate({ children, enabled = true }) {
     return (
         <div style={{ display: "flex", justifyContent: "center", padding: "2rem", height: "100%", overflow: "auto" }}>
             <Card style={{ maxWidth: 900, maxHeight: 700, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <h2 style={{ margin: 0 }}>{policy?.title || "Policy"}</h2>
+                <h2 className="margin--none-reset">{policy?.title || "Policy"}</h2>
                 <div className="bp5-text-muted">
                     Please read and accept the policy to continue using MitoCube.
                 </div>

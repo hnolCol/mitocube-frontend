@@ -37,7 +37,7 @@ export function UsersAdminView({ authenticationStatus }) {
             className="div--expand padding--medium"
             style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
         >
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Users</h3>
                 <div className="flex">
                     <Alert
@@ -71,7 +71,7 @@ export function UsersAdminView({ authenticationStatus }) {
                         value={searchString}
                         onChange={(e) => setSearchString(e.target.value)}
                     />
-                    <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                    <div className="flex center-items gap--default">
                         <span className="font-size--small">Filter by role:</span>
                         <UserRoleSelection
                             selectedRole={selectedRole}

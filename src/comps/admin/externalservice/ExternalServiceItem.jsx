@@ -47,20 +47,17 @@ export function ExternalServiceItem({ tag, showDetails = false, updateExternalSe
       }
 
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
 
             <EditExternalServiceDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
             <DeleteExternalServiceDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose}/>
 
-            <div
-            className="flex justify-space-between align-center"
-            style={{ width: "100%" }}
-            >
+            <div className="flex justify-space-between align-center width--full">
             
             
             <ExternalServiceDescription tag={tag} update={update} />
-            <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+            <div className="flex gap--small align-center gap--medium-small">
             {permissions?.edit && (
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit

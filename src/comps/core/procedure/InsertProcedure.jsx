@@ -78,11 +78,11 @@ export function InsertEditProcedure({
 
 
     return (
-        <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="flex flex-column div--expand margin--medium padding--medium gap--medium-small">
             <h3>{isEditing ? "Procedure Editing" : "Procedure Insertion"}</h3>
             <span>Procedures are a set of instructions for performing maintenance tasks on instruments.</span>
 
-            <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+            <div className="flex flex-column gap--default">
                 <input className="text-input" type="text" value={procedure.text} placeholder="Enter procedure text" onChange={(e) => setProcedure((prev) => ({ ...prev, text: e.target.value }))} />
                 <input className="text-input" type="text" value={procedure.description} placeholder="Enter procedure description" onChange={(e) => setProcedure((prev) => ({ ...prev, description: e.target.value }))} />
                 <input className="number-input" type="number" value={procedure.priority} placeholder="Enter procedure priority" onChange={(e) => setProcedure((prev) => ({ ...prev, priority: e.target.value }))} />
@@ -93,8 +93,8 @@ export function InsertEditProcedure({
             </div>{isError ? <APIError error={error} /> : null}
 
 
-            <div className="div--expand flex flex-column" style={{ justifyContent: "space-between" }}>
-            <div className="flex justify-end" style={{ gap: "1rem" }}>
+            <div className="div--expand flex flex-column justify-space-between">
+            <div className="flex justify-end gap--medium">
                 <button className="dialog-button" style={{ backgroundColor: "#ec7160ff" }} onClick={onClose}>Close</button>
                 {isEditing ? 
                     <button className="dialog-button" disabled={isUpdateLoading} onClick={editProcedure}>{isUpdateLoading ? "Editing..." : "Edit"}</button> : 

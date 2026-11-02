@@ -14,10 +14,7 @@ function ExternalService({ tag, onRemove }) {
     if (!isSuccess) return null
 
     return (
-        <div
-            className="flex margin--little padding--little bg--grey center-items"
-            style={{ justifyContent: "space-between" }}
-        >
+        <div className="flex margin--little padding--little bg--grey center-items justify-space-between">
             <div>
                 <div>{service.description}</div>
                 <div>{_.has(service, "costs") && service.costs > 0 ? <strong>{service.costs} €</strong> : "na" }</div>

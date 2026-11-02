@@ -148,13 +148,7 @@ export function DatasetFeatureView() {
             >
             <div className="flex flex-column padding-medium" style={{width : "100%"}}>
                 <div className="margin--tiny">
-                    <input
-                        type="text"
-                        className="search-input margin-right--little"
-                        placeholder="Search for feature..."
-                        style={{ width: "100%" }}
-                        value={searchString}
-                        onChange={(e) => updateParam("search", e.target.value)}
+                    <input type="text" className="search-input margin-right--little width--full" placeholder="Search for feature..." value={searchString} onChange={(e) => updateParam("search", e.target.value)}
                     />
                 </div>
                 <div className="flex margin-top--little center-items" style={{ gap: "5px", width: "100%" }}>

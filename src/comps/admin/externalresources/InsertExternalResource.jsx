@@ -85,7 +85,7 @@ export function InsertExternalResource({ onClose }) {
             <h3>External Resource Insertion</h3>
 
             <Section title="Details" required>
-                <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                <div className="flex flex-column gap--default">
                     <input className="text-input" type="text" value={resource.title} placeholder="Title"
                         onChange={(e) => setResource(prev => ({ ...prev, title: e.target.value }))} />
                     <input className="text-input" type="text" value={resource.link} placeholder={isLabExperiment ? "Link (optional)" : "Link (URL)"}
@@ -157,8 +157,8 @@ export function InsertExternalResource({ onClose }) {
 
 function Section({ title, children, required = false, optional = false }) {
     return (
-        <div className="flex flex-column" style={{ gap: "0.4rem" }}>
-            <div className="flex align-center" style={{ gap: "0.4rem" }}>
+        <div className="flex flex-column gap--medium-small">
+            <div className="flex align-center gap--medium-small">
                 <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{title}</span>
                 {required && <span style={{ fontSize: "0.7rem", color: "#c0392b" }}>required</span>}
                 {optional && <span style={{ fontSize: "0.7rem", color: "#aaa" }}>optional</span>}

@@ -109,8 +109,8 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
         <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>Dataset Size Trend</h4>
-            <div className="flex center-items" style={{ gap: "0.3rem" }}>
+            <h4 className="margin--none-reset">Dataset Size Trend</h4>
+            <div className="flex center-items gap--little">
                 {VIEW_OPTIONS.map(option => <OptionButton
                     key={option.key}
                     isSelected={view === option.key}
@@ -199,11 +199,11 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
                 </Group>
             </svg>
             <div className="flex center-items" style={{ gap: "1rem", fontSize: "0.8rem", marginTop: "0.25rem" }}>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: primaryColor, display: "inline-block" }} />
                     {view === "total" ? "Protein Groups (total)" : "Protein Groups (avg/submission)"}
                 </span>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SAMPLES_COLOR, display: "inline-block" }} />
                     Samples
                 </span>

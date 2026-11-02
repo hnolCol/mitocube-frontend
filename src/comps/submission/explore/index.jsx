@@ -113,7 +113,7 @@ CollaborationRequestForm.propTypes = {
  * @returns {JSX.Element} The collaboration request form.
  */
 function CollaborationRequestForm({ submission, userResearchGroups, message, setMessage, selectedGroup, setSelectedGroup, isPending, isError, error, onSubmit, onCancel }) {
-    return <div className="flex flex-column margin-top--little padding--little bg--white div--round" style={{ width: "100%" }}>
+    return <div className="flex flex-column margin-top--little padding--little bg--white div--round width--full">
         <span className="font-size--small">Request collaboration for "{submission.title}"</span>
         {_.isArray(userResearchGroups) && userResearchGroups.length > 0 ?
             <div className="margin-top--little flex flex-column">
@@ -157,7 +157,7 @@ ExploreSearchTag.propTypes = {
 }
 
 function ExploreSearchTag({ onRemove, children }) {
-    return <div className="flex align-center padding--little bg--lightgrey div--round font-size--smallest" style={{ gap: "0.25rem" }}>
+    return <div className="flex align-center padding--little bg--lightgrey div--round font-size--smallest gap--smallest">
         {children}
         <button
             className="basic-button--small"
@@ -245,7 +245,7 @@ function ExploreTagSearch({ searchString, setSearchString, selected_ca_tags, sel
                 onFocus={() => setIsDropdownOpen(true)} />
         </Popover>
         {((_.isArray(selected_ca_tags) && selected_ca_tags.length > 0) || (_.isArray(selected_user_tags) && selected_user_tags.length > 0)) ?
-            <div className="flex flex-wrap margin-top--little" style={{ gap: "0.25rem" }}>
+            <div className="flex flex-wrap margin-top--little gap--smallest">
                 {_.isArray(selected_ca_tags) ? selected_ca_tags.map(ca_tag =>
                     <ExploreSearchTag key={ca_tag} onRemove={() => onSelectConditionApplication(ca_tag)}>
                         <ConditionApplicationsView tag={ca_tag} show_attribute={true} />
@@ -313,7 +313,7 @@ export function SubmissionExplore({ user_tag }) {
                     isError ? <div className="padding--little font-size--small">Failed to load submissions.</div> :
                         !_.isArray(submissions) || submissions.length === 0 ?
                             <div className="padding--little font-size--small">No submissions found.</div> :
-                            <div className="flex flex-column" style={{ gap: "0.25rem" }}>
+                            <div className="flex flex-column gap--smallest">
                                 {submissions.map(submission => <ExploreSubmissionRow
                                     key={submission.tag}
                                     submission={submission}

@@ -101,11 +101,11 @@ export function InsertEditExternalService({
 
 
     return (
-        <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="flex flex-column div--expand margin--medium padding--medium gap--medium-small">
             <h3>{isEditing ? "External Service Editing" : "External Service Insertion"}</h3>
             <span>External Service represents an third-party company or person that performs maintenance on an instrument.  </span>
 
-            <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+            <div className="flex flex-column gap--default">
                 <input className="text-input" type="text" value={externalservice.description} placeholder="Enter external service description" onChange={(e) => setExternalService((prev) => ({ ...prev, description: e.target.value }))} />
                 <input className="text-input" type="text" value={externalservice.name} placeholder="Enter name of person performing the external service" onChange={(e) => setExternalService((prev) => ({ ...prev, name: e.target.value }))} />
                 <input className="text-input" type="text" value={externalservice.company} placeholder="Enter company name" onChange={(e) => setExternalService((prev) => ({ ...prev, company: e.target.value }))} />
@@ -120,8 +120,8 @@ export function InsertEditExternalService({
             </div>{isError ? <APIError error={error} /> : null}
 
 
-            <div className="div--expand flex flex-column" style={{ justifyContent: "space-between" }}>
-            <div className="flex justify-end" style={{ gap: "1rem" }}>
+            <div className="div--expand flex flex-column justify-space-between">
+            <div className="flex justify-end gap--medium">
                 <button className="dialog-button" style={{ backgroundColor: "#ec7160ff" }} onClick={onClose}>Close</button>
                 {isEditing ? 
                     <button className="dialog-button" disabled={isUpdateLoading} onClick={editExternalService }>{isUpdateLoading ? "Editing..." : "Edit"}</button> : 

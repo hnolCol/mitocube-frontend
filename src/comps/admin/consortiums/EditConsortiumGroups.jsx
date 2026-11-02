@@ -16,7 +16,7 @@ function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoadin
     const { data: research_group, isSuccess } = api.researchgroups.useGetResearchGroupByTag({ tag }, { enabled: _.isString(tag) })
     return <div className="padding--little div--round" style={{ backgroundColor: "#fefefe" }}>
         {isSuccess && _.isObject(research_group) ?
-            <div className="flex padding--little center-items" style={{ justifyContent: "space-between" }}>
+            <div className="flex padding--little center-items justify-space-between">
                 <div className="flex flex-column">
                     <div>{research_group.text} ({research_group.abbreviation})</div>
                     <div className="font-size--smallest">{research_group.institute}</div>

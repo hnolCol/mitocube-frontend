@@ -701,3 +701,75 @@ h5 {
 .explore-submission-row__request:focus-visible {
     opacity: 1;
 }
+
+/* Gaps */
+.gap--tiny {
+    gap: 0.2rem;
+}
+.gap--smallest {
+    gap: 0.25rem;
+}
+.gap--little {
+    gap: 0.3rem;
+}
+.gap--medium-small {
+    gap: 0.4rem;
+}
+.gap--default {
+    gap: 0.5rem;
+}
+.gap--medium {
+    gap: 1rem;
+}
+
+/* Widths */
+.width--full {
+    width: 100%;
+}
+.width--half-viewport {
+    width: 50vw;
+}
+.width--expand {
+    flex: 1;
+}
+
+/* Heights */
+.height--full {
+    height: 100%;
+}
+.height--nearly-full {
+    height: 95%;
+}
+.height--small {
+    height: 2rem;
+}
+
+/* Margin helpers */
+.margin--none-reset {
+    margin: 0;
+}
+.margin-top--little {
+    margin-top: 0.5rem;
+}
+.margin-top--medium {
+    margin-top: 1rem;
+}
+.margin-left--medium {
+    margin-left: 2rem;
+}
+.margin-bottom--little {
+    margin-bottom: 0.8rem;
+}
+
+/* Scroll container */
+.container--scroll-y-large {
+    height: 70vh;
+    overflow-y: scroll;
+    padding-bottom: 5rem;
+    padding-right: 0.5rem;
+}
+
+/* Text */
+.font-weight--semibold {
+    font-weight: 600;
+}

@@ -24,7 +24,7 @@ export function PhenotypeAssociationItem({ tag, showDetails = false }) {
     const secondaryLabel = disease?.text || association.disease_text || null
     
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
             <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                 <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>

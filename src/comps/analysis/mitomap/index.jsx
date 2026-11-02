@@ -131,7 +131,7 @@ export function MitomapNetwork({ }) {
             />
 
             {selectedAnnotationGroupTag ? (
-                <div className="margin-bottom--little" style={{ marginTop: "1rem" }}>
+                <div className="margin-bottom--little margin-top--medium">
                     <button className="basic-button div--expand margin--little" style={pairwiseOpen ? { backgroundColor: HIGHLIGHT_COLOR, color: "white" } : {}}
                         onClick={() => setPairwiseOpen(prev => !prev)}>
                         <span>Pairwise Comparison</span>

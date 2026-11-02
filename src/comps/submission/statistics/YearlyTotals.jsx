@@ -143,8 +143,8 @@ export function YearlyTotalsSection({ statisticsFilter }) {
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
         <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>Submissions and Samples per Year</h4>
-            <div className="flex center-items" style={{ gap: "0.3rem" }}>
+            <h4 className="margin--none-reset">Submissions and Samples per Year</h4>
+            <div className="flex center-items gap--little">
                 {SPLIT_OPTIONS.map(option => <OptionButton
                     key={option.key}
                     isSelected={split === option.key}
@@ -239,7 +239,7 @@ export function YearlyTotalsSection({ statisticsFilter }) {
                         key={year}
                         content={<div style={{ maxWidth: "14rem" }}>
                             <div><strong>{year}</strong></div>
-                            {series.map(s => <div key={s.group} className="flex center-items" style={{ gap: "0.3rem" }}>
+                            {series.map(s => <div key={s.group} className="flex center-items gap--little">
                                 <span style={{ width: "0.6rem", height: "0.6rem", backgroundColor: s.color, display: "inline-block", borderRadius: "2px" }} />
                                 {s.group}: {s.valuesPerYear[i] || 0} submissions
                             </div>)}
@@ -251,21 +251,21 @@ export function YearlyTotalsSection({ statisticsFilter }) {
                 </Group>
             </svg>
             {split !== "total" ? <div className="flex flex--wrap" style={{ gap: "0.75rem", fontSize: "0.8rem", marginTop: "0.25rem" }}>
-                {series.map(s => <span key={s.group} className="flex center-items" style={{ gap: "0.3rem" }}>
+                {series.map(s => <span key={s.group} className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: s.color, display: "inline-block" }} />
                     {s.group}
                 </span>)}
-                {showSamplesAxis ? <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                {showSamplesAxis ? <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SAMPLES_COLOR, display: "inline-block" }} />
                     Samples (total)
                 </span> : null}
             </div> : null}
             {split === "total" ? <div className="flex center-items" style={{ gap: "1rem", fontSize: "0.8rem", marginTop: "0.25rem" }}>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SUBMISSIONS_COLOR, display: "inline-block" }} />
                     Submissions
                 </span>
-                {showSamplesAxis ? <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                {showSamplesAxis ? <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SAMPLES_COLOR, display: "inline-block" }} />
                     Samples
                 </span> : null}

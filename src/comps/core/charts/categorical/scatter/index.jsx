@@ -140,7 +140,7 @@ function CategoricalScatter({
     
 
     return (
-        <div style={{ position: "relative" }}>
+        <div className="position--relative">
         <SVG {...{ width, height, svgID, svgRef : containerRef }}>
             
             <AxisWithBackground

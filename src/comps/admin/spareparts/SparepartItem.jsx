@@ -45,20 +45,17 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
       }
 
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
 
             <EditSparepartDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
             <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} />
 
-            <div
-            className="flex justify-space-between align-center"
-            style={{ width: "100%" }}
-            >
+            <div className="flex justify-space-between align-center width--full">
             
             
             <SparepartText tag={tag} update={update} />
-            <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+            <div className="flex gap--small align-center gap--medium-small">
             {permissions?.edit && (
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit

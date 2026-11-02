@@ -80,10 +80,7 @@ export function AnnotationItem({ tag, showDetails = false, updateAnnotationList 
         onSuccess={refetchAnnotations}
       />
 
-      <div
-        className="flex justify-space-between align-center"
-        style={{ width: "100%" }}
-      >
+      <div className="flex justify-space-between align-center width--full">
         <div>
           <strong>{annotation.text}</strong>
 
@@ -98,7 +95,7 @@ export function AnnotationItem({ tag, showDetails = false, updateAnnotationList 
           </div>
         </div>
 
-        <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+        <div className="flex gap--small align-center gap--medium-small">
           <button
             onClick={() => setIsOpen(true)}
             className="basic-button"
@@ -196,7 +193,7 @@ export function AnnotationsList({ tag }) {
                   flexShrink: 0,
               }}
           >
-              <h4 style={{ margin: 0 }}>Annotations {totalCount != null ? `(${totalCount})` : ""}</h4>
+              <h4 className="margin--none-reset">Annotations {totalCount != null ? `(${totalCount})` : ""}</h4>
               <button className="basic-button" onClick={() => setIsOpen(true)}>+ Add Annotation</button>
           </div>
   

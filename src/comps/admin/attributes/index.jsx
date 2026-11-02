@@ -64,7 +64,7 @@ export function AttributesAdminView({ userRole }) {
             className="div--expand padding--medium"
             style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
         >
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
 
                 <Dialog style={{width : "min(950px,70vw)"}} isOpen={dialogProps.isOpen} onClose={() => setDialogProps({ isOpen: false })} title="Add Attribute" canOutsideClickClose={false} canEscapeKeyClose={true}> 
                 <DialogBody>

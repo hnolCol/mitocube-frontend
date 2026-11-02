@@ -187,7 +187,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                                 </OptionButton>
                             ))}
                     </div>
-                    <div style={{ marginTop: "1rem" }}>
+                    <div className="margin-top--medium">
                         <UserDatasetFilter
                             submissionFilter={submissionFilter}
                             setSubmissionFilter={setSubmissionFilter}

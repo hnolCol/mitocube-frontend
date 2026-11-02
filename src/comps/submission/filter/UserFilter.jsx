@@ -93,7 +93,7 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
             {isLoading ? <div className="font-size--smallest">Searching...</div> : null}
 
             {selectedUsers.length > 0 && (
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     {selectedUsers.map(u => (
                         <UserFilterDisplay key={u.tag} tag={u.tag} onRemove={() => handleRemove(u.tag)} />
                     ))}

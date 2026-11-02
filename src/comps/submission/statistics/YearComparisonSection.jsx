@@ -52,7 +52,7 @@ export function YearComparisonSection({
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
         <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>{title}</h4>
+            <h4 className="margin--none-reset">{title}</h4>
             {controls}
         </div>
         {description ? <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{description}</p> : null}
@@ -109,7 +109,7 @@ export function YearComparisonSection({
                     {showAllGroups ? "Top groups" : "All groups"}
                 </OptionButton> : null}
             </div>
-            <div ref={chartAreaRef} style={{ width: "100%" }}>
+            <div className="width--full" ref={chartAreaRef}>
                 <GroupedYearComparisonChart
                     data={visibleRows}
                     years={shownYears}
