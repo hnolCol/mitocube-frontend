@@ -1,7 +1,7 @@
 import hooks from "@mitocube/api-hooks";
 import { useOutletContext } from "react-router";
 import { useState } from "react";
-import { Button } from "@blueprintjs/core";
+import { Button, Callout } from "@blueprintjs/core";
 import { SamplesContainer } from "./SampleContainer";
 import { EditSubmissionSamplesDialog } from "./EditSampleDialog";
 import _ from "lodash";
@@ -24,6 +24,15 @@ export function SubmissionSamples() {
         { tag: submission_tag },
         { enabled: false }
     );
+
+    const { data: samplesFull } = api.submissions.samples.useGetSubmissionSamplesFull(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag), staleTime: 60000 }
+    );
+
+    const lostSamples = _.isArray(samplesFull)
+        ? samplesFull.filter((s) => s?.lost === true)
+        : [];
 
     const handleDownload = async () => {
         const { data } = await refetchExport();
@@ -65,6 +74,17 @@ export function SubmissionSamples() {
         <div style={{ display: "flex", alignItems: "center", marginBottom: "0.5rem" }}>
             <div>Submission tag: <strong>{submission_tag}</strong></div>
         </div>
+        {lostSamples.length > 0 ? (
+            <Callout
+                intent="warning"
+                icon="warning-sign"
+                style={{ width: "80%", marginBottom: "0.5rem" }}
+            >
+                <strong>{lostSamples.length} lost {lostSamples.length === 1 ? "sample" : "samples"}</strong>{" "}
+                in this submission: {lostSamples.map((s) => s.tag).join(", ")}. Lost samples are
+                ignored in statistical analysis.
+            </Callout>
+        ) : null}
         <div style={{ width: "80%", display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
             <Button icon="download" text="Download" onClick={handleDownload} />
             {canEdit && (
