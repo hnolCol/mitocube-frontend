@@ -90,7 +90,7 @@ function SubmissionOverview({ user_tag }) {
                 }}
             >
             {/* <div className="flex align-center" style={{ width: "100%", justifyContent: "center", gap: "0.5rem" }}>
-                <h2 style={{ margin: 0 }}><SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} /></h2>
+                <h2 className="margin--none-reset"><SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={false} /></h2>
                 <StateIndicator submission_tag={submission_tag} />
             </div> */}
             <div className="flex">

@@ -28,7 +28,7 @@ export function ResearchGroupPI({ tag, onAddPI }) {
 
     if (!isSuccess) return null
 
-    return <div className="flex" style={{ gap: "0.2rem" }}>
+    return <div className="flex gap--tiny">
         {_.isArray(head_tags) && head_tags.length > 0 ?
             <span>
                 PI : {head_tags.map((head_tag, idx) => <span key={head_tag}>

@@ -22,9 +22,8 @@ export function ImpressumManagement() {
     if (isError) return <APIError error={error} />
 
     return (
-        <div className="div--expand padding--medium"
-            style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="div--expand padding--medium flex-column--full-height">
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Impressum</h3>
                 <Dialog
                     isOpen={isDialogOpen}

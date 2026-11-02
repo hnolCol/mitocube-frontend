@@ -9,9 +9,9 @@ export function SubmissionDuration({ statisticsFilter }) {
     const chartRef = useRef(null)
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>Project Duration</h4>
-            <div className="flex" style={{ gap: "0.3rem" }}>
+        <div className="flex justify-between center-items flex--wrap gap--default">
+            <h4 className="margin--none-reset">Project Duration</h4>
+            <div className="flex gap--little">
                 <DownloadSvgButton chartRef={chartRef} fileName="project_duration.svg" />
             </div>
         </div>

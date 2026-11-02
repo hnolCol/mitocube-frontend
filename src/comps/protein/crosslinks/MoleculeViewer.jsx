@@ -167,7 +167,7 @@ export function MoleculeViewer({ structures = [], selectedXlTag = null }) {
     }
 
     return (
-        <div style={{ position: "relative" }}>
+        <div className="position--relative">
             <div
                 ref={containerRef}
                 style={{

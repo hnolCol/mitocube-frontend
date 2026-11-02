@@ -156,7 +156,7 @@ export function RequestAttributeDialog({ isOpen, onClose, userRole }) {
             <DialogBody>
                 {_.isString(confirmation) ?
                     <Callout intent="success" title="Request submitted">{confirmation}</Callout> :
-                    <div className="flex flex-column div--expand" style={{ gap: "0.5rem" }}>
+                    <div className="flex flex-column div--expand gap--default">
                         <span className="font-size--small">
                             Request a new attribute to be added to MitoCube. Curators and admins will review your request,
                             may adjust it (e.g. priority or groups), and add it if approved.
@@ -179,7 +179,7 @@ export function RequestAttributeDialog({ isOpen, onClose, userRole }) {
                         />
 
                         <h3>Settings</h3>
-                        <div style={{ marginLeft: "2rem" }}>
+                        <div className="margin-left--medium">
                             <h4>Attribute Groups</h4>
                             <span>Select attribute groups. Select sample if the attribute should be available for sample condition definition.</span>
                             <div className="margin--little">
@@ -263,7 +263,7 @@ export function RequestAttributeDialog({ isOpen, onClose, userRole }) {
                         </div>
 
                         <h3>Suggested Traits <span style={{ fontSize: 14, color: "#6B7280", fontWeight: 400 }}>Optional</span></h3>
-                        <div className="bg--lightgrey padding--little" style={{ marginLeft: "2rem" }}>
+                        <div className="bg--lightgrey padding--little margin-left--medium">
                             <span>
                                 Paste one trait per line as <code>text | description</code>, or copy two columns (text, description) directly from a spreadsheet.
                                 Curators will set the priority on approval.

@@ -180,7 +180,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
     const isReady = !!form.phenotype_tag && !!form.description.trim() && !genotypeImportLoading
 
     return (
-        <div className="flex flex-column div--expand" style={{ gap: "1rem" }}>
+        <div className="flex flex-column div--expand gap--medium">
 
             <Section title="Description" required>
                 <input
@@ -194,12 +194,12 @@ export function InsertPhenotypeAssociation({ onClose }) {
 
             <Section title="Phenotype" required>
                 {form.phenotype_tag ? (
-                    <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                    <div className="flex align-center gap--medium-small">
                         <Tag intent="success" minimal>{form.phenotype_tag}</Tag>
                         <button className="basic-button" onClick={() => setForm(prev => ({ ...prev, phenotype_tag: null }))}>Clear</button>
                     </div>
                 ) : (
-                    <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                    <div className="flex flex-column gap--default">
                         {!showManualPhenotype && (
                             <>
                                 <PhenotypeInput
@@ -241,7 +241,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
                                     value={newPhenotype.group_text}
                                     onChange={(e) => setNewPhenotype(prev => ({ ...prev, group_text: e.target.value }))}
                                 />
-                                <div className="flex" style={{ gap: "0.4rem" }}>
+                                <div className="flex gap--medium-small">
                                     <button
                                         className="basic-button"
                                         disabled={!newPhenotype.text.trim() || phenotypeInsertLoading}
@@ -268,7 +268,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
 
             <Section title="Genotype" optional>
                 {form.genotype_tag || inlineGenotype ? (
-                    <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                    <div className="flex align-center gap--medium-small">
                         {form.genotype_tag
                             ? <Tag intent="warning" minimal>{selectedGenotypeText || form.genotype_tag}</Tag>
                             : <Tag intent="success" minimal>Ready: {inlineGenotype.text}</Tag>
@@ -283,7 +283,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
                         }}>Clear</button>
                     </div>
                 ) : (
-                    <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                    <div className="flex flex-column gap--default">
 
                         {!showManualGenotype && (
                             <>
@@ -319,14 +319,14 @@ export function InsertPhenotypeAssociation({ onClose }) {
 
                         {!showManualGenotype && (
                             <>
-                                <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                                <div className="flex align-center gap--medium-small">
                                     <div style={{ flex: 1, height: "1px", backgroundColor: "#e0e0e0" }} />
                                     <span style={{ fontSize: "0.72rem", color: "#aaa" }}>or import from ClinVar</span>
                                     <div style={{ flex: 1, height: "1px", backgroundColor: "#e0e0e0" }} />
                                 </div>
 
                                 {form.protein_tag ? (
-                                    <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                                    <div className="flex align-center gap--medium-small">
                                         <Tag intent="primary" minimal>{form.protein_tag}</Tag>
                                         {selectedProtein?.gene_name && (
                                             <span style={{ fontSize: "0.8rem", color: "#555" }}>{selectedProtein.gene_name}</span>
@@ -363,8 +363,8 @@ export function InsertPhenotypeAssociation({ onClose }) {
                                 )}
 
                                 {form.protein_tag && (
-                                    <div className="flex flex-column" style={{ gap: "0.4rem" }}>
-                                        <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                                    <div className="flex flex-column gap--medium-small">
+                                        <div className="flex align-center gap--medium-small">
                                             <input
                                                 className="text-input"
                                                 type="text"
@@ -384,7 +384,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
                                         </div>
 
                                         {variantLookupData && (
-                                            <div className="flex flex-column" style={{ gap: "0.3rem" }}>
+                                            <div className="flex flex-column gap--little">
                                                 {variantLookupData.found ? (
                                                     <>
                                                         <span style={{ fontSize: "0.78rem", color: "#555" }}>Select a ClinVar match:</span>
@@ -404,7 +404,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
                                                                 whileHover={{ backgroundColor: "#f5f5f5" }}
                                                                 onClick={() => handleVariantSelect(variant)}
                                                             >
-                                                                <div className="flex flex-column" style={{ gap: "0.2rem" }}>
+                                                                <div className="flex flex-column gap--tiny">
                                                                     <strong>{variant.title}</strong>
                                                                     <span style={{ color: "#888" }}>{variant.gene_symbol ?? "—"}</span>
                                                                 </div>
@@ -421,7 +421,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
                                         )}
 
                                         {inlineGenotype ? (
-                                            <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                                            <div className="flex align-center gap--medium-small">
                                                 <Tag intent="success" minimal>Ready: {inlineGenotype.text}</Tag>
                                                 <button className="basic-button" onClick={() => {
                                                     setInlineGenotype(null)
@@ -429,7 +429,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
                                                 }}>Clear</button>
                                             </div>
                                         ) : form.variant_tag && (
-                                            <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                                            <div className="flex align-center gap--medium-small">
                                                 <button
                                                     className="basic-button"
                                                     disabled={genotypeImportLoading || !selectedProtein?.proteome_tag}
@@ -460,12 +460,12 @@ export function InsertPhenotypeAssociation({ onClose }) {
 
             <Section title="Disease" optional>
                 {form.disease_tag ? (
-                    <div className="flex align-center" style={{ gap: "0.4rem" }}>
+                    <div className="flex align-center gap--medium-small">
                         <Tag intent="primary" minimal>{form.disease_tag}</Tag>
                         <button className="basic-button" onClick={() => setForm(prev => ({ ...prev, disease_tag: null }))}>Clear</button>
                     </div>
                 ) : (
-                    <div className="flex flex-column" style={{ gap: "0.3rem" }}>
+                    <div className="flex flex-column gap--little">
                         <input
                             className="search-input"
                             type="text"
@@ -537,10 +537,7 @@ export function InsertPhenotypeAssociation({ onClose }) {
             {isError && <APIError error={error} />}
 
             <div className="flex justify-end" style={{ gap: "0.4rem", marginTop: "auto" }}>
-                <button
-                    className="dialog-button"
-                    style={{ backgroundColor: "#ec7160ff" }}
-                    onClick={() => onClose(false)}
+                <button className="dialog-button dialog-button--danger" onClick={() => onClose(false)}
                 >
                     Close
                 </button>
@@ -558,8 +555,8 @@ export function InsertPhenotypeAssociation({ onClose }) {
 
 function Section({ title, children, required = false, optional = false }) {
     return (
-        <div className="flex flex-column" style={{ gap: "0.4rem" }}>
-            <div className="flex align-center" style={{ gap: "0.4rem" }}>
+        <div className="flex flex-column gap--medium-small">
+            <div className="flex align-center gap--medium-small">
                 <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{title}</span>
                 {required && <Tag minimal intent="danger" style={{ fontSize: "0.7rem" }}>required</Tag>}
                 {optional && <Tag minimal style={{ fontSize: "0.7rem" }}>optional</Tag>}

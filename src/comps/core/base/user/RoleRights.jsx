@@ -91,7 +91,7 @@ export function RoleRights({ userRoles, currentRole }) {
         }))
 
     return (
-        <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+        <div className="flex flex-column gap--default">
             <p>
                 The platform distinguishes the following user roles. The rights
                 listed per role are enforced by the backend. Your own role is
@@ -110,7 +110,7 @@ export function RoleRights({ userRoles, currentRole }) {
                             onClick={() => setExpandedRole(isExpanded ? null : role.tag)}
                         >
                             <Icon icon={isExpanded ? "chevron-down" : "chevron-right"} />
-                            <H5 style={{ margin: 0 }}>{role.name}</H5>
+                            <H5 className="margin--none-reset">{role.name}</H5>
                             <Code>{role.tag}</Code>
                             {isCurrentRole ? <Tag intent="success" minimal={true}>your role</Tag> : null}
                         </div>

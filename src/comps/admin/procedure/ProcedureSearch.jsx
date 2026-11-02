@@ -36,7 +36,7 @@ export function ProcedureSearch() {
     }
 
     return (
-        <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <h3>Procedures</h3>
             <div className="flex">
             
@@ -71,7 +71,7 @@ export function ProcedureSearch() {
                 ))}
             </div>
 
-            <div style={{ height: "2rem" }}>
+            <div className="height--small">
                 {isError ? <span>Error in searching for procedures..</span> : isLoading ? <Loading /> : null}
             </div>
 

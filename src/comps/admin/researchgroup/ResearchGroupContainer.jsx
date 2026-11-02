@@ -18,7 +18,7 @@ export function ResearchGroupContainer({ tags, updateResearchGroupList, setEditU
 return (
     <div style={{ overflowY: "auto", paddingBottom: "5rem", paddingRight: "0.5rem" }} className="flex flex-column">
         {_.isArray(tags) && tags.length > 0 ? tags.map((tag, idx) => (
-            <div key={`${tag}-${idx}`} className="flex" style={{ marginBottom: "0.8rem" }}>
+            <div key={`${tag}-${idx}`} className="flex margin-bottom--little">
                 <motion.div
                     className="flex"
                     role="button"

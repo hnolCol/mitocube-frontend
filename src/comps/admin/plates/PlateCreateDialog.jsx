@@ -102,7 +102,7 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                 {optionsLoading ? <Loading /> : optionsIsError ? <APIError error={optionsError} /> : (
                     <>
                         {options?.formats?.length === 0 && (
-                            <Callout intent="warning" style={{ marginBottom: "1rem" }}>
+                            <Callout className="margin-bottom--medium" intent="warning">
                                 No formats defined. Add traits to the "Container Format" attribute (value e.g. 8x12) in the attributes admin view.
                             </Callout>
                         )}

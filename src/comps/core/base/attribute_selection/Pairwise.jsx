@@ -91,13 +91,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
         const isSelected = arraysEqual(item, selected)
         const isExcluded = arraysEqual(item, exclude_tags)
         return (
-            <motion.button
-                whileHover={isExcluded ? {} : { backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
-                disabled={!active}
-                className={`flex ${minimal ? "basic-button--small" : "basic-button"} ${isExcluded ? "basic-button--excluded" : isSelected ? "basic-button--highlighted" : ""}`}
-                style={{ width: "100%" }}
-                onClick={handleClick}
-            >
+            <motion.button whileHover={isExcluded ? {} : { backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }} disabled={!active} className={`flex width--full ${minimal ? "basic-button--small" : "basic-button"} ${isExcluded ? "basic-button--excluded" : isSelected ? "basic-button--highlighted" : ""}`} onClick={handleClick}>
                 {isSelected ? <span style={{ marginRight: "0.2rem" }}>✓</span> : null}
                 {item.map(tag => <ConditionApplicationsView key={tag} tag={tag} />)}
             </motion.button>
@@ -237,7 +231,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
     )
     const uniqueCAValues = uniqueCAValuesJoined.map(joined => joined.split(","))
 
-    return <div className="flex center-items" style={{ gap: "0.2rem" }}>
+    return <div className="flex center-items gap--tiny">
         <CAGroupSelection
             ca_tags={uniqueCAValues}
             selected={selected}
@@ -357,12 +351,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         items={withinAttributes}
                         filterable={false}
                         itemRenderer={(attr_tag, { handleClick }) => (
-                            <motion.button
-                                key={attr_tag}
-                                whileHover={{ backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
-                                className={`flex ${minimal ? "basic-button--small" : "basic-button"} ${activeWithinAttributes.includes(attr_tag) ? " basic-button--highlighted" : " "}`}
-                                style={{ width: "100%" }}
-                                onClick={handleClick}>
+                            <motion.button key={attr_tag} whileHover={{ backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }} className={`flex width--full ${minimal ? "basic-button--small" : "basic-button"} ${activeWithinAttributes.includes(attr_tag) ? " basic-button--highlighted" : " "}`} onClick={handleClick}>
                                 {activeWithinAttributes.includes(attr_tag) ? <span style={{ marginRight: "0.2rem" }}>✓</span> : null}
                                 <Attribute attribute_tag={attr_tag} />
                             </motion.button>
@@ -378,7 +367,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                     </Select>
                     : null}
                     {activeWithinAttributes.map(attr_tag =>
-                        <div key={attr_tag} className="margin-top--little flex center-items" style={{ gap: "0.5rem" }}>
+                        <div key={attr_tag} className="margin-top--little flex center-items gap--default">
                             <Attribute attribute_tag={attr_tag} />
                             <WithinCASelection
                                 minimal={minimal}

@@ -115,7 +115,7 @@ function YearReportSummary({ report }) {
     const instruments = _.isArray(report.instrument_performance) ? report.instrument_performance : []
     const highlights = report.highlights || {}
     return (
-        <div className="flex flex-column margin--medium" style={{ gap: "1rem" }}>
+        <div className="flex flex-column margin--medium gap--medium">
             <div className="container--shadow padding--medium" style={{ display: "flex", gap: "2rem", flexWrap: "wrap" }}>
                 <ReportStat label="New users" value={community.new_users} />
                 <ReportStat label="Total users" value={community.total_users} />
@@ -175,7 +175,7 @@ function ReportTable({ title, rows }) {
     return (
         <div className="container--shadow padding--medium">
             <h4>{title}</h4>
-            <table className="bp5-html-table bp5-html-table-striped" style={{ width: "100%" }}>
+            <table className="bp5-html-table bp5-html-table-striped width--full">
                 <thead>
                     <tr>{headers.map(header => <th key={header}>{_.startCase(header)}</th>)}</tr>
                 </thead>

@@ -384,7 +384,7 @@ function SamplesAttributes({
     const renderGenotypeHeader = useCallback(() => (
         <ColumnHeaderCell>
             <div className="genotypeHeaderContainer">
-                <h4 style={{ margin: 0 }}>Genotype</h4>
+                <h4 className="margin--none-reset">Genotype</h4>
     
                 <Button
                     icon="plus"

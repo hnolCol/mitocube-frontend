@@ -24,7 +24,7 @@ export function PhenotypeAssociationItem({ tag, showDetails = false }) {
     const secondaryLabel = disease?.text || association.disease_text || null
     
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
             <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                 <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>
@@ -50,54 +50,54 @@ export function PhenotypeAssociationItem({ tag, showDetails = false }) {
                     <tbody>
                         {association.phenotype_tag && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Phenotype</th>
+                                <th className="table-head-cell">Phenotype</th>
                                 <td>{association.phenotype_tag}</td>
                             </tr>
                         )}
                         {association.description && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                                <th className="table-head-cell">Description</th>
                                 <td>{association.description}</td>
                             </tr>
                         )}
                         {association.observation_notes && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Observation notes</th>
+                                <th className="table-head-cell">Observation notes</th>
                                 <td>{association.observation_notes}</td>
                             </tr>
                         )}
                         {association.att_protein_mutation && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Mutation</th>
+                                <th className="table-head-cell">Mutation</th>
                                 <td>{association.att_protein_mutation}</td>
                             </tr>
                         )}
                         {association.genotype_tag && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Genotype</th>
+                                <th className="table-head-cell">Genotype</th>
                                 <td>{genotypeText || association.genotype_tag}</td>
                             </tr>
                         )}
                         {(disease?.text || association.disease_tag) && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Disease</th>
+                                <th className="table-head-cell">Disease</th>
                                 <td>{disease?.text ?? association.disease_tag}</td>
                             </tr>
                         )}
                         {association.variant_tag && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>ClinVar variant</th>
+                                <th className="table-head-cell">ClinVar variant</th>
                                 <td>{association.variant_tag}</td>
                             </tr>
                         )}
                         {association.publication && (
                             <tr>
-                                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Publication</th>
+                                <th className="table-head-cell">Publication</th>
                                 <td>{association.publication}</td>
                             </tr>
                         )}
                         <tr>
-                            <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Created</th>
+                            <th className="table-head-cell">Created</th>
                             <td>{association.created_at ? new Date(association.created_at).toLocaleDateString() : "—"}</td>
                         </tr>
                     </tbody>

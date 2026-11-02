@@ -70,10 +70,7 @@ export function InsertAnnotationGroup({
     };
 
     return (
-        <div
-            className="flex flex-column div--expand margin--medium padding--medium"
-            style={{ gap: "0.4rem" }}
-        >
+        <div className="flex flex-column div--expand margin--medium padding--medium gap--medium-small">
             <h3>
                 {isEditing
                     ? "Annotation Group Editing"
@@ -82,7 +79,7 @@ export function InsertAnnotationGroup({
 
             <span>Annotation group</span>
 
-            <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+            <div className="flex flex-column gap--default">
                 <input
                     className="text-input"
                     type="text"
@@ -160,13 +157,9 @@ export function InsertAnnotationGroup({
                 </div>
             ) : null}
 
-            <div className="div--expand flex flex-column" style={{ justifyContent: "space-between" }}>
-                <div className="flex justify-end" style={{ gap: "1rem" }}>
-                    <button
-                        className="dialog-button"
-                        style={{ backgroundColor: "#ec7160ff" }}
-                        onClick={onClose}
-                    >
+            <div className="div--expand flex flex-column justify-space-between">
+                <div className="flex justify-end gap--medium">
+                    <button className="dialog-button dialog-button--danger" onClick={onClose}>
                         Close
                     </button>
 
@@ -195,8 +188,8 @@ export function AddAnnotationGroupDialog({ isOpen, onClose, onSuccess }) {
 
     return (
         <Dialog isOpen={isOpen} title="Add Annotation Group" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(65vh, 1500px)" }} canOutsideClickClose={false}>
-            <div className="padding--medium" style={{ height: "95%" }}>
-                <div style={{ height: "100%", width: "95%" }}>
+            <div className="padding--medium height--nearly-full">
+                <div className="height--full-width--most">
                     <InsertAnnotationGroup onClose={onClose} onSuccess={onSuccess} />
                 </div>
             </div>

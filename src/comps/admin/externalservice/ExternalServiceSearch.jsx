@@ -70,7 +70,7 @@ export function ExternalServiceSearch() {
                 ))}
             </div>
 
-            <div style={{ height: "2rem" }}>
+            <div className="height--small">
                 {isError ? <span>Error in searching for External Services...</span> : isLoading ? <Loading /> : null}
             </div>
 

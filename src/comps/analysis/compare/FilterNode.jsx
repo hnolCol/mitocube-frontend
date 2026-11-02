@@ -239,12 +239,12 @@ export function FilterNode({ node, onChange, onDelete, index = 0, depth = 0, ini
 
 
     return <div style={{marginLeft : `${depth * 0.2}rem`, marginBottom : "0.5rem", borderRadius : "0.25rem", padding : "0.5rem", backgroundColor: "#f9f9f9", border : `3px solid ${GROUP_COLORS[depth % GROUP_COLORS.length]}`}}>
-        <div className="flex" style={{ gap: "0.5rem" }}>
+        <div className="flex gap--default">
             <h3>{index + 1}. Group Node</h3>
         </div>
         <div className="flex center-items justify-space-between" style={{ marginLeft: "0.3rem", marginBottom: "0.5rem" }}>
             
-            <div className="flex center-items" style={{ gap: "0.5rem" }}>
+            <div className="flex center-items gap--default">
                 <span>Group Node Operator |</span>
                 <div style={{width : "4rem"}}>
                     <Combobox

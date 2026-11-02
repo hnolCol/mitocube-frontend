@@ -108,9 +108,9 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
     const primaryValue = i => _.isNumber(primaryValues[i]) ? primaryValues[i] : null
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
-            <h4 style={{ margin: 0 }}>Dataset Size Trend</h4>
-            <div className="flex center-items" style={{ gap: "0.3rem" }}>
+        <div className="flex justify-between center-items flex--wrap gap--default">
+            <h4 className="margin--none-reset">Dataset Size Trend</h4>
+            <div className="flex center-items gap--little">
                 {VIEW_OPTIONS.map(option => <OptionButton
                     key={option.key}
                     isSelected={view === option.key}
@@ -132,7 +132,7 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
                 ? "Total quantified protein groups across all submissions per year (left axis), with the number of samples per year for context (right axis)."
                 : "Average quantified protein groups per submission per year (left axis), with the number of samples per year for context (right axis)."}
         </p>
-        {isError ? <div style={{ color: "#a82a2a" }}>Failed to load statistics. {_.get(error, "message", "")}</div> : null}
+        {isError ? <div className="font-color--error">Failed to load statistics. {_.get(error, "message", "")}</div> : null}
         {isLoading ? <div>Loading...</div> : null}
         {isSuccess && !hasData ? <div>No data available yet.</div> : null}
         {isSuccess && hasData ? <div ref={chartAreaRef}>
@@ -199,11 +199,11 @@ export function DatasetSizeTrendSection({ statisticsFilter }) {
                 </Group>
             </svg>
             <div className="flex center-items" style={{ gap: "1rem", fontSize: "0.8rem", marginTop: "0.25rem" }}>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: primaryColor, display: "inline-block" }} />
                     {view === "total" ? "Protein Groups (total)" : "Protein Groups (avg/submission)"}
                 </span>
-                <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                <span className="flex center-items gap--little">
                     <span style={{ width: "0.75rem", height: "0.25rem", backgroundColor: SAMPLES_COLOR, display: "inline-block" }} />
                     Samples
                 </span>

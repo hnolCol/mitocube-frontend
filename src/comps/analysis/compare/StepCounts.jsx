@@ -40,7 +40,7 @@ export default function StepCounts({ steps }) {
               <div style={styles.header}>
                 <span style={styles.icon}>{ICONS[step.type]}</span>
 
-                <div style={{ flex: 1 }}>
+                <div className="width--expand">
                   <div style={styles.title}>
                     {step.type.toUpperCase()}
                   </div>

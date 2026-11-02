@@ -15,7 +15,7 @@ export function FavoriteAnnotationSelection({
 }) {
     return (
         <div>
-            <div className="flex center-items padding--small" style={{gap: "0.2rem"}}>
+            <div className="flex center-items padding--small gap--tiny">
                 <AnnotationSelectionMenu 
                     placeholder="Select annotations"
                     onSelection={(e, tags) => {

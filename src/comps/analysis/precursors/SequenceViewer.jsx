@@ -120,7 +120,7 @@ function SequenceViewer({
 
     return (
         <div className="sequence-viewer" style={{ fontFamily: "monospace", margin: "1rem 0" }}>
-            <div style={{ marginBottom: "1rem" }}>
+            <div className="margin-bottom--medium">
                 <strong>Protein Sequence:</strong> {sequence.length} amino acids
                 {precursors.length > 0 && (
                     <span style={{ marginLeft: "1rem" }}>

@@ -141,7 +141,7 @@ function HeatmapViz({
                             }))} />
                     </div>
                 ) : (
-                    <div className="flex" style={{ gap: "0.2rem" }}>
+                    <div className="flex gap--tiny">
                         <span>Statistics is calculated using</span>
                         <Attribute attribute_tag={attribute_tags[0]} />
                     </div>

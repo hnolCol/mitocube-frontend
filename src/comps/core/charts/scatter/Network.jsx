@@ -421,7 +421,7 @@ export function Network({
         
     
     return (
-        <div className="flex" ref={containerRef} style={{ position: "relative" }}>
+        <div className="flex position--relative" ref={containerRef}>
             <SVG {...{ width, height, svgID }}>
                  <rect x={margins.left}
                     y={margins.top}

@@ -19,7 +19,7 @@ export function ConsortiumSubmissionsDialog({ isOpen, tag, title, onClose }) {
         <DialogBody>
             {isLoading ? "Loading submissions..." :
                 isSuccess && _.isArray(submission_tags) && submission_tags.length > 0 ?
-                    <div className="flex flex-column" style={{ gap: "0.3rem" }}>
+                    <div className="flex flex-column gap--little">
                         {submission_tags.map(submission_tag => <SubmissionLink key={submission_tag} tag={submission_tag} />)}
                     </div> :
                     <span>No submissions shared with this consortium yet.</span>}

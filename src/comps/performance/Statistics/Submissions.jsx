@@ -44,7 +44,7 @@ export function SubmissionRow({ submission }) {
 
 function SubmissionList({ submissions, children }) {
     return (
-        <div className="flex flex-column" style={{ gap: "0.25rem" }}>
+        <div className="flex flex-column gap--smallest">
             {submissions.map(sub => <SubmissionRow key={sub.submission_tag} submission={sub} />)}
             {children}
         </div>

@@ -58,7 +58,7 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
             /> */}
             
             {/* {_.isArray(userResults) && userResults.length > 0 ? (
-                <div style={{ marginTop: "0.25rem" }}>
+                <div className="margin-top-bottom--smallest">
                     {userResults
                         .filter(tag => !selectedUsers.some(su => su.tag === tag))
                         .map(tag => (
@@ -66,7 +66,7 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
                         ))}
                 </div>
             ) : null} */}
-            <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+            <span className="font-size--smallest margin-top-bottom--smallest">
                 Submissions created or collaborated on by the selected user(s) will be displayed.
             </span>
 
@@ -93,7 +93,7 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
             {isLoading ? <div className="font-size--smallest">Searching...</div> : null}
 
             {selectedUsers.length > 0 && (
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     {selectedUsers.map(u => (
                         <UserFilterDisplay key={u.tag} tag={u.tag} onRemove={() => handleRemove(u.tag)} />
                     ))}

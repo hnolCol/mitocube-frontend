@@ -15,7 +15,7 @@ export function StatisticsFilterSelection({ submissionFilter, setSubmissionFilte
     return (
         <div className="submission__wrapper">
             <div className="flex flex-column submission__side__filter__container" style={{ gridRow: 1, gridColumn: 1 }}>
-                <div className="flex center-items" style={{ justifyContent: "space-between" }}>
+                <div className="flex center-items justify-space-between">
                     <h3>Statistics Filter</h3>
                     <TooltipButton
                         content="Clear the statistics filter selection."
@@ -25,19 +25,19 @@ export function StatisticsFilterSelection({ submissionFilter, setSubmissionFilte
                         intent={hasActiveFilter ? "danger" : "none"}
                     />
                 </div>
-                <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+                <span className="font-size--smallest margin-top-bottom--smallest">
                     The statistics below are calculated only on the submissions that match the selected filters.
                 </span>
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     <StateSelection {...{ submissionFilter, setSubmissionFilter }} />
                 </div>
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
                 </div>
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     <GenotypeDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
                 </div>
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     <ConditionApplicationFilter
                         {...{ setSubmissionFilter, submissionFilter }}
                         infoText="Only submissions containing the selected condition applications are included in the statistics."

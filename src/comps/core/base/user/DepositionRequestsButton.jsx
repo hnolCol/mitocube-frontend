@@ -129,7 +129,7 @@ function PendingDepositionRequestRow({ request, onInvalidate }) {
                 {_.isString(request.comment) && request.comment.length > 0 ?
                     <div className="font-size--smallest">{`Comment: ${_.truncate(request.comment, { length: 200 })}`}</div> : null}
             </div>
-            <div className="flex" style={{ gap: "0.25rem" }}>
+            <div className="flex gap--smallest">
                 <Button small={true} intent="primary" text="Complete" disabled={isWorking} onClick={() => { setIsCompleteOpen(prev => !prev); setError(null) }} />
                 <Button small={true} intent="danger" text="Reject" disabled={isWorking}
                     onClick={() => reject({ request_tag: request.tag, comment: comment.trim().length > 0 ? comment.trim() : undefined }, { onSuccess: onInvalidate })} />
@@ -138,24 +138,9 @@ function PendingDepositionRequestRow({ request, onInvalidate }) {
         {isCompleteOpen ?
             <div className="flex flex-column margin-top--little padding--little bg--white div--round">
                 <span className="font-size--small">Complete the deposition request</span>
-                <input
-                    className="input margin-top--little"
-                    style={{ width: "100%" }}
-                    placeholder="Accession identifier (e.g. PXD...)"
-                    value={identifier}
-                    onChange={e => setIdentifier(e.target.value)} />
-                <input
-                    className="input margin-top--little"
-                    style={{ width: "100%" }}
-                    placeholder="Optional url of the deposited dataset"
-                    value={url}
-                    onChange={e => setUrl(e.target.value)} />
-                <input
-                    className="input margin-top--little"
-                    style={{ width: "100%" }}
-                    placeholder="Optional login token for the deposited dataset"
-                    value={token}
-                    onChange={e => setToken(e.target.value)} />
+                <input className="input margin-top--little width--full" placeholder="Accession identifier (e.g. PXD...)" value={identifier} onChange={e => setIdentifier(e.target.value)} />
+                <input className="input margin-top--little width--full" placeholder="Optional url of the deposited dataset" value={url} onChange={e => setUrl(e.target.value)} />
+                <input className="input margin-top--little width--full" placeholder="Optional login token for the deposited dataset" value={token} onChange={e => setToken(e.target.value)} />
                 <TextArea
                     className="margin-top--little"
                     fill={true}
@@ -163,7 +148,7 @@ function PendingDepositionRequestRow({ request, onInvalidate }) {
                     value={comment}
                     onChange={e => setComment(e.target.value)} />
                 {_.isString(error) ? <div className="font-size--small margin-top--little">{error}</div> : null}
-                <div className="flex justify-end margin-top--little" style={{ gap: "0.25rem" }}>
+                <div className="flex justify-end margin-top--little gap--smallest">
                     <Button small={true} text="Cancel" disabled={isWorking} onClick={() => setIsCompleteOpen(false)} />
                     <Button small={true} intent="primary" text="Save" loading={isCompleting} onClick={handleComplete} />
                 </div>
@@ -207,7 +192,7 @@ function ProcessedDepositionRequestRow({ request }) {
     return <div className="flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
         <div className="flex flex-column">
             <SubmissionLink tag={request.submission_tag} />
-            <div className="font-size--smallest flex align-center" style={{ gap: "0.25rem" }}>
+            <div className="font-size--smallest flex align-center gap--smallest">
                 {request.status === "deposited" ?
                     <Tag minimal={true} round={true} intent="success" icon="endorsed">
                         {`Deposited to ${_.isString(request.database) ? request.database : "external database"}`}

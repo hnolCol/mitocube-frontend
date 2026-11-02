@@ -111,15 +111,9 @@ function DatasetPrecursors() {
                 }}
             >
                 {/* Column 1: Protein Selector */}
-                <div className="flex flex-column padding-medium" style={{ width: "100%" }}>
+                <div className="flex flex-column padding-medium width--full">
                     <div className="margin--tiny">
-                        <input
-                            type="text"
-                            className="search-input margin-right--little"
-                            placeholder="Search for protein group..."
-                            style={{ width: "100%" }}
-                            value={searchString}
-                            onChange={(e) => updateSearch(e.target.value)}
+                        <input type="text" className="search-input margin-right--little width--full" placeholder="Search for protein group..." value={searchString} onChange={(e) => updateSearch(e.target.value)}
                         />
                     </div>
 
@@ -132,7 +126,7 @@ function DatasetPrecursors() {
                     />
                 </div>
                 {/* Column 2: Precursors Load for each selected protein group */}
-                <div style={{ marginLeft: "2rem" }}>
+                <div className="margin-left--medium">
                     {selectedProteinTags.length === 0 ? (
                         <div style={{
                             padding: "2rem",

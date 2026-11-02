@@ -97,7 +97,7 @@ export function EditAttribute({attribute_tag}) {
 
 
     const { valid, missingFields } = checkValid()
-    return <div className="flex flex-column div--expand" style={{ gap: "0.5rem" }}>
+    return <div className="flex flex-column div--expand gap--default">
         <Alert style={{overflowX : "scroll"}} isOpen={isErrorSuccessAlert} onClose={() => { setIsErrorSuccessAlert(false) }} confirmButtonText="Close" intent="danger">
             <DialogBody>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -115,7 +115,7 @@ export function EditAttribute({attribute_tag}) {
         <input className="text-input" type="number" placeholder="Priority" value={_.toString(attribute.priority)} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, priority: parseInt(e.target.value) } })} />
         
         <h3>Settings</h3>
-        <div style={{ marginLeft: "2rem" }}>
+        <div className="margin-left--medium">
             <h4>Minimal State</h4>
             <span>Define the minimum state that is required for the attribute to be shown. For example, attributes that are only relevant for the processing of the sample (protease) or Measuring (instrument). Attributes describing the samples should be defined as submitted</span>
             <div className="flex center-items" style={{ gap: "0.2rem", marginTop: "0.5rem" }}>

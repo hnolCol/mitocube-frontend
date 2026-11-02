@@ -70,7 +70,7 @@ export function SparepartSearch() {
                 ))}
             </div>
 
-            <div style={{ height: "2rem" }}>
+            <div className="height--small">
                 {isError ? <span>Error in searching for spare parts...</span> : isLoading ? <Loading /> : null}
             </div>
 

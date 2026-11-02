@@ -45,20 +45,17 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
       }
 
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
 
             <EditSparepartDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
             <DeleteSparepartDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose} />
 
-            <div
-            className="flex justify-space-between align-center"
-            style={{ width: "100%" }}
-            >
+            <div className="flex justify-space-between align-center width--full">
             
             
             <SparepartText tag={tag} update={update} />
-            <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+            <div className="flex gap--small align-center gap--medium-small">
             {permissions?.edit && (
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit
@@ -85,27 +82,27 @@ export function SparepartItem({ tag, showDetails = false, updateSparepartList })
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <th className="table-head-cell">Description</th>
                 <td><SparepartDescription tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Company</th>
+                <th className="table-head-cell">Company</th>
                 <td><SparepartCompany tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Product ID</th>
+                <th className="table-head-cell">Product ID</th>
                 <td><SparepartProductID tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Price</th>
+                <th className="table-head-cell">Price</th>
                 <td><SparepartPrice tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Link</th>
+                <th className="table-head-cell">Link</th>
                 <td><SparepartLink tag={tag} update={update} /></td>
             </tr>
             </tbody>

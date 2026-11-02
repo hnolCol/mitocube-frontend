@@ -139,7 +139,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
     return (
         <div style={{ width: "100%", paddingRight: "0.1rem"}}>
             <h4>Condition Applications</h4>
-            <span className="font-size--smallest" style={{ marginTop: "0.25rem" }}>
+            <span className="font-size--smallest margin-top-bottom--smallest">
                 {infoText}
             </span>
             <Popover
@@ -161,14 +161,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
                 
             >
                 <div style={{ position: "relative", width: "100%" }}>
-                <input 
-                    style={{width: "100%"}}
-                    value={searchString}
-                    className="text-input"
-                    placeholder="Search conditions..."
-                    
-                    onChange={handleSearchChange}
-                />
+                <input value={searchString} className="text-input width--full" placeholder="Search conditions..." onChange={handleSearchChange} />
                 {isLoading && (
                 <div style={{
                     position: "absolute",
@@ -187,7 +180,7 @@ export function ConditionApplicationFilter({ setSubmissionFilter, submissionFilt
 
 
             {showIncludeSampleLevelOption && (
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     <Checkbox
                         checked={_.has(submissionFilter, "include_sample_ca") ? submissionFilter.include_sample_ca : false}
                         onChange={handleIncludeSampleLevelChange}
@@ -219,7 +212,7 @@ function CADisplay({ tag, onRemove }) {
             backgroundColor: "#f5f5f5",
             borderRadius: "3px"
         }}>
-            <div style={{ flex: 1 }}>
+            <div className="width--expand">
                 <ConditionApplicationsView 
                     tag={tag} 
                     show_attribute={false}

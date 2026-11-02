@@ -17,7 +17,7 @@ export function AttributeConditionApplicationHighlight({ submission_tag, attribu
     const { data: conditionApplicationTags, isLoading: isLoadingConditionApplications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({tag : submission_tag, attribute_tags : attribute_tag, return_unique : true}, {enabled : _.isString(submission_tag) && _.isString(attribute_tag) ,  staleTime : Infinity}    )
     const ca_attribute_unique_count = _.isObject(conditionApplicationTags) && _.has(conditionApplicationTags, attribute_tag) ? conditionApplicationTags[attribute_tag].length : 0
     const colors = getColorPalette(ca_attribute_unique_count)
-    return <div className="flex justify-space-around" style={{ width: "100%" }}>
+    return <div className="flex justify-space-around width--full">
         {ca_attribute_unique_count > 0 ?
             conditionApplicationTags[attribute_tag].map((ca_tags,idx_ca) => {
                 const intersection = _.intersection(ca_tags, highlight_ca_tags);

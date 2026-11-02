@@ -70,7 +70,7 @@ export function SubmissionFilterSelection({
         <div className="flex flex-column submission__side__filter__container" style={{gridRow : 1, gridColumn : 1}}>
             
         <h3>{header} ({isSuccess ? Math.min(submissionQueryResult.query_count, selectedLimit) : "0"}/{isSuccess ? submissionQueryResult.query_count : "0"})</h3>
-                <div className="flex center-items" style={{ width: "100%"}}>
+                <div className="flex center-items width--full">
                     <div style={{ width: "100%", marginRight: "0.55rem" }}>
                         <input
                             className="search-input"
@@ -98,11 +98,11 @@ export function SubmissionFilterSelection({
                             </OptionButton>
                         ))}
                     </div>
-            <div style={{ marginTop: "0.5rem" }}>
+            <div className="margin-top--little">
                     <UserFilter {...{ submissionFilter, setSubmissionFilter, tags: isSuccess ? submissionQueryResult.tags : [], authenticationStatus }} />
             </div>
             </div>
-            <div style={{ marginTop: "0.5rem" }}>
+            <div className="margin-top--little">
     <h4>View By</h4>
     <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem" }}>
         {SUBMISSIONS_BY_OPTIONS.filter(option => option !== "My Submissions").map(option => (
@@ -130,11 +130,11 @@ export function SubmissionFilterSelection({
         <div style={{ height: "1fr", overflowY: "scroll", paddingRight: "1rem" }}>
             <GenotypeDatasetFilter {...{setSubmissionFilter, submissionFilter}} />
 
-        <div style={{ marginTop: "1rem" }}>
+        <div className="margin-top--medium">
             <UserDatasetFilter {...{ setSubmissionFilter, submissionFilter }} />
         </div>
 
-    <div style={{ marginTop: "1rem" }}>
+    <div className="margin-top--medium">
         <ConditionApplicationFilter {...{setSubmissionFilter, submissionFilter}} />
     </div>
 </div>

@@ -22,7 +22,7 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
     const search_string = useDebounce(search, 300)
     const { data: item_tags, } = api_hook({ search_string, ...api_hook_params }, { enabled: true })
     const handleRenderItem = (tag, { handleClick, handleFocus, modifiers, query }) => {
-        return <div key={tag}  style={{ margin: "0.1rem" }}>
+        return <div className="margin--tiny" key={tag}>
                         
             <motion.button
                 whileHover={{ backgroundColor: "#b6ccf5d8" }}

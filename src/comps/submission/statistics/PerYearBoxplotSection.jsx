@@ -48,9 +48,9 @@ export function PerYearBoxplotSection({
     }, [isSuccess, rows.length])
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <h4 style={{ margin: 0 }}>{title}</h4>
+        <h4 className="margin--none-reset">{title}</h4>
         {description ? <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{description}</p> : null}
-        {isError ? <div style={{ color: "#a82a2a" }}>Failed to load statistics. {_.get(error, "message", "")}</div> : null}
+        {isError ? <div className="font-color--error">Failed to load statistics. {_.get(error, "message", "")}</div> : null}
         {isLoading ? <div>Loading...</div> : null}
         {isSuccess && rows.length === 0 ? <div>No data available yet.</div> : null}
         {isSuccess && rows.length > 0 ? <div className="flex flex-column">
@@ -91,7 +91,7 @@ export function PerYearBoxplotSection({
                 </Popover> : null}
                 <DownloadSvgButton chartRef={chartAreaRef} fileName={`${title.replace(/\s+/g, "_").toLowerCase()}.svg`} />
             </div>
-            <div ref={chartAreaRef} style={{ width: "100%" }}>
+            <div className="width--full" ref={chartAreaRef}>
                 <viz.charts.minimal.MinimalBoxplots
                     qs={visibleRows}
                     width={chartAreaWidth || 640}

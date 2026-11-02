@@ -26,13 +26,13 @@ export function SubmissionMetadataDrawer({ isOpen, submission_tag, onClose }) {
         {_.isString(submission_tag) ? <div style={{ padding: "1rem", display: "flex", flexDirection: "column", gap: "1.5rem", overflowY: "auto", height: "100%" }}>
             <div>
                 <SubmissionTitle tag={submission_tag} showEdit={false} showCopyToClipboard={true} />
-                <div className="flex flex--wrap" style={{ gap: "0.5rem" }}>
+                <div className="flex flex--wrap gap--default">
                     <AuthorList submission_tag={submission_tag} />
                     <Button intent="primary" variant="minimal" icon="share" text="Explore submission" onClick={() => redirect(`/submissions/${submission_tag}`)} />
                 </div>
                 <SubmissionDate submission_tag={submission_tag} />
             </div>
-            <div className="flex flex--wrap" style={{ gap: "0.5rem" }}>
+            <div className="flex flex--wrap gap--default">
                 <SubmissionSampleCount submission_tag={submission_tag} />
                 <SubmissionProteinGroupCount submission_tag={submission_tag} />
                 <SubmissionPrecursorCount submission_tag={submission_tag} />

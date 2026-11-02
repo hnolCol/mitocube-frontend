@@ -13,6 +13,7 @@ import { MinimalUserIcon } from "../core/base/user"
 import { AddButton } from "../core/base/buttons/AddButton"
 import { RemoveButton } from "../core/base/buttons/RemoveButton"
 import { SubmissionLink } from "../core/links/Submission"
+import "./welcome.css"
 
 import { api } from "@/api"
 export function NewsItem({ 
@@ -68,10 +69,7 @@ export function NewsItem({
                 />
             </Dialog>
             
-            <div 
-                className="bg--lightgrey margin--little padding--medium div--round"
-                style={{ width: "max(20rem,80%)" }}
-            >
+            <div className="news-item">
                 <div className="flex center-items justify-space-between">
                     <div>
                         {_.isString(news.title) && <TitleText title={news.title} />}
@@ -136,7 +134,7 @@ export function NewsView() {
     return (
         
         <div
-            className="bg--lightgrey padding--medium"
+            className="welcome-panel"
             style={{
             width: "max(33vw, 500px)",
             height: "max(50vh,300px)",
@@ -170,7 +168,7 @@ export function NewsView() {
             <APIError error={error} /> :
                 isLoading || isFetching ?
                     <Loading /> :
-                <div className="flex flex-column" style={{ gap: "1rem" }}>
+                <div className="welcome-panel__list">
                         {_.isArray(news) ? _.map(news, news_tag =>
                             <NewsItem key={news_tag} news_tag={news_tag} />) : null}
                         {_.isArray(news) && news.length === 0 ? <div>No news available.</div> : null}

@@ -178,10 +178,7 @@ export function InsertAnnotations({ isOpen, onClose, onSuccess, group_tag }) {
       )}
 
       <div className="flex justify-end gap--small">
-        <button 
-              className="dialog-button" 
-              style={{ backgroundColor: "#ec7160ff" }}
-              onClick={onClose}>
+        <button className="dialog-button dialog-button--danger" onClick={onClose}>
           Close
         </button>
 

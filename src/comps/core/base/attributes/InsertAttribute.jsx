@@ -226,7 +226,7 @@ export function TraitListEditor({ traits, onChange, showPriority = true }) {
     )
 
     return (
-        <div className="flex flex-column" style={{ gap: "0.3rem" }}>
+        <div className="flex flex-column gap--little">
             {list.length > 0 && (
                 <div className="flex font-size--smallest" style={{ gap: "0.5rem", color: "#6B7280" }}>
                     <div style={{ flex: 2 }}>Text</div>
@@ -238,7 +238,7 @@ export function TraitListEditor({ traits, onChange, showPriority = true }) {
             {list.map((t, idx) => {
                 const isDuplicate = duplicateTexts.has((t.text || "").trim().toLowerCase())
                 return (
-                    <div key={idx} className="flex center-items" style={{ gap: "0.5rem" }}>
+                    <div key={idx} className="flex center-items gap--default">
                         <input
                             className="text-input"
                             style={{ flex: 2, borderColor: isDuplicate || !(t.text || "").trim() ? "#d32f2f" : undefined }}
@@ -268,7 +268,7 @@ export function TraitListEditor({ traits, onChange, showPriority = true }) {
                     </div>
                 )
             })}
-            <div className="flex center-items" style={{ gap: "0.5rem" }}>
+            <div className="flex center-items gap--default">
                 <Button small={true} icon="plus" text="Add trait" onClick={addTrait} />
                 {list.length > 0 && <Button small={true} minimal={true} icon="cross" text="Remove all" onClick={() => onChange([])} />}
             </div>
@@ -361,7 +361,7 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
     }
 
     const { valid, missingFields } = checkValid()
-    return <div className="flex flex-column div--expand" style={{ gap: "0.5rem" }}>
+    return <div className="flex flex-column div--expand gap--default">
         <Alert style={{overflowX : "scroll"}} isOpen={isErrorSuccessAlert} onClose={() => { setIsErrorSuccessAlert(false) }} confirmButtonText="Close" intent="danger">
             <DialogBody>
             <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -378,7 +378,7 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
         <input className="text-input" type="number" placeholder="Priority" value={_.toString(attribute.priority)} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, priority: parseInt(e.target.value) } })} />
         
         <h3>Settings</h3>
-        <div style={{ marginLeft: "2rem" }}>
+        <div className="margin-left--medium">
             <h4>Minimal Sate</h4>
                         <span>Define the minimum state that is required for the attribute to be shown. For example, attributes that are only relevant for the processing of the sample (protease) or Measuring (instrument). Attributes describing the samples should be defined as submitted</span>
                         <div className="flex center-items" style={{ gap: "0.2rem", marginTop: "0.5rem" }}>
@@ -445,7 +445,7 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
         
             
         <h3>Traits <span style={{ fontSize: 14, color: "#6B7280", fontWeight: 400 }}>Optional</span></h3>
-        <div className="bg--lightgrey padding--little" style={{ marginLeft: "2rem" }}>
+        <div className="bg--lightgrey padding--little margin-left--medium">
             <span>Add traits manually, upload a txt file, or add them later via the admin/attributes tab. </span>
             <span>The txt file must be tab-separated with a header row and contain a text, description and priority column. The default priority is 500. Uploaded traits are appended to the list below and can be edited before submitting.</span>
             <LoadTraitsFromFile onFileRead={handleFileRead} />
