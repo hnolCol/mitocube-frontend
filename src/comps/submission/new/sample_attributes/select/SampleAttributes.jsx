@@ -426,6 +426,7 @@ function SamplesAttributes({
                     defaultRowHeight={60}
                     rowHeights={tableRowHeights}
                     selectionModes={SelectionModes.CELLS}
+                    defaultColumnWidth={300}
                     minColumnWidth={300}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
