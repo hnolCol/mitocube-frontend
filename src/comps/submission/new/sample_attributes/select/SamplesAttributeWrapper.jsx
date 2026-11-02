@@ -193,41 +193,60 @@ export const collectInputFields = (row, attribute_tag) => {
     const attributeNode = _.isArray(row) ? row.find(p => p.type === "attribute" && p.tag === attribute_tag) : undefined
     if (!attributeNode) return []
 
-    const selectedTrait = _.isArray(attributeNode.children) && attributeNode.children.length > 0
-        ? attributeNode.children.find(c => c.type === "trait")
-        : undefined
-    if (!selectedTrait) return []
-
-    // nested: one input field per selected child attribute under the selected trait
-    const childAttributes = _.isArray(selectedTrait.children)
-        ? selectedTrait.children.filter(c => c.type === "attribute")
+    const selectedTraits = _.isArray(attributeNode.children)
+        ? attributeNode.children.filter(c => c.type === "trait")
         : []
-    if (childAttributes.length > 0) {
-        return childAttributes
-            .map(childAttribute => {
-                const childTrait = _.isArray(childAttribute.children) && childAttribute.children.length > 0
-                    ? childAttribute.children.find(c => c.type === "trait")
-                    : undefined
-                if (!childTrait) return undefined
-                return {
-                    path: [
-                        { type: "trait", tag: selectedTrait.tag },
-                        { type: "attribute", tag: childAttribute.tag },
-                        { type: "trait", tag: childTrait.tag }
-                    ],
-                    attribute_tag: childAttribute.tag,
-                    trait_tag: childTrait.tag
-                }
-            })
-            .filter(Boolean)
-    }
 
-    // flat input attribute: the selected trait itself carries the value
-    return [{
-        path: [{ type: "trait", tag: selectedTrait.tag }],
-        attribute_tag,
-        trait_tag: selectedTrait.tag
-    }]
+    return _.flatten(selectedTraits.map(selectedTrait => {
+        // nested: one input field per selected child attribute under the selected trait
+        const childAttributes = _.isArray(selectedTrait.children)
+            ? selectedTrait.children.filter(c => c.type === "attribute")
+            : []
+        if (childAttributes.length > 0) {
+            return childAttributes
+                .map(childAttribute => {
+                    const childTrait = _.isArray(childAttribute.children) && childAttribute.children.length > 0
+                        ? childAttribute.children.find(c => c.type === "trait")
+                        : undefined
+                    if (!childTrait) return undefined
+                    return {
+                        path: [
+                            { type: "trait", tag: selectedTrait.tag },
+                            { type: "attribute", tag: childAttribute.tag },
+                            { type: "trait", tag: childTrait.tag }
+                        ],
+                        attribute_tag: childAttribute.tag,
+                        trait_tag: childTrait.tag
+                    }
+                })
+                .filter(Boolean)
+        }
+
+        // flat input attribute: the selected trait itself carries the value
+        return [{
+            path: [{ type: "trait", tag: selectedTrait.tag }],
+            attribute_tag,
+            trait_tag: selectedTrait.tag
+        }]
+    }))
+}
+
+/**
+ * @description Resolves the pasted input field against a target row's own trait
+ * selection so that pasting values does not copy the source row's traits into
+ * the target row. Falls back to the source field path when the row has no
+ * matching input field.
+ * @param {Object[]} row - The attribute nodes of the target sample row.
+ * @param {String} attribute_tag - The sample attribute (table column).
+ * @param {Object} field - The source input field (from collectInputFields).
+ * @returns {Object[]} The trait path of the input field within the target row.
+ */
+export const resolveRowInputField = (row, attribute_tag, field) => {
+    const rowFields = collectInputFields(row, attribute_tag)
+    if (rowFields.length === 0) return field.path
+    return (rowFields.find(f => f.attribute_tag === field.attribute_tag && f.trait_tag === field.trait_tag)
+        ?? rowFields.find(f => f.attribute_tag === field.attribute_tag)
+        ?? rowFields[0]).path
 }
 
 export function addIDToHierarchy(data, id) {
@@ -460,15 +479,15 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      * input field of the given rows. If there are more values than selected rows, the
      * values are filled downwards starting at the first selected row (Excel-like).
      * @param {String} attribute_tag - The sample attribute (table column).
-     * @param {Object[]} fieldPath - The trait path of the input field within the row's hierarchy.
+     * @param {Object} field - The input field (path, attribute_tag, trait_tag) the values are pasted into.
      * @param {String[]} values - One value per row (excess values fill further rows).
      * @param {Number[]} rowIdces - The row indices the values are pasted into.
      */
-    const onPasteValuesForAttribute = (attribute_tag, fieldPath, values, rowIdces) => {
+    const onPasteValuesForAttribute = (attribute_tag, field, values, rowIdces) => {
 
         if (!_.isArray(values) || values.length === 0) return
         if (!_.isArray(rowIdces) || rowIdces.length === 0) return
-        if (!_.isArray(fieldPath) || fieldPath.length === 0) return
+        if (!_.isObject(field) || !_.isArray(field.path) || field.path.length === 0) return
 
         let d = submission.attributeTable.slice()
 
@@ -482,9 +501,10 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             const value = values[idx]
             if (value === undefined || rowIndex >= submission.sampleNames.length) return
 
+            const rowFieldPath = resolveRowInputField(d[rowIndex], attribute_tag, field)
             findAndInsertTree(d[rowIndex], addIDToPath([
                 { type: "attribute", tag: attribute_tag },
-                ...fieldPath.map((t, fieldIdx) => fieldIdx === fieldPath.length - 1
+                ...rowFieldPath.map((t, fieldIdx) => fieldIdx === rowFieldPath.length - 1
                     ? { type: t.type, tag: t.tag, value }
                     : { type: t.type, tag: t.tag })
             ], submission.referenceIDs[rowIndex]), {})
