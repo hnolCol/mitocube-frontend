@@ -8,15 +8,18 @@
 
 .welcome-nav__button {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 1rem;
-    background: transparent;
-    border: 1px solid #e5e7eb;
+    justify-content: center;
+    text-align: center;
+    gap: 0.75rem;
+    background: #fbfcfe;
+    border: 1px solid #d3dbe5;
     border-radius: 12px;
-    padding: 1rem 1.75rem;
+    padding: 1.25rem 1.75rem;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 1px 3px rgba(70, 102, 136, 0.08);
 }
 
 .welcome-nav__button:hover {
@@ -47,11 +50,12 @@
 
 .welcome-nav__label {
     font-size: 1.5rem;
-    font-weight: 500;
-    color: #374151;
+    font-weight: 600;
+    color: #466688;
     transition: color 0.2s ease;
+    line-height: 1.2;
 }
 
 .welcome-nav__button:hover .welcome-nav__label {
-    color: #466688;
+    color: #2f4864;
 }
