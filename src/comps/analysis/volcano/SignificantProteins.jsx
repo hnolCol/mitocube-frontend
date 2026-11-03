@@ -658,8 +658,8 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
         const upTags = new Set()
         const downTags = new Set()
         suffixes.forEach(suffix => {
-            (sets[suffix]?.up || []).forEach(tag => upTags.add(tag))
-            (sets[suffix]?.down || []).forEach(tag => downTags.add(tag))
+            ;(sets[suffix]?.up || []).forEach(tag => upTags.add(tag))
+            ;(sets[suffix]?.down || []).forEach(tag => downTags.add(tag))
         })
         return { up: upTags.size, down: downTags.size, all: new Set([...upTags, ...downTags]).size }
     }, [sets, suffixes])
