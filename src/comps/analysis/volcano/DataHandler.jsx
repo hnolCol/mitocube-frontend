@@ -30,6 +30,9 @@ export function VolcanoDataHandler({
         proteinSearchResults,
         onToggleProteinLabel,
         onLabelProteinList,
+        onMarkProteinList,
+        onRemoveAllLabels,
+        markedProteinList,
         proteinHoverResults,
         favoriteProteinSelection,
         favoriteAnnotationSelection,
@@ -278,9 +281,9 @@ export function VolcanoDataHandler({
     }, [favoriteProteinSelection, selectedAnnotationProteins, showHoverLabels])
 
     const externalHoverResult = useMemo(() => {
-        const values = _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])])
+        const values = _.uniq([...(proteinHoverResults?.values || []), ...(markedProteinList?.values || []), ...(hoveredAnnotationProteins ?? [])])
         return { values, trigger: values.join("|"), key: "tag" }
-    }, [proteinHoverResults, hoveredAnnotationProteins])
+    }, [proteinHoverResults, markedProteinList, hoveredAnnotationProteins])
 
     const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
 
@@ -305,7 +308,10 @@ export function VolcanoDataHandler({
                 setRequiredProteinTags={setRequiredProteinTags}
                 favoriteProteinSelection={favoriteProteinSelection}
                 onToggleProteinLabel={onToggleProteinLabel}
-                onLabelProteinList={onLabelProteinList} /> : null}
+                onLabelProteinList={onLabelProteinList}
+                markedProteinTags={markedProteinList?.values ?? []}
+                onMarkProteinList={onMarkProteinList}
+                onRemoveAllLabels={onRemoveAllLabels} /> : null}
         
         <InteractiveChart
                 data={volcanoData.data}
@@ -365,7 +371,10 @@ export function VolcanoDataHandler({
                                             setRequiredProteinTags={setRequiredProteinTags}
                                             favoriteProteinSelection={favoriteProteinSelection}
                                             onToggleProteinLabel={onToggleProteinLabel}
-                                            onLabelProteinList={onLabelProteinList} />
+                                            onLabelProteinList={onLabelProteinList}
+                                            markedProteinTags={markedProteinList?.values ?? []}
+                                            onMarkProteinList={onMarkProteinList}
+                                            onRemoveAllLabels={onRemoveAllLabels} />
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
                                         </div>
