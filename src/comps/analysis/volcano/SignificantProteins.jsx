@@ -1,6 +1,7 @@
 import _ from "lodash"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Button, ButtonGroup, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Tab, Tabs } from "@blueprintjs/core"
+import { Button, ButtonGroup, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Tab, Tabs, Tooltip } from "@blueprintjs/core"
+import { useNavigate } from "react-router"
 import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
@@ -70,6 +71,87 @@ function directionTags(set, direction) {
     return _.isArray(set[direction]) ? set[direction] : []
 }
 
+function rowDirectionInfo(row, suffixes) {
+    let hasUp = false
+    let hasDown = false
+    suffixes.forEach(suffix => {
+        if (!isSignificantValue(row[significantFieldName(suffix)])) return
+        const log2fc = row[log2FCFieldName(suffix)]
+        if (_.isNumber(log2fc) && log2fc > 0) hasUp = true
+        if (_.isNumber(log2fc) && log2fc < 0) hasDown = true
+    })
+    return { hasUp, hasDown, discordant: hasUp && hasDown }
+}
+
+function RowDirectionBadge({ row, suffixes }) {
+    const { hasUp, hasDown, discordant } = rowDirectionInfo(row, suffixes)
+    if (discordant) return <Tooltip content="Significant in both directions across volcanos (up and down)." compact={true}>
+        <span className="font-size--small font-weight--bold">{"\u2191\u2193"}</span>
+    </Tooltip>
+    if (hasUp) return <span className="font-size--small font-weight--bold">{"\u2191"}</span>
+    if (hasDown) return <span className="font-size--small font-weight--bold">{"\u2193"}</span>
+    return null
+}
+
+function rowDirectionBackgroundColor(row, suffixes) {
+    const { hasUp, hasDown, discordant } = rowDirectionInfo(row, suffixes)
+    if (discordant) return "#fdf3d7"
+    if (hasUp) return "#eef7ee"
+    if (hasDown) return "#f5eff9"
+    return undefined
+}
+
+function sortRowsForTable(rows, sortState, suffixes, proteinTagMap) {
+    if (!_.isObject(sortState) || !_.isString(sortState.key)) return rows
+    const [columnType, suffix] = sortState.key.split("::")
+    const valueOf = row => {
+        if (columnType === "name") return displayNamesForRow(proteinTagMap, row).toLowerCase()
+        if (!_.isString(suffix)) return undefined
+        const log2fc = row[log2FCFieldName(suffix)]
+        if (columnType === "fc") return _.isNumber(log2fc) ? Math.pow(2, log2fc) : undefined
+        if (columnType === "p") return row[pValueFieldName(suffix)]
+        return log2fc
+    }
+    const directionFactor = sortState.order === "asc" ? 1 : -1
+    return [...rows].sort((a, b) => {
+        const valueA = valueOf(a)
+        const valueB = valueOf(b)
+        if (valueA === valueB) return 0
+        if (valueB === undefined) return -1
+        if (valueA === undefined) return 1
+        return (valueA < valueB ? -1 : 1) * directionFactor
+    })
+}
+
+function SortableTh({ sortKey, sortState, onSortChange, children }) {
+    const isActive = _.isObject(sortState) && sortState.key === sortKey
+    const handleClick = () => onSortChange(isActive
+        ? { key: sortKey, order: sortState.order === "asc" ? "desc" : "asc" }
+        : { key: sortKey, order: "desc" })
+    return <th style={{ cursor: "pointer", userSelect: "none" }} onClick={handleClick}>
+        {children} <span className="font-size--smallest">{isActive ? (sortState.order === "asc" ? "\u25b2" : "\u25bc") : "\u21c5"}</span>
+    </th>
+}
+
+function exportRowsAsCSV({ rows, suffixes, proteinTagMap, fileName }) {
+    const header = ["Protein", "Tags", ...suffixes.flatMap(suffix => [`log2FC (${suffix})`, `-log10 p-value (${suffix})`, `Fold change (${suffix})`])]
+    const lines = [header.join("\t")]
+    _.forEach(rows, row => {
+        lines.push([
+            `"${displayNamesForRow(proteinTagMap, row)}"`,
+            row.tag,
+            ...suffixes.flatMap(suffix => [formatLog2FC(row[log2FCFieldName(suffix)]), formatPValue(row[pValueFieldName(suffix)]), formatFoldChange(row[log2FCFieldName(suffix)])])
+        ].join("\t"))
+    })
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = fileName
+    link.click()
+    URL.revokeObjectURL(url)
+}
+
 /**
  * @description Extracts the significant up- and downregulated proteins of a volcano from the merged volcano data.
  * @param {Object[]} data The merged volcano data rows.
@@ -107,7 +189,9 @@ function usePrefetchProteinNames(rows, proteinTagMap, setRequiredProteinTags) {
  * (so they survive closing the drawer); rows can be ticked to label the proteins in the volcano plot.
  */
 export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequiredProteinTags, direction, submission_tag,
-        searchString, onSearchStringChange, visibleCount, onVisibleCountChange, selectedProteinTags = [], onToggleProteinLabel, onLabelProteinList }) {
+        searchString, onSearchStringChange, visibleCount, onVisibleCountChange, selectedProteinTags = [], onToggleProteinLabel, onLabelProteinList,
+        sortState, onSortChange }) {
+    const navigate = useNavigate()
     const debouncedSearchString = useDebounce(searchString, 300)
 
     const searchIsInactive = !_.isString(searchString) || searchString.trim().length === 0
@@ -130,7 +214,9 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
         })
     }, [rows, debouncedSearchString, searchResults, searchIsInactive, proteinTagMap])
 
-    const visibleRows = useMemo(() => filteredRows.slice(0, visibleCount), [filteredRows, visibleCount])
+    const sortedFilteredRows = useMemo(() => sortRowsForTable(filteredRows, sortState, suffixes, proteinTagMap), [filteredRows, sortState, suffixes, proteinTagMap])
+
+    const visibleRows = useMemo(() => sortedFilteredRows.slice(0, visibleCount), [sortedFilteredRows, visibleCount])
 
     // without an active search, protein names are only fetched for the visible rows
     usePrefetchProteinNames(searchIsInactive ? visibleRows : filteredRows, proteinTagMap, setRequiredProteinTags)
@@ -163,28 +249,41 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
                 disabled={filteredRows.length === 0}
                 onClick={() => onLabelProteinList(_.uniq(filteredRows.flatMap(row => rowProteinTags(row))))} /> : null}
             {_.isString(submission_tag) ? <SaveAsAnnotationButton rows={filteredRows} submission_tag={submission_tag} /> : null}
+            <Button small={true} variant="minimal" icon="export" text="Export CSV"
+                disabled={filteredRows.length === 0}
+                onClick={() => exportRowsAsCSV({ rows: filteredRows, suffixes, proteinTagMap, fileName: `significant-proteins-${direction}.csv` })} />
         </div>
         <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "auto" }}>
             <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
                 <thead style={{ position: "sticky", top: 0, backgroundColor: "#ffffff", zIndex: 1, boxShadow: "0 1px 0 rgba(0,0,0,0.2)" }}>
                     <tr>
                         {_.isFunction(onToggleProteinLabel) ? <th>Label</th> : null}
-                        <th>Protein</th>
-                        {suffixes.map(suffix => <th key={`log2fc-${suffix}`}>{`log2FC (${suffix})`}</th>)}
-                        {suffixes.map(suffix => <th key={`p-${suffix}`}>{`-log10 p-value (${suffix})`}</th>)}
-                        {suffixes.map(suffix => <th key={`fc-${suffix}`}>{`Fold change (${suffix})`}</th>)}
+                        <SortableTh sortKey="name" sortState={sortState} onSortChange={onSortChange}>Protein</SortableTh>
+                        {direction === "all" ? <th>Direction</th> : null}
+                        {suffixes.map(suffix => <SortableTh key={`log2fc-${suffix}`} sortKey={`log2FC::${suffix}`} sortState={sortState} onSortChange={onSortChange}>{`log2FC (${suffix})`}</SortableTh>)}
+                        {suffixes.map(suffix => <SortableTh key={`p-${suffix}`} sortKey={`p::${suffix}`} sortState={sortState} onSortChange={onSortChange}>{`-log10 p-value (${suffix})`}</SortableTh>)}
+                        {suffixes.map(suffix => <SortableTh key={`fc-${suffix}`} sortKey={`fc::${suffix}`} sortState={sortState} onSortChange={onSortChange}>{`Fold change (${suffix})`}</SortableTh>)}
                     </tr>
                 </thead>
                 <tbody>
                     {visibleRows.map(row => {
                         const tags = rowProteinTags(row)
                         const selectedTagCount = tags.filter(tag => selectedProteinTags.includes(tag)).length
-                        return <tr key={row.tag}>
+                        const rowBackgroundColor = direction === "all" ? rowDirectionBackgroundColor(row, suffixes) : undefined
+                        return <tr key={row.tag} style={{ backgroundColor: rowBackgroundColor }}>
                             {_.isFunction(onToggleProteinLabel) ? <td><Checkbox
                                 checked={selectedTagCount > 0}
                                 indeterminate={selectedTagCount > 0 && selectedTagCount < tags.length}
                                 onChange={() => handleToggleLabel(row)} /></td> : null}
-                            <td>{displayNamesForRow(proteinTagMap, row)}</td>
+                            <td>
+                                {tags.length === 1
+                                    ? <span style={{ cursor: "pointer", textDecoration: "underline" }}
+                                        onClick={() => navigate(`/protein/${tags[0]}`)}>
+                                        {displayNamesForRow(proteinTagMap, row)}
+                                    </span>
+                                    : displayNamesForRow(proteinTagMap, row)}
+                            </td>
+                            {direction === "all" ? <td><RowDirectionBadge row={row} suffixes={suffixes} /></td> : null}
                             {suffixes.map(suffix => <td key={`log2fc-${suffix}`}>{formatLog2FC(row[log2FCFieldName(suffix)])}</td>)}
                             {suffixes.map(suffix => <td key={`p-${suffix}`}>{formatPValue(row[pValueFieldName(suffix)])}</td>)}
                             {suffixes.map(suffix => <td key={`fc-${suffix}`}>{formatFoldChange(row[log2FCFieldName(suffix)])}</td>)}
@@ -278,6 +377,7 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
     const [direction, setDirection] = useState("up")
     const [searchString, setSearchString] = useState("")
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+    const [sortState, setSortState] = useState(undefined)
     const { up, down, all } = useMemo(() => getSignificantRows(data, suffix), [data, suffix])
 
     const selectedRows = direction === "up" ? up : direction === "down" ? down : all
@@ -286,6 +386,7 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
         setDirection(newDirection)
         setSearchString("")
         setVisibleCount(PAGE_SIZE)
+        setSortState(undefined)
     }
 
     return <>
@@ -299,6 +400,7 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
                     proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction}
                     searchString={searchString} onSearchStringChange={setSearchString}
                     visibleCount={visibleCount} onVisibleCountChange={setVisibleCount}
+                    sortState={sortState} onSortChange={setSortState}
                     selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
                     onLabelProteinList={onLabelProteinList} />
             </div>
@@ -380,8 +482,8 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
             sharedCount={shared.length}
             rightOnlyCount={rightOnly.length}
             onSelect={(newSegment) => updateState(newSegment === segment
-                ? { segment: undefined, searchString: "", visibleCount: PAGE_SIZE }
-                : { segment: newSegment, searchString: "", visibleCount: PAGE_SIZE })} />
+                ? { segment: undefined, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined }
+                : { segment: newSegment, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined })} />
         {segmentTitle ? <div className="margin-top--little">
             <span className="font-size--small">{segmentTitle}</span>
             <SignificantProteinTable
@@ -389,6 +491,7 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction}
                 searchString={selectionState.searchString ?? ""} onSearchStringChange={searchString => updateState({ searchString })}
                 visibleCount={selectionState.visibleCount ?? PAGE_SIZE} onVisibleCountChange={visibleCount => updateState({ visibleCount })}
+                sortState={selectionState.sortState} onSortChange={sortState => updateState({ sortState })}
                 selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
                 onLabelProteinList={onLabelProteinList} />
         </div> : null}
@@ -403,6 +506,35 @@ const VOLCANO_COLORS = ["#7fbf7b", "#af8dc3", "#fdbf6b", "#80b1d3", "#fb8072", "
 function volcanoColor(suffixes, suffix) {
     const idx = suffixes.indexOf(suffix)
     return VOLCANO_COLORS[idx % VOLCANO_COLORS.length]
+}
+
+
+const UPSET_DOT_SPACING = 18
+const UPSET_DOT_RADIUS = 5
+
+function UpSetDots({ suffixes, memberSuffixes }) {
+    const width = suffixes.length * UPSET_DOT_SPACING + 4
+    const height = 16
+    const centerY = height / 2
+    const memberCenters = suffixes
+        .map((suffix, idx) => ({ idx, suffix, cx: idx * UPSET_DOT_SPACING + UPSET_DOT_SPACING / 2 + 2 }))
+        .filter(({ suffix }) => memberSuffixes.includes(suffix))
+    return <svg width={width} height={height} style={{ flexShrink: 0 }}>
+        {memberCenters.length > 1
+            ? <polyline
+                points={memberCenters.map(({ cx }) => `${cx},${centerY}`).join(" ")}
+                stroke="#8a8a8a"
+                strokeWidth={2}
+                fill="none" />
+            : null}
+        {suffixes.map((suffix, idx) => {
+            const isMember = memberSuffixes.includes(suffix)
+            const cx = idx * UPSET_DOT_SPACING + UPSET_DOT_SPACING / 2 + 2
+            return <circle key={suffix} cx={cx} cy={centerY} r={UPSET_DOT_RADIUS}
+                fill={isMember ? volcanoColor(suffixes, suffix) : "transparent"}
+                stroke={volcanoColor(suffixes, suffix)} />
+        })}
+    </svg>
 }
 
 
@@ -453,21 +585,14 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
         <div className="flex flex-column" style={{ gap: "0.2rem" }}>
             {visibleEntries.map(entry => {
                 const isSelected = selectedSignatureKey === entry.key
-                return <div key={entry.key} className="flex center-items"
+                return <Tooltip key={entry.key} compact={true}
+                    content={`${entry.tags.length} proteins significant in: ${entry.key}`}>
+                    <div className="flex center-items"
                     style={{ gap: "0.3rem", cursor: "pointer", backgroundColor: isSelected ? "#efefef" : "white" }}
                     onClick={() => updateState(entry.key === selectedSignatureKey
-                        ? { signatureKey: undefined, searchString: "", visibleCount: PAGE_SIZE }
-                        : { signatureKey: entry.key, searchString: "", visibleCount: PAGE_SIZE })}>
-                    <div className="flex center-items" style={{ gap: "0.5rem" }}>
-                        {suffixes.map(suffix => {
-                            const isMember = entry.suffixes.includes(suffix)
-                            return <span key={suffix} style={{
-                                width: "0.65rem", height: "0.65rem", borderRadius: "50%", display: "inline-block",
-                                backgroundColor: isMember ? volcanoColor(suffixes, suffix) : "transparent",
-                                border: `1px solid ${volcanoColor(suffixes, suffix)}`
-                            }} />
-                        })}
-                    </div>
+                        ? { signatureKey: undefined, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined }
+                        : { signatureKey: entry.key, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined })}>
+                    <UpSetDots suffixes={suffixes} memberSuffixes={entry.suffixes} />
                     <div style={{ width: "200px", flexShrink: 0 }}>
                         <div style={{
                             width: `${(entry.tags.length / maxCount) * 100}%`,
@@ -478,6 +603,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
                     <span className="font-size--small font-weight--bold">{entry.tags.length}</span>
                     <span className="font-size--smallest">in {entry.suffixes.length} of {suffixes.length} volcanos</span>
                 </div>
+                </Tooltip>
             })}
         </div>
         {signatureEntries.length > visibleEntries.length
@@ -490,6 +616,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction}
                 searchString={selectionState.searchString ?? ""} onSearchStringChange={searchString => updateState({ searchString })}
                 visibleCount={selectionState.visibleCount ?? PAGE_SIZE} onVisibleCountChange={visibleCount => updateState({ visibleCount })}
+                sortState={selectionState.sortState} onSortChange={sortState => updateState({ sortState })}
                 selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
                 onLabelProteinList={onLabelProteinList} />
         </div> : null}
