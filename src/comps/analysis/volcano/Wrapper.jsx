@@ -69,6 +69,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [volcanoData, setVolcanoData] = useState(INIT_VOLCANO_DATA)
     const [favoriteProteinSelection, setFavoriteProteinSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
+    const [markedProteinList, setMarkedProteinList] = useState({ values: [], trigger: undefined, key: "tag" })
     const [selectedAnnotations, setSelectedAnnotations] = useState([])
     const [favoriteAnnotationSelection, setFavoriteAnnotationSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [annotationHoverResults, setAnnotationHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
@@ -83,6 +84,18 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const handleLabelProteinList = (proteinTags) => {
         if (!_.isArray(proteinTags) || proteinTags.length === 0) return
         setFavoriteProteinSelection(prevValues => { return { ...prevValues, values : _.uniq([...prevValues.values, ...proteinTags]), trigger: Math.random() } })
+    }
+
+    const handleMarkProteinList = (proteinTags) => {
+        if (!_.isArray(proteinTags)) return
+        setMarkedProteinList(prevValues => {
+            const isToggleOff = prevValues.values.length === proteinTags.length && _.difference(prevValues.values, proteinTags).length === 0
+            return { values: isToggleOff ? [] : proteinTags, trigger: Math.random(), key: "tag" }
+        })
+    }
+
+    const handleRemoveAllLabels = () => {
+        setFavoriteProteinSelection(prevValues => { return { ...prevValues, values: [], trigger: Math.random() } })
     }
 
     const handleProteinHover = (proteinTag) => {
@@ -179,6 +192,9 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                             submission_tag,
                             onToggleProteinLabel: handleFavoriteSelect,
                             onLabelProteinList: handleLabelProteinList,
+                            onMarkProteinList: handleMarkProteinList,
+                            onRemoveAllLabels: handleRemoveAllLabels,
+                            markedProteinList,
                             selectedTestParams: testParams,
                             setIsFetching,
                             onError: setError,
@@ -200,7 +216,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, onLabelProteinList, showHoverLabels = false }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, onLabelProteinList, onMarkProteinList, onRemoveAllLabels, markedProteinList, showHoverLabels = false }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
     return <WithTagMaps
@@ -212,6 +228,9 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                         submission_tag, 
                         onToggleProteinLabel,
                         onLabelProteinList,
+                        onMarkProteinList,
+                        onRemoveAllLabels,
+                        markedProteinList,
                         volcanoData,
                         setVolcanoData,
                         selectedTestParams,
