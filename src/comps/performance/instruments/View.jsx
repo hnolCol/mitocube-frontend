@@ -11,6 +11,7 @@ import { MaintenanceView } from "../maintenance/MaintenanceView"
 import { InstrumentStateDurationChart, InstrumentStateHeatmap, UtilizationStat } from "../Statistics/StateCharts"
 import { InstrumentQuantificationChart, TotalVsQuantifiedStat } from "../Statistics/QuantificationCharts"
 import { InstrumentSubmissionLists } from "../Statistics/Submissions"
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
 const labelStyle = {
     fontSize: "0.7rem",
