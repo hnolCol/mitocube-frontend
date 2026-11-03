@@ -54,7 +54,7 @@ export function Collapsible({ title, defaultOpen = false, children }) {
                 <viz.text.SectionLabel>{title}</viz.text.SectionLabel>
                 <span style={{ fontSize: "0.75rem", color: "#bbb" }}>{open ? "▼" : "▶"}</span>
             </div>
-            {open ? <div style={{ marginTop: "0.25rem" }}>{children}</div> : null}
+            {open ? <div className="margin-top-bottom--smallest">{children}</div> : null}
         </div>
     )
 }

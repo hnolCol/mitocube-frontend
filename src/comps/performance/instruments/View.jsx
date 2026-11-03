@@ -73,13 +73,13 @@ function Tabs({ selected, onChange }) {
 
 function StatsTab({ instrument_tag }) {
     return (
-        <div className="flex" style={{ gap: "1rem" }}>
+        <div className="flex gap--medium">
             <div className="flex flex-column" style={{ width: "260px", flexShrink: 0, gap: "0.75rem" }}>
-                <div className="bg--white div--round padding--little" style={{ flex: 1 }}>
+                <div className="bg--white div--round padding--little width--expand">
                     <InstrumentStateDurationChart instrument_tag={instrument_tag} />
                 </div>
-                <div style={{ flex: 1 }}><UtilizationStat instrument_tag={instrument_tag} /></div>
-                <div style={{ flex: 1 }}><TotalVsQuantifiedStat instrument_tag={instrument_tag} /></div>
+                <div className="width--expand"><UtilizationStat instrument_tag={instrument_tag} /></div>
+                <div className="width--expand"><TotalVsQuantifiedStat instrument_tag={instrument_tag} /></div>
             </div>
 
             <div className="flex flex-column" style={{ flex: 1, minWidth: 0, gap: "0.75rem" }}>
@@ -128,7 +128,18 @@ export function InstrumentView() {
                                 <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 600 }}>{instrument.text}</h2>
                                 <InstrumentStateIndicator instrument_tag={instrument_tag} />
                             </div>
-                            <InsertMaintenanceEvent instrument_tag={instrument_tag} />
+                            <div className="font-size--small">{instrument.description}</div>
+                        </>
+                    ) : null}
+
+                    <div className="margin-top--medium">
+                        <div className="flex gap--default">
+                            <OptionButton isSelected={activeTab === "maintenance"} onClick={() => setSearchParams({ tab: "maintenance" })}>
+                                Maintenance
+                            </OptionButton>
+                            <OptionButton isSelected={activeTab === "stats"} onClick={() => setSearchParams({ tab: "stats" })}>
+                                Statistics
+                            </OptionButton>
                         </div>
 
                         {instrument.description ? (

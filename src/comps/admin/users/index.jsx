@@ -33,11 +33,8 @@ export function UsersAdminView({ authenticationStatus }) {
     const isAdmin = _.toNumber(authenticationStatus?.role) === 4
 
     return (
-        <div
-            className="div--expand padding--medium"
-            style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
-        >
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="div--expand padding--medium flex-column--full-height">
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Users</h3>
                 <div className="flex">
                     <Alert
@@ -71,7 +68,7 @@ export function UsersAdminView({ authenticationStatus }) {
                         value={searchString}
                         onChange={(e) => setSearchString(e.target.value)}
                     />
-                    <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                    <div className="flex center-items gap--default">
                         <span className="font-size--small">Filter by role:</span>
                         <UserRoleSelection
                             selectedRole={selectedRole}
@@ -97,7 +94,7 @@ export function UsersAdminView({ authenticationStatus }) {
                         ))}
                     </div>
                     <div style={{ height: "1.5rem" }}>
-                        {isError ? <span className="font-size--small" style={{ color: "#a82a2a" }}>Error loading users.</span> : null}
+                        {isError ? <span className="font-size--small font-color--error">Error loading users.</span> : null}
                         {isLoading ? <span className="font-size--small">Searching...</span> : null}
                     </div>
                     <div className="flex center-items font-size--small" style={{ color: "#666", gap: "0.3rem" }}>

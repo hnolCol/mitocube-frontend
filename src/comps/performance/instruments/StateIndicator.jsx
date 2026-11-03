@@ -93,7 +93,7 @@ export function InstrumentStateIndicator({ instrument_tag, allowUpdate = true })
             borderRadius: 999,
             color: isHexColorLight(stateColor) ? "black" : "white",
         }}>
-            <div className="flex center-items" style={{ gap: "0.4rem" }}>
+            <div className="flex center-items gap--medium-small">
                 <div>{titleFormat(current?.text ?? "No state")}</div>
                 {canUpdate ? (
                 <div onClick={() => setOpen(o => !o)} className="flex center-items" style={{ cursor: "pointer" }}>

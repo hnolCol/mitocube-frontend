@@ -42,7 +42,7 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
       }
 
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
 
             <EditProcedureDialog isOpen={isOpen} onClose={() => handleEditClose()} procedure_tag = {procedure_tag}/>
@@ -56,7 +56,7 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
             
             <ProcedureText procedure_tag={procedure_tag} update={update} />
 
-            <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+            <div className="flex gap--small align-center gap--medium-small">
             {permissions?.edit && (
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit
@@ -84,12 +84,12 @@ export function ProcedureItem({ procedure_tag, showDetails = false, updateProced
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <th className="table-head-cell">Description</th>
                 <td><ProcedureDescription procedure_tag={procedure_tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Priority</th>
+                <th className="table-head-cell">Priority</th>
                 <td><ProcedurePriority procedure_tag={procedure_tag} update={update} /></td>
             </tr>
             </tbody>

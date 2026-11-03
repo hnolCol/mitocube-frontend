@@ -41,7 +41,7 @@ export function AnnotationGroupSearch({ selectedGroup, onSelectGroup }) {
         }}
       >
         <div>
-          <h3 style={{ margin: 0 }}>Annotation Groups</h3>
+          <h3 className="margin--none-reset">Annotation Groups</h3>
         </div>
         <div>
           <button className="basic-button" onClick={() => setIsOpen(true)}>

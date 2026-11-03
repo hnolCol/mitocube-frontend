@@ -53,7 +53,7 @@ export function AttributeGroupSelection({ onSelection, selected_tags = [], allow
                     <OptionButton onClick={() => setIsAddOpen(true)} isSelected={false} children={<span title="Add group">+</span>}/>
                 )}
                 {allowAdd && isAddOpen && (
-                    <span style={{ position: "relative" }}>
+                    <span className="position--relative">
                         <input
                             className="text-input"
                             type="text"

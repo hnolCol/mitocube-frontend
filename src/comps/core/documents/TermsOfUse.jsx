@@ -22,9 +22,9 @@
 
 // function MainSection({useterms}) {
 
-//     if (!_.isArray(useterms.data_policy_sections)) return null     
-//     return (
-//         <div className="margin--medium" style={{ overflowY: "scroll" }}>
+    if (!_.isArray(useterms.data_policy_sections)) return null     
+    return (
+        <div className="margin--medium container--scroll-y-hide-x">
             
 //             {useterms.data_policy_sections.map(section => {
 //                 return <div><h3>{section.header}</h3><p>{section.text}</p>

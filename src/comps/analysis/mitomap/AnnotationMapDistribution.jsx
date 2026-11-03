@@ -57,12 +57,12 @@ export function AnnotationMapDistribution({ tag, tagType = "annotation", submiss
     const fills = isReady ? tagQueries.map(d => (d.data?.annotation_tag || d.data?.annotation_group_tag) ? "red" : "#efefef") : []
     const markerValues = isReady ? tagQueries.map((d, i) => (i === 1 && _.isNumber(markerValue)) ? markerValue : undefined) : []
     const markerLabels = isReady ? tagQueries.map((d, i) => (i === 1 && _.isString(markerLabel)) ? markerLabel : undefined) : []
-    return <div className="flex flex-column" style={{ gap: "0.25rem" }}>
+    return <div className="flex flex-column gap--smallest">
         {!isReady && <Loading />}
         {isReady && distributions.length === 0 ? <span>No quantified proteins for this comparison.</span> : null}
 
         {isReady && distributions.length > 0 ? <>
-            <h3 style={{ margin: 0 }}>{`log2FC ${suffix}`}</h3>
+            <h3 className="margin--none-reset">{`log2FC ${suffix}`}</h3>
             <div className="flex" style={{ gap: "0.75rem" }}>
                 <div style={{ flexShrink: 0, width: totalWidth, height: height }}>
                 <viz.charts.minimal.MinimalBoxplots

@@ -11,6 +11,7 @@ import { SubmissionTitle } from "./SubmissionTitle";
 
 
 import { api } from "@/api";
+import "../../welcome/welcome.css";
 
 MinimalSubmissionItem.propTypes = {
     tag: PropTypes.string.isRequired
@@ -31,13 +32,13 @@ export function MinimalSubmissionItem({ tag, onClick, redirectOnClick = true, sh
     const redirect = useNavigate()
     const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
     return (
-        <motion.button style={{ backgroundColor: "#efefef", border: "none" }} whileHover={{ backgroundColor: "#e0e0e0" }}
+        <motion.button
             onClick={(e) => {
                 onClick ? onClick(e) : null
                 // Redirect to the submission view
                 redirectOnClick ? redirect(`/submissions/${tag}`) : null
                 e.stopPropagation()
-            }} className="submission__item__container bg--white">
+            }} whileHover={{ scale: 1.01 }} className="submission-item-btn">
             <div className="flex"> 
                 <div>{_.isNumber(created_at) && showCreatedAt?<div  className="flex justify-space-between" style={{width : "6rem"}}><CreatedAt createdat={created_at} addFromNow={false} /> <span>|</span></div> : null}</div>
                 <span className="padding-left--little"> <SubmissionTitle tag={tag} showEdit={false} showCopyToClipboard={false} /> </span>

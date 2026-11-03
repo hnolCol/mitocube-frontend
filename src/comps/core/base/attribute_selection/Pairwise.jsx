@@ -1,7 +1,7 @@
 
 import _ from "lodash"
-import { useEffect, useState } from "react"
-import {  Checkbox, Tooltip } from "@blueprintjs/core"
+import { useEffect, useRef, useState } from "react"
+import {  Callout, Checkbox, Tooltip } from "@blueprintjs/core"
 import Loading from "../loading"
 import { AttributeSelection } from "../attributes/AttributeSelection"
 import { Attribute } from "../attributes/Attribute"
@@ -14,6 +14,7 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette"
 import { Cell, Column, Table2 } from "@blueprintjs/table"
 import { AnnotationSelectionMenu } from "../annotations/AnnotationSelectionMenu"
 import { api } from "@/api"
+import { usePrefetchAttributes } from "@/api/orchestrated/attributes"
 
 CAGroupSelection.propTypes = {
     ca_tags : PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.string)).isRequired,
@@ -91,13 +92,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
         const isSelected = arraysEqual(item, selected)
         const isExcluded = arraysEqual(item, exclude_tags)
         return (
-            <motion.button
-                whileHover={isExcluded ? {} : { backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
-                disabled={!active}
-                className={`flex ${minimal ? "basic-button--small" : "basic-button"} ${isExcluded ? "basic-button--excluded" : isSelected ? "basic-button--highlighted" : ""}`}
-                style={{ width: "100%" }}
-                onClick={handleClick}
-            >
+            <motion.button whileHover={isExcluded ? {} : { backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }} disabled={!active} className={`flex width--full ${minimal ? "basic-button--small" : "basic-button"} ${isExcluded ? "basic-button--excluded" : isSelected ? "basic-button--highlighted" : ""}`} onClick={handleClick}>
                 {isSelected ? <span style={{ marginRight: "0.2rem" }}>✓</span> : null}
                 {item.map(tag => <ConditionApplicationsView key={tag} tag={tag} />)}
             </motion.button>
@@ -123,7 +118,7 @@ export function CAGroupSelection({ ca_tags, active = true, selected = [], exclud
     )
 }
 
-export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp, withinFilters = {}, onCountChange, minimal = false, showTable = true }) {
+export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pairwiseComp, withinFilters = {}, onCountChange, minimal = false, showTable = true, autoSelectFirstGroups = false }) {
 
     const withinAttributeTags = _.keys(withinFilters).filter(t => _.isString(t))
     const allAttributeTags = _.uniq([attribute_tag, ...withinAttributeTags]).filter(_.isString)
@@ -193,6 +188,15 @@ export function GroupCASelection({ submission_tag, attribute_tag, onConfirm, pai
     }, [JSON.stringify(withinFilteredCount), JSON.stringify(sampleCountByGroup), JSON.stringify(withinFilters)])
 
  
+    const hasSelectedGroups = pairwiseComp.left.length > 0 || pairwiseComp.right.length > 0
+
+    useEffect(() => {
+        if (!autoSelectFirstGroups || hasSelectedGroups) return
+        if (uniqueCAValues.length < 2) return
+        onConfirm(uniqueCAValues[0], "left")
+        onConfirm(uniqueCAValues[1], "right")
+    }, [autoSelectFirstGroups, hasSelectedGroups, uniqueCAValuesJoined])
+
     if (!_.isArray(condition_applications) || condition_applications.length < 1) return <div>No condition applications found for attribute <Attribute attribute_tag={attribute_tag} />.</div>
     if (uniqueCAValuesJoined.length < 2) return <div>Not enough condition application values found for attribute <Attribute attribute_tag={attribute_tag} />.</div>
 
@@ -237,7 +241,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
     )
     const uniqueCAValues = uniqueCAValuesJoined.map(joined => joined.split(","))
 
-    return <div className="flex center-items" style={{ gap: "0.2rem" }}>
+    return <div className="flex center-items gap--tiny">
         <CAGroupSelection
             ca_tags={uniqueCAValues}
             selected={selected}
@@ -254,18 +258,33 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
 
 }
     
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true, showAnnotationSubset = true, displayOnly = false, displayProps = {} }) {
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true, showAnnotationSubset = true, displayOnly = false, displayProps = {}, autoSelectDefaults = false }) {
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const [withinFilters, setWithinFilters] = useState({})
     const [activeWithinAttributes, setActiveWithinAttributes] = useState([])
     const [sampleCounts, setSampleCounts] = useState({})
+    const defaultsDisabled = useRef(false)
     const { data: ca_attributes, isLoading, isSuccess } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplicationAttributes({tag : submission_tag}, {enabled : _.isString(submission_tag)})
-    
+    const { isReady: defaultAttributesReady, tagQueries: defaultAttributeQueries } = usePrefetchAttributes(_.isArray(ca_attributes) ? ca_attributes : [])
 
     useEffect(() => {
         setAttribute(undefined)
+        defaultsDisabled.current = false
     }, [submission_tag])
+
+    const attributeIsUndefined = !_.isString(attribute)
+
+    useEffect(() => {
+        if (!autoSelectDefaults || defaultsDisabled.current) return
+        if (!attributeIsUndefined) return
+        if (!_.isArray(ca_attributes) || ca_attributes.length === 0) return
+        if (!defaultAttributesReady) return
+        const genotypeAttribute = defaultAttributeQueries
+            .map(q => q.data)
+            .find(a => _.isObject(a) && (/genotype/i.test(a.text || "") || /genotype/i.test(a.tag || "")))
+        setAttribute(genotypeAttribute ? genotypeAttribute.tag : ca_attributes[0])
+    }, [autoSelectDefaults, attributeIsUndefined, defaultAttributesReady, _.join(ca_attributes, ";")])
     
     const inputIsSufficient = _.isString(attribute)
     && pairwiseComp.left.length > 0
@@ -282,6 +301,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
     }
 
     const handleReset = () => {
+        defaultsDisabled.current = true
         setAttribute(undefined)
         setPairwiseComp({left : [], right : [], impute : false})
         setWithinFilters({})
@@ -289,6 +309,8 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
         setSampleCounts({})
     }
     
+
+    const hasActiveWithinFilters = _.some(_.values(withinFilters), v => _.isArray(v) && v.length > 0)
 
     const handleConfirm = () => {
         if (!inputIsSufficient) return null
@@ -345,7 +367,8 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         onCountChange={setSampleCounts}
                         onConfirm={handleSelection}
                         minimal={minimal}
-                        showTable={showTable} />
+                        showTable={showTable}
+                        autoSelectFirstGroups={autoSelectDefaults} />
                 </div>
                 </div> : null}
             </div>
@@ -357,12 +380,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         items={withinAttributes}
                         filterable={false}
                         itemRenderer={(attr_tag, { handleClick }) => (
-                            <motion.button
-                                key={attr_tag}
-                                whileHover={{ backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }}
-                                className={`flex ${minimal ? "basic-button--small" : "basic-button"} ${activeWithinAttributes.includes(attr_tag) ? " basic-button--highlighted" : " "}`}
-                                style={{ width: "100%" }}
-                                onClick={handleClick}>
+                            <motion.button key={attr_tag} whileHover={{ backgroundColor: HIGHLIGHT_COLOR, color: "#ffffff" }} className={`flex width--full ${minimal ? "basic-button--small" : "basic-button"} ${activeWithinAttributes.includes(attr_tag) ? " basic-button--highlighted" : " "}`} onClick={handleClick}>
                                 {activeWithinAttributes.includes(attr_tag) ? <span style={{ marginRight: "0.2rem" }}>✓</span> : null}
                                 <Attribute attribute_tag={attr_tag} />
                             </motion.button>
@@ -378,7 +396,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                     </Select>
                     : null}
                     {activeWithinAttributes.map(attr_tag =>
-                        <div key={attr_tag} className="margin-top--little flex center-items" style={{ gap: "0.5rem" }}>
+                        <div key={attr_tag} className="margin-top--little flex center-items gap--default">
                             <Attribute attribute_tag={attr_tag} />
                             <WithinCASelection
                                 minimal={minimal}
@@ -389,6 +407,12 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                         </div>
                     )}
                 </div> : null}
+
+        {_.isString(attribute) && _.isArray(ca_attributes) && ca_attributes.length > 2 && !hasActiveWithinFilters
+            ? <Callout intent="warning" icon="warning-sign" className="margin-top--little">
+                <strong>More than two attributes found.</strong> If you do not select a within attribute, the samples of the other attributes will be pooled in each comparison group.
+            </Callout>
+            : null}
 
         {_.isObject(sampleCounts) && _.keys(sampleCounts).length > 0 && !minimal
             ? <span className="margin-top--little">Number of selected samples of left <strong>{sampleCounts.left || 0}</strong> and right <strong>{sampleCounts.right || 0}</strong> group.</span>

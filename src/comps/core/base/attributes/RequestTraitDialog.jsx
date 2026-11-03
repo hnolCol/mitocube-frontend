@@ -145,7 +145,7 @@ export function RequestTraitDialog({ isOpen, onClose, userRole, attribute_tag })
                         )}
                     </> :
                     <>
-                        <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                        <div className="flex flex-column gap--default">
                             <h4>Attribute</h4>
                             {hasFixedAttribute ?
                                 <Attribute attribute_tag={attribute_tag} /> :

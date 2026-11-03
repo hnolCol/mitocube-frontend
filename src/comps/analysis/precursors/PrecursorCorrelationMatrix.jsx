@@ -160,7 +160,7 @@ function PrecursorCorrelationMatrix({
     }
 
     return (
-        <div style={{ position: "relative" }}>
+        <div className="position--relative">
             <svg width={width} height={height}>
                 <defs>
                     <linearGradient id="correlationGradient" x1="0%" y1="0%" x2="100%" y2="0%">

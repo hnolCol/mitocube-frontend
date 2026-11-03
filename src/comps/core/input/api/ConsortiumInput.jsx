@@ -33,7 +33,7 @@ export function ConsortiumInput({ selected_consortium_tags = [], onSelect, helpe
 
     const selected = _.intersection(selected_consortium_tags, userConsortiums)
 
-    return <div style={{ marginTop: "1rem" }}>
+    return <div className="margin-top--medium">
         <h3>Consortium</h3>
         <HTMLSelect
             value={_.isEmpty(selected) ? "" : selected[0]}

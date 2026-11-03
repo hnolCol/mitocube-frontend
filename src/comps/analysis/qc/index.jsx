@@ -20,7 +20,7 @@ function DatasetQC() {
 
     
     return (
-        <div className="div--expand padding--medium margin--medium" style={{ overflowY: "scroll"}}>
+        <div className="div--expand padding--medium margin--medium container--scroll-y-hide-x">
             
             <h2>Basic metrices</h2>
             

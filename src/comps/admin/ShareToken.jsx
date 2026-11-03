@@ -52,7 +52,7 @@ function ShareToken({ authenticationStatus }) {
             </div>
             {isSuccess ?
                 
-                <div style={{ width: "50vw" }}>
+                <div className="width--half-viewport">
                     <p>Share token created. Please find code examples below.</p>
                     <SyntaxHighlighter language={"python"} showLineNumbers={false} style={docco}>
                         {codeSnipped}

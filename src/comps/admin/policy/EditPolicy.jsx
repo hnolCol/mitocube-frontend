@@ -71,13 +71,13 @@ export function EditPolicy({ type, label, policy, onSuccess = () => {} }) {
                 placeholder="Title"
             />
 
-            <div className="flex" style={{ gap: "1rem" }}>
-                {VIEW_MODES.map(option => (
-                    <OptionButton key={option.tag} isSelected={markdownView === option.tag} onClick={() => setMarkdownView(option.tag)}>
-                        {option.label}
-                    </OptionButton>
-                ))}
-            </div>
+<div className="flex gap--medium">
+    {VIEW_MODES.map(option => (
+        <OptionButton key={option.tag} isSelected={markdownView === option.tag} onClick={() => setMarkdownView(option.tag)}>
+            {option.label}
+        </OptionButton>
+    ))}
+</div>
 
             <div style={{ flex: 1, minHeight: 300, overflow: "hidden", border: "1px solid #ccc", padding: "8px" }}>
                 {markdownView === "text" && (

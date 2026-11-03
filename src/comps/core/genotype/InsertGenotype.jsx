@@ -157,7 +157,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
     }
     
     return (
-        <div className="flex flex-column div--expand margin--medium padding--medium" style={{ gap: "0.4rem"}}>
+        <div className="flex flex-column div--expand margin--medium padding--medium gap--medium-small">
             <h3>{isEditing?"Genotype Editing":"Genotype Insertion"}</h3>
             <span>Genotypes are defined by <strong>genetic components</strong>. A component is for example a specific gene knock out, while a knockout and a re-expression of the protein (WT) would be in total two components.</span>
             <span> Multiple point mutations must also be defined in multiple components (one for each mutation). </span>
@@ -171,7 +171,7 @@ export function InsertEditGenotype({ onClose, isEditing = false, tag, preSelecte
             </div>
             {/* <div className="margin--medium" style={{color: HIGHLIGHT_COLOR}}>{isSuccess && genotype.components.length === 0 ? <h3>Genotype inserted successfully!</h3> : null}</div> */}
             <div>{isError ? <APIError error={error} /> : null}</div>
-           <div className="div--expand flex flex-column " style={{justifyContent: "space-between"}}>
+           <div className="div--expand flex flex-column justify-space-between">
             <div className="flex" style={{ gap: "1rem", flexWrap: "wrap", overflowY: "scroll" }}>
                 {genotype.components.map((component, idx) => {
                     return (

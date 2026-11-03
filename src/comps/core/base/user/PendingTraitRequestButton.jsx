@@ -110,7 +110,7 @@ function PendingTraitRequestRow({ request, onInvalidate }) {
         <div className="flex flex-column margin--little padding--little bg--lightgrey div--round">
             <div className="flex justify-between" style={{ alignItems: "flex-start", gap: "1rem" }}>
                 <div className="flex flex-column" style={{ flex: 1, minWidth: 0 }}>
-                    <div className="flex align-center" style={{ gap: "0.5rem" }}>
+                    <div className="flex align-center gap--default">
                         {trait.attribute_tag && <Attribute attribute_tag={trait.attribute_tag} />}
                         <div className="font-weight--bold">{trait.text || request.tag}</div>
                     </div>
@@ -150,12 +150,7 @@ function PendingTraitRequestRow({ request, onInvalidate }) {
 
             {error && !isEditOpen ? <div className="font-size--small margin-top--little" style={{ color: "#d32f2f" }}>{error}</div> : null}
             <div className="margin-top--little">
-                <input
-                    className="input"
-                    style={{ width: "100%" }}
-                    placeholder="Optional comment for response"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                <input className="input width--full" placeholder="Optional comment for response" value={comment} onChange={(e) => setComment(e.target.value)}
                     disabled={isWorking}
                 />
             </div>
@@ -209,9 +204,9 @@ function EditTraitRequestForm({ trait, onSubmit, isSubmitting = false }) {
     const valid = edit.text.trim().length > 0
 
     return (
-        <div className="flex flex-column div--expand" style={{ gap: "0.5rem" }}>
+        <div className="flex flex-column div--expand gap--default">
             <h3>Review Trait</h3>
-            <div className="flex align-center" style={{ gap: "0.5rem" }}>
+            <div className="flex align-center gap--default">
                 <span>Attribute:</span>
                 {trait.attribute_tag && <Attribute attribute_tag={trait.attribute_tag} />}
             </div>

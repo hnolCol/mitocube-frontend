@@ -59,7 +59,7 @@ export function InstrumentQuantificationChart({ instrument_tag }) {
 
     return (
         <div className="margin-top--medium">
-            <div className="flex justify-between center-items" style={{ flexWrap: "wrap", gap: "0.5rem" }}>
+            <div className="flex justify-between center-items flex--wrap gap--default">
                 <viz.text.SectionLabel>PROTEINS QUANTIFIED</viz.text.SectionLabel>
                 <viz.text.PillToggle options={METRIC_OPTIONS} value={metric} onChange={setMetric} />
             </div>

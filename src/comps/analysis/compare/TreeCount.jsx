@@ -40,7 +40,7 @@ function TreeNode({ node, max, depth, isLast }) {
   const width = `${(node.count / max) * 100}%`;
 
   return (
-    <div style={{ position: "relative" }}>
+    <div className="position--relative">
       {depth > 0 && (
         <>
           {/* vertical */}
@@ -73,7 +73,7 @@ function TreeNode({ node, max, depth, isLast }) {
               {ICONS[type]}
             </div> */}
 
-            <div style={{ flex: 1 }}>
+            <div className="width--expand">
               <div style={styles.title}>
                 {type.toUpperCase()}
               </div>

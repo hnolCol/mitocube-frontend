@@ -39,7 +39,7 @@ export function NewsManagement() {
                 minHeight: 0,
             }}
         >
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>News</h3>
                 <div className="flex">
                     <Dialog

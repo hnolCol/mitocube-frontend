@@ -19,7 +19,7 @@ export function AdminGenotypes() {
                 height: "100%",
                 minHeight: 0,
             }}
-        ><div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        ><div className="flex flex-column margin--medium padding--medium gap--medium-small">
         <h3>Genotypes</h3>
         <div className="flex">
         {/* <Alert

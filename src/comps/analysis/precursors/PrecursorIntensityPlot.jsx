@@ -183,7 +183,7 @@ function PrecursorIntensityPlot({
     }
 
     return (
-        <div style={{ position: "relative" }}>
+        <div className="position--relative">
             <svg width={width} height={height}>
                 <defs>
                     {/* Gradient for hover effect */}

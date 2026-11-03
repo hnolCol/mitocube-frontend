@@ -64,11 +64,7 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
                     content="Request deposition of this submission's data to the PRIDE database"
                     onClick={() => setIsOpen(true)} />
                 : null}
-        <Dialog
-            isOpen={isOpen}
-            title="Request data deposition to PRIDE"
-            onClose={close}
-            style={{ width: "50vw" }}>
+        <Dialog className="width--half-viewport" isOpen={isOpen} title="Request data deposition to PRIDE" onClose={close}>
             <DialogBody>
                 <p className="font-size--small">
                     Request the deposition of this submission's data to the PRIDE database.

@@ -71,7 +71,7 @@ export function InsertTraitDialog({
                     <strong>Adding trait to attribute</strong> <Tag minimal style={{fontWeight: 700 }}>{attribute_tag}</Tag>
                 </div>
 
-                    <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+                    <div className="flex flex-column gap--default">
                         <input
                             className="text-input"
                             type="text"
@@ -131,11 +131,7 @@ export function InsertTraitDialog({
                             gap: "0.5rem",
                         }}
                     >
-                        <button
-                            className="dialog-button"
-                            style={{ backgroundColor: "#ec7160ff" }}
-                            onClick={onClose}
-                        >
+                        <button className="dialog-button dialog-button--danger" onClick={onClose}>
                             Close
                         </button>
                         <button

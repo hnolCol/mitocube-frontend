@@ -58,7 +58,7 @@ function Timeline() {
                         The current state of the project is: <StaticStateIndicator state_tag={state} padding="tiny" />
                     </div>
 
-                    <h3 style={{ marginBottom: "1rem" }}>State History</h3>
+                    <h3 className="margin-bottom--medium">State History</h3>
                     {historyIsLoading ? (
                         <div>Loading timeline...</div>
                     ) : historyIsSuccess && _.isArray(stateHistory) && stateHistory.length > 0 ? (

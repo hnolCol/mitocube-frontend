@@ -39,7 +39,7 @@ export function EditResearchGroupDialog({ tag, isOpen, onClose }) {
             <span>Update the details of the research group.</span>
             {isError ? <APIError error={error} /> :
                 isLoading || !_.isObject(edit) ? <Loading /> :
-                    <div className="flex flex-column" style={{ gap: "0.2rem" }}>
+                    <div className="flex flex-column gap--tiny">
                         {research_group_input.map(text_input => {
                             return <input className="text-input"
                                 type="text"

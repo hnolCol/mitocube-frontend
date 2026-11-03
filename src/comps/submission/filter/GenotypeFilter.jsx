@@ -36,7 +36,7 @@ export function GenotypeDatasetFilter({ setSubmissionFilter, submissionFilter })
             
             {/* Show selected genotypes below */}
             {_.has(submissionFilter, "genotype_tag") && _.isArray(submissionFilter.genotype_tag) && submissionFilter.genotype_tag.length > 0 && (
-                <div style={{ marginTop: "0.5rem" }}>
+                <div className="margin-top--little">
                     {submissionFilter.genotype_tag.map(tag => (
                         <GenotypeDisplay key={tag} tag={tag} onRemove={() => handleRemove(tag)} />
                     ))}

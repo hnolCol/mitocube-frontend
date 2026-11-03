@@ -7,8 +7,8 @@ export function AddSymptomDialog({ isOpen, onClose }) {
 
     return (
         <Dialog isOpen={isOpen} title="Add Symptom" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(55vh, 900px)" }} canOutsideClickClose={false}>
-            <div className="padding--medium" style={{ height: "95%" }}>
-                <div style={{ height: "100%", width: "95%" }}>
+            <div className="padding--medium height--nearly-full">
+                <div className="height--full-width--most">
                     <InsertEditSymptom onClose={onClose} />
                 </div>
             </div>
@@ -22,8 +22,8 @@ export function EditSymptomDialog({ isOpen, onClose, tag }) {
     
     return (
         <Dialog  isOpen={isOpen} title="Edit Symptom" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(55vh, 900px)" }} canOutsideClickClose={false}>
-            <div className="padding--medium" style={{ height: "95%" }}>
-                <div style={{ height: "100%", width: "95%" }}>
+            <div className="padding--medium height--nearly-full">
+                <div className="height--full-width--most">
                     {isSymptomSuccess ? (
                         <InsertEditSymptom
                             isEditing={true}

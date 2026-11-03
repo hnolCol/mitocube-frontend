@@ -7,8 +7,8 @@ export function AddExternalServiceDialog({ isOpen, onClose, onSuccess }) {
 
     return (
         <Dialog isOpen={isOpen} title="Add External Service" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }} canOutsideClickClose={false}>
-            <div className="padding--medium" style={{ height: "95%" }}>
-                <div style={{ height: "100%", width: "95%" }}>
+            <div className="padding--medium height--nearly-full">
+                <div className="height--full-width--most">
                     <InsertEditExternalService onClose={onClose} onSuccess={onSuccess} />
                 </div>
             </div>
@@ -21,8 +21,8 @@ export function EditExternalServiceDialog({ isOpen, onClose, tag }) {
     const {data: externalservice, isSuccess : isExternalServiceSuccess} = api.maintenance.externalservice.queryExternalService.useGetExternalServiceByTag({tag : tag}, { enabled : _.isString(tag) && isOpen})    
     return (
         <Dialog  isOpen={isOpen} title="Edit External Service" onClose={onClose} style={{ width: "min(600px,85vw)", height: "min(90vh, 900px)" }} canOutsideClickClose={false}>
-            <div className="padding--medium" style={{ height: "95%" }}>
-                <div style={{ height: "100%", width: "95%" }}>
+            <div className="padding--medium height--nearly-full">
+                <div className="height--full-width--most">
                     {isExternalServiceSuccess ? (
                         <InsertEditExternalService
                             isEditing={true}

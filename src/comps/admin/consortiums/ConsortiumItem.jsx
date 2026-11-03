@@ -28,7 +28,7 @@ export function ConsortiumItem({ tag, setEditGroupsDialog, setSubmissionsDialog 
             <MenuItem text="Delete" intent="danger" label="" disabled/>
         </Menu>}>
             <div className="flex justify-space-between" style={{width : "100%"}} >
-                 <div className="flex flex-column justify-flex-start" style={{ gap: "0.2rem" }}>
+                 <div className="flex flex-column justify-flex-start gap--tiny">
             
                     <CreatedAt createdat={consortium.created_at} addFromNow={false} />
                 

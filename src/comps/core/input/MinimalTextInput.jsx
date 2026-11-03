@@ -113,6 +113,7 @@ function areEqual(prevProps, nextProps) {
     if (prevProps.allowAminoAcidsOnly !== nextProps.allowAminoAcidsOnly) return false
     if (prevProps.allowDNAOnly !== nextProps.allowDNAOnly) return false
     if (prevProps.placeholder !== nextProps.placeholder) return false
+    if (prevProps.onChange !== nextProps.onChange) return false
     if (!_.isEqual(prevProps.style, nextProps.style)) return false
     if (prevProps.prefix !== nextProps.prefix) return false
     if (prevProps.suffix !== nextProps.suffix) return false

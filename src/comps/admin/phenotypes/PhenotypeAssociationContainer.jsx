@@ -13,13 +13,9 @@ export function PhenotypeAssociationContainer({ tags, updateList }) {
     }
 
     return (
-        <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "5rem", paddingRight: "0.5rem" }} className="flex flex-column">
+        <div className="flex flex-column container--scroll-y-large">
             {tags.map((tag, idx) => (
-                <div
-                    key={`${tag}-${idx}`}
-                    className="flex"
-                    style={{ marginBottom: "0.8rem" }}
-                >
+                <div key={`${tag}-${idx}`} className="flex margin-bottom--little">
                     <button
                         className="flex"
                         onClick={(e) => handleClick(e, tag)}

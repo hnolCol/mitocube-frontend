@@ -18,7 +18,7 @@ export function UserStatistics({ stateFilter, statisticsFilter }) {
 
     const rows = _.isArray(data) ? data : []
 
-    const controls = <div className="flex center-items" style={{ gap: "0.4rem" }}>
+    const controls = <div className="flex center-items gap--medium-small">
         {research_group_tags.map(tag => <span
             key={tag}
             className="basic-button--small"

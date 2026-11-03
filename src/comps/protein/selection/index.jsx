@@ -10,7 +10,6 @@ function ProteinSelection(props) {
     
     const [proteomeTags, setProteomeTags] = useState(() => {
         const {itemFound, itemValue} = getItemFromLocalStorage({ itemName: "proteomeTags", parseJson: true })
-        console.log("Loaded proteome tags from local storage:", itemValue)
         return itemFound && _.isArray(itemValue) ? itemValue : []
     })
     const handleClose = (e, featureURL) => {

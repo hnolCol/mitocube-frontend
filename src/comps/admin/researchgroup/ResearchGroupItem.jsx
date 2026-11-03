@@ -22,7 +22,7 @@ export function ResearchGroupItem({ tag, setEditUsersDialog, setEditDialog, setE
             <MenuItem text="Delete" intent="danger" label="" disabled/>
         </Menu>}>
             <div className="flex justify-space-between" style={{width : "100%"}} >
-                 <div className="flex flex-column justify-flex-start" style={{ gap: "0.2rem" }}>
+                 <div className="flex flex-column justify-flex-start gap--tiny">
             
                     <CreatedAt createdat={research_group.created_at} addFromNow={false} />
                 

@@ -214,12 +214,7 @@ function PendingAttributeRequestRow({ request, onInvalidate }) {
 
             {error && !isEditOpen ? <div className="font-size--small margin-top--little" style={{ color: "#d32f2f" }}>{error}</div> : null}
             <div className="margin-top--little">
-                <input
-                    className="input"
-                    style={{ width: "100%" }}
-                    placeholder="Optional comment for response"
-                    value={comment}
-                    onChange={(e) => setComment(e.target.value)}
+                <input className="input width--full" placeholder="Optional comment for response" value={comment} onChange={(e) => setComment(e.target.value)}
                     disabled={isWorking}
                 />
             </div>

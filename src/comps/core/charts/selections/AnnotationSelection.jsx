@@ -110,7 +110,7 @@ export function AnnotationSelection({ onAnnotationSelect, minimal = true }) {
 >
     <div className="bp5-dialog-body">
         {/* Annotation Selection */}
-        <div style={{ marginBottom: "1rem" }}>
+        <div className="margin-bottom--medium">
             <label className="bp5-label">
                 Select Annotations
                 <div style={{ fontSize: "0.75rem", color: "#5C7080", marginTop: "0.25rem", marginBottom: "0.5rem" }}>

@@ -1,6 +1,6 @@
 export function GenotypeInfo() {
     
-    return (<div className="div--expand padding--medium div--expand" style={{overflowY:"scroll"}}>
+    return (<div className="div--expand padding--medium div--expand container--scroll-y-hide-x">
         <h2>Information</h2>
         <p className="margin-left--little">The nomenclature to describe a protein mutation follows guideline described by the <a href="https://hgvs-nomenclature.org/stable/recommendations/general/">HGVS</a>.
             Attention, the one letter code for amino acids is used instead of the three letter code.</p>

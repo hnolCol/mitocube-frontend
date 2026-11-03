@@ -50,7 +50,7 @@ export function UtilizationStat({ instrument_tag }) {
 
     return (
         <Card label="UTILIZATION" style={{ height: "100%", boxSizing: "border-box" }}>
-            <div className="flex center-items" style={{ gap: "1rem" }}>
+            <div className="flex center-items gap--medium">
                 <div style={{ flexShrink: 0, width: "80px", height: "80px" }}>
                     <viz.charts.state.RingGauge percent={utilization} color={PRIMARY_COLOR} />
                 </div>

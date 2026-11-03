@@ -101,12 +101,7 @@ export function TraitItem({ tag, attribute_tag }) {
                             )}
                         </span>
                         {showActions && (
-                            <div
-                                className="flex gap--small align-center"
-                                style={{
-                                    gap: "0.4rem"
-                                }}
-                            >
+                            <div className="flex gap--small align-center gap--medium-small">
                                 {canEdit && (
                                     <button
                                         onClick={() => setEditOpen(true)}
@@ -155,10 +150,7 @@ export function TraitItem({ tag, attribute_tag }) {
                         be deleted if it is not connected to any Condition
                         Application.
                     </p>
-                    <div
-                        className="flex justify-end gap-2 margin-top--small"
-                        style={{ gap: "0.5rem" }}
-                    >
+                    <div className="flex justify-end gap-2 margin-top--small gap--default">
                         <button
                             className="dialog-button"
                             onClick={() => setConfirmOpen(false)}
@@ -166,12 +158,7 @@ export function TraitItem({ tag, attribute_tag }) {
                         >
                             Cancel
                         </button>
-                        <button
-                            className="dialog-button"
-                            style={{ backgroundColor: "#ec7160ff" }}
-                            onClick={handleConfirmDelete}
-                            disabled={isDeleting}
-                        >
+                        <button className="dialog-button dialog-button--danger" onClick={handleConfirmDelete} disabled={isDeleting}>
                             {isDeleting ? "Deleting..." : "Delete"}
                         </button>
                     </div>
@@ -188,10 +175,7 @@ export function TraitItem({ tag, attribute_tag }) {
                         The trait <code>{trait?.tag}</code> cannot be deleted.
                     </p>
                     <p style={{ color: "#666" }}>{errorMessage}</p>
-                    <div
-                        className="flex justify-end gap-2 margin-top--small"
-                        style={{ gap: "0.5rem" }}
-                    >
+                    <div className="flex justify-end gap-2 margin-top--small gap--default">
                         <button
                             className="dialog-button"
                             onClick={() => setErrorOpen(false)}

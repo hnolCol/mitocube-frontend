@@ -33,11 +33,8 @@ export function PlatesAdmin() {
     }
 
     return (
-        <div
-            className="div--expand padding--medium"
-            style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}
-        >
-            <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
+        <div className="div--expand padding--medium flex-column--full-height">
+            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Plates</h3>
                 <p className="font-size--small" style={{ color: "#888" }}>
                     Plates are the physical well plates in the lab in which samples are stored.
@@ -76,15 +73,15 @@ export function PlatesAdmin() {
                     <AddButton onSelect={() => setDialogOpen(true)} />
                 </div>
                 {warning ? (
-                    <Callout intent="warning" icon="warning-sign" style={{ marginBottom: "1rem" }}>
+                    <Callout className="margin-bottom--medium" intent="warning" icon="warning-sign">
                         <div className="flex center-items justify-space-between">
                             <span>{warning}</span>
                             <button className="basic-button--small" onClick={() => setWarning(null)}>✕</button>
                         </div>
                     </Callout>
                 ) : null}
-                {deleteIsError ? <div style={{ color: "#a82a2a" }}>Failed to delete plate: {_.get(deleteError, "message", "")}</div> : null}
-                {isError ? <div style={{ color: "#a82a2a" }}>Failed to load plates: {_.get(error, "message", "")}</div> : null}
+                {deleteIsError ? <div className="font-color--error">Failed to delete plate: {_.get(deleteError, "message", "")}</div> : null}
+                {isError ? <div className="font-color--error">Failed to load plates: {_.get(error, "message", "")}</div> : null}
                 {isLoading ? <div>Loading...</div> : null}
                 <div className="div--expand padding--medium">
                     {!isLoading && !isError && (_.isArray(plates) ? plates.length : 0) === 0
@@ -111,7 +108,7 @@ function PlateItem({ plate, onDelete, disabled }) {
     const [showDetails, setShowDetails] = useState(false)
 
     return (
-        <div className="flex" style={{ marginBottom: "0.8rem" }}>
+        <div className="flex margin-bottom--little">
             <button
                 className="flex"
                 onClick={() => setShowDetails(prev => !prev)}
@@ -126,7 +123,7 @@ function PlateItem({ plate, onDelete, disabled }) {
                 onMouseEnter={e => e.currentTarget.style.backgroundColor = "#efefef"}
                 onMouseLeave={e => e.currentTarget.style.backgroundColor = "#fff"}
             >
-                <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+                <div className="flex flex-column padding--medium width--full">
                     <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                         <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>
                             <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>{plate.name}</span>
@@ -137,11 +134,7 @@ function PlateItem({ plate, onDelete, disabled }) {
                         <div className="flex align-center" style={{ gap: "0.4rem", flexShrink: 0 }}>
                             <span style={{ fontSize: "0.75rem", color: "#777" }}>created by {plate.created_by}</span>
                             {_.isNumber(plate.created_at) ? <CreatedAt createdat={plate.created_at} /> : null}
-                            <button
-                                className="basic-button--small"
-                                style={{ color: "#a82a2a" }}
-                                title={disabled ? "In use in a runlist, cannot be deleted" : "Delete"}
-                                onClick={(e) => {
+                            <button className="basic-button--small font-color--error" title={disabled ? "In use in a runlist, cannot be deleted" : "Delete"} onClick={(e) => {
                                     e.stopPropagation()
                                     if (!disabled) onDelete()
                                 }}
@@ -155,27 +148,27 @@ function PlateItem({ plate, onDelete, disabled }) {
                         <table style={{ width: "fit-content", fontSize: "0.75rem", textAlign: "left", marginTop: "0.5rem" }}>
                             <tbody>
                                 <tr>
-                                    <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Format</th>
+                                    <th className="table-head-cell">Format</th>
                                     <td>{plate.rows} × {plate.columns} ({plate.rows * plate.columns} wells)</td>
                                 </tr>
                                 <tr>
-                                    <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Type</th>
+                                    <th className="table-head-cell">Type</th>
                                     <td>{plate.plate_type || dash}</td>
                                 </tr>
                                 <tr>
-                                    <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Vendor</th>
+                                    <th className="table-head-cell">Vendor</th>
                                     <td>{plate.vendor || dash}</td>
                                 </tr>
                                 <tr>
-                                    <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Cold storage</th>
+                                    <th className="table-head-cell">Cold storage</th>
                                     <td>{plate.cold_storage || dash}</td>
                                 </tr>
                                 <tr>
-                                    <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Location</th>
+                                    <th className="table-head-cell">Location</th>
                                     <td>{plate.location || dash}</td>
                                 </tr>
                                 <tr>
-                                    <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                                    <th className="table-head-cell">Description</th>
                                     <td>{plate.description || dash}</td>
                                 </tr>
                             </tbody>

@@ -19,11 +19,11 @@ export function StateFunnelSection({ statisticsFilter }) {
     const max = _.max([_.maxBy(rows, "value")?.value, 1])
 
     return <div className="bg--white div--round padding--medium margin-top--medium">
-        <h4 style={{ margin: 0 }}>Submissions per State</h4>
+        <h4 className="margin--none-reset">Submissions per State</h4>
         <p style={{ color: "#888", fontSize: "0.8rem", marginBottom: "0.5rem" }}>
             Number of submissions currently in each state. Large bars in intermediate states indicate where submissions get stuck.
         </p>
-        {isError ? <div style={{ color: "#a82a2a" }}>Failed to load statistics. {_.get(error, "message", "")}</div> : null}
+        {isError ? <div className="font-color--error">Failed to load statistics. {_.get(error, "message", "")}</div> : null}
         {isLoading ? <div>Loading...</div> : null}
         {isSuccess && rows.length === 0 ? <div>No data available yet.</div> : null}
         {isSuccess && rows.length > 0 ? <div>

@@ -61,18 +61,15 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
   
 
   return (
-    <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+    <div className="flex flex-column padding--medium width--full">
       
       <EditGenotypeDialog isOpen={isOpen} onClose={handleEditClose} tag={currentTag} />
       <DeleteGenotypeDialog isOpen={isDeleteOpen} onClose={handleDeleteDialogClose}  />
 
-      <div
-        className="flex justify-space-between align-center"
-        style={{ width: "100%" }}
-      >
+      <div className="flex justify-space-between align-center width--full">
        
         <GenotypeText tag={currentTag} update={update} />
-        <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+        <div className="flex gap--small align-center gap--medium-small">
           <Tag
               minimal
               intent={sampleCount > 0 ? "success" : "none"}
@@ -99,11 +96,11 @@ export function GenotypeItem({ tag, showDetails = false, updateGenotypeList }) {
       >
         <tbody>
           <tr>
-          <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+          <th className="table-head-cell">Description</th>
             <td><GenotypeDescription tag={currentTag} update={update}/></td>
           </tr>
           <tr>
-          <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Created by</th>
+          <th className="table-head-cell">Created by</th>
           <td>{creator ?? "—"}</td>
         </tr>
         </tbody>

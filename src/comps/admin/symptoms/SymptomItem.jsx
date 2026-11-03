@@ -46,7 +46,7 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
       }
 
     return (
-        <div className="flex flex-column padding--medium" style={{ width: "100%" }}>
+        <div className="flex flex-column padding--medium width--full">
 
 
             <EditSymptomDialog isOpen={isOpen} onClose={() => handleEditClose()} tag = {tag}/>
@@ -59,7 +59,7 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
 
             
             <SymptomText tag={tag} update={update} />
-            <div className="flex gap--small align-center" style={{ gap: "0.4rem" }}>
+            <div className="flex gap--small align-center gap--medium-small">
             {permissions?.edit && (
                 <button onClick={() => setIsOpen(true)} className="basic-button ">
                     Edit
@@ -87,12 +87,12 @@ export function SymptomsItem({ tag, showDetails = false, updateSymptomList }) {
             >
             <tbody>
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Description</th>
+                <th className="table-head-cell">Description</th>
                 <td><SymptomDescription tag={tag} update={update} /></td>
             </tr>
 
             <tr>
-                <th style={{ paddingRight: "0.5rem", fontWeight: 600 }}>Priority</th>
+                <th className="table-head-cell">Priority</th>
                 <td><SymptomPriority tag={tag} update={update} /></td>
             </tr>
             </tbody>

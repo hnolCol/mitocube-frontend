@@ -7,6 +7,7 @@ import _ from "lodash"
 
 import { ReplicateMenu } from "./menu/ReplicateMenu"
 import { AttributeContextMenuSearch } from "./menu/AttributeMenu"
+import { collectInputFields } from "./SamplesAttributeWrapper"
 import { GenotypeContextMenu } from "./menu/GenotypeMenu"
 import { TraitWithValueInput } from "../../../../core/base/tags/TraitWithValueInput"
 
@@ -146,18 +147,22 @@ function SamplesAttributes({
     
     const { mutate } = api.samples.core.useInsertSampleGenotype()
 
-    const [rowHeights, setRowHeights] = useState([])
+    const [rowHeights, setRowHeights] = useState({})
 
-    const updateRowHeight = useCallback((rowIndex, element) => {
-        if (!element) return
-
-        const requiredHeight = Math.max(60, element.scrollHeight + 8)
+    const updateRowHeight = useCallback((rowIndex, columnIndex, element) => {
         setRowHeights(currentHeights => {
-            const currentHeight = currentHeights[rowIndex] ?? 60
-            if (requiredHeight <= currentHeight) return currentHeights
+            if (!element) {
+                if (currentHeights[rowIndex]?.[columnIndex] === undefined) return currentHeights
+                const nextHeights = { ...currentHeights }
+                delete nextHeights[rowIndex][columnIndex]
+                return nextHeights
+            }
 
-            const nextHeights = [...currentHeights]
-            nextHeights[rowIndex] = requiredHeight
+            const requiredHeight = Math.max(60, element.scrollHeight + 8)
+            if (currentHeights[rowIndex]?.[columnIndex] === requiredHeight) return currentHeights
+
+            const nextHeights = { ...currentHeights }
+            nextHeights[rowIndex] = { ...nextHeights[rowIndex], [columnIndex]: requiredHeight }
             return nextHeights
         })
     }, [])
@@ -166,7 +171,10 @@ function SamplesAttributes({
     const tableRowHeights = useMemo(
         () => Array.from(
             { length: sampleNames.length },
-            (_, rowIndex) => rowHeights[rowIndex] ?? 60
+            (_, rowIndex) => {
+                const cellHeights = Object.values(rowHeights[rowIndex] ?? {})
+                return cellHeights.length > 0 ? Math.max(...cellHeights) : 60
+            }
         ),
         [rowHeights, sampleNames.length]
     )
@@ -196,6 +204,9 @@ function SamplesAttributes({
                 //find row indices from the selected region
                 // if there is no attribute values, then a numeric value can be inserted by the user
                 const prevSelection = [] //_.uniqBy(_.flatten(selectedRows.map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)), "tag")
+                // input fields available under this attribute in the selected rows (for clipboard paste)
+                const pasteSourceRow = attributeTable[selectedRows[0]]
+                const inputFields = collectInputFields(pasteSourceRow, attribute_tag)
                 return (
                     <AttributeContextMenuSearch
                         {...{
@@ -208,7 +219,8 @@ function SamplesAttributes({
                             copiedRows,
                             onPaste: onPasteRowsInAttribute,
                             onCopy: () => setCopiedRows(selectedRows),
-                            onPasteValues: onPasteValuesInAttribute
+                            onPasteValues: onPasteValuesInAttribute,
+                            inputFields
                         }}
                     />
                 )
@@ -282,7 +294,7 @@ function SamplesAttributes({
         if (!_.isArray(cellData)) return <Cell key={cellKey}></Cell>
         return <Cell key={cellKey} style={{ width: "100%", padding: 0 }}>
             <div
-                ref={(element) => updateRowHeight(rowIndex, element)}
+                ref={(element) => updateRowHeight(rowIndex, columnIndex, element)}
                 className="flex cellContentInner">
                 {cellData.map(child => {
                     return <div
@@ -372,7 +384,7 @@ function SamplesAttributes({
     const renderGenotypeHeader = useCallback(() => (
         <ColumnHeaderCell>
             <div className="genotypeHeaderContainer">
-                <h4 style={{ margin: 0 }}>Genotype</h4>
+                <h4 className="margin--none-reset">Genotype</h4>
     
                 <Button
                     icon="plus"
@@ -421,6 +433,7 @@ function SamplesAttributes({
                     defaultRowHeight={60}
                     rowHeights={tableRowHeights}
                     selectionModes={SelectionModes.CELLS}
+                    defaultColumnWidth={300}
                     minColumnWidth={300}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
