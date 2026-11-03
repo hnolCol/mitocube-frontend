@@ -381,7 +381,7 @@ function App() {
             <Route path="/admin/news" element={<NewsManagement />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />
              <Route path="/admin/externalresources" element={<AdminExternalResources />} />
-             <Route path="/admin/policy" element={<PolicyManagement />} />,
+             <Route path="/admin/policy" element={<PolicyManagement isAdmin />} />,
              <Route path="/admin/impressum" element={<ImpressumManagement />} />,
               <Route path="/admin/plates" element={<PlatesAdmin />} />
               <Route path="/admin/reports" element={<AdminReports {...{ authenticationStatus }} />} />

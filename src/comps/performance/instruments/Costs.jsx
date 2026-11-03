@@ -15,12 +15,21 @@ export function Costs({ amount, currency = "€" }) {
 
 
 export function InstrumentCosts({ tag }) {
-    
-    const { data : costs, isLoading, isSuccess } = api.maintenance.core.useGetMaintenanceCosts({ instrument_tag : tag });
+    const { data: costs, isSuccess } = api.maintenance.core.useGetMaintenanceCosts({ instrument_tag: tag })
     return (
         <div>
-            <h4>Maintenance Costs</h4>
-            {isSuccess ? <div className="flex center-items"> Total costs: <Costs amount={costs} /> </div>:null}
+            <div style={{
+                fontSize: "0.7rem",
+                fontWeight: 600,
+                letterSpacing: "0.05em",
+                textTransform: "uppercase",
+                color: "#5c7080",
+            }}>
+                Maintenance costs
+            </div>
+            <div style={{ fontSize: "1.1rem", fontWeight: 600, color: HIGHLIGHT_COLOR, marginTop: 2 }}>
+                {isSuccess ? `${abbreviateNumber(costs)} €` : "–"}
+            </div>
         </div>
     );
 }

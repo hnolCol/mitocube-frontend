@@ -1,10 +1,8 @@
 import _ from "lodash"
-import { useState } from "react"
 import { useParams, useSearchParams } from "react-router"
 import { api } from "@/api"
 import APIError from "../../core/error/APIerror"
 import { Loading } from "../../core/base/states/Loading"
-import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { InstrumentMenu } from "./Menu"
 import { InstrumentCosts } from "./Costs"
 import { InstrumentStateIndicator } from "./StateIndicator"
@@ -14,16 +12,62 @@ import { InstrumentStateDurationChart, InstrumentStateHeatmap, UtilizationStat }
 import { InstrumentQuantificationChart, TotalVsQuantifiedStat } from "../Statistics/QuantificationCharts"
 import { InstrumentSubmissionLists } from "../Statistics/Submissions"
 
-function MaintenanceTab({ instrument_tag }) {
-    const [maintenanceRefetch, setMaintenanceRefetch] = useState(null)
+const labelStyle = {
+    fontSize: "0.7rem",
+    fontWeight: 600,
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+    color: "#5c7080",
+}
+
+const TABS = [
+    { id: "maintenance", label: "Maintenance" },
+    { id: "stats", label: "Statistics" },
+]
+
+function HeaderStat({ label, value }) {
     return (
-        <>
-            <InstrumentCosts tag={instrument_tag} />
-            <InsertMaintenanceEvent instrument_tag={instrument_tag} refetch={maintenanceRefetch} />
-            <div className="margin-top--medium">
-                <MaintenanceView instrument_tag={instrument_tag} setRefetchInstrumentStateTrigger={_.noop} onRefetchReady={setMaintenanceRefetch} />
-            </div>
-        </>
+        <div>
+            <div style={labelStyle}>{label}</div>
+            <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#182026", marginTop: 2 }}>{value}</div>
+        </div>
+    )
+}
+
+function SamplesStat({ instrument_tag }) {
+    const { data, isSuccess } = api.instruments.count.useGetInstrumentSamplesCount(
+        { tag: instrument_tag },
+        { enabled: _.isString(instrument_tag), staleTime: 300000 }
+    )
+    return <HeaderStat label="Samples" value={isSuccess ? data : "–"} />
+}
+
+function Tabs({ selected, onChange }) {
+    return (
+        <div className="flex" style={{ gap: "1.25rem", borderBottom: "1px solid #e1e5ea", margin: "1rem 0 0.25rem" }}>
+            {TABS.map(tab => {
+                const active = tab.id === selected
+                return (
+                    <button
+                        key={tab.id}
+                        onClick={() => onChange(tab.id)}
+                        style={{
+                            background: "none",
+                            border: "none",
+                            borderBottom: `2px solid ${active ? "#2b6cb0" : "transparent"}`,
+                            marginBottom: -1,
+                            padding: "0.35rem 0.1rem",
+                            fontSize: "0.875rem",
+                            fontWeight: active ? 600 : 500,
+                            color: active ? "#182026" : "#5c7080",
+                            cursor: "pointer",
+                        }}
+                    >
+                        {tab.label}
+                    </button>
+                )
+            })}
+        </div>
     )
 }
 
@@ -64,38 +108,45 @@ export function InstrumentView() {
     )
 
     return (
-        <div>
-            {isError ? <APIError error={error} /> : null}
-            <div className="flex">
+        <div className="flex" style={{ gap: "1.25rem", alignItems: "flex-start", zoom: 0.9 }}>
+            <div style={{ width: 220, flexShrink: 0 }}>
                 <InstrumentMenu open_instrument_tag={instrument_tag} />
+            </div>
 
-                <div className="margin-left--medium">
-                    {isLoading ? <Loading /> : null}
-                    {isSuccess && _.isObject(instrument) ? (
-                        <>
+            <div style={{ flex: 1, minWidth: 0, maxWidth: 1100 }}>
+                {isError ? <APIError error={error} /> : null}
+                {isLoading ? <Loading /> : null}
+
+                {isSuccess && _.isObject(instrument) ? (
+                    <div className="bg--white div--round" style={{
+                        padding: "0.75rem 1rem",
+                        border: "1px solid #e1e5ea",
+                        boxShadow: "0 1px 2px rgba(16, 22, 26, 0.06)",
+                    }}>
+                        <div className="flex center-items" style={{ justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
                             <div className="flex center-items" style={{ gap: "0.75rem" }}>
-                                <h4>{instrument.text}</h4>
+                                <h2 style={{ margin: 0, fontSize: "1.2rem", fontWeight: 600 }}>{instrument.text}</h2>
                                 <InstrumentStateIndicator instrument_tag={instrument_tag} />
                             </div>
-                            <div className="font-size--small">{instrument.description}</div>
-                        </>
-                    ) : null}
-
-                    <div className="margin-top--medium">
-                        <div className="flex" style={{ gap: "0.5rem" }}>
-                            <OptionButton isSelected={activeTab === "maintenance"} onClick={() => setSearchParams({ tab: "maintenance" })}>
-                                Maintenance
-                            </OptionButton>
-                            <OptionButton isSelected={activeTab === "stats"} onClick={() => setSearchParams({ tab: "stats" })}>
-                                Statistics
-                            </OptionButton>
+                            <InsertMaintenanceEvent instrument_tag={instrument_tag} />
                         </div>
 
-                        <div className="margin-top--medium">
-                            {activeTab === "maintenance" ? <MaintenanceTab instrument_tag={instrument_tag} /> : <StatsTab instrument_tag={instrument_tag} />}
+                        {instrument.description ? (
+                            <div style={{ color: "#5c7080", fontSize: "0.85rem", marginTop: 2 }}>{instrument.description}</div>
+                        ) : null}
+
+                        <div className="flex" style={{ gap: "2rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px solid #e1e5ea" }}>
+                            <InstrumentCosts tag={instrument_tag} />
+                            <SamplesStat instrument_tag={instrument_tag} />
                         </div>
                     </div>
-                </div>
+                ) : null}
+
+                <Tabs selected={activeTab} onChange={tab => setSearchParams({ tab })} />
+
+                {activeTab === "maintenance"
+                    ? <MaintenanceView instrument_tag={instrument_tag} setRefetchInstrumentStateTrigger={_.noop} />
+                    : <div style={{ marginTop: "0.75rem" }}><StatsTab instrument_tag={instrument_tag} /></div>}
             </div>
         </div>
     )

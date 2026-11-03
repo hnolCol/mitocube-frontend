@@ -21,6 +21,11 @@ import { api } from "@/api";
 export function MinimalUserIcon({ user_tag, tooltip_enabled = true }) {
 
     const { data : user, isSuccess} = api.users.core.useGetPublicUserByTag({tag : user_tag})
+    const groupTag = _.first(_.compact(_.castArray(user?.research_group_tags ?? [])))
+    const { data: rg } = api.researchgroups.useGetResearchGroupByTag({ tag: groupTag }, { enabled: !!groupTag, staleTime: 1000 * 60 * 10 })
+    const affiliation = _.compact([rg?.abbreviation || rg?.text, rg?.institute || user?.institute]).join(" @ ")
+    const initials = (user?.firstname?.[0] ?? "") + (user?.lastname?.[0] ?? "")
+
     return <div>
         {isSuccess ?
         <Popover
@@ -29,17 +34,20 @@ export function MinimalUserIcon({ user_tag, tooltip_enabled = true }) {
             position="top"
             content={
                 <Menu small={true}>
-                <MenuItem text={`${user.firstname} ${user.lastname}`}
-                        icon="envelope"
-                        labelElement={<div style={{ maxWidth : "10rem" ,fontSize: "0.7rem", textAlign: "right" }}><div>{user.email}</div><div>{`${_.isArray(user.research_group_tags) ? user.research_group_tags.join(", ") : user.research_group_tags} @${user.institute}`}</div></div>} />
-
-                </Menu>}
+                <MenuItem text={_.compact([user.firstname, user.lastname]).join(" ")}
+                            icon="envelope"
+                            labelElement={
+                                <div style={{ maxWidth: "10rem", fontSize: "0.7rem", textAlign: "right" }}>
+                                    <div>{user.email}</div>
+                                    {affiliation && <div>{affiliation}</div>}
+                                </div>} />
+                    </Menu>}
             >
 
        
                 <BaseDashboardIcon width={30} height={30}>
                     <UserDashboardIcon {...{
-                        text: user.firstname[0] + user.lastname[0],
+                        text: initials,
                         fillColor: "#858585"
                     }} />
                 </BaseDashboardIcon> 

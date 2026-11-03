@@ -5,13 +5,13 @@ import { api } from "@/api"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+
 /**
  * Form to create or edit the policy. Used inside a dialog.
  * @param {Object} props
  * @param {Object} props.policy - existing policy, or undefined when creating
  * @param {Function} props.onSuccess
  */
-
 
 const VIEW_MODES = [{ tag: "text", label: "Text" }, { tag: "preview", label: "Preview" }]
 
@@ -20,7 +20,9 @@ export function EditPolicy({ policy, onSuccess = () => {} }) {
     const queryClient = useQueryClient()
     const [formData, setFormData] = useState({ title: "", text: "", required: false, bump_version: false })
     const [markdownView, setMarkdownView] = useState("text")
-    const { mutate: updatePolicy, isPending: isSaving } = api.policy.useUpdatePolicy()
+    const { mutate: createPolicy, isPending: isCreating } = api.policy.useCreatePolicy()
+    const { mutate: updatePolicy, isPending: isUpdating } = api.policy.useUpdatePolicy()
+    const isSaving = isCreating || isUpdating
 
     useEffect(() => {
         if (policy) {
@@ -36,13 +38,18 @@ export function EditPolicy({ policy, onSuccess = () => {} }) {
     }, [policy])
 
     const handleSave = () => {
-        updatePolicy(formData, {
+        const options = {
             onSuccess: () => {
-                queryClient.invalidateQueries({ queryKey: ["getPolicy"] })
+                queryClient.invalidateQueries({ queryKey: ["getPolicies"] })
                 queryClient.invalidateQueries({ queryKey: ["getPolicyStatus"] })
                 onSuccess()
             }
-        })
+        }
+        if (policy) {
+            updatePolicy({ tag: policy.tag, ...formData }, options)
+        } else {
+            createPolicy({ title: formData.title, text: formData.text, required: formData.required }, options)
+        }
     }
 
     return (
@@ -101,7 +108,8 @@ export function EditPolicy({ policy, onSuccess = () => {} }) {
             )}
 
             <div className="flex justify-end">
-                <Button intent="success" loading={isSaving} onClick={handleSave} disabled={formData.text.trim() === ""}>
+                <Button intent="success" loading={isSaving} onClick={handleSave}
+                    disabled={formData.text.trim() === "" || (!policy && formData.title.trim() === "")}>
                     {policy ? "Save" : "Create policy"}
                 </Button>
             </div>
