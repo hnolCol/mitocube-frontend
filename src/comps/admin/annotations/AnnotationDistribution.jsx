@@ -65,24 +65,29 @@ export function AnnotationDistribution({ tag, submission_tag, width = 95, height
     // const { data : qsAnnotation } = api.submissions.quantifications.useGetSubmissionQuantificationDistribution({tag : submission_tag, annotation_tag : tag}, {enabled : _.isString(submission_tag) && _.isString(tag) && tag.length > 0})
     // const d = _.concat(qsComplete, qsAnnotation)
 
-    return <div className="flex flex-wrap" style={{gap : "2rem"}}> 
+    return <div className="flex" style={{ gap: "0.75rem", flexWrap: "nowrap", overflowX: "auto", alignItems: "flex-end" }}>
         {!isReady && <Loading />}
         {isReady && _.isArray(tagQueries) && tagQueries.length > 0 ? 
-            pairedQueries.map((pair, i) => <div className="flex flex-column" key={`${pair[0].data.suffix}-${i}`}>
-                
-                <h3>{pair[0].data.suffix}</h3>
-            
+            pairedQueries.map((pair, i) => <div className="flex flex-column center-items" key={`${pair[0].data.suffix}-${i}`} style={{ width: 2 * width, flex: "0 0 auto" }}>
+
+                <span
+                    className="font-size--smallest margin-bottom--little"
+                    title={pair[0].data.suffix}
+                    style={{ maxWidth: `${2 * width}px`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", display: "inline-block", minHeight: "1rem" }}>
+                    {pair[0].data.suffix}
+                </span>
+
                 <viz.charts.minimal.MinimalBoxplots
                     qs={pair.map(d => d.data.distributions[0])}
                     margins={margins}
-                    yaxisLabel={`log2 FC ${pair[0].data.suffix}`}
+                    yaxisLabel={i === 0 ? `log2 FC` : ""}
                     showMedian={false}
                     width={width}
                     height={height}
                     fill={pair.map(d => d.data.annotation_tag || d.data.annotation_group_tag ? "red" : "#efefef")} //dangerous! 2 only?
                     spaceBetween={5}
                     preYScale={yScale} />
-                
+
             </div>) : null}
 
     </div>
