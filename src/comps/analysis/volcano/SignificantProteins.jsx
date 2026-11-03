@@ -1,10 +1,11 @@
 import _ from "lodash"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Button, ButtonGroup, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Tab, Tabs, Tooltip } from "@blueprintjs/core"
+import { Button, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Tab, Tabs, Tooltip } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 
 
 const PAGE_SIZE = 50
@@ -245,13 +246,17 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
                 onChange={e => onSearchStringChange(e.target.value)}
                 rightElement={searchIsInactive ? undefined :
                     <Button small={true} variant="minimal" icon={searchIsLoading ? "refresh" : "cross"} onClick={() => onSearchStringChange("")} />} />
-            {_.isFunction(onLabelProteinList) ? <Button small={true} variant="minimal" icon="label" text="Label list"
+            {_.isFunction(onLabelProteinList) ? <button className="basic-button--small"
                 disabled={filteredRows.length === 0}
-                onClick={() => onLabelProteinList(_.uniq(filteredRows.flatMap(row => rowProteinTags(row))))} /> : null}
+                onClick={() => onLabelProteinList(_.uniq(filteredRows.flatMap(row => rowProteinTags(row))))}>
+                Label list
+            </button> : null}
             {_.isString(submission_tag) ? <SaveAsAnnotationButton rows={filteredRows} submission_tag={submission_tag} /> : null}
-            <Button small={true} variant="minimal" icon="export" text="Export CSV"
+            <button className="basic-button--small"
                 disabled={filteredRows.length === 0}
-                onClick={() => exportRowsAsCSV({ rows: filteredRows, suffixes, proteinTagMap, fileName: `significant-proteins-${direction}.csv` })} />
+                onClick={() => exportRowsAsCSV({ rows: filteredRows, suffixes, proteinTagMap, fileName: `significant-proteins-${direction}.csv` })}>
+                Export CSV
+            </button>
         </div>
         <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "auto" }}>
             <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
@@ -293,10 +298,10 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
             </HTMLTable>
         </div>
         {visibleCount < filteredRows.length
-            ? <Button small={true} variant="minimal" intent="primary" className="margin-top--little"
+            ? <button className="basic-button--small margin-top--little"
                 onClick={() => onVisibleCountChange(visibleCount + PAGE_SIZE)}>
                 Show more ({Math.min(visibleCount, filteredRows.length)} of {filteredRows.length})
-            </Button>
+            </button>
             : <span className="font-size--smallest">
                 {filteredRows.length < rows.length
                     ? `Showing ${filteredRows.length} of ${rows.length} proteins (filtered).`
@@ -328,8 +333,10 @@ function SaveAsAnnotationButton({ rows, submission_tag }) {
     }
 
     return <>
-        <Button small={true} variant="minimal" icon="star-empty" text="Save as annotation"
-            disabled={proteinTags.length === 0} onClick={() => { setSaveSuccess(false); setIsOpen(true) }} />
+        <button className="basic-button--small"
+            disabled={proteinTags.length === 0} onClick={() => { setSaveSuccess(false); setIsOpen(true) }}>
+            Save as annotation
+        </button>
         {saveSuccess ? <span className="font-size--smallest margin-left--little">Annotation created. It is now available under Quick Select {"\u2192"} Annotations.</span> : null}
         <Dialog isOpen={isOpen} onClose={() => setIsOpen(false)} title="Save protein list as annotation">
             <DialogBody>
@@ -349,8 +356,9 @@ function SaveAsAnnotationButton({ rows, submission_tag }) {
                         }} />
                 </div>
                 <div className="margin-top--little">
-                    <Button text="Save" intent="primary" loading={isLoading}
-                        disabled={annotationText.trim().length === 0 || !_.isString(groupTag)} onClick={handleSave} />
+                    <button className="basic-button--small" disabled={isLoading || annotationText.trim().length === 0 || !_.isString(groupTag)} onClick={handleSave}>
+                        {isLoading ? "Saving..." : "Save"}
+                    </button>
                 </div>
             </DialogBody>
         </Dialog>
@@ -363,12 +371,10 @@ function DirectionToggle({ direction, onChange, counts }) {
         { id: "up", label: `Upregulated (${counts.up})` },
         { id: "down", label: `Downregulated (${counts.down})` },
         { id: "all", label: `All significant (${counts.all})` }]
-    return <ButtonGroup className="margin-bottom--little">
-        {options.map(option => <Button key={option.id} small={true}
-            intent={direction === option.id ? "primary" : "none"}
-            variant={direction === option.id ? "default" : "minimal"}
-            onClick={() => onChange(option.id)}>{option.label}</Button>)}
-    </ButtonGroup>
+    return <div className="flex center-items margin-bottom--little" style={{ gap: "0.3rem" }}>
+        {options.map(option => <OptionButton key={option.id} isSelected={direction === option.id}
+            onClick={() => onChange(option.id)}>{option.label}</OptionButton>)}
+    </div>
 }
 
 
@@ -673,15 +679,11 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                         <div>
                             <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
                                 <span className="font-weight--bold">Left volcano:</span>
-                                {suffixes.map(suffix => <Button key={suffix} small={true}
-                                    intent={suffix === leftSuffix ? "primary" : "none"}
-                                    variant={suffix === leftSuffix ? "default" : "minimal"}
-                                    onClick={() => suffix !== rightSuffix && setLeftSuffix(suffix)}>{suffix}</Button>)}
+                                {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === leftSuffix}
+                                    onClick={() => suffix !== rightSuffix && setLeftSuffix(suffix)}>{suffix}</OptionButton>)}
                                 <span className="font-weight--bold margin-left--little">Right volcano:</span>
-                                {suffixes.map(suffix => <Button key={suffix} small={true}
-                                    intent={suffix === rightSuffix ? "primary" : "none"}
-                                    variant={suffix === rightSuffix ? "default" : "minimal"}
-                                    onClick={() => suffix !== leftSuffix && setRightSuffix(suffix)}>{suffix}</Button>)}
+                                {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === rightSuffix}
+                                    onClick={() => suffix !== leftSuffix && setRightSuffix(suffix)}>{suffix}</OptionButton>)}
                             </div>
                             <VennSection direction={direction} sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix} submission_tag={submission_tag}
                                 selectionState={vennSelectionState}
