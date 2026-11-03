@@ -48,11 +48,11 @@ export function SubmissionsByState({ submission_by_state, minimal = true}) {
                 .map((state_tag, idx) => {
                     return <div key={`${state_tag}-${idx}`}>
                         <StateHeader key={`${idx}-${state_tag}`} tag={state_tag} />
-                        <div className="flex flex-column padding-left--little margin-bottom--little">
+                        <div className="flex flex-column padding-left--little margin-bottom--little gap--default">
                             {submission_by_state[state_tag].map((submission_tag, submissionIdx) => {
                                 return (
                                     <div key={`${submission_tag}-${submissionIdx}`}>
-                                        {minimal ? <MinimalSubmissionItem tag={submission_tag} /> : null}
+                                        {minimal ? <MinimalSubmissionItem tag={submission_tag} state_tag={state_tag} /> : null}
                                     </div>
                                 )
                             })}

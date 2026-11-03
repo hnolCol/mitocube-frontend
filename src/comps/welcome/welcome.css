@@ -119,3 +119,11 @@
     flex-direction: column;
     gap: 0.75rem;
 }
+
+.submission-item-state-line {
+    width: 0.35rem;
+    min-width: 0.35rem;
+    border-radius: 0.2rem;
+    align-self: stretch;
+    margin-right: 0.4rem;
+}

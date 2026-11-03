@@ -10,6 +10,7 @@ import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
 import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView"
 import { Trait } from "@/comps/core/base/traits/Trait"
 import { GenotypeText } from "@/comps/admin/genotypes/GentotypeText"
+import "@/comps/welcome/welcome.css"
 
 const ACCESS_GROUPS = [
     {
@@ -86,7 +87,7 @@ function SimilarSubmissionItem({ similar, user_tag }) {
         condition_application_count > 0 ? `${condition_application_count} condition application${condition_application_count === 1 ? "" : "s"}` : null,
         trait_count > 0 ? `${trait_count} trait${trait_count === 1 ? "" : "s"}` : null
     ].filter(_.isString)
-    return <div className="flex flex-column padding--little bg--lightgrey div--round">
+    return <div className="submission-item-btn flex flex-column">
         <div className="flex justify-between align-center">
             <SubmissionLink tag={similar.submission_tag} />
             <div className="flex align-center gap--default">
@@ -186,7 +187,7 @@ export function SimilarSubmissions({ submission_tag, limit = 5, user_tag }) {
     if (isLoading) return <div className="flex center-items padding--medium"><Spinner size={20} /></div>
     const similar = _.isArray(data?.similar) ? data.similar : []
     if (similar.length === 0) return null
-    return <div className="flex flex-column" style={{ gap: "0.75rem" }}>
+    return <div className="flex flex-column margin-top--little" style={{ gap: "0.75rem" }}>
         {ACCESS_GROUPS.map(group => {
             const items = similar.filter(s => s.access === group.key || (group.key === "scope" && s.access === null))
             if (items.length === 0) return null
