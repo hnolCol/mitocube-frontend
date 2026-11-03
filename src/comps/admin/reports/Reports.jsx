@@ -1,7 +1,7 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { Button, Callout, HTMLSelect, Tag } from "@blueprintjs/core"
+import { Callout, HTMLSelect, Tag } from "@blueprintjs/core"
 import { api } from "@/api"
 import Loading from "../../core/base/loading"
 import APIError from "../../core/error/APIerror"
@@ -78,16 +78,18 @@ export function AdminReports({ authenticationStatus }) {
                         onChange={e => setSelectedYear(_.toNumber(e.target.value))}>
                         {availableYears.map(y => <option key={y} value={y}>{y}</option>)}
                     </HTMLSelect>
-                    <Button
-                        icon="download"
-                        text="Excel"
-                        loading={download.isPending}
-                        onClick={() => downloadReport("xlsx")} />
-                    <Button
-                        icon="download"
-                        text="Markdown"
-                        loading={download.isPending}
-                        onClick={() => downloadReport("md")} />
+                    <button
+                        className="basic-button--small"
+                        disabled={download.isPending}
+                        onClick={() => downloadReport("xlsx")}>
+                        {download.isPending ? "Downloading..." : "Excel"}
+                    </button>
+                    <button
+                        className="basic-button--small"
+                        disabled={download.isPending}
+                        onClick={() => downloadReport("md")}>
+                        {download.isPending ? "Downloading..." : "Markdown"}
+                    </button>
                 </div>
             </div>
             {_.isString(error) ?

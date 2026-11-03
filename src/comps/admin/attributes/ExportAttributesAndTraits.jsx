@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { Button, Intent } from "@blueprintjs/core"
 import PropTypes from "prop-types"
 import { api } from "@/api"
 import { downloadJSONFile } from "@/services/downloads/json"
@@ -25,14 +24,13 @@ export function ExportAttributesButton() {
     }
 
     return (
-        <Button
-            icon="export"
-            loading={isExporting}
-            intent={isError ? Intent.DANGER : Intent.NONE}
+        <button
+            className={`basic-button--small ${isError ? "basic-button--danger" : ""}`}
+            disabled={isExporting}
             onClick={handleExport}
         >
-            {isError ? "Export failed" : "Export Attributes"}
-        </Button>
+            {isError ? "Export failed" : isExporting ? "Exporting..." : "Export Attributes"}
+        </button>
     )
 }
 
@@ -61,14 +59,12 @@ export function ExportTraitsButton({ tag }) {
     }
 
     return (
-        <Button
-            minimal
-            icon="export"
-            loading={isExporting}
-            intent={isError ? Intent.DANGER : Intent.NONE}
+        <button
+            className={`basic-button--small ${isError ? "basic-button--danger" : ""}`}
+            disabled={isExporting}
             onClick={handleExport}
         >
-            {isError ? "Export failed" : "Export traits"}
-        </Button>
+            {isError ? "Export failed" : isExporting ? "Exporting..." : "Export traits"}
+        </button>
     )
 }
