@@ -211,6 +211,7 @@ function SaveAsAnnotationButton({ rows, submission_tag }) {
     const [isOpen, setIsOpen] = useState(false)
     const [annotationText, setAnnotationText] = useState("")
     const [groupTag, setGroupTag] = useState(undefined)
+    const [saveSuccess, setSaveSuccess] = useState(false)
     const { mutate: postAnnotation, isLoading } = api.annotations.modifyAnnotations.usePostAnnotations()
 
     const proteinTags = _.uniq((_.isArray(rows) ? rows : []).flatMap(row => rowProteinTags(row)))
@@ -224,15 +225,16 @@ function SaveAsAnnotationButton({ rows, submission_tag }) {
             group_tag: groupTag,
             protein_tags: proteinTags,
             submission_tags: [submission_tag]
-        }, { onSuccess: () => { setIsOpen(false); setAnnotationText(""); setGroupTag(undefined) } })
+        }, { onSuccess: () => { setIsOpen(false); setAnnotationText(""); setGroupTag(undefined); setSaveSuccess(true) } })
     }
 
     return <>
         <Button small={true} variant="minimal" icon="star-empty" text="Save as annotation"
-            disabled={proteinTags.length === 0} onClick={() => setIsOpen(true)} />
+            disabled={proteinTags.length === 0} onClick={() => { setSaveSuccess(false); setIsOpen(true) }} />
+        {saveSuccess ? <span className="font-size--smallest margin-left--little">Annotation created. It is now available under Quick Select {"\u2192"} Annotations.</span> : null}
         <Dialog isOpen={isOpen} onClose={() => setIsOpen(false)} title="Save protein list as annotation">
             <DialogBody>
-                <p className="font-size--small">A new annotation will be created and assigned to the {proteinTags.length} proteins of this list. It is then available in the Annotations quick select and can be used to highlight the proteins in the volcano plots.</p>
+                <p className="font-size--small">A new annotation will be created and assigned to the {proteinTags.length} proteins of this list. After saving, it is available under <strong>Quick Select {"\u2192"} Annotations</strong> and can be selected there to highlight all proteins of this list in the volcano plots.</p>
                 <div className="margin-bottom--little">
                     <span className="font-size--small">Annotation name</span>
                     <InputGroup small={true} placeholder="Annotation name..." value={annotationText}
