@@ -1,4 +1,4 @@
-import { Button, Tab, Tabs } from "@blueprintjs/core"
+import { Tab, Tabs } from "@blueprintjs/core"
 import { useState, useMemo, useEffect } from "react"
 import { useOutletContext } from "react-router"
 import { api } from "@/api"
@@ -156,12 +156,13 @@ function Runlist() {
         <div className="padding--medium">
             <div className="flex center-items justify-space-between">
                 <h2>Runlists</h2>
-                <Button
-                    icon="add"
-                    text="Create Runlist"
+                <button
+                    className="basic-button--small"
                     onClick={() => setDialogOpen(true)}
                     disabled={!submission}
-                />
+                >
+                    Create Runlist
+                </button>
             </div>
             <p>Find the analytical runs associated with the project below. A submission can have several runlists e.g. if the same samples are measured with two different setups.</p>
 
@@ -210,20 +211,20 @@ function Runlist() {
                                             Created by {activeRunlist.user_firstname} {activeRunlist.user_lastname} • <CreatedAt createdat={activeRunlist.created_at} />                               </div>  
                                     </div>
                                     <div className="flex center-items">
-                                        <Button
-                                            icon="download"
-                                            text="Download"
+                                        <button
+                                            className="basic-button--small"
                                             onClick={() => exportRunlistToTxtFile(activeRunlist)}
                                             style={{ marginRight: "0.5rem" }}
-                                        />
-                                        <Button
-                                            icon="trash"
-                                            text="Delete"
+                                        >
+                                            Download
+                                        </button>
+                                        <button
+                                            className="basic-button--small basic-button--danger"
                                             onClick={() => handleDeleteRunlist(activeRunlist.tag)}
-                                            intent="danger"
-                                            loading={isDeleting}
                                             disabled={isDeleting}
-                                        />
+                                        >
+                                            {isDeleting ? "Deleting..." : "Delete"}
+                                        </button>
                                     </div>
                                 </div>
                                 <div style={{
