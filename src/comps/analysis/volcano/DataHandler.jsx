@@ -11,7 +11,8 @@ import { api } from "@/api";
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
 import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
 import { usePrefetchVolcanoData } from "@/api/orchestrated/volcanoData";
-import { VolcanoCompareButton, VolcanoListButton } from "./SignificantProteins";
+import { VolcanoListButton } from "./SignificantProteins";
+import { useAnnotationProteinSets, useAnnotationTexts } from "@/api/orchestrated/annotationProteins";
 
 
 
@@ -30,6 +31,10 @@ export function VolcanoDataHandler({
         proteinSearchResults,
         onToggleProteinLabel,
         onLabelProteinList,
+        onMarkProteinList,
+        onRemoveAllLabels,
+        markedAnnotations,
+        markedProteinList,
         proteinHoverResults,
         favoriteProteinSelection,
         favoriteAnnotationSelection,
@@ -41,6 +46,35 @@ export function VolcanoDataHandler({
     
     
     const [annotationMarkers, setAnnotationMarkers] = useState([])
+
+    const markedAnnotationTags = _.isArray(markedAnnotations) ? markedAnnotations.map(m => m.tag) : []
+    const { proteinTagsByAnnotation } = useAnnotationProteinSets({ submission_tag, annotation_tags: markedAnnotationTags })
+    const { textByAnnotation } = useAnnotationTexts(markedAnnotationTags)
+
+    // color data points of marked annotations: the first marked annotation containing a protein of the group wins
+    const dataWithMarkedAnnotationColors = useMemo(() => {
+        if (!_.isArray(markedAnnotations) || markedAnnotations.length === 0) return volcanoData.data
+        if (!_.isArray(volcanoData.data)) return volcanoData.data
+        return volcanoData.data.map(row => {
+            const tags = _.isString(row.tag) ? row.tag.split(";") : []
+            for (const { tag, color } of markedAnnotations) {
+                const proteinSet = proteinTagsByAnnotation.get(tag)
+                if (proteinSet instanceof Set && tags.some(t => proteinSet.has(t))) {
+                    return { ...row, annotation_color: color }
+                }
+            }
+            return row
+        })
+    }, [volcanoData.data, markedAnnotations, proteinTagsByAnnotation])
+
+    const markedAnnotationMarkers = useMemo(() => (_.isArray(markedAnnotations) ? markedAnnotations
+        .filter(m => proteinTagsByAnnotation.get(m.tag) instanceof Set)
+        .map(({ tag, color }) => ({
+            annotationTags: [tag],
+            annotationNames: [textByAnnotation.get(tag)],
+            color,
+            proteinTags: [...proteinTagsByAnnotation.get(tag)]
+        })) : []), [markedAnnotations, proteinTagsByAnnotation, textByAnnotation])
     const [prefetchedTestParams, setPrefetchedTestParams] = useState([])
     const { isReady, tagQueries } = usePrefetchVolcanoData(prefetchedTestParams, { enabled: _.isObject(prefetchedTestParams) && _.isArray(prefetchedTestParams) && prefetchedTestParams.length > 0 })
        
@@ -278,13 +312,12 @@ export function VolcanoDataHandler({
     }, [favoriteProteinSelection, selectedAnnotationProteins, showHoverLabels])
 
     const externalHoverResult = useMemo(() => {
-        const values = _.uniq([...(proteinHoverResults?.values || []), ...(hoveredAnnotationProteins ?? [])])
+        const values = _.uniq([...(proteinHoverResults?.values || []), ...(markedProteinList?.values || []), ...(hoveredAnnotationProteins ?? [])])
         return { values, trigger: values.join("|"), key: "tag" }
-    }, [proteinHoverResults, hoveredAnnotationProteins])
+    }, [proteinHoverResults, markedProteinList, hoveredAnnotationProteins])
 
     const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
 
-    const visibleSuffixes = useMemo(() => _.isArray(volcanoData.suffixes) ? volcanoData.suffixes.filter(suffix => !hiddenSuffix.includes(suffix)) : [], [volcanoData.suffixes, hiddenSuffix])
 
     return (
         <div
@@ -296,19 +329,8 @@ export function VolcanoDataHandler({
                 marginLeft: "2rem"
             }}> 
 
-        {visibleSuffixes.length > 1 && _.isArray(volcanoData.data) ?
-            <VolcanoCompareButton
-                data={volcanoData.data}
-                suffixes={visibleSuffixes}
-                submission_tag={submission_tag}
-                proteinTagMap={proteinTagMap}
-                setRequiredProteinTags={setRequiredProteinTags}
-                favoriteProteinSelection={favoriteProteinSelection}
-                onToggleProteinLabel={onToggleProteinLabel}
-                onLabelProteinList={onLabelProteinList} /> : null}
-        
         <InteractiveChart
-                data={volcanoData.data}
+                data={dataWithMarkedAnnotationColors}
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
                 externalLabelResult={externalLabelResult}
@@ -357,18 +379,10 @@ export function VolcanoDataHandler({
                                     key={chartIdx}>
                                     
                                     <div style={{ position: "absolute", right: 5, top: 5 }} className="flex center-items">
-                                        <VolcanoListButton
-                                            data={volcanoData.data}
-                                            suffix={volcanoData.suffixes[chartIdx]}
-                                            submission_tag={submission_tag}
-                                            proteinTagMap={proteinTagMap}
-                                            setRequiredProteinTags={setRequiredProteinTags}
-                                            favoriteProteinSelection={favoriteProteinSelection}
-                                            onToggleProteinLabel={onToggleProteinLabel}
-                                            onLabelProteinList={onLabelProteinList} />
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
-                                        </div>
+                                    </div>
+                                    <div className="flex center-items">
                                     {_.isArray(volcanoData.data) && volcanoData.data.length > 0 && _.isObject(volcanoData.data[0]) ?
                                         <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                             {...{
@@ -387,6 +401,19 @@ export function VolcanoDataHandler({
                                                 // onAnnotationSelect: handleAnnotationSelect,
                                                 handleSearchByDataIndex
                                             }} /> : null}
+                                        <VolcanoListButton
+                                            data={volcanoData.data}
+                                            suffix={volcanoData.suffixes[chartIdx]}
+                                            submission_tag={submission_tag}
+                                            proteinTagMap={proteinTagMap}
+                                            setRequiredProteinTags={setRequiredProteinTags}
+                                            favoriteProteinSelection={favoriteProteinSelection}
+                                            onToggleProteinLabel={onToggleProteinLabel}
+                                            onLabelProteinList={onLabelProteinList}
+                                            markedProteinTags={markedProteinList?.values ?? []}
+                                            onMarkProteinList={onMarkProteinList}
+                                            onRemoveAllLabels={onRemoveAllLabels} />
+                                    </div>
                                     
                                     <ScatterPlot
                                         key={`volcano-plot-${chartIdx}`}{...{
@@ -422,7 +449,7 @@ export function VolcanoDataHandler({
                                         svgID: `volcano-${didx}`,
                                         triggerResetAxis,
                                         setTriggerResetAxisZoom,
-                                        annotationMarkers: annotationMarkers,
+                                        annotationMarkers: _.concat(annotationMarkers, markedAnnotationMarkers),
                                         proteinTagMap,
                                         setRequiredProteinTags,
                                         proteinIsLoading,

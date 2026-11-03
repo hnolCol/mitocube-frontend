@@ -1,11 +1,13 @@
 import _ from "lodash"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Button, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Tab, Tabs, Tooltip } from "@blueprintjs/core"
+import { Button, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Tab, Tabs, Tag, Tooltip } from "@blueprintjs/core"
 import { useNavigate } from "react-router"
 import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
+import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { useAnnotationProteinSets } from "@/api/orchestrated/annotationProteins"
 
 
 const PAGE_SIZE = 50
@@ -191,9 +193,15 @@ function usePrefetchProteinNames(rows, proteinTagMap, setRequiredProteinTags) {
  */
 export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequiredProteinTags, direction, submission_tag,
         searchString, onSearchStringChange, visibleCount, onVisibleCountChange, selectedProteinTags = [], onToggleProteinLabel, onLabelProteinList,
-        sortState, onSortChange }) {
+        markedProteinTags = [], onMarkProteinList, onRemoveAllLabels, sortState, onSortChange,
+        annotationFilterTags = [], onAnnotationFilterTagsChange }) {
     const navigate = useNavigate()
     const debouncedSearchString = useDebounce(searchString, 300)
+
+    const { proteinTagsByAnnotation } = useAnnotationProteinSets({
+        submission_tag,
+        annotation_tags: annotationFilterTags
+    })
 
     const searchIsInactive = !_.isString(searchString) || searchString.trim().length === 0
 
@@ -204,20 +212,36 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
 
     const filteredRows = useMemo(() => {
         if (!_.isArray(rows)) return []
-        if (searchIsInactive) return rows
-        const query = debouncedSearchString.trim().toLowerCase()
-        const matchedTags = _.isArray(searchResults) ? new Set(searchResults) : undefined
-        return rows.filter(row => {
-            if (_.isString(row.tag) && row.tag.toLowerCase().includes(query)) return true
-            const tags = rowProteinTags(row)
-            if (matchedTags) return tags.some(tag => matchedTags.has(tag))
-            return displayNamesForRow(proteinTagMap, row).toLowerCase().includes(query)
-        })
-    }, [rows, debouncedSearchString, searchResults, searchIsInactive, proteinTagMap])
+        let result = rows
+        if (!searchIsInactive) {
+            const query = debouncedSearchString.trim().toLowerCase()
+            const matchedTags = _.isArray(searchResults) ? new Set(searchResults) : undefined
+            result = result.filter(row => {
+                if (_.isString(row.tag) && row.tag.toLowerCase().includes(query)) return true
+                const tags = rowProteinTags(row)
+                if (matchedTags) return tags.some(tag => matchedTags.has(tag))
+                return displayNamesForRow(proteinTagMap, row).toLowerCase().includes(query)
+            })
+        }
+        const activeAnnotationSets = annotationFilterTags
+            .map(tag => proteinTagsByAnnotation.get(tag))
+            .filter(set => set instanceof Set)
+        if (activeAnnotationSets.length > 0) {
+            result = result.filter(row => {
+                const tags = rowProteinTags(row)
+                return activeAnnotationSets.every(set => tags.some(tag => set.has(tag)))
+            })
+        }
+        return result
+    }, [rows, debouncedSearchString, searchResults, searchIsInactive, proteinTagMap, annotationFilterTags, proteinTagsByAnnotation])
 
     const sortedFilteredRows = useMemo(() => sortRowsForTable(filteredRows, sortState, suffixes, proteinTagMap), [filteredRows, sortState, suffixes, proteinTagMap])
 
     const visibleRows = useMemo(() => sortedFilteredRows.slice(0, visibleCount), [sortedFilteredRows, visibleCount])
+
+    const filteredProteinTags = useMemo(() => _.uniq(filteredRows.flatMap(row => rowProteinTags(row))), [filteredRows])
+    const listIsMarked = useMemo(() => filteredProteinTags.length > 0
+        && _.difference(filteredProteinTags, markedProteinTags).length === 0, [filteredProteinTags, markedProteinTags])
 
     // without an active search, protein names are only fetched for the visible rows
     usePrefetchProteinNames(searchIsInactive ? visibleRows : filteredRows, proteinTagMap, setRequiredProteinTags)
@@ -251,6 +275,17 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
                 onClick={() => onLabelProteinList(_.uniq(filteredRows.flatMap(row => rowProteinTags(row))))}>
                 Label list
             </button> : null}
+            {_.isFunction(onMarkProteinList) ? <button className="basic-button--small"
+                style={listIsMarked ? { fontWeight: "bold", border: "1px solid #f5b301" } : {}}
+                disabled={filteredRows.length === 0}
+                onClick={() => onMarkProteinList(listIsMarked ? [] : filteredProteinTags)}>
+                {listIsMarked ? "Unmark list" : "Mark list"}
+            </button> : null}
+            {_.isFunction(onRemoveAllLabels) ? <button className="basic-button--small"
+                disabled={(selectedProteinTags ?? []).length === 0}
+                onClick={onRemoveAllLabels}>
+                Remove all labels
+            </button> : null}
             {_.isString(submission_tag) ? <SaveAsAnnotationButton rows={filteredRows} submission_tag={submission_tag} /> : null}
             <button className="basic-button--small"
                 disabled={filteredRows.length === 0}
@@ -258,6 +293,18 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
                 Export CSV
             </button>
         </div>
+        {_.isFunction(onAnnotationFilterTagsChange) ? <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.3rem" }}>
+            <AnnotationSelectionMenu
+                placeholder="Filter by annotation"
+                onSelection={(e, tag) => {
+                    if (!_.isString(tag) || annotationFilterTags.includes(tag)) return
+                    onAnnotationFilterTagsChange([...annotationFilterTags, tag])
+                }}
+                selected_tags={annotationFilterTags}
+                showTags={false}
+                submission_tags={[submission_tag]} />
+            {annotationFilterTags.map(tag => <Tag key={tag} minimal={true} onRemove={() => onAnnotationFilterTagsChange(annotationFilterTags.filter(t => t !== tag))}>{tag}</Tag>)}
+        </div> : null}
         <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "auto" }}>
             <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
                 <thead style={{ position: "sticky", top: 0, backgroundColor: "#ffffff", zIndex: 1, boxShadow: "0 1px 0 rgba(0,0,0,0.2)" }}>
@@ -378,12 +425,33 @@ function DirectionToggle({ direction, onChange, counts }) {
 }
 
 
-export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList }) {
+const VOLCANO_LIST_ICON_SIZE = 24
+
+function VolcanoListSVG({ size = VOLCANO_LIST_ICON_SIZE, color = "#000", significant = false }) {
+    const rowSpacing = size / 4
+    return (
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+            {[0, 1, 2].map(idx => <g key={idx}>
+                <circle cx={size / 5} cy={size / 5 + idx * rowSpacing} r={size / 12} fill={color} />
+                <line
+                    x1={size / 2.5}
+                    x2={size / 1.15}
+                    y1={size / 5 + idx * rowSpacing}
+                    y2={size / 5 + idx * rowSpacing}
+                    stroke={color}
+                    strokeWidth={1.5} />
+            </g>)}
+        </svg>
+    )
+}
+
+export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
     const [isOpen, setIsOpen] = useState(false)
     const [direction, setDirection] = useState("up")
     const [searchString, setSearchString] = useState("")
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
     const [sortState, setSortState] = useState(undefined)
+    const [annotationFilterTags, setAnnotationFilterTags] = useState([])
     const { up, down, all } = useMemo(() => getSignificantRows(data, suffix), [data, suffix])
 
     const selectedRows = direction === "up" ? up : direction === "down" ? down : all
@@ -393,11 +461,20 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
         setSearchString("")
         setVisibleCount(PAGE_SIZE)
         setSortState(undefined)
+        setAnnotationFilterTags([])
     }
 
+    const hasSignificant = up.length + down.length > 0
+
     return <>
-        <Button variant="minimal" icon="list" intent={up.length + down.length > 0 ? "primary" : "none"}
-            onClick={() => setIsOpen(prev => !prev)} />
+        <button
+            title={hasSignificant ? "Show significant proteins" : "No significant proteins"}
+            className="flex margin--very-little icon__container center-items"
+            style={{ outline: "none", border: "none", width: VOLCANO_LIST_ICON_SIZE, height: VOLCANO_LIST_ICON_SIZE, padding: "0px", cursor: hasSignificant ? "pointer" : "default" }}
+            onMouseDown={e => e.stopPropagation()}
+            onClick={() => hasSignificant && setIsOpen(prev => !prev)}>
+            <VolcanoListSVG significant={hasSignificant} color={hasSignificant ? "#2e528b" : "#999999"} />
+        </button>
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%" style={{ height: "95vh" }}>
             <div className="padding--medium">
                 <DirectionToggle direction={direction} onChange={handleDirectionChange} counts={{ up: up.length, down: down.length, all: all.length }} />
@@ -407,8 +484,10 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
                     searchString={searchString} onSearchStringChange={setSearchString}
                     visibleCount={visibleCount} onVisibleCountChange={setVisibleCount}
                     sortState={sortState} onSortChange={setSortState}
+                    annotationFilterTags={annotationFilterTags} onAnnotationFilterTagsChange={setAnnotationFilterTags}
                     selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
-                    onLabelProteinList={onLabelProteinList} />
+                    onLabelProteinList={onLabelProteinList}
+                    markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels} />
             </div>
         </Drawer>
     </>
@@ -451,7 +530,8 @@ function VennDiagram({ leftLabel, rightLabel, leftOnlyCount, sharedCount, rightO
 
 
 function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, setRequiredProteinTags, submission_tag,
-        selectionState, onSelectionStateChange, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList }) {
+        selectionState, onSelectionStateChange, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList,
+        markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
 
     const leftSet = sets[leftSuffix]
     const rightSet = sets[rightSuffix]
@@ -488,8 +568,8 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
             sharedCount={shared.length}
             rightOnlyCount={rightOnly.length}
             onSelect={(newSegment) => updateState(newSegment === segment
-                ? { segment: undefined, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined }
-                : { segment: newSegment, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined })} />
+                ? { segment: undefined, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined, annotationFilterTags: [] }
+                : { segment: newSegment, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined, annotationFilterTags: [] })} />
         {segmentTitle ? <div className="margin-top--little">
             <span className="font-size--small">{segmentTitle}</span>
             <SignificantProteinTable
@@ -498,8 +578,10 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
                 searchString={selectionState.searchString ?? ""} onSearchStringChange={searchString => updateState({ searchString })}
                 visibleCount={selectionState.visibleCount ?? PAGE_SIZE} onVisibleCountChange={visibleCount => updateState({ visibleCount })}
                 sortState={selectionState.sortState} onSortChange={sortState => updateState({ sortState })}
+                annotationFilterTags={selectionState.annotationFilterTags ?? []} onAnnotationFilterTagsChange={annotationFilterTags => updateState({ annotationFilterTags })}
                 selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
-                onLabelProteinList={onLabelProteinList} />
+                onLabelProteinList={onLabelProteinList}
+                markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels} />
         </div> : null}
     </div>
 }
@@ -545,7 +627,8 @@ function UpSetDots({ suffixes, memberSuffixes }) {
 
 
 function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequiredProteinTags, submission_tag,
-        selectionState, onSelectionStateChange, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList }) {
+        selectionState, onSelectionStateChange, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList,
+        markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
 
     const signatureEntries = useMemo(() => {
         const membershipByTag = new Map()
@@ -596,8 +679,8 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
                     <div className="flex center-items"
                     style={{ gap: "0.3rem", cursor: "pointer", backgroundColor: isSelected ? "#efefef" : "white" }}
                     onClick={() => updateState(entry.key === selectedSignatureKey
-                        ? { signatureKey: undefined, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined }
-                        : { signatureKey: entry.key, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined })}>
+                        ? { signatureKey: undefined, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined, annotationFilterTags: [] }
+                        : { signatureKey: entry.key, searchString: "", visibleCount: PAGE_SIZE, sortState: undefined, annotationFilterTags: [] })}>
                     <UpSetDots suffixes={suffixes} memberSuffixes={entry.suffixes} />
                     <div style={{ width: "200px", flexShrink: 0 }}>
                         <div style={{
@@ -623,14 +706,16 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
                 searchString={selectionState.searchString ?? ""} onSearchStringChange={searchString => updateState({ searchString })}
                 visibleCount={selectionState.visibleCount ?? PAGE_SIZE} onVisibleCountChange={visibleCount => updateState({ visibleCount })}
                 sortState={selectionState.sortState} onSortChange={sortState => updateState({ sortState })}
+                annotationFilterTags={selectionState.annotationFilterTags ?? []} onAnnotationFilterTagsChange={annotationFilterTags => updateState({ annotationFilterTags })}
                 selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
-                onLabelProteinList={onLabelProteinList} />
+                onLabelProteinList={onLabelProteinList}
+                markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels} />
         </div> : null}
     </div>
 }
 
 
-export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList }) {
+export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
     const [isOpen, setIsOpen] = useState(false)
     const [activeTab, setActiveTab] = useState("pairwise")
     const [direction, setDirection] = useState("up")
@@ -670,7 +755,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     if (!_.isArray(suffixes) || suffixes.length < 2) return null
 
     return <>
-        <Button icon="comparison" text="Compare significant proteins" variant="minimal" intent="primary" onClick={() => setIsOpen(prev => !prev)} />
+        <button className="basic-button--small" onClick={() => setIsOpen(prev => !prev)}>Compare significant proteins</button>
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="75%" style={{ height: "95vh" }}>
             <div className="padding--medium" style={{ height: "100%", overflowY: "auto" }}>
                 <DirectionToggle direction={direction} onChange={setDirection} counts={counts} />
@@ -689,6 +774,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                                 selectionState={vennSelectionState}
                                 onSelectionStateChange={next => setVennSelectionStates(prev => ({ ...prev, [direction]: next }))}
                                 favoriteProteinSelection={favoriteProteinSelection} onToggleProteinLabel={onToggleProteinLabel} onLabelProteinList={onLabelProteinList}
+                                markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels}
                                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
                         </div>} />
                     <Tab id="all" title={`Compare all (${suffixes.length})`} panel={
@@ -697,6 +783,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                                 selectionState={upsetSelectionState}
                                 onSelectionStateChange={next => setUpsetSelectionStates(prev => ({ ...prev, [direction]: next }))}
                                 favoriteProteinSelection={favoriteProteinSelection} onToggleProteinLabel={onToggleProteinLabel} onLabelProteinList={onLabelProteinList}
+                                markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels}
                                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
                         </div>} />
                 </Tabs>

@@ -16,6 +16,7 @@ import { FavoriteAnnotationSelection } from "@/comps/core/base/annotations/Favor
 import { Checkbox } from "@/comps/core/base/states/Checkbox";
 import { AnnotationDistribution } from "@/comps/admin/annotations/AnnotationDistribution";
 import { getItemFromLocalStorage } from "@/services/localstorage";
+import { VolcanoCompareButton } from "./SignificantProteins";
 
 
 
@@ -69,6 +70,8 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [volcanoData, setVolcanoData] = useState(INIT_VOLCANO_DATA)
     const [favoriteProteinSelection, setFavoriteProteinSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
+    const [markedProteinList, setMarkedProteinList] = useState({ values: [], trigger: undefined, key: "tag" })
+    const [markedAnnotations, setMarkedAnnotations] = useState([])
     const [selectedAnnotations, setSelectedAnnotations] = useState([])
     const [favoriteAnnotationSelection, setFavoriteAnnotationSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [annotationHoverResults, setAnnotationHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
@@ -83,6 +86,25 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const handleLabelProteinList = (proteinTags) => {
         if (!_.isArray(proteinTags) || proteinTags.length === 0) return
         setFavoriteProteinSelection(prevValues => { return { ...prevValues, values : _.uniq([...prevValues.values, ...proteinTags]), trigger: Math.random() } })
+    }
+
+    const handleMarkProteinList = (proteinTags) => {
+        if (!_.isArray(proteinTags)) return
+        setMarkedProteinList(prevValues => {
+            const isToggleOff = prevValues.values.length === proteinTags.length && _.difference(prevValues.values, proteinTags).length === 0
+            return { values: isToggleOff ? [] : proteinTags, trigger: Math.random(), key: "tag" }
+        })
+    }
+
+    const handleMarkAnnotation = (annotationTag, color) => {
+        setMarkedAnnotations(prevValues => {
+            const withoutTag = prevValues.filter(m => m.tag !== annotationTag)
+            return _.isString(color) ? [...withoutTag, { tag: annotationTag, color }] : withoutTag
+        })
+    }
+
+    const handleRemoveAllLabels = () => {
+        setFavoriteProteinSelection(prevValues => { return { ...prevValues, values: [], trigger: Math.random() } })
     }
 
     const handleProteinHover = (proteinTag) => {
@@ -157,6 +179,8 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                                 onAdd={handleAnnotationSelection}
                                 onSelect={handleFavoriteAnnotationSelect}
                                 onHover={handleAnnotationHover} 
+                                onMark={handleMarkAnnotation}
+                                marked={markedAnnotations}
                                 submission_tags={[submission_tag]}
                             />
 
@@ -179,6 +203,10 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                             submission_tag,
                             onToggleProteinLabel: handleFavoriteSelect,
                             onLabelProteinList: handleLabelProteinList,
+                            onMarkProteinList: handleMarkProteinList,
+                            onRemoveAllLabels: handleRemoveAllLabels,
+                            markedAnnotations,
+                            markedProteinList,
                             selectedTestParams: testParams,
                             setIsFetching,
                             onError: setError,
@@ -200,18 +228,39 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, onLabelProteinList, showHoverLabels = false }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, onLabelProteinList, onMarkProteinList, onRemoveAllLabels, markedAnnotations, markedProteinList, showHoverLabels = false }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
+    const visibleSuffixes = _.isArray(volcanoData.suffixes)
+        ? volcanoData.suffixes.filter(suffix => !hiddenSuffix.includes(suffix))
+        : []
+
     return <WithTagMaps
                 Component={VolcanoDataHandler}
                     protein_tags={requiredProteinTags}
                     showProteinSearch={true}
                     proteinSearchProps={{submission_tag}}
+                    searchExtra={visibleSuffixes.length > 1 && _.isArray(volcanoData.data) ?
+                        ({ proteinTagMap }) => <VolcanoCompareButton
+                            data={volcanoData.data}
+                            suffixes={visibleSuffixes}
+                            submission_tag={submission_tag}
+                            proteinTagMap={proteinTagMap}
+                            setRequiredProteinTags={setRequiredProteinTags}
+                            favoriteProteinSelection={favoriteProteinSelection}
+                            onToggleProteinLabel={onToggleProteinLabel}
+                            onLabelProteinList={onLabelProteinList}
+                            markedProteinTags={markedProteinList?.values ?? []}
+                            onMarkProteinList={onMarkProteinList}
+                            onRemoveAllLabels={onRemoveAllLabels} /> : null}
                     {...{
                         submission_tag, 
                         onToggleProteinLabel,
                         onLabelProteinList,
+                        onMarkProteinList,
+                        onRemoveAllLabels,
+                        markedAnnotations,
+                        markedProteinList,
                         volcanoData,
                         setVolcanoData,
                         selectedTestParams,
