@@ -132,7 +132,7 @@ export function VolcanoDataHandler({
 
     const { data: selectedAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: favoriteAnnotationSelection?.values?.[0] },
-        { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
+        { enabled: !!favoriteAnnotationSelection?.values?.[0] && showHoverLabels, staleTime: Infinity }
     )
     const { data: hoveredAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: annotationHoverResults?.values?.[0] },
