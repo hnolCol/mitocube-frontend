@@ -92,7 +92,7 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
     return <div>
         <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "auto" }}>
             <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
-                <thead>
+                <thead style={{ position: "sticky", top: 0, backgroundColor: "#ffffff", zIndex: 1, boxShadow: "0 1px 0 rgba(0,0,0,0.2)" }}>
                     <tr>
                         <th>Protein</th>
                         {suffixes.map(suffix => <th key={`log2fc-${suffix}`}>{`log2FC (${suffix})`}</th>)}
@@ -130,7 +130,7 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
     return <>
         <Button variant="minimal" icon="list" intent={up.length + down.length > 0 ? "primary" : "none"}
             onClick={() => setIsOpen(true)} />
-        <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%">
+        <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%" style={{ height: "95vh" }}>
             <div className="padding--medium">
                 <ButtonGroup className="margin-bottom--little">
                     <Button small={true} intent={direction === "up" ? "primary" : "none"}
@@ -345,8 +345,8 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
 
     return <>
         <Button icon="comparison" text="Compare significant proteins" variant="minimal" intent="primary" onClick={() => setIsOpen(true)} />
-        <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="60%">
-            <div className="padding--medium" style={{ overflowY: "auto", maxHeight: "80vh" }}>
+        <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="75%" style={{ height: "95vh" }}>
+            <div className="padding--medium" style={{ height: "100%", overflowY: "auto" }}>
                 <Tabs id="volcano-compare-tabs" selectedTabId={activeTab} onChange={setActiveTab} renderActiveTabPanelOnly={true}>
                     <Tab id="pairwise" title="Pairwise (Venn)" panel={
                         <div>
