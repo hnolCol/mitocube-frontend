@@ -1,7 +1,7 @@
 import hooks from "@mitocube/api-hooks";
 import { useOutletContext } from "react-router";
 import { useState } from "react";
-import { Button, Callout } from "@blueprintjs/core";
+import { Callout } from "@blueprintjs/core";
 import { SamplesContainer } from "./SampleContainer";
 import { EditSubmissionSamplesDialog } from "./EditSampleDialog";
 import _ from "lodash";
@@ -86,10 +86,10 @@ export function SubmissionSamples() {
             </Callout>
         ) : null}
         <div style={{ width: "80%", display: "flex", justifyContent: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
-            <Button icon="download" text="Download" onClick={handleDownload} />
+            <button className="basic-button--small" onClick={handleDownload}>Download</button>
             {canEdit && (
                 <div style={{ width: "90%", display: "flex", justifyContent: "flex-end", marginBottom: "0.5rem" }}>
-                    <Button icon="edit" text="Edit Samples" intent="primary" onClick={() => setIsEditOpen(true)} />
+                    <button className="basic-button--small" onClick={() => setIsEditOpen(true)}>Edit Samples</button>
                 </div>
             )}
         </div>
