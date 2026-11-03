@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Button, ButtonGroup, Drawer, HTMLTable } from "@blueprintjs/core"
+import { Button, ButtonGroup, Drawer, HTMLTable, Tab, Tabs } from "@blueprintjs/core"
 
 
 const PAGE_SIZE = 50
@@ -90,7 +90,7 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
     }
 
     return <div>
-        <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "hidden" }}>
+        <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "auto" }}>
             <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
                 <thead>
                     <tr>
@@ -227,8 +227,102 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
 }
 
 
+const UPSET_MAX_ROWS = 20
+const VOLCANO_COLORS = ["#7fbf7b", "#af8dc3", "#fdbf6b", "#80b1d3", "#fb8072", "#8dd3c7", "#bebada", "#ffffb3"]
+
+
+function volcanoColor(suffixes, suffix) {
+    const idx = suffixes.indexOf(suffix)
+    return VOLCANO_COLORS[idx % VOLCANO_COLORS.length]
+}
+
+
+function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequiredProteinTags }) {
+    const [selectedSignatureKey, setSelectedSignatureKey] = useState(undefined)
+
+    const signatureEntries = useMemo(() => {
+        const membershipByTag = new Map()
+        suffixes.forEach(suffix => {
+            const tags = sets[suffix]?.[direction]
+            if (!_.isArray(tags)) return
+            tags.forEach(tag => {
+                if (!membershipByTag.has(tag)) membershipByTag.set(tag, new Set())
+                membershipByTag.get(tag).add(suffix)
+            })
+        })
+        const groups = new Map()
+        membershipByTag.forEach((memberSuffixes, tag) => {
+            const key = suffixes.filter(suffix => memberSuffixes.has(suffix)).join(" | ")
+            if (!groups.has(key)) groups.set(key, { key, suffixes: [...memberSuffixes], tags: [] })
+            groups.get(key).tags.push(tag)
+        })
+        return _.orderBy([...groups.values()], entry => entry.tags.length, "desc")
+    }, [sets, suffixes, direction])
+
+    const maxCount = _.max(signatureEntries.map(entry => entry.tags.length)) || 1
+    const visibleEntries = signatureEntries.slice(0, UPSET_MAX_ROWS)
+
+    const selectedEntry = selectedSignatureKey ? signatureEntries.find(entry => entry.key === selectedSignatureKey) : undefined
+
+    const rowByTag = useMemo(() => (_.isArray(data) ? new Map(data.map(row => [row.tag, row])) : new Map()), [data])
+    const selectedRows = useMemo(() => {
+        if (!selectedEntry) return []
+        return selectedEntry.tags.map(tag => rowByTag.get(tag)).filter(_.isObject)
+            .sort((a, b) => Math.max(...suffixes.map(s => Math.abs(b[log2FCFieldName(s)] || 0)))
+                - Math.max(...suffixes.map(s => Math.abs(a[log2FCFieldName(s)] || 0))))
+    }, [selectedEntry, rowByTag, suffixes])
+
+    return <div className="margin-top--medium">
+        <h4>{direction === "up" ? "Upregulated" : "Downregulated"} proteins across {suffixes.length} volcanos</h4>
+        <div className="flex flex--wrap center-items margin-bottom--little" style={{ gap: "0.5rem" }}>
+            {suffixes.map(suffix => <span key={suffix} className="flex center-items font-size--smallest" style={{ gap: "0.2rem" }}>
+                <span style={{ width: "0.6rem", height: "0.6rem", borderRadius: "50%", backgroundColor: volcanoColor(suffixes, suffix), display: "inline-block" }} />
+                {truncateLabel(suffix, 25)}
+            </span>)}
+        </div>
+        <div className="flex flex-column" style={{ gap: "0.2rem" }}>
+            {visibleEntries.map(entry => {
+                const isSelected = selectedSignatureKey === entry.key
+                return <div key={entry.key} className="flex center-items"
+                    style={{ gap: "0.3rem", cursor: "pointer", backgroundColor: isSelected ? "#efefef" : "white" }}
+                    onClick={() => setSelectedSignatureKey(prev => prev === entry.key ? undefined : entry.key)}>
+                    <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                        {suffixes.map(suffix => {
+                            const isMember = entry.suffixes.includes(suffix)
+                            return <span key={suffix} style={{
+                                width: "0.65rem", height: "0.65rem", borderRadius: "50%", display: "inline-block",
+                                backgroundColor: isMember ? volcanoColor(suffixes, suffix) : "transparent",
+                                border: `1px solid ${volcanoColor(suffixes, suffix)}`
+                            }} />
+                        })}
+                    </div>
+                    <div style={{ width: "200px", flexShrink: 0 }}>
+                        <div style={{
+                            width: `${(entry.tags.length / maxCount) * 100}%`,
+                            minWidth: "2px", height: "0.9rem",
+                            backgroundColor: direction === "up" ? "#7fbf7b" : "#af8dc3"
+                        }} />
+                    </div>
+                    <span className="font-size--small font-weight--bold">{entry.tags.length}</span>
+                    <span className="font-size--smallest">in {entry.suffixes.length} of {suffixes.length} volcanos</span>
+                </div>
+            })}
+        </div>
+        {signatureEntries.length > visibleEntries.length
+            ? <span className="font-size--smallest">Showing the top {visibleEntries.length} of {signatureEntries.length} combinations.</span>
+            : null}
+        {selectedEntry ? <div className="margin-top--little">
+            <span className="font-size--small">{`${selectedEntry.tags.length} proteins significant in: ${selectedEntry.key}`}</span>
+            <SignificantProteinTable key={selectedEntry.key} rows={selectedRows} suffixes={suffixes}
+                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction} />
+        </div> : null}
+    </div>
+}
+
+
 export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [activeTab, setActiveTab] = useState("pairwise")
     const [leftSuffix, setLeftSuffix] = useState(_.isArray(suffixes) ? suffixes[0] : undefined)
     const [rightSuffix, setRightSuffix] = useState(_.isArray(suffixes) ? suffixes[1] : undefined)
 
@@ -253,22 +347,34 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
         <Button icon="comparison" text="Compare significant proteins" variant="minimal" intent="primary" onClick={() => setIsOpen(true)} />
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="60%">
             <div className="padding--medium" style={{ overflowY: "auto", maxHeight: "80vh" }}>
-                <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
-                    <span className="font-weight--bold">Left volcano:</span>
-                    {suffixes.map(suffix => <Button key={suffix} small={true}
-                        intent={suffix === leftSuffix ? "primary" : "none"}
-                        variant={suffix === leftSuffix ? "default" : "minimal"}
-                        onClick={() => suffix !== rightSuffix && setLeftSuffix(suffix)}>{suffix}</Button>)}
-                    <span className="font-weight--bold margin-left--little">Right volcano:</span>
-                    {suffixes.map(suffix => <Button key={suffix} small={true}
-                        intent={suffix === rightSuffix ? "primary" : "none"}
-                        variant={suffix === rightSuffix ? "default" : "minimal"}
-                        onClick={() => suffix !== leftSuffix && setRightSuffix(suffix)}>{suffix}</Button>)}
-                </div>
-                <VennSection direction="up" sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix}
-                    proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
-                <VennSection direction="down" sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix}
-                    proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                <Tabs id="volcano-compare-tabs" selectedTabId={activeTab} onChange={setActiveTab} renderActiveTabPanelOnly={true}>
+                    <Tab id="pairwise" title="Pairwise (Venn)" panel={
+                        <div>
+                            <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+                                <span className="font-weight--bold">Left volcano:</span>
+                                {suffixes.map(suffix => <Button key={suffix} small={true}
+                                    intent={suffix === leftSuffix ? "primary" : "none"}
+                                    variant={suffix === leftSuffix ? "default" : "minimal"}
+                                    onClick={() => suffix !== rightSuffix && setLeftSuffix(suffix)}>{suffix}</Button>)}
+                                <span className="font-weight--bold margin-left--little">Right volcano:</span>
+                                {suffixes.map(suffix => <Button key={suffix} small={true}
+                                    intent={suffix === rightSuffix ? "primary" : "none"}
+                                    variant={suffix === rightSuffix ? "default" : "minimal"}
+                                    onClick={() => suffix !== leftSuffix && setRightSuffix(suffix)}>{suffix}</Button>)}
+                            </div>
+                            <VennSection direction="up" sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix}
+                                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                            <VennSection direction="down" sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix}
+                                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                        </div>} />
+                    <Tab id="all" title={`Compare all (${suffixes.length})`} panel={
+                        <div>
+                            <UpSetSection direction="up" sets={sets} suffixes={suffixes} data={data}
+                                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                            <UpSetSection direction="down" sets={sets} suffixes={suffixes} data={data}
+                                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                        </div>} />
+                </Tabs>
             </div>
         </Drawer>
     </>
