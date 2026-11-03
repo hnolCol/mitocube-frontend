@@ -70,12 +70,13 @@ export function FavoriteAnnotationSelection({
             </div>
             <div className="flex flex-column" style={{maxHeight, overflowY: "scroll", gap: "0.2rem"}}>
                 {selected.map(annotation_tag => (
-                    <motion.button
+                    <motion.div
                         key={annotation_tag}
+                        role="button"
                         onHoverStart={_.isFunction(onHover) ? () => onHover(annotation_tag) : undefined}
                         onHoverEnd={_.isFunction(onHover) ? () => onHover(undefined) : undefined}
                         className="flex center-items"
-                        style={{ border: "none", backgroundColor: "transparent", color: "#000000", gap: "0.2rem", width: "100%", outline: "none", fontWeight: highlighted.includes(annotation_tag) ? "bold" : "normal" }}
+                        style={{ border: "none", backgroundColor: "transparent", color: "#000000", gap: "0.2rem", width: "100%", outline: "none", cursor: "pointer", fontWeight: highlighted.includes(annotation_tag) ? "bold" : "normal" }}
                         onClick={() => onSelect(annotation_tag)}
                     >
                         <StarIcon 
@@ -90,7 +91,7 @@ export function FavoriteAnnotationSelection({
                                 onMark={onMark} />
                             : null}
                         <Annotation tag={annotation_tag} />
-                    </motion.button>
+                    </motion.div>
                 ))}
             </div>
         </div>
