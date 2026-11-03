@@ -28,6 +28,7 @@ export function VolcanoDataHandler({
         setVolcanoData,
         proteinIsLoading,
         proteinSearchResults,
+        onToggleProteinLabel,
         proteinHoverResults,
         favoriteProteinSelection,
         favoriteAnnotationSelection,
@@ -300,7 +301,9 @@ export function VolcanoDataHandler({
                 suffixes={visibleSuffixes}
                 submission_tag={submission_tag}
                 proteinTagMap={proteinTagMap}
-                setRequiredProteinTags={setRequiredProteinTags} /> : null}
+                setRequiredProteinTags={setRequiredProteinTags}
+                favoriteProteinSelection={favoriteProteinSelection}
+                onToggleProteinLabel={onToggleProteinLabel} /> : null}
         
         <InteractiveChart
                 data={volcanoData.data}
@@ -357,7 +360,9 @@ export function VolcanoDataHandler({
                                             suffix={volcanoData.suffixes[chartIdx]}
                                             submission_tag={submission_tag}
                                             proteinTagMap={proteinTagMap}
-                                            setRequiredProteinTags={setRequiredProteinTags} />
+                                            setRequiredProteinTags={setRequiredProteinTags}
+                                            favoriteProteinSelection={favoriteProteinSelection}
+                                            onToggleProteinLabel={onToggleProteinLabel} />
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
                                         </div>

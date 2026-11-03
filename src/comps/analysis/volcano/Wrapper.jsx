@@ -172,6 +172,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                 <div className="div--expand">
                     <VolcanoProteinWrapper {...{
                             submission_tag,
+                            onToggleProteinLabel: handleFavoriteSelect,
                             selectedTestParams: testParams,
                             setIsFetching,
                             onError: setError,
@@ -193,7 +194,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, showHoverLabels = false }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, showHoverLabels = false }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
     return <WithTagMaps
@@ -203,6 +204,7 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                     proteinSearchProps={{submission_tag}}
                     {...{
                         submission_tag, 
+                        onToggleProteinLabel,
                         volcanoData,
                         setVolcanoData,
                         selectedTestParams,
