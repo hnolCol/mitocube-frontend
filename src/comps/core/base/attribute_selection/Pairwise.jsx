@@ -258,7 +258,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
 
 }
     
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = true, showAnnotationSubset = true, displayOnly = false, displayProps = {}, autoSelectDefaults = false }) {
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = false, showAnnotationSubset = true, displayOnly = false, displayProps = {}, autoSelectDefaults = false }) {
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const [withinFilters, setWithinFilters] = useState({})

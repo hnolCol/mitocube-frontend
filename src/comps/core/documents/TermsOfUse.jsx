@@ -22,11 +22,11 @@
 
 // function MainSection({useterms}) {
 
-    if (!_.isArray(useterms.data_policy_sections)) return null     
-    return (
-        <div className="margin--medium container--scroll-y-hide-x">
+//     if (!_.isArray(useterms.data_policy_sections)) return null     
+//     return (
+//         <div className="margin--medium container--scroll-y-hide-x">
             
-//             {useterms.data_policy_sections.map(section => {
+//            {useterms.data_policy_sections.map(section => {
 //                 return <div><h3>{section.header}</h3><p>{section.text}</p>
 //                     {_.has(section, "sections") && _.isArray(section.sections) ? 
 //                         <ul>{section.sections.map(text => <li>{text}</li>)}</ul>: null}</div>

@@ -129,8 +129,9 @@ export function InstrumentView() {
                                 <InstrumentStateIndicator instrument_tag={instrument_tag} />
                             </div>
                             <div className="font-size--small">{instrument.description}</div>
-                        </>
-                    ) : null}
+                        </div>
+                    </div>
+                ) : null}
 
                     <div className="margin-top--medium">
                         <div className="flex gap--default">
@@ -151,7 +152,7 @@ export function InstrumentView() {
                             <SamplesStat instrument_tag={instrument_tag} />
                         </div>
                     </div>
-                ) : null}
+                    
 
                 <Tabs selected={activeTab} onChange={tab => setSearchParams({ tab })} />
 
