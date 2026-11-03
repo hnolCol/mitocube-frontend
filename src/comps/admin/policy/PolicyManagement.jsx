@@ -9,9 +9,21 @@ import { EditPolicy } from "./EditPolicy"
 import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
+export const TERMS_OF_USE = { type: "terms_of_use", label: "Terms of Use" }
+export const DATA_PROTECTION = { type: "data_protection", label: "Data Protection" }
 
-function PolicyCard({ policy, isAdmin, onEdit, onDelete }) {
+
+function PolicySection({ policyType, policy, canEdit, canDelete, onEdit, onDelete }) {
     const [isExpanded, setIsExpanded] = useState(false)
+
+    if (!policy) {
+        return (
+            <div className="flex" style={{ alignItems: "center", gap: "1rem", padding: "0.5rem 0" }}>
+                <div>{policyType.label} is not defined yet.</div>
+                {canEdit && <AddButton onSelect={() => onEdit(policyType)} />}
+            </div>
+        )
+    }
 
     return (
         <div className="container--shadow padding--medium margin-top--little"
@@ -19,16 +31,16 @@ function PolicyCard({ policy, isAdmin, onEdit, onDelete }) {
 
             <div className="flex" style={{ justifyContent: "space-between", alignItems: "center" }}>
                 <div className="flex" style={{ alignItems: "center", gap: "0.6rem" }}>
-                    <strong>{policy.title || "Untitled policy"}</strong>
+                    <strong>{policy.title || policyType.label}</strong>
                     <Tag minimal>v{policy.version}</Tag>
                     <Tag minimal intent={policy.required ? "danger" : "none"}>
                         {policy.required ? "Required" : "Not required"}
                     </Tag>
                 </div>
-                {isAdmin && (
+                {(canEdit || canDelete) && (
                     <div className="flex" style={{ gap: "0.4rem" }}>
-                        <Button icon="edit" minimal onClick={() => onEdit(policy)}>Edit</Button>
-                        <Button icon="trash" minimal intent="danger" onClick={() => onDelete(policy)}>Delete</Button>
+                        {canEdit && <Button icon="edit" minimal onClick={() => onEdit(policyType)}>Edit</Button>}
+                        {canDelete && <Button icon="trash" minimal intent="danger" onClick={() => onDelete(policy)}>Delete</Button>}
                     </div>
                 )}
             </div>
@@ -55,85 +67,85 @@ function PolicyCard({ policy, isAdmin, onEdit, onDelete }) {
 
 
 /**
- * Shows all policies. Admins can add, edit and delete policies.
+ * Page for ONE document (terms of use or data protection).
+ * Edit, add and delete are only shown if the backend permissions allow it.
  * @param {Object} props
- * @param {Boolean} props.isAdmin - show the admin actions
+ * @param {Object} props.policyType - TERMS_OF_USE or DATA_PROTECTION
  */
-export function PolicyManagement({ isAdmin = false }) {
+export function PolicyManagement({ policyType }) {
     const queryClient = useQueryClient()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [dialogPolicy, setDialogPolicy] = useState(undefined)     // undefined = create
-    const [policyToDelete, setPolicyToDelete] = useState(undefined)
+    const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+
+    const { data: permissions, isSuccess: isPermissionsSuccess } = api.policy.useGetPolicyPermissions()
+    const canShowEditButton = isPermissionsSuccess && permissions.edit
+    const canShowRemoveButton = isPermissionsSuccess && permissions.delete
 
     const { data: policies, isLoading, isError, error } = api.policy.useGetPolicies()
     const { mutate: deletePolicy, isPending: isDeleting } = api.policy.useDeletePolicy()
 
-    const openDialog = (policy) => {
-        setDialogPolicy(policy)
-        setIsDialogOpen(true)
-    }
+    if (isLoading) return <Loading />
+    if (isError) return <APIError error={error} />
+
+    const policy = policies.find(p => p.type === policyType.type)
 
     const handleDelete = () => {
-        deletePolicy({ tag: policyToDelete.tag }, {
+        deletePolicy({ tag: policy.tag }, {
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: ["getPolicies"] })
                 queryClient.invalidateQueries({ queryKey: ["getPolicyStatus"] })
-                setPolicyToDelete(undefined)
+                setIsDeleteOpen(false)
             }
         })
     }
-
-    if (isLoading) return <Loading />
-    if (isError) return <APIError error={error} />
 
     return (
         <div className="div--expand padding--medium"
             style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
             <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem" }}>
-                <div className="flex" style={{ alignItems: "center", gap: "1rem" }}>
-                    <h3>Policies</h3>
-                    {isAdmin && <AddButton onSelect={() => openDialog(undefined)} />}
-                </div>
+                <h3>{policyType.label}</h3>
 
-                {isAdmin && (
-                    <>
-                        <Dialog
-                            isOpen={isDialogOpen}
-                            onClose={() => setIsDialogOpen(false)}
-                            canEscapeKeyClose={true}
-                            canOutsideClickClose={false}
-                            title={dialogPolicy ? "Edit Policy" : "Create Policy"}
-                            style={{ width: "60vw", height: "80vh", minHeight: "600px", fontSize: "1rem" }}
-                        >
-                            <EditPolicy policy={dialogPolicy} onSuccess={() => setIsDialogOpen(false)} />
-                        </Dialog>
-
-                        <Alert
-                            isOpen={policyToDelete !== undefined}
-                            intent="danger"
-                            icon="trash"
-                            confirmButtonText="Delete"
-                            cancelButtonText="Cancel"
-                            loading={isDeleting}
-                            onConfirm={handleDelete}
-                            onCancel={() => setPolicyToDelete(undefined)}
-                        >
-                            Delete "{policyToDelete?.title || "Untitled policy"}"? The agreements of all users to it are removed as well.
-                        </Alert>
-                    </>
+                {canShowEditButton && (
+                    <Dialog
+                        isOpen={isDialogOpen}
+                        onClose={() => setIsDialogOpen(false)}
+                        canEscapeKeyClose={true}
+                        canOutsideClickClose={false}
+                        title={`${policy ? "Edit" : "Create"} ${policyType.label}`}
+                        style={{ width: "60vw", height: "80vh", minHeight: "600px", fontSize: "1rem" }}
+                    >
+                        <EditPolicy
+                            type={policyType.type}
+                            label={policyType.label}
+                            policy={policy}
+                            onSuccess={() => setIsDialogOpen(false)}
+                        />
+                    </Dialog>
                 )}
 
-                {policies.length === 0 && <div>No policy defined yet.</div>}
+                {canShowRemoveButton && (
+                    <Alert
+                        isOpen={isDeleteOpen}
+                        intent="danger"
+                        icon="trash"
+                        confirmButtonText="Delete"
+                        cancelButtonText="Cancel"
+                        loading={isDeleting}
+                        onConfirm={handleDelete}
+                        onCancel={() => setIsDeleteOpen(false)}
+                    >
+                        Delete "{policy?.title}"? Its older versions and the agreements of all users are removed as well.
+                    </Alert>
+                )}
 
-                {policies.map(policy => (
-                    <PolicyCard
-                        key={policy.tag}
-                        policy={policy}
-                        isAdmin={isAdmin}
-                        onEdit={openDialog}
-                        onDelete={setPolicyToDelete}
-                    />
-                ))}
+                <PolicySection
+                    policyType={policyType}
+                    policy={policy}
+                    canEdit={canShowEditButton}
+                    canDelete={canShowRemoveButton}
+                    onEdit={() => setIsDialogOpen(true)}
+                    onDelete={() => setIsDeleteOpen(true)}
+                />
             </div>
         </div>
     )

@@ -8,7 +8,8 @@ import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
 /**
- * Blocks the app until the user has agreed to the policy (if the policy is required).
+ * Blocks the app until the user has agreed to every required policy
+ * (terms of use first, then data protection), one after the other.
  * Wrap the logged-in part of the app with it.
  */
 export function PolicyGate({ children, enabled = true }) {
@@ -50,8 +51,8 @@ export function PolicyGate({ children, enabled = true }) {
             <Card style={{ maxWidth: 900, maxHeight: 700, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <h2 style={{ margin: 0 }}>{policy.title || "Policy"}</h2>
                 <div className="bp5-text-muted">
-                    Please read and accept the policy to continue using MitoCube.
-                    {pending.length > 1 && ` (${pending.length} policies remaining)`}
+                    Please read and accept to continue using MitoCube.
+                    {pending.length > 1 && ` (${pending.length} documents remaining)`}
                 </div>
 
                 <div style={{

@@ -10,6 +10,7 @@ import { useState } from "react"
 import { EditUser } from "../../base/user/EditUser"
 import { Link } from "react-router"
 import { TermsOfUse } from "../../documents/TermsOfUse"
+import { DataProtection } from "../../documents/DataProtection"
 import { api } from "@/api"
 import { PendingConsortiumShareRequestButton } from "../../base/user/PendingConsortiumShareRequestButton"
 import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButton"
@@ -79,6 +80,20 @@ function Topbar({authenticationStatus,logout, user_tag}) {
         })
     }
 
+    const onReadDataProtection = () => {
+
+        setDialogProps(prevValues => {
+            return {
+                ...prevValues,
+                isOpen: true,
+                title : "Data protection",
+                children: <DataProtection />,
+                useDialogBody : false,
+                style : {width : "800px"}
+            }
+        })
+    }   
+
 
     return (
 
@@ -120,6 +135,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                         { text: "Report an issue", icon: "issue-new", onClick: () => openInNewTab(backendInfo.issue_url), intent  :"danger"},
                         { text: "GitHub", icon: "git-branch", onClick: () => openInNewTab(backendInfo.github_url) },
                         { text: "Impressum", icon: "small-info-sign", href: "/impressum" },
+                        { text: "Data protection", icon: "shield", onClick: onReadDataProtection },
                         { text: "Contact", href: "/contact", icon: "envelope" },
                         { text: `v.  ${backendInfoIsSucces?backendInfo.version:null}`, icon : "blank", disabled : true}
                         ]} />
