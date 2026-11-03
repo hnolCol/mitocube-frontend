@@ -80,6 +80,11 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const handleFavoriteSelect = (proteinTag) => {
         setFavoriteProteinSelection(prevValues => { return { ...prevValues, values : addStringToArrayOrRemove({ array: prevValues.values, string: proteinTag }), trigger: Math.random() } })
     }
+    const handleLabelProteinList = (proteinTags) => {
+        if (!_.isArray(proteinTags) || proteinTags.length === 0) return
+        setFavoriteProteinSelection(prevValues => { return { ...prevValues, values : _.uniq([...prevValues.values, ...proteinTags]), trigger: Math.random() } })
+    }
+
     const handleProteinHover = (proteinTag) => {
 
         setProteinHoverResults(prevValues => { return { ...prevValues, values: proteinTag ? [proteinTag] : [], trigger: Math.random() } })
@@ -173,6 +178,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                     <VolcanoProteinWrapper {...{
                             submission_tag,
                             onToggleProteinLabel: handleFavoriteSelect,
+                            onLabelProteinList: handleLabelProteinList,
                             selectedTestParams: testParams,
                             setIsFetching,
                             onError: setError,
@@ -194,7 +200,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 
 
 
-export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, showHoverLabels = false }) {
+export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, onLabelProteinList, showHoverLabels = false }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
     return <WithTagMaps
@@ -205,6 +211,7 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                     {...{
                         submission_tag, 
                         onToggleProteinLabel,
+                        onLabelProteinList,
                         volcanoData,
                         setVolcanoData,
                         selectedTestParams,
