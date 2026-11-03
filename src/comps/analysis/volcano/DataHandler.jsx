@@ -298,6 +298,7 @@ export function VolcanoDataHandler({
             <VolcanoCompareButton
                 data={volcanoData.data}
                 suffixes={visibleSuffixes}
+                submission_tag={submission_tag}
                 proteinTagMap={proteinTagMap}
                 setRequiredProteinTags={setRequiredProteinTags} /> : null}
         
@@ -354,6 +355,7 @@ export function VolcanoDataHandler({
                                         <VolcanoListButton
                                             data={volcanoData.data}
                                             suffix={volcanoData.suffixes[chartIdx]}
+                                            submission_tag={submission_tag}
                                             proteinTagMap={proteinTagMap}
                                             setRequiredProteinTags={setRequiredProteinTags} />
                                         <RemoveButton

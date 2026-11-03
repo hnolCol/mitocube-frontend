@@ -1,6 +1,8 @@
 import _ from "lodash"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { Button, ButtonGroup, Drawer, HTMLTable, Tab, Tabs } from "@blueprintjs/core"
+import { Button, ButtonGroup, Drawer, HTMLTable, InputGroup, Tab, Tabs } from "@blueprintjs/core"
+import { api } from "@/api"
+import useDebounce from "@/hooks/useDebounce"
 
 
 const PAGE_SIZE = 50
@@ -49,20 +51,35 @@ function displayNamesForRow(proteinTagMap, row) {
     return tags.map(tag => proteinNameByTag(proteinTagMap, tag)).join(", ")
 }
 
+function directionLabel(direction) {
+    return direction === "up" ? "Upregulated" : direction === "down" ? "Downregulated" : "Significant"
+}
+
+function directionBarColor(direction) {
+    return direction === "up" ? "#7fbf7b" : direction === "down" ? "#af8dc3" : "#80b1d3"
+}
+
+function directionTags(set, direction) {
+    if (!_.isObject(set)) return []
+    if (direction === "all") return [...(set.up || []), ...(set.down || [])]
+    return _.isArray(set[direction]) ? set[direction] : []
+}
+
 /**
  * @description Extracts the significant up- and downregulated proteins of a volcano from the merged volcano data.
  * @param {Object[]} data The merged volcano data rows.
  * @param {String} suffix The volcano suffix.
- * @returns {{up: Object[], down: Object[]}} Rows sorted by fold change. Each row has ```tag``` and the volcano field names.
+ * @returns {{up: Object[], down: Object[], all: Object[]}} Rows sorted by fold change. Each row has ```tag``` and the volcano field names.
  */
 export function getSignificantRows(data, suffix) {
-    if (!_.isArray(data) || !_.isString(suffix)) return { up: [], down: [] }
+    if (!_.isArray(data) || !_.isString(suffix)) return { up: [], down: [], all: [] }
     const fcName = log2FCFieldName(suffix)
     const sigName = significantFieldName(suffix)
     const significant = data.filter(row => isSignificantValue(row[sigName]) && _.isNumber(row[fcName]))
     return {
         up: significant.filter(row => row[fcName] > 0).sort((a, b) => b[fcName] - a[fcName]),
-        down: significant.filter(row => row[fcName] < 0).sort((a, b) => a[fcName] - b[fcName])
+        down: significant.filter(row => row[fcName] < 0).sort((a, b) => a[fcName] - b[fcName]),
+        all: [...significant].sort((a, b) => Math.abs(b[fcName]) - Math.abs(a[fcName]))
     }
 }
 
@@ -80,16 +97,50 @@ function usePrefetchProteinNames(rows, proteinTagMap, setRequiredProteinTags) {
 }
 
 
-export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequiredProteinTags, direction }) {
+export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequiredProteinTags, direction, submission_tag }) {
+    const [searchString, setSearchString] = useState("")
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-    const visibleRows = useMemo(() => (_.isArray(rows) ? rows.slice(0, visibleCount) : []), [rows, visibleCount])
-    usePrefetchProteinNames(visibleRows, proteinTagMap, setRequiredProteinTags)
+    const debouncedSearchString = useDebounce(searchString, 300)
+
+    const searchIsInactive = !_.isString(searchString) || searchString.trim().length === 0
+
+    // server-side gene name search, same search as the volcano plot protein search
+    const { data: searchResults, isLoading: searchIsLoading } = api.features.proteinsQuery.useGetProteinFeatureByQuery(
+        { search_string: debouncedSearchString, limit: 100000, submission_tags: [submission_tag] },
+        { staleTime: 60000, enabled: !searchIsInactive && debouncedSearchString.trim().length > 1 && _.isString(submission_tag) })
+
+    const filteredRows = useMemo(() => {
+        if (!_.isArray(rows)) return []
+        if (searchIsInactive) return rows
+        const query = debouncedSearchString.trim().toLowerCase()
+        const matchedTags = _.isArray(searchResults) ? new Set(searchResults) : undefined
+        return rows.filter(row => {
+            if (_.isString(row.tag) && row.tag.toLowerCase().includes(query)) return true
+            const tags = _.isString(row.tag) ? row.tag.split(";") : []
+            if (matchedTags) return tags.some(tag => matchedTags.has(tag))
+            return displayNamesForRow(proteinTagMap, row).toLowerCase().includes(query)
+        })
+    }, [rows, debouncedSearchString, searchResults, searchIsInactive, proteinTagMap])
+
+    const visibleRows = useMemo(() => filteredRows.slice(0, visibleCount), [filteredRows, visibleCount])
+
+    // without an active search, protein names are only fetched for the visible rows
+    usePrefetchProteinNames(searchIsInactive ? visibleRows : filteredRows, proteinTagMap, setRequiredProteinTags)
 
     if (!_.isArray(rows) || rows.length === 0) {
-        return <span>No {direction === "up" ? "upregulated" : "downregulated"} significant proteins found.</span>
+        return <span>No {directionLabel(direction).toLowerCase()} proteins found.</span>
     }
 
     return <div>
+        <InputGroup
+            className="margin-bottom--little"
+            small={true}
+            leftIcon="search"
+            placeholder="Filter proteins by name or tag..."
+            value={searchString}
+            onChange={e => setSearchString(e.target.value)}
+            rightElement={searchIsInactive ? undefined :
+                <Button small={true} variant="minimal" icon={searchIsLoading ? "refresh" : "cross"} onClick={() => setSearchString("")} />} />
         <div style={{ maxHeight: "40vh", overflowY: "auto", overflowX: "auto" }}>
             <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
                 <thead style={{ position: "sticky", top: 0, backgroundColor: "#ffffff", zIndex: 1, boxShadow: "0 1px 0 rgba(0,0,0,0.2)" }}>
@@ -110,37 +161,48 @@ export function SignificantProteinTable({ rows, suffixes, proteinTagMap, setRequ
                 </tbody>
             </HTMLTable>
         </div>
-        {visibleCount < rows.length
+        {visibleCount < filteredRows.length
             ? <Button small={true} variant="minimal" intent="primary" className="margin-top--little"
                 onClick={() => setVisibleCount(prev => prev + PAGE_SIZE)}>
-                Show more ({visibleCount} of {rows.length})
+                Show more ({Math.min(visibleCount, filteredRows.length)} of {filteredRows.length})
             </Button>
-            : <span className="font-size--smallest">{`Showing all ${rows.length} proteins.`}</span>}
+            : <span className="font-size--smallest">
+                {filteredRows.length < rows.length
+                    ? `Showing ${filteredRows.length} of ${rows.length} proteins (filtered).`
+                    : `Showing all ${rows.length} proteins.`}
+            </span>}
     </div>
 }
 
 
-export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags }) {
+function DirectionToggle({ direction, onChange, counts }) {
+    const options = [
+        { id: "up", label: `Upregulated (${counts.up})` },
+        { id: "down", label: `Downregulated (${counts.down})` },
+        { id: "all", label: `All significant (${counts.all})` }]
+    return <ButtonGroup className="margin-bottom--little">
+        {options.map(option => <Button key={option.id} small={true}
+            intent={direction === option.id ? "primary" : "none"}
+            variant={direction === option.id ? "default" : "minimal"}
+            onClick={() => onChange(option.id)}>{option.label}</Button>)}
+    </ButtonGroup>
+}
+
+
+export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag }) {
     const [isOpen, setIsOpen] = useState(false)
     const [direction, setDirection] = useState("up")
-    const { up, down } = useMemo(() => getSignificantRows(data, suffix), [data, suffix])
+    const { up, down, all } = useMemo(() => getSignificantRows(data, suffix), [data, suffix])
 
-    const selectedRows = direction === "up" ? up : down
+    const selectedRows = direction === "up" ? up : direction === "down" ? down : all
 
     return <>
         <Button variant="minimal" icon="list" intent={up.length + down.length > 0 ? "primary" : "none"}
             onClick={() => setIsOpen(true)} />
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%" style={{ height: "95vh" }}>
             <div className="padding--medium">
-                <ButtonGroup className="margin-bottom--little">
-                    <Button small={true} intent={direction === "up" ? "primary" : "none"}
-                        variant={direction === "up" ? "default" : "minimal"}
-                        onClick={() => setDirection("up")}>{`Upregulated (${up.length})`}</Button>
-                    <Button small={true} intent={direction === "down" ? "primary" : "none"}
-                        variant={direction === "down" ? "default" : "minimal"}
-                        onClick={() => setDirection("down")}>{`Downregulated (${down.length})`}</Button>
-                </ButtonGroup>
-                <SignificantProteinTable key={direction} rows={selectedRows} suffixes={[suffix]}
+                <DirectionToggle direction={direction} onChange={setDirection} counts={{ up: up.length, down: down.length, all: all.length }} />
+                <SignificantProteinTable key={direction} rows={selectedRows} suffixes={[suffix]} submission_tag={submission_tag}
                     proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction} />
             </div>
         </Drawer>
@@ -183,15 +245,15 @@ function VennDiagram({ leftLabel, rightLabel, leftOnlyCount, sharedCount, rightO
 }
 
 
-function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, setRequiredProteinTags }) {
+function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, setRequiredProteinTags, submission_tag }) {
     const [selectedSegment, setSelectedSegment] = useState(undefined)
 
     const leftSet = sets[leftSuffix]
     const rightSet = sets[rightSuffix]
     if (!leftSet || !rightSet) return null
 
-    const leftTags = leftSet[direction]
-    const rightTags = rightSet[direction]
+    const leftTags = directionTags(leftSet, direction)
+    const rightTags = directionTags(rightSet, direction)
     const leftOnly = leftTags.filter(tag => !rightTags.includes(tag))
     const shared = leftTags.filter(tag => rightTags.includes(tag))
     const rightOnly = rightTags.filter(tag => !leftTags.includes(tag))
@@ -210,7 +272,7 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
         : selectedSegment === "rightOnly" ? `Only in ${rightSuffix} (${rightOnly.length})` : undefined
 
     return <div className="margin-top--medium">
-        <h4>{direction === "up" ? "Upregulated" : "Downregulated"} proteins</h4>
+        <h4>{directionLabel(direction)} proteins</h4>
         <VennDiagram
             leftLabel={leftSuffix}
             rightLabel={rightSuffix}
@@ -220,7 +282,7 @@ function VennSection({ direction, sets, leftSuffix, rightSuffix, proteinTagMap, 
             onSelect={(segment) => setSelectedSegment(prev => prev === segment ? undefined : segment)} />
         {segmentTitle ? <div className="margin-top--little">
             <span className="font-size--small">{segmentTitle}</span>
-            <SignificantProteinTable key={`${selectedSegment}-${direction}`} rows={rows} suffixes={[leftSuffix, rightSuffix]}
+            <SignificantProteinTable key={`${selectedSegment}-${direction}`} rows={rows} suffixes={[leftSuffix, rightSuffix]} submission_tag={submission_tag}
                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction} />
         </div> : null}
     </div>
@@ -237,15 +299,13 @@ function volcanoColor(suffixes, suffix) {
 }
 
 
-function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequiredProteinTags }) {
+function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequiredProteinTags, submission_tag }) {
     const [selectedSignatureKey, setSelectedSignatureKey] = useState(undefined)
 
     const signatureEntries = useMemo(() => {
         const membershipByTag = new Map()
         suffixes.forEach(suffix => {
-            const tags = sets[suffix]?.[direction]
-            if (!_.isArray(tags)) return
-            tags.forEach(tag => {
+            directionTags(sets[suffix], direction).forEach(tag => {
                 if (!membershipByTag.has(tag)) membershipByTag.set(tag, new Set())
                 membershipByTag.get(tag).add(suffix)
             })
@@ -273,7 +333,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
     }, [selectedEntry, rowByTag, suffixes])
 
     return <div className="margin-top--medium">
-        <h4>{direction === "up" ? "Upregulated" : "Downregulated"} proteins across {suffixes.length} volcanos</h4>
+        <h4>{directionLabel(direction)} proteins across {suffixes.length} volcanos</h4>
         <div className="flex flex--wrap center-items margin-bottom--little" style={{ gap: "0.5rem" }}>
             {suffixes.map(suffix => <span key={suffix} className="flex center-items font-size--smallest" style={{ gap: "0.2rem" }}>
                 <span style={{ width: "0.6rem", height: "0.6rem", borderRadius: "50%", backgroundColor: volcanoColor(suffixes, suffix), display: "inline-block" }} />
@@ -300,7 +360,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
                         <div style={{
                             width: `${(entry.tags.length / maxCount) * 100}%`,
                             minWidth: "2px", height: "0.9rem",
-                            backgroundColor: direction === "up" ? "#7fbf7b" : "#af8dc3"
+                            backgroundColor: directionBarColor(direction)
                         }} />
                     </div>
                     <span className="font-size--small font-weight--bold">{entry.tags.length}</span>
@@ -313,16 +373,17 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
             : null}
         {selectedEntry ? <div className="margin-top--little">
             <span className="font-size--small">{`${selectedEntry.tags.length} proteins significant in: ${selectedEntry.key}`}</span>
-            <SignificantProteinTable key={selectedEntry.key} rows={selectedRows} suffixes={suffixes}
+            <SignificantProteinTable key={selectedEntry.key} rows={selectedRows} suffixes={suffixes} submission_tag={submission_tag}
                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction} />
         </div> : null}
     </div>
 }
 
 
-export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags }) {
+export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag }) {
     const [isOpen, setIsOpen] = useState(false)
     const [activeTab, setActiveTab] = useState("pairwise")
+    const [direction, setDirection] = useState("up")
     const [leftSuffix, setLeftSuffix] = useState(_.isArray(suffixes) ? suffixes[0] : undefined)
     const [rightSuffix, setRightSuffix] = useState(_.isArray(suffixes) ? suffixes[1] : undefined)
 
@@ -341,12 +402,23 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
         return [suffix, { up: up.map(row => row.tag), down: down.map(row => row.tag), rows: up.concat(down) }]
     })), [data, suffixes])
 
+    const counts = useMemo(() => {
+        const upTags = new Set()
+        const downTags = new Set()
+        suffixes.forEach(suffix => {
+            (sets[suffix]?.up || []).forEach(tag => upTags.add(tag))
+            (sets[suffix]?.down || []).forEach(tag => downTags.add(tag))
+        })
+        return { up: upTags.size, down: downTags.size, all: new Set([...upTags, ...downTags]).size }
+    }, [sets, suffixes])
+
     if (!_.isArray(suffixes) || suffixes.length < 2) return null
 
     return <>
         <Button icon="comparison" text="Compare significant proteins" variant="minimal" intent="primary" onClick={() => setIsOpen(true)} />
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="75%" style={{ height: "95vh" }}>
             <div className="padding--medium" style={{ height: "100%", overflowY: "auto" }}>
+                <DirectionToggle direction={direction} onChange={setDirection} counts={counts} />
                 <Tabs id="volcano-compare-tabs" selectedTabId={activeTab} onChange={setActiveTab} renderActiveTabPanelOnly={true}>
                     <Tab id="pairwise" title="Pairwise (Venn)" panel={
                         <div>
@@ -362,16 +434,12 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                                     variant={suffix === rightSuffix ? "default" : "minimal"}
                                     onClick={() => suffix !== leftSuffix && setRightSuffix(suffix)}>{suffix}</Button>)}
                             </div>
-                            <VennSection direction="up" sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix}
-                                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
-                            <VennSection direction="down" sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix}
+                            <VennSection direction={direction} sets={sets} leftSuffix={leftSuffix} rightSuffix={rightSuffix} submission_tag={submission_tag}
                                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
                         </div>} />
                     <Tab id="all" title={`Compare all (${suffixes.length})`} panel={
                         <div>
-                            <UpSetSection direction="up" sets={sets} suffixes={suffixes} data={data}
-                                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
-                            <UpSetSection direction="down" sets={sets} suffixes={suffixes} data={data}
+                            <UpSetSection direction={direction} sets={sets} suffixes={suffixes} data={data} submission_tag={submission_tag}
                                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
                         </div>} />
                 </Tabs>
