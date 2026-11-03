@@ -42,7 +42,8 @@ const ADMIN_TAB_GROUPS = [
         text: "Platform & Content",
         tabs: [
             { text: "News", to: "/admin/news" },
-            { text: "Policy", to: "/admin/policy" },
+            { text: "Terms of Use", to: "/admin/terms-of-use" },
+            { text: "Data Protection", to: "/admin/data-protection" },
             { text: "Impressum", to: "/admin/impressum" },
             { text: "Reports", to: "/admin/reports" },
         ]

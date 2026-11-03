@@ -30,7 +30,10 @@ export function AddUserDialog({ authenticationStatus, onCancel, onCreated }) {
         { enabled: isGroupCurator && _.isString(authenticationStatus?.tag) }
     )
     const ownResearchGroupTags = _.isArray(ownUser?.research_group_tags) ? ownUser.research_group_tags : []
-
+    const { data: ownGroup } = api.researchgroups.useGetResearchGroupByTag(
+                { tag: ownResearchGroupTags[0] },
+                { enabled: isGroupCurator && ownResearchGroupTags.length > 0 }
+            )
     useEffect(() => {
         if (isGroupCurator && ownResearchGroupTags.length > 0) {
             setFormData(prevValues => {
@@ -82,7 +85,7 @@ export function AddUserDialog({ authenticationStatus, onCancel, onCreated }) {
                         <div className="padding--little font-size--small">
                             <span className="color--grey">Research group(s): </span>
                             {ownResearchGroupTags.length > 0
-                                ? <strong>{ownResearchGroupTags.join(", ")}</strong>
+                                ? <strong>{ownGroup?.abbreviation || ownGroup?.text || "loading ..."}</strong>
                                 : <span>loading ...</span>}
                             <div className="font-size--smallest color--grey">
                                 As a group curator you can only create users for your own research group(s).
@@ -95,8 +98,8 @@ export function AddUserDialog({ authenticationStatus, onCancel, onCreated }) {
                             placeholder={_.isArray(formData.research_group_tags) && formData.research_group_tags.length > 0 ? `${formData.research_group_tags.length} Research Group(s) Selected` :  "Select Research Group(s)"}
                         />
                     )}
-                    {_.isArray(formData.research_group_tags) && formData.research_group_tags.length > 0 && !isGroupCurator ?
-                        <div className="font-size--smallest margin-top--little">{formData.research_group_tags.join(", ")}</div> : null}
+                    {/* {_.isArray(formData.research_group_tags) && formData.research_group_tags.length > 0 && !isGroupCurator ?
+                        <div className="font-size--smallest margin-top--little">{formData.research_group_tags.join(", ")}</div> : null} */}
                 </div>
 
                 <div className="font-size--small color--grey">

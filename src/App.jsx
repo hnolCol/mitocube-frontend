@@ -86,7 +86,7 @@ import { NewsManagement } from "./comps/admin/news/NewsManagement";
 import { AdminPhenotypeAssociations } from "./comps/admin/phenotypes/AdminPhenotypeAssociation";
 import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 import { AdminExternalResources } from "./comps/admin/externalresources/AdminExternalResources";
-import { PolicyManagement } from "./comps/admin/policy/PolicyManagement";
+import { PolicyManagement, TERMS_OF_USE, DATA_PROTECTION } from "./comps/admin/policy/PolicyManagement";
 import { ImpressumManagement } from "./comps/admin/impressum/ImpressumManagement";
 import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
@@ -381,7 +381,8 @@ function App() {
             <Route path="/admin/news" element={<NewsManagement />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />
              <Route path="/admin/externalresources" element={<AdminExternalResources />} />
-             <Route path="/admin/policy" element={<PolicyManagement />} />,
+             <Route path="/admin/terms-of-use" element={<PolicyManagement policyType={TERMS_OF_USE} />} />,
+             <Route path="/admin/data-protection" element={<PolicyManagement policyType={DATA_PROTECTION} />} />,
              <Route path="/admin/impressum" element={<ImpressumManagement />} />,
               <Route path="/admin/plates" element={<PlatesAdmin />} />
               <Route path="/admin/reports" element={<AdminReports {...{ authenticationStatus }} />} />

@@ -2,8 +2,6 @@
 import _ from "lodash"
 import { api } from "@/api"
 import { useNavigate } from "react-router"
-import { InstrumentCosts } from "./Costs"
-import { Trait } from "../../core/base/traits/Trait"
 import { Attribute } from "../../core/base/attributes/Attribute"
 
 /**
@@ -14,21 +12,33 @@ import { Attribute } from "../../core/base/attributes/Attribute"
  */
 function Instrument({tag, isOpen = false}) {
     const redirect = useNavigate()
-    const {data : instrument} = api.instruments.core.useGetInstrument({tag})
+    const { data: instrument } = api.instruments.core.useGetInstrument({ tag })
+
+    if (!_.isObject(instrument)) return null
 
     return (
-        <div>{_.isObject(instrument) ?
-            <button
-                // key={index}
-                // ref={(el) => (buttonRefs.current[index] = el)}
-                className={`submission-tab-navigation-button div--round margin--tiny ${isOpen? "submission-tab-navigation-button--active": ""}`} //
-                onClick={() => {
-                    redirect(`/performance/instruments/${tag}`)
-                }}>
-                <div className="div--expand flex justify-end">
-                    <div>{instrument.text}</div>
-                </div>
-            </button> : null}</div>
+        <button
+            onClick={() => redirect(`/performance/instruments/${tag}`)}
+            style={{
+                display: "block",
+                width: "100%",
+                textAlign: "left",
+                background: isOpen ? "#e8f0fa" : "transparent",
+                border: "none",
+                borderLeft: `3px solid ${isOpen ? "#2b6cb0" : "transparent"}`,
+                borderRadius: "0 4px 4px 0",
+                padding: "0.3rem 0.6rem",
+                marginBottom: 2,
+                fontSize: "0.85rem",
+                fontWeight: isOpen ? 600 : 400,
+                color: isOpen ? "#182026" : "#394b59",
+                cursor: "pointer",
+            }}
+            onMouseEnter={e => { if (!isOpen) e.currentTarget.style.backgroundColor = "#f0f4f8" }}
+            onMouseLeave={e => { if (!isOpen) e.currentTarget.style.backgroundColor = "transparent" }}
+        >
+            {instrument.text}
+        </button>
     )
 }
 
@@ -36,21 +46,34 @@ function Instrument({tag, isOpen = false}) {
 function Instruments({instrument_type,open_instrument_tag}) {
 
     const { data: instruments } = api.instruments.core.useGetInstrumentsByType({ tag: instrument_type })
-    return (<div>
-        <h4><Attribute attribute_tag={instrument_type} /></h4>
-        
-        {_.isArray(instruments) ? instruments.map(instrument => <Instrument key={instrument.tag} tag={instrument.tag} /> ):null}
-    </div>)
+    return (
+        <div>
+            <div style={{
+                fontSize: "0.9rem",
+                fontWeight: 700,
+                letterSpacing: "0.03em",
+                textTransform: "uppercase",
+                color: "#182026",
+                margin: "1rem 0 0.35rem",
+            }}>
+                <Attribute attribute_tag={instrument_type} />
+            </div>
+            {_.isArray(instruments) ? instruments.map(instrument =>
+                <Instrument key={instrument.tag} tag={instrument.tag} isOpen={instrument.tag === open_instrument_tag} />
+            ) : null}
+        </div>
+    )
 }
 
-
-
-export function InstrumentMenu({open_instrument_tag}) {
+export function InstrumentMenu({ open_instrument_tag }) {
     const { data: instrument_types } = api.instruments.core.useGetInstrumentTypes()
-    return <div>
-    <h3>Instruments</h3>
-
+    return (
+        <div>
+            <div style={{ fontSize: "1.05rem", fontWeight: 600 }}>Instruments</div>
             {_.isArray(instrument_types) ?
-            instrument_types.map(instrumentType => <Instruments key={instrumentType.tag} instrument_type={instrumentType.tag} />) : null}
-    </div>
+                instrument_types.map(instrumentType =>
+                    <Instruments key={instrumentType.tag} instrument_type={instrumentType.tag} open_instrument_tag={open_instrument_tag} />
+                ) : null}
+        </div>
+    )
 }

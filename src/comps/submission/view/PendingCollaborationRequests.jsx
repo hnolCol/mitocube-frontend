@@ -24,6 +24,7 @@ export function PendingCollaborationRequestsList({ isDialogTitle = false }) {
         {}, { staleTime: 30000, refetchInterval: 60000, refetchOnWindowFocus: true, retry: false }
     )
     const invalidate = () => {
+        queryClient.invalidateQueries({ queryKey: ["getPendingCollaborationRequests"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
         queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShares"] })

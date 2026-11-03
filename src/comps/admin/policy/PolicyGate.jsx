@@ -8,58 +8,61 @@ import Markdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 
 /**
- * Blocks the app until the user has agreed to the policy (if the policy is required).
+ * Blocks the app until the user has agreed to every required policy
+ * (terms of use first, then data protection), one after the other.
  * Wrap the logged-in part of the app with it.
  */
 export function PolicyGate({ children, enabled = true }) {
     const queryClient = useQueryClient()
     const [checked, setChecked] = useState(false)
 
-    const { data: status, isLoading: isStatusLoading, isError: isStatusError, error: statusError } =
-    api.policy.useGetPolicyStatus({}, { staleTime: 1000 * 60 * 5, enabled })
+    const { data: statuses, isLoading: isStatusLoading, isError: isStatusError, error: statusError } =
+        api.policy.useGetPolicyStatus({}, { staleTime: 1000 * 60 * 5, enabled })
 
-    const mustAgree = status?.must_agree === true
+    const pending = (statuses || []).filter(s => s.must_agree)
+    const current = pending[0]
 
-    const { data: policy, isLoading: isPolicyLoading } =
-        api.policy.useGetPolicy({}, { enabled: mustAgree, retry: false })
+    const { data: policies, isLoading: isPoliciesLoading } =
+        api.policy.useGetPolicies({}, { enabled: enabled && !!current })
 
     const { mutate: agree, isPending: isAgreeing } = api.policy.useAgreePolicy()
 
     const handleAgree = () => {
-        agree(undefined, {
+        agree({ tag: current.tag }, {
             onSuccess: () => {
+                setChecked(false)
                 queryClient.invalidateQueries({ queryKey: ["getPolicyStatus"] })
             }
         })
     }
-            
+
     if (!enabled) return children
     if (isStatusLoading) return <Loading />
     if (isStatusError) return <APIError error={statusError} />
 
-    // Not required or already agreed → normal app
-    if (!mustAgree) return children
+    // nothing pending → normal app
+    if (!current) return children
 
-    if (isPolicyLoading) return <Loading />
+    const policy = policies?.find(p => p.tag === current.tag)
+    if (isPoliciesLoading || !policy) return <Loading />
 
     return (
         <div style={{ display: "flex", justifyContent: "center", padding: "2rem", height: "100%", overflow: "auto" }}>
             <Card style={{ maxWidth: 900, maxHeight: 700, width: "100%", display: "flex", flexDirection: "column", gap: "1rem" }}>
                 <h2 className="margin--none-reset">{policy?.title || "Policy"}</h2>
                 <div className="bp5-text-muted">
-                    Please read and accept the policy to continue using MitoCube.
+                    Please read and accept to continue using MitoCube.
+                    {pending.length > 1 && ` (${pending.length} documents remaining)`}
                 </div>
 
                 <div style={{
-                    // whiteSpace: "pre-wrap",
                     maxHeight: "55vh",
                     overflowY: "auto",
                     padding: "1rem",
                     border: "1px solid #ddd",
                     borderRadius: 4
                 }}>
-                    {/* {policy?.text} */}
-                    <Markdown remarkPlugins={[remarkGfm]}>{policy?.text || ""}</Markdown>
+                    <Markdown remarkPlugins={[remarkGfm]}>{policy.text || ""}</Markdown>
                 </div>
 
                 <Checkbox
