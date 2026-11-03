@@ -12,6 +12,7 @@ import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
 import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
 import { usePrefetchVolcanoData } from "@/api/orchestrated/volcanoData";
 import { VolcanoListButton } from "./SignificantProteins";
+import { useAnnotationProteinSets, useAnnotationTexts } from "@/api/orchestrated/annotationProteins";
 
 
 
@@ -32,6 +33,7 @@ export function VolcanoDataHandler({
         onLabelProteinList,
         onMarkProteinList,
         onRemoveAllLabels,
+        markedAnnotations,
         markedProteinList,
         proteinHoverResults,
         favoriteProteinSelection,
@@ -44,6 +46,35 @@ export function VolcanoDataHandler({
     
     
     const [annotationMarkers, setAnnotationMarkers] = useState([])
+
+    const markedAnnotationTags = _.isArray(markedAnnotations) ? markedAnnotations.map(m => m.tag) : []
+    const { proteinTagsByAnnotation } = useAnnotationProteinSets({ submission_tag, annotation_tags: markedAnnotationTags })
+    const { textByAnnotation } = useAnnotationTexts(markedAnnotationTags)
+
+    // color data points of marked annotations: the first marked annotation containing a protein of the group wins
+    const dataWithMarkedAnnotationColors = useMemo(() => {
+        if (!_.isArray(markedAnnotations) || markedAnnotations.length === 0) return volcanoData.data
+        if (!_.isArray(volcanoData.data)) return volcanoData.data
+        return volcanoData.data.map(row => {
+            const tags = _.isString(row.tag) ? row.tag.split(";") : []
+            for (const { tag, color } of markedAnnotations) {
+                const proteinSet = proteinTagsByAnnotation.get(tag)
+                if (proteinSet instanceof Set && tags.some(t => proteinSet.has(t))) {
+                    return { ...row, annotation_color: color }
+                }
+            }
+            return row
+        })
+    }, [volcanoData.data, markedAnnotations, proteinTagsByAnnotation])
+
+    const markedAnnotationMarkers = useMemo(() => (_.isArray(markedAnnotations) ? markedAnnotations
+        .filter(m => proteinTagsByAnnotation.get(m.tag) instanceof Set)
+        .map(({ tag, color }) => ({
+            annotationTags: [tag],
+            annotationNames: [textByAnnotation.get(tag)],
+            color,
+            proteinTags: [...proteinTagsByAnnotation.get(tag)]
+        })) : []), [markedAnnotations, proteinTagsByAnnotation, textByAnnotation])
     const [prefetchedTestParams, setPrefetchedTestParams] = useState([])
     const { isReady, tagQueries } = usePrefetchVolcanoData(prefetchedTestParams, { enabled: _.isObject(prefetchedTestParams) && _.isArray(prefetchedTestParams) && prefetchedTestParams.length > 0 })
        
@@ -299,7 +330,7 @@ export function VolcanoDataHandler({
             }}> 
 
         <InteractiveChart
-                data={volcanoData.data}
+                data={dataWithMarkedAnnotationColors}
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
                 externalLabelResult={externalLabelResult}
@@ -418,7 +449,7 @@ export function VolcanoDataHandler({
                                         svgID: `volcano-${didx}`,
                                         triggerResetAxis,
                                         setTriggerResetAxisZoom,
-                                        annotationMarkers: annotationMarkers,
+                                        annotationMarkers: _.concat(annotationMarkers, markedAnnotationMarkers),
                                         proteinTagMap,
                                         setRequiredProteinTags,
                                         proteinIsLoading,
