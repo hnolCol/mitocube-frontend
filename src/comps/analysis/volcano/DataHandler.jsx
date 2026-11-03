@@ -28,6 +28,8 @@ export function VolcanoDataHandler({
         setVolcanoData,
         proteinIsLoading,
         proteinSearchResults,
+        onToggleProteinLabel,
+        onLabelProteinList,
         proteinHoverResults,
         favoriteProteinSelection,
         favoriteAnnotationSelection,
@@ -298,8 +300,12 @@ export function VolcanoDataHandler({
             <VolcanoCompareButton
                 data={volcanoData.data}
                 suffixes={visibleSuffixes}
+                submission_tag={submission_tag}
                 proteinTagMap={proteinTagMap}
-                setRequiredProteinTags={setRequiredProteinTags} /> : null}
+                setRequiredProteinTags={setRequiredProteinTags}
+                favoriteProteinSelection={favoriteProteinSelection}
+                onToggleProteinLabel={onToggleProteinLabel}
+                onLabelProteinList={onLabelProteinList} /> : null}
         
         <InteractiveChart
                 data={volcanoData.data}
@@ -354,8 +360,12 @@ export function VolcanoDataHandler({
                                         <VolcanoListButton
                                             data={volcanoData.data}
                                             suffix={volcanoData.suffixes[chartIdx]}
+                                            submission_tag={submission_tag}
                                             proteinTagMap={proteinTagMap}
-                                            setRequiredProteinTags={setRequiredProteinTags} />
+                                            setRequiredProteinTags={setRequiredProteinTags}
+                                            favoriteProteinSelection={favoriteProteinSelection}
+                                            onToggleProteinLabel={onToggleProteinLabel}
+                                            onLabelProteinList={onLabelProteinList} />
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
                                         </div>
