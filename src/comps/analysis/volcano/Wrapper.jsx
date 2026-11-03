@@ -16,6 +16,7 @@ import { FavoriteAnnotationSelection } from "@/comps/core/base/annotations/Favor
 import { Checkbox } from "@/comps/core/base/states/Checkbox";
 import { AnnotationDistribution } from "@/comps/admin/annotations/AnnotationDistribution";
 import { getItemFromLocalStorage } from "@/services/localstorage";
+import { VolcanoCompareButton } from "./SignificantProteins";
 
 
 
@@ -219,11 +220,28 @@ export function VolcanoPlotWrapper({ submission_tag }) {
 export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setIsFetching, onError, hiddenSuffix, setHiddenSuffix, volcanoData, setVolcanoData, favoriteProteinSelection, proteinHoverResults, favoriteAnnotationSelection, annotationHoverResults, onToggleProteinLabel, onLabelProteinList, onMarkProteinList, onRemoveAllLabels, markedProteinList, showHoverLabels = false }) {
     const [requiredProteinTags, setRequiredProteinTags] = useState([])
     
+    const visibleSuffixes = _.isArray(volcanoData.suffixes)
+        ? volcanoData.suffixes.filter(suffix => !hiddenSuffix.includes(suffix))
+        : []
+
     return <WithTagMaps
                 Component={VolcanoDataHandler}
                     protein_tags={requiredProteinTags}
                     showProteinSearch={true}
                     proteinSearchProps={{submission_tag}}
+                    searchExtra={visibleSuffixes.length > 1 && _.isArray(volcanoData.data) ?
+                        ({ proteinTagMap }) => <VolcanoCompareButton
+                            data={volcanoData.data}
+                            suffixes={visibleSuffixes}
+                            submission_tag={submission_tag}
+                            proteinTagMap={proteinTagMap}
+                            setRequiredProteinTags={setRequiredProteinTags}
+                            favoriteProteinSelection={favoriteProteinSelection}
+                            onToggleProteinLabel={onToggleProteinLabel}
+                            onLabelProteinList={onLabelProteinList}
+                            markedProteinTags={markedProteinList?.values ?? []}
+                            onMarkProteinList={onMarkProteinList}
+                            onRemoveAllLabels={onRemoveAllLabels} /> : null}
                     {...{
                         submission_tag, 
                         onToggleProteinLabel,

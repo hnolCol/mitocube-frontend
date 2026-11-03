@@ -393,6 +393,26 @@ function DirectionToggle({ direction, onChange, counts }) {
 }
 
 
+const VOLCANO_LIST_ICON_SIZE = 24
+
+function VolcanoListSVG({ size = VOLCANO_LIST_ICON_SIZE, color = "#000", significant = false }) {
+    const rowSpacing = size / 4
+    return (
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+            {[0, 1, 2].map(idx => <g key={idx}>
+                <circle cx={size / 5} cy={size / 5 + idx * rowSpacing} r={size / 12} fill={color} />
+                <line
+                    x1={size / 2.5}
+                    x2={size / 1.15}
+                    y1={size / 5 + idx * rowSpacing}
+                    y2={size / 5 + idx * rowSpacing}
+                    stroke={color}
+                    strokeWidth={1.5} />
+            </g>)}
+        </svg>
+    )
+}
+
 export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
     const [isOpen, setIsOpen] = useState(false)
     const [direction, setDirection] = useState("up")
@@ -410,9 +430,17 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
         setSortState(undefined)
     }
 
+    const hasSignificant = up.length + down.length > 0
+
     return <>
-        <Button variant="minimal" icon="list" intent={up.length + down.length > 0 ? "primary" : "none"}
-            onClick={() => setIsOpen(prev => !prev)} />
+        <button
+            title={hasSignificant ? "Show significant proteins" : "No significant proteins"}
+            className="flex margin--very-little icon__container center-items"
+            style={{ outline: "none", border: "none", width: VOLCANO_LIST_ICON_SIZE, height: VOLCANO_LIST_ICON_SIZE, padding: "0px", cursor: hasSignificant ? "pointer" : "default" }}
+            onMouseDown={e => e.stopPropagation()}
+            onClick={() => hasSignificant && setIsOpen(prev => !prev)}>
+            <VolcanoListSVG significant={hasSignificant} color={hasSignificant ? "#2e528b" : "#999999"} />
+        </button>
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%" style={{ height: "95vh" }}>
             <div className="padding--medium">
                 <DirectionToggle direction={direction} onChange={handleDirectionChange} counts={{ up: up.length, down: down.length, all: all.length }} />
@@ -690,7 +718,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     if (!_.isArray(suffixes) || suffixes.length < 2) return null
 
     return <>
-        <Button icon="comparison" text="Compare significant proteins" variant="minimal" intent="primary" onClick={() => setIsOpen(prev => !prev)} />
+        <button className="basic-button--small" onClick={() => setIsOpen(prev => !prev)}>Compare significant proteins</button>
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="75%" style={{ height: "95vh" }}>
             <div className="padding--medium" style={{ height: "100%", overflowY: "auto" }}>
                 <DirectionToggle direction={direction} onChange={setDirection} counts={counts} />

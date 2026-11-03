@@ -33,6 +33,7 @@ export function WithTagMaps({
     protein_tags = [],
     showProteinSearch = false,
     proteinSearchProps = {},
+    searchExtra = null,
     ...rest
 }) {
     // Persist across renders
@@ -146,9 +147,14 @@ export function WithTagMaps({
     return (
         <div className='div--expand'>
             {showProteinSearch && (
-                <div>
-                    <h4>Search</h4>
-                    <ProteinSearch onSuccess={handleProteinSearchSuccess} {...proteinSearchProps} resetTrigger={resetProteinSearchTrigger} />
+                <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                    <div>
+                        <h4>Search</h4>
+                        <ProteinSearch onSuccess={handleProteinSearchSuccess} {...proteinSearchProps} resetTrigger={resetProteinSearchTrigger} />
+                    </div>
+                    {_.isFunction(searchExtra)
+                        ? searchExtra({ proteinTagMap })
+                        : searchExtra}
                 </div>
             )}
             <Component

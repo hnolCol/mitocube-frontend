@@ -11,7 +11,7 @@ import { api } from "@/api";
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
 import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage";
 import { usePrefetchVolcanoData } from "@/api/orchestrated/volcanoData";
-import { VolcanoCompareButton, VolcanoListButton } from "./SignificantProteins";
+import { VolcanoListButton } from "./SignificantProteins";
 
 
 
@@ -287,7 +287,6 @@ export function VolcanoDataHandler({
 
     const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
 
-    const visibleSuffixes = useMemo(() => _.isArray(volcanoData.suffixes) ? volcanoData.suffixes.filter(suffix => !hiddenSuffix.includes(suffix)) : [], [volcanoData.suffixes, hiddenSuffix])
 
     return (
         <div
@@ -299,20 +298,6 @@ export function VolcanoDataHandler({
                 marginLeft: "2rem"
             }}> 
 
-        {visibleSuffixes.length > 1 && _.isArray(volcanoData.data) ?
-            <VolcanoCompareButton
-                data={volcanoData.data}
-                suffixes={visibleSuffixes}
-                submission_tag={submission_tag}
-                proteinTagMap={proteinTagMap}
-                setRequiredProteinTags={setRequiredProteinTags}
-                favoriteProteinSelection={favoriteProteinSelection}
-                onToggleProteinLabel={onToggleProteinLabel}
-                onLabelProteinList={onLabelProteinList}
-                markedProteinTags={markedProteinList?.values ?? []}
-                onMarkProteinList={onMarkProteinList}
-                onRemoveAllLabels={onRemoveAllLabels} /> : null}
-        
         <InteractiveChart
                 data={volcanoData.data}
                 extraLimitNames={extraLimits}
@@ -363,21 +348,10 @@ export function VolcanoDataHandler({
                                     key={chartIdx}>
                                     
                                     <div style={{ position: "absolute", right: 5, top: 5 }} className="flex center-items">
-                                        <VolcanoListButton
-                                            data={volcanoData.data}
-                                            suffix={volcanoData.suffixes[chartIdx]}
-                                            submission_tag={submission_tag}
-                                            proteinTagMap={proteinTagMap}
-                                            setRequiredProteinTags={setRequiredProteinTags}
-                                            favoriteProteinSelection={favoriteProteinSelection}
-                                            onToggleProteinLabel={onToggleProteinLabel}
-                                            onLabelProteinList={onLabelProteinList}
-                                            markedProteinTags={markedProteinList?.values ?? []}
-                                            onMarkProteinList={onMarkProteinList}
-                                            onRemoveAllLabels={onRemoveAllLabels} />
                                         <RemoveButton
                                             onRemove={() => handleHiddenSuffix(volcanoData.suffixes[chartIdx])} />
-                                        </div>
+                                    </div>
+                                    <div className="flex center-items">
                                     {_.isArray(volcanoData.data) && volcanoData.data.length > 0 && _.isObject(volcanoData.data[0]) ?
                                         <ScatterDataSelection keyNames={_.keys(volcanoData.data[0])}
                                             {...{
@@ -396,6 +370,19 @@ export function VolcanoDataHandler({
                                                 // onAnnotationSelect: handleAnnotationSelect,
                                                 handleSearchByDataIndex
                                             }} /> : null}
+                                        <VolcanoListButton
+                                            data={volcanoData.data}
+                                            suffix={volcanoData.suffixes[chartIdx]}
+                                            submission_tag={submission_tag}
+                                            proteinTagMap={proteinTagMap}
+                                            setRequiredProteinTags={setRequiredProteinTags}
+                                            favoriteProteinSelection={favoriteProteinSelection}
+                                            onToggleProteinLabel={onToggleProteinLabel}
+                                            onLabelProteinList={onLabelProteinList}
+                                            markedProteinTags={markedProteinList?.values ?? []}
+                                            onMarkProteinList={onMarkProteinList}
+                                            onRemoveAllLabels={onRemoveAllLabels} />
+                                    </div>
                                     
                                     <ScatterPlot
                                         key={`volcano-plot-${chartIdx}`}{...{
