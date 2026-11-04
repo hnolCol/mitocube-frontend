@@ -17,6 +17,7 @@ import { Checkbox } from "@/comps/core/base/states/Checkbox";
 import { AnnotationDistribution } from "@/comps/admin/annotations/AnnotationDistribution";
 import { getItemFromLocalStorage } from "@/services/localstorage";
 import { VolcanoCompareButton } from "./SignificantProteins";
+import { Annotation } from "@/comps/core/base/annotations/Annotation";
 
 
 
@@ -93,6 +94,18 @@ export function VolcanoPlotWrapper({ submission_tag }) {
         setMarkedProteinList(prevValues => {
             const isToggleOff = prevValues.values.length === proteinTags.length && _.difference(prevValues.values, proteinTags).length === 0
             return { values: isToggleOff ? [] : proteinTags, trigger: Math.random(), key: "tag" }
+        })
+    }
+
+    const handleMoveMarkedAnnotation = (annotationTag, direction) => {
+        setMarkedAnnotations(prevValues => {
+            const idx = prevValues.findIndex(m => m.tag === annotationTag)
+            const newIdx = idx + direction
+            if (idx < 0 || newIdx < 0 || newIdx >= prevValues.length) return prevValues
+            const reordered = [...prevValues]
+            const [moved] = reordered.splice(idx, 1)
+            reordered.splice(newIdx, 0, moved)
+            return reordered
         })
     }
 
@@ -180,12 +193,21 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                                 onSelect={handleFavoriteAnnotationSelect}
                                 onHover={handleAnnotationHover} 
                                 onMark={handleMarkAnnotation}
+                                onMoveMarked={handleMoveMarkedAnnotation}
                                 marked={markedAnnotations}
                                 submission_tags={[submission_tag]}
                             />
 
                             {annotationHoverResults.values.length > 0 ? <div className="margin--medium">
-                                <span>Distribution of hovered annotation in samples:</span>
+                                {(() => {
+                                    const markedEntry = markedAnnotations.find(m => m.tag === annotationHoverResults.values[0])
+                                    return <span className="flex center-items" style={{ gap: "0.3rem" }}>
+                                        <span>Distribution of hovered annotation in samples:</span>
+                                        <span className="annotation-item-btn" style={markedEntry ? { borderColor: markedEntry.color, boxShadow: `0 0 4px ${markedEntry.color}` } : {}}>
+                                            <Annotation tag={annotationHoverResults.values[0]} />
+                                        </span>
+                                    </span>
+                                })()}
                                 <AnnotationDistribution submission_tag={submission_tag} tag={annotationHoverResults.values[0]} />
                             </div> : null}
                         </PersistentCollapse>               

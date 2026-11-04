@@ -813,3 +813,18 @@ h5 {
 .font-color--error {
     color: #a82a2a;
 }
+
+
+.annotation-item-btn {
+    box-sizing: border-box;
+    background: #fbfcfe;
+    border: 1px solid #d3dbe5;
+    border-radius: 10px;
+    padding: 0.2rem 0.4rem;
+}
+
+.annotation-item-btn:hover {
+    border-color: #c3cedd;
+    background: #f8fafc;
+    box-shadow: 0 2px 8px rgba(70, 102, 136, 0.12);
+}
