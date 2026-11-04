@@ -55,7 +55,7 @@ export function Subsetboxplot({ data, yaxisName, subsetIndices, width = 120, hei
             <AxisLeft left={marginleft} scale={yScale} tickLength={2} numTicks={3} strokeWidth={0.5}/>
             {_.keys(qs).map((i,idx) => {
                 const qqs = _.fromPairs(_.map(qs[i].labels, (label, idx) => [label, yScale(qs[i][yaxisName][idx])]))
-                return <g><viz.primitives.Box {...qqs} x={xScale(idx) + xScale.bandwidth() / 2} width={xScale.bandwidth()} fill={idx > 0 ? "red" : undefined} />
+                return <g><viz.primitives.Box {...qqs} x={xScale(idx) + xScale.bandwidth() / 2} width={xScale.bandwidth()} fill={idx > 0 ? "#e01919" : undefined} />
                     {idx > 0 && _.isNumber(qqs["median"]) && _.isNumber(qs[i].N) ? <g><Text
                         x={xScale(idx) + xScale.bandwidth()}
                         verticalAnchor="middle"

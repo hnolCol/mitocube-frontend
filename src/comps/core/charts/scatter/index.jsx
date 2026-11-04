@@ -607,7 +607,7 @@ export function ScatterPlot({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
-                        fill: "red",
+                        fill: "#e01919",
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
@@ -626,7 +626,7 @@ export function ScatterPlot({
                         sizeName,
                         colorName: undefined,
                         fill: HIGHLIGHT_COLOR,
-                        rerenderDependency: externalLabelRerender
+                        rerenderDependency: _.concat([externalLabelRerender], xScale.domain(), yScale.domain())
                 }} />
                     </g> : null}
 
@@ -641,8 +641,8 @@ export function ScatterPlot({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
-                        fill: "red",
-                        rerenderDependency: externalHoverRerender
+                        fill: "#e01919",
+                        rerenderDependency: _.concat([externalHoverRerender], xScale.domain(), yScale.domain())
                 }} />
                 </g> : null}
 
@@ -664,7 +664,7 @@ export function ScatterPlot({
                                 labelNames,
                                 index: labelIndex,
                                 opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, axisDomainRerender, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
+                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, axisDomainRerender, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender, proteinIsLoading]
                         }} />
                     }) : null}
                 </g>

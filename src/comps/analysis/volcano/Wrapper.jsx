@@ -1,8 +1,8 @@
 import APIError from "../../core/error/APIerror";
 import _ from "lodash"
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { Button, Dialog } from "@blueprintjs/core";
+import { Button, Callout, Dialog } from "@blueprintjs/core";
 import { ConditionApplicationSelection } from "../../core/base/attribute_selection/Pairwise";
 
 import { Combobox } from "@/comps/core/input/Combobox";
@@ -17,6 +17,7 @@ import { Checkbox } from "@/comps/core/base/states/Checkbox";
 import { AnnotationDistribution } from "@/comps/admin/annotations/AnnotationDistribution";
 import { getItemFromLocalStorage } from "@/services/localstorage";
 import { VolcanoCompareButton } from "./SignificantProteins";
+import { useAnnotationProteinSets } from "@/api/orchestrated/annotationProteins";
 
 
 
@@ -72,6 +73,16 @@ export function VolcanoPlotWrapper({ submission_tag }) {
     const [proteinHoverResults, setProteinHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
     const [markedProteinList, setMarkedProteinList] = useState({ values: [], trigger: undefined, key: "tag" })
     const [markedAnnotations, setMarkedAnnotations] = useState([])
+
+    const markedAnnotationTags = markedAnnotations.map(m => m.tag)
+    const { proteinTagsByAnnotation } = useAnnotationProteinSets({ submission_tag, annotation_tags: markedAnnotationTags })
+    const markedAnnotationOverlapCount = useMemo(() => {
+        const sets = markedAnnotationTags.map(tag => proteinTagsByAnnotation.get(tag)).filter(set => set instanceof Set)
+        if (sets.length < 2) return 0
+        const countsByProtein = new Map()
+        sets.forEach(set => set.forEach(proteinTag => countsByProtein.set(proteinTag, (countsByProtein.get(proteinTag) || 0) + 1)))
+        return Array.from(countsByProtein.values()).filter(count => count > 1).length
+    }, [proteinTagsByAnnotation, markedAnnotationTags])
     const [selectedAnnotations, setSelectedAnnotations] = useState([])
     const [favoriteAnnotationSelection, setFavoriteAnnotationSelection] = useState({ values: [], trigger: undefined, key: "tag" })
     const [annotationHoverResults, setAnnotationHoverResults] = useState({ values: [], trigger: undefined, key: "tag" })
@@ -173,6 +184,9 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                         </button>
 
                         <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} >        
+                            {markedAnnotationOverlapCount > 0 ? <Callout intent="warning" className="margin-bottom--little">
+                                {markedAnnotationOverlapCount} {markedAnnotationOverlapCount === 1 ? "protein" : "proteins"} belong{markedAnnotationOverlapCount === 1 ? "s" : ""} to more than one marked annotation. For these, only the color of the first marked annotation is shown in the volcano plots.
+                            </Callout> : null}
                             <FavoriteAnnotationSelection 
                                 selected={selectedAnnotations}
                                 highlighted={favoriteAnnotationSelection.values}
