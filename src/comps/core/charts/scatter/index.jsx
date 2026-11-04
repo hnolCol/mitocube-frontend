@@ -506,6 +506,24 @@ export function ScatterPlot({
     }, [data, data.length])
 
     const hasAnnotationColors = Object.keys(annotationColorMap).length > 0
+
+    // indices of points colored by a marked annotation: rendered in a second, top-most scatter layer
+    const markedIndices = useMemo(() => {
+        const indices = new Set()
+        if (!hasAnnotationColors || !_.isArray(data)) return indices
+        data.forEach((dataPoint, idx) => {
+            if (_.isString(annotationColorMap[dataPoint.tag])) indices.add(idx)
+        })
+        return indices
+    }, [annotationColorMap, data, hasAnnotationColors])
+
+    // all other points: the marked ones are omitted from the base layer to avoid double-drawn, translucent dots
+    const baseIndices = useMemo(() => {
+        if (markedIndices.size === 0) return undefined
+        const indices = new Set()
+        _.range(data.length).forEach(idx => { if (!markedIndices.has(idx)) indices.add(idx) })
+        return indices
+    }, [markedIndices, data])
     
     return (
         <div className="flex">
@@ -541,13 +559,36 @@ export function ScatterPlot({
                         sizeName,
                         colorName,
                         colorScale,
+                        indices: baseIndices,
                         checkColorMap: hasAnnotationColors,
                         colorMap: annotationColorMap,
                         colorMapKeyName: "tag",
-                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain(), [annotationColorMap]),
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain(), [annotationColorMap], [markedIndices]),
                         filterIndices,
                         searchIndices,
                         opacity : 0.75
+                    }} /> : null}
+                {validDataInput && markedIndices.size > 0 ? <viz.primitives.ScatterPoints {...{
+                        data,
+                        valid,
+                        xScale,
+                        yScale,
+                        xaxisName,
+                        yaxisName,
+                        sizeScale,
+                        sizeName,
+                        colorName,
+                        colorScale,
+                        indices: markedIndices,
+                        checkColorMap: true,
+                        colorMap: annotationColorMap,
+                        colorMapKeyName: "tag",
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain(), [annotationColorMap], [markedIndices]),
+                        filterIndices,
+                        searchIndices,
+                        stroke: "#ffffff",
+                        strokeWidth: 1,
+                        opacity: 1
                     }} /> : null}
                 </g>
                 
@@ -566,7 +607,7 @@ export function ScatterPlot({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
-                        fill: "red",
+                        fill: "#e01919",
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
@@ -585,7 +626,7 @@ export function ScatterPlot({
                         sizeName,
                         colorName: undefined,
                         fill: HIGHLIGHT_COLOR,
-                        rerenderDependency: externalLabelRerender
+                        rerenderDependency: _.concat([externalLabelRerender], xScale.domain(), yScale.domain())
                 }} />
                     </g> : null}
 
@@ -600,8 +641,8 @@ export function ScatterPlot({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
-                        fill: "red",
-                        rerenderDependency: externalHoverRerender
+                        fill: "#e01919",
+                        rerenderDependency: _.concat([externalHoverRerender], xScale.domain(), yScale.domain())
                 }} />
                 </g> : null}
 
@@ -623,7 +664,7 @@ export function ScatterPlot({
                                 labelNames,
                                 index: labelIndex,
                                 opacity: searchIndices.size === 0 ? 1 : searchIndices.has(labelIndex) ? 1 : 0.5,
-                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, axisDomainRerender, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender]
+                                rerenderDependency: [zoomActive.currentXDomain, zoomActive.currentYDomain, axisDomainRerender, labelRerender, triggerResetAxis, externalHoverRerender, externalLabelRerender, proteinIsLoading]
                         }} />
                     }) : null}
                 </g>

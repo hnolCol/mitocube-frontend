@@ -2,6 +2,12 @@ import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 import { getColorPalette } from "../../../colors/colorPalette"
 
+/**
+ * @description Funnel-with-circle icon glyph used by the research-group selection icon.
+ * @param {Number} props.width - The SVG width in pixels.
+ * @param {Number} props.height - The SVG height in pixels.
+ * @param {String} props.strokeColor - The hex color of the outline.
+ */
 export function ResearchGroupSVG({ width, height, strokeColor }) {
     const halfWidth = width / 2
     const halfHeight = height / 2

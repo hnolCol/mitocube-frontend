@@ -148,7 +148,7 @@ export function WithTagMaps({
         <div className='div--expand'>
             {showProteinSearch && (
                 <div className="flex center-items" style={{ gap: "0.5rem" }}>
-                    <div>
+                    <div style={{ flex: "1 1 auto", minWidth: 0 }}>
                         <h4>Search</h4>
                         <ProteinSearch onSuccess={handleProteinSearchSuccess} {...proteinSearchProps} resetTrigger={resetProteinSearchTrigger} />
                     </div>

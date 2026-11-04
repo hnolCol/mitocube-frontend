@@ -21,7 +21,7 @@ export function ProteinSearch({ submission_tag, onSuccess, resetTrigger = undefi
     useEffect(() => { if (debouncedSearchString.length === 0) onSuccess([]) }, [debouncedSearchString])
     useEffect(() => {if (_.isArray(data)) onSuccess(data)}, [data])
     useEffect(() => { if (resetTrigger) setSearchString("") }, [resetTrigger])
-    return <input className="search-input" placeholder="Search for a protein..." value={searchString} onChange={(e) => setSearchString(e.target.value)} onKeyDown={(e) => {
+    return <input className="search-input" style={{ width: "100%" }} placeholder="Search for a protein..." value={searchString} onChange={(e) => setSearchString(e.target.value)} onKeyDown={(e) => {
         if (e.key === "Enter" && isSuccess) {
             onSuccess(data)
         }

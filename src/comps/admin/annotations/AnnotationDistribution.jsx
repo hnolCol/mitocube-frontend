@@ -84,7 +84,7 @@ export function AnnotationDistribution({ tag, submission_tag, width = 95, height
                     showMedian={false}
                     width={width}
                     height={height}
-                    fill={pair.map(d => d.data.annotation_tag || d.data.annotation_group_tag ? "red" : "#efefef")} //dangerous! 2 only?
+                    fill={pair.map(d => d.data.annotation_tag || d.data.annotation_group_tag ? "#e01919" : "#efefef")} //dangerous! 2 only?
                     spaceBetween={5}
                     preYScale={yScale} />
 

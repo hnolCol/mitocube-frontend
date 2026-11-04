@@ -54,7 +54,7 @@ export function AnnotationMapDistribution({ tag, tagType = "annotation", submiss
     const spaceBetween = width - boxWidth
     const totalWidth = boxWidth * Math.max(distributions.length, 1) + spaceBetween * Math.max(distributions.length - 1, 0) + margins.left + margins.right
 
-    const fills = isReady ? tagQueries.map(d => (d.data?.annotation_tag || d.data?.annotation_group_tag) ? "red" : "#efefef") : []
+    const fills = isReady ? tagQueries.map(d => (d.data?.annotation_tag || d.data?.annotation_group_tag) ? "#e01919" : "#efefef") : []
     const markerValues = isReady ? tagQueries.map((d, i) => (i === 1 && _.isNumber(markerValue)) ? markerValue : undefined) : []
     const markerLabels = isReady ? tagQueries.map((d, i) => (i === 1 && _.isString(markerLabel)) ? markerLabel : undefined) : []
     return <div className="flex flex-column gap--smallest">

@@ -4,8 +4,8 @@ import { Group } from "@visx/group";
 
 export function ResetZoomSVG({ size = 24, color = "#000" }) {
 
-    const circleX = size / 2.5
-    const circleY = size / 2.5
+    const circleX = size / 2
+    const circleY = size / 2
     const width = size
     const height = size
     const strokeColor = color

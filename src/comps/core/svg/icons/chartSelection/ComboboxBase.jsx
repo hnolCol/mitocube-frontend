@@ -1,11 +1,31 @@
 import { MenuItem, MenuDivider } from "@blueprintjs/core"
 import { Select } from "@blueprintjs/select"
 import _ from "lodash"
+import PropTypes from "prop-types"
 import { SVG } from "../../../charts/SVGHeader"
 import { Group } from "@visx/group"
 import { api } from "@/api"
 import { filterArrayBySearchStringBySingleKey } from "../../../../../services/arrays/filter"
 import "./style.css"
+
+const itemShape = PropTypes.oneOfType([PropTypes.string, PropTypes.object])
+
+ComboboxIconBase.propTypes = {
+    height: PropTypes.number,
+    width: PropTypes.number,
+    placeholder: PropTypes.string,
+    items: PropTypes.arrayOf(itemShape),
+    textKey: PropTypes.string,
+    labelKey: PropTypes.string,
+    selectedItems: PropTypes.arrayOf(PropTypes.string),
+    callbackKey: PropTypes.string,
+    callback: PropTypes.func,
+    callbackValueOnly: PropTypes.bool,
+    minimal: PropTypes.bool,
+    filterable: PropTypes.bool,
+    itemIsAttribute: PropTypes.bool,
+    children: PropTypes.node
+}
 
 /**
  * Renders a menu item for an attribute tag by fetching its display text from the backend.
@@ -43,9 +63,11 @@ const TEXT_KEY = "text"
  * @param {Boolean} props.minimal - If true the placeholder text is hidden
  * @param {Boolean} props.filterable - If true the dropdown can be filtered by a search string
  * @param {Boolean} props.itemIsAttribute - If true items are treated as attribute tags and fetched from the backend
- * @param {SVGAElement} props.children - The icon drawn inside the SVG
+ * @param {SVGAElement} props.children - The icon drawn inside the SVG. The children are rendered into an SVG of ```width``` x ```height``` pixels and should therefore use the same coordinate ranges to appear centered.
+ * @param {Function} props.renderItem - Optional custom menu item renderer. Defaults to a text-based MenuItem that shows a tick for selected items and supports a "DIVIDER" pseudo item.
  */
 function ComboboxIconBase({
+    renderItem = undefined,
     height = 25,
     width = 25,
     placeholder = "",
@@ -74,7 +96,7 @@ function ComboboxIconBase({
         return filterArrayBySearchStringBySingleKey({ array: items, keyName: textKey, searchString: query }).data
     }
 
-    const renderItem = (item, { handleClick, handleFocus, index, modifiers }) => {
+    const defaultRenderItem = (item, { handleClick, handleFocus, index, modifiers }) => {
         const selected = selectedItems.includes(item[textKey])
         if (item[textKey] === "DIVIDER") return <MenuDivider key={`${index}-comboMenuDiv`} />
         if (itemIsAttribute) {
@@ -103,7 +125,7 @@ function ComboboxIconBase({
                 items={checkedItems}
                 itemListPredicate={filterItems}
                 filterable={filterable}
-                itemRenderer={renderItem}
+                itemRenderer={_.isFunction(renderItem) ? renderItem : defaultRenderItem}
                 onItemSelect={handleSelection}
                 disabled={items.length === 0}>
                 <button
