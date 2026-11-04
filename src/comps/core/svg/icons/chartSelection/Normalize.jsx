@@ -11,7 +11,7 @@ function NormalizeIcon({ height, width = 25, colorIdx = 0, ...props }) {
     return (
         <ComboboxIconBase {...{ height, width, ...props }}>
             {[{ height: 3 }, { height: 8 }, { height: 14 }, { height: 12 }, { height: 6 }, { height: 1 }].map((rectProps, idx) =>
-                <rect key={`normr-${idx}`} {...rectProps} x={idx * barWidth + 3} y={18 - rectProps.height} height={rectProps.height} width={barWidth}
+                <rect key={`normr-${idx}`} {...rectProps} x={idx * barWidth + 2} y={18 - rectProps.height} height={rectProps.height} width={barWidth}
                     fill={colorPalette[colorIdx]} stroke="none" />)}
         </ComboboxIconBase>
     )

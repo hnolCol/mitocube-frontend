@@ -525,6 +525,24 @@ export function ScatterPlot({
         return indices
     }, [annotationColorMap, data, hasAnnotationColors])
 
+    // marked indices grouped by the annotation color they received. The colorMap keys are in
+    // priority order (first marked annotation wins), so rendering the groups in *reverse* key
+    // order draws the highest-priority annotation last, i.e. on top of the others.
+    const markedIndicesByColor = useMemo(() => {
+        const map = new Map()
+        if (!hasAnnotationColors || !_.isArray(data)) return map
+        data.forEach((dataPoint, idx) => {
+            const color = annotationColorMap[dataPoint.tag]
+            if (!_.isString(color)) return
+            if (!map.has(color)) map.set(color, new Set())
+            map.get(color).add(idx)
+        })
+        return map
+    }, [annotationColorMap, data, hasAnnotationColors])
+
+    // colors of the marked annotations in priority order (insertion order of the colorMap keys)
+    const markedColorsInPriorityOrder = useMemo(() => Object.keys(annotationColorMap), [annotationColorMap])
+
     // all other points: the marked ones are omitted from the base layer to avoid double-drawn, translucent dots
     const baseIndices = useMemo(() => {
         if (markedIndices.size === 0) return undefined
@@ -576,7 +594,10 @@ export function ScatterPlot({
                         searchIndices,
                         opacity : 0.75
                     }} /> : null}
-                {validDataInput && markedIndices.size > 0 ? <viz.primitives.ScatterPoints {...{
+                {validDataInput && markedIndices.size > 0 ? markedColorsInPriorityOrder.slice().reverse().map(color => {
+                    const indices = markedIndicesByColor.get(color)
+                    if (!indices || indices.size === 0) return null
+                    return <viz.primitives.ScatterPoints key={`marked-annotation-${color}`} {...{
                         data,
                         valid,
                         xScale,
@@ -585,19 +606,19 @@ export function ScatterPlot({
                         yaxisName,
                         sizeScale,
                         sizeName,
-                        colorName,
+                        colorName: undefined,
                         colorScale,
-                        indices: markedIndices,
-                        checkColorMap: true,
-                        colorMap: annotationColorMap,
-                        colorMapKeyName: "tag",
-                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain(), [annotationColorMap], [markedIndices]),
+                        indices,
+                        checkColorMap: false,
+                        fill: color,
+                        rerenderDependency: _.concat(rerenderBackground, [colorName, sizeName], xScale.domain(), yScale.domain(), [annotationColorMap], [markedIndicesByColor]),
                         filterIndices,
                         searchIndices,
-                        stroke: "#ffffff",
-                        strokeWidth: 1,
+                        stroke: "#000000",
+                        strokeWidth: 0.5,
                         opacity: 1
-                    }} /> : null}
+                    }} />
+                }) : null}
                 </g>
                 
 

@@ -6,14 +6,14 @@
  */
 export function SearchSVG({ width, height, strokeColor}) {
     
-    const circleX = width / 3
-    const circleY = height / 3
-    const marginY = height / 4.5 
+    const circleX = width * 0.38
+    const circleY = height * 0.38
+    const circleR = width / 4.2
    
     return (
         <g>
-            <line x1={circleX} x2={circleX+width/2} y1={circleY} y2={circleY+height/2} stroke={strokeColor} strokeWidth={2}/>
-            <circle cx={circleX} cy={circleY} r = {width/3.5} fill="white" stroke={strokeColor} />
+            <line x1={circleX + circleR * 0.72} x2={width - width * 0.08} y1={circleY + circleR * 0.72} y2={height - height * 0.08} stroke={strokeColor} strokeWidth={2}/>
+            <circle cx={circleX} cy={circleY} r = {circleR} fill="white" stroke={strokeColor} />
         </g>
     )
 }
