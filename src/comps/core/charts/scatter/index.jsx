@@ -540,8 +540,10 @@ export function ScatterPlot({
         return map
     }, [annotationColorMap, data, hasAnnotationColors])
 
-    // colors of the marked annotations in priority order (insertion order of the colorMap keys)
-    const markedColorsInPriorityOrder = useMemo(() => Object.keys(annotationColorMap), [annotationColorMap])
+    // colors of the marked annotations in priority order. The annotationColorMap is keyed by
+    // protein tags, so the ordered colors are derived from the annotationMarkers prop instead,
+    // which lists the marked annotations in priority order.
+    const markedColorsInPriorityOrder = useMemo(() => _.uniq(annotationMarkers.map(marker => marker.color)), [annotationMarkers])
 
     // all other points: the marked ones are omitted from the base layer to avoid double-drawn, translucent dots
     const baseIndices = useMemo(() => {

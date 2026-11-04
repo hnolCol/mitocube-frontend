@@ -2,10 +2,13 @@ import { SVG } from "@/comps/core/charts/SVGHeader";
 import { Group } from "@visx/group";
 
 
-export function ResetZoomSVG({ size = 24, color = "#000", active = false }) {
+export function ResetZoomSVG({ size = 25, color = "#000", active = false }) {
 
-    const circleX = size / 2
-    const circleY = size / 2
+    // the magnifier (circle + handle) is centered as a composite: circle top-left, handle to bottom-right
+    const circleX = size * 0.36
+    const circleY = size * 0.36
+    const circleR = size * 0.22
+    const handleEnd = size * 0.86
     const width = size
     const height = size
     const strokeColor = active ? "#466688" : color
@@ -14,9 +17,9 @@ export function ResetZoomSVG({ size = 24, color = "#000", active = false }) {
         
             <SVG {...{ width, height  }}>
                 <Group  left={0} top={0} >
-                    <line x1={circleX} x2={circleX+width/2} y1={circleY} y2={circleY+height/2} stroke={strokeColor} strokeWidth={active ? 2 : 1.5}/>
-                    <circle cx={circleX} cy={circleY} r={width / 4} fill={active ? "#466688" : "white"} stroke={strokeColor} />
-                    <line x1={circleX-width/8} x2={circleX+width/8} y1={circleY} y2={circleY} stroke={active ? "#ffffff" : strokeColor} strokeWidth={1}/>
+                    <line x1={circleX + circleR * 0.72} x2={handleEnd} y1={circleY + circleR * 0.72} y2={handleEnd} stroke={strokeColor} strokeWidth={active ? 2 : 1.5}/>
+                    <circle cx={circleX} cy={circleY} r={circleR} fill={active ? "#466688" : "white"} stroke={strokeColor} />
+                    <line x1={circleX-circleR/2} x2={circleX+circleR/2} y1={circleY} y2={circleY} stroke={active ? "#ffffff" : strokeColor} strokeWidth={1}/>
                 </Group>
             </SVG>
             

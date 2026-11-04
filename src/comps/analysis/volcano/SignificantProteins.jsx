@@ -425,20 +425,24 @@ function DirectionToggle({ direction, onChange, counts }) {
 }
 
 
-const VOLCANO_LIST_ICON_SIZE = 24
+const VOLCANO_LIST_ICON_SIZE = 25
 
 function VolcanoListSVG({ size = VOLCANO_LIST_ICON_SIZE, color = "#000", significant = false }) {
     const rowSpacing = size / 4
     const firstRowY = size / 2 - rowSpacing
+    const circleX = size * 0.22
+    const circleR = size * 0.088
+    const lineStart = size * 0.44
+    const lineEnd = size * 0.86
     return (
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
             {[0, 1, 2].map(idx => {
                 const rowY = firstRowY + idx * rowSpacing
                 return <g key={idx}>
-                    <circle cx={size / 5} cy={rowY} r={size / 12} fill={color} />
+                    <circle cx={circleX} cy={rowY} r={circleR} fill={color} />
                     <line
-                        x1={size / 5 + size / 4}
-                        x2={size - size / 5}
+                        x1={lineStart}
+                        x2={lineEnd}
                         y1={rowY}
                         y2={rowY}
                         stroke={color}
