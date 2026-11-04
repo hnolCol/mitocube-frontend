@@ -495,7 +495,7 @@ export function Network({
                         glyphMap : { "annotation": "rect"},
                         checkPolyMap : true,
                         polyMapKeyName : "type",
-                        fill: "red",
+                        fill: "#e01919",
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>

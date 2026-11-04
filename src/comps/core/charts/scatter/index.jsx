@@ -566,7 +566,7 @@ export function ScatterPlot({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
-                        fill: "red",
+                        fill: "#e01919",
                         rerenderDependency: rerenderHover
                     }} /> : null}
                 </g>
@@ -600,7 +600,7 @@ export function ScatterPlot({
                         sizeScale,
                         sizeName,
                         colorName: undefined,
-                        fill: "red",
+                        fill: "#e01919",
                         rerenderDependency: _.concat([externalHoverRerender], xScale.domain(), yScale.domain())
                 }} />
                 </g> : null}
