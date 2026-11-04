@@ -429,18 +429,22 @@ const VOLCANO_LIST_ICON_SIZE = 24
 
 function VolcanoListSVG({ size = VOLCANO_LIST_ICON_SIZE, color = "#000", significant = false }) {
     const rowSpacing = size / 4
+    const firstRowY = size / 2 - rowSpacing
     return (
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
-            {[0, 1, 2].map(idx => <g key={idx}>
-                <circle cx={size / 5} cy={size / 5 + idx * rowSpacing} r={size / 12} fill={color} />
-                <line
-                    x1={size / 2.5}
-                    x2={size / 1.15}
-                    y1={size / 5 + idx * rowSpacing}
-                    y2={size / 5 + idx * rowSpacing}
-                    stroke={color}
-                    strokeWidth={1.5} />
-            </g>)}
+            {[0, 1, 2].map(idx => {
+                const rowY = firstRowY + idx * rowSpacing
+                return <g key={idx}>
+                    <circle cx={size / 5} cy={rowY} r={size / 12} fill={color} />
+                    <line
+                        x1={size / 5 + size / 4}
+                        x2={size - size / 5}
+                        y1={rowY}
+                        y2={rowY}
+                        stroke={color}
+                        strokeWidth={1.5} />
+                </g>
+            })}
         </svg>
     )
 }
