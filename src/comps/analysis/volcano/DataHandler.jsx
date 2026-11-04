@@ -372,10 +372,26 @@ export function VolcanoDataHandler({
                         showHoverLabels
                     }, didx) => {
                             if (hiddenSuffix.includes(volcanoData.suffixes[chartIdx])) return null // this suffix is hidden, don't render the chart
+
+                            // the annotation legend is drawn to the right of the plot area and needs its own margin
+                            const chartSuffix = _.isString(volcanoData.suffixes[chartIdx]) ? volcanoData.suffixes[chartIdx] : ""
+                            const annotationLegendNeeded = (annotationMarkers.length + markedAnnotationMarkers.length) > 0
+                            const annotationLegendMargin = annotationLegendNeeded ? 135 : 5
+                            const plotWidth = 500 + (annotationLegendNeeded ? 125 : 0)
+
+                            // the y-axis label wraps at 0.8 * chartHeight (see XYaxis in @mitocube/viz); a wrapped
+                            // label needs additional left margin so it is not clipped by the SVG edge.
+                            const plotHeight = 480
+                            const yAxisLabel = `-log10 p-value ${chartSuffix}`
+                            const estimatedLabelWidth = yAxisLabel.length * 6.5
+                            const labelWrapWidth = 0.8 * (plotHeight - 10 - 100)
+                            const wrappedLabelLines = Math.max(1, Math.ceil(estimatedLabelWidth / labelWrapWidth))
+                            const yAxisLabelExtraMargin = (wrappedLabelLines - 1) * 13
+
                             return (
                                 <Card
                                     compact={true}
-                                    style={{ width: "600px", maxWidth: "750px", height: "500px", position: "relative" }}
+                                    style={{ width: `${plotWidth + 100}px`, maxWidth: "750px", height: "500px", position: "relative" }}
                                     key={chartIdx}>
                                     
                                     <div style={{ position: "absolute", right: 5, top: 5 }} className="flex center-items">
@@ -418,12 +434,12 @@ export function VolcanoDataHandler({
                                     <ScatterPlot
                                         key={`volcano-plot-${chartIdx}`}{...{
                                         chartIdx,
-                                        width: 500,
+                                        width: plotWidth,
                                         height : 480,
-                                        margins: {          
-                                            left: 50,     
+                                        margins: {
+                                            left: 50 + yAxisLabelExtraMargin,
                                             top: 10,
-                                            right: 5,
+                                            right: annotationLegendMargin,
                                             bottom: 100
                                         },
                                         colorName: volcanoData.selection[didx].colorName,
