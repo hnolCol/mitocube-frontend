@@ -691,24 +691,6 @@ export function ScatterPlot({
                         fill={"transparent"}/>:null
                 }
 
-                {annotationMarkers.length > 0 && (
-
-                    <g transform={`translate(${margins.left + chartWidth + 10}, ${margins.top + 80})`}>
-                        <rect x={-5} y={-12} width={115} height={15 + annotationMarkers.length * 16} fill="white" fillOpacity={0.9} stroke="#E1E8ED" strokeWidth={0.5} rx={2} />
-                        <text x={0} y={0} fontSize="10" fontWeight="600" fill="#5C7080">
-                            Annotations
-                        </text>
-
-                        {annotationMarkers.map((marker, idx) => (
-                            <g key={idx} transform={`translate(0, ${15 + idx * 16})`}>
-                                <circle cx={5} cy={-3} r={4.5} fill={marker.color} stroke="#000" strokeWidth={0.5} />
-                                <text x={14} y={0} fontSize="8.5" fill="#394B59">
-                                    {(marker.annotationNames || marker.annotationTags).join(", ")} ({marker.proteinTags.length})
-                                </text>
-                            </g>
-                        ))}
-                    </g>
-                )}
                 <rect
                     x={margins.left}
                     y={margins.top}

@@ -375,11 +375,10 @@ export function VolcanoDataHandler({
                     }, didx) => {
                             if (hiddenSuffix.includes(volcanoData.suffixes[chartIdx])) return null // this suffix is hidden, don't render the chart
 
-                            // the annotation legend is drawn to the right of the plot area and needs its own margin
+                            // the annotation markers are shown in the AnnotationLegend below the chart,
+                            // so no extra right margin is needed for them
                             const chartSuffix = _.isString(volcanoData.suffixes[chartIdx]) ? volcanoData.suffixes[chartIdx] : ""
-                            const annotationLegendNeeded = (annotationMarkers.length + markedAnnotationMarkers.length) > 0
-                            const annotationLegendMargin = annotationLegendNeeded ? 135 : 5
-                            const plotWidth = 500 + (annotationLegendNeeded ? 125 : 0)
+                            const plotWidth = 500
 
                             // the y-axis label wraps at 0.8 * chartHeight (see XYaxis in @mitocube/viz); a wrapped
                             // label needs additional left margin so it is not clipped by the SVG edge.
@@ -442,7 +441,7 @@ export function VolcanoDataHandler({
                                         margins: {
                                             left: 50 + yAxisLabelExtraMargin,
                                             top: 10,
-                                            right: annotationLegendMargin,
+                                            right: 5,
                                             bottom: 100
                                         },
                                         colorName: volcanoData.selection[didx].colorName,
