@@ -5,8 +5,8 @@ import ComboboxIconBase from "./ComboboxBase"
  * @description Subplot-selection icon. Opens a dropdown to select the key name used for subplots.
  */
 function SubplotIconWithName({ height = 25, width = 25, ...props }) {
-    const startx = 5
     const margin = 5
+    const startx = (width - (2 * (width / 3) + margin / 2)) / 2
     const barwidth = width / 3
     const maxheight = height - 1.5 * margin
     const leftPoints = [[startx, margin], [startx, maxheight], [startx + barwidth, maxheight]]

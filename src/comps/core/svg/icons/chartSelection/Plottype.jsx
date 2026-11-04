@@ -26,7 +26,7 @@ function PlottypeIcon({ height = 25, width = 25, placeholder = "", items = [{ te
                     )
                 }) : null}
             {chartType === "lineplot" ? [{ cy: 3 }, { cy: 14 }, { cy: 8 }, { cy: 13 }].map((pointProps, idx) => {
-                return <circle key={`normr-line${idx}`} {...pointProps} cx={10 + idx * barWidth} {...pointProps} r={3}
+                return <circle key={`normr-line${idx}`} {...pointProps} cx={6.5 + idx * barWidth} {...pointProps} r={3}
                     fill={colorPalette[idx]} stroke="none" /> }) : null}
             {chartType === "pointplot" ? [{ cy: 5 }, { cy: 12 }, { cy: 7 }, { cy: 15 }].map((pointProps, idx) => {
                 return <circle key={`normr-point${idx}`} {...pointProps} cx={5 + idx * 5} r={2.2}
