@@ -622,9 +622,13 @@ function UpSetDots({ suffixes, memberSuffixes }) {
         {suffixes.map((suffix, idx) => {
             const isMember = memberSuffixes.includes(suffix)
             const cx = idx * UPSET_DOT_SPACING + UPSET_DOT_SPACING / 2 + 2
-            return <circle key={suffix} cx={cx} cy={centerY} r={UPSET_DOT_RADIUS}
-                fill={isMember ? volcanoColor(suffixes, suffix) : "transparent"}
-                stroke={volcanoColor(suffixes, suffix)} />
+            return <g key={suffix}>
+                {/* opaque background so the connector line is not visible through non-member circles */}
+                <circle cx={cx} cy={centerY} r={UPSET_DOT_RADIUS + 1} fill="#ffffff" />
+                <circle cx={cx} cy={centerY} r={UPSET_DOT_RADIUS}
+                    fill={isMember ? volcanoColor(suffixes, suffix) : "#ffffff"}
+                    stroke={volcanoColor(suffixes, suffix)} />
+            </g>
         })}
     </svg>
 }
