@@ -132,11 +132,11 @@ export function VolcanoDataHandler({
 
     const { data: selectedAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: favoriteAnnotationSelection?.values?.[0] },
-        { enabled: !!favoriteAnnotationSelection?.values?.[0], staleTime: Infinity }
+        { enabled: !!favoriteAnnotationSelection?.values?.[0] && showHoverLabels, staleTime: Infinity }
     )
     const { data: hoveredAnnotationProteins } = api.annotations.queryAnnotations.useGetProteinsByAnnotation(
         { tag: annotationHoverResults?.values?.[0] },
-        { enabled: !!annotationHoverResults?.values?.[0], staleTime: Infinity }
+        { enabled: !!annotationHoverResults?.values?.[0] && showHoverLabels, staleTime: Infinity }
     )
         
     const handleError = (error) => {
@@ -312,9 +312,9 @@ export function VolcanoDataHandler({
     }, [favoriteProteinSelection, selectedAnnotationProteins, showHoverLabels])
 
     const externalHoverResult = useMemo(() => {
-        const values = _.uniq([...(proteinHoverResults?.values || []), ...(markedProteinList?.values || []), ...(hoveredAnnotationProteins ?? [])])
+        const values = _.uniq([...(proteinHoverResults?.values || []), ...(markedProteinList?.values || []), ...(showHoverLabels ? (hoveredAnnotationProteins ?? []) : [])])
         return { values, trigger: values.join("|"), key: "tag" }
-    }, [proteinHoverResults, markedProteinList, hoveredAnnotationProteins])
+    }, [proteinHoverResults, markedProteinList, hoveredAnnotationProteins, showHoverLabels])
 
     const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading, showHoverLabels])
 

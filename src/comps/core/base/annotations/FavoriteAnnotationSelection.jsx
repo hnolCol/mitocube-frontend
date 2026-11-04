@@ -1,6 +1,7 @@
 import { Annotation } from "./Annotation"
 import _ from "lodash";
 import { Popover } from "@blueprintjs/core"
+import { useState } from "react";
 import { AnnotationSelectionMenu } from "./AnnotationSelectionMenu";
 import { motion } from "framer-motion"
 import { StarIcon } from "@/comps/core/svg/icons/StarIcon";
@@ -8,18 +9,31 @@ import { StarIcon } from "@/comps/core/svg/icons/StarIcon";
 const MARK_COLORS = ["#e6194b", "#3cb44b", "#4363d8", "#f58231", "#911eb4", "#469990", "#f032e6", "#9a6324"]
 
 function AnnotationMarkButton({ annotation_tag, markedColor, onMark }) {
-    return <Popover placement="right"
+    const [isOpen, setIsOpen] = useState(false)
+
+    const handleMark = (e, color) => {
+        e.stopPropagation()
+        e.preventDefault()
+        onMark(annotation_tag, color)
+        setIsOpen(false)
+    }
+
+    return <Popover
+        placement="right"
+        isOpen={isOpen}
+        onInteraction={(nextOpenState) => setIsOpen(nextOpenState)}
+        canEscapeKeyClose={true}
         content={<div className="padding--little" style={{ maxWidth: "10rem" }}>
             <div className="flex flex--wrap" style={{ gap: "0.3rem" }}>
                 {MARK_COLORS.map(color => <button key={color}
                     className="flex center-items"
                     style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", padding: "2px" }}
-                    onClick={e => { e.stopPropagation(); onMark(annotation_tag, color) }}>
+                    onClick={e => handleMark(e, color)}>
                     <span style={{ width: "1rem", height: "1rem", borderRadius: "50%", backgroundColor: color, display: "inline-block" }} />
                 </button>)}
             </div>
             {markedColor ? <button className="basic-button--small div--expand margin-top--little"
-                onClick={e => { e.stopPropagation(); onMark(annotation_tag, undefined) }}>
+                onClick={e => handleMark(e, undefined)}>
                 Remove mark
             </button> : null}
         </div>}>
@@ -27,7 +41,7 @@ function AnnotationMarkButton({ annotation_tag, markedColor, onMark }) {
             title="Mark annotation with a color in the volcano plots"
             style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", padding: "0 2px" }}
             onMouseDown={e => e.stopPropagation()}
-            onClick={e => e.stopPropagation()}>
+            onClick={e => { e.stopPropagation(); e.preventDefault(); setIsOpen(!isOpen) }}>
             <span style={{
                 width: "0.85rem", height: "0.85rem", borderRadius: "50%", display: "inline-block",
                 backgroundColor: markedColor || "transparent",
