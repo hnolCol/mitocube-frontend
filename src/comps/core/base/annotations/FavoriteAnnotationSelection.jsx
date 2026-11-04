@@ -58,6 +58,7 @@ export function FavoriteAnnotationSelection({
     onSelect,
     onHover,
     onMark,
+    onMoveMarked,
     marked = [],
     maxHeight = "300px",
     submission_tags = []
@@ -89,8 +90,8 @@ export function FavoriteAnnotationSelection({
                         role="button"
                         onHoverStart={_.isFunction(onHover) ? () => onHover(annotation_tag) : undefined}
                         onHoverEnd={_.isFunction(onHover) ? () => onHover(undefined) : undefined}
-                        className="flex center-items"
-                        style={{ border: "none", backgroundColor: "transparent", color: "#000000", gap: "0.2rem", width: "100%", outline: "none", cursor: "pointer", fontWeight: highlighted.includes(annotation_tag) ? "bold" : "normal" }}
+                        className="flex center-items annotation-item-btn"
+                        style={{ border: "1px solid #d3dbe5", backgroundColor: "#fbfcfe", color: "#000000", gap: "0.2rem", width: "100%", outline: "none", cursor: "pointer", fontWeight: highlighted.includes(annotation_tag) ? "bold" : "normal" }}
                         onClick={() => onSelect(annotation_tag)}
                     >
                         <StarIcon 
@@ -103,6 +104,20 @@ export function FavoriteAnnotationSelection({
                                 annotation_tag={annotation_tag}
                                 markedColor={marked.find(m => m.tag === annotation_tag)?.color}
                                 onMark={onMark} />
+                            : null}
+                        {_.isFunction(onMoveMarked) && _.isObject(marked.find(m => m.tag === annotation_tag))
+                            ? <span className="flex flex-column" style={{ lineHeight: 0.6 }}>
+                                <button
+                                    title="Increase color priority (wins over marked annotations below)"
+                                    style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", fontSize: "0.6rem", padding: 0 }}
+                                    onMouseDown={e => e.stopPropagation()}
+                                    onClick={e => { e.stopPropagation(); e.preventDefault(); onMoveMarked(annotation_tag, -1) }}>{"\u25b2"}</button>
+                                <button
+                                    title="Decrease color priority"
+                                    style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", fontSize: "0.6rem", padding: 0 }}
+                                    onMouseDown={e => e.stopPropagation()}
+                                    onClick={e => { e.stopPropagation(); e.preventDefault(); onMoveMarked(annotation_tag, 1) }}>{"\u25bc"}</button>
+                            </span>
                             : null}
                         <Annotation tag={annotation_tag} />
                     </motion.div>
