@@ -304,7 +304,12 @@ export function ScatterPlot({
             })
         }
         else {
-            const uniqueValues = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
+            let uniqueValues = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
+            // fix the order of boolean domains so that the color of a value does not depend
+            // on which value appears first in the data (e.g. Significant <suffix> flags)
+            if (uniqueValues.length > 0 && uniqueValues.every(value => _.isBoolean(value))) {
+                uniqueValues = _.uniq([...uniqueValues.filter(value => value), ...uniqueValues.filter(value => !value)])
+            }
             let colorValues = getColorPalette(uniqueValues.length)
             //TODO create function get this straight.
             _.forEach(uniqueValues, (value, index) => {
