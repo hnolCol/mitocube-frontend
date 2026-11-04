@@ -76,7 +76,8 @@ export function ScatterDataSelection({
   numericIsAttribute = true, 
   chartIdx,                         
   colorAndSizeKeyNames = [],                             
-  setTriggerResetAxisZoom, 
+  setTriggerResetAxisZoom,
+  zoomActive = false, 
   onAnnotationSelect = null, 
   showAxisSelection = true, 
   showMarksSelection = true, 
@@ -130,7 +131,7 @@ export function ScatterDataSelection({
                         itemIsAttribute={itemIsAttribute} />
                     {_.isFunction(setTriggerResetAxisZoom) ?
                         <button style={{ border: "none", backgroundColor: "transparent" }} onClick={() => setTriggerResetAxisZoom(chartIdx)}>
-                            <ResetZoomSVG />
+                            <ResetZoomSVG active={zoomActive} />
                         </button>
                         : null}
                 </div>

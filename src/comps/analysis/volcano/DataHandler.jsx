@@ -365,6 +365,8 @@ export function VolcanoDataHandler({
                         externalHoverProps,
                         externalLabelProps,
                         triggerResetAxis,
+                        chartIsZoomed,
+                        onZoomedChange,
                         setTriggerResetAxisZoom,
                         setRequiredProteinTags,
                         proteinTagMap,
@@ -414,6 +416,7 @@ export function VolcanoDataHandler({
                                                 elementTypes: ["svg", "data"],
                                                 itemIsAttribute: false,
                                                 numericIsAttribute: false,
+                                                zoomActive: chartIsZoomed,
                                                 // onAnnotationSelect: handleAnnotationSelect,
                                                 handleSearchByDataIndex
                                             }} /> : null}
@@ -464,6 +467,7 @@ export function VolcanoDataHandler({
                                         legendWithAttributes: false,
                                         svgID: `volcano-${didx}`,
                                         triggerResetAxis,
+                                        onZoomedChange,
                                         setTriggerResetAxisZoom,
                                         annotationMarkers: _.concat(annotationMarkers, markedAnnotationMarkers),
                                         proteinTagMap,

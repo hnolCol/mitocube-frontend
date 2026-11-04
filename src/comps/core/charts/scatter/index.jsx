@@ -138,6 +138,7 @@ export function ScatterPlot({
     tooltipNameIsStats = {},
     tooltipNameIsProtein = {"tag": true},
     triggerResetAxis,
+    onZoomedChange,
     setTriggerResetAxisZoom,
     labelRerender,
     linesBySlopeAndIntercept = [],
@@ -195,6 +196,7 @@ export function ScatterPlot({
             xScale.domain([xDomain.min, xDomain.max])
             yScale.domain([yDomain.max, yDomain.min])
             setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : undefined, currentYDomain : undefined}})
+            if (_.isFunction(onZoomedChange)) onZoomedChange(false)
             setAxisDomainRerender(prevValue => prevValue + 1)
             
     }
@@ -480,6 +482,7 @@ export function ScatterPlot({
 
                 setZoomActive(prevValues => {return {...prevValues, ...initZoomState, currentXDomain : xScale.domain(), currentYDomain : yScale.domain()}})
                 setAxisDomainRerender(prevValue => prevValue + 1)
+                if (_.isFunction(onZoomedChange)) onZoomedChange(true)
             }
 
         }, [zoomActive.zoomed])

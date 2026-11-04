@@ -59,6 +59,7 @@ function InteractiveChart({
     const [externalLabelData, setExternalLabelData] = useState({idcs : new Set(), rerender : [Math.random()]})
     
     const [resetAxisZoom, setResetAxisZoom] = useState(_.range(numberCharts).map(idx => { return { chartIdx: undefined } }))
+    const [chartZoomed, setChartZoomed] = useState({})
 
     const keyNamesFlatten = useMemo(
         () => [...new Set(
@@ -433,6 +434,8 @@ function InteractiveChart({
             setHoverDataByDataIndex,
             findClosestPoint,
             triggerResetAxis: resetAxisZoom[chartIdx],
+            chartIsZoomed: !!chartZoomed[chartIdx],
+            onZoomedChange: (zoomed) => setChartZoomed(prevValues => ({ ...prevValues, [chartIdx]: zoomed })),
             externalLabelProps : {externalLabelRerender : externalLabelData.rerender, externalLabelIndices : externalLabelData.idcs},
             externalHoverProps : {externalHoverRerender : externalHoverData.rerender, externalHoverIndices : externalHoverData.idcs},
             hoverProps : {rerenderHover : hoverData.rerender, hoverPosition : hoverData.rect, hoverChart : hoverData.hoverChart, hoverIndices : hoverData.idcs},

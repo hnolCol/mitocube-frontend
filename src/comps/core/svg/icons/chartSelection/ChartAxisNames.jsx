@@ -10,7 +10,7 @@ import ComboboxIconBase from "./ComboboxBase"
  * @param {Boolean} props.minimal - If true the placeholder text is hidden
  * @param {Boolean} props.itemIsAttribute - If true items are fetched as attribute tags from the backend
  */
-export function XAxisName({ height = 25, width = 25, margin = 7, ...props }) {
+export function XAxisName({ height = 25, width = 25, margin = 5, ...props }) {
     const iconHeight = height - margin
     return (
         <ComboboxIconBase {...{ height, width, ...props }}>
@@ -32,7 +32,7 @@ export function XAxisName({ height = 25, width = 25, margin = 7, ...props }) {
  * @param {Boolean} props.minimal - If true the placeholder text is hidden
  * @param {Boolean} props.itemIsAttribute - If true items are fetched as attribute tags from the backend
  */
-export function YAxisName({ height = 25, width = 25, margin = 7, ...props }) {
+export function YAxisName({ height = 25, width = 25, margin = 5, ...props }) {
     const iconHeight = height - margin
     const middleX = height / 2
     const splitCenter = iconHeight / 1.4
