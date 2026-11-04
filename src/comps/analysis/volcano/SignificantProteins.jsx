@@ -4,6 +4,7 @@ import { Button, Checkbox, Dialog, DialogBody, Drawer, HTMLTable, InputGroup, Ta
 import { useNavigate } from "react-router"
 import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
+import { useThemeContext } from "@/hooks/useTheme"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
 import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
@@ -601,6 +602,8 @@ const UPSET_DOT_SPACING = 18
 const UPSET_DOT_RADIUS = 5
 
 function UpSetDots({ suffixes, memberSuffixes }) {
+    const { theme } = useThemeContext()
+    const backgroundFill = theme === "dark" ? "#232a31" : "#ffffff"
     const width = suffixes.length * UPSET_DOT_SPACING + 4
     const height = 16
     const centerY = height / 2

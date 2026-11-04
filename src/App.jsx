@@ -1,5 +1,6 @@
 import "./comps/core/core.css";
 import "./comps/core/theme.css";
+import { ThemeProvider } from "@/hooks/useTheme";
 
 import "@blueprintjs/core/lib/css/blueprint.css";
 import "@blueprintjs/icons/lib/css/blueprint-icons.css";
@@ -214,6 +215,7 @@ function App() {
   };
 
   return (
+    <ThemeProvider>
     <div className="dashboard__grid no-scroll">
       <div className="dashboard__grid__left bg--lightgrey">
         <Leftbar isAuthenticated={authenticationStatus.isAuth} {...{ basePathName }} />
@@ -439,6 +441,7 @@ function App() {
         <PendingCollaborationRequestDialog />
       </div>
     </div>
+    </ThemeProvider>
   );
 }
 

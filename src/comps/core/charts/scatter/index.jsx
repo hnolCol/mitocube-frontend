@@ -8,6 +8,7 @@ import { useTooltipInPortal } from '@visx/tooltip';
 import { localPoint } from '@visx/event';
 import { getUniqueValuesInArrayOfObjects } from "../../../../services/arrays/unique"
 import { getColorPalette, HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
+import { useThemeContext } from "@/hooks/useTheme";
 import { Divider, H4 } from "@blueprintjs/core"
 import { ScatterLegend, TextScatterLegend, AnnotationLegend } from "./Legend"
 import { ScatterLabel } from "./Label"
@@ -154,6 +155,8 @@ export function ScatterPlot({
     showHoverLabels = false
 
 }) {
+    const { theme } = useThemeContext()
+    const darkmode = theme === "dark"
     const [zoomActive, setZoomActive] = useState(initZoomState)
     const [axisDomainRerender, setAxisDomainRerender] = useState(0)
     // Plots an array of points. Each item in the array 
@@ -305,7 +308,7 @@ export function ScatterPlot({
         }
         else {
             const uniqueValues = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
-            let colorValues = getColorPalette(uniqueValues.length)
+            let colorValues = getColorPalette(uniqueValues.length, darkmode)
             //TODO create function get this straight.
             _.forEach(uniqueValues, (value, index) => {
                 if (value === "-" || (_.isBoolean(value) && !value)) {
@@ -513,6 +516,7 @@ export function ScatterPlot({
             
             <viz.axis.XYaxis
            
+                darkmode={darkmode}
                 margins={margins}
                 leftScale={yScale}
                 bottomScale={xScale}

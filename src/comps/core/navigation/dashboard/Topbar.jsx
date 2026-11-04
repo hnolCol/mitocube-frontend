@@ -20,7 +20,7 @@ import { MessagesButton } from "@/comps/messages"
 import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
 import { PendingTraitRequestsButton } from "../../base/user/PendingTraitRequestButton"
 import { RoleRights } from "../../base/user/RoleRights"
-import { useTheme } from "@/hooks/useTheme"
+import { useThemeContext } from "@/hooks/useTheme"
 
 /**
  * 
@@ -32,7 +32,7 @@ import { useTheme } from "@/hooks/useTheme"
 function Topbar({authenticationStatus,logout, user_tag}) {
 
     const [dialogProps, setDialogProps] = useState({isOpen : false})
-    const { theme, toggleTheme } = useTheme()
+    const { theme, toggleTheme } = useThemeContext()
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
     const { data : userRole } =  api.users.roles.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const { data : roles } = api.users.roles.useGetUserRoles({ staleTime : Infinity })
