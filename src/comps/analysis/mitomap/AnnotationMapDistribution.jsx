@@ -7,7 +7,10 @@ import { usePrefetchTestQuantificationDistributions } from "@/api/orchestrated/t
 import { Annotation } from "@/comps/core/base/annotations/Annotation"
 import { AnnotationGroup } from "@/comps/core/base/annotations/AnnotationGroup"
 
+import { useThemeContext } from "@/hooks/useTheme"
+
 export function AnnotationMapDistribution({ tag, tagType = "annotation", submission_tag, activeTestParam, markerValue, markerLabel, width = 220, height = 320, margins = { left: 25, right: 130, bottom: 5, top: 15 } }) {
+    const { theme } = useThemeContext()
 
     const testParams = useMemo(() => {
         if (!_.isObject(activeTestParam) || _.isEmpty(activeTestParam) || !_.isString(submission_tag) || !_.isString(tag)) return []
@@ -66,6 +69,7 @@ export function AnnotationMapDistribution({ tag, tagType = "annotation", submiss
             <div className="flex" style={{ gap: "0.75rem" }}>
                 <div style={{ flexShrink: 0, width: totalWidth, height: height }}>
                 <viz.charts.minimal.MinimalBoxplots
+                        darkmode={theme === "dark"}
                         qs={distributions}
                         margins={margins}
                         yaxisLabel=""

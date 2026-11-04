@@ -1,0 +1,62 @@
+/*
+ * Design tokens for theming. Light values are the defaults; the dark values live on the
+ * [data-theme="dark"] attribute which the useTheme hook sets on the html element.
+ * New UI should use these variables instead of hard-coded colors so that dark mode
+ * works incrementally ("boy scout rule": convert a component whenever it is touched).
+ */
+
+:root {
+    /* surfaces */
+    --surface-primary: #ffffff;
+    --surface-secondary: #fafafa;
+    --surface-elevated: #fbfcfe;
+    --surface-hover: #f8fafc;
+    --surface-inset: #f3f4f6;
+    --surface-card: #ffffff;
+
+    /* borders */
+    --border-default: #d1d5db;
+    --border-soft: #d3dbe5;
+    --border-hover: #c3cedd;
+    --border-strong: #696969;
+
+    /* text */
+    --text-primary: #000000;
+    --text-secondary: #374151;
+    --text-muted: #696969;
+
+    /* chart content */
+    --chart-background: #ffffff;
+    --chart-grid: #efefef;
+
+    /* accent (kept in sync with @mitocube/viz HIGHLIGHT_COLOR) */
+    --accent: #466688;
+}
+
+[data-theme="dark"] {
+    /* surfaces */
+    --surface-primary: #1c2126;
+    --surface-secondary: #14191e;
+    --surface-elevated: #232a31;
+    --surface-hover: #2a333b;
+    --surface-inset: #2f363d;
+    --surface-card: #232a31;
+
+    /* borders */
+    --border-default: #3a434b;
+    --border-soft: #3a434b;
+    --border-hover: #4a545d;
+    --border-strong: #8a959e;
+
+    /* text */
+    --text-primary: #e8eaed;
+    --text-secondary: #c3c9cf;
+    --text-muted: #8a959e;
+
+    /* chart content - charts stay light-on-card in dark mode for now (see skeleton note) */
+    --chart-background: #ffffff;
+    --chart-grid: #efefef;
+
+    /* accent */
+    --accent: #7ba3c7;
+}

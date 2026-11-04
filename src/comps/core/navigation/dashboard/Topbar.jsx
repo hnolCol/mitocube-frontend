@@ -20,6 +20,7 @@ import { MessagesButton } from "@/comps/messages"
 import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
 import { PendingTraitRequestsButton } from "../../base/user/PendingTraitRequestButton"
 import { RoleRights } from "../../base/user/RoleRights"
+import { useThemeContext } from "@/hooks/useTheme"
 
 /**
  * 
@@ -31,6 +32,7 @@ import { RoleRights } from "../../base/user/RoleRights"
 function Topbar({authenticationStatus,logout, user_tag}) {
 
     const [dialogProps, setDialogProps] = useState({isOpen : false})
+    const { theme, toggleTheme } = useThemeContext()
     const { isSuccess: backendInfoIsSucces, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
     const { data : userRole } =  api.users.roles.useGetUserRoleByTag({tag : user_tag}, {enabled : authenticationStatus.isAuth && _.isString(user_tag)})
     const { data : roles } = api.users.roles.useGetUserRoles({ staleTime : Infinity })
@@ -128,6 +130,16 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                         </BaseDashboardIcon>
                     </Popover>
                     
+                </div>
+                <div className="bg--grey margin--little">
+                    <Tooltip content={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} position={Position.BOTTOM}>
+                        <button
+                            onClick={toggleTheme}
+                            style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", padding: "0.2rem" }}
+                            title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
+                            {theme === "dark" ? "☀" : "☽"}
+                        </button>
+                    </Tooltip>
                 </div>
                 <div className="bg--grey margin--little">
                     <BasicMenu items={[

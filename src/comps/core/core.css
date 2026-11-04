@@ -84,11 +84,11 @@ h5 {
 }
 
 .bg--lightgrey {
-    background-color: #fafafa;
+    background-color: var(--surface-secondary);
 }
 
 .bg--white{
-    background-color: #ffffff;
+    background-color: var(--surface-primary);
 }
 
 .no-scroll {
@@ -506,9 +506,9 @@ h5 {
 }
 
 .basic-button {
-    background-color: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background-color: var(--surface-inset);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
     border-radius: 6px;
     padding: 8px 16px;
     margin-right: 8px;
@@ -525,9 +525,9 @@ h5 {
 }
 
 .basic-button--small {
-    background-color: #f3f4f6;
-    color: #374151;
-    border: 1px solid #d1d5db;
+    background-color: var(--surface-inset);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-default);
     border-radius: 4px;
     padding: 4px 8px;
     margin-right: 8px;
