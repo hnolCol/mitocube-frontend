@@ -137,7 +137,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                             onClick={toggleTheme}
                             style={{ border: "none", outline: "none", background: "transparent", cursor: "pointer", padding: "0.2rem" }}
                             title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}>
-                            {theme === "dark" ? "\u2600" : "\u263d"}
+                            {theme === "dark" ? "☀" : "☽"}
                         </button>
                     </Tooltip>
                 </div>
