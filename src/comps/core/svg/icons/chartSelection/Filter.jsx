@@ -2,6 +2,12 @@ import _ from "lodash"
 import ComboboxIconBase from "./ComboboxBase"
 import { getColorPalette } from "@mitocube/viz/src/colors/palette"
 
+/**
+ * @description Funnel icon glyph used by the filter-selection icon.
+ * @param {Number} props.width - The SVG width in pixels.
+ * @param {Number} props.height - The SVG height in pixels.
+ * @param {String} props.strokeColor - The hex color of the funnel outline.
+ */
 export function FilterSVG({ width, height, strokeColor }) {
     const halfWidth = width / 2
     const halfHeight = height / 2

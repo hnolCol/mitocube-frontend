@@ -1,3 +1,9 @@
+/**
+ * @description Magnifier icon glyph. Circle plus handle, used by the search icon.
+ * @param {Number} props.width - The SVG width in pixels.
+ * @param {Number} props.height - The SVG height in pixels.
+ * @param {String} props.strokeColor - The hex color of the circle outline and handle.
+ */
 export function SearchSVG({ width, height, strokeColor}) {
     
     const circleX = width / 3

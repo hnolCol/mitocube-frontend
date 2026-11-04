@@ -5,7 +5,30 @@ import _ from "lodash"
 import { motion } from "framer-motion"
 import { useState } from "react"
 import { Group } from "@visx/group"
+import PropTypes from "prop-types"
 
+IconBase.propTypes = {
+    height: PropTypes.number,
+    width: PropTypes.number,
+    placeholder: PropTypes.string,
+    items: PropTypes.array,
+    callbackKey: PropTypes.string,
+    callback: PropTypes.func,
+    children: PropTypes.node
+}
+
+/**
+ * @description Simple clickable icon button without a dropdown. Renders the icon (children)
+ * into a rounded gray rect that highlights on hover, plus an optional animated placeholder text.
+ * In contrast to ```ComboboxIconBase``` no Select menu is opened; the callback is invoked directly on mouse up.
+ * @param {Number} props.height - The SVG height in pixels.
+ * @param {Number} props.width - The SVG width in pixels.
+ * @param {String} props.placeholder - The text shown next to the icon.
+ * @param {Object[]} props.items - Unused, kept for interface parity with the other icon components.
+ * @param {String} props.callbackKey - The key passed to the callback.
+ * @param {Function} props.callback - Called as callback(callbackKey) on mouse up.
+ * @param {SVGAElement} props.children - The icon drawn inside the SVG.
+ */
 function IconBase({ height = 25, width = 25, placeholder = "", items = [{ text: "Menu1" }], callbackKey = undefined, callback = undefined,children }) {
     const [mouseOver, setMouseOver] = useState(false)
     
