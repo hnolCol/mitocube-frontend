@@ -7,8 +7,10 @@ import { useEffect, useMemo } from "react"
 import { Loading } from "@/comps/core/base/states/Loading"
 import { scaleLinear } from "@visx/scale"
 import { usePrefetchTestQuantificationDistributions } from "@/api/orchestrated/testQuantificationDists"
+import { useThemeContext } from "@/hooks/useTheme"
 
 export function AnnotationDistribution({ tag, submission_tag, width = 95, height = 200, margins = { left: 20, right: 5, bottom: 5, top: 15} }) {
+    const { theme } = useThemeContext()
     let selectedTestParams = []
 
     const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
@@ -78,6 +80,7 @@ export function AnnotationDistribution({ tag, submission_tag, width = 95, height
                 </span>
 
                 <viz.charts.minimal.MinimalBoxplots
+                    darkmode={theme === "dark"}
                     qs={pair.map(d => d.data.distributions[0])}
                     margins={margins}
                     yaxisLabel={i === 0 ? `log2 FC` : ""}

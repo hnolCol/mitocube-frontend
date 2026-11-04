@@ -4,6 +4,7 @@ import { Menu, MenuItem, Popover } from "@blueprintjs/core"
 import viz from "@mitocube/viz"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { DownloadSvgButton } from "@/comps/core/base/buttons/DownloadSvgButton"
+import { useThemeContext } from "@/hooks/useTheme"
 
 /**
  * Shared shell for per-year boxplot statistics. Expects quantile rows of the
@@ -24,6 +25,7 @@ export function PerYearBoxplotSection({
     svgHeight = 260,
     pinnedYearCount = 3
 }) {
+    const { theme } = useThemeContext()
     const rows = _.isArray(data) ? data : []
     const years = useMemo(() => _.uniq(rows.map(d => d.year)).sort((a, b) => a - b), [rows])
     const pinnedYears = useMemo(() => _.takeRight(years, pinnedYearCount), [years, pinnedYearCount])
@@ -93,6 +95,7 @@ export function PerYearBoxplotSection({
             </div>
             <div className="width--full" ref={chartAreaRef}>
                 <viz.charts.minimal.MinimalBoxplots
+                    darkmode={theme === "dark"}
                     qs={visibleRows}
                     width={chartAreaWidth || 640}
                     height={svgHeight}
