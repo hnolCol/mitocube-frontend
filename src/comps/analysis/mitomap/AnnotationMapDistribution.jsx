@@ -10,6 +10,7 @@ import { AnnotationGroup } from "@/comps/core/base/annotations/AnnotationGroup"
 import { useThemeContext } from "@/hooks/useTheme"
 
 export function AnnotationMapDistribution({ tag, tagType = "annotation", submission_tag, activeTestParam, markerValue, markerLabel, width = 220, height = 320, margins = { left: 25, right: 130, bottom: 5, top: 15 } }) {
+    const { theme } = useThemeContext()
 
     const testParams = useMemo(() => {
         if (!_.isObject(activeTestParam) || _.isEmpty(activeTestParam) || !_.isString(submission_tag) || !_.isString(tag)) return []
