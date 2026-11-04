@@ -9,9 +9,9 @@ function SizeIconWithName({ height = 25, width = 25, ...props }) {
     return (
         <ComboboxIconBase {...{ height, width, ...props }}>
             {[
-                { cx: width / 2 - 5.5, cy: height / 2 + 5.5, fill: colorPalette[1], r: 3, opacity: 0.8 },
-                { cx: width / 2 - 0.5, cy: height / 2 + 0.5, fill: colorPalette[1], r: 5, opacity: 0.8 },
-                { cx: width / 2 + 5, cy: height / 2 - 5, fill: colorPalette[1], r: 6, opacity: 0.8 }
+                { cx: width / 2 - 7, cy: height / 2 + 7, fill: colorPalette[1], r: 3, opacity: 0.8 },
+                { cx: width / 2, cy: height / 2, fill: colorPalette[1], r: 5, opacity: 0.8 },
+                { cx: width / 2 + 4, cy: height / 2 - 4, fill: colorPalette[1], r: 6, opacity: 0.8 }
             ].map((circleProps, idx) => <circle key={`${idx}-circleP`} {...circleProps} stroke="black" strokeWidth={0.5} />)}
         </ComboboxIconBase>
     )
