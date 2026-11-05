@@ -757,9 +757,9 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                         <AnnotationDescriptionSection
                             data={data} suffixes={suffixes} direction={direction} submission_tag={submission_tag}
                             listOptions={listOptions} selectedListKeys={validListKeys}
-                            onToggleListKey={key => setSelectedListKeys(prev => prev.includes(key)
-                                ? (prev.length > 1 ? prev.filter(k => k !== key) : prev)
-                                : [...prev, key])}
+                            onToggleListKey={key => setSelectedListKeys(validListKeys.includes(key)
+                                ? (validListKeys.length > 1 ? validListKeys.filter(k => k !== key) : validListKeys)
+                                : [...validListKeys, key])}
                             markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} />
                     } />
                 </Tabs>

@@ -1,5 +1,5 @@
 import _ from "lodash"
-import { useEffect, useMemo, useState } from "react"
+import { memo, useCallback, useEffect, useMemo, useState } from "react"
 import { InputGroup, Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
@@ -94,10 +94,13 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
     const x0 = min - pad
     const x1 = max + pad
     const x = value => 10 + ((value - x0) / (x1 - x0)) * (width - 20)
+    const showZeroLine = x0 <= 0 && 0 <= x1
     const zeroX = x(0)
     return <svg width={width} height={height} style={{ maxWidth: "100%" }}>
-        <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
-        <text x={zeroX} y={10} fontSize="9" textAnchor="middle" fill="#8a8a8a">0</text>
+        {showZeroLine ? <g>
+            <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
+            <text x={zeroX} y={10} fontSize="9" textAnchor="middle" fill="#8a8a8a">0</text>
+        </g> : null}
         <text x={x(min)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{min.toFixed(2)}</text>
         <text x={x(max)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{max.toFixed(2)}</text>
         <text x={6} y={42} fontSize="9" fill="#8a8a8a">all</text>
@@ -107,7 +110,7 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
     </svg>
 }
 
-function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlotSuffix, suffixes, rowByTag,
+const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, onToggleRow, plotSuffix, setPlotSuffix, suffixes, rowByTag,
         backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList }) {
     const segment = (count, color, key) => count > 0
         ? <div key={key} style={{ width: `${(count / entry.maxTotal) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
@@ -123,7 +126,7 @@ function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlot
         <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
             <div className="flex center-items"
                 style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white" }}
-                onClick={onToggle}>
+                onClick={() => onToggleRow(entry.tag)}>
                 <span className="font-size--small" style={{ width: "200px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
                 <div className="flex center-items" style={{ width: `${BAR_TRACK_WIDTH}px`, height: "0.9rem", backgroundColor: "#efefef", flexShrink: 0 }}>
                     {segment(entry.up, directionBarColor("up"), "up")}
@@ -134,8 +137,8 @@ function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlot
                 <span className="font-size--smallest">of {entry.total}</span>
                 <span className="font-size--smallest" style={{
                     width: "4.5rem", flexShrink: 0, textAlign: "right",
-                    color: entry.medianLog2FC > 0 ? "#3d7a3a" : entry.medianLog2FC < 0 ? "#7a4d96" : "#8a8a8a"
-                }}>{_.isNumber(entry.medianLog2FC) ? entry.medianLog2FC.toFixed(2) : "-"}</span>
+                    color: entry.med > 0 ? "#3d7a3a" : entry.med < 0 ? "#7a4d96" : "#8a8a8a"
+                }}>{_.isNumber(entry.med) ? entry.med.toFixed(2) : "-"}</span>
                 {_.isFunction(onMarkProteinList) ? <button className="basic-button--small" style={{ flexShrink: 0, fontWeight: listIsMarked ? "bold" : "normal" }}
                     onClick={(e) => { e.stopPropagation(); onMarkProteinList(listIsMarked ? [] : overlapTags) }}>
                     {listIsMarked ? "Unmark" : "Mark"}
@@ -158,9 +161,9 @@ function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlot
             </div>
         </div> : null}
     </div>
-}
+})
 
-function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag }) {
+function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag, rowByTag }) {
     const header = ["Annotation", "Tag", "Members in submission", "In selected list(s)", "Up", "Down", "Both directions",
         ...suffixes.flatMap(suffix => [`Median log2FC (${suffix})`])]
     const lines = [header.join("\t")]
@@ -174,8 +177,9 @@ function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag }) {
             entry.down,
             entry.both,
             ...suffixes.map(suffix => {
-                const med = median(entry.memberTags.map(tag => rowTagValue(entry, tag, suffix))
-                    .filter(_.isNumber))
+                const med = median(entry.memberTags
+                    .map(tag => rowByTag.get(tag))
+                    .map(row => _.isObject(row) ? row[log2FCFieldName(suffix)] : undefined))
                 return _.isNumber(med) ? med.toFixed(4) : ""
             })
         ].join("\t"))
@@ -187,11 +191,6 @@ function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag }) {
     link.download = `annotation-description-${groupTag ?? "group"}.csv`
     link.click()
     URL.revokeObjectURL(url)
-}
-
-function rowTagValue(entry, tag, suffix) {
-    const row = entry.rowByTag.get(tag)
-    return _.isObject(row) ? row[log2FCFieldName(suffix)] : undefined
 }
 
 /**
@@ -227,6 +226,8 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
     }, [_.join(suffixes, ";")])
 
     const activePlotSuffix = _.isArray(suffixes) && suffixes.includes(plotSuffix) ? plotSuffix : suffixes?.[0]
+
+    const handleToggleRow = useCallback((tag) => setExpandedTag(prev => prev === tag ? undefined : tag), [])
 
     const selectedTags = useMemo(() => {
         const set = new Set()
@@ -272,24 +273,26 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 else if (info.hasUp) up++
                 else if (info.hasDown) down++
             })
-            const overlapValues = rows.map(row => row[log2FCFieldName(activePlotSuffix)]).filter(_.isNumber)
-            const medianLog2FC = median(overlapValues)
-            const purity = (up - down) / Math.max(1, up + down + both)
-            return { tag, total: set.size, overlapTags, overlapCount: overlapTags.length, up, down, both, memberTags: [...set], medianLog2FC, purity, rowByTag }
+            return { tag, total: set.size, overlapTags, overlapCount: overlapTags.length, up, down, both, memberTags: [...set], rows }
         }).filter(_.isObject)
-    }, [visibleAnnotationTags, proteinTagsByAnnotation, selectedTags, rowByTag, suffixes, activePlotSuffix])
+    }, [visibleAnnotationTags, proteinTagsByAnnotation, selectedTags, rowByTag, suffixes])
 
     const maxTotal = useMemo(() => _.max(entries.map(entry => entry.total)) || 1, [entries])
     const entriesWithScale = useMemo(() => entries.map(entry => ({ ...entry, maxTotal })), [entries, maxTotal])
 
     const sortedEntries = useMemo(() => {
-        const sorted = [...entriesWithScale]
-        if (sortMode === "coverage") sorted.sort((a, b) => (b.overlapCount / b.total) - (a.overlapCount / a.total) || b.overlapCount - a.overlapCount)
-        else if (sortMode === "median") sorted.sort((a, b) => Math.abs(b.medianLog2FC ?? 0) - Math.abs(a.medianLog2FC ?? 0))
-        else if (sortMode === "purity") sorted.sort((a, b) => b.purity - a.purity)
-        else sorted.sort((a, b) => b.overlapCount - a.overlapCount || b.total - a.total)
-        return sorted
-    }, [entriesWithScale, sortMode])
+        const fcName = log2FCFieldName(activePlotSuffix)
+        const withStats = entriesWithScale.map(entry => ({
+            ...entry,
+            med: median(entry.rows.map(row => row[fcName])),
+            purity: (entry.up - entry.down) / Math.max(1, entry.up + entry.down + entry.both)
+        }))
+        if (sortMode === "coverage") withStats.sort((a, b) => (b.overlapCount / b.total) - (a.overlapCount / a.total) || b.overlapCount - a.overlapCount)
+        else if (sortMode === "median") withStats.sort((a, b) => Math.abs(b.med ?? 0) - Math.abs(a.med ?? 0))
+        else if (sortMode === "purity") withStats.sort((a, b) => b.purity - a.purity)
+        else withStats.sort((a, b) => b.overlapCount - a.overlapCount || b.total - a.total)
+        return withStats
+    }, [entriesWithScale, sortMode, activePlotSuffix])
 
     const filteredEntries = useMemo(() => {
         const query = searchString.trim().toLowerCase()
@@ -320,6 +323,8 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         }
     }, [selectedTags, rowByTag, suffixes, entriesWithScale])
 
+    const searchIsActive = searchString.trim().length > 0
+
     return <div>
         <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.5rem" }}>
             <ListSelectionMenu listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={onToggleListKey} />
@@ -348,12 +353,14 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 {SORT_MODES.map(mode => <OptionButton key={mode.key} isSelected={sortMode === mode.key} onClick={() => setSortMode(mode.key)}>{mode.label}</OptionButton>)}
                 <button className="basic-button--small"
                     disabled={filteredEntries.length === 0}
-                    onClick={() => exportDescriptionAsCSV({ entries: filteredEntries, labels: textByAnnotation, suffixes, groupTag })}>
+                    onClick={() => exportDescriptionAsCSV({ entries: filteredEntries, labels: textByAnnotation, suffixes, groupTag, rowByTag })}>
                     Export CSV
                 </button>
             </div>
             {filteredEntries.length === 0
-                ? <span className="font-size--small">No overlap between the selected list(s) and the annotations of this group.</span>
+                ? <span className="font-size--small">{searchIsActive
+                    ? "No annotations match the filter."
+                    : "No overlap between the selected list(s) and the annotations of this group."}</span>
                 : <div className="flex flex-column">
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
                         <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
@@ -365,7 +372,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                         entry={entry}
                         label={textByAnnotation.get(entry.tag) ?? entry.tag}
                         isExpanded={expandedTag === entry.tag}
-                        onToggle={() => setExpandedTag(expandedTag === entry.tag ? undefined : entry.tag)}
+                        onToggleRow={handleToggleRow}
                         plotSuffix={activePlotSuffix}
                         setPlotSuffix={setPlotSuffix}
                         suffixes={suffixes}
