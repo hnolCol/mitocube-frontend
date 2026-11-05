@@ -50,6 +50,14 @@ function quantile(sortedValues, p) {
     return sortedValues[lo] + (sortedValues[hi] - sortedValues[lo]) * (idx - lo)
 }
 
+function proteinDisplayName(proteinTagMap, tag) {
+    if (!_.isString(tag)) return ""
+    return tag.split(";").map(t => {
+        const mapped = proteinTagMap instanceof Map ? proteinTagMap.get(t) : undefined
+        return _.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0 ? mapped.text : t
+    }).join(", ")
+}
+
 function median(values) {
     const sorted = [...values].filter(_.isNumber).sort((a, b) => a - b)
     return quantile(sorted, 0.5)
@@ -73,20 +81,36 @@ function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
             cy={cy + (((idx * 37) % 11) - 5)}
             r={point.inList ? 3.2 : 2.4}
             fill={point.inList ? "#d13913" : color}
-            fillOpacity={point.inList ? 0.95 : 0.6} />) : null}
+            fillOpacity={point.inList ? 0.95 : 0.6}
+            style={{ cursor: "pointer" }}
+            onMouseEnter={point.onHover ? () => point.onHover() : undefined} />) : null}
     </g>
 }
 
-function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags }) {
+const LIST_COLOR = "#e8a33d"
+
+function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags, proteinTagMap, setRequiredProteinTags }) {
     const width = 340
-    const height = 150
+    const height = 190
+    const [hoveredPoint, setHoveredPoint] = useState(null)
     const points = useMemo(() => entry.memberTags
         .map(tag => rowByTag.get(tag))
         .filter(row => _.isObject(row) && _.isNumber(row[log2FCFieldName(suffix)]))
-        .map(row => ({ value: row[log2FCFieldName(suffix)], inList: selectedTags.has(row.tag) })),
+        .map(row => ({ value: row[log2FCFieldName(suffix)], inList: selectedTags.has(row.tag), tag: row.tag })),
         [entry, suffix, rowByTag, selectedTags])
     const sortedPointValues = useMemo(() => points.map(p => p.value).sort((a, b) => a - b), [points])
-    const allValues = useMemo(() => [...backgroundValues, ...sortedPointValues], [backgroundValues, sortedPointValues])
+    const sortedListValues = useMemo(() => [...selectedTags]
+        .map(tag => rowByTag.get(tag))
+        .map(row => _.isObject(row) ? row[log2FCFieldName(suffix)] : undefined)
+        .filter(_.isNumber)
+        .sort((a, b) => a - b), [selectedTags, rowByTag, suffix])
+    const allValues = useMemo(() => [...backgroundValues, ...sortedPointValues, ...sortedListValues], [backgroundValues, sortedPointValues, sortedListValues])
+    useEffect(() => {
+        if (!_.isFunction(setRequiredProteinTags)) return
+        const missing = entry.memberTags.filter(tag => !(proteinTagMap instanceof Map && proteinTagMap.has(tag)))
+        if (missing.length === 0) return
+        setRequiredProteinTags(prev => _.isArray(prev) ? _.uniq([...prev, ...missing]) : missing)
+    }, [entry, proteinTagMap])
     if (allValues.length === 0) return <span className="font-size--smallest">No log2FC values for this volcano.</span>
     const min = Math.min(...allValues)
     const max = Math.max(...allValues)
@@ -96,6 +120,8 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
     const x = value => 10 + ((value - x0) / (x1 - x0)) * (width - 20)
     const showZeroLine = x0 <= 0 && 0 <= x1
     const zeroX = x(0)
+    const hoveredName = hoveredPoint ? proteinDisplayName(proteinTagMap, hoveredPoint.tag) : ""
+    const hoveredLabelX = hoveredPoint ? Math.min(Math.max(x(hoveredPoint.value), 50), width - 50) : 0
     return <svg width={width} height={height} style={{ maxWidth: "100%" }}>
         {showZeroLine ? <g>
             <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
@@ -103,15 +129,21 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         </g> : null}
         <text x={x(min)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{min.toFixed(2)}</text>
         <text x={x(max)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{max.toFixed(2)}</text>
-        <text x={6} y={42} fontSize="9" fill="#8a8a8a">all</text>
-        <text x={6} y={102} fontSize="9" fill="#8a8a8a">ann.</text>
-        <BoxPlotRow sorted={backgroundValues} cy={40} boxHeight={16} color="#9a9a9a" x={x} withDots={false} points={[]} />
-        <BoxPlotRow sorted={sortedPointValues} cy={100} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points} />
+        <text x={6} y={39} fontSize="9" fill="#8a8a8a">all</text>
+        <text x={6} y={89} fontSize="9" fill="#8a8a8a">list</text>
+        <text x={6} y={144} fontSize="9" fill="#8a8a8a">ann.</text>
+        <BoxPlotRow sorted={backgroundValues} cy={35} boxHeight={14} color="#9a9a9a" x={x} withDots={false} points={[]} />
+        <BoxPlotRow sorted={sortedListValues} cy={85} boxHeight={14} color={LIST_COLOR} x={x} withDots={false} points={[]} />
+        <g onMouseLeave={() => setHoveredPoint(null)}>
+            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points.map(p => ({ ...p, onHover: () => setHoveredPoint(p) }))} />
+        </g>
+        {hoveredPoint ? <text x={hoveredLabelX} y={118} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text> : null}
     </svg>
 }
 
 const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, onToggleRow, plotSuffix, setPlotSuffix, suffixes, rowByTag,
-        backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList }) {
+        backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList,
+        proteinTagMap, setRequiredProteinTags }) {
     const segment = (count, color, key) => count > 0
         ? <div key={key} style={{ width: `${(count / entry.total) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
         : null
@@ -155,10 +187,12 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === plotSuffix} onClick={() => setPlotSuffix(suffix)}>{suffix}</OptionButton>)}
             </div>
             <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
-                backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags} />
+                backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
+                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
             <div className="flex center-items flex--wrap margin-top--little" style={{ gap: "0.6rem" }}>
                 {[
                     { color: "#9a9a9a", label: "all proteins of the volcano (background)", shape: "box" },
+                    { color: LIST_COLOR, label: "selected list(s) distribution", shape: "box" },
                     { color: "#4a7ba6", label: "member of this annotation", shape: "dot" },
                     { color: "#d13913", label: "in selected list(s)", shape: "dot" }
                 ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.25rem" }}>
@@ -233,7 +267,7 @@ export function usePersistedListKeys({ listOptions, storageKey, fallbackKey = "a
  * are in the list and in which direction, plus an expandable log2FC distribution against the volcano background.
  */
 export function AnnotationDescriptionSection({ data, suffixes, direction, submission_tag, listOptions, selectedListKeys, onToggleListKey,
-        markedProteinTags = [], onMarkProteinList, onLabelProteinList }) {
+        markedProteinTags = [], onMarkProteinList, onLabelProteinList, proteinTagMap, setRequiredProteinTags }) {
     const [groupTag, setGroupTagState] = useState(() => {
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: GROUP_STORAGE_KEY })
         return itemFound && _.isString(itemValue) && itemValue.length > 0 ? itemValue : undefined
@@ -433,7 +467,8 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                         selectedListKeys={selectedListKeys}
                         markedProteinTags={markedProteinTags}
                         onMarkProteinList={onMarkProteinList}
-                        onLabelProteinList={onLabelProteinList} />)}
+                        onLabelProteinList={onLabelProteinList}
+                        proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />)}
                 </div>}
             {visibleEntries.length < filteredEntries.length
                 ? <button className="basic-button--small margin-top--little"

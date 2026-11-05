@@ -448,7 +448,8 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
                         <AnnotationDescriptionSection
                             data={data} suffixes={[suffix]} direction={direction} submission_tag={submission_tag}
                             listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={toggleListKey}
-                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} /> } />
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList}
+                            proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} /> } />
                 </Tabs>
             </div>
         </Drawer>
@@ -761,7 +762,8 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                             data={data} suffixes={suffixes} direction={direction} submission_tag={submission_tag}
                             listOptions={listOptions} selectedListKeys={validListKeys}
                             onToggleListKey={toggleListKey}
-                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} />
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList}
+                            proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
                     } />
                 </Tabs>
             </div>
