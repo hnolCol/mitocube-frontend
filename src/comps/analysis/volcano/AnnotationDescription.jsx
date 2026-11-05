@@ -114,19 +114,18 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
     if (allValues.length === 0) return <span className="font-size--smallest">No log2FC values for this volcano.</span>
     const min = Math.min(...allValues)
     const max = Math.max(...allValues)
-    const pad = (max - min) * 0.05 || 1
-    const x0 = min - pad
-    const x1 = max + pad
+    // symmetric domain around 0 so the zero line is centered and distribution skew is visible at a glance
+    const maxAbs = Math.max(Math.abs(min), Math.abs(max))
+    const pad = maxAbs * 0.05 || 1
+    const x0 = -maxAbs - pad
+    const x1 = maxAbs + pad
     const x = value => 10 + ((value - x0) / (x1 - x0)) * (width - 20)
-    const showZeroLine = x0 <= 0 && 0 <= x1
     const zeroX = x(0)
     const hoveredName = hoveredPoint ? proteinDisplayName(proteinTagMap, hoveredPoint.tag) : ""
     const hoveredLabelX = hoveredPoint ? Math.min(Math.max(x(hoveredPoint.value), 50), width - 50) : 0
     return <svg width={width} height={height} style={{ maxWidth: "100%" }}>
-        {showZeroLine ? <g>
-            <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
-            <text x={zeroX} y={10} fontSize="9" textAnchor="middle" fill="#8a8a8a">0</text>
-        </g> : null}
+        <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
+        <text x={zeroX} y={10} fontSize="9" textAnchor="middle" fill="#8a8a8a">0</text>
         <text x={x(min)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{min.toFixed(2)}</text>
         <text x={x(max)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{max.toFixed(2)}</text>
         <text x={6} y={39} fontSize="9" fill="#8a8a8a">all</text>
