@@ -8,8 +8,7 @@ import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelectio
 import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useAnnotationProteinSets } from "@/api/orchestrated/annotationProteins"
-import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
-import { AnnotationDescriptionSection } from "./AnnotationDescription"
+import { AnnotationDescriptionSection, usePersistedListKeys } from "./AnnotationDescription"
 import { directionBarColor, directionLabel, directionTags, getSignificantRows, getSignatureEntries, isSignificantValue, log2FCFieldName, pValueFieldName, rowDirectionInfo, rowProteinTags, significantFieldName } from "./compareUtils"
 
 export { getSignificantRows }
@@ -393,6 +392,7 @@ function VolcanoListSVG({ size = VOLCANO_LIST_ICON_SIZE, color = "#000", signifi
 
 export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
     const [isOpen, setIsOpen] = useState(false)
+    const [activeTab, setActiveTab] = useState("proteins")
     const [direction, setDirection] = useState("up")
     const [searchString, setSearchString] = useState("")
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
@@ -401,6 +401,14 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
     const { up, down, all } = useMemo(() => getSignificantRows(data, suffix), [data, suffix])
 
     const selectedRows = direction === "up" ? up : direction === "down" ? down : all
+
+    const listOptions = useMemo(() => [
+        { key: "all", label: `All significant (${directionLabel(direction).toLowerCase()})`, tags: selectedRows.map(row => row.tag) },
+        { key: "up", label: `Upregulated in ${suffix}`, tags: up.map(row => row.tag) },
+        { key: "down", label: `Downregulated in ${suffix}`, tags: down.map(row => row.tag) }
+    ], [selectedRows, up, down, direction, suffix])
+
+    const { selectedListKeys, toggleListKey } = usePersistedListKeys({ listOptions, storageKey: "volcanoSingleAnnotationDescriptionLists", fallbackKey: "all" })
 
     const handleDirectionChange = (newDirection) => {
         setDirection(newDirection)
@@ -424,16 +432,24 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%" style={{ height: "95vh" }}>
             <div className="padding--medium">
                 <DirectionToggle direction={direction} onChange={handleDirectionChange} counts={{ up: up.length, down: down.length, all: all.length }} />
-                <SignificantProteinTable
-                    rows={selectedRows} suffixes={[suffix]} submission_tag={submission_tag}
-                    proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction}
-                    searchString={searchString} onSearchStringChange={setSearchString}
-                    visibleCount={visibleCount} onVisibleCountChange={setVisibleCount}
-                    sortState={sortState} onSortChange={setSortState}
-                    annotationFilterTags={annotationFilterTags} onAnnotationFilterTagsChange={setAnnotationFilterTags}
-                    selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
-                    onLabelProteinList={onLabelProteinList}
-                    markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels} />
+                <Tabs id="volcano-list-tabs" selectedTabId={activeTab} onChange={setActiveTab} renderActiveTabPanelOnly={true}>
+                    <Tab id="proteins" title="Proteins" panel={
+                        <SignificantProteinTable
+                            rows={selectedRows} suffixes={[suffix]} submission_tag={submission_tag}
+                            proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} direction={direction}
+                            searchString={searchString} onSearchStringChange={setSearchString}
+                            visibleCount={visibleCount} onVisibleCountChange={setVisibleCount}
+                            sortState={sortState} onSortChange={setSortState}
+                            annotationFilterTags={annotationFilterTags} onAnnotationFilterTagsChange={setAnnotationFilterTags}
+                            selectedProteinTags={favoriteProteinSelection?.values ?? []} onToggleProteinLabel={onToggleProteinLabel}
+                            onLabelProteinList={onLabelProteinList}
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels} /> } />
+                    <Tab id="annotations" title="Describe by annotation" panel={
+                        <AnnotationDescriptionSection
+                            data={data} suffixes={[suffix]} direction={direction} submission_tag={submission_tag}
+                            listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={toggleListKey}
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} /> } />
+                </Tabs>
             </div>
         </Drawer>
     </>
@@ -658,10 +674,6 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     const [rightSuffix, setRightSuffix] = useState(_.isArray(suffixes) ? suffixes[1] : undefined)
     const [vennSelectionStates, setVennSelectionStates] = useState({})
     const [upsetSelectionStates, setUpsetSelectionStates] = useState({})
-    const [selectedListKeys, setSelectedListKeys] = useState(() => {
-        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoAnnotationDescriptionLists", parseJson: true })
-        return itemFound && _.isArray(itemValue) && itemValue.length > 0 ? itemValue.filter(_.isString) : ["all"]
-    })
 
     useEffect(() => {
         if (!_.isArray(suffixes) || suffixes.length < 2) return
@@ -705,16 +717,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
         return options
     }, [sets, suffixes, direction, leftSuffix, rightSuffix])
 
-    useEffect(() => {
-        if (_.isArray(selectedListKeys) && selectedListKeys.length > 0)
-            saveInLocalStorage({ itemName: "volcanoAnnotationDescriptionLists", itemValue: JSON.stringify(selectedListKeys) })
-    }, [_.join(selectedListKeys, ";")])
-
-    const validListKeys = useMemo(() => {
-        const keys = listOptions.map(option => option.key)
-        const stored = selectedListKeys.filter(key => keys.includes(key))
-        return stored.length > 0 ? stored : ["all"]
-    }, [listOptions, selectedListKeys])
+    const { selectedListKeys: validListKeys, toggleListKey } = usePersistedListKeys({ listOptions, storageKey: "volcanoAnnotationDescriptionLists", fallbackKey: "all" })
 
     const vennSelectionState = vennSelectionStates[direction] ?? {}
     const upsetSelectionState = upsetSelectionStates[direction] ?? {}
@@ -757,9 +760,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                         <AnnotationDescriptionSection
                             data={data} suffixes={suffixes} direction={direction} submission_tag={submission_tag}
                             listOptions={listOptions} selectedListKeys={validListKeys}
-                            onToggleListKey={key => setSelectedListKeys(validListKeys.includes(key)
-                                ? (validListKeys.length > 1 ? validListKeys.filter(k => k !== key) : validListKeys)
-                                : [...validListKeys, key])}
+                            onToggleListKey={toggleListKey}
                             markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} />
                     } />
                 </Tabs>

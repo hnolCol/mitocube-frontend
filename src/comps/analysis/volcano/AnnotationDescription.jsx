@@ -118,7 +118,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
     const overlapTags = entry.overlapTags
     const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
     const tooltipLines = [
-        `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s)`,
+        `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s), |median log2FC| = ${_.isNumber(entry.med) ? Math.abs(entry.med).toFixed(2) : "-"}`,
         ...listOptions.filter(option => selectedListKeys.includes(option.key))
             .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`)
     ].join("\n")
@@ -191,6 +191,31 @@ function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag, rowByTag 
     link.download = `annotation-description-${groupTag ?? "group"}.csv`
     link.click()
     URL.revokeObjectURL(url)
+}
+
+/**
+ * @description Persisted multi-select state for the list options of the annotation description view.
+ * Stored list keys are validated against the currently available options (falling back to fallbackKey),
+ * so stale keys from other volcano contexts are dropped.
+ */
+export function usePersistedListKeys({ listOptions, storageKey, fallbackKey = "all" }) {
+    const [selectedListKeys, setSelectedListKeys] = useState(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: storageKey, parseJson: true })
+        return itemFound && _.isArray(itemValue) && itemValue.length > 0 ? itemValue.filter(_.isString) : [fallbackKey]
+    })
+    useEffect(() => {
+        if (_.isArray(selectedListKeys) && selectedListKeys.length > 0)
+            saveInLocalStorage({ itemName: storageKey, itemValue: JSON.stringify(selectedListKeys) })
+    }, [_.join(selectedListKeys, ";")])
+    const validListKeys = useMemo(() => {
+        const keys = (listOptions ?? []).map(option => option.key)
+        const stored = selectedListKeys.filter(key => keys.includes(key))
+        return stored.length > 0 ? stored : [fallbackKey]
+    }, [listOptions, selectedListKeys, fallbackKey])
+    const toggleListKey = useCallback((key) => setSelectedListKeys(validListKeys.includes(key)
+        ? (validListKeys.length > 1 ? validListKeys.filter(k => k !== key) : validListKeys)
+        : [...validListKeys, key]), [validListKeys])
+    return { selectedListKeys: validListKeys, toggleListKey }
 }
 
 /**
