@@ -113,7 +113,7 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
 const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, onToggleRow, plotSuffix, setPlotSuffix, suffixes, rowByTag,
         backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList }) {
     const segment = (count, color, key) => count > 0
-        ? <div key={key} style={{ width: `${(count / entry.maxTotal) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
+        ? <div key={key} style={{ width: `${(count / entry.total) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
         : null
     const overlapTags = entry.overlapTags
     const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
@@ -305,12 +305,9 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         }).filter(_.isObject)
     }, [visibleAnnotationTags, proteinTagsByAnnotation, selectedTags, rowByTag, suffixes])
 
-    const maxTotal = useMemo(() => _.max(entries.map(entry => entry.total)) || 1, [entries])
-    const entriesWithScale = useMemo(() => entries.map(entry => ({ ...entry, maxTotal })), [entries, maxTotal])
-
     const sortedEntries = useMemo(() => {
         const fcName = log2FCFieldName(activePlotSuffix)
-        const withStats = entriesWithScale.map(entry => ({
+        const withStats = entries.map(entry => ({
             ...entry,
             med: median(entry.rows.map(row => row[fcName])),
             purity: (entry.up - entry.down) / Math.max(1, entry.up + entry.down + entry.both)
@@ -320,7 +317,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         else if (sortMode === "purity") withStats.sort((a, b) => b.purity - a.purity)
         else withStats.sort((a, b) => b.overlapCount - a.overlapCount || b.total - a.total)
         return withStats
-    }, [entriesWithScale, sortMode, activePlotSuffix])
+    }, [entries, sortMode, activePlotSuffix])
 
     const filteredEntries = useMemo(() => {
         const query = searchString.trim().toLowerCase()
@@ -342,14 +339,14 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
             else if (info.hasUp) up++
             else if (info.hasDown) down++
         })
-        const covered = entriesWithScale.filter(entry => entry.overlapCount > 0)
+        const covered = entries.filter(entry => entry.overlapCount > 0)
         return {
             selected: selectedTags.size, up, down, both,
             coveredCount: covered.length,
             coveredThreePlus: covered.filter(entry => entry.overlapCount >= 3).length,
-            groupCount: entriesWithScale.length
+            groupCount: entries.length
         }
-    }, [selectedTags, rowByTag, suffixes, entriesWithScale])
+    }, [selectedTags, rowByTag, suffixes, entries])
 
     const searchIsActive = searchString.trim().length > 0
 
@@ -394,7 +391,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 : <div className="flex flex-column">
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
                         <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
-                        <span className="font-size--smallest">members in list:</span>
+                        <span className="font-size--smallest">bar fill = share of annotation members in list:</span>
                         {[
                             { color: directionBarColor("up"), label: "up" },
                             { color: directionBarColor("down"), label: "down" },
