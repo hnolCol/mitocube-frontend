@@ -52,7 +52,7 @@ function ExploreSubmissionRow({ submission, user_tag }) {
             requested_for_group_tag: _.isString(selectedGroup) ? selectedGroup : undefined
         })
     }
-    return <div className={`explore-submission-row flex flex-column padding--little div--round ${hasAccess ? "bg--lightgrey" : ""}`}>
+    return <div className={`explore-submission-row flex flex-column ${hasAccess ? "bg--lightgrey" : ""}`}>
         <div className="flex justify-between align-center">
             <div className="flex flex-column">
                 <span className="font-size--small font-weight--bold">{submission.title}</span>
