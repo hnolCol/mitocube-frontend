@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
@@ -28,31 +28,28 @@ function PCAPlot({
     showHoverLabels,
     externalSearchResult
 }) {
-    const [selection, setSelection] = useState({
-        xaxisName: undefined,
-        yaxisName: undefined,
-        colorName: undefined,
-        tooltipNames: [],
-        sizeName: undefined,
-        filterTag: undefined
-    });
+    const [userSelection, setUserSelection] = useState(null);
 
     const pcaResultsValid = _.isObject(pcaresults) && _.isArray(pcaresults.drivers) && _.isArray(pcaresults.projection);
     const numericKeyNames = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.drivers) : [];
     const numericKeyNamesProjection = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.projection) : [];
-    useEffect(() => {
-        
-        if (!_.isObject(pcaresults) && !isPCALoading) return;
-        setSelection({
+
+    const defaultSelection = useMemo(() => {
+        if (!pcaResultsValid) return null;
+        return {
             xaxisName: numericKeyNames[0],
             yaxisName: numericKeyNames[1],
             tooltipNames: [],
             colorName: attribute_tags[0],
-        });
-    }, [_.isObject(pcaresults)]);
+            sizeName: undefined,
+            filterTag: undefined
+        };
+    }, [pcaResultsValid, numericKeyNames, attribute_tags]);
+
+    const selection = userSelection ?? defaultSelection ?? { tooltipNames: [] };
 
     const handleScatterSelection = (idx, selectionKey, keyName) => {
-        setSelection(prevValues => ({ ...prevValues, [selectionKey]: keyName }));
+        setUserSelection(prevValues => ({ ...(prevValues ?? defaultSelection ?? {}), [selectionKey]: keyName }));
     };
 
     if (isPCALoading) return <Loading />;
