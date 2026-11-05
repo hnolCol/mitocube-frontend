@@ -17,6 +17,7 @@ import { Attribute } from "../../base/attributes/Attribute"
 import { Protein, ProteinGroup } from "../../base/protein/Protein"
 import { checkFullMargin } from "../../types/checks/chart"
 import { Genotype } from "../../base/genotype/Genotype"
+import { ConditionApplicationsView } from "../../base/condition_applications/ConditionApplicationView"
 import _, { has } from "lodash"
 
 
@@ -55,6 +56,7 @@ ScatterPlot.propTypes = {
     tooltipNameIsGenotype: PropTypes.object,
     tooltipNameIsFeature: PropTypes.object,
     tooltipNameIsNumeric: PropTypes.object,
+    tooltipNameIsConditionApplication: PropTypes.object,
     tooltipNameIsFeatures: PropTypes.object,
     annotationMarkers: PropTypes.arrayOf(PropTypes.object) 
 }
@@ -77,7 +79,8 @@ ScatterPlot.propTypes = {
  * @param {String[]} props.tooltipNames - The keys in each data item that are displayed via the tooltip
  * @param {Object} props.tooltipNameIsAttribute - The tooltip name that is an attribute, then attribute information are obtained from the backend. 
  * @param {Object} props.tooltipNameIsGenotype - The tooltipName that is a Genotype. Causes an API call to displayed the correct information. 
- * @param {Object} props.tooltipNameIsNumeric - If the tooltip is a numeric value. Here the value should a number and provides the number of digits to which the value should be rounded 
+ * @param {Object} props.tooltipNameIsNumeric - If the tooltip is a numeric value. Here the value should a number and provides the number of digits to which the value should be rounded
+ * @param {Object} props.tooltipNameIsConditionApplication - The tooltip name(s) whose value is a condition application tag or a list of condition application tags. Rendered with the ConditionApplicationsView component, which fetches and displays the condition application text including its attribute. 
  * @param {Object<String,Object[]>|Function} props.tooltipNameIsStats - If the tooltip is stats, the value should be an object with the stats values, and this will trigger the rendering of the RankingStats component in the tooltip. Can also be a function taht the tooltipName given in tooltipNames => data as an argument
  * @param {Function} props.setTriggerResetAxisZoom - Function to trigger the reset of the axis zoom. This is intended to be used in the InteractiveChartToolbar for a "reset zoom" button. It takes the chartIdx as an argument to identify which chart should reset its zoom.
  * @param {Number} props.triggerResetAxis - Value to trigger the reset of the axis zoom. The value is not relevant, but it should be a new value each time the reset should be triggered. This is important to be able to reset the zoom from outside of the chart, e.g. when a user clicks on a "reset zoom" button.
@@ -134,6 +137,7 @@ export function ScatterPlot({
     tooltipNameIsGenotype = {},
     tooltipNameIsFeature = {},
     tooltipNameIsNumeric = {}, //provide number to be rounded to.
+    tooltipNameIsConditionApplication = {},
     tooltipNameIsFeatures = {},
     tooltipNameIsStats = {},
     tooltipNameIsProtein = {"tag": true},
@@ -783,6 +787,17 @@ export function ScatterPlot({
                                     if (_.has(tooltipNameIsFeature, tooltipName)) return <Protein key={`${index}-${tooltipName}`}tag={hoverIndexData[tooltipName]} />
                                     if (_.has(tooltipNameIsGenotype, tooltipName)) return <Genotype key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} />
                                     if (_.has(tooltipNameIsAttribute, tooltipName)) return <Attribute key={`${index}-${tooltipName}`} attribute_tag={hoverIndexData[tooltipName]} />
+                                    if (_.has(tooltipNameIsConditionApplication, tooltipName)) {
+                                        const ca_tags = _.castArray(d).filter(_.isString)
+                                        if (ca_tags.length === 0) return <div key={`${index}-${tooltipName}`}>—</div>
+                                        return (
+                                            <div key={`${index}-${tooltipName}`} className="flex flex-column">
+                                                {ca_tags.map(ca_tag => (
+                                                    <ConditionApplicationsView key={`${index}-${tooltipName}-${ca_tag}`} tag={ca_tag} show_attribute={true} add_separator={true} />
+                                                ))}
+                                            </div>
+                                        )
+                                    }
                                     if (_.has(tooltipNameIsNumeric, tooltipName)) return <div key={`${index}-${tooltipName}`}>{`${tooltipName}: ${_.round(hoverIndexData[tooltipName], tooltipNameIsNumeric[tooltipName])}`}</div>
                                     
                                     return  <div key={`${index}-${tooltipName}`} style={{ maxWidth: "min(30vw, 600px)" }}>{hoverIndexData[tooltipName]}</div>
