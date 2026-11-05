@@ -26,13 +26,42 @@ function PCAPlot({
     proteinSearchResults,
     setRequiredProteinTags,
     showHoverLabels,
-    externalSearchResult
+    externalSearchResult,
+    sampleProteinGroupCounts
 }) {
     const [userSelection, setUserSelection] = useState(null);
 
     const pcaResultsValid = _.isObject(pcaresults) && _.isArray(pcaresults.drivers) && _.isArray(pcaresults.projection);
     const numericKeyNames = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.drivers) : [];
     const numericKeyNamesProjection = pcaResultsValid ? getNumericKeysFromArrayOfObjects(pcaresults.projection) : [];
+
+    const sampleProteinGroupCountMap = useMemo(() => {
+        const map = new Map();
+        if (_.isArray(sampleProteinGroupCounts)) {
+            sampleProteinGroupCounts.forEach(({ tag, count }) => map.set(tag, count));
+        }
+        return map;
+    }, [sampleProteinGroupCounts]);
+
+    const projectionData = useMemo(() => {
+        if (!pcaResultsValid) return [];
+        return pcaresults.projection.map(d => ({
+            ...d,
+            "Condition Applications": attribute_tags
+                .map(attribute_tag => {
+                    const ca_texts = _.castArray(d[attribute_tag])
+                        .filter(_.isString)
+                        .map(ca_tag => (caTagMap && caTagMap.get(ca_tag)) || ca_tag);
+                    if (ca_texts.length === 0) return null;
+                    const attribute = attributeTagMap && attributeTagMap.get(attribute_tag);
+                    const attribute_text = _.isObject(attribute) && _.isString(attribute.text) ? attribute.text : attribute_tag;
+                    return `${attribute_text}: ${ca_texts.join(", ")}`;
+                })
+                .filter(_.isString)
+                .join("; ") || "—",
+            "Quantified Protein Groups": sampleProteinGroupCountMap.get(d.tag)
+        }));
+    }, [pcaResultsValid, pcaresults, attribute_tags, caTagMap, attributeTagMap, sampleProteinGroupCountMap]);
 
     const defaultSelection = useMemo(() => {
         if (!pcaResultsValid) return null;
@@ -79,14 +108,14 @@ function PCAPlot({
                         numericIsAttribute={false}
                         colorAndSizeKeyNames={attribute_tags}
                         setSelection={handleScatterSelection}
-                        downloadElements={["scatter_plot-pca-projection", pcaresults.projection]}
-                        elementNames={["SVG", "DIVIDER", `Projected Data (${pcaresults.projection.length} x ${_.keys(pcaresults.projection[0]).length})`]}
+                        downloadElements={["scatter_plot-pca-projection", projectionData]}
+                        elementNames={["SVG", "DIVIDER", `Projected Data (${projectionData.length} x ${projectionData.length > 0 ? _.keys(projectionData[0]).length : 0})`]}
                         fileNames={[`${submission_tag}-PCA.svg`, `${submission_tag}-PCA-Projection.txt`]}
                         elementTypes={["svg", "data"]}
                     />
                     {pcaResultsValid ? (
                         <InteractiveChart
-                            data={pcaresults.projection}
+                            data={projectionData}
                             extraLimitNames={[selection.colorName, selection.sizeName].filter(
                                 keyName => _.isString(keyName) && numericKeyNamesProjection.includes(keyName)
                             )}
@@ -121,7 +150,12 @@ function PCAPlot({
                                             yaxisName={yaxisName}
                                             limits={limits}
                                             tooltipSmall={false}
-                                            tooltipNames={["tag"]}
+                                            tooltipNames={["tag", "Condition Applications", "Quantified Protein Groups"]}
+                                            tooltipNameIsStats={{
+                                                "Quantified Protein Groups": count => (
+                                                    <div key="quantified-protein-groups">Quantified Protein Groups: {_.isNumber(count) ? count : "—"}</div>
+                                                )
+                                            }}
                                             {...hoverProps}
                                             {...filterProps}
                                             legend={true}

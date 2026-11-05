@@ -25,6 +25,11 @@ function PCALoader({ submission_tag, annotation_tag }) {
         { enabled: _.isString(submission_tag), staleTime: Infinity }
     );
 
+    const { data: sampleProteinGroupCounts } = api.submissions.counts.useGetSubmissionSampleProteinGroupCount(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag), staleTime: Infinity }
+    );
+
     const { ca_attribute_tags, ca_tags } = useMemo(() => {
         if (!isSuccess || !_.isObject(attribute_ca_tags)) return { ca_attribute_tags: [], ca_tags: [] };
         const ca_attribute_tags = _.keys(attribute_ca_tags);
@@ -45,6 +50,7 @@ function PCALoader({ submission_tag, annotation_tag }) {
             submission_tag={submission_tag}
             pcaresults={pcaresults}
             isPCALoading={isPCALoading}
+            sampleProteinGroupCounts={sampleProteinGroupCounts}
             showHoverLabels={showHoverLabels}
             setRequiredProteinTags={setRequiredProteinTags}
         />
