@@ -48,17 +48,8 @@ function PCAPlot({
         return pcaresults.projection.map(d => ({
             ...d,
             "Condition Applications": attribute_tags
-                .map(attribute_tag => {
-                    const ca_texts = _.castArray(d[attribute_tag])
-                        .filter(_.isString)
-                        .map(ca_tag => (caTagMap && caTagMap.get(ca_tag)) || ca_tag);
-                    if (ca_texts.length === 0) return null;
-                    const attribute = attributeTagMap && attributeTagMap.get(attribute_tag);
-                    const attribute_text = _.isObject(attribute) && _.isString(attribute.text) ? attribute.text : attribute_tag;
-                    return `${attribute_text}: ${ca_texts.join(", ")}`;
-                })
-                .filter(_.isString)
-                .join("; ") || "—",
+                .flatMap(attribute_tag => _.castArray(d[attribute_tag]))
+                .filter(_.isString),
             "Quantified Protein Groups": sampleProteinGroupCountMap.get(d.tag)
         }));
     }, [pcaResultsValid, pcaresults, attribute_tags, caTagMap, attributeTagMap, sampleProteinGroupCountMap]);
@@ -151,6 +142,7 @@ function PCAPlot({
                                             limits={limits}
                                             tooltipSmall={false}
                                             tooltipNames={["tag", "Condition Applications", "Quantified Protein Groups"]}
+                                            tooltipNameIsConditionApplication={{ "Condition Applications": true }}
                                             tooltipNameIsStats={{
                                                 "Quantified Protein Groups": count => (
                                                     <div key="quantified-protein-groups">Quantified Protein Groups: {_.isNumber(count) ? count : "—"}</div>
