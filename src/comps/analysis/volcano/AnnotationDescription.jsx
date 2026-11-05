@@ -364,7 +364,9 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         </div>
         <div className="font-size--small margin-bottom--little">
             Describing <strong>{summary.selected}</strong> {directionLabel(direction).toLowerCase()} proteins
-            ({summary.up} up / {summary.down} down / {summary.both} both)
+            {suffixes.length > 1
+                ? ` — ${summary.up} only up, ${summary.down} only down, ${summary.both} both directions across volcanos`
+                : null}
             {_.isString(groupTag) && proteinSetsReady
                 ? ` — covered by ${summary.coveredCount} of ${summary.groupCount} annotations of this group (${summary.coveredThreePlus} with 3+ members)`
                 : null}.
