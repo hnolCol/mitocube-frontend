@@ -394,7 +394,16 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 : <div className="flex flex-column">
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
                         <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
-                        <span className="font-size--smallest">members in list (up / down / both)</span>
+                        <span className="font-size--smallest">members in list:</span>
+                        {[
+                            { color: directionBarColor("up"), label: "up" },
+                            { color: directionBarColor("down"), label: "down" },
+                            { color: DISCORDANT_COLOR, label: "both directions" },
+                            { color: "#efefef", label: "not in list", border: "1px solid #d8d8d8" }
+                        ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.2rem" }}>
+                            <span style={{ width: "0.6rem", height: "0.6rem", backgroundColor: item.color, border: item.border ?? "none", display: "inline-block" }} />
+                            {item.label}
+                        </span>)}
                         <span className="font-size--smallest" style={{ width: "4.5rem", flexShrink: 0, textAlign: "right" }}>med. log2FC</span>
                     </div>
                     {visibleEntries.map(entry => <AnnotationRow
