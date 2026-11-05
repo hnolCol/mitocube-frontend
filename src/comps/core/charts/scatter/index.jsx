@@ -1,6 +1,6 @@
 import PropTypes from "prop-types"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react"
 import { addMarginToBoundaries, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
 import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
@@ -780,7 +780,7 @@ export function ScatterPlot({
                                 {
                                     const d = hoverIndexData[tooltipName]
                                     if (_.has(tooltipNameIsStats, tooltipName)) {
-                                        return tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])
+                                        return <Fragment key={`${index}-${tooltipName}`}>{tooltipNameIsStats[tooltipName](hoverIndexData[tooltipName])}</Fragment>
                                     }
                                     if (_.has(tooltipNameIsProtein, tooltipName)) return <span key={`${index}-${tooltipName}`}>{getProteinGroupText(d, index)}</span>
                                     if (_.has(tooltipNameIsFeatures, tooltipName)) return <ProteinGroup key={`${index}-${tooltipName}`} tag={hoverIndexData[tooltipName]} minimal={true} />

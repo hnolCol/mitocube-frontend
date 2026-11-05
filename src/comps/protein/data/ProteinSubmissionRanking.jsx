@@ -121,6 +121,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                         handleSearchByDataIndex,
                         filterDataInKeyByValue,
                         hoverProps,
+                        externalHoverProps,
                         filterProps,
                         labelProps,
                         rerenderAxis,
@@ -128,7 +129,7 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                         setTriggerResetAxisZoom
                             }, didx) => {
                         return (
-                            <div>
+                            <div key={`submission-stats-chart-${chartIdx}`}>
                                 <ScatterDataSelection keyNames={_.keys(submissionStats[0])}
                                     {...{
                                         // title : ,
@@ -158,7 +159,6 @@ export function ProteinSubmissionRanking({ tag, N = 10 }) {
                                                 findDataInRectangle,
                                                 setHoverDataInRectangle,
                                                 findClosestPoint,
-                                                externalHoverProps,
                                                 xaxisName,
                                                 yaxisName,
                                                 limits,
