@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 
 import { api } from "@/api";
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch";
+import { Loading } from "@/comps/core/base/states/Loading";
 
 import PCAPlot from "./PCAPlot";
 
@@ -30,6 +31,8 @@ function PCALoader({ submission_tag, annotation_tag }) {
         const ca_tags = _.values(attribute_ca_tags).flat();
         return { ca_attribute_tags, ca_tags };
     }, [submission_tag, isSuccess, attribute_ca_tags]);
+
+    if (!isSuccess) return <Loading />;
 
     return (
         <WithTagMaps
