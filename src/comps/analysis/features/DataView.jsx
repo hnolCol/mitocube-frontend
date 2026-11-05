@@ -19,7 +19,8 @@ FeatureDataView.propTypes = {
     onRemove: PropTypes.func,
     metrics: PropTypes.string,
     layoutStorageKey: PropTypes.string,
-    highlightedSubmissionTag: PropTypes.string
+    highlightedSubmissionTag: PropTypes.string,
+    onHoverSubmissionTag: PropTypes.func
 }
 
 FeatureData.propTypes = {
@@ -165,7 +166,7 @@ function saveStoredLayouts(storageKey, layouts) {
     }
 }
 
-export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey, highlightedSubmissionTag }) {
+export function FeatureDataView({ feature_tags, submission_tags, showTitle = true, showProteinNameInTitle = true, onRemove, metrics = "raw", layoutStorageKey, highlightedSubmissionTag, onHoverSubmissionTag }) {
     const [metadataDrawer, setMetadataDrawer] = useState({ isOpen: false, submission_tag: undefined })
     const [layouts, setLayouts] = useState(() => {
         const stored = loadStoredLayouts(layoutStorageKey);
@@ -231,7 +232,10 @@ export function FeatureDataView({ feature_tags, submission_tags, showTitle = tru
                                 const itemKey = `${feature_tag}-${i}-${submission_tags[i]}`;
                                 return (
                                     <div key={itemKey}>
-                                        <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%" }}>
+                                        <div className="grid-item-content bg--lightgrey" style={{ width: "100%", height: "100%" }}
+                                            onMouseEnter={() => { if (_.isFunction(onHoverSubmissionTag)) onHoverSubmissionTag(submission_tags[i]) }}
+                                            onMouseLeave={() => { if (_.isFunction(onHoverSubmissionTag)) onHoverSubmissionTag(undefined) }}
+                                        >
                                             <FeatureData
                                                 feature_tag={feature_tag}
                                                 submission_tag={submission_tags[i]}
