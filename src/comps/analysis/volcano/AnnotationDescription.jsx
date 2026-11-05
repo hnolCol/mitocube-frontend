@@ -50,6 +50,14 @@ function quantile(sortedValues, p) {
     return sortedValues[lo] + (sortedValues[hi] - sortedValues[lo]) * (idx - lo)
 }
 
+function proteinDisplayName(proteinTagMap, tag) {
+    if (!_.isString(tag)) return ""
+    return tag.split(";").map(t => {
+        const mapped = proteinTagMap instanceof Map ? proteinTagMap.get(t) : undefined
+        return _.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0 ? mapped.text : t
+    }).join(", ")
+}
+
 function median(values) {
     const sorted = [...values].filter(_.isNumber).sort((a, b) => a - b)
     return quantile(sorted, 0.5)
@@ -73,52 +81,75 @@ function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
             cy={cy + (((idx * 37) % 11) - 5)}
             r={point.inList ? 3.2 : 2.4}
             fill={point.inList ? "#d13913" : color}
-            fillOpacity={point.inList ? 0.95 : 0.6} />) : null}
+            fillOpacity={point.inList ? 0.95 : 0.6}
+            style={{ cursor: "pointer" }}
+            onMouseEnter={point.onHover ? () => point.onHover() : undefined} />) : null}
     </g>
 }
 
-function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags }) {
+const LIST_COLOR = "#e8a33d"
+
+function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags, proteinTagMap, setRequiredProteinTags }) {
     const width = 340
-    const height = 150
+    const height = 190
+    const [hoveredPoint, setHoveredPoint] = useState(null)
     const points = useMemo(() => entry.memberTags
         .map(tag => rowByTag.get(tag))
         .filter(row => _.isObject(row) && _.isNumber(row[log2FCFieldName(suffix)]))
-        .map(row => ({ value: row[log2FCFieldName(suffix)], inList: selectedTags.has(row.tag) })),
+        .map(row => ({ value: row[log2FCFieldName(suffix)], inList: selectedTags.has(row.tag), tag: row.tag })),
         [entry, suffix, rowByTag, selectedTags])
     const sortedPointValues = useMemo(() => points.map(p => p.value).sort((a, b) => a - b), [points])
-    const allValues = useMemo(() => [...backgroundValues, ...sortedPointValues], [backgroundValues, sortedPointValues])
+    const sortedListValues = useMemo(() => [...selectedTags]
+        .map(tag => rowByTag.get(tag))
+        .map(row => _.isObject(row) ? row[log2FCFieldName(suffix)] : undefined)
+        .filter(_.isNumber)
+        .sort((a, b) => a - b), [selectedTags, rowByTag, suffix])
+    const allValues = useMemo(() => [...backgroundValues, ...sortedPointValues, ...sortedListValues], [backgroundValues, sortedPointValues, sortedListValues])
+    useEffect(() => {
+        if (!_.isFunction(setRequiredProteinTags)) return
+        const missing = entry.memberTags.filter(tag => !(proteinTagMap instanceof Map && proteinTagMap.has(tag)))
+        if (missing.length === 0) return
+        setRequiredProteinTags(prev => _.isArray(prev) ? _.uniq([...prev, ...missing]) : missing)
+    }, [entry, proteinTagMap])
     if (allValues.length === 0) return <span className="font-size--smallest">No log2FC values for this volcano.</span>
     const min = Math.min(...allValues)
     const max = Math.max(...allValues)
-    const pad = (max - min) * 0.05 || 1
-    const x0 = min - pad
-    const x1 = max + pad
+    // symmetric domain around 0 so the zero line is centered and distribution skew is visible at a glance
+    const maxAbs = Math.max(Math.abs(min), Math.abs(max))
+    const pad = maxAbs * 0.05 || 1
+    const x0 = -maxAbs - pad
+    const x1 = maxAbs + pad
     const x = value => 10 + ((value - x0) / (x1 - x0)) * (width - 20)
-    const showZeroLine = x0 <= 0 && 0 <= x1
     const zeroX = x(0)
+    const hoveredName = hoveredPoint ? proteinDisplayName(proteinTagMap, hoveredPoint.tag) : ""
+    const hoveredLabelX = hoveredPoint ? Math.min(Math.max(x(hoveredPoint.value), 50), width - 50) : 0
     return <svg width={width} height={height} style={{ maxWidth: "100%" }}>
-        {showZeroLine ? <g>
-            <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
-            <text x={zeroX} y={10} fontSize="9" textAnchor="middle" fill="#8a8a8a">0</text>
-        </g> : null}
+        <line x1={zeroX} y1={12} x2={zeroX} y2={height - 22} stroke="#8a8a8a" strokeDasharray="3,3" strokeWidth={1} />
+        <text x={zeroX} y={10} fontSize="9" textAnchor="middle" fill="#8a8a8a">0</text>
         <text x={x(min)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{min.toFixed(2)}</text>
         <text x={x(max)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{max.toFixed(2)}</text>
-        <text x={6} y={42} fontSize="9" fill="#8a8a8a">all</text>
-        <text x={6} y={102} fontSize="9" fill="#8a8a8a">ann.</text>
-        <BoxPlotRow sorted={backgroundValues} cy={40} boxHeight={16} color="#9a9a9a" x={x} withDots={false} points={[]} />
-        <BoxPlotRow sorted={sortedPointValues} cy={100} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points} />
+        <text x={6} y={39} fontSize="9" fill="#8a8a8a">all</text>
+        <text x={6} y={89} fontSize="9" fill="#8a8a8a">list</text>
+        <text x={6} y={144} fontSize="9" fill="#8a8a8a">ann.</text>
+        <BoxPlotRow sorted={backgroundValues} cy={35} boxHeight={14} color="#9a9a9a" x={x} withDots={false} points={[]} />
+        <BoxPlotRow sorted={sortedListValues} cy={85} boxHeight={14} color={LIST_COLOR} x={x} withDots={false} points={[]} />
+        <g onMouseLeave={() => setHoveredPoint(null)}>
+            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points.map(p => ({ ...p, onHover: () => setHoveredPoint(p) }))} />
+        </g>
+        {hoveredPoint ? <text x={hoveredLabelX} y={118} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text> : null}
     </svg>
 }
 
 const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, onToggleRow, plotSuffix, setPlotSuffix, suffixes, rowByTag,
-        backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList }) {
+        backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList,
+        proteinTagMap, setRequiredProteinTags }) {
     const segment = (count, color, key) => count > 0
-        ? <div key={key} style={{ width: `${(count / entry.maxTotal) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
+        ? <div key={key} style={{ width: `${(count / entry.total) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
         : null
     const overlapTags = entry.overlapTags
     const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
     const tooltipLines = [
-        `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s)`,
+        `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s), |median log2FC| = ${_.isNumber(entry.med) ? Math.abs(entry.med).toFixed(2) : "-"}`,
         ...listOptions.filter(option => selectedListKeys.includes(option.key))
             .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`)
     ].join("\n")
@@ -155,9 +186,20 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === plotSuffix} onClick={() => setPlotSuffix(suffix)}>{suffix}</OptionButton>)}
             </div>
             <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
-                backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags} />
-            <div className="font-size--smallest margin-top--little">
-                gray = all proteins of the volcano, blue = members of this annotation, red = in selected list(s)
+                backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
+                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+            <div className="flex center-items flex--wrap margin-top--little" style={{ gap: "0.6rem" }}>
+                {[
+                    { color: "#9a9a9a", label: "all proteins of the volcano (background)", shape: "box" },
+                    { color: LIST_COLOR, label: "selected list(s) distribution", shape: "box" },
+                    { color: "#4a7ba6", label: "member of this annotation", shape: "dot" },
+                    { color: "#d13913", label: "in selected list(s)", shape: "dot" }
+                ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.25rem" }}>
+                    {item.shape === "box"
+                        ? <span style={{ width: "0.8rem", height: "0.45rem", backgroundColor: item.color, opacity: 0.35, border: `1px solid ${item.color}`, display: "inline-block" }} />
+                        : <span style={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: item.color, display: "inline-block" }} />}
+                    {item.label}
+                </span>)}
             </div>
         </div> : null}
     </div>
@@ -194,12 +236,37 @@ function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag, rowByTag 
 }
 
 /**
+ * @description Persisted multi-select state for the list options of the annotation description view.
+ * Stored list keys are validated against the currently available options (falling back to fallbackKey),
+ * so stale keys from other volcano contexts are dropped.
+ */
+export function usePersistedListKeys({ listOptions, storageKey, fallbackKey = "all" }) {
+    const [selectedListKeys, setSelectedListKeys] = useState(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: storageKey, parseJson: true })
+        return itemFound && _.isArray(itemValue) && itemValue.length > 0 ? itemValue.filter(_.isString) : [fallbackKey]
+    })
+    useEffect(() => {
+        if (_.isArray(selectedListKeys) && selectedListKeys.length > 0)
+            saveInLocalStorage({ itemName: storageKey, itemValue: JSON.stringify(selectedListKeys) })
+    }, [_.join(selectedListKeys, ";")])
+    const validListKeys = useMemo(() => {
+        const keys = (listOptions ?? []).map(option => option.key)
+        const stored = selectedListKeys.filter(key => keys.includes(key))
+        return stored.length > 0 ? stored : [fallbackKey]
+    }, [listOptions, selectedListKeys, fallbackKey])
+    const toggleListKey = useCallback((key) => setSelectedListKeys(validListKeys.includes(key)
+        ? (validListKeys.length > 1 ? validListKeys.filter(k => k !== key) : validListKeys)
+        : [...validListKeys, key]), [validListKeys])
+    return { selectedListKeys: validListKeys, toggleListKey }
+}
+
+/**
  * @description Describes one or more selectable protein lists (default: all significant proteins of the
  * current direction) by the annotations of a chosen annotation group: per annotation, how many members
  * are in the list and in which direction, plus an expandable log2FC distribution against the volcano background.
  */
 export function AnnotationDescriptionSection({ data, suffixes, direction, submission_tag, listOptions, selectedListKeys, onToggleListKey,
-        markedProteinTags = [], onMarkProteinList, onLabelProteinList }) {
+        markedProteinTags = [], onMarkProteinList, onLabelProteinList, proteinTagMap, setRequiredProteinTags }) {
     const [groupTag, setGroupTagState] = useState(() => {
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: GROUP_STORAGE_KEY })
         return itemFound && _.isString(itemValue) && itemValue.length > 0 ? itemValue : undefined
@@ -280,12 +347,9 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         }).filter(_.isObject)
     }, [visibleAnnotationTags, proteinTagsByAnnotation, selectedTags, rowByTag, suffixes])
 
-    const maxTotal = useMemo(() => _.max(entries.map(entry => entry.total)) || 1, [entries])
-    const entriesWithScale = useMemo(() => entries.map(entry => ({ ...entry, maxTotal })), [entries, maxTotal])
-
     const sortedEntries = useMemo(() => {
         const fcName = log2FCFieldName(activePlotSuffix)
-        const withStats = entriesWithScale.map(entry => ({
+        const withStats = entries.map(entry => ({
             ...entry,
             med: median(entry.rows.map(row => row[fcName])),
             purity: (entry.up - entry.down) / Math.max(1, entry.up + entry.down + entry.both)
@@ -295,14 +359,19 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         else if (sortMode === "purity") withStats.sort((a, b) => b.purity - a.purity)
         else withStats.sort((a, b) => b.overlapCount - a.overlapCount || b.total - a.total)
         return withStats
-    }, [entriesWithScale, sortMode, activePlotSuffix])
+    }, [entries, sortMode, activePlotSuffix])
+
+    // annotations without any member in the selected list(s) are hidden from the rows
+    const displayEntries = useMemo(() => sortedEntries.filter(entry => entry.overlapCount > 0), [sortedEntries])
 
     const filteredEntries = useMemo(() => {
         const query = searchString.trim().toLowerCase()
-        if (query.length === 0) return sortedEntries
-        return sortedEntries.filter(entry =>
+        if (query.length === 0) return displayEntries
+        return displayEntries.filter(entry =>
             entry.tag.toLowerCase().includes(query) || (textByAnnotation.get(entry.tag) ?? "").toLowerCase().includes(query))
-    }, [sortedEntries, searchString, textByAnnotation])
+    }, [displayEntries, searchString, textByAnnotation])
+
+    const hasAnyOverlap = useMemo(() => sortedEntries.some(entry => entry.overlapCount > 0), [sortedEntries])
 
     const visibleEntries = useMemo(() => filteredEntries.slice(0, visibleRowCount), [filteredEntries, visibleRowCount])
 
@@ -317,14 +386,14 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
             else if (info.hasUp) up++
             else if (info.hasDown) down++
         })
-        const covered = entriesWithScale.filter(entry => entry.overlapCount > 0)
+        const covered = entries.filter(entry => entry.overlapCount > 0)
         return {
             selected: selectedTags.size, up, down, both,
             coveredCount: covered.length,
             coveredThreePlus: covered.filter(entry => entry.overlapCount >= 3).length,
-            groupCount: entriesWithScale.length
+            groupCount: entries.length
         }
-    }, [selectedTags, rowByTag, suffixes, entriesWithScale])
+    }, [selectedTags, rowByTag, suffixes, entries])
 
     const searchIsActive = searchString.trim().length > 0
 
@@ -339,7 +408,9 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         </div>
         <div className="font-size--small margin-bottom--little">
             Describing <strong>{summary.selected}</strong> {directionLabel(direction).toLowerCase()} proteins
-            ({summary.up} up / {summary.down} down / {summary.both} both)
+            {suffixes.length > 1
+                ? ` — ${summary.up} only up, ${summary.down} only down, ${summary.both} both directions across volcanos`
+                : null}
             {_.isString(groupTag) && proteinSetsReady
                 ? ` — covered by ${summary.coveredCount} of ${summary.groupCount} annotations of this group (${summary.coveredThreePlus} with 3+ members)`
                 : null}.
@@ -361,13 +432,22 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 </button>
             </div>
             {filteredEntries.length === 0
-                ? <span className="font-size--small">{searchIsActive
-                    ? "No annotations match the filter."
-                    : "No overlap between the selected list(s) and the annotations of this group."}</span>
+                ? <span className="font-size--small">{!hasAnyOverlap
+                    ? "No overlap between the selected list(s) and the annotations of this group."
+                    : "No annotations match the filter."}</span>
                 : <div className="flex flex-column">
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
                         <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
-                        <span className="font-size--smallest">members in list (up / down / both)</span>
+                        <span className="font-size--smallest">bar fill = share of annotation members in list:</span>
+                        {[
+                            { color: directionBarColor("up"), label: "up" },
+                            { color: directionBarColor("down"), label: "down" },
+                            { color: DISCORDANT_COLOR, label: "both directions" },
+                            { color: "#efefef", label: "not in list", border: "1px solid #d8d8d8" }
+                        ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.2rem" }}>
+                            <span style={{ width: "0.6rem", height: "0.6rem", backgroundColor: item.color, border: item.border ?? "none", display: "inline-block" }} />
+                            {item.label}
+                        </span>)}
                         <span className="font-size--smallest" style={{ width: "4.5rem", flexShrink: 0, textAlign: "right" }}>med. log2FC</span>
                     </div>
                     {visibleEntries.map(entry => <AnnotationRow
@@ -386,7 +466,8 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                         selectedListKeys={selectedListKeys}
                         markedProteinTags={markedProteinTags}
                         onMarkProteinList={onMarkProteinList}
-                        onLabelProteinList={onLabelProteinList} />)}
+                        onLabelProteinList={onLabelProteinList}
+                        proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />)}
                 </div>}
             {visibleEntries.length < filteredEntries.length
                 ? <button className="basic-button--small margin-top--little"
