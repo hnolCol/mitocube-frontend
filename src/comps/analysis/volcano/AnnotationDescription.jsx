@@ -156,8 +156,17 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
             </div>
             <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
                 backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags} />
-            <div className="font-size--smallest margin-top--little">
-                gray = all proteins of the volcano, blue = members of this annotation, red = in selected list(s)
+            <div className="flex center-items flex--wrap margin-top--little" style={{ gap: "0.6rem" }}>
+                {[
+                    { color: "#9a9a9a", label: "all proteins of the volcano (background)", shape: "box" },
+                    { color: "#4a7ba6", label: "member of this annotation", shape: "dot" },
+                    { color: "#d13913", label: "in selected list(s)", shape: "dot" }
+                ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.25rem" }}>
+                    {item.shape === "box"
+                        ? <span style={{ width: "0.8rem", height: "0.45rem", backgroundColor: item.color, opacity: 0.35, border: `1px solid ${item.color}`, display: "inline-block" }} />
+                        : <span style={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: item.color, display: "inline-block" }} />}
+                    {item.label}
+                </span>)}
             </div>
         </div> : null}
     </div>
