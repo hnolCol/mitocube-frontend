@@ -552,6 +552,20 @@ export function ScatterPlot({
         _.range(data.length).forEach(idx => { if (!markedIndices.has(idx)) indices.add(idx) })
         return indices
     }, [markedIndices, data])
+
+    // labeled points that also carry a marked-annotation color get a highlight ring instead of an
+    // opaque fill, so the annotation color stays visible underneath the label highlight
+    const externalLabelMarkedIndices = useMemo(() => {
+        const indices = new Set()
+        externalLabelIndices.forEach(idx => { if (markedIndices.has(idx)) indices.add(idx) })
+        return indices
+    }, [externalLabelIndices, markedIndices])
+
+    const externalLabelPlainIndices = useMemo(() => {
+        const indices = new Set()
+        externalLabelIndices.forEach(idx => { if (!markedIndices.has(idx)) indices.add(idx) })
+        return indices
+    }, [externalLabelIndices, markedIndices])
     
     return (
         <div className="flex">
@@ -643,11 +657,10 @@ export function ScatterPlot({
                     }} /> : null}
                 </g>
 
-                {externalLabelIndices.size > 0 ? <g>
-                    
+                {externalLabelPlainIndices.size > 0 ? <g>
                     <viz.primitives.ScatterPoints {...{
                         data: data,
-                        indices : externalLabelIndices,
+                        indices : externalLabelPlainIndices,
                         valid,
                         xScale,
                         yScale,
@@ -657,6 +670,25 @@ export function ScatterPlot({
                         sizeName,
                         colorName: undefined,
                         fill: HIGHLIGHT_COLOR,
+                        rerenderDependency: _.concat([externalLabelRerender], xScale.domain(), yScale.domain())
+                }} />
+                    </g> : null}
+
+                {externalLabelMarkedIndices.size > 0 ? <g>
+                    <viz.primitives.ScatterPoints {...{
+                        data: data,
+                        indices : externalLabelMarkedIndices,
+                        valid,
+                        xScale,
+                        yScale,
+                        xaxisName,
+                        yaxisName,
+                        sizeScale,
+                        sizeName,
+                        colorName: undefined,
+                        fill: "transparent",
+                        stroke: HIGHLIGHT_COLOR,
+                        strokeWidth: 2,
                         rerenderDependency: _.concat([externalLabelRerender], xScale.domain(), yScale.domain())
                 }} />
                     </g> : null}
