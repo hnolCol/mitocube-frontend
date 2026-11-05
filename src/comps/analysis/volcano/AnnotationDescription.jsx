@@ -319,12 +319,17 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         return withStats
     }, [entries, sortMode, activePlotSuffix])
 
+    // annotations without any member in the selected list(s) are hidden from the rows
+    const displayEntries = useMemo(() => sortedEntries.filter(entry => entry.overlapCount > 0), [sortedEntries])
+
     const filteredEntries = useMemo(() => {
         const query = searchString.trim().toLowerCase()
-        if (query.length === 0) return sortedEntries
-        return sortedEntries.filter(entry =>
+        if (query.length === 0) return displayEntries
+        return displayEntries.filter(entry =>
             entry.tag.toLowerCase().includes(query) || (textByAnnotation.get(entry.tag) ?? "").toLowerCase().includes(query))
-    }, [sortedEntries, searchString, textByAnnotation])
+    }, [displayEntries, searchString, textByAnnotation])
+
+    const hasAnyOverlap = useMemo(() => sortedEntries.some(entry => entry.overlapCount > 0), [sortedEntries])
 
     const visibleEntries = useMemo(() => filteredEntries.slice(0, visibleRowCount), [filteredEntries, visibleRowCount])
 
@@ -385,9 +390,9 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 </button>
             </div>
             {filteredEntries.length === 0
-                ? <span className="font-size--small">{searchIsActive
-                    ? "No annotations match the filter."
-                    : "No overlap between the selected list(s) and the annotations of this group."}</span>
+                ? <span className="font-size--small">{!hasAnyOverlap
+                    ? "No overlap between the selected list(s) and the annotations of this group."
+                    : "No annotations match the filter."}</span>
                 : <div className="flex flex-column">
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
                         <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
