@@ -48,13 +48,20 @@ function PCAPlot({
         return pcaresults.projection.map(d => ({
             ...d,
             "Condition Applications": attribute_tags
-                .flatMap(attribute_tag => _.castArray(d[attribute_tag]))
+                .map(attribute_tag => {
+                    const ca_texts = _.castArray(d[attribute_tag])
+                        .filter(_.isString)
+                        .map(ca_tag => (caTagMap && caTagMap.get(ca_tag)) || ca_tag);
+                    if (ca_texts.length === 0) return null;
+                    const attribute = attributeTagMap && attributeTagMap.get(attribute_tag);
+                    const attribute_text = _.isObject(attribute) && _.isString(attribute.text) ? attribute.text : attribute_tag;
+                    return `${attribute_text}: ${ca_texts.join(", ")}`;
+                })
                 .filter(_.isString)
-                .map(ca_tag => (caTagMap && caTagMap.get(ca_tag)) || ca_tag)
-                .join(", "),
+                .join("; ") || "—",
             "Quantified Protein Groups": sampleProteinGroupCountMap.get(d.tag)
         }));
-    }, [pcaResultsValid, pcaresults, attribute_tags, caTagMap, sampleProteinGroupCountMap]);
+    }, [pcaResultsValid, pcaresults, attribute_tags, caTagMap, attributeTagMap, sampleProteinGroupCountMap]);
 
     const defaultSelection = useMemo(() => {
         if (!pcaResultsValid) return null;
@@ -101,8 +108,8 @@ function PCAPlot({
                         numericIsAttribute={false}
                         colorAndSizeKeyNames={attribute_tags}
                         setSelection={handleScatterSelection}
-                        downloadElements={["scatter_plot-pca-projection", pcaresults.projection]}
-                        elementNames={["SVG", "DIVIDER", `Projected Data (${pcaresults.projection.length} x ${_.keys(pcaresults.projection[0]).length})`]}
+                        downloadElements={["scatter_plot-pca-projection", projectionData]}
+                        elementNames={["SVG", "DIVIDER", `Projected Data (${projectionData.length} x ${projectionData.length > 0 ? _.keys(projectionData[0]).length : 0})`]}
                         fileNames={[`${submission_tag}-PCA.svg`, `${submission_tag}-PCA-Projection.txt`]}
                         elementTypes={["svg", "data"]}
                     />
@@ -144,7 +151,11 @@ function PCAPlot({
                                             limits={limits}
                                             tooltipSmall={false}
                                             tooltipNames={["tag", "Condition Applications", "Quantified Protein Groups"]}
-                                            tooltipNameIsNumeric={{ "Quantified Protein Groups": 0 }}
+                                            tooltipNameIsStats={{
+                                                "Quantified Protein Groups": count => (
+                                                    <div key="quantified-protein-groups">Quantified Protein Groups: {_.isNumber(count) ? count : "—"}</div>
+                                                )
+                                            }}
                                             {...hoverProps}
                                             {...filterProps}
                                             legend={true}
