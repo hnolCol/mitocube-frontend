@@ -1,16 +1,25 @@
 import _ from "lodash"
 import { useEffect, useMemo, useState } from "react"
-import { Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
+import { InputGroup, Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useAnnotationProteinSets, useAnnotationTexts } from "@/api/orchestrated/annotationProteins"
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
 import { directionBarColor, directionLabel, log2FCFieldName, rowDirectionInfo } from "./compareUtils"
 
 const ANNOTATION_LOAD_CHUNK = 50
 const ROW_LIMIT = 30
 const DISCORDANT_COLOR = "#e8c468"
 const BAR_TRACK_WIDTH = 220
+const GROUP_STORAGE_KEY = "volcanoAnnotationDescriptionGroup"
+
+const SORT_MODES = [
+    { key: "overlap", label: "Overlap" },
+    { key: "coverage", label: "Coverage" },
+    { key: "median", label: "|Median log2FC|" },
+    { key: "purity", label: "Direction purity" }
+]
 
 function ListSelectionMenu({ listOptions, selectedListKeys, onToggleListKey }) {
     const [isOpen, setIsOpen] = useState(false)
@@ -41,10 +50,15 @@ function quantile(sortedValues, p) {
     return sortedValues[lo] + (sortedValues[hi] - sortedValues[lo]) * (idx - lo)
 }
 
+function median(values) {
+    const sorted = [...values].filter(_.isNumber).sort((a, b) => a - b)
+    return quantile(sorted, 0.5)
+}
+
 function BoxPlotRow({ values, cy, boxHeight, color, x, withDots, points }) {
     const sorted = [...values].sort((a, b) => a - b)
     const q1 = quantile(sorted, 0.25)
-    const median = quantile(sorted, 0.5)
+    const med = quantile(sorted, 0.5)
     const q3 = quantile(sorted, 0.75)
     const min = sorted[0]
     const max = sorted[sorted.length - 1]
@@ -54,7 +68,7 @@ function BoxPlotRow({ values, cy, boxHeight, color, x, withDots, points }) {
         <line x1={x(max)} y1={cy - boxHeight / 2} x2={x(max)} y2={cy + boxHeight / 2} stroke={color} strokeWidth={1} />
         <rect x={x(q1)} y={cy - boxHeight / 2} width={Math.max(1, x(q3) - x(q1))} height={boxHeight}
             fill={color} fillOpacity={0.35} stroke={color} strokeWidth={1} />
-        <line x1={x(median)} y1={cy - boxHeight / 2} x2={x(median)} y2={cy + boxHeight / 2} stroke={color} strokeWidth={2} />
+        <line x1={x(med)} y1={cy - boxHeight / 2} x2={x(med)} y2={cy + boxHeight / 2} stroke={color} strokeWidth={2} />
         {withDots ? points.map((point, idx) => <circle key={idx}
             cx={x(point.value)}
             cy={cy + (((idx * 37) % 11) - 5)}
@@ -93,24 +107,43 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
     </svg>
 }
 
-function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlotSuffix, suffixes, rowByTag, backgroundValuesBySuffix, selectedTags }) {
-    const maxTotal = entry.maxTotal
+function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlotSuffix, suffixes, rowByTag,
+        backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList }) {
     const segment = (count, color, key) => count > 0
-        ? <div key={key} style={{ width: `${(count / maxTotal) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
+        ? <div key={key} style={{ width: `${(count / entry.maxTotal) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
         : null
+    const overlapTags = entry.overlapTags
+    const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
+    const tooltipLines = [
+        `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s)`,
+        ...listOptions.filter(option => selectedListKeys.includes(option.key))
+            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`)
+    ].join("\n")
     return <div className="margin-bottom--little">
-        <Tooltip compact={true} content={`${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s)`}>
+        <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
             <div className="flex center-items"
                 style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white" }}
                 onClick={onToggle}>
-                <span className="font-size--small" style={{ width: "220px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+                <span className="font-size--small" style={{ width: "200px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
                 <div className="flex center-items" style={{ width: `${BAR_TRACK_WIDTH}px`, height: "0.9rem", backgroundColor: "#efefef", flexShrink: 0 }}>
                     {segment(entry.up, directionBarColor("up"), "up")}
                     {segment(entry.down, directionBarColor("down"), "down")}
                     {segment(entry.both, DISCORDANT_COLOR, "both")}
                 </div>
                 <span className="font-size--small font-weight--bold">{entry.overlapCount}</span>
-                <span className="font-size--smallest">of {entry.total} in list</span>
+                <span className="font-size--smallest">of {entry.total}</span>
+                <span className="font-size--smallest" style={{
+                    width: "4.5rem", flexShrink: 0, textAlign: "right",
+                    color: entry.medianLog2FC > 0 ? "#3d7a3a" : entry.medianLog2FC < 0 ? "#7a4d96" : "#8a8a8a"
+                }}>{_.isNumber(entry.medianLog2FC) ? entry.medianLog2FC.toFixed(2) : "-"}</span>
+                {_.isFunction(onMarkProteinList) ? <button className="basic-button--small" style={{ flexShrink: 0, fontWeight: listIsMarked ? "bold" : "normal" }}
+                    onClick={(e) => { e.stopPropagation(); onMarkProteinList(listIsMarked ? [] : overlapTags) }}>
+                    {listIsMarked ? "Unmark" : "Mark"}
+                </button> : null}
+                {_.isFunction(onLabelProteinList) ? <button className="basic-button--small" style={{ flexShrink: 0 }}
+                    onClick={(e) => { e.stopPropagation(); onLabelProteinList(overlapTags) }}>
+                    Label
+                </button> : null}
             </div>
         </Tooltip>
         {isExpanded ? <div className="margin-top--little margin-left--medium">
@@ -127,17 +160,61 @@ function AnnotationRow({ entry, label, isExpanded, onToggle, plotSuffix, setPlot
     </div>
 }
 
+function exportDescriptionAsCSV({ entries, labels, suffixes, groupTag }) {
+    const header = ["Annotation", "Tag", "Members in submission", "In selected list(s)", "Up", "Down", "Both directions",
+        ...suffixes.flatMap(suffix => [`Median log2FC (${suffix})`])]
+    const lines = [header.join("\t")]
+    entries.forEach(entry => {
+        lines.push([
+            `"${(labels.get(entry.tag) ?? entry.tag).replace(/"/g, "")}"`,
+            entry.tag,
+            entry.total,
+            entry.overlapCount,
+            entry.up,
+            entry.down,
+            entry.both,
+            ...suffixes.map(suffix => {
+                const med = median(entry.memberTags.map(tag => rowTagValue(entry, tag, suffix))
+                    .filter(_.isNumber))
+                return _.isNumber(med) ? med.toFixed(4) : ""
+            })
+        ].join("\t"))
+    })
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `annotation-description-${groupTag ?? "group"}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+}
+
+function rowTagValue(entry, tag, suffix) {
+    const row = entry.rowByTag.get(tag)
+    return _.isObject(row) ? row[log2FCFieldName(suffix)] : undefined
+}
+
 /**
  * @description Describes one or more selectable protein lists (default: all significant proteins of the
  * current direction) by the annotations of a chosen annotation group: per annotation, how many members
  * are in the list and in which direction, plus an expandable log2FC distribution against the volcano background.
  */
-export function AnnotationDescriptionSection({ data, suffixes, direction, submission_tag, listOptions, selectedListKeys, onToggleListKey }) {
-    const [groupTag, setGroupTag] = useState(undefined)
+export function AnnotationDescriptionSection({ data, suffixes, direction, submission_tag, listOptions, selectedListKeys, onToggleListKey,
+        markedProteinTags = [], onMarkProteinList, onLabelProteinList }) {
+    const [groupTag, setGroupTagState] = useState(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: GROUP_STORAGE_KEY })
+        return itemFound && _.isString(itemValue) && itemValue.length > 0 ? itemValue : undefined
+    })
+    const setGroupTag = (tag) => {
+        setGroupTagState(tag)
+        if (_.isString(tag) && tag.length > 0) saveInLocalStorage({ itemName: GROUP_STORAGE_KEY, itemValue: tag })
+    }
     const [annotationLimit, setAnnotationLimit] = useState(ANNOTATION_LOAD_CHUNK)
     const [visibleRowCount, setVisibleRowCount] = useState(ROW_LIMIT)
     const [expandedTag, setExpandedTag] = useState(undefined)
     const [plotSuffix, setPlotSuffix] = useState(_.isArray(suffixes) ? suffixes[0] : undefined)
+    const [sortMode, setSortMode] = useState("overlap")
+    const [searchString, setSearchString] = useState("")
 
     useEffect(() => {
         setAnnotationLimit(ANNOTATION_LOAD_CHUNK)
@@ -148,6 +225,8 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
     useEffect(() => {
         if (_.isArray(suffixes) && !suffixes.includes(plotSuffix)) setPlotSuffix(suffixes[0])
     }, [_.join(suffixes, ";")])
+
+    const activePlotSuffix = _.isArray(suffixes) && suffixes.includes(plotSuffix) ? plotSuffix : suffixes?.[0]
 
     const selectedTags = useMemo(() => {
         const set = new Set()
@@ -193,16 +272,53 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 else if (info.hasUp) up++
                 else if (info.hasDown) down++
             })
-            return { tag, total: set.size, overlapCount: overlapTags.length, up, down, both, memberTags: [...set] }
+            const overlapValues = rows.map(row => row[log2FCFieldName(activePlotSuffix)]).filter(_.isNumber)
+            const medianLog2FC = median(overlapValues)
+            const purity = (up - down) / Math.max(1, up + down + both)
+            return { tag, total: set.size, overlapTags, overlapCount: overlapTags.length, up, down, both, memberTags: [...set], medianLog2FC, purity, rowByTag }
         }).filter(_.isObject)
-            .sort((a, b) => b.overlapCount - a.overlapCount || b.total - a.total)
-    }, [visibleAnnotationTags, proteinTagsByAnnotation, selectedTags, rowByTag, suffixes])
+    }, [visibleAnnotationTags, proteinTagsByAnnotation, selectedTags, rowByTag, suffixes, activePlotSuffix])
 
     const maxTotal = useMemo(() => _.max(entries.map(entry => entry.total)) || 1, [entries])
     const entriesWithScale = useMemo(() => entries.map(entry => ({ ...entry, maxTotal })), [entries, maxTotal])
-    const visibleEntries = useMemo(() => entriesWithScale.slice(0, visibleRowCount), [entriesWithScale, visibleRowCount])
 
-    const activePlotSuffix = _.isArray(suffixes) && suffixes.includes(plotSuffix) ? plotSuffix : suffixes?.[0]
+    const sortedEntries = useMemo(() => {
+        const sorted = [...entriesWithScale]
+        if (sortMode === "coverage") sorted.sort((a, b) => (b.overlapCount / b.total) - (a.overlapCount / a.total) || b.overlapCount - a.overlapCount)
+        else if (sortMode === "median") sorted.sort((a, b) => Math.abs(b.medianLog2FC ?? 0) - Math.abs(a.medianLog2FC ?? 0))
+        else if (sortMode === "purity") sorted.sort((a, b) => b.purity - a.purity)
+        else sorted.sort((a, b) => b.overlapCount - a.overlapCount || b.total - a.total)
+        return sorted
+    }, [entriesWithScale, sortMode])
+
+    const filteredEntries = useMemo(() => {
+        const query = searchString.trim().toLowerCase()
+        if (query.length === 0) return sortedEntries
+        return sortedEntries.filter(entry =>
+            entry.tag.toLowerCase().includes(query) || (textByAnnotation.get(entry.tag) ?? "").toLowerCase().includes(query))
+    }, [sortedEntries, searchString, textByAnnotation])
+
+    const visibleEntries = useMemo(() => filteredEntries.slice(0, visibleRowCount), [filteredEntries, visibleRowCount])
+
+    const summary = useMemo(() => {
+        const rows = [...selectedTags].map(tag => rowByTag.get(tag)).filter(_.isObject)
+        let up = 0
+        let down = 0
+        let both = 0
+        rows.forEach(row => {
+            const info = rowDirectionInfo(row, suffixes)
+            if (info.discordant) both++
+            else if (info.hasUp) up++
+            else if (info.hasDown) down++
+        })
+        const covered = entriesWithScale.filter(entry => entry.overlapCount > 0)
+        return {
+            selected: selectedTags.size, up, down, both,
+            coveredCount: covered.length,
+            coveredThreePlus: covered.filter(entry => entry.overlapCount >= 3).length,
+            groupCount: entriesWithScale.length
+        }
+    }, [selectedTags, rowByTag, suffixes, entriesWithScale])
 
     return <div>
         <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.5rem" }}>
@@ -214,20 +330,35 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 showTags={true} />
         </div>
         <div className="font-size--small margin-bottom--little">
-            Describing <strong>{selectedTags.size}</strong> {directionLabel(direction).toLowerCase()} proteins
-            {_.isString(groupTag) ? ` by the annotations of the selected group` : null}.
+            Describing <strong>{summary.selected}</strong> {directionLabel(direction).toLowerCase()} proteins
+            ({summary.up} up / {summary.down} down / {summary.both} both)
+            {_.isString(groupTag) && proteinSetsReady
+                ? ` — covered by ${summary.coveredCount} of ${summary.groupCount} annotations of this group (${summary.coveredThreePlus} with 3+ members)`
+                : null}.
         </div>
         {!_.isString(groupTag) ? <span className="font-size--small">Select an annotation group to see how the selected list(s) are covered by its annotations.</span> : null}
         {_.isString(groupTag) && groupsLoading ? <Spinner size={20} /> : null}
         {_.isString(groupTag) && !groupsLoading && allAnnotationTags.length === 0 ? <span className="font-size--small">No annotations found for this group.</span> : null}
         {_.isString(groupTag) && allAnnotationTags.length > 0 && !proteinSetsReady ? <Spinner size={20} /> : null}
         {_.isString(groupTag) && allAnnotationTags.length > 0 && proteinSetsReady ? <div>
-            {entriesWithScale.length === 0
+            <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.4rem" }}>
+                <InputGroup small={true} leftIcon="search" placeholder="Filter annotations..."
+                    value={searchString} onChange={e => setSearchString(e.target.value)} style={{ width: "200px" }} />
+                <span className="font-size--smallest">Sort:</span>
+                {SORT_MODES.map(mode => <OptionButton key={mode.key} isSelected={sortMode === mode.key} onClick={() => setSortMode(mode.key)}>{mode.label}</OptionButton>)}
+                <button className="basic-button--small"
+                    disabled={filteredEntries.length === 0}
+                    onClick={() => exportDescriptionAsCSV({ entries: filteredEntries, labels: textByAnnotation, suffixes, groupTag })}>
+                    Export CSV
+                </button>
+            </div>
+            {filteredEntries.length === 0
                 ? <span className="font-size--small">No overlap between the selected list(s) and the annotations of this group.</span>
                 : <div className="flex flex-column">
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
-                        <span className="font-size--smallest" style={{ width: "220px", flexShrink: 0 }}>Annotation</span>
+                        <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
                         <span className="font-size--smallest">members in list (up / down / both)</span>
+                        <span className="font-size--smallest" style={{ width: "4.5rem", flexShrink: 0, textAlign: "right" }}>med. log2FC</span>
                     </div>
                     {visibleEntries.map(entry => <AnnotationRow
                         key={entry.tag}
@@ -236,16 +367,21 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                         isExpanded={expandedTag === entry.tag}
                         onToggle={() => setExpandedTag(expandedTag === entry.tag ? undefined : entry.tag)}
                         plotSuffix={activePlotSuffix}
+                        setPlotSuffix={setPlotSuffix}
                         suffixes={suffixes}
                         rowByTag={rowByTag}
                         backgroundValuesBySuffix={backgroundValuesBySuffix}
                         selectedTags={selectedTags}
-                        setPlotSuffix={setPlotSuffix} />)}
+                        listOptions={listOptions}
+                        selectedListKeys={selectedListKeys}
+                        markedProteinTags={markedProteinTags}
+                        onMarkProteinList={onMarkProteinList}
+                        onLabelProteinList={onLabelProteinList} />)}
                 </div>}
-            {visibleEntries.length < entriesWithScale.length
+            {visibleEntries.length < filteredEntries.length
                 ? <button className="basic-button--small margin-top--little"
                     onClick={() => setVisibleRowCount(visibleRowCount + ROW_LIMIT)}>
-                    Show more ({Math.min(visibleRowCount, entriesWithScale.length)} of {entriesWithScale.length})
+                    Show more ({Math.min(visibleRowCount, filteredEntries.length)} of {filteredEntries.length})
                 </button>
                 : null}
             {annotationLimit < allAnnotationTags.length

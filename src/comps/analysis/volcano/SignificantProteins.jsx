@@ -8,6 +8,7 @@ import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelectio
 import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useAnnotationProteinSets } from "@/api/orchestrated/annotationProteins"
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
 import { AnnotationDescriptionSection } from "./AnnotationDescription"
 import { directionBarColor, directionLabel, directionTags, getSignificantRows, getSignatureEntries, isSignificantValue, log2FCFieldName, pValueFieldName, rowDirectionInfo, rowProteinTags, significantFieldName } from "./compareUtils"
 
@@ -657,7 +658,10 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     const [rightSuffix, setRightSuffix] = useState(_.isArray(suffixes) ? suffixes[1] : undefined)
     const [vennSelectionStates, setVennSelectionStates] = useState({})
     const [upsetSelectionStates, setUpsetSelectionStates] = useState({})
-    const [selectedListKeys, setSelectedListKeys] = useState(["all"])
+    const [selectedListKeys, setSelectedListKeys] = useState(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoAnnotationDescriptionLists", parseJson: true })
+        return itemFound && _.isArray(itemValue) && itemValue.length > 0 ? itemValue.filter(_.isString) : ["all"]
+    })
 
     useEffect(() => {
         if (!_.isArray(suffixes) || suffixes.length < 2) return
@@ -701,6 +705,17 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
         return options
     }, [sets, suffixes, direction, leftSuffix, rightSuffix])
 
+    useEffect(() => {
+        if (_.isArray(selectedListKeys) && selectedListKeys.length > 0)
+            saveInLocalStorage({ itemName: "volcanoAnnotationDescriptionLists", itemValue: JSON.stringify(selectedListKeys) })
+    }, [_.join(selectedListKeys, ";")])
+
+    const validListKeys = useMemo(() => {
+        const keys = listOptions.map(option => option.key)
+        const stored = selectedListKeys.filter(key => keys.includes(key))
+        return stored.length > 0 ? stored : ["all"]
+    }, [listOptions, selectedListKeys])
+
     const vennSelectionState = vennSelectionStates[direction] ?? {}
     const upsetSelectionState = upsetSelectionStates[direction] ?? {}
 
@@ -741,10 +756,11 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                     <Tab id="annotations" title="Describe by annotation" panel={
                         <AnnotationDescriptionSection
                             data={data} suffixes={suffixes} direction={direction} submission_tag={submission_tag}
-                            listOptions={listOptions} selectedListKeys={selectedListKeys}
+                            listOptions={listOptions} selectedListKeys={validListKeys}
                             onToggleListKey={key => setSelectedListKeys(prev => prev.includes(key)
                                 ? (prev.length > 1 ? prev.filter(k => k !== key) : prev)
-                                : [...prev, key])} />
+                                : [...prev, key])}
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} />
                     } />
                 </Tabs>
             </div>
