@@ -55,8 +55,7 @@ function median(values) {
     return quantile(sorted, 0.5)
 }
 
-function BoxPlotRow({ values, cy, boxHeight, color, x, withDots, points }) {
-    const sorted = [...values].sort((a, b) => a - b)
+function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
     const q1 = quantile(sorted, 0.25)
     const med = quantile(sorted, 0.5)
     const q3 = quantile(sorted, 0.75)
@@ -86,7 +85,8 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         .filter(row => _.isObject(row) && _.isNumber(row[log2FCFieldName(suffix)]))
         .map(row => ({ value: row[log2FCFieldName(suffix)], inList: selectedTags.has(row.tag) })),
         [entry, suffix, rowByTag, selectedTags])
-    const allValues = useMemo(() => [...backgroundValues, ...points.map(p => p.value)], [backgroundValues, points])
+    const sortedPointValues = useMemo(() => points.map(p => p.value).sort((a, b) => a - b), [points])
+    const allValues = useMemo(() => [...backgroundValues, ...sortedPointValues], [backgroundValues, sortedPointValues])
     if (allValues.length === 0) return <span className="font-size--smallest">No log2FC values for this volcano.</span>
     const min = Math.min(...allValues)
     const max = Math.max(...allValues)
@@ -105,8 +105,8 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         <text x={x(max)} y={height - 8} fontSize="9" textAnchor="middle" fill="#8a8a8a">{max.toFixed(2)}</text>
         <text x={6} y={42} fontSize="9" fill="#8a8a8a">all</text>
         <text x={6} y={102} fontSize="9" fill="#8a8a8a">ann.</text>
-        <BoxPlotRow values={backgroundValues} cy={40} boxHeight={16} color="#9a9a9a" x={x} withDots={false} points={[]} />
-        <BoxPlotRow values={points.map(p => p.value)} cy={100} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points} />
+        <BoxPlotRow sorted={backgroundValues} cy={40} boxHeight={16} color="#9a9a9a" x={x} withDots={false} points={[]} />
+        <BoxPlotRow sorted={sortedPointValues} cy={100} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points} />
     </svg>
 }
 
@@ -255,6 +255,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
 
     const backgroundValuesBySuffix = useMemo(() => _.fromPairs(suffixes.map(suffix => [suffix,
         (_.isArray(data) ? data.map(row => row[log2FCFieldName(suffix)]) : []).filter(_.isNumber)
+            .sort((a, b) => a - b)
     ])), [data, suffixes])
 
     const entries = useMemo(() => {
@@ -262,7 +263,9 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         return visibleAnnotationTags.map(tag => {
             const set = proteinTagsByAnnotation.get(tag)
             if (!(set instanceof Set) || set.size === 0) return null
-            const overlapTags = [...set].filter(tag => selectedTags.has(tag))
+            const overlapTags = selectedTags.size <= set.size
+                ? [...selectedTags].filter(tag => set.has(tag))
+                : [...set].filter(tag => selectedTags.has(tag))
             const rows = overlapTags.map(tag => rowByTag.get(tag)).filter(_.isObject)
             let up = 0
             let down = 0
