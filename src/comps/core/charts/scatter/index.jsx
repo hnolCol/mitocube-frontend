@@ -1,6 +1,6 @@
 import PropTypes from "prop-types"
 import { getChartWidthAndHeightWithMargins } from "../../../../services/plotting/size"
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { addMarginToBoundaries, getMaxAbsoluteValue } from "../../../../services/arrays/boundaries"
 import { scaleLinear, scaleOrdinal } from "@visx/scale"
 import { SVG } from "../SVGHeader"
@@ -216,7 +216,10 @@ export function ScatterPlot({
         }).flat().filter(tag => _.isString(tag) && !proteinTagMap.has(tag))
 
         if (labelTags.length === 0) return
-        setRequiredProteinTags(prevValues => [...new Set([...prevValues, ...labelTags])])
+        setRequiredProteinTags(prevValues => {
+            const missing = labelTags.filter(tag => !prevValues.includes(tag))
+            return missing.length === 0 ? prevValues : [...prevValues, ...missing]
+        })
 
     }, [labelRerender, externalHoverRerender, externalLabelRerender])
     //combined with the useMemo for indicesForLabels, this useEffect ensures that when the label indices change, the required protein tags are fetched, and when the protein data is loaded, the chart is rerendered to show the labels.
@@ -350,7 +353,7 @@ export function ScatterPlot({
         }
     }, [sizeName])
 
-    const handleMouseUp = (event) => {
+    const handleMouseUp = useCallback((event) => {
         if (zoomActive.active && zoomActive.width > 10 && zoomActive.height > 10) { 
 
             setZoomActive(prevValues => ({ ...prevValues, zoomed: true }))
@@ -365,10 +368,8 @@ export function ScatterPlot({
             y - rectDist[yaxisName],
             x + rectDist[xaxisName],
             y + rectDist[yaxisName])
-    }    
-
-
-    const handleMouseDown = (event) => {
+    }, [zoomActive, xScale, yScale, rectDist, xaxisName, yaxisName, findClosestPoint, chartIdx])
+        const handleMouseDown = useCallback((event) => {
         
         const mouseCoord = localPoint(event)
 
@@ -384,11 +385,8 @@ export function ScatterPlot({
                        "origin": mouseCoord,
                         "zoomed": false
                         }}) //faster zoom function
-    }
-    
-
-
-    const handleMouseHover = (event) => {
+    }, [])
+        const handleMouseHover = useCallback((event) => {
 
         const coords = localPoint(event.target.ownerSVGElement, event);
         const x = xScale.invert(coords.x)
@@ -439,9 +437,8 @@ export function ScatterPlot({
                 x + rectDist[xaxisName],
                 y + rectDist[yaxisName], [coords.x, coords.y])
          }
-    }
-
-    const getLines = () => {
+    }, [zoomActive, setZoomActive, setHoverDataInRectangle, xScale, yScale, rectDist, xaxisName, yaxisName, chartIdx])
+        const getLines = () => {
         if (linesBySlopeAndIntercept.length > 0)
             return <g>
                 
