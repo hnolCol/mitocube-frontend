@@ -48,6 +48,8 @@ export function VolcanoDataHandler({
     const [annotationMarkers, setAnnotationMarkers] = useState([])
 
     const markedAnnotationTags = _.isArray(markedAnnotations) ? markedAnnotations.map(m => m.tag) : []
+    // stable key so the memos below don't re-run when the parent passes a fresh markedAnnotations array
+    const markedAnnotationsKey = _.isArray(markedAnnotations) ? markedAnnotations.map(m => `${m.tag}:${m.color}`).join(";") : ""
     const { proteinTagsByAnnotation } = useAnnotationProteinSets({ submission_tag, annotation_tags: markedAnnotationTags })
     const { textByAnnotation } = useAnnotationTexts(markedAnnotationTags)
 
@@ -65,7 +67,7 @@ export function VolcanoDataHandler({
             }
             return row
         })
-    }, [volcanoData.data, markedAnnotations, proteinTagsByAnnotation])
+    }, [volcanoData.data, markedAnnotationsKey, proteinTagsByAnnotation])
 
     const markedAnnotationMarkers = useMemo(() => (_.isArray(markedAnnotations) ? markedAnnotations
         .filter(m => proteinTagsByAnnotation.get(m.tag) instanceof Set)
@@ -74,7 +76,7 @@ export function VolcanoDataHandler({
             annotationNames: [textByAnnotation.get(tag)],
             color,
             proteinTags: [...proteinTagsByAnnotation.get(tag)]
-        })) : []), [markedAnnotations, proteinTagsByAnnotation, textByAnnotation])
+        })) : []), [markedAnnotationsKey, proteinTagsByAnnotation, textByAnnotation])
     const [prefetchedTestParams, setPrefetchedTestParams] = useState([])
     const { isReady, tagQueries } = usePrefetchVolcanoData(prefetchedTestParams, { enabled: _.isObject(prefetchedTestParams) && _.isArray(prefetchedTestParams) && prefetchedTestParams.length > 0 })
        
