@@ -8,29 +8,16 @@ import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelectio
 import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useAnnotationProteinSets } from "@/api/orchestrated/annotationProteins"
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
+import { AnnotationDescriptionSection } from "./AnnotationDescription"
+import { directionBarColor, directionLabel, directionTags, getSignificantRows, getSignatureEntries, isSignificantValue, log2FCFieldName, pValueFieldName, rowDirectionInfo, rowProteinTags, significantFieldName } from "./compareUtils"
+
+export { getSignificantRows }
 
 
 const PAGE_SIZE = 50
 
 
-function log2FCFieldName(suffix) {
-    return `log2FC ${suffix}`
-}
-
-function significantFieldName(suffix) {
-    return `Significant ${suffix}`
-}
-
-function pValueFieldName(suffix) {
-    return `-log10 p-value ${suffix}`
-}
-
-function isSignificantValue(value) {
-    if (_.isBoolean(value)) return value
-    if (_.isNumber(value)) return value > 0
-    if (_.isString(value)) return !["", "not significant", "none", "ns", "false"].includes(value.trim().toLowerCase())
-    return false
-}
 
 function formatLog2FC(log2fc) {
     return _.isNumber(log2fc) ? log2fc.toFixed(2) : "-"
@@ -54,36 +41,6 @@ function proteinNameByTag(proteinTagMap, tag) {
 function displayNamesForRow(proteinTagMap, row) {
     const tags = _.isString(row.tag) ? row.tag.split(";") : []
     return tags.map(tag => proteinNameByTag(proteinTagMap, tag)).join(", ")
-}
-
-function rowProteinTags(row) {
-    return _.isString(row.tag) ? row.tag.split(";") : []
-}
-
-function directionLabel(direction) {
-    return direction === "up" ? "Upregulated" : direction === "down" ? "Downregulated" : "Significant"
-}
-
-function directionBarColor(direction) {
-    return direction === "up" ? "#7fbf7b" : direction === "down" ? "#af8dc3" : "#80b1d3"
-}
-
-function directionTags(set, direction) {
-    if (!_.isObject(set)) return []
-    if (direction === "all") return [...(set.up || []), ...(set.down || [])]
-    return _.isArray(set[direction]) ? set[direction] : []
-}
-
-function rowDirectionInfo(row, suffixes) {
-    let hasUp = false
-    let hasDown = false
-    suffixes.forEach(suffix => {
-        if (!isSignificantValue(row[significantFieldName(suffix)])) return
-        const log2fc = row[log2FCFieldName(suffix)]
-        if (_.isNumber(log2fc) && log2fc > 0) hasUp = true
-        if (_.isNumber(log2fc) && log2fc < 0) hasDown = true
-    })
-    return { hasUp, hasDown, discordant: hasUp && hasDown }
 }
 
 function RowDirectionBadge({ row, suffixes }) {
@@ -154,25 +111,6 @@ function exportRowsAsCSV({ rows, suffixes, proteinTagMap, fileName }) {
     link.click()
     URL.revokeObjectURL(url)
 }
-
-/**
- * @description Extracts the significant up- and downregulated proteins of a volcano from the merged volcano data.
- * @param {Object[]} data The merged volcano data rows.
- * @param {String} suffix The volcano suffix.
- * @returns {{up: Object[], down: Object[], all: Object[]}} Rows sorted by fold change. Each row has ```tag``` and the volcano field names.
- */
-export function getSignificantRows(data, suffix) {
-    if (!_.isArray(data) || !_.isString(suffix)) return { up: [], down: [], all: [] }
-    const fcName = log2FCFieldName(suffix)
-    const sigName = significantFieldName(suffix)
-    const significant = data.filter(row => isSignificantValue(row[sigName]) && _.isNumber(row[fcName]))
-    return {
-        up: significant.filter(row => row[fcName] > 0).sort((a, b) => b[fcName] - a[fcName]),
-        down: significant.filter(row => row[fcName] < 0).sort((a, b) => a[fcName] - b[fcName]),
-        all: [...significant].sort((a, b) => Math.abs(b[fcName]) - Math.abs(a[fcName]))
-    }
-}
-
 
 function usePrefetchProteinNames(rows, proteinTagMap, setRequiredProteinTags) {
     const requestedTags = useRef(new Set())
@@ -642,22 +580,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
         selectionState, onSelectionStateChange, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList,
         markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
 
-    const signatureEntries = useMemo(() => {
-        const membershipByTag = new Map()
-        suffixes.forEach(suffix => {
-            directionTags(sets[suffix], direction).forEach(tag => {
-                if (!membershipByTag.has(tag)) membershipByTag.set(tag, new Set())
-                membershipByTag.get(tag).add(suffix)
-            })
-        })
-        const groups = new Map()
-        membershipByTag.forEach((memberSuffixes, tag) => {
-            const key = suffixes.filter(suffix => memberSuffixes.has(suffix)).join(" | ")
-            if (!groups.has(key)) groups.set(key, { key, suffixes: [...memberSuffixes], tags: [] })
-            groups.get(key).tags.push(tag)
-        })
-        return _.orderBy([...groups.values()], entry => entry.tags.length, "desc")
-    }, [sets, suffixes, direction])
+    const signatureEntries = useMemo(() => getSignatureEntries(sets, suffixes, direction), [sets, suffixes, direction])
 
     const maxCount = _.max(signatureEntries.map(entry => entry.tags.length)) || 1
     const visibleEntries = signatureEntries.slice(0, UPSET_MAX_ROWS)
@@ -735,6 +658,10 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     const [rightSuffix, setRightSuffix] = useState(_.isArray(suffixes) ? suffixes[1] : undefined)
     const [vennSelectionStates, setVennSelectionStates] = useState({})
     const [upsetSelectionStates, setUpsetSelectionStates] = useState({})
+    const [selectedListKeys, setSelectedListKeys] = useState(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoAnnotationDescriptionLists", parseJson: true })
+        return itemFound && _.isArray(itemValue) && itemValue.length > 0 ? itemValue.filter(_.isString) : ["all"]
+    })
 
     useEffect(() => {
         if (!_.isArray(suffixes) || suffixes.length < 2) return
@@ -760,6 +687,34 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
         })
         return { up: upTags.size, down: downTags.size, all: new Set([...upTags, ...downTags]).size }
     }, [sets, suffixes])
+
+    const listOptions = useMemo(() => {
+        const options = [{ key: "all", label: `All significant (${directionLabel(direction).toLowerCase()})`, tags: _.uniq(suffixes.flatMap(suffix => directionTags(sets[suffix], direction))) }]
+        suffixes.forEach(suffix => options.push({ key: `suffix::${suffix}`, label: `${directionLabel(direction)} in ${suffix}`, tags: directionTags(sets[suffix], direction) }))
+        const leftSet = sets[leftSuffix]
+        const rightSet = sets[rightSuffix]
+        if (leftSet && rightSet) {
+            const leftTags = directionTags(leftSet, direction)
+            const rightTags = directionTags(rightSet, direction)
+            options.push({ key: "venn::leftOnly", label: `Only in ${leftSuffix}`, tags: leftTags.filter(tag => !rightTags.includes(tag)) })
+            options.push({ key: "venn::shared", label: `Shared ${leftSuffix} & ${rightSuffix}`, tags: leftTags.filter(tag => rightTags.includes(tag)) })
+            options.push({ key: "venn::rightOnly", label: `Only in ${rightSuffix}`, tags: rightTags.filter(tag => !leftTags.includes(tag)) })
+        }
+        getSignatureEntries(sets, suffixes, direction).slice(0, UPSET_MAX_ROWS)
+            .forEach(entry => options.push({ key: `upset::${entry.key}`, label: `Significant in: ${entry.key}`, tags: entry.tags }))
+        return options
+    }, [sets, suffixes, direction, leftSuffix, rightSuffix])
+
+    useEffect(() => {
+        if (_.isArray(selectedListKeys) && selectedListKeys.length > 0)
+            saveInLocalStorage({ itemName: "volcanoAnnotationDescriptionLists", itemValue: JSON.stringify(selectedListKeys) })
+    }, [_.join(selectedListKeys, ";")])
+
+    const validListKeys = useMemo(() => {
+        const keys = listOptions.map(option => option.key)
+        const stored = selectedListKeys.filter(key => keys.includes(key))
+        return stored.length > 0 ? stored : ["all"]
+    }, [listOptions, selectedListKeys])
 
     const vennSelectionState = vennSelectionStates[direction] ?? {}
     const upsetSelectionState = upsetSelectionStates[direction] ?? {}
@@ -798,6 +753,15 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                                 markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onRemoveAllLabels={onRemoveAllLabels}
                                 proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
                         </div>} />
+                    <Tab id="annotations" title="Describe by annotation" panel={
+                        <AnnotationDescriptionSection
+                            data={data} suffixes={suffixes} direction={direction} submission_tag={submission_tag}
+                            listOptions={listOptions} selectedListKeys={validListKeys}
+                            onToggleListKey={key => setSelectedListKeys(validListKeys.includes(key)
+                                ? (validListKeys.length > 1 ? validListKeys.filter(k => k !== key) : validListKeys)
+                                : [...validListKeys, key])}
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList} />
+                    } />
                 </Tabs>
             </div>
         </Drawer>
