@@ -20,7 +20,7 @@ import { MessagesButton } from "@/comps/messages"
 import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
 import { PendingTraitRequestsButton } from "../../base/user/PendingTraitRequestButton"
 import { RoleRights } from "../../base/user/RoleRights"
-
+import { PendingTicketsButton } from "../../tickets/PendingTicketButton"
 /**
  * 
  * @param {Object} props 
@@ -110,6 +110,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <PendingCollaborationRequestButton />
                 <PendingAttributeRequestsButton userRole={userRole} />
                 <PendingTraitRequestsButton userRole={userRole} />
+                <PendingTicketsButton userRole={userRole} userTag={user_tag} />
                 <MessagesButton user_tag={user_tag} />
                 <div className="flex flex-column justify-center">
                     <Tooltip content="Show the rights connected to the user roles" position={Position.BOTTOM}>

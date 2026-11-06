@@ -40,6 +40,7 @@ import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
 import { consortiumsAPI, pendingConsortiumShareRequestsAPI } from "./consortiums";
 import { collaborationsAPI, messagesAPI } from "./collaborations";
+import { ticketsAPI } from "./tickets";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
 import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
@@ -188,6 +189,7 @@ export const api = {
     consortiumShareRequests : pendingConsortiumShareRequestsAPI,
     collaborations : collaborationsAPI,
     messages : messagesAPI,
+    tickets : ticketsAPI,
 
     diseases : {
         query : diseasesQueryAPI,
