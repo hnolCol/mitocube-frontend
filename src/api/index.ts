@@ -44,6 +44,7 @@ import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintena
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
 import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
 import { statsAPI } from "./stats";
+import { proteomeProjectionAPI } from "./proteomeProjection";
 import { submissionStatisticsAPI } from "./submissionStatistics";
 import { cyperOpenAIAPI } from "./openai";
 import { diseasesQueryAPI, diseasesClinVarAPI } from "./diseases";
@@ -176,7 +177,8 @@ export const api = {
     },
     stats : {
         submissionDurations : statsAPI,
-        submissions : submissionStatisticsAPI
+        submissions : submissionStatisticsAPI,
+        proteomeProjection : proteomeProjectionAPI
     },
     openai : {
         cyper : cyperOpenAIAPI
