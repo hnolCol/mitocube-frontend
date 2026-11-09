@@ -67,8 +67,10 @@ Only the backend can do this, since only it knows the trait → parent-trait imp
 ```
 
 If a child trait does **not** imply a unique parent trait, `trait_paths` simply omits an entry for
-it; the frontend then performs a chained selection (fetch the parent attribute's traits and require
-the user to pick the parent trait before inserting the child).
+it; the frontend then performs a chained selection (see below). `parent_tags` is the contract the
+frontend relies on — it requires no curated edges at all — while `trait_paths` is best-effort
+enrichment for genuinely unambiguous mappings. A backend instance without any curated
+`IMPLIED_TRAIT` edges still gets correct behaviour.
 
 ### 2. Backend: validation on CA updates
 
@@ -88,14 +90,19 @@ state from being reintroduced by other API consumers.
 
 - `AttributesInput` (`src/comps/core/input/api/DatasetAttributeInput.jsx`) now sends
   `include_parent_paths: true` to the attributes query and passes each attribute's `trait_paths`
-  down to the menu items.
+  and `parent_tags` down to the menu items.
 - `TraitMenuItem` (`src/comps/core/input/items/AttributeValueMenu.jsx`) accepts a `trait_path`
   prop (the resolved `[{attribute_tag, trait_tag}, ...]` chain, root first). When present, the
   click emits the **full path** (parent attribute + parent trait → child attribute + child trait)
-  instead of the hard-coded two-element path; otherwise it falls back to the previous behaviour.
-  `findAndInsertTree` already inserts complete paths and required no change.
-- For traits without an implied parent trait, a chained parent-trait selection prompt remains a
-  follow-up.
+  instead of the hard-coded two-element path. `findAndInsertTree` already inserts complete paths
+  and required no change.
+- **Chained parent-trait selection is the primary mechanism** (per review): when a trait has no
+  `trait_paths` entry but its attribute has `parent_tags`, `AttributeWithTraitsMenuItem` prompts
+  the user to pick a trait for each ancestor attribute (root first, fetching each parent's traits
+  via `useGetTraitsByAttributeTag`) and only then inserts the complete path. The resolved
+  `trait_paths` entry is used as an opt-in convenience when present; a wrong curated edge never
+  silently auto-completes a wrong parent, since the user always sees what they pick.
+- Traits of attributes without ancestors keep the previous two-element path behaviour.
 
 ## Design decision: optional parameter, flat vs. hierarchical tree
 
