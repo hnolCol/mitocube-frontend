@@ -63,6 +63,8 @@ import { ProteinPage } from "./comps/protein/charts/overview";
 
 /* Performance area */
 import PerformanceHeader from "./comps/performance";
+import CrossSubmissionAnalysisHeader from "./comps/analysis/cross";
+import { PooledProjection } from "./comps/analysis/cross/PooledProjection";
 import PerformanceOverview from "./comps/performance/overview";
 import PerformanceRuns from "./comps/performance/runs";
 import PerformanceInstruments from "./comps/performance/instruments";
@@ -287,6 +289,19 @@ function App() {
             <Route path="/performance/instruments/:instrument_tag" element={<InstrumentView />} />
             <Route path="/performance/runs" element={<PerformanceRuns />} />
             {/* <Route path="/performance/help" element={<h3>Help</h3>}/> */}
+          </Route>
+
+          {/* Cross-Submission Analysis Routes */}
+          <Route
+            path="/analysis"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <CrossSubmissionAnalysisHeader />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<PooledProjection />} />
+            <Route path="/analysis/pca" element={<PooledProjection />} />
           </Route>
 
           {/* Submission Routes */}

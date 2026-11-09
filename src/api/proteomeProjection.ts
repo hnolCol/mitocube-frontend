@@ -14,6 +14,21 @@ const packageProjectionAPI = _.isFunction(hooks?.stats?.proteomes?.createProteom
     ? hooks.stats.proteomes.createProteomeProjectionAPI(apiClient)
     : null;
 
+const useGetProteomeProjection = (APIParams = { proteome_tag, method: "pca", n_components: 2 }, useQueryOptions = {}) => {
+    if (_.isFunction(packageProjectionAPI?.useGetProteomeProjection)) {
+        return packageProjectionAPI.useGetProteomeProjection(APIParams, useQueryOptions);
+    }
+    return useQuery({
+        queryKey: ["getProteomeProjection", APIParams.proteome_tag, APIParams.method, APIParams.n_components, APIParams.min_valid_fraction],
+        queryFn: () => apiClient
+            .get(`/stats/proteomes/${APIParams.proteome_tag}/projection`, {
+                params: { method: APIParams.method, n_components: APIParams.n_components, min_valid_fraction: APIParams.min_valid_fraction }
+            })
+            .then(res => res.data),
+        ...useQueryOptions
+    });
+};
+
 const useGetProteomeProjectionDriver = (APIParams = { proteome_tag, protein_tag, n_components: 4 }, useQueryOptions = {}) => {
     if (_.isFunction(packageProjectionAPI?.useGetProteomeProjectionDriver)) {
         return packageProjectionAPI.useGetProteomeProjectionDriver(APIParams, useQueryOptions);
@@ -61,6 +76,7 @@ const useGetProteomeProjectionAttributeEffects = (APIParams = { proteome_tag, at
 
 export const proteomeProjectionAPI = {
     ...(packageProjectionAPI ?? {}),
+    useGetProteomeProjection,
     useGetProteomeProjectionDriver,
     useGetProteomeProjectionConditionEffects,
     useGetProteomeProjectionAttributeEffects

@@ -11,6 +11,7 @@ function Leftbar ({
     navigationItems = [
         { name: "Explore Datasets", linkTo: "/datasets", iconName: "Dataset"},
         { name: "Explore protein-centric data", linkTo: "/protein", iconName: "Protein" },
+        { name: "Cross-Submission Analysis", linkTo: "/analysis", iconName: "Dataset" },
         // { name: "Explore post-translational modifications", linkTo: "/ptm", iconName: "Ptm"},
         { name: "Performance Monitoring", linkTo: "/performance", iconName: "PerformanceMonitor" },
         { name: "Sample Submission", linkTo: "/submissions", iconName: "SampleSubmission" },
