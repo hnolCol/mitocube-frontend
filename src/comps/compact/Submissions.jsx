@@ -1,0 +1,426 @@
+import _ from "lodash";
+import { useEffect, useState } from "react";
+import { Link } from "react-router";
+import { api } from "@/api";
+import { isHexColorLight } from "@/services/checks/color";
+import { titleFormat } from "@/services/format/string";
+
+/**
+ * @description Colored pill showing a submission state name.
+ * @param {Object} props
+ * @param {Number} props.state_tag State tag
+ * @returns {JSX.Element|null} The state pill.
+ */
+function StatePill({ state_tag }) {
+    const { data: stateName } = api.states.useGetStateName({ tag: state_tag }, { enabled: _.isNumber(state_tag) });
+    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag }, { enabled: _.isNumber(state_tag) });
+    if (!_.isString(stateName) || !_.isString(stateColor)) return null;
+    return (
+        <span
+            className="compact__state"
+            style={{
+                backgroundColor: stateColor,
+                color: isHexColorLight(stateColor) ? "black" : "white",
+            }}
+        >
+            {titleFormat(stateName)}
+        </span>
+    );
+}
+
+/**
+ * @description Row allowing a submission state change via a plain select element.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The state change row.
+ */
+function SubmissionStateChanger({ submission_tag }) {
+    const { data: state, refetch } = api.submissions.states.useGetSubmissionState({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
+    const { data: states } = api.submissions.states.useGetStates();
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60000 }
+    );
+    const { mutate: updateState, isPending } = api.submissions.states.usePatchSubmissionState({
+        onSuccess: () => refetch(),
+    });
+
+    const canChange = isSuccessPermissions && permissions?.state_change === true;
+
+    return (
+        <div className="compact__row">
+            <span className="compact__label">State</span>
+            <StatePill state_tag={state} />
+            {canChange ? (
+                <select
+                    className="compact__select"
+                    style={{ width: "auto", flex: 1 }}
+                    value={_.isNumber(state) ? String(state) : ""}
+                    disabled={isPending}
+                    onChange={e => {
+                        const newState = Number(e.target.value);
+                        if (_.isNumber(newState)) updateState({ tag: submission_tag, state: newState });
+                    }}
+                >
+                    {!_.isNumber(state) ? <option value="">Select state…</option> : null}
+                    {_.isArray(states) ? states.map(s => (
+                        <option key={s} value={String(s)}>{s === state ? "✔ " : ""}{s}</option>
+                    )) : null}
+                </select>
+            ) : null}
+        </div>
+    );
+}
+
+/**
+ * @description Protocol management for one submission: lists linked protocols with remove
+ * buttons and a select to link additional protocols.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The protocol section.
+ */
+function SubmissionProtocols({ submission_tag }) {
+    const { data: linked, refetch } = api.submissions.protocols.useGetSubmissionProtocols({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
+    const { data: allProtocols } = api.protocols.query.useGetProtocolsByQuery({ search_string: null, limit: 500 }, { staleTime: 60000 });
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60000 }
+    );
+    const { mutate: linkProtocol } = api.protocols.modify.useLinkProtocolToSubmission({ onSuccess: () => refetch() });
+    const { mutate: unlinkProtocol } = api.protocols.modify.useUnlinkProtocolFromSubmission({ onSuccess: () => refetch() });
+
+    const canEdit = isSuccessPermissions && permissions?.edit === true;
+    const linkedTags = _.isArray(linked) ? linked : [];
+    const options = _.isArray(allProtocols) ? allProtocols.filter(p => !linkedTags.includes(p)) : [];
+
+    return (
+        <div className="compact__section">
+            <span className="compact__label">Protocols</span>
+            <div className="compact__row">
+                {linkedTags.length === 0 ? <span className="compact__hint">No protocols linked.</span> : null}
+                {linkedTags.map(protocol_tag => (
+                    <ProtocolChip
+                        key={protocol_tag}
+                        protocol_tag={protocol_tag}
+                        removable={canEdit}
+                        onRemove={() => unlinkProtocol({ submission_tag, protocol_tag })}
+                    />
+                ))}
+            </div>
+            {canEdit && options.length > 0 ? (
+                <div className="compact__row">
+                    <select
+                        className="compact__select"
+                        value=""
+                        onChange={e => {
+                            if (e.target.value) linkProtocol({ submission_tag, protocol_tag: e.target.value });
+                        }}
+                    >
+                        <option value="">Link protocol…</option>
+                        {options.map(protocol_tag => (
+                            <ProtocolOption key={protocol_tag} protocol_tag={protocol_tag} />
+                        ))}
+                    </select>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+/**
+ * @description Protocol option whose label is resolved from the protocol tag.
+ * @param {Object} props
+ * @param {String} props.protocol_tag Protocol tag
+ * @returns {JSX.Element} The option element.
+ */
+function ProtocolOption({ protocol_tag }) {
+    const { data: protocol } = api.protocols.query.useGetProtocolByTag({ tag: protocol_tag }, { enabled: _.isString(protocol_tag) });
+    return <option value={protocol_tag}>{protocol?.title || protocol_tag}</option>;
+}
+
+/**
+ * @description Chip showing a linked protocol, optionally with a remove button.
+ * @param {Object} props
+ * @param {String} props.protocol_tag Protocol tag
+ * @param {Boolean} props.removable Whether to show the remove button
+ * @param {Function} props.onRemove Remove callback
+ * @returns {JSX.Element} The protocol chip.
+ */
+function ProtocolChip({ protocol_tag, removable, onRemove }) {
+    const { data: protocol } = api.protocols.query.useGetProtocolByTag({ tag: protocol_tag }, { enabled: _.isString(protocol_tag) });
+    return (
+        <span className="compact__chip">
+            {protocol?.title || protocol_tag}
+            {removable ? (
+                <button className="compact__chip__remove" onClick={onRemove} title="Unlink protocol">×</button>
+            ) : null}
+        </span>
+    );
+}
+
+/**
+ * @description Metatext insertion and listing for one submission.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The metatext section.
+ */
+function SubmissionMetatexts({ submission_tag }) {
+    const [title, setTitle] = useState("");
+    const [text, setText] = useState("");
+    const { data: metatexts, refetch } = api.submissions.metatexts.useGetMetatexts({ tag: submission_tag }, { enabled: _.isString(submission_tag) });
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60000 }
+    );
+    const { mutate: postMetatext, isPending } = api.submissions.metatexts.usePostMetatext({
+        onSuccess: () => { setTitle(""); setText(""); refetch(); },
+    });
+
+    const canEdit = isSuccessPermissions && permissions?.edit === true;
+
+    return (
+        <div className="compact__section">
+            <span className="compact__label">Metatexts</span>
+            {_.isArray(metatexts) && metatexts.length > 0 ? (
+                <div className="compact__row">
+                    {metatexts.map(tag => <MetatextChip key={tag} tag={tag} />)}
+                </div>
+            ) : <div className="compact__hint">No metatexts yet.</div>}
+            {canEdit ? (
+                <div style={{ marginTop: "0.5rem" }}>
+                    <input
+                        className="compact__input"
+                        placeholder="Title"
+                        value={title}
+                        onChange={e => setTitle(e.target.value)}
+                    />
+                    <textarea
+                        className="compact__textarea"
+                        style={{ marginTop: "0.4rem" }}
+                        placeholder="Metatext…"
+                        value={text}
+                        onChange={e => setText(e.target.value)}
+                    />
+                    <div className="compact__row">
+                        <button
+                            className="compact__button"
+                            disabled={isPending || text.trim().length === 0}
+                            onClick={() => postMetatext({ title, text, submission_tag })}
+                        >
+                            Add metatext
+                        </button>
+                    </div>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
+/**
+ * @description Chip showing a metatext title.
+ * @param {Object} props
+ * @param {String} props.tag Metatext tag
+ * @returns {JSX.Element} The metatext chip.
+ */
+function MetatextChip({ tag }) {
+    const { data: metatext } = api.metatexts.useGetMetatext({ tag }, { enabled: _.isString(tag) });
+    return <span className="compact__chip">{metatext?.title || tag}</span>;
+}
+
+/**
+ * @description Chip showing a condition application label.
+ * @param {Object} props
+ * @param {String} props.ca_tag Condition application tag
+ * @returns {JSX.Element} The CA chip.
+ */
+function ConditionApplicationChip({ ca_tag }) {
+    const { data: text } = api.condition_applications.useGetConditionApplicationText({ tag: ca_tag }, { enabled: _.isString(ca_tag), staleTime: 300000 });
+    return <span className="compact__chip">{_.isString(text) ? text : ca_tag}</span>;
+}
+
+/**
+ * @description Condition application management for one submission: lists the currently
+ * applied condition applications and allows adding new ones via a plain select. Adding
+ * appends the CA trait to the submission trait tree and updates it via the CA update hook.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The condition application section.
+ */
+function SubmissionConditionApplications({ submission_tag }) {
+    const { data: ca_tags, refetch: refetchCATags } = api.submissions.condition_applications.useGetSubmissionConditionApplication(
+        { tag: submission_tag, group_by_min_state: false, group_by_attribute: false }, { enabled: _.isString(submission_tag) }
+    );
+    const { data: ca_data, refetch: refetchCAData } = api.submissions.condition_applications.useGetSubmissionConditionApplicationData(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag) }
+    );
+    const { data: allCAs } = api.condition_applications.useGetConditionApplicationByQuery(
+        { samples_only: true, sort_by_frequency: true, limit: 500 }, { staleTime: 300000 }
+    );
+    const { data: permissions, isSuccess: isSuccessPermissions } = api.submissions.permissions.useGetSubmissionPermissionsByTag(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 60000 }
+    );
+    const { mutate: updateCA, isPending } = api.submissions.condition_applications.useUpdateSubmissionCA({
+        onSuccess: () => { refetchCATags(); refetchCAData(); },
+    });
+
+    const canEdit = isSuccessPermissions && permissions?.edit === true;
+    const currentTags = _.isArray(ca_tags) ? ca_tags : [];
+    const options = _.isArray(allCAs) ? allCAs.filter(t => !currentTags.includes(t)) : [];
+
+    /**
+     * @description Strips a CA data tree node down to the fields the backend expects.
+     * @param {Array} nodes Tree nodes
+     * @returns {Array} Cleaned nodes.
+     */
+    const cleanForBackend = (nodes) => nodes.map(item => ({
+        type: item.type,
+        tag: item.tag,
+        value: item.value ?? undefined,
+        children: _.isArray(item.children) ? cleanForBackend(item.children) : [],
+    }));
+
+    /**
+     * @description Adds a condition application to the submission by appending its trait
+     * below its attribute node in the current trait tree, then updating the submission.
+     * @param {String} ca_tag Condition application tag to add
+     * @param {Object} caDetail CA detail with attribute_tag / trait_tag / value
+     */
+    const handleAdd = (ca_tag, caDetail) => {
+        if (!_.isObject(caDetail) || !_.isString(caDetail.trait_tag)) return;
+        const tree = cleanForBackend(_.isArray(ca_data) ? ca_data : []);
+        const traitNode = { type: "trait", tag: caDetail.trait_tag, value: caDetail.value ?? undefined, children: [] };
+        const attributeNode = _.isString(caDetail.attribute_tag)
+            ? tree.find(n => n.type === "attribute" && n.tag === caDetail.attribute_tag)
+            : undefined;
+        if (attributeNode) {
+            attributeNode.children = [...(attributeNode.children || []), traitNode];
+        } else if (_.isString(caDetail.attribute_tag)) {
+            tree.push({ type: "attribute", tag: caDetail.attribute_tag, children: [traitNode] });
+        } else {
+            tree.push(traitNode);
+        }
+        updateCA({ tag: submission_tag, selected_traits: tree });
+    };
+
+    return (
+        <div className="compact__section">
+            <span className="compact__label">Condition applications</span>
+            <div className="compact__row">
+                {currentTags.length === 0 ? <span className="compact__hint">No condition applications.</span> : null}
+                {currentTags.map(ca_tag => <ConditionApplicationChip key={ca_tag} ca_tag={ca_tag} />)}
+            </div>
+            {canEdit && options.length > 0 ? (
+                <AddConditionApplicationSelect
+                    options={options}
+                    disabled={isPending}
+                    onAdd={handleAdd}
+                />
+            ) : null}
+        </div>
+    );
+}
+
+/**
+ * @description Select to add a condition application. Resolves the CA detail (attribute /
+ * trait) for the chosen tag before calling onAdd.
+ * @param {Object} props
+ * @param {Array} props.options Available CA tags
+ * @param {Boolean} props.disabled Whether the select is disabled
+ * @param {Function} props.onAdd Callback (ca_tag, caDetail)
+ * @returns {JSX.Element} The select row.
+ */
+function AddConditionApplicationSelect({ options, disabled, onAdd }) {
+    const [selected, setSelected] = useState("");
+    const { data: caDetail } = api.condition_applications.useGetConditionApplication(
+        { tag: selected }, { enabled: _.isString(selected) && selected.length > 0 }
+    );
+
+    useEffect(() => {
+        if (!_.isString(selected) || selected.length === 0) return;
+        const detail = _.isArray(caDetail) && caDetail.length > 0 ? caDetail[0] : undefined;
+        if (_.isObject(detail)) {
+            onAdd(selected, detail);
+            setSelected("");
+        }
+    }, [selected, caDetail]);
+
+    return (
+        <div className="compact__row">
+            <select
+                className="compact__select"
+                value={selected}
+                disabled={disabled}
+                onChange={e => setSelected(e.target.value)}
+            >
+                <option value="">Add condition application…</option>
+                {options.map(ca_tag => <ConditionApplicationOption key={ca_tag} ca_tag={ca_tag} />)}
+            </select>
+        </div>
+    );
+}
+
+/**
+ * @description Option whose label is resolved from the CA tag.
+ * @param {Object} props
+ * @param {String} props.ca_tag Condition application tag
+ * @returns {JSX.Element} The option element.
+ */
+function ConditionApplicationOption({ ca_tag }) {
+    const { data: text } = api.condition_applications.useGetConditionApplicationText({ tag: ca_tag }, { enabled: _.isString(ca_tag), staleTime: 300000 });
+    return <option value={ca_tag}>{_.isString(text) ? text : ca_tag}</option>;
+}
+
+/**
+ * @description One submission card with state change, protocols, metatext and condition
+ * application insertion.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The submission card.
+ */
+function CompactSubmissionCard({ submission_tag }) {
+    const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
+    return (
+        <div className="compact__card">
+            <p className="compact__card__title">
+                <Link to={`/submissions/${submission_tag}`} style={{ color: "#182026" }}>
+                    {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
+                </Link>
+            </p>
+            <span className="compact__tag">{submission_tag}</span>
+            <SubmissionStateChanger submission_tag={submission_tag} />
+            <SubmissionProtocols submission_tag={submission_tag} />
+            <SubmissionMetatexts submission_tag={submission_tag} />
+            <SubmissionConditionApplications submission_tag={submission_tag} />
+        </div>
+    );
+}
+
+/**
+ * @description Compact list of submissions with a search box, each allowing state changes,
+ * protocol linking and metatext insertion.
+ * @returns {JSX.Element} The submissions tab.
+ */
+export function CompactSubmissions() {
+    const [search, setSearch] = useState("");
+    const { data: submission_tags, isLoading, isError, error } = api.submissions.query.useGetSubmissionByQuery(
+        { search_string: search.trim().length > 0 ? search.trim() : null, limit: 100, group_by_state: false },
+        { staleTime: 30000 }
+    );
+
+    return (
+        <div>
+            <input
+                className="compact__input"
+                placeholder="Search submissions…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
+            <div className="compact__hint" style={{ margin: "0.4rem 0 0.75rem" }}>
+                State changes, protocols and metatexts — optimized for small screens.
+            </div>
+            {isLoading ? <div className="compact__hint">Loading…</div> : null}
+            {isError ? <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load submissions."}</div> : null}
+            {_.isArray(submission_tags) && submission_tags.length === 0 ? <div className="compact__hint">No submissions found.</div> : null}
+            {_.isArray(submission_tags) ? submission_tags.map(tag => (
+                <CompactSubmissionCard key={tag} submission_tag={tag} />
+            )) : null}
+        </div>
+    );
+}

@@ -102,6 +102,7 @@ import {AIPage} from "./comps/ai";
 import { AdminProcedure } from "./comps/admin/procedure/Procedure";
 
 import ContactTicketForm from "./comps/core/tickets/ContactTicketForm";
+import CompactApp from "./comps/compact";
 
 import { SubmissionExclusivelyQuantified } from "./comps/analysis/exclusively";
 /* axios defaults */
@@ -214,6 +215,22 @@ function App() {
     axios.defaults.headers.common["Authorization"] = `Bearer`;
     redirect("/");
   };
+
+  // Reduced app for small screens (e.g. iPad): rendered fullscreen without the dashboard grid.
+  if (basePathName === "compact") {
+    return (
+      <Routes>
+        <Route
+          path="/compact"
+          element={
+            <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+              <CompactApp authenticationStatus={authenticationStatus} />
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
+    );
+  }
 
   return (
     <div className="dashboard__grid no-scroll">

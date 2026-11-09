@@ -1,5 +1,7 @@
 import { useOutletContext } from "react-router";
 import HeatmapLoad from "./HeatmapLoad";
+import { useIsSmallScreen } from "../../../hooks/useViewport";
+import { SmallScreenWarning } from "../../core/base/SmallScreenWarning";
 
 /**
  * Main heatmap analysis component for dataset view.
@@ -7,6 +9,16 @@ import HeatmapLoad from "./HeatmapLoad";
  */
 function DatasetHeatmap() {
     const { submission_tag } = useOutletContext();
+    const isSmallScreen = useIsSmallScreen();
+
+    if (isSmallScreen) {
+        return (
+            <div>
+                <h2>Hierarchical Clustering</h2>
+                <SmallScreenWarning feature="Heatmaps" />
+            </div>
+        );
+    }
 
     return (
         <div>
