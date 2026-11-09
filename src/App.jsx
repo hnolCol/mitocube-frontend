@@ -65,6 +65,8 @@ import { ProteinPage } from "./comps/protein/charts/overview";
 import PerformanceHeader from "./comps/performance";
 import CrossSubmissionAnalysisHeader from "./comps/analysis/cross";
 import { PooledProjection } from "./comps/analysis/cross/PooledProjection";
+import { ConditionEffects } from "./comps/analysis/cross/ConditionEffects";
+import { AttributeEffects } from "./comps/analysis/cross/AttributeEffects";
 import PerformanceOverview from "./comps/performance/overview";
 import PerformanceRuns from "./comps/performance/runs";
 import PerformanceInstruments from "./comps/performance/instruments";
@@ -302,6 +304,8 @@ function App() {
           >
             <Route index element={<PooledProjection />} />
             <Route path="/analysis/pca" element={<PooledProjection />} />
+            <Route path="/analysis/conditions" element={<ConditionEffects />} />
+            <Route path="/analysis/attributes" element={<AttributeEffects />} />
           </Route>
 
           {/* Submission Routes */}

@@ -1,47 +1,24 @@
-import { HTMLSelect } from "@blueprintjs/core";
 import _ from "lodash";
 import { useMemo, useState } from "react";
 import { api } from "@/api";
 import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
+import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 import { Loading } from "@/comps/core/base/states/Loading";
-import { OptionButton } from "@/comps/core/base/buttons/OptionButton";
 import { Protein } from "@/comps/core/base/protein/Protein";
+import { ProteomeSelection } from "./ProteomeSelection";
 
-const COLOR_OPTIONS = [{ tag: "condition", text: "Condition Application" }, { tag: "submission", text: "Submission" }]
+const N_COMPONENTS = 4
+const NUMERIC_KEY_NAMES = _.range(N_COMPONENTS).map(idx => `PC${idx + 1}`)
+const COLOR_AND_SIZE_KEY_NAMES = ["Condition Application", "Submission"]
 
-function ProteomeSelection({ proteome_tag, setProteomeTag }) {
-    const { data: proteomes, isLoading } = api.proteomes.queryProteomes.useGetProteomeBySearchString({ search_string: "", limit: 100 })
-
-    if (isLoading) return <Loading />
-    if (!_.isArray(proteomes) || proteomes.length === 0) {
-        return <div>No proteomes found.</div>
-    }
-
-    return (
-        <div className="flex align-center" style={{ gap: "0.5rem" }}>
-            <span>Proteome</span>
-            <HTMLSelect
-                value={proteome_tag ?? ""}
-                onChange={e => setProteomeTag(e.target.value)}
-            >
-                <option key="empty" value="">Select a proteome...</option>
-                {proteomes.map(tag => <option key={tag} value={tag}>{tag}</option>)}
-            </HTMLSelect>
-        </div>
-    )
-}
-
-function PooledProjectionPlot({ projection, colorOption }) {
-    const colorName = colorOption === "condition" ? "Condition Application" : "Submission"
-
+function PooledProjectionPlot({ projection, selection, setSelection }) {
     const projectionData = useMemo(() => {
         const points = _.isArray(projection?.points) ? projection.points : []
         return points.map(d => ({
             tag: d.sample_tag,
             "Submission": d.submission_tag,
-            PC1: d.components?.[0],
-            PC2: d.components?.[1],
+            ...Object.fromEntries(NUMERIC_KEY_NAMES.map((keyName, idx) => [keyName, d.components?.[idx]])),
             "Condition Application": _.isArray(d.condition_applications) && d.condition_applications.length > 0
                 ? d.condition_applications[0]
                 : "None",
@@ -52,50 +29,69 @@ function PooledProjectionPlot({ projection, colorOption }) {
     if (projectionData.length === 0) return null
 
     return (
-        <InteractiveChart
-            data={projectionData}
-            keyNames={[{ xaxisName: "PC1", yaxisName: "PC2" }]}
-            isPointChart={[true]}
-        >
-            {(chartData) => chartData.map(({
-                data,
-                chartIdx,
-                xaxisName,
-                yaxisName,
-                valid,
-                limits,
-                findDataInRectangle,
-                setHoverDataInRectangle,
-                handleSearchByDataIndex,
-                filterDataInKeyByValue,
-                hoverProps,
-                filterProps
-            }) => (
-                <div key={`${chartIdx}-pooled-projection`}>
-                    <ScatterPlot
-                        chartIdx={chartIdx}
-                        colorName={colorName}
-                        data={data}
-                        valid={valid}
-                        findDataInRectangle={findDataInRectangle}
-                        setHoverDataInRectangle={setHoverDataInRectangle}
-                        xaxisName={xaxisName}
-                        yaxisName={yaxisName}
-                        limits={limits}
-                        tooltipSmall={false}
-                        tooltipNames={["tag", "Submission", "Condition Applications"]}
-                        tooltipNameIsConditionApplication={{ "Condition Applications": true }}
-                        tooltipNameIsProtein={{}}
-                        {...hoverProps}
-                        {...filterProps}
-                        legend={true}
-                        handleSearchByDataIndex={handleSearchByDataIndex}
-                        filterDataInKeyByValue={filterDataInKeyByValue}
-                        svgID="scatter_plot-pooled-pca-projection"
-                    />
-                </div>
-            ))}
-        </InteractiveChart>
+        <div>
+            <ScatterDataSelection
+                keyNames={_.keys(projectionData[0])}
+                title="Pooled Projection"
+                idx={0}
+                numericKeyNames={NUMERIC_KEY_NAMES}
+                selection={selection}
+                setSelection={setSelection}
+                itemIsAttribute={false}
+                colorAndSizeAreAttributes={false}
+                colorAndSizeKeyNames={COLOR_AND_SIZE_KEY_NAMES}
+                downloadElements={["scatter_plot-pooled-pca-projection", projectionData]}
+                elementNames={["SVG", `Projected Data (${projectionData.length} x ${_.keys(projectionData[0]).length})`]}
+                elementTypes={["svg", "data"]}
+                fileNames={["pooled-PCA.svg", "pooled-PCA-Projection.txt"]}
+            />
+            <InteractiveChart
+                data={projectionData}
+                extraLimitNames={NUMERIC_KEY_NAMES}
+                keyNames={[{ xaxisName: selection.xaxisName, yaxisName: selection.yaxisName }]}
+                isPointChart={[true]}
+            >
+                {(chartData) => chartData.map(({
+                    data,
+                    chartIdx,
+                    xaxisName,
+                    yaxisName,
+                    valid,
+                    limits,
+                    findDataInRectangle,
+                    setHoverDataInRectangle,
+                    handleSearchByDataIndex,
+                    filterDataInKeyByValue,
+                    hoverProps,
+                    filterProps
+                }) => (
+                    <div key={`${chartIdx}-pooled-projection`}>
+                        <ScatterPlot
+                            chartIdx={chartIdx}
+                            colorName={selection.colorName}
+                            sizeName={selection.sizeName}
+                            data={data}
+                            valid={valid}
+                            findDataInRectangle={findDataInRectangle}
+                            setHoverDataInRectangle={setHoverDataInRectangle}
+                            xaxisName={xaxisName}
+                            yaxisName={yaxisName}
+                            limits={limits}
+                            tooltipSmall={false}
+                            tooltipNames={["tag", "Submission", "Condition Applications"]}
+                            tooltipNameIsConditionApplication={{ "Condition Applications": true }}
+                            tooltipNameIsProtein={{}}
+                            {...hoverProps}
+                            {...filterProps}
+                            legend={true}
+                            handleSearchByDataIndex={handleSearchByDataIndex}
+                            filterDataInKeyByValue={filterDataInKeyByValue}
+                            svgID="scatter_plot-pooled-pca-projection"
+                        />
+                    </div>
+                ))}
+            </InteractiveChart>
+        </div>
     )
 }
 
@@ -133,25 +129,31 @@ function TopDrivers({ drivers }) {
  */
 export function PooledProjection() {
     const [proteome_tag, setProteomeTag] = useState(null)
-    const [colorOption, setColorOption] = useState(COLOR_OPTIONS[0].tag)
+    const [userSelection, setUserSelection] = useState(null)
+
+    const defaultSelection = useMemo(() => ({
+        xaxisName: NUMERIC_KEY_NAMES[0],
+        yaxisName: NUMERIC_KEY_NAMES[1],
+        colorName: COLOR_AND_SIZE_KEY_NAMES[0],
+        sizeName: undefined,
+        filterTag: undefined
+    }), [])
+    const selection = userSelection ?? defaultSelection
+
+    const handleScatterSelection = (idx, selectionKey, keyName) => {
+        setUserSelection(prevValues => ({ ...(prevValues ?? defaultSelection), [selectionKey]: keyName }))
+    }
 
     const { data: projection, isLoading, isError, error } = api.stats.proteomeProjection.useGetProteomeProjection(
-        { proteome_tag, n_components: 2 },
+        { proteome_tag, n_components: N_COMPONENTS },
         { enabled: _.isString(proteome_tag) && proteome_tag.length > 0, staleTime: 50000 }
     )
 
     return (
         <div className="div--expand" style={{ overflowY: "scroll", height: "90vh" }}>
-            <h2>Cross-Submission Analysis</h2>
-            <div className="flex align-center" style={{ gap: "2rem", marginBottom: "1rem" }}>
+            <h2>Pooled PCA</h2>
+            <div style={{ marginBottom: "1rem" }}>
                 <ProteomeSelection proteome_tag={proteome_tag} setProteomeTag={setProteomeTag} />
-                <div className="flex" style={{ gap: "0.25rem" }}>
-                    {COLOR_OPTIONS.map(option =>
-                        <OptionButton key={option.tag} isSelected={colorOption === option.tag} onClick={() => setColorOption(option.tag)}>
-                            <span>{option.text}</span>
-                        </OptionButton>
-                    )}
-                </div>
             </div>
             {!_.isString(proteome_tag) ? <div>Select a proteome to compute the pooled projection of your accessible submissions.</div> :
                 isLoading ? <Loading /> :
@@ -165,11 +167,11 @@ export function PooledProjection() {
                                 <div>
                                     {projection.n_submissions} submission{projection.n_submissions === 1 ? "" : "s"} pooled, {projection.n_proteins} protein groups.
                                     {_.isArray(projection.variance_explained) && projection.variance_explained.length > 0
-                                        ? ` PC1/PC2 explain ${_.round(_.sum(_.take(projection.variance_explained, 2)) * 100, 1)}% of the variance.`
+                                        ? ` PCs explain ${_.round(_.sum(projection.variance_explained) * 100, 1)}% of the variance.`
                                         : null}
                                 </div>
                                 <div className="flex flex--wrap align-start" style={{ gap: "2rem" }}>
-                                    <PooledProjectionPlot projection={projection} colorOption={colorOption} />
+                                    <PooledProjectionPlot projection={projection} selection={selection} setSelection={handleScatterSelection} />
                                     <TopDrivers drivers={projection.drivers} />
                                 </div>
                             </div>

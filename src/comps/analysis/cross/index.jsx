@@ -12,7 +12,9 @@ function CrossSubmissionAnalysisHeader() {
     return (
         <div>
             <Tabs tabs={[
-                { text: "Pooled PCA", to: "/analysis/pca" }]} />
+                { text: "Pooled PCA", to: "/analysis/pca" },
+                { text: "Condition Effects", to: "/analysis/conditions" },
+                { text: "Attribute Effects", to: "/analysis/attributes" }]} />
             <div className="intent-margin-top">
                 <Outlet />
             </div>
