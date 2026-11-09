@@ -5,6 +5,7 @@ import { ProteinFavorite } from "./ProteinFavorite";
 import { ProteinAnnotationTree } from "./ProteinAnnotationTree";
 import { ProteinGroupsDisplay } from "./ProteinGroup";
 import { ProteinAnnotations } from "../../ProteinAnnotations";
+import { ProteinConditionEffects } from "./ProteinConditionEffects";
 
 export function ProteinOverview({ feature_tag }) {
     const { data: feature, isSuccess } = api.features.proteinsQuery.useGetProteinByTag({ tag: feature_tag }, { enabled: _.isString(feature_tag), staleTime: Infinity })
@@ -24,6 +25,7 @@ export function ProteinOverview({ feature_tag }) {
             </div>
             <div className="div--expand" />
             <div><ProteinQuantCounts tag={feature_tag} /></div>
+            <ProteinConditionEffects proteinTag={feature_tag} />
             <ProteinFavorite tag={feature_tag} />
         </div>
     );
