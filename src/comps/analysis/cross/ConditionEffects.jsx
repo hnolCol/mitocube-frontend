@@ -1,4 +1,3 @@
-import { HTMLSelect } from "@blueprintjs/core";
 import _ from "lodash";
 import { useMemo, useState } from "react";
 import { api } from "@/api";
@@ -6,29 +5,24 @@ import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 import { Loading } from "@/comps/core/base/states/Loading";
+import { ConditionApplicationInput } from "@/comps/core/input/api/ConditionApplicationInput";
 import { ProteomeSelection } from "./ProteomeSelection";
 
 const NUMERIC_KEY_NAMES = ["effect", "mean_z_in", "mean_z_out", "n_in", "n_out", "cohens_d"]
 const COLOR_AND_SIZE_KEY_NAMES = ["Direction"]
 
 function ConditionApplicationSelection({ ca_tag, setCaTag }) {
-    const { data: ca_tags, isLoading } = api.condition_applications.useGetConditionApplicationByQuery(
-        { samples_only: true, sort_by_frequency: true, limit: 500 },
-        { staleTime: 300000 }
-    )
-
-    if (isLoading) return <Loading />
-    if (!_.isArray(ca_tags) || ca_tags.length === 0) {
-        return <div>No condition applications found.</div>
-    }
+    const { data: ca_text } = api.condition_applications.useGetConditionApplicationText(
+        { tag: ca_tag }, { enabled: _.isString(ca_tag) && ca_tag.length > 0, staleTime: 300000 })
 
     return (
         <div className="flex align-center" style={{ gap: "0.5rem" }}>
             <span>Condition Application</span>
-            <HTMLSelect value={ca_tag ?? ""} onChange={e => setCaTag(e.target.value)}>
-                <option key="empty" value="">Select a condition application...</option>
-                {ca_tags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
-            </HTMLSelect>
+            <ConditionApplicationInput
+                selected_ca_tags={_.isString(ca_tag) ? [ca_tag] : []}
+                onSelect={tag => setCaTag(tag)}
+                samples_only={true}
+                placeholder={_.isString(ca_text) ? ca_text : "Select a condition application..."} />
         </div>
     )
 }
