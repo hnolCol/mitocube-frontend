@@ -1,6 +1,6 @@
 import _ from "lodash";
-import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
 import { titleFormat } from "@/services/format/string";
@@ -369,15 +369,17 @@ function ConditionApplicationOption({ ca_tag }) {
 
 /**
  * @description One submission card with state change, protocols, metatext and condition
- * application insertion.
+ * application insertion. When highlighted, the card gets a colored border (e.g. when
+ * deep-linked from an instrument for quick lab metadata entry).
  * @param {Object} props
  * @param {String} props.submission_tag Submission tag
+ * @param {Boolean} [props.highlighted] Highlight the card
  * @returns {JSX.Element} The submission card.
  */
-function CompactSubmissionCard({ submission_tag }) {
+function CompactSubmissionCard({ submission_tag, highlighted = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
     return (
-        <div className="compact__card">
+        <div className="compact__card" style={highlighted ? { borderColor: "#2b6cb0", boxShadow: "0 0 0 2px #2b6cb0" } : undefined}>
             <p className="compact__card__title">
                 <Link to={`/submissions/${submission_tag}`} style={{ color: "#182026" }}>
                     {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
@@ -399,10 +401,20 @@ function CompactSubmissionCard({ submission_tag }) {
  */
 export function CompactSubmissions() {
     const [search, setSearch] = useState("");
+    const [searchParams] = useSearchParams();
+    const focusRef = useRef(null);
+    const focusTag = _.isString(searchParams.get("submission")) && searchParams.get("submission").length > 0
+        ? searchParams.get("submission") : null;
     const { data: submission_tags, isLoading, isError, error } = api.submissions.query.useGetSubmissionByQuery(
         { search_string: search.trim().length > 0 ? search.trim() : null, limit: 100, group_by_state: false },
         { staleTime: 30000 }
     );
+
+    useEffect(() => {
+        if (focusRef.current) focusRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, [focusTag]);
+
+    const listTags = _.isArray(submission_tags) ? submission_tags.filter(tag => tag !== focusTag) : [];
 
     return (
         <div>
@@ -413,14 +425,19 @@ export function CompactSubmissions() {
                 onChange={e => setSearch(e.target.value)}
             />
             <div className="compact__hint" style={{ margin: "0.4rem 0 0.75rem" }}>
-                State changes, protocols and metatexts — optimized for small screens.
+                State changes, protocols, metatexts and condition applications — optimized for lab use on small screens.
             </div>
+            {focusTag ? (
+                <div ref={focusRef}>
+                    <CompactSubmissionCard submission_tag={focusTag} highlighted={true} />
+                </div>
+            ) : null}
             {isLoading ? <div className="compact__hint">Loading…</div> : null}
             {isError ? <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load submissions."}</div> : null}
-            {_.isArray(submission_tags) && submission_tags.length === 0 ? <div className="compact__hint">No submissions found.</div> : null}
-            {_.isArray(submission_tags) ? submission_tags.map(tag => (
+            {listTags.length === 0 && !focusTag ? <div className="compact__hint">No submissions found.</div> : null}
+            {listTags.map(tag => (
                 <CompactSubmissionCard key={tag} submission_tag={tag} />
-            )) : null}
+            ))}
         </div>
     );
 }

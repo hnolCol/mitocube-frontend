@@ -1,6 +1,7 @@
 import _ from "lodash";
 import moment from "moment";
 import { useState } from "react";
+import { Link } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
@@ -206,8 +207,47 @@ function SymptomChip({ symptom_tag, onRemove }) {
 }
 
 /**
- * @description Compact instrument list grouped by instrument type, each allowing state changes
- * and maintenance event insertion.
+ * @description Chip linking to a submission in the compact submissions tab, where metadata
+ * (metatexts) can be added — the typical lab flow from the instrument.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The submission chip link.
+ */
+function InstrumentSubmissionLink({ submission_tag }) {
+    const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
+    return (
+        <Link to={`/compact?tab=submissions&submission=${submission_tag}`} className="compact__chip" style={{ textDecoration: "none", color: "#182026" }}>
+            {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
+        </Link>
+    );
+}
+
+/**
+ * @description Recent submissions run on one instrument, as links into the compact
+ * submissions tab for quick metadata entry in the lab.
+ * @param {Object} props
+ * @param {String} props.instrument_tag Instrument tag
+ * @returns {JSX.Element} The recent submissions section.
+ */
+function InstrumentPastSubmissions({ instrument_tag }) {
+    const { data } = api.instruments.core.useGetInstrumentPastSubmissions(
+        { tag: instrument_tag, offset: 0, limit: 10 }, { enabled: _.isString(instrument_tag), staleTime: 60000 }
+    );
+    const items = _.isObject(data) && _.isArray(data.items) ? data.items : [];
+    if (items.length === 0) return null;
+    return (
+        <div className="compact__section">
+            <span className="compact__label">Recent submissions</span>
+            <div className="compact__row">
+                {items.map(submission_tag => <InstrumentSubmissionLink key={submission_tag} submission_tag={submission_tag} />)}
+            </div>
+        </div>
+    );
+}
+
+/**
+ * @description Compact instrument list grouped by instrument type, each allowing state changes,
+ * maintenance event insertion and linking to its recent submissions for lab metadata entry.
  * @returns {JSX.Element} The instruments tab.
  */
 export function CompactInstruments() {
@@ -247,6 +287,7 @@ function InstrumentTypeSection({ instrument_type, type_label }) {
                     <span className="compact__tag">{instrument.tag}</span>
                     <InstrumentStateChanger instrument_tag={instrument.tag} />
                     <InstrumentMaintenanceEvents instrument_tag={instrument.tag} />
+                    <InstrumentPastSubmissions instrument_tag={instrument.tag} />
                 </div>
             )) : null}
         </div>
