@@ -97,8 +97,7 @@ import Welcome from "./comps/welcome";
 import {AIPage} from "./comps/ai";
 import { AdminProcedure } from "./comps/admin/procedure/Procedure";
 
-
-
+import ContactTicketForm from "./comps/core/tickets/ContactTicketForm";
 
 import { SubmissionExclusivelyQuantified } from "./comps/analysis/exclusively";
 /* axios defaults */
@@ -418,19 +417,23 @@ function App() {
             }
           />
           <Route
-            path="/contact"
-            element={
-              <div>
-                <h3>Contact</h3>
-                <p>
-                  Please utilize the discussion and issue sections of the{" "}
-                  <a href="https://github.com/hnolcol/mitocube">
-                    <span className="h1-span">github</span>
-                  </a>{" "}
-                  repository for requestion new web application features.
-                </p>
-              </div>
-            }
+              path="/contact"
+              element={
+                  <div>
+                      <h3>Contact</h3>
+                      <p>
+                          Please utilize the discussion and issue sections of the{" "}
+                          <a href="https://github.com/hnolcol/mitocube" target="_blank" rel="noreferrer">
+                              <span className="h1-span">github</span>
+                          </a>{" "}
+                          repository for requesting new web application features.
+                      </p>
+                      <p>
+                          For any other inquiries, please fill out the form below. Our support team will respond to your message as soon as possible.
+                      </p>  
+                      <ContactTicketForm />
+                  </div>
+              }
           />
         </Routes>
         </PolicyGate>
