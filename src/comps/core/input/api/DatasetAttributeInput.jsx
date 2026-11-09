@@ -23,7 +23,7 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @param {Function} props.handleTraitSelection Handle the selection of a trait.
  * @returns 
  */
-export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false }) {
+export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false, trait_paths = undefined }) {
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing, staleTime : 60000 })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
@@ -38,7 +38,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
             <span style={{color : HIGHLIGHT_COLOR}}>{attribute.text}</span>{isMissing ? <span style={{ color: "red" }}> *</span> : null}
         </div> : null}
         {_.isArray(effectiveTraitTags) ? effectiveTraitTags.map(trait_tag => {
-            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} />
+            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} trait_path={trait_paths?.[trait_tag]} />
         }) : null}
     </div>
 }
@@ -49,6 +49,7 @@ AttributeWithTraitsMenuItem.propTypes = {
     handleTraitSelection: PropTypes.func,
     selected_traits: PropTypes.arrayOf(PropTypes.string),
     isMissing: PropTypes.bool,
+    trait_paths: PropTypes.object,
 }
 
 AttributesInput.propTypes = {
@@ -109,6 +110,7 @@ export function AttributesInput({
             search_string: debouncedSearchString,
             limit: 50,
             include_traits: true,
+            include_parent_paths: true,
             min_state: min_state,
             attribute_tags : _.join(attribute_tags, ";"),
         }, {
@@ -154,6 +156,7 @@ export function AttributesInput({
                     key={attributeWithTraits.attribute_tag}
                     tag={attributeWithTraits.attribute_tag}
                     trait_tags={attributeWithTraits.trait_tags}
+                    trait_paths={attributeWithTraits.trait_paths}
                     selected_traits={selected_traits}
                     handleTraitSelection={handleTraitSelection}
                     isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}

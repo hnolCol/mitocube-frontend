@@ -84,13 +84,18 @@ state from being reintroduced by other API consumers.
   (`parent_tags`, `trait_paths`).
 - Extend the TypeScript types for `Attribute`/query responses accordingly.
 
-### 4. Frontend (this repo, follow-up PR once the hooks are updated)
+### 4. Frontend (this repo, implemented in this PR)
 
-- `TraitMenuItem` / `AttributesInput`: when a trait with a resolved `trait_paths` entry is
-  selected, emit the **full path** (parent attribute + parent trait → child attribute + child
-  trait) instead of the hard-coded two-element path. `findAndInsertTree` already inserts complete
-  paths and requires no change.
-- For traits without an implied parent trait, add a chained parent-trait selection prompt.
+- `AttributesInput` (`src/comps/core/input/api/DatasetAttributeInput.jsx`) now sends
+  `include_parent_paths: true` to the attributes query and passes each attribute's `trait_paths`
+  down to the menu items.
+- `TraitMenuItem` (`src/comps/core/input/items/AttributeValueMenu.jsx`) accepts a `trait_path`
+  prop (the resolved `[{attribute_tag, trait_tag}, ...]` chain, root first). When present, the
+  click emits the **full path** (parent attribute + parent trait → child attribute + child trait)
+  instead of the hard-coded two-element path; otherwise it falls back to the previous behaviour.
+  `findAndInsertTree` already inserts complete paths and required no change.
+- For traits without an implied parent trait, a chained parent-trait selection prompt remains a
+  follow-up.
 
 ## Design decision: optional parameter, flat vs. hierarchical tree
 
