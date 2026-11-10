@@ -1,30 +1,23 @@
-import { HTMLSelect, Spinner } from "@blueprintjs/core";
+import { Spinner } from "@blueprintjs/core";
 import _ from "lodash";
 import { useState } from "react";
 import { api } from "@/api";
 import { Loading } from "@/comps/core/base/states/Loading";
+import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
 import { Protein } from "@/comps/core/base/protein/Protein";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
 import { ProteomeSelection } from "./ProteomeSelection";
 
 function AttributeSelection({ attribute_tag, setAttributeTag }) {
-    const { data: attribute_tags, isLoading } = api.attributes.queryAttributes.useGetAttributesByQuery(
-        { search_string: "", include_traits: false, limit: 100 },
-        { staleTime: 300000 }
-    )
-
-    if (isLoading) return <Loading />
-    if (!_.isArray(attribute_tags) || attribute_tags.length === 0) {
-        return <div>No attributes found.</div>
-    }
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute(
+        { tag: attribute_tag }, { enabled: _.isString(attribute_tag) && attribute_tag.length > 0, staleTime: 300000 })
 
     return (
         <div className="flex align-center" style={{ gap: "0.5rem" }}>
             <span>Attribute</span>
-            <HTMLSelect value={attribute_tag ?? ""} onChange={e => setAttributeTag(e.target.value)}>
-                <option key="empty" value="">Select an attribute...</option>
-                {attribute_tags.map(tag => <option key={tag} value={tag}>{tag}</option>)}
-            </HTMLSelect>
+            <AttributeInput
+                text={_.isObject(attribute) ? attribute.text : "Select an attribute..."}
+                onItemSelect={tag => setAttributeTag(tag)} />
         </div>
     )
 }

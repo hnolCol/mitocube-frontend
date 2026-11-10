@@ -11,16 +11,17 @@ ConditionApplicationInput.propTypes = {
     onSelect: PropTypes.func.isRequired,
     submission_tag: PropTypes.string,
     attribute_tag: PropTypes.string,
-    samples_only: PropTypes.bool
+    samples_only: PropTypes.bool,
+    placeholder: PropTypes.string
 }
-export function ConditionApplicationInput({ selected_ca_tags = [], onSelect, submission_tag, attribute_tag, samples_only = true }) {
+export function ConditionApplicationInput({ selected_ca_tags = [], onSelect, submission_tag, attribute_tag, samples_only = true, placeholder = "Select" }) {
     return <BaseInput
         selected_tags={selected_ca_tags}
         render_children={(ca_tag) => <ConditionApplicationsView tag={ca_tag} />}
         api_hook={api.condition_applications.useGetConditionApplicationByQuery}
         onSelect={onSelect}
         api_hook_params={{submission_tag, attribute_tag, samples_only, limit : 30}}
-        placeholder="Select" />
+        placeholder={placeholder} />
 
 
 }
