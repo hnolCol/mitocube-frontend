@@ -2,13 +2,27 @@ import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
 import moment from "moment"
-import { Button, Dialog, DialogBody, DialogFooter, Spinner, Tag, TextArea } from "@blueprintjs/core"
+import { Dialog, DialogBody, DialogFooter, Spinner, Tag, TextArea } from "@blueprintjs/core"
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
 import { SubmissionLink } from "@/comps/core/links/Submission"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 
 const CURATOR_ROLE = 2
+
+/* Plain HTML buttons (no BlueprintJS) so the component also works in the compact app. */
+const plainButtonStyle = {
+    border: "1px solid #d8dee4",
+    borderRadius: 8,
+    background: "#ffffff",
+    color: "#182026",
+    fontSize: "0.8rem",
+    fontWeight: 600,
+    padding: "0.3rem 0.7rem",
+    cursor: "pointer",
+}
+const plainButtonPrimaryStyle = { ...plainButtonStyle, background: "#2b6cb0", borderColor: "#2b6cb0", color: "#ffffff" }
+const plainButtonDangerStyle = { ...plainButtonStyle, background: "#cd4246", borderColor: "#cd4246", color: "#ffffff" }
 
 DepositionRequestsButton.propTypes = {
     userRole: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
@@ -38,12 +52,12 @@ export function DepositionRequestsButton({ userRole }) {
     }
     return <>
         <div className="flex flex-column justify-center margin--little">
-            <Button
-                minimal={true}
-                small={true}
-                icon="upload"
-                text="Deposition requests"
-                onClick={() => setIsOpen(true)} />
+            <button
+                type="button"
+                style={{ ...plainButtonStyle, background: "transparent", border: "none", padding: "0.3rem 0.2rem" }}
+                onClick={() => setIsOpen(true)}>
+                ⇪ Deposition requests
+            </button>
         </div>
         {pendingCount > 0 ?
             <div className="flex flex-column justify-center">
@@ -69,7 +83,7 @@ export function DepositionRequestsButton({ userRole }) {
                         <div className="font-size--small padding--little">No pending deposition requests.</div>}
                 <RecentDepositionRequests />
             </DialogBody>
-            <DialogFooter actions={<Button text="Close" onClick={() => setIsOpen(false)} />} />
+            <DialogFooter actions={<button type="button" style={plainButtonStyle} onClick={() => setIsOpen(false)}>Close</button>} />
         </Dialog>
     </>
 }
@@ -130,9 +144,10 @@ function PendingDepositionRequestRow({ request, onInvalidate }) {
                     <div className="font-size--smallest">{`Comment: ${_.truncate(request.comment, { length: 200 })}`}</div> : null}
             </div>
             <div className="flex gap--smallest">
-                <Button small={true} intent="primary" text="Complete" disabled={isWorking} onClick={() => { setIsCompleteOpen(prev => !prev); setError(null) }} />
-                <Button small={true} intent="danger" text="Reject" disabled={isWorking}
-                    onClick={() => reject({ request_tag: request.tag, comment: comment.trim().length > 0 ? comment.trim() : undefined }, { onSuccess: onInvalidate })} />
+                <button type="button" style={plainButtonPrimaryStyle} disabled={isWorking}
+                    onClick={() => { setIsCompleteOpen(prev => !prev); setError(null) }}>Complete</button>
+                <button type="button" style={plainButtonDangerStyle} disabled={isWorking}
+                    onClick={() => reject({ request_tag: request.tag, comment: comment.trim().length > 0 ? comment.trim() : undefined }, { onSuccess: onInvalidate })}>Reject</button>
             </div>
         </div>
         {isCompleteOpen ?
@@ -149,8 +164,10 @@ function PendingDepositionRequestRow({ request, onInvalidate }) {
                     onChange={e => setComment(e.target.value)} />
                 {_.isString(error) ? <div className="font-size--small margin-top--little">{error}</div> : null}
                 <div className="flex justify-end margin-top--little gap--smallest">
-                    <Button small={true} text="Cancel" disabled={isWorking} onClick={() => setIsCompleteOpen(false)} />
-                    <Button small={true} intent="primary" text="Save" loading={isCompleting} onClick={handleComplete} />
+                    <button type="button" style={plainButtonStyle} disabled={isWorking} onClick={() => setIsCompleteOpen(false)}>Cancel</button>
+                    <button type="button" style={{ ...plainButtonPrimaryStyle, opacity: isCompleting ? 0.6 : 1 }} disabled={isCompleting} onClick={handleComplete}>
+                        {isCompleting ? "Saving…" : "Save"}
+                    </button>
                 </div>
             </div>
             : null}
