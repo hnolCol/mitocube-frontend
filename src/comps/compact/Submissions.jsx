@@ -1,6 +1,9 @@
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { useOnScreen } from "@/hooks/useOnScreen";
+import useDebounce from "@/hooks/useDebounce";
+import { getUserFullName } from "@/services/format/user";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
 import { titleFormat } from "@/services/format/string";
@@ -25,6 +28,23 @@ function StatePill({ state_tag }) {
         >
             {titleFormat(stateName)}
         </span>
+    );
+}
+
+/**
+ * @description Select option showing the state name, colored with the state color (CSS only).
+ * @param {Object} props
+ * @param {Number} props.state_tag State tag
+ * @param {Boolean} [props.current] Whether this is the current state
+ * @returns {JSX.Element} The option element.
+ */
+function StateOption({ state_tag, current = false }) {
+    const { data: stateName } = api.states.useGetStateName({ tag: state_tag }, { enabled: _.isNumber(state_tag) });
+    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag }, { enabled: _.isNumber(state_tag) });
+    return (
+        <option value={String(state_tag)} disabled={current} style={{ color: _.isString(stateColor) ? stateColor : undefined }}>
+            {current ? "✔ " : ""}{_.isString(stateName) ? titleFormat(stateName) : state_tag}
+        </option>
     );
 }
 
@@ -63,7 +83,7 @@ function SubmissionStateChanger({ submission_tag }) {
                 >
                     {!_.isNumber(state) ? <option value="">Select state…</option> : null}
                     {_.isArray(states) ? states.map(s => (
-                        <option key={s} value={String(s)}>{s === state ? "✔ " : ""}{s}</option>
+                        <StateOption key={s} state_tag={s} current={s === state} />
                     )) : null}
                 </select>
             ) : null}
@@ -368,6 +388,41 @@ function ConditionApplicationOption({ ca_tag }) {
 }
 
 /**
+ * @description Read-only view of a submission's research aim (abstract), shown collapsed
+ * (clamped preview) at the top of the compact submission card; expands on tap so long
+ * aims don't occupy the whole screen on small devices.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The collapsible research aim section.
+ */
+function SubmissionResearchAim({ submission_tag }) {
+    const [expanded, setExpanded] = useState(false);
+    const { data: researchAim, isLoading } = api.submissions.metatexts.useGetResearchAim(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 }
+    );
+    if (isLoading) return <div className="compact__hint">Loading research aim…</div>;
+    if (!_.isString(researchAim) || researchAim.trim().length === 0) return null;
+    return (
+        <div className="compact__section" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
+            <button
+                className="compact__button compact__button--ghost"
+                style={{ padding: "0.3rem 0.6rem" }}
+                onClick={() => setExpanded(v => !v)}
+                aria-expanded={expanded}
+            >
+                {expanded ? "▾ Hide research aim" : "▸ Research aim"}
+            </button>
+            <p
+                className={expanded ? undefined : "compact__aim--clamped"}
+                style={{ margin: "0.3rem 0 0", fontSize: "0.88rem", whiteSpace: "pre-wrap", wordBreak: "break-word", textAlign: "justify" }}
+            >
+                {researchAim}
+            </p>
+        </div>
+    );
+}
+
+/**
  * @description One submission card with state change, protocols, metatext and condition
  * application insertion. When highlighted, the card gets a colored border (e.g. when
  * deep-linked from an instrument for quick lab metadata entry).
@@ -380,6 +435,7 @@ function CompactSubmissionCard({ submission_tag, highlighted = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
     return (
         <div className="compact__card" style={highlighted ? { borderColor: "#2b6cb0", boxShadow: "0 0 0 2px #2b6cb0" } : undefined}>
+            <SubmissionResearchAim submission_tag={submission_tag} />
             <p className="compact__card__title">
                 <Link to={`/submissions/${submission_tag}`} style={{ color: "#182026" }}>
                     {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
@@ -399,14 +455,157 @@ function CompactSubmissionCard({ submission_tag, highlighted = false }) {
  * protocol linking and metatext insertion.
  * @returns {JSX.Element} The submissions tab.
  */
+const PAGE_SIZE = 15;
+
+/**
+ * @description Label resolving a user tag to the full name.
+ * @param {Object} props
+ * @param {String} props.user_tag User tag
+ * @returns {JSX.Element} The user name.
+ */
+function UserLabel({ user_tag }) {
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag: user_tag }, { enabled: _.isString(user_tag) });
+    return <span>{isSuccess && _.isObject(user) ? getUserFullName(user) : user_tag}</span>;
+}
+
+/**
+ * @description Label resolving a research group tag to its text.
+ * @param {Object} props
+ * @param {String} props.group_tag Research group tag
+ * @returns {JSX.Element} The group name.
+ */
+function ResearchGroupLabel({ group_tag }) {
+    const { data: group } = api.researchgroups.useGetResearchGroupByTag({ tag: group_tag }, { enabled: _.isString(group_tag) });
+    return <span>{_.isObject(group) && _.isString(group.text) ? group.text : group_tag}</span>;
+}
+
+/**
+ * @description Select option resolving a research group tag to its text.
+ * @param {Object} props
+ * @param {String} props.group_tag Research group tag
+ * @returns {JSX.Element} The option element.
+ */
+function ResearchGroupOption({ group_tag }) {
+    const { data: group } = api.researchgroups.useGetResearchGroupByTag({ tag: group_tag }, { enabled: _.isString(group_tag) });
+    return <option value={group_tag}>{_.isObject(group) && _.isString(group.text) ? group.text : group_tag}</option>;
+}
+
+/**
+ * @description Filter bar for the compact submissions list: free-text search plus
+ * user-based search (type to find users, click to add as filter chips) and a
+ * research group select (filters by the group's members).
+ * @param {Object} props
+ * @param {String} props.search Free text search
+ * @param {Function} props.setSearch Setter for the free text search
+ * @param {Array} props.selectedUserTags Selected user tags
+ * @param {Function} props.setSelectedUserTags Setter for selected user tags
+ * @param {String} props.selectedGroupTag Selected research group tag ("" = none)
+ * @param {Function} props.setSelectedGroupTag Setter for the research group tag
+ * @returns {JSX.Element} The filter bar.
+ */
+function SubmissionFilters({ search, setSearch, selectedUserTags, setSelectedUserTags, selectedGroupTag, setSelectedGroupTag }) {
+    const [userQuery, setUserQuery] = useState("");
+    const debouncedUserQuery = useDebounce(userQuery, 400);
+    const { data: userResults } = api.users.queryByQuery.useGetUserByQuery(
+        { search_string: debouncedUserQuery.trim().length > 0 ? debouncedUserQuery.trim() : null, limit: 10 },
+        { enabled: debouncedUserQuery.trim().length > 0, staleTime: 30000 }
+    );
+    const { data: groupTags } = api.researchgroups.useGetResearchGroups({ limit: 200 }, { staleTime: 300000 });
+    const { data: groupUserTags } = api.researchgroups.useGetResearchGroupUsers(
+        { tag: selectedGroupTag }, { enabled: _.isString(selectedGroupTag) && selectedGroupTag.length > 0 }
+    );
+
+    const addUser = (user_tag) => {
+        if (!_.isString(user_tag) || selectedUserTags.includes(user_tag)) return;
+        setSelectedUserTags(prev => [...prev, user_tag]);
+        setUserQuery("");
+    };
+    const userOptions = _.isArray(userResults) ? userResults.filter(t => !selectedUserTags.includes(t)) : [];
+    const hasFilters = selectedUserTags.length > 0 || (_.isString(selectedGroupTag) && selectedGroupTag.length > 0);
+
+    return (
+        <div className="compact__card" style={{ marginBottom: "0.75rem" }}>
+            <input
+                className="compact__input"
+                placeholder="Search submissions…"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+            />
+            <div className="compact__row">
+                <input
+                    className="compact__input"
+                    style={{ flex: 1, width: "auto" }}
+                    placeholder="Find user…"
+                    value={userQuery}
+                    onChange={e => setUserQuery(e.target.value)}
+                />
+                <select
+                    className="compact__select"
+                    style={{ width: "auto" }}
+                    value={selectedGroupTag}
+                    onChange={e => setSelectedGroupTag(e.target.value)}
+                >
+                    <option value="">All research groups</option>
+                    {_.isArray(groupTags) ? groupTags.map(g => (
+                        <ResearchGroupOption key={g} group_tag={g} />
+                    )) : null}
+                </select>
+            </div>
+            {userQuery.trim().length > 0 && userOptions.length > 0 ? (
+                <div className="compact__row" style={{ flexDirection: "column", alignItems: "stretch", gap: 2 }}>
+                    {userOptions.map(t => (
+                        <button key={t} className="compact__button compact__button--ghost" style={{ textAlign: "left" }} onClick={() => addUser(t)}>
+                            + <UserLabel user_tag={t} />
+                        </button>
+                    ))}
+                </div>
+            ) : null}
+            {hasFilters ? (
+                <div className="compact__row">
+                    {selectedUserTags.map(t => (
+                        <span key={t} className="compact__chip">
+                            <UserLabel user_tag={t} />
+                            <button className="compact__chip__remove" onClick={() => setSelectedUserTags(prev => prev.filter(x => x !== t))}>×</button>
+                        </span>
+                    ))}
+                    {_.isString(selectedGroupTag) && selectedGroupTag.length > 0 ? (
+                        <span className="compact__chip">
+                            <ResearchGroupLabel group_tag={selectedGroupTag} />
+                            {_.isArray(groupUserTags) && groupUserTags.length > 0 ? <span className="compact__hint"> ({groupUserTags.length} members)</span> : null}
+                            <button className="compact__chip__remove" onClick={() => setSelectedGroupTag("")}>×</button>
+                        </span>
+                    ) : null}
+                    <button className="compact__button compact__button--ghost" onClick={() => { setSelectedUserTags([]); setSelectedGroupTag(""); }}>
+                        Clear filters
+                    </button>
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 export function CompactSubmissions() {
     const [search, setSearch] = useState("");
+    const [selectedUserTags, setSelectedUserTags] = useState([]);
+    const [selectedGroupTag, setSelectedGroupTag] = useState("");
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     const [searchParams] = useSearchParams();
     const focusRef = useRef(null);
+    const sentinelRef = useRef(null);
+    const sentinelOnScreen = useOnScreen(sentinelRef);
     const focusTag = _.isString(searchParams.get("submission")) && searchParams.get("submission").length > 0
         ? searchParams.get("submission") : null;
+    const { data: groupUserTags } = api.researchgroups.useGetResearchGroupUsers(
+        { tag: selectedGroupTag }, { enabled: _.isString(selectedGroupTag) && selectedGroupTag.length > 0 }
+    );
+    const effectiveUserTags = _.uniq([...selectedUserTags, ...(_.isArray(groupUserTags) ? groupUserTags : [])]);
     const { data: submission_tags, isLoading, isError, error } = api.submissions.query.useGetSubmissionByQuery(
-        { search_string: search.trim().length > 0 ? search.trim() : null, limit: 100, group_by_state: false },
+        {
+            search_string: search.trim().length > 0 ? search.trim() : null,
+            user_tags: effectiveUserTags.length > 0 ? _.join(effectiveUserTags, ";") : null,
+            limit: 100,
+            group_by_state: false,
+        },
         { staleTime: 30000 }
     );
 
@@ -415,14 +614,27 @@ export function CompactSubmissions() {
     }, [focusTag]);
 
     const listTags = _.isArray(submission_tags) ? submission_tags.filter(tag => tag !== focusTag) : [];
+    const visibleTags = listTags.slice(0, visibleCount);
+    const hasMore = visibleCount < listTags.length;
+
+    // lazy loading: render the next page as soon as the sentinel scrolls into view
+    useEffect(() => {
+        if (sentinelOnScreen && hasMore) setVisibleCount(c => c + PAGE_SIZE);
+    }, [sentinelOnScreen, hasMore]);
+
+    useEffect(() => {
+        setVisibleCount(PAGE_SIZE);
+    }, [search, effectiveUserTags.join(";"), submission_tags]);
 
     return (
         <div>
-            <input
-                className="compact__input"
-                placeholder="Search submissions…"
-                value={search}
-                onChange={e => setSearch(e.target.value)}
+            <SubmissionFilters
+                search={search}
+                setSearch={setSearch}
+                selectedUserTags={selectedUserTags}
+                setSelectedUserTags={setSelectedUserTags}
+                selectedGroupTag={selectedGroupTag}
+                setSelectedGroupTag={setSelectedGroupTag}
             />
             <div className="compact__hint" style={{ margin: "0.4rem 0 0.75rem" }}>
                 State changes, protocols, metatexts and condition applications — optimized for lab use on small screens.
@@ -434,10 +646,17 @@ export function CompactSubmissions() {
             ) : null}
             {isLoading ? <div className="compact__hint">Loading…</div> : null}
             {isError ? <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load submissions."}</div> : null}
-            {listTags.length === 0 && !focusTag ? <div className="compact__hint">No submissions found.</div> : null}
-            {listTags.map(tag => (
+            {listTags.length === 0 && !focusTag && !isLoading ? <div className="compact__hint">No submissions found.</div> : null}
+            {visibleTags.map(tag => (
                 <CompactSubmissionCard key={tag} submission_tag={tag} />
             ))}
+            {hasMore ? (
+                <div ref={sentinelRef} style={{ textAlign: "center", padding: "0.5rem" }}>
+                    <button className="compact__button compact__button--ghost" onClick={() => setVisibleCount(c => c + PAGE_SIZE)}>
+                        Load more ({listTags.length - visibleTags.length} remaining)
+                    </button>
+                </div>
+            ) : null}
         </div>
     );
 }
