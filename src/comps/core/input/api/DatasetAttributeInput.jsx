@@ -10,6 +10,7 @@ import { Button } from "@blueprintjs/core";
 import "./style.css"
 import useDebounce from "../../../../hooks/useDebounce";
 import { TraitMenuItem } from "../items/AttributeValueMenu";
+import TextInput from "../Text";
 
 import { api } from "@/api";
 import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
@@ -35,12 +36,19 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
 
     const [pendingTraitTag, setPendingTraitTag] = useState(undefined)
     const [chosenParentSteps, setChosenParentSteps] = useState([])
+    const [parentSearchString, setParentSearchString] = useState("")
+    const debouncedParentSearchString = useDebounce(parentSearchString, 200)
 
     const currentParentTag = _.isArray(parent_tags) ? parent_tags[chosenParentSteps.length] : undefined
     const { data: currentParentTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
         { tag: currentParentTag, limit: 50 },
-        { enabled: _.isString(currentParentTag) && _.isString(pendingTraitTag) }
+        { enabled: _.isString(currentParentTag) && _.isString(pendingTraitTag) && debouncedParentSearchString.length === 0 }
     )
+    const { data: searchedParentTraitTags } = api.traits.queryTraits.useGetTraitBySearchString(
+        { search_string: debouncedParentSearchString, attribute_tag: currentParentTag, limit: 50 },
+        { enabled: _.isString(currentParentTag) && _.isString(pendingTraitTag) && debouncedParentSearchString.length > 0 }
+    )
+    const effectiveParentTraitTags = debouncedParentSearchString.length > 0 ? (searchedParentTraitTags || []) : (currentParentTraitTags || [])
     const { data: currentParentAttribute } = api.attributes.queryAttributes.useGetAttribute(
         { tag: currentParentTag },
         { enabled: _.isString(currentParentTag) && _.isString(pendingTraitTag), staleTime: 60000 }
@@ -49,6 +57,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     const resetPendingSelection = () => {
         setPendingTraitTag(undefined)
         setChosenParentSteps([])
+        setParentSearchString("")
     }
 
     const handleTraitClick = (path) => {
@@ -68,6 +77,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     const handleParentTraitPick = (path) => {
         const parent_trait_tag = _.last(path).tag
         const steps = [...chosenParentSteps, { attribute_tag: currentParentTag, trait_tag: parent_trait_tag }]
+        setParentSearchString("")
         if (steps.length < parent_tags.length) {
             setChosenParentSteps(steps)
             return
@@ -84,10 +94,18 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
                 <span style={{ color: HIGHLIGHT_COLOR }}>Select parent first</span>
             </div>
             <PendingTraitContext trait_tag={pendingTraitTag} attribute_tag={tag} step={chosenParentSteps.length + 1} total={_.isArray(parent_tags) ? parent_tags.length : 1} />
+            <div className="padding--tiny">
+                <TextInput
+                    callbackKey="parent-trait-search"
+                    value={parentSearchString}
+                    placeholder="Search parent trait ..."
+                    onChange={(key, value, type) => setParentSearchString(value)}
+                />
+            </div>
             <div className="menu_item_header">
                 <span style={{ color: HIGHLIGHT_COLOR }}>{currentParentAttribute?.text ?? currentParentTag}</span>
             </div>
-            {_.isArray(currentParentTraitTags) ? currentParentTraitTags.map(parent_trait_tag => {
+            {_.isArray(effectiveParentTraitTags) ? effectiveParentTraitTags.map(parent_trait_tag => {
                 return <TraitMenuItem
                     key={parent_trait_tag}
                     tag={parent_trait_tag}
