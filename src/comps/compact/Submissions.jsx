@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router";
 import { useOnScreen } from "@/hooks/useOnScreen";
 import useDebounce from "@/hooks/useDebounce";
 import { getUserFullName } from "@/services/format/user";
+import { keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
 import { titleFormat } from "@/services/format/string";
@@ -619,14 +620,16 @@ export function CompactSubmissions() {
         { tag: selectedGroupTag }, { enabled: _.isString(selectedGroupTag) && selectedGroupTag.length > 0 }
     );
     const effectiveUserTags = _.uniq([...selectedUserTags, ...(_.isArray(groupUserTags) ? groupUserTags : [])]);
-    const { data: submission_tags, isLoading, isError, error } = api.submissions.query.useGetSubmissionByQuery(
+    const { data: submission_tags, isLoading, isFetching, isError, error } = api.submissions.query.useGetSubmissionByQuery(
         {
             search_string: search.trim().length > 0 ? search.trim() : null,
             user_tags: effectiveUserTags.length > 0 ? _.join(effectiveUserTags, ";") : null,
             limit: 100,
             group_by_state: false,
         },
-        { staleTime: 30000 }
+        // keep the previous list while a new search/filter query loads, so the
+        // header and list do not flicker on every keystroke
+        { staleTime: 30000, placeholderData: keepPreviousData }
     );
 
     useEffect(() => {
@@ -665,6 +668,7 @@ export function CompactSubmissions() {
                 </div>
             ) : null}
             {isLoading ? <div className="compact__hint">Loading…</div> : null}
+            {!isLoading && isFetching ? <div className="compact__hint">Searching…</div> : null}
             {isError ? <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load submissions."}</div> : null}
             {listTags.length === 0 && !focusTag && !isLoading ? <div className="compact__hint">No submissions found.</div> : null}
             {visibleTags.map(tag => (
