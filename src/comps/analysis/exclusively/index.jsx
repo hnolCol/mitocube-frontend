@@ -44,6 +44,28 @@ export function AttributeConditionApplicationHighlight({ submission_tag, attribu
 
 }
 
+export function CombinedAttributeConditionApplicationHighlight({ submission_tag, attribute_tag, highlight_ca_tags = [] }) {
+
+    const { data: conditionApplicationTags, isLoading: isLoadingConditionApplications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag, attribute_tags: attribute_tag, return_unique: true }, { enabled: _.isString(submission_tag) && _.isString(attribute_tag), staleTime: Infinity })
+    const combos = _.isObject(conditionApplicationTags) && _.has(conditionApplicationTags, attribute_tag) ? conditionApplicationTags[attribute_tag] : []
+    const colors = getColorPalette(combos.length)
+    return <div className="flex" style={{ width: "100%" }}>
+        {combos.map((ca_tags, idx_ca) => {
+            const highlight = ca_tags.some(ca_tag => highlight_ca_tags.some(combined_ca_tag => _.isString(combined_ca_tag) && combined_ca_tag.includes(ca_tag)))
+            return <div
+                key={`ca_tags-${idx_ca}-${_.join(ca_tags, "-")}`}
+                style={{
+                    width: `${100 / combos.length}%`,
+                    borderTop: "0.5px solid black",
+                    borderRight: idx_ca < combos.length - 1 ? "0.5px solid black" : "none",
+                    backgroundColor: highlight ? colors[idx_ca] : "transparent"
+                }}>
+                <div style={{ height: "0.6rem" }} />
+            </div>
+        })}
+    </div>
+}
+
 /**
  * @description This component displays the condition applications for a given submission and attribute. It fetches the condition application tags associated with the submission and attribute, and renders them in a grid layout. Each condition application is displayed using the `ConditionApplicationsView` component.
  * @param {Object} props 
@@ -195,6 +217,18 @@ export function SubmissionExclusivelyQuantified() {
         document.body.removeChild(link);
     };
 
+    const renderDownloadItem = (item, { handleClick, index }) => {
+        const attribute_tags = _.isString(item.text) ? item.text.split("__") : [item.text]
+        return <MenuItem
+            key={`${item.text}-${index}`}
+            icon="blank"
+            onClick={handleClick}
+            text={<span>{attribute_tags.map((attribute_tag, attribute_tag_idx) => <Fragment key={attribute_tag}>
+                <Attribute attribute_tag={attribute_tag} />
+                {attribute_tag_idx < attribute_tags.length - 1 ? " x " : null}
+            </Fragment>)}</span>} />
+    }
+
     const handleAnnotationTagSelection = (e, annotation_tag) => {
         setAnnotationTags(prevValues => addStringToArrayOrRemove({ array: prevValues, string: annotation_tag }))
     }
@@ -218,7 +252,7 @@ export function SubmissionExclusivelyQuantified() {
             </div>
         <div><span>There are <strong>{exclusivelyQuantified?.length || 0}</strong> exclusively quantified proteins.{robustProteinTags.size > 0 ? <span style={{color : HIGHLIGHT_COLOR, fontWeight : "bold"}}> ◆</span> : null}{robustProteinTags.size > 0 ? <span className="font-size--small"> ◆ also exclusively quantified in the {combined ? "single-attribute" : "combined"} view ({robustProteinTags.size})</span> : null}</span></div>
         <div className="flex center-items" style={{marginTop : "0.5rem", marginBottom : "0.5rem", gap : "0.5rem"}}>
-        <span>Download exclusively quantified features</span><DownloadIcon placeholder="" items={columns.map(column => column.tag)} itemIsAttribute={true} callback={(v, attribute_tag) => handleAttributeDownload(attribute_tag)} />
+        <span>Download exclusively quantified features</span><DownloadIcon placeholder="" items={columns.map(column => column.tag)} itemIsAttribute={!combined} renderItem={combined ? renderDownloadItem : undefined} callback={(v, attribute_tag) => handleAttributeDownload(attribute_tag)} />
         </div>
         {isLoading || isLoadingCaAttributes ? <div>Loading...</div> : null}
 
@@ -249,7 +283,12 @@ export function SubmissionExclusivelyQuantified() {
                         <Attribute attribute_tag={attribute_tag} />
                         {attribute_tag_idx < column.attribute_tags.length - 1 ? " x " : null}
                     </Fragment>)}<span>(n={attributeCounts[column.tag] || 0})</span></span>
-                    {column.attribute_tags.map(attribute_tag => <AttributeConditionApplicationView key={attribute_tag} submission_tag={submission_tag} attribute_tag={attribute_tag} />)}
+                    {column.attribute_tags.map(attribute_tag => combined ?
+                        <div key={attribute_tag} style={{ width: "100%", borderTop: "0.5px solid black" }}>
+                            <div className="justify-space-around font-size--small" style={{ fontWeight: "bold" }}><Attribute attribute_tag={attribute_tag} /></div>
+                            <AttributeConditionApplicationView submission_tag={submission_tag} attribute_tag={attribute_tag} />
+                        </div> :
+                        <AttributeConditionApplicationView key={attribute_tag} submission_tag={submission_tag} attribute_tag={attribute_tag} />)}
 
                 </div>)}
             </div>
@@ -291,18 +330,29 @@ export function SubmissionExclusivelyQuantified() {
 
             {_.isArray(exclusivelyQuantified) ? exclusivelyQuantified.map((protein_group, idx) => {
                 return columns.map((column, attribute_idx) => {
+                    const is_matching_column = column.tag === protein_group.attribute_tag
                     return <div key={`${protein_group.tag}-${column.tag}`}
                         style={{
                             gridColumn: attribute_idx + 2,
-                            gridRow: idx + 2
+                            gridRow: idx + 2,
+                            border: combined && is_matching_column ? "0.5px solid black" : "none"
                         }}>
 
-                        {column.attribute_tags.map(attribute_tag => <AttributeConditionApplicationHighlight
+                        {combined ? (is_matching_column ? <div className="flex flex-column" style={{ width: "100%" }}>
+                            <div className="justify-space-around" style={{ padding: "0.2rem 0" }}>
+                                <span>{_.round(protein_group.mean, 2)} ({protein_group.quantified_in_samples}/{sample_count})</span>
+                            </div>
+                            {column.attribute_tags.map(attribute_tag => <CombinedAttributeConditionApplicationHighlight
+                                key={attribute_tag}
+                                submission_tag={submission_tag}
+                                attribute_tag={attribute_tag}
+                                highlight_ca_tags={protein_group.exclusively_ca_tags} />)}
+                        </div> : null) : column.attribute_tags.map(attribute_tag => <AttributeConditionApplicationHighlight
                             key={attribute_tag}
                             submission_tag={submission_tag}
                             attribute_tag={attribute_tag}
                             text={`${_.round(protein_group.mean, 2)} (${protein_group.quantified_in_samples}/${sample_count})`}
-                            highlight_ca_tags={column.tag === protein_group.attribute_tag ? protein_group.exclusively_ca_tags : []} />)}
+                            highlight_ca_tags={is_matching_column ? protein_group.exclusively_ca_tags : []} />)}
                     </div>
                 })
             }) : null}
