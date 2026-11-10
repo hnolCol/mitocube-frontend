@@ -5,6 +5,7 @@ import {
     SegmentedControl, Spinner, Tag, TextArea,
 } from "@blueprintjs/core"
 import { api } from "@/api"
+import { TicketAttachmentList, TicketAttachmentUpload } from "./TicketAttachments"
 
 const STATUSES = ["Open", "In Progress", "Resolved"]
 const STATUS_INTENT = { "Open": "warning", "In Progress": "primary", "Resolved": "success" }
@@ -134,6 +135,7 @@ function TicketThread({ ticket, userTag }) {
                         body={m.content}
                     />
                 ))}
+                <TicketAttachmentList ticket_tag={ticket.tag} />
             </div>
 
             <div style={{ marginTop: 12 }}>
@@ -154,7 +156,8 @@ function TicketThread({ ticket, userTag }) {
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
                         />
-                        <div style={{ display: "flex", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
+                        <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "center", justifyContent: "flex-end" }}>
+                            <TicketAttachmentUpload ticket_tag={ticket.tag} disabled={reply.isPending} />
                             {!isResolved && (
                                 <Button icon="tick" intent="success" text={content.trim() ? "Send & resolve" : "Resolve"}
                                         loading={reply.isPending} onClick={() => send(true)} />
