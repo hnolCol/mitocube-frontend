@@ -176,7 +176,8 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         const input = getSelectionByPath(track_path, rowIndex)
         if (_.isArray(input) && input.length > 0) {
 
-            return input.map(i => i.value)[0]
+            const value = input.map(i => i.value)[0]
+            return _.isString(value) ? value : ""
         }
         return ""
     }
