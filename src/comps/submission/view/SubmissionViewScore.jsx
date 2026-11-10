@@ -16,7 +16,7 @@ export function SubmissionViewScore({ submission_tag, fontColor = "#000000" }) {
         >
             <div>
                 <h4>Trending Score</h4>
-                <div style={{ color: fontColor }}>{_.round(score,2)}</div>
+                <div style={{ color: fontColor }}>{_.isNumber(score) ? _.round(score, 2) : "–"}</div>
             </div>
         </motion.button>
     );

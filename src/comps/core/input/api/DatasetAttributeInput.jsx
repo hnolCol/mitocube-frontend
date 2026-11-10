@@ -163,7 +163,7 @@ AttributesInput.propTypes = {
     matchTargetWidth: PropTypes.bool,
     placeHolderText: PropTypes.string,
     handleTraitSelection: PropTypes.func,
-    selected_traits: PropTypes.arrayOf(PropTypes.string),
+    selected_traits: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ tag: PropTypes.string })])),
     submission_tag: PropTypes.string,
     checkMandatoryAttributes: PropTypes.bool,
     disabled: PropTypes.bool,
@@ -244,6 +244,7 @@ export function AttributesInput({
         if (!itemsLoaded || items.length === 0) return <div className="padding--medium"><p>Start typing...</p></div>
     
         const missingTags = checkMandatoryAttributes ? mandatoryCheck?.missing?.map(m => m.tag) || [] : []
+        const selectedTraitTags = _.isArray(selected_traits) ? selected_traits.map(t => _.isString(t) ? t : t.tag) : []
 
         const sortedItems = [...items].sort((a, b) => {
             if (missingTags.length === 0) return 0
@@ -261,7 +262,7 @@ export function AttributesInput({
                     trait_tags={attributeWithTraits.trait_tags}
                     trait_paths={attributeWithTraits.trait_paths}
                     parent_tags={attributeWithTraits.parent_tags}
-                    selected_traits={selected_traits}
+                    selected_traits={selectedTraitTags}
                     handleTraitSelection={handleTraitSelection}
                     isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}
                 />
