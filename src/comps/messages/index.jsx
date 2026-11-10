@@ -437,9 +437,10 @@ export function NewConversationDialog({ isOpen, onClose, submission_tag, submiss
                     onUserSelect={handleUserSelection}
                     isRequired={false}
                     label="Participants"
+                    current_user_tag={user_tag}
                     helperText={_.isString(submission_tag) ?
                         "Only users with access to the submission can be added as participants." :
-                        "Select the users you want to talk to."} />
+                        "Select the users you want to talk to. Your group curator is pinned at the top."} />
                 <FormGroup label="Title" labelInfo="(optional)">
                     <InputGroup
                         fill={true}

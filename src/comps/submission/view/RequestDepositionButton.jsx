@@ -1,12 +1,25 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { Dialog, DialogBody, DialogFooter, Button, TextArea, Callout, Tag } from "@blueprintjs/core"
+import { Dialog, DialogBody, DialogFooter, TextArea, Callout, Tag } from "@blueprintjs/core"
 import { useQueryClient } from "@tanstack/react-query"
-import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
 import { api } from "@/api"
 
 const CURATOR_ROLE = 2
+
+/* Plain HTML buttons (no BlueprintJS) so the component also works in the compact app. */
+const plainButtonStyle = {
+    border: "1px solid #d8dee4",
+    borderRadius: 8,
+    background: "#ffffff",
+    color: "#182026",
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    padding: "0.4rem 0.8rem",
+    cursor: "pointer",
+}
+const plainButtonPrimaryStyle = { ...plainButtonStyle, background: "#2b6cb0", borderColor: "#2b6cb0", color: "#ffffff" }
+const plainButtonDangerStyle = { ...plainButtonStyle, background: "#cd4246", borderColor: "#cd4246", color: "#ffffff" }
 
 RequestDepositionButton.propTypes = {
     submission_tag: PropTypes.string.isRequired,
@@ -59,10 +72,13 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
                     : null}
             </> :
             isCurator ?
-                <TooltipButton
-                    icon="upload"
-                    content="Request deposition of this submission's data to the PRIDE database"
-                    onClick={() => setIsOpen(true)} />
+                <button
+                    type="button"
+                    style={plainButtonPrimaryStyle}
+                    title="Request deposition of this submission's data to the PRIDE database"
+                    onClick={() => setIsOpen(true)}>
+                    ⇪ Request deposition to PRIDE
+                </button>
                 : null}
         <Dialog className="width--half-viewport" isOpen={isOpen} title="Request data deposition to PRIDE" onClose={close}>
             <DialogBody>
@@ -90,7 +106,7 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
                     </>}
             </DialogBody>
             <DialogFooter actions={<>
-                <Button text="Close" onClick={close} />
+                <button type="button" style={plainButtonStyle} onClick={close}>Close</button>
                 {!_.isString(confirmation) ?
                     <DepositionRequestButton
                         submission_tag={submission_tag}
@@ -124,14 +140,16 @@ function RevokeDepositionRequestButton({ request_tag, onRevoked }) {
         onSuccess: () => { setError(null); if (_.isFunction(onRevoked)) onRevoked() },
         onError: (err) => setError(err?.response?.data?.detail || err?.message || "Revoking the deposition request failed.")
     })
-    return <TooltipButton
-        intent="danger"
-        icon="small-cross"
-        loading={isPending}
-        content={_.isString(error) ?
+    return <button
+        type="button"
+        style={{ ...plainButtonDangerStyle, opacity: isPending ? 0.6 : 1 }}
+        disabled={isPending}
+        title={_.isString(error) ?
             `Revoking the deposition request failed: ${error}` :
             "A deposition request is pending. Click to revoke (permanently delete) the request."}
-        onClick={() => mutate({ request_tag })} />
+        onClick={() => mutate({ request_tag })}>
+        {isPending ? "Revoking…" : "✕ Revoke request"}
+    </button>
 }
 
 DepositionRequestButton.propTypes = {
@@ -169,10 +187,10 @@ function DepositionRequestButton({ submission_tag, comment, onConfirmed, onError
         if (_.isString(error?.message)) return error.message
         return "An unknown error occurred while creating the deposition request. Please try again."
     }
-    return <Button
-        intent="primary"
-        text="Request deposition"
-        loading={isPending}
+    return <button
+        type="button"
+        style={{ ...plainButtonPrimaryStyle, opacity: isPending ? 0.6 : 1 }}
+        disabled={isPending}
         onClick={() => {
             onError(null)
             mutate({ submission_tag, database: "PRIDE", comment }, {
@@ -182,5 +200,7 @@ function DepositionRequestButton({ submission_tag, comment, onConfirmed, onError
                 },
                 onError: (error) => onError(getRequestErrorMessage(error))
             })
-        }} />
+        }}>
+        {isPending ? "Requesting…" : "Request deposition"}
+    </button>
 }

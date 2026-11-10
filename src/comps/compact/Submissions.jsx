@@ -4,6 +4,7 @@ import { Link, useSearchParams } from "react-router";
 import { useOnScreen } from "@/hooks/useOnScreen";
 import useDebounce from "@/hooks/useDebounce";
 import { getUserFullName } from "@/services/format/user";
+import { keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
 import { titleFormat } from "@/services/format/string";
@@ -431,17 +432,37 @@ function SubmissionResearchAim({ submission_tag }) {
  * @param {Boolean} [props.highlighted] Highlight the card
  * @returns {JSX.Element} The submission card.
  */
+/**
+ * @description Users (collaborators) of a submission shown as name chips.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The users row.
+ */
+function SubmissionUsers({ submission_tag }) {
+    const { data: user_tags } = api.submissions.users.useGetSubmissionUsers({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
+    if (!_.isArray(user_tags) || user_tags.length === 0) return null;
+    return (
+        <div className="compact__row">
+            <span className="compact__label">Users</span>
+            {user_tags.map(t => (
+                <span key={t} className="compact__chip"><UserLabel user_tag={t} /></span>
+            ))}
+        </div>
+    );
+}
+
 function CompactSubmissionCard({ submission_tag, highlighted = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
     return (
         <div className="compact__card" style={highlighted ? { borderColor: "#2b6cb0", boxShadow: "0 0 0 2px #2b6cb0" } : undefined}>
-            <SubmissionResearchAim submission_tag={submission_tag} />
             <p className="compact__card__title">
                 <Link to={`/submissions/${submission_tag}`} style={{ color: "#182026" }}>
                     {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
                 </Link>
             </p>
             <span className="compact__tag">{submission_tag}</span>
+            <SubmissionUsers submission_tag={submission_tag} />
+            <SubmissionResearchAim submission_tag={submission_tag} />
             <SubmissionStateChanger submission_tag={submission_tag} />
             <SubmissionProtocols submission_tag={submission_tag} />
             <SubmissionMetatexts submission_tag={submission_tag} />
@@ -599,14 +620,16 @@ export function CompactSubmissions() {
         { tag: selectedGroupTag }, { enabled: _.isString(selectedGroupTag) && selectedGroupTag.length > 0 }
     );
     const effectiveUserTags = _.uniq([...selectedUserTags, ...(_.isArray(groupUserTags) ? groupUserTags : [])]);
-    const { data: submission_tags, isLoading, isError, error } = api.submissions.query.useGetSubmissionByQuery(
+    const { data: submission_tags, isLoading, isFetching, isError, error } = api.submissions.query.useGetSubmissionByQuery(
         {
             search_string: search.trim().length > 0 ? search.trim() : null,
             user_tags: effectiveUserTags.length > 0 ? _.join(effectiveUserTags, ";") : null,
             limit: 100,
             group_by_state: false,
         },
-        { staleTime: 30000 }
+        // keep the previous list while a new search/filter query loads, so the
+        // header and list do not flicker on every keystroke
+        { staleTime: 30000, placeholderData: keepPreviousData }
     );
 
     useEffect(() => {
@@ -645,6 +668,7 @@ export function CompactSubmissions() {
                 </div>
             ) : null}
             {isLoading ? <div className="compact__hint">Loading…</div> : null}
+            {!isLoading && isFetching ? <div className="compact__hint">Searching…</div> : null}
             {isError ? <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load submissions."}</div> : null}
             {listTags.length === 0 && !focusTag && !isLoading ? <div className="compact__hint">No submissions found.</div> : null}
             {visibleTags.map(tag => (

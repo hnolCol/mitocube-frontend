@@ -2,6 +2,7 @@ import _ from "lodash";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/api";
+import { PlainUserInput } from "@/comps/core/input/api/PlainUserInput";
 
 /**
  * @description Formatted timestamp for a message: HH:mm today, otherwise D MMM HH:mm.
@@ -100,32 +101,31 @@ function CompactConversation({ conversation_tag, user_tag, onBack }) {
  * @returns {JSX.Element} The new conversation form.
  */
 function NewConversationForm({ user_tag, onCreated }) {
-    const [participants, setParticipants] = useState("");
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [title, setTitle] = useState("");
     const [initialMessage, setInitialMessage] = useState("");
     const { mutate, isPending, isError, error } = api.messages.usePostConversation({
         onSuccess: (conversation_tag) => {
-            setParticipants(""); setTitle(""); setInitialMessage("");
+            setSelectedParticipants([]); setTitle(""); setInitialMessage("");
             if (_.isString(conversation_tag)) onCreated(conversation_tag);
         },
     });
 
-    const userTags = _.uniq(
-        participants.split(",").map(t => t.trim()).filter(t => t.length > 0)
-            .concat(_.isString(user_tag) ? [user_tag] : [])
-    );
+    const userTags = _.uniq([...selectedParticipants, ...(_.isString(user_tag) ? [user_tag] : [])]);
     const canSubmit = userTags.length > 1 && !isPending;
 
     return (
         <div className="compact__card">
             <span className="compact__label">New conversation</span>
-            <input
-                className="compact__input"
-                style={{ marginTop: "0.4rem" }}
-                placeholder="Participant user tags, comma separated"
-                value={participants}
-                onChange={e => setParticipants(e.target.value)}
-            />
+            <div style={{ marginTop: "0.4rem" }}>
+                <PlainUserInput
+                    selected_users={selectedParticipants}
+                    onChange={setSelectedParticipants}
+                    current_user_tag={user_tag}
+                    label="Participants"
+                    placeholder="Find user…"
+                />
+            </div>
             <input
                 className="compact__input"
                 style={{ marginTop: "0.4rem" }}
