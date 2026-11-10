@@ -431,17 +431,37 @@ function SubmissionResearchAim({ submission_tag }) {
  * @param {Boolean} [props.highlighted] Highlight the card
  * @returns {JSX.Element} The submission card.
  */
+/**
+ * @description Users (collaborators) of a submission shown as name chips.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The users row.
+ */
+function SubmissionUsers({ submission_tag }) {
+    const { data: user_tags } = api.submissions.users.useGetSubmissionUsers({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
+    if (!_.isArray(user_tags) || user_tags.length === 0) return null;
+    return (
+        <div className="compact__row">
+            <span className="compact__label">Users</span>
+            {user_tags.map(t => (
+                <span key={t} className="compact__chip"><UserLabel user_tag={t} /></span>
+            ))}
+        </div>
+    );
+}
+
 function CompactSubmissionCard({ submission_tag, highlighted = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
     return (
         <div className="compact__card" style={highlighted ? { borderColor: "#2b6cb0", boxShadow: "0 0 0 2px #2b6cb0" } : undefined}>
-            <SubmissionResearchAim submission_tag={submission_tag} />
             <p className="compact__card__title">
                 <Link to={`/submissions/${submission_tag}`} style={{ color: "#182026" }}>
                     {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
                 </Link>
             </p>
             <span className="compact__tag">{submission_tag}</span>
+            <SubmissionUsers submission_tag={submission_tag} />
+            <SubmissionResearchAim submission_tag={submission_tag} />
             <SubmissionStateChanger submission_tag={submission_tag} />
             <SubmissionProtocols submission_tag={submission_tag} />
             <SubmissionMetatexts submission_tag={submission_tag} />

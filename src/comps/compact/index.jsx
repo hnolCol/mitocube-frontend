@@ -26,29 +26,31 @@ function CompactApp({ authenticationStatus }) {
 
     return (
         <div className="compact__root">
-            <div className="compact__header">
-                <h1 className="compact__title">MitoCube Compact</h1>
-                <div className="compact__row" style={{ marginTop: 0 }}>
-                    {_.isString(authenticationStatus?.tag) ? (
-                        <span className="compact__tag">{authenticationStatus.tag}</span>
-                    ) : null}
-                    <Link to="/index" className="compact__tag" style={{ color: "#2b6cb0", fontWeight: 600 }}>
-                        Full app
-                    </Link>
+            <div className="compact__sticky">
+                <div className="compact__header">
+                    <h1 className="compact__title">MitoCube Compact</h1>
+                    <div className="compact__row" style={{ marginTop: 0 }}>
+                        {_.isString(authenticationStatus?.tag) ? (
+                            <span className="compact__tag">{authenticationStatus.tag}</span>
+                        ) : null}
+                        <Link to="/index" className="compact__tag" style={{ color: "#2b6cb0", fontWeight: 600 }}>
+                            Full app
+                        </Link>
+                    </div>
                 </div>
-            </div>
 
-            <nav className="compact__nav">
-                {TABS.map(tab => (
-                    <button
-                        key={tab.id}
-                        className={`compact__nav__button${activeTab === tab.id ? " compact__nav__button--active" : ""}`}
-                        onClick={() => setSearchParams({ tab: tab.id })}
-                    >
-                        {tab.label}
-                    </button>
-                ))}
-            </nav>
+                <nav className="compact__nav">
+                    {TABS.map(tab => (
+                        <button
+                            key={tab.id}
+                            className={`compact__nav__button${activeTab === tab.id ? " compact__nav__button--active" : ""}`}
+                            onClick={() => setSearchParams({ tab: tab.id })}
+                        >
+                            {tab.label}
+                        </button>
+                    ))}
+                </nav>
+            </div>
 
             <div className="compact__content">
                 {activeTab === "submissions" ? <CompactSubmissions /> : null}

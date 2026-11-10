@@ -2,6 +2,19 @@ import _ from "lodash";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/api";
+import useDebounce from "@/hooks/useDebounce";
+import { getUserFullName } from "@/services/format/user";
+
+/**
+ * @description Label resolving a user tag to the full name.
+ * @param {Object} props
+ * @param {String} props.user_tag User tag
+ * @returns {JSX.Element} The user name.
+ */
+function ParticipantLabel({ user_tag }) {
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag: user_tag }, { enabled: _.isString(user_tag) });
+    return <span>{isSuccess && _.isObject(user) ? getUserFullName(user) : user_tag}</span>;
+}
 
 /**
  * @description Formatted timestamp for a message: HH:mm today, otherwise D MMM HH:mm.
@@ -100,21 +113,31 @@ function CompactConversation({ conversation_tag, user_tag, onBack }) {
  * @returns {JSX.Element} The new conversation form.
  */
 function NewConversationForm({ user_tag, onCreated }) {
-    const [participants, setParticipants] = useState("");
+    const [participantQuery, setParticipantQuery] = useState("");
+    const debouncedParticipantQuery = useDebounce(participantQuery, 400);
+    const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [title, setTitle] = useState("");
     const [initialMessage, setInitialMessage] = useState("");
     const { mutate, isPending, isError, error } = api.messages.usePostConversation({
         onSuccess: (conversation_tag) => {
-            setParticipants(""); setTitle(""); setInitialMessage("");
+            setParticipantQuery(""); setSelectedParticipants([]); setTitle(""); setInitialMessage("");
             if (_.isString(conversation_tag)) onCreated(conversation_tag);
         },
     });
-
-    const userTags = _.uniq(
-        participants.split(",").map(t => t.trim()).filter(t => t.length > 0)
-            .concat(_.isString(user_tag) ? [user_tag] : [])
+    const { data: userResults } = api.users.queryByQuery.useGetUserByQuery(
+        { search_string: debouncedParticipantQuery.trim().length > 0 ? debouncedParticipantQuery.trim() : null, limit: 10 },
+        { enabled: debouncedParticipantQuery.trim().length > 0, staleTime: 30000 }
     );
+
+    const userTags = _.uniq([...selectedParticipants, ...(_.isString(user_tag) ? [user_tag] : [])]);
     const canSubmit = userTags.length > 1 && !isPending;
+    const suggestions = _.isArray(userResults) ? userResults.filter(t => !userTags.includes(t)) : [];
+
+    const addParticipant = (t) => {
+        if (!_.isString(t) || userTags.includes(t)) return;
+        setSelectedParticipants(prev => [...prev, t]);
+        setParticipantQuery("");
+    };
 
     return (
         <div className="compact__card">
@@ -122,10 +145,29 @@ function NewConversationForm({ user_tag, onCreated }) {
             <input
                 className="compact__input"
                 style={{ marginTop: "0.4rem" }}
-                placeholder="Participant user tags, comma separated"
-                value={participants}
-                onChange={e => setParticipants(e.target.value)}
+                placeholder="Find user…"
+                value={participantQuery}
+                onChange={e => setParticipantQuery(e.target.value)}
             />
+            {participantQuery.trim().length > 0 && suggestions.length > 0 ? (
+                <div className="compact__row" style={{ flexDirection: "column", alignItems: "stretch", gap: 2 }}>
+                    {suggestions.map(t => (
+                        <button key={t} className="compact__button compact__button--ghost" style={{ textAlign: "left" }} onClick={() => addParticipant(t)}>
+                            + <ParticipantLabel user_tag={t} />
+                        </button>
+                    ))}
+                </div>
+            ) : null}
+            {selectedParticipants.length > 0 ? (
+                <div className="compact__row">
+                    {selectedParticipants.map(t => (
+                        <span key={t} className="compact__chip">
+                            <ParticipantLabel user_tag={t} />
+                            <button className="compact__chip__remove" onClick={() => setSelectedParticipants(prev => prev.filter(x => x !== t))}>×</button>
+                        </span>
+                    ))}
+                </div>
+            ) : null}
             <input
                 className="compact__input"
                 style={{ marginTop: "0.4rem" }}

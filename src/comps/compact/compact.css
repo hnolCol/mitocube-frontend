@@ -48,17 +48,23 @@
     text-decoration: none;
 }
 
+/* header + nav stick together so the tab buttons are never hidden behind a
+   taller (wrapped) header on narrow screens */
+.compact__sticky {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
 .compact__header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: 0.5rem;
     padding: 0.6rem 0.9rem;
     background-color: #ffffff;
     border-bottom: 1px solid #e1e5ea;
-    position: sticky;
-    top: 0;
-    z-index: 5;
 }
 
 .compact__title {
@@ -74,9 +80,6 @@
     padding: 0.5rem 0.9rem;
     background-color: #ffffff;
     border-bottom: 1px solid #e1e5ea;
-    position: sticky;
-    top: 49px;
-    z-index: 5;
     overflow-x: auto;
 }
 
