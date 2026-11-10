@@ -81,6 +81,10 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     if (_.isString(pendingTraitTag)) {
         return <div>
             <div className="menu_item_header">
+                <span style={{ color: HIGHLIGHT_COLOR }}>Select parent first</span>
+            </div>
+            <PendingTraitContext trait_tag={pendingTraitTag} attribute_tag={tag} step={chosenParentSteps.length + 1} total={_.isArray(parent_tags) ? parent_tags.length : 1} />
+            <div className="menu_item_header">
                 <span style={{ color: HIGHLIGHT_COLOR }}>{currentParentAttribute?.text ?? currentParentTag}</span>
             </div>
             {_.isArray(currentParentTraitTags) ? currentParentTraitTags.map(parent_trait_tag => {
@@ -114,6 +118,23 @@ AttributeWithTraitsMenuItem.propTypes = {
     isMissing: PropTypes.bool,
     trait_paths: PropTypes.object,
     parent_tags: PropTypes.arrayOf(PropTypes.string),
+}
+
+function PendingTraitContext({ trait_tag, attribute_tag, step, total }) {
+    const { data: trait } = api.traits.queryTraits.useGetTraitByTag({ tag: trait_tag }, { enabled: _.isString(trait_tag), staleTime: Infinity })
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: 60000 })
+
+    return <div className="padding--tiny" style={{ fontSize: "0.75rem", color: "#666" }}>
+        <span>Selecting: <strong>{trait?.text ?? trait_tag}</strong>{attribute?.text ? ` (${attribute.text})` : null}</span>
+        {total > 1 ? <span> — parent {step} of {total}</span> : null}
+    </div>
+}
+
+PendingTraitContext.propTypes = {
+    trait_tag: PropTypes.string.isRequired,
+    attribute_tag: PropTypes.string.isRequired,
+    step: PropTypes.number,
+    total: PropTypes.number,
 }
 
 AttributesInput.propTypes = {
