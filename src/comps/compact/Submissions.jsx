@@ -388,13 +388,15 @@ function ConditionApplicationOption({ ca_tag }) {
 }
 
 /**
- * @description Read-only view of a submission's research aim (abstract), shown at the top
- * of the compact submission card so it can be read on small screens / in the lab.
+ * @description Read-only view of a submission's research aim (abstract), shown collapsed
+ * (clamped preview) at the top of the compact submission card; expands on tap so long
+ * aims don't occupy the whole screen on small devices.
  * @param {Object} props
  * @param {String} props.submission_tag Submission tag
- * @returns {JSX.Element} The research aim section.
+ * @returns {JSX.Element} The collapsible research aim section.
  */
 function SubmissionResearchAim({ submission_tag }) {
+    const [expanded, setExpanded] = useState(false);
     const { data: researchAim, isLoading } = api.submissions.metatexts.useGetResearchAim(
         { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 }
     );
@@ -402,8 +404,18 @@ function SubmissionResearchAim({ submission_tag }) {
     if (!_.isString(researchAim) || researchAim.trim().length === 0) return null;
     return (
         <div className="compact__section" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
-            <span className="compact__label">Research aim</span>
-            <p style={{ margin: "0.3rem 0 0", fontSize: "0.88rem", whiteSpace: "pre-wrap", wordBreak: "break-word", textAlign: "justify" }}>
+            <button
+                className="compact__button compact__button--ghost"
+                style={{ padding: "0.3rem 0.6rem" }}
+                onClick={() => setExpanded(v => !v)}
+                aria-expanded={expanded}
+            >
+                {expanded ? "▾ Hide research aim" : "▸ Research aim"}
+            </button>
+            <p
+                className={expanded ? undefined : "compact__aim--clamped"}
+                style={{ margin: "0.3rem 0 0", fontSize: "0.88rem", whiteSpace: "pre-wrap", wordBreak: "break-word", textAlign: "justify" }}
+            >
                 {researchAim}
             </p>
         </div>
