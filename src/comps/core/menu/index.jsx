@@ -21,7 +21,7 @@ function BasicMenu({ items = [], width = 30, height=30, disabled = false }) {
 
 
 BasicMenu.propTypes = {
-    items: PropTypes.array.isRequired,
+    items: PropTypes.array,
     width: PropTypes.number,
     height: PropTypes.number
     
