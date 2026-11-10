@@ -11,4 +11,5 @@ export const featuresSequenceAPI = hooks.features.createFeatureSequenceAPI(apiCl
 export const featuresRankingAPI = hooks.features.protein_groups.createFeaturesProteinsRankingAPI(apiClient);
 export const featuresQuantificationsAPI = hooks.features.quantification.createFeatureQuantificationAPI(apiClient);
 export const proteinFavoritesAPI = hooks.features.proteins.createProteinFavoriteAPI(apiClient)
-export const featuresPrecursorsAPI = hooks.features.precursors.createPrecursorAPI(apiClient)
+export const featuresPrecursorsAPI = hooks.features.precursors.createPrecursorAPI(apiClient);
+export const ptmsAPI = hooks.features.ptms.createPTMSitesAPI(apiClient);
