@@ -24,7 +24,7 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
     if (isLoading) return <div>Loading user...</div>
     if (isError) return <div>Error loading user: {error.message}</div>
     return (
-        <div className="flex align-center justify-space-between submission__item__container bg--white" style={{ backgroundColor: "#fff" }}>
+        <div className="flex align-center justify-space-between submission__item__container user__item__container bg--white" style={{ backgroundColor: "#fff" }}>
             <motion.button
                 disabled={!isUserActive}
                 style={{ backgroundColor: "#fff", border: "none" }}
@@ -47,9 +47,9 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
                 {_.isNumber(userRole) ?
                     <Tag
                         minimal
-                        round
                         intent={ROLE_INTENTS[userRole] || "none"}
                         title={`User role: ${userRole}`}
+                        style={{ borderRadius: 3 }}
                     >
                         {userRole === 4 ? "Admin" : userRole === 2 ? "Curator" : userRole === 1 ? "Standard" : "Guest"}
                     </Tag> : null}
@@ -62,7 +62,7 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
                 </Tag>
                 {canEditRole ? (
                     <button
-                        className="basic-button"
+                        className="basic-button--small"
                         onClick={(e) => {
                             e.stopPropagation()
                             setIsEditRoleDialogOpen(true)
@@ -73,7 +73,7 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
                 ) : null}
                 {isUserActive && canBlock ? (
                     <button
-                        className="basic-button"
+                        className="basic-button--small"
                         onClick={(e) => {
                             e.stopPropagation()
                             setIsBlockDialogOpen(true)

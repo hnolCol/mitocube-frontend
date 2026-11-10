@@ -8,6 +8,7 @@ import { keepPreviousData } from "@tanstack/react-query";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
 import { titleFormat } from "@/services/format/string";
+import { CreatedAt } from "../core/metrics/CreatedAt";
 
 /**
  * @description Colored pill showing a submission state name.
@@ -453,6 +454,7 @@ function SubmissionUsers({ submission_tag }) {
 
 function CompactSubmissionCard({ submission_tag, highlighted = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
+    const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
     return (
         <div className="compact__card" style={highlighted ? { borderColor: "#2b6cb0", boxShadow: "0 0 0 2px #2b6cb0" } : undefined}>
             <p className="compact__card__title">
@@ -461,6 +463,12 @@ function CompactSubmissionCard({ submission_tag, highlighted = false }) {
                 </Link>
             </p>
             <span className="compact__tag">{submission_tag}</span>
+            {_.isNumber(created_at) ? (
+                <div className="compact__row">
+                    <span className="compact__label">Date</span>
+                    <CreatedAt createdat={created_at} addFromNow={false} />
+                </div>
+            ) : null}
             <SubmissionUsers submission_tag={submission_tag} />
             <SubmissionResearchAim submission_tag={submission_tag} />
             <SubmissionStateChanger submission_tag={submission_tag} />

@@ -524,6 +524,12 @@ h5 {
     
 }
 
+.user__item__container {
+    min-height: 2.75rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+}
+
 .basic-button--small {
     background-color: #f3f4f6;
     color: #374151;
