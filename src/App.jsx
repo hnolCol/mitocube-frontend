@@ -13,7 +13,7 @@ import 'react-grid-layout/node_modules/react-resizable/css/styles.css'
 import axios from "axios";
 import _ from "lodash";
 import { useEffect, useState } from "react";
-import { Route, Routes, useLocation, useNavigate } from "react-router";
+import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
 
 import { getItemFromLocalStorage, removeItemFromLocalStorage } from "./services/localstorage";
 
@@ -64,7 +64,6 @@ import { ProteinPage } from "./comps/protein/charts/overview";
 /* Performance area */
 import PerformanceHeader from "./comps/performance";
 import CrossSubmissionAnalysisHeader from "./comps/analysis/cross";
-import { PooledProjection } from "./comps/analysis/cross/PooledProjection";
 import { ConditionEffects } from "./comps/analysis/cross/ConditionEffects";
 import { AttributeEffects } from "./comps/analysis/cross/AttributeEffects";
 import PerformanceOverview from "./comps/performance/overview";
@@ -318,8 +317,7 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<PooledProjection />} />
-            <Route path="/analysis/pca" element={<PooledProjection />} />
+            <Route index element={<Navigate to="/analysis/conditions" replace />} />
             <Route path="/analysis/conditions" element={<ConditionEffects />} />
             <Route path="/analysis/attributes" element={<AttributeEffects />} />
           </Route>
