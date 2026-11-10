@@ -388,6 +388,29 @@ function ConditionApplicationOption({ ca_tag }) {
 }
 
 /**
+ * @description Read-only view of a submission's research aim (abstract), shown at the top
+ * of the compact submission card so it can be read on small screens / in the lab.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @returns {JSX.Element} The research aim section.
+ */
+function SubmissionResearchAim({ submission_tag }) {
+    const { data: researchAim, isLoading } = api.submissions.metatexts.useGetResearchAim(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 }
+    );
+    if (isLoading) return <div className="compact__hint">Loading research aim…</div>;
+    if (!_.isString(researchAim) || researchAim.trim().length === 0) return null;
+    return (
+        <div className="compact__section" style={{ marginTop: 0, borderTop: "none", paddingTop: 0 }}>
+            <span className="compact__label">Research aim</span>
+            <p style={{ margin: "0.3rem 0 0", fontSize: "0.88rem", whiteSpace: "pre-wrap", wordBreak: "break-word", textAlign: "justify" }}>
+                {researchAim}
+            </p>
+        </div>
+    );
+}
+
+/**
  * @description One submission card with state change, protocols, metatext and condition
  * application insertion. When highlighted, the card gets a colored border (e.g. when
  * deep-linked from an instrument for quick lab metadata entry).
@@ -400,6 +423,7 @@ function CompactSubmissionCard({ submission_tag, highlighted = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle({ tag: submission_tag }, { enabled: _.isString(submission_tag), staleTime: 300000 });
     return (
         <div className="compact__card" style={highlighted ? { borderColor: "#2b6cb0", boxShadow: "0 0 0 2px #2b6cb0" } : undefined}>
+            <SubmissionResearchAim submission_tag={submission_tag} />
             <p className="compact__card__title">
                 <Link to={`/submissions/${submission_tag}`} style={{ color: "#182026" }}>
                     {_.isString(title) && title.trim().length > 0 ? title : submission_tag}
