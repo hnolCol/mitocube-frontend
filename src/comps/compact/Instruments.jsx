@@ -51,7 +51,9 @@ function InstrumentStateChanger({ instrument_tag }) {
                 >
                     {!currentTag ? <option value="">Select state…</option> : null}
                     {_.sortBy(allStates, "text").map(s => (
-                        <option key={s.tag} value={s.tag}>{s.tag === currentTag ? "✔ " : ""}{s.text}</option>
+                        <option key={s.tag} value={s.tag} disabled={s.tag === currentTag} style={{ color: s.color || undefined }}>
+                            {s.tag === currentTag ? "✔ " : ""}{s.text}
+                        </option>
                     ))}
                 </select>
             ) : null}
@@ -246,6 +248,31 @@ function InstrumentPastSubmissions({ instrument_tag }) {
 }
 
 /**
+ * @description Overview strip of all instruments with their current state (name + color),
+ * linking to the instrument's card below.
+ * @returns {JSX.Element} The instrument overview.
+ */
+function InstrumentOverviewStrip() {
+    const { data: instruments, isLoading } = api.instruments.core.useGetInstrumentsOverview({ staleTime: 30000 });
+    const withState = _.isArray(instruments) ? instruments.filter(i => i.state_text) : [];
+    return (
+        <div className="compact__card" style={{ marginBottom: "0.9rem" }}>
+            <span className="compact__label">Overview — current states</span>
+            {isLoading ? <div className="compact__hint">Loading…</div> : null}
+            <div className="compact__overview" style={{ marginTop: "0.4rem", marginBottom: 0 }}>
+                {withState.map(instrument => (
+                    <a key={instrument.tag} href={`#instrument-${instrument.tag}`} className="compact__overview__item">
+                        <span className="compact__state-dot" style={{ backgroundColor: instrument.state_color || "#ccc" }} />
+                        <strong>{instrument.text}</strong>
+                        <span style={{ color: "#5c7080" }}>{instrument.state_text}</span>
+                    </a>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+/**
  * @description Compact instrument list grouped by instrument type, each allowing state changes,
  * maintenance event insertion and linking to its recent submissions for lab metadata entry.
  * @returns {JSX.Element} The instruments tab.
@@ -255,6 +282,7 @@ export function CompactInstruments() {
 
     return (
         <div>
+            <InstrumentOverviewStrip />
             <div className="compact__hint" style={{ margin: "0 0 0.75rem" }}>
                 Change instrument states — optimized for small screens.
             </div>
@@ -282,7 +310,7 @@ function InstrumentTypeSection({ instrument_type, type_label }) {
                 {type_label || instrument_type}
             </div>
             {_.isArray(instruments) ? instruments.map(instrument => (
-                <div className="compact__card" key={instrument.tag}>
+                <div className="compact__card" key={instrument.tag} id={`instrument-${instrument.tag}`} style={{ scrollMarginTop: "110px" }}>
                     <p className="compact__card__title">{instrument.text}</p>
                     <span className="compact__tag">{instrument.tag}</span>
                     <InstrumentStateChanger instrument_tag={instrument.tag} />

@@ -138,6 +138,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                         { text: "Impressum", icon: "small-info-sign", href: "/impressum" },
                         { text: "Data protection", icon: "shield", onClick: onReadDataProtection },
                         { text: "Contact", href: "/contact", icon: "envelope" },
+                        { text: "Compact view (beta)", icon: "phone", href: "/compact" },
                         { text: `v.  ${backendInfoIsSucces?backendInfo.version:null}`, icon : "blank", disabled : true}
                         ]} />
                 </div>

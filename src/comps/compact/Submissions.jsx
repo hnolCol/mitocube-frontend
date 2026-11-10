@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router";
+import { useOnScreen } from "@/hooks/useOnScreen";
 import { api } from "@/api";
 import { isHexColorLight } from "@/services/checks/color";
 import { titleFormat } from "@/services/format/string";
@@ -25,6 +26,23 @@ function StatePill({ state_tag }) {
         >
             {titleFormat(stateName)}
         </span>
+    );
+}
+
+/**
+ * @description Select option showing the state name, colored with the state color (CSS only).
+ * @param {Object} props
+ * @param {Number} props.state_tag State tag
+ * @param {Boolean} [props.current] Whether this is the current state
+ * @returns {JSX.Element} The option element.
+ */
+function StateOption({ state_tag, current = false }) {
+    const { data: stateName } = api.states.useGetStateName({ tag: state_tag }, { enabled: _.isNumber(state_tag) });
+    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag }, { enabled: _.isNumber(state_tag) });
+    return (
+        <option value={String(state_tag)} disabled={current} style={{ color: _.isString(stateColor) ? stateColor : undefined }}>
+            {current ? "✔ " : ""}{_.isString(stateName) ? titleFormat(stateName) : state_tag}
+        </option>
     );
 }
 
@@ -63,7 +81,7 @@ function SubmissionStateChanger({ submission_tag }) {
                 >
                     {!_.isNumber(state) ? <option value="">Select state…</option> : null}
                     {_.isArray(states) ? states.map(s => (
-                        <option key={s} value={String(s)}>{s === state ? "✔ " : ""}{s}</option>
+                        <StateOption key={s} state_tag={s} current={s === state} />
                     )) : null}
                 </select>
             ) : null}
@@ -399,10 +417,15 @@ function CompactSubmissionCard({ submission_tag, highlighted = false }) {
  * protocol linking and metatext insertion.
  * @returns {JSX.Element} The submissions tab.
  */
+const PAGE_SIZE = 15;
+
 export function CompactSubmissions() {
     const [search, setSearch] = useState("");
+    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
     const [searchParams] = useSearchParams();
     const focusRef = useRef(null);
+    const sentinelRef = useRef(null);
+    const sentinelOnScreen = useOnScreen(sentinelRef);
     const focusTag = _.isString(searchParams.get("submission")) && searchParams.get("submission").length > 0
         ? searchParams.get("submission") : null;
     const { data: submission_tags, isLoading, isError, error } = api.submissions.query.useGetSubmissionByQuery(
@@ -415,6 +438,17 @@ export function CompactSubmissions() {
     }, [focusTag]);
 
     const listTags = _.isArray(submission_tags) ? submission_tags.filter(tag => tag !== focusTag) : [];
+    const visibleTags = listTags.slice(0, visibleCount);
+    const hasMore = visibleCount < listTags.length;
+
+    // lazy loading: render the next page as soon as the sentinel scrolls into view
+    useEffect(() => {
+        if (sentinelOnScreen && hasMore) setVisibleCount(c => c + PAGE_SIZE);
+    }, [sentinelOnScreen, hasMore]);
+
+    useEffect(() => {
+        setVisibleCount(PAGE_SIZE);
+    }, [search, submission_tags]);
 
     return (
         <div>
@@ -434,10 +468,17 @@ export function CompactSubmissions() {
             ) : null}
             {isLoading ? <div className="compact__hint">Loading…</div> : null}
             {isError ? <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load submissions."}</div> : null}
-            {listTags.length === 0 && !focusTag ? <div className="compact__hint">No submissions found.</div> : null}
-            {listTags.map(tag => (
+            {listTags.length === 0 && !focusTag && !isLoading ? <div className="compact__hint">No submissions found.</div> : null}
+            {visibleTags.map(tag => (
                 <CompactSubmissionCard key={tag} submission_tag={tag} />
             ))}
+            {hasMore ? (
+                <div ref={sentinelRef} style={{ textAlign: "center", padding: "0.5rem" }}>
+                    <button className="compact__button compact__button--ghost" onClick={() => setVisibleCount(c => c + PAGE_SIZE)}>
+                        Load more ({listTags.length - visibleTags.length} remaining)
+                    </button>
+                </div>
+            ) : null}
         </div>
     );
 }
