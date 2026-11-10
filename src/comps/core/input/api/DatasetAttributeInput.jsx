@@ -23,7 +23,7 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @param {Function} props.handleTraitSelection Handle the selection of a trait.
  * @returns 
  */
-export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false }) {
+export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false, trait_paths = undefined, parent_tags = undefined }) {
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing, staleTime : 60000 })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
@@ -33,12 +33,75 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
 
     const effectiveTraitTags = _.isArray(trait_tags) && trait_tags.length > 0 ? trait_tags : (fetchedTraitTags || [])
 
+    const [pendingTraitTag, setPendingTraitTag] = useState(undefined)
+    const [chosenParentSteps, setChosenParentSteps] = useState([])
+
+    const currentParentTag = _.isArray(parent_tags) ? parent_tags[chosenParentSteps.length] : undefined
+    const { data: currentParentTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
+        { tag: currentParentTag, limit: 50 },
+        { enabled: _.isString(currentParentTag) && _.isString(pendingTraitTag) }
+    )
+    const { data: currentParentAttribute } = api.attributes.queryAttributes.useGetAttribute(
+        { tag: currentParentTag },
+        { enabled: _.isString(currentParentTag) && _.isString(pendingTraitTag), staleTime: 60000 }
+    )
+
+    const resetPendingSelection = () => {
+        setPendingTraitTag(undefined)
+        setChosenParentSteps([])
+    }
+
+    const handleTraitClick = (path) => {
+        const trait_tag = _.last(path).tag
+        if (_.isArray(trait_paths?.[trait_tag])) {
+            handleTraitSelection(path)
+            return
+        }
+        if (_.isArray(parent_tags) && parent_tags.length > 0) {
+            setPendingTraitTag(trait_tag)
+            setChosenParentSteps([])
+            return
+        }
+        handleTraitSelection(path)
+    }
+
+    const handleParentTraitPick = (path) => {
+        const parent_trait_tag = _.last(path).tag
+        const steps = [...chosenParentSteps, { attribute_tag: currentParentTag, trait_tag: parent_trait_tag }]
+        if (steps.length < parent_tags.length) {
+            setChosenParentSteps(steps)
+            return
+        }
+        const fullPath = steps.flatMap(step => ([{ "type": "attribute", "tag": step.attribute_tag }, { "type": "trait", "tag": step.trait_tag }]))
+        fullPath.push({ "type": "attribute", "tag": tag }, { "type": "trait", "tag": pendingTraitTag })
+        handleTraitSelection(fullPath)
+        resetPendingSelection()
+    }
+
+    if (_.isString(pendingTraitTag)) {
+        return <div>
+            <div className="menu_item_header">
+                <span style={{ color: HIGHLIGHT_COLOR }}>{currentParentAttribute?.text ?? currentParentTag}</span>
+            </div>
+            {_.isArray(currentParentTraitTags) ? currentParentTraitTags.map(parent_trait_tag => {
+                return <TraitMenuItem
+                    key={parent_trait_tag}
+                    tag={parent_trait_tag}
+                    attribute_tag={currentParentTag}
+                    onClick={handleParentTraitPick}
+                    selected={_.some(chosenParentSteps, { trait_tag: parent_trait_tag })}
+                />
+            }) : <div className="padding--tiny">Loading traits ...</div>}
+            <button className="menu_item" onClick={resetPendingSelection}>Cancel</button>
+        </div>
+    }
+
     return <div>
         {isSuccess ? <div className="menu_item_header">
             <span style={{color : HIGHLIGHT_COLOR}}>{attribute.text}</span>{isMissing ? <span style={{ color: "red" }}> *</span> : null}
         </div> : null}
         {_.isArray(effectiveTraitTags) ? effectiveTraitTags.map(trait_tag => {
-            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitSelection} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} />
+            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitClick} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} trait_path={trait_paths?.[trait_tag]} />
         }) : null}
     </div>
 }
@@ -49,6 +112,8 @@ AttributeWithTraitsMenuItem.propTypes = {
     handleTraitSelection: PropTypes.func,
     selected_traits: PropTypes.arrayOf(PropTypes.string),
     isMissing: PropTypes.bool,
+    trait_paths: PropTypes.object,
+    parent_tags: PropTypes.arrayOf(PropTypes.string),
 }
 
 AttributesInput.propTypes = {
@@ -109,6 +174,7 @@ export function AttributesInput({
             search_string: debouncedSearchString,
             limit: 50,
             include_traits: true,
+            include_parent_paths: true,
             min_state: min_state,
             attribute_tags : _.join(attribute_tags, ";"),
         }, {
@@ -154,6 +220,8 @@ export function AttributesInput({
                     key={attributeWithTraits.attribute_tag}
                     tag={attributeWithTraits.attribute_tag}
                     trait_tags={attributeWithTraits.trait_tags}
+                    trait_paths={attributeWithTraits.trait_paths}
+                    parent_tags={attributeWithTraits.parent_tags}
                     selected_traits={selected_traits}
                     handleTraitSelection={handleTraitSelection}
                     isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}

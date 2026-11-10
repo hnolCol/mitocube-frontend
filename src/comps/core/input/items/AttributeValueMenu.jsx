@@ -13,14 +13,21 @@ import { getRandomID } from "../../../../services/random"
  * @param {Boolean} props.selected  
  * @param {Boolean} props.showDescription
  */
-export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, selected = false, showDescription = true }) {
+export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, selected = false, showDescription = true, trait_path = undefined }) {
     const { data: trait, isSuccess } = api.traits.queryTraits.useGetTraitByTag({ tag: tag }, { enabled: _.isString(tag), staleTime: Infinity })
+
+    const getSelectionPath = () => {
+        if (_.isArray(trait_path) && trait_path.length > 0) {
+            return trait_path.flatMap(step => ([{ "type": "attribute", "tag": step.attribute_tag }, { "type": "trait", "tag": step.trait_tag }]))
+        }
+        return [{ "type": "attribute", "tag": attribute_tag}, { "type": "trait", "tag": tag }]
+    }
 
     return (
     <div className="flex flex-column">
             {isSuccess ?
                     <button className={`menu_item ${selected ? "menu_item__selected" : ""} ${active ? "menu_item__active" : ""} f`}
-                        onClick={(e) => onClick([{ "type": "attribute", "tag": attribute_tag}, { "type": "trait", "tag": tag}])}>
+                        onClick={(e) => onClick(getSelectionPath())}>
 
                         <div className={`flex justify-space-between " ${selected ? "" : ""}`}>
                             <div className="menu_item_text">{trait.text}</div>
