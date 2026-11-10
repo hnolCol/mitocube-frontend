@@ -2,19 +2,7 @@ import _ from "lodash";
 import moment from "moment";
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/api";
-import useDebounce from "@/hooks/useDebounce";
-import { getUserFullName } from "@/services/format/user";
-
-/**
- * @description Label resolving a user tag to the full name.
- * @param {Object} props
- * @param {String} props.user_tag User tag
- * @returns {JSX.Element} The user name.
- */
-function ParticipantLabel({ user_tag }) {
-    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag: user_tag }, { enabled: _.isString(user_tag) });
-    return <span>{isSuccess && _.isObject(user) ? getUserFullName(user) : user_tag}</span>;
-}
+import { PlainUserInput } from "@/comps/core/input/api/PlainUserInput";
 
 /**
  * @description Formatted timestamp for a message: HH:mm today, otherwise D MMM HH:mm.
@@ -113,61 +101,31 @@ function CompactConversation({ conversation_tag, user_tag, onBack }) {
  * @returns {JSX.Element} The new conversation form.
  */
 function NewConversationForm({ user_tag, onCreated }) {
-    const [participantQuery, setParticipantQuery] = useState("");
-    const debouncedParticipantQuery = useDebounce(participantQuery, 400);
     const [selectedParticipants, setSelectedParticipants] = useState([]);
     const [title, setTitle] = useState("");
     const [initialMessage, setInitialMessage] = useState("");
     const { mutate, isPending, isError, error } = api.messages.usePostConversation({
         onSuccess: (conversation_tag) => {
-            setParticipantQuery(""); setSelectedParticipants([]); setTitle(""); setInitialMessage("");
+            setSelectedParticipants([]); setTitle(""); setInitialMessage("");
             if (_.isString(conversation_tag)) onCreated(conversation_tag);
         },
     });
-    const { data: userResults } = api.users.queryByQuery.useGetUserByQuery(
-        { search_string: debouncedParticipantQuery.trim().length > 0 ? debouncedParticipantQuery.trim() : null, limit: 10 },
-        { enabled: debouncedParticipantQuery.trim().length > 0, staleTime: 30000 }
-    );
 
     const userTags = _.uniq([...selectedParticipants, ...(_.isString(user_tag) ? [user_tag] : [])]);
     const canSubmit = userTags.length > 1 && !isPending;
-    const suggestions = _.isArray(userResults) ? userResults.filter(t => !userTags.includes(t)) : [];
-
-    const addParticipant = (t) => {
-        if (!_.isString(t) || userTags.includes(t)) return;
-        setSelectedParticipants(prev => [...prev, t]);
-        setParticipantQuery("");
-    };
 
     return (
         <div className="compact__card">
             <span className="compact__label">New conversation</span>
-            <input
-                className="compact__input"
-                style={{ marginTop: "0.4rem" }}
-                placeholder="Find user…"
-                value={participantQuery}
-                onChange={e => setParticipantQuery(e.target.value)}
-            />
-            {participantQuery.trim().length > 0 && suggestions.length > 0 ? (
-                <div className="compact__row" style={{ flexDirection: "column", alignItems: "stretch", gap: 2 }}>
-                    {suggestions.map(t => (
-                        <button key={t} className="compact__button compact__button--ghost" style={{ textAlign: "left" }} onClick={() => addParticipant(t)}>
-                            + <ParticipantLabel user_tag={t} />
-                        </button>
-                    ))}
-                </div>
-            ) : null}
-            {selectedParticipants.length > 0 ? (
-                <div className="compact__row">
-                    {selectedParticipants.map(t => (
-                        <span key={t} className="compact__chip">
-                            <ParticipantLabel user_tag={t} />
-                            <button className="compact__chip__remove" onClick={() => setSelectedParticipants(prev => prev.filter(x => x !== t))}>×</button>
-                        </span>
-                    ))}
-                </div>
-            ) : null}
+            <div style={{ marginTop: "0.4rem" }}>
+                <PlainUserInput
+                    selected_users={selectedParticipants}
+                    onChange={setSelectedParticipants}
+                    current_user_tag={user_tag}
+                    label="Participants"
+                    placeholder="Find user…"
+                />
+            </div>
             <input
                 className="compact__input"
                 style={{ marginTop: "0.4rem" }}
