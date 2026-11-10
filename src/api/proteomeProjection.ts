@@ -74,15 +74,15 @@ const useGetProteomeProjectionAttributeEffects = (APIParams = { proteome_tag, at
     });
 };
 
-const useGetProteomeAttributeProteinEffects = (APIParams = { proteome_tag, attribute_tag, limit: 50 }, useQueryOptions = {}) => {
+const useGetProteomeAttributeProteinEffects = (APIParams = { proteome_tag, attribute_tag, annotation_tag: undefined, limit: 50 }, useQueryOptions = {}) => {
     if (_.isFunction(packageProjectionAPI?.useGetProteomeAttributeProteinEffects)) {
         return packageProjectionAPI.useGetProteomeAttributeProteinEffects(APIParams, useQueryOptions);
     }
     return useQuery({
-        queryKey: ["getProteomeAttributeProteinEffects", APIParams.proteome_tag, APIParams.attribute_tag, APIParams.limit, APIParams.min_valid_fraction],
+        queryKey: ["getProteomeAttributeProteinEffects", APIParams.proteome_tag, APIParams.attribute_tag, APIParams.annotation_tag, APIParams.limit, APIParams.min_valid_fraction],
         queryFn: () => apiClient
             .get(`/stats/proteomes/${APIParams.proteome_tag}/attributes/${APIParams.attribute_tag}/protein_effects`, {
-                params: { limit: APIParams.limit, min_valid_fraction: APIParams.min_valid_fraction }
+                params: { annotation_tag: APIParams.annotation_tag, limit: APIParams.limit, min_valid_fraction: APIParams.min_valid_fraction }
             })
             .then(res => res.data),
         ...useQueryOptions

@@ -1,22 +1,29 @@
 import { Spinner } from "@blueprintjs/core";
 import _ from "lodash";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { api } from "@/api";
 import { Loading } from "@/comps/core/base/states/Loading";
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton";
 import { ProteinGroup } from "@/comps/core/base/protein/Protein";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
-import { AnnotationSelection } from "@/comps/core/charts/selections/AnnotationSelection";
+import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/AnnotationSelectionMenu";
 import { ProteomeSelection } from "./ProteomeSelection";
+
+const SORT_OPTIONS = [
+    { value: "effect", label: "Sort: pooled effect" },
+    { value: "max_abs_ca_effect", label: "Sort: max CA effect" }
+]
 
 const HELP_TEXT = <div className="container--shadow padding--little" style={{ maxWidth: "60rem", textAlign: "left", marginBottom: "1rem" }}>
     <p>All values are <strong>z-scores (sample-wise)</strong>: the abundance of a protein in a sample, standardized against the mean and
         standard deviation of that sample. Because z-scores are computed within each dataset, they are comparable across submissions.</p>
     <p><strong>Effect</strong> is the difference between the mean z-score of samples that carry any condition application of the selected
         attribute and the mean z-score of samples that carry none of them, pooled over all your accessible submissions of this proteome.
-        Proteins are ranked by the absolute effect: a positive effect means the protein is on average more abundant in samples with the
-        attribute, a negative effect means less abundant.</p>
+        A positive effect means the protein is on average more abundant in samples with the attribute, a negative effect means less abundant.</p>
+    <p><strong>Max CA effect</strong> is the largest per-condition-application deviation from the attribute-level baseline. It highlights proteins
+        that respond strongly to a single condition application even when their pooled effect cancels out across several of them.</p>
     <p>The columns show the mean z-score of the samples carrying each condition application. Values from few samples or few submissions
         should be interpreted with caution — a condition application measured in a single submission may reflect dataset-specific
         (batch) effects rather than a general trend.</p>
@@ -58,6 +65,9 @@ function ProteinEffectRow({ protein, caTags, onSelect }) {
         <td style={{ textAlign: "center", fontFamily: "monospace" }}>
             {_.isNumber(protein.effect) ? protein.effect.toFixed(3) : "—"}
         </td>
+        <td style={{ textAlign: "center", fontFamily: "monospace" }}>
+            {_.isNumber(protein.max_abs_ca_effect) ? protein.max_abs_ca_effect.toFixed(3) : "—"}
+        </td>
         {caTags.map(caTag => <MeanZCell key={caTag} entry={conditionsByTag[caTag]} />)}
     </tr>
 }
@@ -68,31 +78,36 @@ function ProteinEffectRow({ protein, caTags, onSelect }) {
  * all accessible submissions of the proteome. Each protein links to its abundance
  * view (/protein/:tag?view=abundance) for per-condition-application boxplots.
  * Backend: GET /api/stats/proteomes/{proteome_tag}/attributes/{attribute_tag}/protein_effects
+ * (optional annotation_tag restricts the ranking to the annotation's protein groups)
  */
 export function AttributeProteinEffects() {
     const [proteome_tag, setProteomeTag] = useState(null)
     const [attribute_tag, setAttributeTag] = useState(null)
+    const [annotation_tag, setAnnotationTag] = useState(null)
+    const [sortBy, setSortBy] = useState("effect")
     const [isHelpOpen, setIsHelpOpen] = useState(false)
-    const [annotationScope, setAnnotationScope] = useState(null)
     const redirect = useNavigate()
 
     const { data, isLoading, isError, error } = api.stats.proteomeProjection.useGetProteomeAttributeProteinEffects(
-        { proteome_tag, attribute_tag, limit: 50 },
+        { proteome_tag, attribute_tag, annotation_tag: _.isString(annotation_tag) ? annotation_tag : undefined, limit: 50 },
         { enabled: _.isString(proteome_tag) && proteome_tag.length > 0 && _.isString(attribute_tag) && attribute_tag.length > 0, staleTime: 50000 }
     )
 
     const caTags = _.isObject(data) && _.isArray(data.ca_tags) ? data.ca_tags : []
-    const allProteins = _.isObject(data) && _.isArray(data.proteins) ? data.proteins : []
-    const proteins = _.isObject(annotationScope) && annotationScope.proteinSet instanceof Set
-        ? allProteins.filter(protein => annotationScope.proteinSet.has(protein.tag))
-        : allProteins
+    const proteins = useMemo(() => {
+        const allProteins = _.isObject(data) && _.isArray(data.proteins) ? data.proteins : []
+        if (sortBy === "max_abs_ca_effect") {
+            return [...allProteins].sort((a, b) => (_.isNumber(b.max_abs_ca_effect) ? b.max_abs_ca_effect : 0) - (_.isNumber(a.max_abs_ca_effect) ? a.max_abs_ca_effect : 0))
+        }
+        return allProteins
+    }, [data, sortBy])
 
     const handleProteinSelect = (protein_tag) => {
         if (_.isString(protein_tag) && protein_tag.length > 0) redirect(`/protein/${protein_tag}?view=abundance`)
     }
 
-    const handleAnnotationSelect = (annotation_tags, color, protein_tags) => {
-        setAnnotationScope({ tags: annotation_tags, proteinSet: new Set(protein_tags) })
+    const handleAnnotationSelect = (e, tag) => {
+        setAnnotationTag(_.isString(tag) && tag.length > 0 ? tag : null)
     }
 
     return (
@@ -103,17 +118,19 @@ export function AttributeProteinEffects() {
                 <AttributeSelection attribute_tag={attribute_tag} setAttributeTag={setAttributeTag} />
                 <div className="flex align-center" style={{ gap: "0.5rem" }}>
                     <span>Annotation</span>
-                    <AnnotationSelection onAnnotationSelect={handleAnnotationSelect} />
-                    {_.isObject(annotationScope) ? (
-                        <span style={{ fontSize: 12, color: "var(--gray3)" }}>
-                            {annotationScope.tags.join(", ")} ({proteins.length} of {allProteins.length} proteins)
-                            <button
-                                style={{ border: "none", backgroundColor: "transparent", color: "#466688", cursor: "pointer", marginLeft: "0.5rem" }}
-                                onClick={() => setAnnotationScope(null)}>
-                                Clear
-                            </button>
-                        </span>
-                    ) : null}
+                    <AnnotationSelectionMenu
+                        placeholder="Protein scope..."
+                        onSelection={handleAnnotationSelect}
+                        onRemove={handleAnnotationSelect}
+                        selected_tags={_.isString(annotation_tag) ? [annotation_tag] : []}
+                        minimal={true} />
+                </div>
+                <div className="flex align-center" style={{ gap: "0.5rem" }}>
+                    {SORT_OPTIONS.map(option => <OptionButton
+                        key={option.value}
+                        isSelected={sortBy === option.value}
+                        onClick={() => setSortBy(option.value)}
+                        children={<span>{option.label}</span>} />)}
                 </div>
                 <button
                     style={{ border: "none", backgroundColor: "transparent", color: "#466688", cursor: "pointer" }}
@@ -134,29 +151,25 @@ export function AttributeProteinEffects() {
                             <div className="flex flex-column" style={{ gap: "0.75rem" }}>
                                 <div>
                                     <Attribute attribute_tag={data.attribute_tag} /> — {proteins.length} protein{proteins.length === 1 ? "" : "s"} ranked by effect across
-                                    {" "}{caTags.length} condition application{caTags.length === 1 ? "" : "s"}, pooled over {data.n_submissions} submission{data.n_submissions === 1 ? "" : "s"}.
+                                    {" "}{caTags.length} condition application{caTags.length === 1 ? "" : "s"}, pooled over {data.n_submissions} submission{data.n_submissions === 1 ? "" : "s"}
+                                    {_.isString(annotation_tag) ? ", scoped to the selected annotation" : ""}.
                                     Click a protein to inspect its abundance distribution per condition application.
                                 </div>
-                                {proteins.length === 0 && _.isObject(annotationScope) ? (
-                                    <div style={{ color: "var(--gray3)" }}>
-                                        None of the ranked proteins is contained in the selected annotation{annotationScope.tags.length === 1 ? "" : "s"}.
-                                    </div>
-                                ) : (
-                                    <table style={{ borderCollapse: "collapse", minWidth: "34rem" }}>
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>Protein</th>
-                                                <th style={{ textAlign: "center" }}>Effect</th>
-                                                {caTags.map(caTag => <th key={caTag} style={{ textAlign: "center" }}><ConditionApplicationText tag={caTag} /></th>)}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {proteins.map(protein =>
-                                                <ProteinEffectRow key={protein.tag} protein={protein} caTags={caTags} onSelect={handleProteinSelect} />)}
-                                        </tbody>
-                                    </table>
-                                )}
+                                <table style={{ borderCollapse: "collapse", minWidth: "34rem" }}>
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Protein</th>
+                                            <th style={{ textAlign: "center" }}>Effect</th>
+                                            <th style={{ textAlign: "center" }}>Max CA Effect</th>
+                                            {caTags.map(caTag => <th key={caTag} style={{ textAlign: "center" }}><ConditionApplicationText tag={caTag} /></th>)}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {proteins.map(protein =>
+                                            <ProteinEffectRow key={protein.tag} protein={protein} caTags={caTags} onSelect={handleProteinSelect} />)}
+                                    </tbody>
+                                </table>
                             </div>
                         ) : <Spinner size={16} />}
         </div>
