@@ -89,7 +89,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
     }
 
     if (_.isString(pendingTraitTag)) {
-        return <div>
+        return <div style={{ backgroundColor: "#f0f4f8", borderRadius: "3px" }}>
             <div className="menu_item_header">
                 <span style={{ color: HIGHLIGHT_COLOR }}>Select parent first</span>
             </div>
