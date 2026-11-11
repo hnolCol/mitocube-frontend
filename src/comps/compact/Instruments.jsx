@@ -241,7 +241,10 @@ function InstrumentPastSubmissions({ instrument_tag }) {
         <div className="compact__section">
             <span className="compact__label">Recent submissions</span>
             <div className="compact__row">
-                {items.map(submission_tag => <InstrumentSubmissionLink key={submission_tag} submission_tag={submission_tag} />)}
+                {items.map(item => {
+                    const submission_tag = _.isString(item) ? item : item?.submission_tag;
+                    return _.isString(submission_tag) ? <InstrumentSubmissionLink key={submission_tag} submission_tag={submission_tag} /> : null;
+                })}
             </div>
         </div>
     );
