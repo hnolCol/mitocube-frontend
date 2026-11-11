@@ -349,7 +349,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                 minimal={minimal}
                 attribute_tags={ca_attributes}
                 selected={_.isString(attribute) ? [attribute] : []}
-                onSelect={(attribute_tag) => { setAttribute(attribute_tag); setWithinFilters({}); setActiveWithinAttributes([]) }} />
+                onSelect={(attribute_tag) => { setAttribute(attribute_tag); setWithinFilters({}); setActiveWithinAttributes([]); setPairwiseComp(prev => ({ ...prev, left: [], right: [] })) }} />
         </div> : null}
 
         
