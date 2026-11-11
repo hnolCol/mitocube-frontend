@@ -30,14 +30,12 @@ export function SamplesTab({ submission, setSubmission, setComponentKey, compone
     return (
         <div>
                 <h3>Samples</h3>
-                    <p>A sample attribute defines unique attributes such as <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, and <span className="h0-span">Timepoint</span> for each sample.
-                        The samplesAttributes are used to calculated statistics on the dataset as well as for visualization. Therefore it is crucical that the groupings are defined in a meticulous way. If you cannot find a specific attribute please contact the administrator.
-                    </p>
-                    <p>First, create a sample attribute and name it in the table header. Then specify an attribute such as <span className="h1-span">Genotype</span> or <span className="h2-span">Treatment</span>.
-                        After attribute selection you will be able to select from a defined set of attribute values from the drop-down menu (right click on the table cells).
-                        If you want to assign an attribute value to multiple rows, select the rows and then choose the attribute value from the drop-down menu.</p>
-                    <p>An attribute can only be assigned to a <span className="h0-span">single sample attribute</span> and the attribute values must have at least <span className="h0-span">two unique values</span>.
-                                Otherwise they should be specified as dataset attributes above.</p>
+                    <p>Sample attributes describe each sample, for example its <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, or <span className="h0-span">Timepoint</span>.
+                        They are used for statistics and visualization, so please define them carefully. If an attribute you need is missing, contact the administrator.</p>
+                    <p>To get started, create a sample attribute in the table header and assign an attribute such as <span className="h1-span">Genotype</span> or <span className="h2-span">Treatment</span> to it.
+                        Then assign values to your samples by right-clicking the table cells and choosing a value from the drop-down menu. To assign the same value to several samples, select the rows first and then pick the value.</p>
+                    <p>Each attribute can be used only once, and its values must include at least <span className="h0-span">two unique values</span>.
+                                Attributes that do not meet this requirement belong in the dataset attributes above.</p>
                     <NumericValueInput
                             hint="Number of replicates"
                             placeholder="Number of replicates"
