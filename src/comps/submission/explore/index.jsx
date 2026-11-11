@@ -292,7 +292,7 @@ export function SubmissionExplore({ user_tag }) {
     const handleSelectUser = (user_tag) => {
         setSelectedUserTags(prev => prev.includes(user_tag) ? prev.filter(tag => tag !== user_tag) : [...prev, user_tag])
     }
-    return <div className="flex flex-column center-items padding--medium">
+    return <div className="container--scroll-y-hide-x flex flex-column center-items padding--medium" style={{ height: "90vh" }}>
         <h3>Explore submissions</h3>
         <p className="font-size--small" style={{ maxWidth: "60vw", textAlign: "center" }}>
             Discover submissions outside your submission scope by title, condition applications or users.
