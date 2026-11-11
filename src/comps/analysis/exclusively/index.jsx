@@ -15,6 +15,7 @@ import { HIGHLIGHT_COLOR } from "@/comps/core/colors/colorPalette";
 import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
 import { MenuItem } from "@blueprintjs/core";
 import { Select } from "@blueprintjs/select";
+import { MAX_DEFAULT_CONDITION_APPLICATIONS } from "@/services/attributes";
 
 export function AttributeConditionApplicationHighlight({ submission_tag, attribute_tag, text = " ", highlight_ca_tags = [] }) {
     
@@ -136,6 +137,12 @@ export function SubmissionExclusivelyQuantified() {
     const { data: exclusivelyQuantified, isLoading, isSuccess } = api.submissions.ranking.useGetSubmissionExclusivelyQuantifiedProteinGroups({ tag: submission_tag, annotation_tags : _.join(annotationTags, ";"), combined }, { enabled: typeof submission_tag === "string" && submission_tag.length > 0 })
     const { data: counterpartExclusivelyQuantified } = api.submissions.ranking.useGetSubmissionExclusivelyQuantifiedProteinGroups({ tag: submission_tag, annotation_tags : _.join(annotationTags, ";"), combined: !combined }, { enabled: typeof submission_tag === "string" && submission_tag.length > 0 })
     const {data : sample_count} = api.submissions.samples.useGetSubmissionSampleCount({tag : submission_tag}, {enabled : _.isString(submission_tag)})
+    const { data: uniqueConditionApplications } = api.submissions.condition_applications.useGetSubmissionSampleConditionApplications({ tag: submission_tag, return_unique: true }, { enabled: _.isString(submission_tag), staleTime: Infinity })
+
+    const attributeConditionApplicationCounts = useMemo(() => _.mapValues(_.isObject(uniqueConditionApplications) ? uniqueConditionApplications : {}, ca_tags => _.isArray(ca_tags) ? ca_tags.length : 0), [uniqueConditionApplications])
+    // attributes with too many unique condition applications (e.g. a MOUSE ID attribute with one value per sample)
+    // are excluded from the default representation
+    const attributeIsWithinDefaultLimit = (attribute_tag) => !_.has(attributeConditionApplicationCounts, attribute_tag) || attributeConditionApplicationCounts[attribute_tag] <= MAX_DEFAULT_CONDITION_APPLICATIONS
     
     const attributeCounts = useMemo(() => {
         if (!_.isArray(exclusivelyQuantified)) return {};
@@ -172,9 +179,10 @@ export function SubmissionExclusivelyQuantified() {
 
     const columns = useMemo(() => {
         if (!_.isArray(ca_attributes)) return [];
-        if (!combined) return ca_attributes.map(attribute_tag => ({ tag: attribute_tag, attribute_tags: [attribute_tag] }));
-        return _.isString(selectedPair) ? allCombinedColumns.filter(column => column.tag === selectedPair) : allCombinedColumns;
-    }, [combined, selectedPair, ca_attributes, allCombinedColumns]);
+        if (!combined) return ca_attributes.filter(attributeIsWithinDefaultLimit).map(attribute_tag => ({ tag: attribute_tag, attribute_tags: [attribute_tag] }));
+        const baseColumns = _.isString(selectedPair) ? allCombinedColumns.filter(column => column.tag === selectedPair) : allCombinedColumns;
+        return baseColumns.filter(column => column.attribute_tags.every(attributeIsWithinDefaultLimit));
+    }, [combined, selectedPair, ca_attributes, allCombinedColumns, attributeConditionApplicationCounts]);
 
     const { isReady, tagQueries } = usePrefetchConditionApplicationTexts(_.isArray(conditionApplicationTags) ? conditionApplicationTags : []);
     const { isReady: isProteinsReady, tagQueries: proteinTagQueries, isLoading: isLoadingProteins } = usePrefetchProteins(proteinTags)
