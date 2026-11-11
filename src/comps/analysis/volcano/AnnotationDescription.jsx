@@ -158,7 +158,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
             <div className="flex center-items"
                 style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white", alignItems: "flex-start" }}
                 onClick={() => onToggleRow(entry.tag)}>
-                <span className="font-size--small" style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "360px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{label}</span>
+                <span className="font-size--small" style={{ width: "280px", flexShrink: 0, whiteSpace: "normal", overflowWrap: "anywhere" }}>{label}</span>
                 <div className="flex center-items" style={{ width: `${BAR_TRACK_WIDTH}px`, height: "0.9rem", backgroundColor: "#efefef", flexShrink: 0 }}>
                     {segment(entry.up, directionBarColor("up"), "up")}
                     {segment(entry.down, directionBarColor("down"), "down")}
@@ -397,7 +397,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
 
     const searchIsActive = searchString.trim().length > 0
 
-    return <div style={{ display: "flex", flexDirection: "column", maxHeight: "calc(95vh - 6rem)", minHeight: 0 }}>
+    return <div style={{ display: "flex", flexDirection: "column", maxHeight: "calc(95vh - 9rem)", minHeight: 0 }}>
         <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.5rem" }}>
             <ListSelectionMenu listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={onToggleListKey} />
             <AnnotationGroupSelectionMenu
@@ -437,7 +437,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                     : "No annotations match the filter."}</span>
                 : <div className="flex flex-column" style={{ flex: 1, minHeight: 0 }}>
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
-                        <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
+                        <span className="font-size--smallest" style={{ width: "280px", flexShrink: 0 }}>Annotation</span>
                         <span className="font-size--smallest">bar fill = share of annotation members in list:</span>
                         {[
                             { color: directionBarColor("up"), label: "up" },
