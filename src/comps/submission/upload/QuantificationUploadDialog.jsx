@@ -20,6 +20,12 @@ const UPLOAD_TYPES = [
         dialogTitle: "Upload Precursor Quantifications",
         description: "Long format, tab-separated. Requires sample, stripped sequence, value, score, retention time, charge and protein group columns.",
     },
+    {
+        key: "ptm_precursor",
+        label: "PTM Precursors",
+        dialogTitle: "Upload PTM Precursors",
+        description: "Long format, tab-separated. Requires modified sequence, charge, protein group, protein, position and modification columns. Multiple protein groups, positions and modifications are separated by ';'. Modifications are UniMod accessions, names or monoisotopic masses. Upload PTM precursors before their quantifications via the precursor tab.",
+    },
 ];
 
 /**

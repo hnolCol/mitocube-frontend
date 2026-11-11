@@ -45,6 +45,7 @@ const QUANTIFICATION_TYPES = {
         existsType: null,
         showSampleTagCopy: true,
         updateStatsAfterUpload: true,
+        uploadNoun: "precursor quantifications",
         requiredColumns: [
             { key: "sample_tag", label: "Sample Tag" },
             { key: "peptide_tag", label: "Stripped Sequence" },
@@ -72,6 +73,46 @@ const QUANTIFICATION_TYPES = {
             charge: parseInt(cols[columnIndex.charge]) || null,
             protein_group_tag: cols[columnIndex.protein_group_tag],
         }),
+    },
+    ptm_precursor: {
+        title: "Upload PTM Precursor File",
+        uploadHook: () => api.features.ptm_precursors.usePostPTMPrecursorsBulk(),
+        existsType: null,
+        showSampleTagCopy: false,
+        updateStatsAfterUpload: false,
+        uploadNoun: "PTM precursors",
+        buildPayload: (data) => ({ precursors: data, batch_size: 1000, transaction_batch_size: 400 }),
+        collectReports: true,
+        requiredColumns: [
+            { key: "sequence", label: "Modified Sequence" },
+            { key: "charge", label: "Charge" },
+            { key: "protein_group_tag", label: "Protein Group Tag(s)" },
+            { key: "protein_tag", label: "Protein Tag" },
+            { key: "positions", label: "Position(s)" },
+            { key: "modifications", label: "Modification(s)" },
+        ],
+        columnKeywords: {
+            sequence: ["modified sequence", "modified_sequence", "modifiedsequence", "sequence", "peptide", "precursor"],
+            charge: ["charge", "z", "precursor charge", "precursor_charge"],
+            protein_group_tag: ["protein group", "protein_group", "protein group tag", "protein_group_tag", "protein group id", "protein_group_id"],
+            protein_tag: ["protein tag", "protein_tag", "proteintag", "protein id", "protein_id"],
+            positions: ["position", "positions", "site", "sites", "ptm position", "ptm_position"],
+            modifications: ["modification", "modifications", "mod", "mods", "ptm", "unimod"],
+        },
+        parseLine: (cols, columnIndex) => {
+            const positions = String(cols[columnIndex.positions] || "").split(";").map((p) => parseInt(p.trim())).filter((p) => Number.isInteger(p));
+            const modifications = String(cols[columnIndex.modifications] || "").split(";").map((m) => m.trim()).filter((m) => m !== "");
+            return {
+                sequence: cols[columnIndex.sequence],
+                charge: parseInt(cols[columnIndex.charge]) || null,
+                protein_group_tags: String(cols[columnIndex.protein_group_tag] || "").split(/[;|]/).map((t) => t.trim()).filter((t) => t !== ""),
+                protein_tag: cols[columnIndex.protein_tag],
+                modifications: positions.map((position, idx) => ({
+                    position,
+                    modification: modifications[idx],
+                })),
+            };
+        },
     },
 };
 
@@ -348,9 +389,10 @@ export function QuantificationUploader({ submission_tag, quantification_type = "
             }
 
             try {
-                await mutateAsync({ tag: submission_tag, quantifications: chunk.data });
+                const payload = type.buildPayload ? type.buildPayload(chunk.data, submission_tag) : { tag: submission_tag, quantifications: chunk.data };
+                const result = await mutateAsync(payload);
                 activeUploadsRef.current--;
-                return { success: true, chunkIndex: chunk.index };
+                return { success: true, chunkIndex: chunk.index, report: type.collectReports ? result : undefined };
             } catch (error) {
                 activeUploadsRef.current--;
 
@@ -461,7 +503,15 @@ export function QuantificationUploader({ submission_tag, quantification_type = "
                 if (type.updateStatsAfterUpload) {
                     updateStats({ tag: submission_tag });
                 }
-                alert(`Upload complete! ${totalLines} ${quantification_type} quantifications uploaded.`);
+                if (type.collectReports) {
+                    const reports = uploaded.map((u) => u.report).filter(Boolean);
+                    const valid = reports.reduce((sum, report) => sum + (_.isNumber(report.valid) ? report.valid : 0), 0);
+                    const notFoundTags = reports.flatMap((report) => (_.isArray(report.not_found_tags) ? report.not_found_tags : []));
+                    const skippedMessage = notFoundTags.length > 0 ? ` ${notFoundTags.length} precursors were skipped because their protein groups do not exist (e.g. ${notFoundTags.slice(0, 3).join(", ")}).` : "";
+                    alert(`Upload complete! ${valid} ${type.uploadNoun} inserted.${skippedMessage}`);
+                } else {
+                    alert(`Upload complete! ${totalLines} ${type.uploadNoun || quantification_type + " quantifications"} uploaded.`);
+                }
             }
         } catch (error) {
             setUploadStatus("error");

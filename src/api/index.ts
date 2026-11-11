@@ -43,7 +43,7 @@ import { collaborationsAPI, messagesAPI } from "./collaborations";
 import { ticketsAPI } from "./tickets";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
 import { instrumentsCoreAPI, instrumentsCountAPI, instrumentsPermissionsAPI } from "./instruments";
-import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, proteinFavoritesAPI } from "./features";
+import { featuresCorelationsAPI, featuresDataAPI, featuresInfoAPI ,featuresPairwiseQuantAPI ,featuresProteinsQueryAPI ,featuresQuantificationsAPI , featuresRankingAPI , featuresSequenceAPI , featuresTagAPI, featuresPrecursorsAPI, ptmsAPI, ptmPrecursorsAPI, proteinFavoritesAPI } from "./features";
 import { statsAPI } from "./stats";
 import { proteomeProjectionAPI } from "./proteomeProjection";
 import { submissionStatisticsAPI } from "./submissionStatistics";
@@ -94,6 +94,8 @@ export const api = {
         ranking : featuresRankingAPI,
         sequence : featuresSequenceAPI,
         precursors : featuresPrecursorsAPI,
+        ptms : ptmsAPI,
+        ptm_precursors : ptmPrecursorsAPI,
         tag : featuresTagAPI
     },
     submissions: {
