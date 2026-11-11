@@ -397,7 +397,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
 
     const searchIsActive = searchString.trim().length > 0
 
-    return <div style={{ display: "flex", flexDirection: "column", maxHeight: "calc(95vh - 6rem)", minHeight: 0 }}>
+    return <div style={{ display: "flex", flexDirection: "column", maxHeight: "calc(95vh - 9rem)", minHeight: 0 }}>
         <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.5rem" }}>
             <ListSelectionMenu listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={onToggleListKey} />
             <AnnotationGroupSelectionMenu
