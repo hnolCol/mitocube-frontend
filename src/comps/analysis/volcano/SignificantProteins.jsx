@@ -430,7 +430,7 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
             <VolcanoListSVG significant={hasSignificant} color={hasSignificant ? "#2e528b" : "#999999"} />
         </button>
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title={`Significant proteins of volcano ${suffix}`} size="50%" style={{ height: "95vh" }}>
-            <div className="padding--medium" style={{ maxHeight: "calc(95vh - 3.5rem)", overflowY: "auto" }}>
+            <div className="padding--medium">
                 <DirectionToggle direction={direction} onChange={handleDirectionChange} counts={{ up: up.length, down: down.length, all: all.length }} />
                 <Tabs id="volcano-list-tabs" selectedTabId={activeTab} onChange={setActiveTab} renderActiveTabPanelOnly={true}>
                     <Tab id="proteins" title="Proteins" panel={
@@ -728,7 +728,7 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     return <>
         <button className="basic-button--small" onClick={() => setIsOpen(prev => !prev)}>Compare significant proteins</button>
         <Drawer isOpen={isOpen} onClose={() => setIsOpen(false)} title="Compare significant proteins between volcano plots" size="75%" style={{ height: "95vh" }}>
-            <div className="padding--medium" style={{ maxHeight: "calc(95vh - 3.5rem)", overflowY: "auto" }}>
+            <div className="padding--medium" style={{ height: "100%", overflowY: "auto" }}>
                 <DirectionToggle direction={direction} onChange={setDirection} counts={counts} />
                 <Tabs id="volcano-compare-tabs" selectedTabId={activeTab} onChange={setActiveTab} renderActiveTabPanelOnly={true}>
                     <Tab id="pairwise" title="Pairwise (Venn)" panel={
