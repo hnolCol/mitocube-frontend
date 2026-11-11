@@ -156,9 +156,9 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
     return <div className="margin-bottom--little">
         <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
             <div className="flex center-items"
-                style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white" }}
+                style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white", alignItems: "flex-start" }}
                 onClick={() => onToggleRow(entry.tag)}>
-                <span className="font-size--small" style={{ width: "200px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+                <span className="font-size--small" style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "360px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{label}</span>
                 <div className="flex center-items" style={{ width: `${BAR_TRACK_WIDTH}px`, height: "0.9rem", backgroundColor: "#efefef", flexShrink: 0 }}>
                     {segment(entry.up, directionBarColor("up"), "up")}
                     {segment(entry.down, directionBarColor("down"), "down")}
@@ -397,7 +397,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
 
     const searchIsActive = searchString.trim().length > 0
 
-    return <div>
+    return <div style={{ display: "flex", flexDirection: "column", maxHeight: "calc(95vh - 6rem)", minHeight: 0 }}>
         <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.5rem" }}>
             <ListSelectionMenu listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={onToggleListKey} />
             <AnnotationGroupSelectionMenu
@@ -419,7 +419,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
         {_.isString(groupTag) && groupsLoading ? <Spinner size={20} /> : null}
         {_.isString(groupTag) && !groupsLoading && allAnnotationTags.length === 0 ? <span className="font-size--small">No annotations found for this group.</span> : null}
         {_.isString(groupTag) && allAnnotationTags.length > 0 && !proteinSetsReady ? <Spinner size={20} /> : null}
-        {_.isString(groupTag) && allAnnotationTags.length > 0 && proteinSetsReady ? <div>
+        {_.isString(groupTag) && allAnnotationTags.length > 0 && proteinSetsReady ? <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
             <div className="flex center-items flex--wrap margin-bottom--little" style={{ gap: "0.4rem" }}>
                 <InputGroup small={true} leftIcon="search" placeholder="Filter annotations..."
                     value={searchString} onChange={e => setSearchString(e.target.value)} style={{ width: "200px" }} />
@@ -435,7 +435,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                 ? <span className="font-size--small">{!hasAnyOverlap
                     ? "No overlap between the selected list(s) and the annotations of this group."
                     : "No annotations match the filter."}</span>
-                : <div className="flex flex-column">
+                : <div className="flex flex-column" style={{ flex: 1, minHeight: 0 }}>
                     <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
                         <span className="font-size--smallest" style={{ width: "200px", flexShrink: 0 }}>Annotation</span>
                         <span className="font-size--smallest">bar fill = share of annotation members in list:</span>
@@ -450,6 +450,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                         </span>)}
                         <span className="font-size--smallest" style={{ width: "4.5rem", flexShrink: 0, textAlign: "right" }}>med. log2FC</span>
                     </div>
+                    <div style={{ overflowY: "auto", minHeight: 0 }}>
                     {visibleEntries.map(entry => <AnnotationRow
                         key={entry.tag}
                         entry={entry}
@@ -468,6 +469,7 @@ export function AnnotationDescriptionSection({ data, suffixes, direction, submis
                         onMarkProteinList={onMarkProteinList}
                         onLabelProteinList={onLabelProteinList}
                         proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />)}
+                    </div>
                 </div>}
             {visibleEntries.length < filteredEntries.length
                 ? <button className="basic-button--small margin-top--little"
