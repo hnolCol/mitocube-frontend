@@ -158,7 +158,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
             <div className="flex center-items"
                 style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white" }}
                 onClick={() => onToggleRow(entry.tag)}>
-                <span className="font-size--small" style={{ width: "200px", flexShrink: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+                <span className="font-size--small" style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "360px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{label}</span>
                 <div className="flex center-items" style={{ width: `${BAR_TRACK_WIDTH}px`, height: "0.9rem", backgroundColor: "#efefef", flexShrink: 0 }}>
                     {segment(entry.up, directionBarColor("up"), "up")}
                     {segment(entry.down, directionBarColor("down"), "down")}
