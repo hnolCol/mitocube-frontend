@@ -156,7 +156,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
     return <div className="margin-bottom--little">
         <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
             <div className="flex center-items"
-                style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white" }}
+                style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white", alignItems: "flex-start" }}
                 onClick={() => onToggleRow(entry.tag)}>
                 <span className="font-size--small" style={{ flex: "1 1 200px", minWidth: "200px", maxWidth: "360px", whiteSpace: "normal", overflowWrap: "anywhere" }}>{label}</span>
                 <div className="flex center-items" style={{ width: `${BAR_TRACK_WIDTH}px`, height: "0.9rem", backgroundColor: "#efefef", flexShrink: 0 }}>
