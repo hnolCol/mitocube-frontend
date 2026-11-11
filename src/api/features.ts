@@ -13,3 +13,4 @@ export const featuresQuantificationsAPI = hooks.features.quantification.createFe
 export const proteinFavoritesAPI = hooks.features.proteins.createProteinFavoriteAPI(apiClient)
 export const featuresPrecursorsAPI = hooks.features.precursors.createPrecursorAPI(apiClient);
 export const ptmsAPI = hooks.features.ptms.createPTMSitesAPI(apiClient);
+export const ptmPrecursorsAPI = hooks.features.ptm_precursors.createPTMPrecursorAPI(apiClient);

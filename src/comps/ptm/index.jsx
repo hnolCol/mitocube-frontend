@@ -6,6 +6,31 @@ import { Loading } from "@/comps/core/base/states/Loading";
 import PTMSiteAbundancePlot from "./PTMSiteAbundancePlot";
 
 /**
+ * Abundance of a single supporting precursor of a PTM site across samples.
+ *
+ * PTM precursor quantification is done at the precursor level
+ * (Sample-[:QUANTIFIED]->Precursor), so the abundance of a PTM site is
+ * inspected via its supporting precursors (Precursor-[:MAPS_TO]->PTMSite).
+ *
+ * Data comes from GET /api/features/precursors/{precursor_tag}/abundance which
+ * returns records of { precursor_tag, sample_tag, submission_tag, value }.
+ *
+ * @param {Object} props
+ * @param {string} props.precursor_tag - The tag of the precursor (modified sequence + charge, e.g. PEPTS[Phospho]IDEK.2).
+ * @returns {JSX.Element}
+ */
+function PTMPrecursorAbundance({ precursor_tag }) {
+    const { data: abundanceData, isLoading, isError } = api.features.precursors.useGetPrecursorAbundance(
+        { tag: precursor_tag },
+        { enabled: _.isString(precursor_tag) }
+    );
+
+    if (isLoading) return <Loading />;
+    if (isError) return <div>The abundance of precursor {precursor_tag} could not be retrieved.</div>;
+    return <PTMSiteAbundancePlot abundanceData={_.isArray(abundanceData) ? abundanceData : []} />;
+}
+
+/**
  * Searchable list of PTM sites matching the search string.
  *
  * Backed by GET /api/features/ptms/q which returns PTM site tags
@@ -63,6 +88,29 @@ function PTMSiteSelector({ search_string, selected_tag, onClickPTMSite }) {
     );
 }
 
+function PTMPrecursorAbundanceSection({ precursor_tags }) {
+    const [selectedPrecursor, setSelectedPrecursor] = useState(precursor_tags[0]);
+
+    useEffect(() => {
+        setSelectedPrecursor(precursor_tags[0]);
+    }, [precursor_tags]);
+
+    return (
+        <div>
+            <select
+                value={selectedPrecursor}
+                onChange={(event) => setSelectedPrecursor(event.target.value)}
+                style={{ padding: "0.3rem", marginBottom: "0.5rem", maxWidth: "100%" }}
+            >
+                {precursor_tags.map((precursor_tag) => (
+                    <option key={precursor_tag} value={precursor_tag}>{precursor_tag}</option>
+                ))}
+            </select>
+            <PTMPrecursorAbundance precursor_tag={selectedPrecursor} />
+        </div>
+    );
+}
+
 /**
  * Detail view of a PTM site with its abundance across samples.
  *
@@ -96,6 +144,7 @@ function PTMSiteDetail({ ptm_site_tag }) {
                 <div>Protein</div><div>{ptm_site.protein_tag ?? "group-level identification"}</div>
                 <div>Position</div><div>{ptm_site.position}</div>
                 <div>Modification</div><div>{ptm_site.modification}</div>
+                <div>UniMod</div><div>{_.isNumber(ptm_site.unimod_id) || _.isString(ptm_site.unimod_name) ? `${ptm_site.unimod_name ?? ""} (${ptm_site.unimod_id ?? "no accession"})`.trim() : "-"}</div>
                 <div>Residue</div><div>{ptm_site.residue ?? "-"}</div>
                 <div>Quantified</div><div>{ptm_site.quantified ? "yes" : "no"}</div>
                 <div>Supporting precursors</div>
@@ -115,7 +164,18 @@ function PTMSiteDetail({ ptm_site_tag }) {
             ) : null}
             <div style={{ marginTop: "1.5rem" }}>
                 <h4>Abundance across samples {abundanceFetching ? <span className="font-size--smallest">(updating)</span> : null}</h4>
+                <div className="font-size--smallest">
+                    PTM precursor quantification is done at the precursor level. Site-level values are only available if site quantifications were uploaded directly.
+                </div>
                 {abundanceLoading ? <Loading /> : <PTMSiteAbundancePlot abundanceData={_.isArray(abundanceData) ? abundanceData : []} />}
+            </div>
+            <div style={{ marginTop: "1.5rem" }}>
+                <h4>Precursor abundance</h4>
+                {_.isArray(ptm_site.precursor_tags) && ptm_site.precursor_tags.length > 0 ? (
+                    <PTMPrecursorAbundanceSection precursor_tags={ptm_site.precursor_tags} />
+                ) : (
+                    <div className="font-size--smallest">No supporting precursors mapped to this PTM site.</div>
+                )}
             </div>
         </div>
     );
