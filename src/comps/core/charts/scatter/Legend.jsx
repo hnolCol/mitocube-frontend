@@ -116,7 +116,7 @@ const ScatterLegend = React.memo(
         return (
         <div>
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
-                {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data[0][colorName]) ? 
+                {_.has(colorScale,"domain") ? _.isString(colorName) && _.isString(data.find(row => _.has(row, colorName))?.[colorName]) ? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="">
                         <h4>{_.isObject(colorAttribute) && _.isString(colorAttribute.text) ? colorAttribute.text : ""}</h4>
                         <LegendOrdinal scale={colorScale}>
@@ -231,7 +231,7 @@ const TextScatterLegend = React.memo(
     return (
         <div>
             <div className="flex flex-column" style={{maxWidth, maxHeight : "900px", overflowY:"scroll"}}>
-                {_.has(colorScale,"domain") ? _.has(data[0],colorName) && _.isEmpty(colorLimit)? 
+                {_.has(colorScale,"domain") ? data.some(row => _.has(row, colorName)) && _.isEmpty(colorLimit)? 
                     <div onMouseLeave={() => resetSearchIdcs(chartIdx)} className="margin-left--little">
                         <h4>{colorName}</h4>
                         <LegendOrdinal scale={colorScale}>

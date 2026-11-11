@@ -303,9 +303,13 @@ export function ScatterPlot({
 
     const colorScale = useMemo(() => {
 
-        if (!_.isString(colorName) || !_.has(data[0], colorName)) return () => "#efefef"
+        // do not rely on data[0] having the key: in merged data (e.g. volcano plots of several
+        // comparisons) the first row may not contain the colorName key, which would wrongly render
+        // all points in the default color even if other rows carry the key.
+        const firstRowWithName = data.find(row => _.has(row, colorName))
+        if (!_.isString(colorName) || !_.isObject(firstRowWithName)) return () => "#efefef"
         
-        if (_.isNumber(data[0][colorName]) && _.has(limits,colorName)) {
+        if (_.isNumber(firstRowWithName[colorName]) && _.has(limits,colorName)) {
             const colorDomain = limits[colorName]
             return scaleLinear({
                 domain: [colorDomain.min, colorDomain.max],
@@ -314,10 +318,12 @@ export function ScatterPlot({
         }
         else {
             let uniqueValues = getUniqueValuesInArrayOfObjects({ data, keyName: colorName })
-            // fix the order of boolean domains so that the color of a value does not depend
-            // on which value appears first in the data (e.g. Significant <suffix> flags)
-            if (uniqueValues.length > 0 && uniqueValues.every(value => _.isBoolean(value))) {
-                uniqueValues = _.uniq([...uniqueValues.filter(value => value), ...uniqueValues.filter(value => !value)])
+            // fix boolean domains to [true, false] so that the color of a value neither depends
+            // on which value appears first in the data nor on which values are present at all
+            // (e.g. Significant <suffix> flags must get the same color in every volcano plot,
+            // also in plots without a single significant hit)
+            if (uniqueValues.some(value => _.isBoolean(value))) {
+                uniqueValues = _.uniq([true, false, ...uniqueValues.filter(value => !_.isBoolean(value))])
             }
             let colorValues = getColorPalette(uniqueValues.length)
             //TODO create function get this straight.
@@ -332,7 +338,7 @@ export function ScatterPlot({
             })
         }
         
-    }, [colorName,
+    }, [colorName, data,
         _.has(limits, colorName) ? limits[colorName].min : undefined,
         _.has(limits, colorName) ? limits[colorName].max : undefined,
         ])

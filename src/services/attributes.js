@@ -77,3 +77,36 @@ export function mapAttributeValueTagsToAttributes({ attrValueTag, attrValuesByTa
 }
 
 
+
+/**
+ * @description Maximum number of unique condition applications an attribute may have to be selected by default for representation (e.g. as color, split or subplot in a categorical chart). Attributes with more unique condition applications (e.g. a MOUSE ID attribute with one value per sample) are not selected by default.
+ */
+export const MAX_DEFAULT_CONDITION_APPLICATIONS = 8
+
+/**
+ *
+ * @param {Object} props
+ * @param {Object[]} props.data - List of data rows. Each row may contain condition application tags per attribute, multiple tags separated by ";".
+ * @param {String[]} props.attribute_tags - The attribute tags to count the unique condition applications for.
+ * @returns {Object.<string, number>} Map of attribute tag to the number of unique condition applications in the data.
+ */
+export function getConditionApplicationCounts({ data = [], attribute_tags = [] }) {
+    return _.fromPairs(attribute_tags.map(attribute_tag => [attribute_tag,
+        _.uniq(_.flatMap(data, d => {
+            const value = _.isObject(d) ? d[attribute_tag] : undefined
+            return _.isString(value) && value.length > 0 ? value.split(";") : []
+        })).length
+    ]))
+}
+
+/**
+ *
+ * @param {Object} props
+ * @param {String[]} props.attribute_tags - The attribute tags to filter.
+ * @param {Object.<string, number>} props.counts - Map of attribute tag to the number of unique condition applications. Attributes without a known count are kept.
+ * @param {number} props.max - The maximum number of unique condition applications for an attribute to be kept.
+ * @returns {String[]} The attribute tags with at most `max` unique condition applications.
+ */
+export function filterAttributeTagsByConditionApplicationCount({ attribute_tags = [], counts = {}, max = MAX_DEFAULT_CONDITION_APPLICATIONS }) {
+    return attribute_tags.filter(attribute_tag => !_.has(counts, attribute_tag) || counts[attribute_tag] <= max)
+}

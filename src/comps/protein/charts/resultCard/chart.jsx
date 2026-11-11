@@ -1,7 +1,7 @@
 
 
 import _ from "lodash"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { NormalizationModes, NormalizationPrefixes, getAverageAndErrorByGroups, getQuantilesByGroups, groupListByProperty, normalizeDataToGroup } from "../../../../services/arrays/groupby"
 import NormalizeIcon from "../../../core/svg/icons/chartSelection/Normalize"
 import { useCycle } from "framer-motion"
@@ -17,6 +17,7 @@ import viz from "@mitocube/viz"
 import { usePrefetchConditionApplicationTexts } from "@/api/orchestrated/conditionApplications"
 import { usePrefetchAttributes } from "@/api/orchestrated/attributes"
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton"
+import { filterAttributeTagsByConditionApplicationCount, getConditionApplicationCounts } from "../../../../services/attributes"
 
 function ResultChart({
     data = [{ "y": 24.2, Genotype: "WT", Treatment: "DMSO", Time: "00min" },
@@ -52,17 +53,30 @@ function ResultChart({
     const [chartType, cyclePlotTypes] = useCycle("boxplot", "barplot", "pointplot", "lineplot")
     const [normalization, setNormalization] = useState(NormalizationModes[0])
     // const [normalizeDialog, setNormalizeDialog] = useState({ isOpen: false, normalizeToSelection: {} })
-    const [selection, setSelection] = useState({colorName : attribute_tags[0], splitName : attribute_tags[1], subplotName : attribute_tags[2]})
-    // attribute_tags can arrive after mount (async attributes query). If the selection was
-    // initialized before the tags were available, adopt the default selection once they arrive
+    // attributes with too many unique condition applications (e.g. a MOUSE ID attribute with one value per sample)
+    // make the plots unreadable and are therefore not selected by default for representation.
+    const defaultAttributeTags = useMemo(() => filterAttributeTagsByConditionApplicationCount({
+        attribute_tags,
+        counts: getConditionApplicationCounts({ data, attribute_tags })
+    }), [_.join(attribute_tags, "-"), data])
+    const getDefaultSelection = (tags) => ({ colorName: tags[0], splitName: tags[1], subplotName: tags[2] })
+    const [selection, setSelection] = useState(getDefaultSelection(defaultAttributeTags))
+    const userChangedSelection = useRef(false)
+    const handleSelectionChange = (update) => {
+        userChangedSelection.current = true
+        setSelection(update)
+    }
+    // attribute_tags and data can arrive after mount (async attributes and feature data queries). If the selection was
+    // initialized before they were available, adopt the default selection once they arrive
     // (unless the user already picked a value manually).
     useEffect(() => {
         setSelection(prevSelection => {
-            const nextSelection = { colorName: attribute_tags[0], splitName: attribute_tags[1], subplotName: attribute_tags[2] }
-            const needsUpdate = _.some(prevSelection, (value, key) => !_.isString(value) && _.isString(nextSelection[key]))
+            if (userChangedSelection.current) return prevSelection
+            const nextSelection = getDefaultSelection(defaultAttributeTags)
+            const needsUpdate = _.some(prevSelection, (value, key) => value !== nextSelection[key])
             return needsUpdate ? nextSelection : prevSelection
         })
-    }, [_.join(attribute_tags, "-")])
+    }, [_.join(defaultAttributeTags, "-")])
     const keyNamesForSplitting = _.uniq(Object.values(selection).map(v => v))
     const selectionTags = selection
     // const ca_tags = _.uniq(_.values(selection).filter(attribute_tag => _.isString(attribute_tag) && _.has(data[0], attribute_tag)).map(attribute_tag => data.map(d => d[attribute_tag])).flat())    
@@ -141,7 +155,7 @@ function ResultChart({
                                 <div className="flex" style={{ gap: "5px"}}>
                                     <CategoricalChartSelection
                                         vertical={false}
-                                        {...{ keyNames: attribute_tags, selection, onSelectionChange: setSelection }}
+                                        {...{ keyNames: attribute_tags, selection, onSelectionChange: handleSelectionChange }}
                                     />
                                     <PlottypeIcon callback={cyclePlotTypes} {...{ chartType }} />
                                     <InfoIcon items={["Metadata", "Explore Submission"]} callback={handleInfo} callbackValueOnly={true} />
