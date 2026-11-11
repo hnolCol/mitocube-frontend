@@ -16,6 +16,7 @@ import { ProteinHelp } from "./ProteinHelp"
 
 
 import { ProteinCrosslinks } from "../../crosslinks/ProteinCrosslinks"
+import { ProteinPTMs } from "../../ptm/ProteinPTMs"
 
 
 
@@ -29,6 +30,7 @@ export function ProteinPage() {
         { tag: "correlation", text: "Correlation" },
         { tag: "abundance", text: "Abundance" },
         { tag: "crosslinks", text: "Crosslinks" },
+        { tag: "ptms", text: "PTMs" },
         { tag: "literature", text: "Literature (AI)" },
         { tag: "publications", text: "Publications" },
         {tag : "documentation", text : "Documentation"}];
@@ -67,6 +69,7 @@ export function ProteinPage() {
                 {selectedView === "abundance" ? <ProteinAbundance tag={feature_tag} /> : null}
                 {selectedView === "documentation" ? <ProteinHelp /> : null  }
                 {selectedView === "crosslinks" ? <ProteinCrosslinks protein_tag={feature_tag} /> : null}
+                {selectedView === "ptms" ? <ProteinPTMs feature_tag={feature_tag} /> : null}
             </div>
            
         </div>
