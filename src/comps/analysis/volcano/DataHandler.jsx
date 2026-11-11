@@ -5,7 +5,6 @@ import InteractiveChart from "../../core/charts/interactive";
 import { ScatterPlot } from "../../core/charts/scatter";
 import { Card } from "@blueprintjs/core";
 import { addStringToArrayIfNotPresent, isItemInArrayDeepComp } from "../../../services/arrays/transforms";
-import { arrayOfObjectsToObjectByProperty } from "../../../services/arrays/groupby";
 import { ScatterDataSelection } from "../../core/charts/selections/ScatterDataSelection";
 import { api } from "@/api";
 import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton";
@@ -184,13 +183,13 @@ export function VolcanoDataHandler({
         if (volcanoData.suffixes.includes(data.suffix)) return //already have this data, no need to merge again
         let updatedData = []
         let prevData = volcanoData.data
-        if (prevData.length > 1) {
-            let groupBy = arrayOfObjectsToObjectByProperty(data.stats, "tag")
-            updatedData = prevData.map(entry => { return { ...entry, ...groupBy[entry.tag]} })
-        }
-        else {
-            updatedData = data.stats
-        }
+        // merge by tag in both directions: rows that are only present in the new stats (e.g. proteins
+        // not quantified in the previously fetched comparisons) must be kept, otherwise their points
+        // are missing in the volcano plot of the new comparison. Previous rows keep their index so
+        // that stored label indices remain valid.
+        const mergedByTag = new Map(prevData.map(entry => [entry.tag, entry]))
+        data.stats.forEach(row => mergedByTag.set(row.tag, { ...(mergedByTag.get(row.tag) || {}), ...row }))
+        updatedData = Array.from(mergedByTag.values())
         const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "volcanoProps", parseJson: true })
 
         // Check if the item already exists to prevent duplicates

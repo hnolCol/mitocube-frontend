@@ -74,7 +74,9 @@ function ScatterPoints({
     const filterByIdx = filterIndices.size !== 0
     const opacityBySearch = searchIndices.size !== 0
     
-    const colorScaleDefined = colorName !== undefined && _.has(data[0], colorName) && _.isFunction(colorScale)
+    // do not rely on data[0] having the key: in merged data the first row may not contain the
+    // colorName key, which would wrongly render all points in the default color.
+    const colorScaleDefined = colorName !== undefined && data.some(row => _.has(row, colorName)) && _.isFunction(colorScale)
     let validIdcs = indices === undefined ?_.range(data.length).filter(idx => valid[idx]) : Array.from(indices).filter(idx => valid[idx]) //!opacityBySearch ? valid[idx] : valid[idx] && !searchIndices.has(idx))
     // if (opacityBySearch) {
     //     // add the search idcs last to plot them last on top of each other. 
