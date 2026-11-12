@@ -492,6 +492,7 @@ export function NewConversationDialog({ isOpen, onClose, submission_tag, submiss
                     <TextArea
                         fill={true}
                         growVertically={true}
+                        style={{ minHeight: "20rem" }}
                         value={initialMessage}
                         onChange={e => setInitialMessage(e.target.value)} />
                 </FormGroup>

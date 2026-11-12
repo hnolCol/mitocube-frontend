@@ -152,6 +152,7 @@ function TicketThread({ ticket, userTag }) {
                         )}
                         <TextArea
                             fill rows={4}
+                            style={{ minHeight: "20rem" }}
                             placeholder={ticket.conversation_tag ? "Write a reply…" : "First reply starts a conversation with the user…"}
                             value={content}
                             onChange={(e) => setContent(e.target.value)}

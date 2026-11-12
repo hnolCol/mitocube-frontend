@@ -82,7 +82,7 @@ export default function ContactTicketForm() {
             </FormGroup>
 
             <FormGroup label="Message" labelFor="ticket-description" >
-                <TextArea id="ticket-description" value={form.description} onChange={set("description")} rows={8} fill />
+                <TextArea id="ticket-description" value={form.description} onChange={set("description")} rows={8} fill style={{ minHeight: "20rem" }} />
             </FormGroup>
 
             <FormGroup label="Attachments (optional)" labelFor="ticket-attachments"

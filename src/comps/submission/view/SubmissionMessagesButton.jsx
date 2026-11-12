@@ -18,15 +18,22 @@ export function SubmissionMessagesButton({ submission_tag, user_tag }) {
     const [isOpen, setIsOpen] = useState(false)
     const [isNewOpen, setIsNewOpen] = useState(false)
     const unreadCount = useUnreadConversationsCount(submission_tag)
+    const { data: conversations } = api.messages.useGetMyConversations(
+        { submission_tag }, { staleTime: 30000, retry: false }
+    )
     const { data: submission_title } = api.submissions.title.useGetSubmissionTitle(
         { tag: submission_tag }, { enabled: _.isString(submission_tag) && isOpen }
     )
+    const handleOpen = () => {
+        setIsOpen(true)
+        if (_.isArray(conversations) && conversations.length === 0) setIsNewOpen(true)
+    }
     return <>
         <span style={{ position: "relative", display: "inline-flex" }}>
             <TooltipButton
                 icon="chat"
                 content="Messages about this submission"
-                onClick={() => setIsOpen(true)} />
+                onClick={handleOpen} />
             <UnreadBadge count={unreadCount} dot={true} />
         </span>
         <Dialog
