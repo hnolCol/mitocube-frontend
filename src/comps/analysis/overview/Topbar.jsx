@@ -38,16 +38,14 @@ export function QuickAccessBar({ submission_tag, userRole }) {
     return (
         <div className="flex flex-column" style={{alignItems:"flex-end",paddingRight:"0.5rem"}}>
             <div className="flex">
+            <TooltipButton icon="numbered-list" onClick={handleCopySampleNames} loading={sampleNamesIsFetching || sampleNamesIsLoading} content = "Tab delimited sample name information."/>
+            <SubmissionUpload {...{ submission_tag }} />  
             <SubmissionMessagesButton submission_tag={submission_tag} />
             <CollaborationRequestsButton submission_tag={submission_tag} />
-            <SubmissionUpload {...{ submission_tag }} />
+            
             <RequestConsortiumShareButton submission_tag={submission_tag} />
             <RequestDepositionButton submission_tag={submission_tag} />
-            <TooltipButton icon="tag" content="Copy submission tag" onClick={() => {
-                    copyTextToClipboard(submission_tag)
-                    setMsg("Tag copied!")
-                }} />
-            <TooltipButton icon="numbered-list" onClick={handleCopySampleNames} loading={sampleNamesIsFetching || sampleNamesIsLoading} content = "Tab delimited sample name information."/>
+            
             
         </div>
             <div className="font-size--smallest">{msg}</div>

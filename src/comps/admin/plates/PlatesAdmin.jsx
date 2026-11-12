@@ -213,8 +213,8 @@ function PlateRunlists({ plate }) {
                         <strong>{rl.instrument_text ?? "No instrument"}</strong>
                         {` \u00b7 ${rl.n_runs_on_plate} run${rl.n_runs_on_plate > 1 ? "s" : ""} on this plate`}
                         {` \u00b7 ${rl.submission_label}`}
-                        {rl.user_firstname || rl.user_lastname ? ` \u00b7 ${_.compact([rl.user_firstname, rl.user_lastname]).join(" ")}` : ""}
-                        {_.isNumber(rl.created_at) ? <> \u00b7 <CreatedAt createdat={rl.created_at} /></> : null}
+                        {rl.user_firstname || rl.user_lastname ? ` ${_.compact([rl.user_firstname, rl.user_lastname]).join(" ")}` : ""}
+                        {_.isNumber(rl.created_at) ? <>  <CreatedAt createdat={rl.created_at} /></> : null}
                     </div>
                 ))}
             </div>

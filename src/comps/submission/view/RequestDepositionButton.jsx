@@ -80,15 +80,16 @@ export function RequestDepositionButton({ submission_tag }) {
                 <p className="font-size--small">
                     Request the deposition of this submission's data to the PRIDE database.
                     The curators will upload the data to PRIDE and complete the request with the
-                    accession identifier (e.g. PXD...). You will be notified once the deposition is done.
+                    accession identifier (e.g. PXD...). You will be notified once the deposition is done via this website.
                 </p>
                 <p className="font-size--small">Submission: <strong>{submission_tag}</strong></p>
                 {_.isString(confirmation) ?
                     <Callout intent="success" title="Deposition requested">{confirmation}</Callout> :
                     <>
                         <TextArea
+                            style={{ minHeight : "20rem"}}
                             fill={true}
-                            placeholder="Optional comment for the curators (e.g. special requirements for the PRIDE submission)"
+                            placeholder="Insert lab-head information and optional comment for the curators that are important for the upload."
                             value={comment}
                             onChange={e => setComment(e.target.value)} />
                         {_.isString(error) ?
