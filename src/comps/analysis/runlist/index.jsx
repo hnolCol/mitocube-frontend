@@ -33,7 +33,7 @@ function Run({ run }) {
                 <WellPosition position={run.position} />
                 <div className="margin-left--medium">
                     <div className="font-weight--bold">{run.name}</div>
-                    <div className="font-size--small text--muted">Plate {run.plate_index + 1}</div>
+                    <div className="font-size--small text--muted">{run.plate_name ?? run.plate_tag ?? `Plate ${run.plate_index + 1}`}</div>
                 </div>
             </div>
             {run.aggregated_samples?.length > 0 && (
@@ -85,13 +85,28 @@ function Runlist() {
         [runlists, selectedRlTag]
     )
 
-    const sortedRuns = useMemo(() => {
+    const plateGroups = useMemo(() => {
         if (!activeRunlist) return []
-        return [...activeRunlist.runs].sort((a, b) => {
+        const sortedRuns = [...activeRunlist.runs].sort((a, b) => {
             const [sa, fa] = runKey(a)
             const [sb, fb] = runKey(b)
             return sa - sb || fa - fb
         })
+        const groups = []
+        sortedRuns.forEach(run => {
+            const last = groups[groups.length - 1]
+            if (!last || last.plate_index !== run.plate_index) {
+                groups.push({
+                    plate_index: run.plate_index,
+                    plate_tag: run.plate_tag,
+                    plate_name: run.plate_name,
+                    runs: [run]
+                })
+            } else {
+                last.runs.push(run)
+            }
+        })
+        return groups
     }, [activeRunlist])
 
     const exportRunlistToTxtFile = (runlist) => {
@@ -235,7 +250,16 @@ function Runlist() {
                                     overflowY: 'auto',
                                     paddingRight: '0.5rem'
                                 }}>
-                                    {sortedRuns.map(run => <Run key={run.name} run={run} />)}
+                                    {plateGroups.map(group => (
+                                        <div key={`plate-${group.plate_index}`}>
+                                            <h4 className="margin-top--medium margin-bottom--little" style={{ fontSize: "0.9rem" }}>
+                                                Plate {group.plate_index + 1}
+                                                {group.plate_name ? ` : ${group.plate_name}` : group.plate_tag ? ` : ${group.plate_tag}` : ""}
+                                                <span className="text--muted font-weight--normal font-size--small">{` (${group.runs.length} runs)`}</span>
+                                            </h4>
+                                            {group.runs.map(run => <Run key={run.name} run={run} />)}
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         )}
