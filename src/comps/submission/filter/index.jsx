@@ -11,6 +11,7 @@ import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router";
 import { UserDatasetFilter } from "./UserFilter"
 import { ConsortiumFilter } from "./ConsortiumFilter"
+import { ResearchGroupFilter } from "./ResearchGroupFilter"
 
 
 const LIMIT_OPTIONS = [20, 30, 50, 100, 150]
@@ -122,6 +123,10 @@ export function SubmissionFilterSelection({
     <h4>Consortium Submissions</h4>
     <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
          <ConsortiumFilter {...{ submissionFilter, setSubmissionFilter }} />
+    </div>
+    <h4>Research Groups</h4>
+    <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
+         <ResearchGroupFilter {...{ submissionFilter, setSubmissionFilter, authenticationStatus }} />
     </div>
         
     </div>
