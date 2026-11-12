@@ -5,8 +5,6 @@ import { Dialog, DialogBody, DialogFooter, TextArea, Callout, Tag } from "@bluep
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
 
-const CURATOR_ROLE = 2
-
 /* Plain HTML buttons (no BlueprintJS) so the component also works in the compact app. */
 const plainButtonStyle = {
     border: "1px solid #d8dee4",
@@ -22,31 +20,30 @@ const plainButtonPrimaryStyle = { ...plainButtonStyle, background: "#2b6cb0", bo
 const plainButtonDangerStyle = { ...plainButtonStyle, background: "#cd4246", borderColor: "#cd4246", color: "#ffffff" }
 
 RequestDepositionButton.propTypes = {
-    submission_tag: PropTypes.string.isRequired,
-    userRole: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+    submission_tag: PropTypes.string.isRequired
 }
 
 /**
  * @description Button for the submission overview quick access bar that opens a dialog to
  * request the deposition of the submission's data to the PRIDE database. The request is
  * handled by the curators, who complete it with the accession identifier once the data
- * is deposited. Only curators and admins (role >= 2) can request a deposition. If a
- * deposition request is already pending, all users with access to the submission see a
- * pending indicator and the request button is replaced by a revoke button (the revoke
- * itself is only offered to users who can see the pending request's tag: the requester,
- * curators/admins and research group heads; backend enforced).
+ * is deposited. The backend allows the creator of the submission (any role) or a research
+ * group head (PI) of the creator's research group to request a deposition; other users
+ * with access see the backend error message in the dialog. If a deposition request is
+ * already pending, all users with access to the submission see a pending indicator and
+ * the request button is replaced by a revoke button (the revoke itself is only offered
+ * to users who can see the pending request's tag: the requester, curators/admins and
+ * research group heads; backend enforced).
  * @param {Object} props
  * @param {String} props.submission_tag Submission tag
- * @param {Number|String} [props.userRole] Role of the current user
  * @returns {JSX.Element|null} The request deposition button with dialog.
  */
-export function RequestDepositionButton({ submission_tag, userRole }) {
+export function RequestDepositionButton({ submission_tag }) {
     const [isOpen, setIsOpen] = useState(false)
     const [comment, setComment] = useState("")
     const [confirmation, setConfirmation] = useState(null)
     const [error, setError] = useState(null)
     const queryClient = useQueryClient()
-    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
     const { data: exists } = api.requests.depositions.useGetSubmissionDepositionRequestExists(
         { submission_tag }, { enabled: _.isString(submission_tag), staleTime: 30000, retry: false }
     )
@@ -71,15 +68,13 @@ export function RequestDepositionButton({ submission_tag, userRole }) {
                     <RevokeDepositionRequestButton request_tag={pendingTag} onRevoked={invalidate} />
                     : null}
             </> :
-            isCurator ?
                 <button
                     type="button"
                     style={plainButtonPrimaryStyle}
                     title="Request deposition of this submission's data to the PRIDE database"
                     onClick={() => setIsOpen(true)}>
                     ⇪ Request deposition to PRIDE
-                </button>
-                : null}
+                </button>}
         <Dialog className="width--half-viewport" isOpen={isOpen} title="Request data deposition to PRIDE" onClose={close}>
             <DialogBody>
                 <p className="font-size--small">

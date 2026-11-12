@@ -12,7 +12,7 @@ import { api } from "@/api";
 /**
  * @param {Object} props
  * @param {String} props.submission_tag - The submission tag for which the quick access control should be established.
- * @param {Number|String} [props.userRole] - The role of the current user. The deposition request button is only shown to curators and admins.
+ * @param {Number|String} [props.userRole] - The role of the current user. Reserved for role-dependent quick access controls.
  * @returns 
  */
 export function QuickAccessBar({ submission_tag, userRole }) {
@@ -42,7 +42,7 @@ export function QuickAccessBar({ submission_tag, userRole }) {
             <CollaborationRequestsButton submission_tag={submission_tag} />
             <SubmissionUpload {...{ submission_tag }} />
             <RequestConsortiumShareButton submission_tag={submission_tag} />
-            <RequestDepositionButton submission_tag={submission_tag} userRole={userRole} />
+            <RequestDepositionButton submission_tag={submission_tag} />
             <TooltipButton icon="tag" content="Copy submission tag" onClick={() => {
                     copyTextToClipboard(submission_tag)
                     setMsg("Tag copied!")
