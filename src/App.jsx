@@ -309,7 +309,7 @@ function App() {
             {/* <Route path="/performance/help" element={<h3>Help</h3>}/> */}
           </Route>
 
-          {/* Cross-Submission Analysis Routes */}
+          {/* Cross-Submission Analysis Routes
           <Route
             path="/analysis"
             element={
@@ -322,7 +322,7 @@ function App() {
             <Route path="/analysis/conditions" element={<ConditionEffects />} />
             <Route path="/analysis/attributes" element={<AttributeEffects />} />
             <Route path="/analysis/attribute-proteins" element={<AttributeProteinEffects />} />
-          </Route>
+          </Route> */}
 
           {/* Submission Routes */}
           <Route
