@@ -22,6 +22,18 @@ const UPLOAD_TYPES = [
     },
 ];
 
+/* Plain HTML button (no BlueprintJS) styled like the RequestDepositionButton, in green. */
+const plainButtonUploadStyle = {
+    border: "1px solid #238551",
+    borderRadius: 8,
+    background: "#238551",
+    color: "#ffffff",
+    fontSize: "0.85rem",
+    fontWeight: 600,
+    padding: "0.4rem 0.8rem",
+    cursor: "pointer",
+};
+
 /**
  * Compact quick access bar buttons for curators and admins to upload quantification
  * data to a submission and to recalculate the submission statistics. The upload
@@ -118,11 +130,14 @@ function QuantificationUploadButton({ submission_tag }) {
                     />
                 </div>
             </Dialog>
-            <TooltipButton
-                icon="upload"
-                content="Upload protein or precursor quantifications for this submission"
+            <button
+                type="button"
+                style={plainButtonUploadStyle}
+                title="Upload protein or precursor quantifications for this submission"
                 onClick={() => setOpen(true)}
-            />
+            >
+                ⇧ Upload Quantifications
+            </button>
         </>
     );
 }
