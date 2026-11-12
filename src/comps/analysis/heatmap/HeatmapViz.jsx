@@ -104,6 +104,11 @@ function HeatmapViz({
         }));
     }, [heatmapData, colorPalette]);
 
+    const heatmapKey = useMemo(
+        () => `heatmap-${submission_tag}-${testProps.n_clusters}-${testProps.fdr}-${_.join(testProps.selected_annotation_tags, ";")}`,
+        [submission_tag, testProps.n_clusters, testProps.fdr, _.join(testProps.selected_annotation_tags, ";")]
+    );
+
     const keyNames = useMemo(() => [
         {
             xaxisName: undefined,
@@ -277,6 +282,7 @@ function HeatmapViz({
                                         attributeTagMap={attributeTagMap}
                                     />
                                     <viz.charts.Heatmap
+                                        key={heatmapKey}
                                         data={data}
                                         setRequiredProteinTags={setRequiredProteinTags}
                                         proteinTagMap={proteinTagMap}
