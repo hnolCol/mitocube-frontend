@@ -4,12 +4,12 @@ import { Button, Dialog, DialogBody, DialogFooter } from "@blueprintjs/core"
 import { api } from "@/api"
 import AdminTicketQueue from "./AdminTicketQueue"   // adjust path if needed
 
-const CURATOR_ROLE = 2   // must match UserRolesEnum.CURATOR in the backend
+const CURATOR_ROLE = 3   // must match UserRolesEnum.CURATOR in the backend
 
 /**
- * @description Topbar button for curators and admins that opens the support ticket queue
- * in a dialog. Always shown for curators and admins so tickets can be replied to or
- * resolved at any time. Curators and admins have full access to the queue.
+ * @description Topbar button for curators (role >= 3) and admins that opens the support
+ * ticket queue in a dialog. Always shown so tickets can be replied to or resolved at any
+ * time. Curators and admins have full access to the queue.
  * Highlighted (warning) when tickets are awaiting a reply (new, or the user answered last).
  * @param {Object} props
  * @param {Number} props.userRole - The role of the current user.
