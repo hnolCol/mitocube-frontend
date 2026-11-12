@@ -33,6 +33,15 @@ import { DepositionStatus } from "@/comps/submission/view/DepositionStatus";
  * @param {Object} props  
  * @returns 
  */
+const overviewBoxStyle = {
+    flex: "0 0 calc(50% - 1rem)",
+    maxWidth: "100%",
+    minHeight: "12rem",
+    maxHeight: "min(50vh,500px)",
+    overflowY: "auto",
+    boxSizing: "border-box"
+}
+
 function SubmissionOverview({ user_tag }) {
 
     const { submission_tag, authenticationStatus } = useOutletContext()   
@@ -108,20 +117,20 @@ function SubmissionOverview({ user_tag }) {
             </div>
             <div className="flex flex--wrap align-start" style={{ gap: "2rem", marginTop: "1rem" }}>
 
-                {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "max(45vw,500px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
                     <SubmissionGenotypesView {...{ submission_tag }}/>
                 </div> : null}
-                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
                 </div>
-                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "hidden" }}>
+                <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
                     <SubmissionProtocolsView {...{ submission_tag }} />
                 </div>
-                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "auto" }}>
+                <div className="container--shadow padding--medium margin-top--little" style={overviewBoxStyle}>
                     <h3>Similar Submissions</h3>
                     <SimilarSubmissions {...{ submission_tag, user_tag }} />
                 </div>
-                <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)", maxHeight: "min(50vh,500px)", overflowY: "auto" }}>
+                <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
                     <DepositionStatus submission_tag={submission_tag} />
                 </div>
                 {/* <ConsortiumShares {...{ submission_tag }} /> */}
