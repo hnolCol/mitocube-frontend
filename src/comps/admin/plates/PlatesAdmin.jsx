@@ -8,10 +8,14 @@ import { PlateCreateDialog } from "./PlateCreateDialog"
 
 const dash = <span className="text--muted">–</span>
 
+const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
+
 /**
  * Admin view to create and list the physical well plates in the lab.
  */
-export function PlatesAdmin() {
+export function PlatesAdmin({ userRole }) {
+
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
     const [dialogOpen, setDialogOpen] = useState(false)
     const [alertProps, setAlertProps] = useState({ isOpen: false })
@@ -36,6 +40,11 @@ export function PlatesAdmin() {
         <div className="div--expand padding--medium flex-column--full-height">
             <div className="flex flex-column margin--medium padding--medium gap--medium-small">
                 <h3>Plates</h3>
+                {!isCurator ? (
+                    <Callout className="margin-bottom--medium" intent="warning" icon="warning-sign">
+                        Restricted area : plate management is reserved for curators and admins. You can view the plates, but creating and deleting plates is disabled for your account.
+                    </Callout>
+                ) : null}
                 <p className="font-size--small" style={{ color: "#888" }}>
                     Plates are the physical well plates in the lab in which samples are stored.
                     When creating a runlist, select the plate the samples are on.
@@ -70,7 +79,7 @@ export function PlatesAdmin() {
                             refetch()
                         }}
                     />
-                    <AddButton onSelect={() => setDialogOpen(true)} />
+                    <AddButton onSelect={() => setDialogOpen(true)} disabled={!isCurator} />
                 </div>
                 {warning ? (
                     <Callout className="margin-bottom--medium" intent="warning" icon="warning-sign">
@@ -93,7 +102,7 @@ export function PlatesAdmin() {
                                 key={plate.tag}
                                 plate={plate}
                                 onDelete={() => setDeleteTarget(plate)}
-                                disabled={plate.n_used_wells > 0}
+                                disabled={plate.n_used_wells > 0 || !isCurator}
                             />
                         )) : null}
                     </div>

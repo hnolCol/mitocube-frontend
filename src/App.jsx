@@ -419,7 +419,7 @@ function App() {
              <Route path="/admin/terms-of-use" element={<PolicyManagement policyType={TERMS_OF_USE} />} />,
              <Route path="/admin/data-protection" element={<PolicyManagement policyType={DATA_PROTECTION} />} />,
              <Route path="/admin/impressum" element={<ImpressumManagement />} />,
-              <Route path="/admin/plates" element={<PlatesAdmin />} />
+              <Route path="/admin/plates" element={<PlatesAdmin userRole={authenticationStatus.role} />} />
               <Route path="/admin/reports" element={<AdminReports {...{ authenticationStatus }} />} />
           </Route>
 
