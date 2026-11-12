@@ -435,6 +435,7 @@ function SamplesAttributes({
                     selectionModes={SelectionModes.CELLS}
                     defaultColumnWidth={300}
                     minColumnWidth={300}
+                    columnWidths={[150, 150, 150]}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
