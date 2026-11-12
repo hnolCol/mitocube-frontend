@@ -4,21 +4,22 @@ import { Button, Dialog, DialogBody, DialogFooter } from "@blueprintjs/core"
 import { api } from "@/api"
 import AdminTicketQueue from "./AdminTicketQueue"   // adjust path if needed
 
-const ADMIN_ROLE = 4   // must match UserRolesEnum.ADMIN in the backend
+const CURATOR_ROLE = 2   // must match UserRolesEnum.CURATOR in the backend
 
 /**
- * @description Topbar button for admins that opens the support ticket queue in a dialog.
- * Always shown for admins so tickets can be replied to or resolved at any time.
+ * @description Topbar button for curators and admins that opens the support ticket queue
+ * in a dialog. Always shown for curators and admins so tickets can be replied to or
+ * resolved at any time. Curators and admins have full access to the queue.
  * Highlighted (warning) when tickets are awaiting a reply (new, or the user answered last).
  * @param {Object} props
  * @param {Number} props.userRole - The role of the current user.
  * @returns {JSX.Element|null}
  */
 export function PendingTicketsButton({ userRole, userTag }) {
-    const isAdmin = _.isNumber(userRole) && userRole >= ADMIN_ROLE
+    const isCurator = _.isNumber(userRole) && userRole >= CURATOR_ROLE
     const [isOpen, setIsOpen] = useState(false)
     const { data: tickets, isLoading } = api.tickets.useGetTicketQueue(
-        {}, { enabled: isAdmin, staleTime: 60000, refetchInterval: 60000, retry: false }
+        {}, { enabled: isCurator, staleTime: 60000, refetchInterval: 60000, retry: false }
     )
 
     const pendingCount = _.isArray(tickets)
@@ -28,7 +29,7 @@ export function PendingTicketsButton({ userRole, userTag }) {
         ? tickets.filter((t) => t.status !== "Resolved").length
         : 0
 
-    if (!isAdmin || isLoading) return null
+    if (!isCurator || isLoading) return null
 
     return <>
         <div className="flex flex-column justify-center margin--little">
