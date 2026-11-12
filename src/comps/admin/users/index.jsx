@@ -17,7 +17,7 @@ export function UsersAdminView({ authenticationStatus }) {
     const [dialogState, setDialogState] = useState({ isOpen: false })
     const [alertState, setAlertState] = useState({ isOpen: false })
     const { searchString, setSearchString, debouncedSearchString, limit, setLimit, numberParam: roleParam } =
-        useSearchParamState({ limitOptions: LIMIT_OPTIONS, numberParam: { key: "role", options: [1, 2, 4], noneValue: ROLE_FILTER_NONE } })
+        useSearchParamState({ limitOptions: LIMIT_OPTIONS, numberParam: { key: "role", options: [1, 2, 3, 4], noneValue: ROLE_FILTER_NONE } })
 
     const selectedRole = roleParam?.value ?? ROLE_FILTER_NONE
     const roles = selectedRole === ROLE_FILTER_NONE ? undefined : [selectedRole]

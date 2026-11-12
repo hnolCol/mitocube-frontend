@@ -169,6 +169,7 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             ca_search_string: submissionFilter.ca_search_string || null,
             include_sample_ca: submissionFilter.include_sample_ca || false,
             consortium_tags: submissionFilter.consortium_tags?.join(";"),
+            research_group_tags: submissionFilter.research_group_tags?.join(";"),
         }, { staleTime: 0 })
     return (<div>
 
@@ -226,6 +227,7 @@ export function SubmissionContainer({ submissionFilter, setSubmissionFilter, sub
         include_sample_ca: submissionFilter.include_sample_ca || false,
         ca_search_string: submissionFilter.ca_search_string || null,
         consortium_tags: submissionFilter.consortium_tags?.join(";"),
+        research_group_tags: submissionFilter.research_group_tags?.join(";"),
     }, { staleTime: 5000 })
 
     return (
