@@ -130,9 +130,9 @@ function SubmissionOverview({ user_tag }) {
                 </div> : null} */}
             
             </div>
-            <div className = "padding--medium">
+            {/* <div className = "padding--medium">
                 <Metatexts {...{ submission_tag, fill: false }} />
-            </div>
+            </div> */}
 
         </div>
         )}

@@ -24,12 +24,12 @@ const UPLOAD_TYPES = [
 
 /* Plain HTML button (no BlueprintJS) styled like the RequestDepositionButton, in green. */
 const plainButtonUploadStyle = {
-    border: "1px solid #238551",
+    border: "1px solid #238551aa",
     borderRadius: 8,
-    background: "#238551",
+    background: "#238551aa",
     color: "#ffffff",
-    fontSize: "0.85rem",
-    fontWeight: 600,
+    fontSize: "0.80rem",
+    fontWeight: 500,
     padding: "0.4rem 0.8rem",
     cursor: "pointer",
 };

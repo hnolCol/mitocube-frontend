@@ -52,14 +52,14 @@ export function SampleCountOutlierWarning({ submission_tag }) {
     if (outliers.length === 0) return null;
 
     return (
-        <span className="font-size--smallest" style={{ marginTop: "4px", color: "#b5560c" }}>
+        <span className="font-size--smallest" style={{ marginTop: "4px", color: "#4d4d4d" }}>
             {outliers.length === 1 ? "1 sample has" : `${outliers.length} samples have`} a protein group count
             strongly deviating from the cohort median ({_.round(cohortMedian)}).{" "}
             {outliers.slice(0, 3).map((o) => o.tag).join(", ")}
             {outliers.length > 3 ? ", …" : ""}{" "}
             <a
                 onClick={() => navigate(`/submissions/${submission_tag}/qc`)}
-                style={{ color: "#b5560c", fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
+                style={{ color: "#4d4d4d", fontWeight: 600, cursor: "pointer", textDecoration: "underline" }}
             >
                 Details
             </a>

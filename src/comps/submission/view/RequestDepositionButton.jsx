@@ -11,12 +11,12 @@ const plainButtonStyle = {
     borderRadius: 8,
     background: "#ffffff",
     color: "#182026",
-    fontSize: "0.85rem",
-    fontWeight: 600,
+    fontSize: "0.80rem",
+    fontWeight: 500,
     padding: "0.4rem 0.8rem",
     cursor: "pointer",
 }
-const plainButtonPrimaryStyle = { ...plainButtonStyle, background: "#2b6cb0", borderColor: "#2b6cb0", color: "#ffffff" }
+const plainButtonPrimaryStyle = { ...plainButtonStyle, background: "#355c82", borderColor: "#355c82", color: "#ffffff" }
 const plainButtonDangerStyle = { ...plainButtonStyle, background: "#cd4246", borderColor: "#cd4246", color: "#ffffff" }
 
 RequestDepositionButton.propTypes = {
