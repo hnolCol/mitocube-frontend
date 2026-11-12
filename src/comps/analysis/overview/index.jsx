@@ -28,20 +28,12 @@ import { ConsortiumShares } from "@/comps/submission/view/ConsortiumShares";
 import { ConsortiumShareStatus } from "@/comps/submission/view/ConsortiumShareStatus";
 import { SimilarSubmissions } from "./SimilarSubmissions";
 import { DepositionStatus } from "@/comps/submission/view/DepositionStatus";
+import { overviewBoxStyle } from "./overviewBoxStyle";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
  * @returns 
  */
-const overviewBoxStyle = {
-    flex: "0 0 calc(50% - 1rem)",
-    maxWidth: "100%",
-    minHeight: "12rem",
-    maxHeight: "min(50vh,500px)",
-    overflowY: "auto",
-    boxSizing: "border-box"
-}
-
 function SubmissionOverview({ user_tag }) {
 
     const { submission_tag, authenticationStatus } = useOutletContext()   
@@ -130,9 +122,7 @@ function SubmissionOverview({ user_tag }) {
                     <h3>Similar Submissions</h3>
                     <SimilarSubmissions {...{ submission_tag, user_tag }} />
                 </div>
-                <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
-                    <DepositionStatus submission_tag={submission_tag} />
-                </div>
+                <DepositionStatus submission_tag={submission_tag} />
                 {/* <ConsortiumShares {...{ submission_tag }} /> */}
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
                     <h3>Links</h3>
