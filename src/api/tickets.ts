@@ -36,6 +36,36 @@ async function getTicketAttachmentFile_API({ ticket_tag, attachment_tag }) {
     return res.data;
 }
 
+async function postConversationAttachment_API({ conversation_tag, file }) {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await apiClient.post(`/messages/conversations/${conversation_tag}/attachments`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data;
+}
+
+async function getConversationAttachmentFile_API({ conversation_tag, attachment_tag }) {
+    const res = await apiClient.get(`/messages/conversations/${conversation_tag}/attachments/${attachment_tag}`, {
+        responseType: "blob",
+    });
+    return res.data;
+}
+
+async function postTicketReply_API({ ticket_tag, content = "", resolve = false, attachment_tags = [] }) {
+    const res = await apiClient.post(`/tickets/${ticket_tag}/reply`, {
+        content, resolve, attachment_tags,
+    });
+    return res.data;
+}
+
+async function postMessageWithAttachments_API({ conversation_tag, content = "", attachment_tags = [] }) {
+    const res = await apiClient.post(`/messages/conversations/${conversation_tag}/messages`, {
+        content, attachment_tags,
+    });
+    return res.data;
+}
+
 function useGetTicketAttachments(APIParams = { ticket_tag: null }, useQueryOptions = { staleTime: 500 }) {
     return useQuery({
         queryKey: ["getTicketAttachments", APIParams.ticket_tag],
@@ -62,9 +92,44 @@ function useGetTicketAttachmentFile(APIParams = { ticket_tag: null, attachment_t
     });
 }
 
+function usePostConversationAttachment(useMutationOptions = {}) {
+    return useMutation({
+        mutationFn: (APIParams) => postConversationAttachment_API({ ...APIParams }),
+        ...useMutationOptions,
+    });
+}
+
+function useGetConversationAttachmentFile(APIParams = { conversation_tag: null, attachment_tag: null }, useQueryOptions = {}) {
+    return useQuery({
+        queryKey: ["getConversationAttachmentFile", APIParams.conversation_tag, APIParams.attachment_tag],
+        queryFn: () => getConversationAttachmentFile_API({ ...APIParams }),
+        enabled: !!APIParams.conversation_tag && !!APIParams.attachment_tag,
+        staleTime: Infinity,
+        ...useQueryOptions,
+    });
+}
+
+function usePostTicketReply(useMutationOptions = {}) {
+    return useMutation({
+        mutationFn: (APIParams) => postTicketReply_API({ ...APIParams }),
+        ...useMutationOptions,
+    });
+}
+
+function usePostMessageWithAttachments(useMutationOptions = {}) {
+    return useMutation({
+        mutationFn: (APIParams) => postMessageWithAttachments_API({ ...APIParams }),
+        ...useMutationOptions,
+    });
+}
+
 export const ticketsAPI = {
     ...hooks.tickets.createTicketsAPI(apiClient),
     useGetTicketAttachments,
     usePostTicketAttachment,
     useGetTicketAttachmentFile,
+    usePostConversationAttachment,
+    useGetConversationAttachmentFile,
+    usePostTicketReply,            
+    usePostMessageWithAttachments,
 };

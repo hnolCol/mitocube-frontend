@@ -134,25 +134,10 @@ export function InstrumentView() {
                     </div>
                 ) : null}
 
-                    <div className="margin-top--medium">
-                        <div className="flex gap--default">
-                            <OptionButton isSelected={activeTab === "maintenance"} onClick={() => setSearchParams({ tab: "maintenance" })}>
-                                Maintenance
-                            </OptionButton>
-                            <OptionButton isSelected={activeTab === "stats"} onClick={() => setSearchParams({ tab: "stats" })}>
-                                Statistics
-                            </OptionButton>
-                        </div>
-
-                        {instrument.description ? (
-                            <div style={{ color: "#5c7080", fontSize: "0.85rem", marginTop: 2 }}>{instrument.description}</div>
-                        ) : null}
-
-                        <div className="flex" style={{ gap: "2rem", marginTop: "0.6rem", paddingTop: "0.5rem", borderTop: "1px solid #e1e5ea" }}>
-                            <InstrumentCosts tag={instrument_tag} />
-                            <SamplesStat instrument_tag={instrument_tag} />
-                        </div>
-                    </div>
+                <div className="flex" style={{ gap: "2rem", marginTop: "0.75rem" }}>
+                    <InstrumentCosts tag={instrument_tag} />
+                    <SamplesStat instrument_tag={instrument_tag} />
+                </div>
                     
 
                 <Tabs selected={activeTab} onChange={tab => setSearchParams({ tab })} />

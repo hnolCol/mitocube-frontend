@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react"
 import PropTypes from "prop-types"
+import { useQueryClient } from "@tanstack/react-query"
 import _ from "lodash"
 import { Button, Dialog, DialogBody, DialogFooter, FormGroup, Icon, InputGroup, Spinner, Tag, TextArea } from "@blueprintjs/core"
 import moment from "moment"
 import { api } from "@/api"
 import { UserFullName, UserInput } from "@/comps/core/input/api/UserInput"
-
+import { AttachmentGallery, uploadConversationFiles, uploadTicketFiles, useAttachmentPicker } from "../core/tickets/TicketAttachments"
 const USER_COLORS = ["#2D72D2", "#238551", "#C87619", "#7961DB", "#CD4246", "#00A396", "#D1980B", "#D13913"]
 
 /** System sender of read-only notifications (no user node behind it). */
@@ -142,6 +143,8 @@ function SubmissionChip({ submission_tag }) {
  * @description Panel showing the messages of a conversation as chat bubbles and an input to reply.
  * Loading the messages marks the conversation as read for the current user (backend behaviour).
  * Read-only conversations (notifications from MitoCube Support) have no reply input.
+ * Images can be attached to messages; they are shown inline in the bubbles. In support
+ * ticket conversations images are stored on the ticket, otherwise on the conversation.
  * @param {Object} props
  * @param {String} props.conversation_tag Conversation tag
  * @param {String} [props.user_tag] Tag of the current user
@@ -151,25 +154,49 @@ function SubmissionChip({ submission_tag }) {
 export function ConversationDialog({ conversation_tag, user_tag, onClose }) {
     const [message, setMessage] = useState("")
     const scrollRef = useRef(null)
+    const queryClient = useQueryClient()
     const { data: conversation } = api.messages.useGetConversation(
         { conversation_tag }, { enabled: _.isString(conversation_tag), staleTime: 30000, retry: false }
     )
     const { data: messages, isLoading } = api.messages.useGetConversationMessages(
         { conversation_tag }, { enabled: _.isString(conversation_tag), staleTime: 0, refetchInterval: 10000, retry: false }
     )
-    const { mutate: postMessage, isPending } = api.messages.usePostConversationMessage({
-        onSuccess: () => setMessage("")
+    const ticketTag = _.isObject(conversation) && _.isString(conversation.ticket_tag) ? conversation.ticket_tag : null
+    const uploadTicket = api.tickets.usePostTicketAttachment()
+    const uploadConversation = api.tickets.usePostConversationAttachment()
+    const { mutateAsync: postMessage, isPending: isPosting } = api.tickets.usePostMessageWithAttachments({
+        onSuccess: () => {
+            setMessage("")
+            picker.clear()
+            queryClient.invalidateQueries({ queryKey: ["getConversationMessages", conversation_tag] })
+            queryClient.invalidateQueries({ queryKey: ["getMyConversations"] })
+        }
     })
+    const isPending = isPosting || uploadTicket.isPending || uploadConversation.isPending
+    const picker = useAttachmentPicker({ disabled: isPending })
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }, [_.isArray(messages) ? messages.length : 0])
     const isReadOnly = _.isObject(conversation) && conversation.read_only === true
     const participants = _.isObject(conversation) && _.isArray(conversation.user_tags) ? conversation.user_tags : []
     const otherParticipants = participants.filter(tag => tag !== user_tag)
-    const canSend = !isReadOnly && _.isString(message) && message.trim().length > 0
-    const handleSend = () => {
-        if (canSend) postMessage({ conversation_tag, content: message })
+    const hasText = _.isString(message) && message.trim().length > 0
+    const canSend = _.isObject(conversation) && !isReadOnly && !isPending && (hasText || picker.files.length > 0)
+    const handleSend = async () => {
+        if (!canSend) return
+        try {
+            let attachment_tags = []
+            if (picker.files.length > 0) {
+                attachment_tags = ticketTag
+                    ? await uploadTicketFiles(uploadTicket.mutateAsync, ticketTag, picker.files)
+                    : await uploadConversationFiles(uploadConversation.mutateAsync, conversation_tag, picker.files)
+            }
+            await postMessage({ conversation_tag, content: message, attachment_tags })
+        } catch {
+            // keep the message in the input so it can be retried
+        }
     }
+    const uploadError = uploadTicket.error ?? uploadConversation.error
     const formatTime = ts => {
         if (!_.isNumber(ts)) return ""
         const m = moment(ts)
@@ -207,7 +234,12 @@ export function ConversationDialog({ conversation_tag, user_tag, onClose }) {
                                 <div className="font-size--smallest" style={{ fontWeight: 600, color: userColor(msg.sender_tag) }}>
                                     <SenderName tag={msg.sender_tag} />
                                 </div> : null}
-                            <div className="font-size--small" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}><MessageContent message={msg} /></div>
+                            {msg.content ?
+                                <div className="font-size--small" style={{ whiteSpace: "pre-wrap", wordBreak: "break-word" }}><MessageContent message={msg} /></div> : null}
+                            {_.isArray(msg.attachments) && msg.attachments.length > 0 ?
+                                <div style={{ marginTop: 6 }}>
+                                    <AttachmentGallery conversation_tag={conversation_tag} attachments={msg.attachments} />
+                                </div> : null}
                             <div style={{ fontSize: 10, opacity: 0.7, textAlign: "right", marginTop: 2 }}>{formatTime(msg.created_at)}</div>
                         </div>
                     </div>
@@ -218,14 +250,22 @@ export function ConversationDialog({ conversation_tag, user_tag, onClose }) {
                 <Icon icon="info-sign" size={12} color="#738091" />
                 This is a notification from {SUPPORT_SENDER_NAME}. Replies are not possible.
             </div> :
-            <div className="flex margin-top--little">
-                <InputGroup
-                    fill={true}
-                    placeholder="Write a message.."
-                    value={message}
-                    onChange={e => setMessage(e.target.value)}
-                    onKeyDown={e => { if (e.key === "Enter") handleSend() }} />
-                <Button small={true} intent="primary" text="Send" loading={isPending} disabled={!canSend} onClick={handleSend} />
+            <div className="margin-top--little">
+                {uploadError ?
+                    <div className="font-size--small" style={{ color: "#CD4246" }}>
+                        {uploadError?.response?.data?.detail ?? "An image could not be uploaded."}
+                    </div> : null}
+                {picker.previews}
+                <div className="flex margin-top--little" style={{ gap: 4 }}>
+                    {picker.button}
+                    <InputGroup
+                        fill={true}
+                        placeholder="Write a message.."
+                        value={message}
+                        onChange={e => setMessage(e.target.value)}
+                        onKeyDown={e => { if (e.key === "Enter") handleSend() }} />
+                    <Button small={true} intent="primary" text="Send" loading={isPending} disabled={!canSend} onClick={handleSend} />
+                </div>
             </div>}
     </div>
 }
@@ -294,7 +334,8 @@ function ConversationRow({ conversation, user_tag, onSelect, hideSubmission = fa
                 whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                 color: unread ? "#1C2127" : "#738091", fontWeight: unread ? 600 : 400
             }}>
-                {_.isString(conversation.last_message) ? conversation.last_message : <i>No messages yet</i>}
+                {_.isString(conversation.last_message) && conversation.last_message.length > 0 ? conversation.last_message
+                    : conversation.n_messages > 0 ? <i>Attachment</i> : <i>No messages yet</i>}
             </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
