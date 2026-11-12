@@ -122,7 +122,7 @@ export function SubmissionFilterSelection({
         </div>
     <h4>Consortium Submissions</h4>
     <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
-         <ConsortiumFilter {...{ submissionFilter, setSubmissionFilter }} />
+         <ConsortiumFilter {...{ submissionFilter, setSubmissionFilter, authenticationStatus }} />
     </div>
     <h4>Research Groups</h4>
     <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>

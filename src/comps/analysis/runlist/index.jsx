@@ -113,11 +113,14 @@ function Runlist() {
         if (!samplesFullSuccess || !samplesFull) return null
 
         // Build samples_attributes: {att_compound: {"att_compound:dmso": [0,1,2...]}}
+        // sample.attributes values are condition application tree nodes (objects with trait_tag)
         const samples_attributes = {}
         samplesFull.forEach(sample => {
-            Object.entries(sample.attributes || {}).forEach(([attr_tag, trait_tags]) => {
+            Object.entries(sample.attributes || {}).forEach(([attr_tag, nodes]) => {
                 if (!samples_attributes[attr_tag]) samples_attributes[attr_tag] = {}
-                trait_tags.forEach(trait_tag => {
+                nodes.forEach(node => {
+                    const trait_tag = _.isString(node) ? node : node?.trait_tag
+                    if (!_.isString(trait_tag)) return
                     if (!samples_attributes[attr_tag][trait_tag]) samples_attributes[attr_tag][trait_tag] = []
                     samples_attributes[attr_tag][trait_tag].push(sample.index)
                 })

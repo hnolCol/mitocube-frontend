@@ -186,7 +186,7 @@ export function SimilarSubmissions({ submission_tag, limit = 5, user_tag }) {
     )
     if (isLoading) return <div className="flex center-items padding--medium"><Spinner size={20} /></div>
     const similar = _.isArray(data?.similar) ? data.similar : []
-    if (similar.length === 0) return null
+    if (similar.length === 0) return <div className="font-size--small margin-top--little">No similar submissions found.</div>
     return <div className="flex flex-column margin-top--little" style={{ gap: "0.75rem" }}>
         {ACCESS_GROUPS.map(group => {
             const items = similar.filter(s => s.access === group.key || (group.key === "scope" && s.access === null))

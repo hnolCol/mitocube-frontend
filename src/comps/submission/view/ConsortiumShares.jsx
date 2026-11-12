@@ -87,6 +87,29 @@ ConsortiumShares.propTypes = {
  * @returns {JSX.Element|null} The consortium sharing panel.
  */
 export function ConsortiumShares({ submission_tag }) {
+    return <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)" }}>
+        <ConsortiumShareSection submission_tag={submission_tag} />
+    </div>
+}
+
+ConsortiumShareSection.propTypes = {
+    submission_tag: PropTypes.string.isRequired,
+    showHeader: PropTypes.bool
+}
+
+/**
+ * @description The consortium sharing rows without a surrounding box. Shows all
+ * consortiums of the user the submission can be shared with and allows the
+ * owner/curator to add or remove a share per consortium. If the user is not a research
+ * group head (PI), the share is created with status pending and must be approved by a PI
+ * of the owners research group first (backend behaviour). The requesting user can revoke a
+ * pending request. Renders nothing if the user is not a member of any consortium.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission tag
+ * @param {Boolean} [props.showHeader=true] Whether to show the section header and description
+ * @returns {JSX.Element|null} The consortium sharing section.
+ */
+export function ConsortiumShareSection({ submission_tag, showHeader = true }) {
     const queryClient = useQueryClient()
     const { data: userConsortiums, isLoading: isConsortiumsLoading } = api.consortiums.useGetUserConsortiums({}, { staleTime: 300000 })
     const { data: pendingConsortiumTags, isLoading: isPendingLoading } = api.consortiums.useGetPendingConsortiumShares(
@@ -100,18 +123,18 @@ export function ConsortiumShares({ submission_tag }) {
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShares"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
     }
-    return <div className="container--shadow padding--little margin-top--little" style={{ maxWidth: "min(50vw,800px)", minWidth: "max(20vw,600px)" }}>
-        <h3>Consortium Sharing</h3>
-        <p className="font-size--small">
+    return <div className="flex flex-column">
+        {showHeader ? <h4>Consortium Sharing</h4> : null}
+        {showHeader ? <p className="font-size--small">
             Share this submission with a consortium. All members of the consortiums research groups will be able to access it.
             If you are not a research group head (PI), the share request must be approved by a PI of your research group first.
-        </p>
-        {isConsortiumsLoading || isPendingLoading ? <p>Loading..</p> :
+        </p> : null}
+        {isPendingLoading ? <p>Loading..</p> :
             consortiumTags.map(consortium_tag => <ConsortiumShare
                 key={consortium_tag}
                 consortium_tag={consortium_tag}
                 submission_tag={submission_tag}
-                pendingConsortiumTags={_.isArray(pendingConsortiumTags) ? pendingConsortiumTags : []}
-                onInvalidate={invalidate} />)}
+                pendingConsortiumTags={pendingConsortiumTags}
+                onInvalidate={onInvalidate} />)}
     </div>
 }
