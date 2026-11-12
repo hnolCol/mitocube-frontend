@@ -140,7 +140,12 @@ export function InstrumentView() {
                 </div>
                     
 
-                <Tabs selected={activeTab} onChange={tab => setSearchParams({ tab })} />
+                <div className="flex" style={{ justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <Tabs selected={activeTab} onChange={tab => setSearchParams({ tab })} />
+                    {activeTab === "maintenance" && _.isString(instrument_tag)
+                        ? <InsertMaintenanceEvent instrument_tag={instrument_tag} />
+                        : null}
+                </div>
 
                 {activeTab === "maintenance"
                     ? <MaintenanceView instrument_tag={instrument_tag} setRefetchInstrumentStateTrigger={_.noop} />
