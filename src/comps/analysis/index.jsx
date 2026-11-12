@@ -70,19 +70,20 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
             <Tabs
                 tabs={[
                     { text: "Overview", to: urlStart },
+                    { text: "Metatext", to: `${urlStart}/metatext` },
+                    { text: "Samples", to: `${urlStart}/samples` },
+                    { text: "QC", to: `${urlStart}/qc` },
+                    { text: "Timeline", to: `${urlStart}/timeline` },
+                    { text: "Runlist", to: `${urlStart}/runlist` },
                     { text: "Features", to: `${urlStart}/features` },
                     { text: "Precursors", to: `${urlStart}/precursors` },
-                    { text: "Samples", to: `${urlStart}/samples` },
                     { text: "Volcano", to: `${urlStart}/volcano` },
                     { text: "Exclusively", to: `${urlStart}/exclusively` },
                     { text: "Compare", to: `${urlStart}/compare`},
                     { text: "Heatmap", to: `${urlStart}/heatmap` },
                     { text: "PCA", to: `${urlStart}/pca` }, 
                     { text: "Annotation Map", to: `${urlStart}/annotationmap` }, 
-                    { text: "QC", to: `${urlStart}/qc` },
-                    { text: "Timeline", to: `${urlStart}/timeline` },
                     // { text: "Correlation", to: `${urlStart}/correlation` },
-                    { text: "Runlist", to: `${urlStart}/runlist` },
                     { text: "Help", to : `${urlStart}/help`},
                     { text: "Comments", to: `${urlStart}/comments`}]} />   
             <div className="no-scroll div--expand">
