@@ -34,7 +34,7 @@ export function UserFullName({ tag }) {
 export function UserMenuItem({ tag, handleClick, handleFocus, modifiers, selected = false }) {
     
     const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag({ tag }, { enabled: _.isString(tag) })
-    const { data : research_groups, isSuccess : isResearchGroupSuccess } = api.researchgroups.useGetResearchGroupsByQuery({user_tags : [tag]}, {enabled : isSuccess && _.isString(tag)})
+    const { data : research_groups, isSuccess : isResearchGroupSuccess } = api.researchgroups.useGetResearchGroupsByQuery({user_tags : tag}, {enabled : isSuccess && _.isString(tag)})
     const { data: role } = api.users.roles.useGetUserRoleByTag({ tag }, { enabled: _.isString(tag), staleTime: 300000 })
     const roleLabel = _.isFinite(_.toNumber(role)) ? ROLE_LABELS[_.toNumber(role)] : undefined
     return isSuccess ? <MenuItem
