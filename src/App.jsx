@@ -56,6 +56,7 @@ import {DatasetFeatureView} from "./comps/analysis/features";
 import Timeline from "./comps/analysis/timeline";
 import { MitomapNetwork } from "./comps/analysis/mitomap";
 import { SubmissionComments } from "./comps/submission/comments/index"
+import { SubmissionMetatextsPage } from "./comps/submission/view/SubmissionMetatextsPage"
 /* Protein pages */
 import ProteinHeader from "./comps/protein";
 import ProteinSelection from "./comps/protein/selection";
@@ -376,6 +377,7 @@ function App() {
             <Route path="/submissions/:tag/timeline" element={<Timeline {...{ logout }} />} />
             <Route path="/submissions/:tag/runlist" element={<Runlist />} />
             <Route path="/submissions/:tag/help" element={<div><DatasetHelp /></div>} />
+            <Route path="/submissions/:tag/metatext" element={<SubmissionMetatextsPage />} />
             <Route path="/submissions/:tag/comments" element={<SubmissionComments submission_tag={location.pathname.split("/")[2]} />} />
           </Route>
 

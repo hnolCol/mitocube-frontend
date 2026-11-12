@@ -70,6 +70,7 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
             <Tabs
                 tabs={[
                     { text: "Overview", to: urlStart },
+                    { text: "Metatext", to: `${urlStart}/metatext` },
                     { text: "Features", to: `${urlStart}/features` },
                     { text: "Precursors", to: `${urlStart}/precursors` },
                     { text: "Samples", to: `${urlStart}/samples` },
