@@ -135,6 +135,6 @@ export function ConsortiumShareSection({ submission_tag, showHeader = true }) {
                 consortium_tag={consortium_tag}
                 submission_tag={submission_tag}
                 pendingConsortiumTags={pendingConsortiumTags}
-                onInvalidate={onInvalidate} />)}
+                onInvalidate={invalidate} />)}
     </div>
 }
