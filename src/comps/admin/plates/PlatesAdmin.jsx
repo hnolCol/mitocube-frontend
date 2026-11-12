@@ -103,6 +103,7 @@ export function PlatesAdmin({ userRole }) {
                                 plate={plate}
                                 onDelete={() => setDeleteTarget(plate)}
                                 disabled={plate.n_used_wells > 0 || !isCurator}
+                                isCurator={isCurator}
                             />
                         )) : null}
                     </div>
@@ -112,7 +113,116 @@ export function PlatesAdmin({ userRole }) {
     )
 }
 
-function PlateItem({ plate, onDelete, disabled }) {
+const SUBMISSION_COLORS = [
+    "#2f6f9f", "#c94f4f", "#4f9f59", "#b8862f", "#7d5ba6",
+    "#3fa7a0", "#d16ba5", "#8a8f36", "#5b7dc4", "#a05c4f"
+]
+
+const submissionColor = (tag, submissions) => {
+    const index = _.findIndex(submissions, s => s.submission_tag === tag)
+    return SUBMISSION_COLORS[index % SUBMISSION_COLORS.length]
+}
+
+function PlateSubmissionsLayout({ plate }) {
+
+    const { data: layout, isLoading, isError, error } =
+        api.plates.plates.useGetPlateSubmissionsLayout({ tag: plate.tag })
+
+    if (isLoading) return <div className="text--muted font-size--small margin-top--medium">Loading plate layout...</div>
+    if (isError) return <div className="font-color--error font-size--small margin-top--medium">Failed to load plate layout: {_.get(error, "message", "")}</div>
+    if (!layout) return null
+
+    return (
+        <div className="margin-top--medium">
+            <div className="font-weight--bold" style={{ fontSize: "0.8rem", marginBottom: "0.4rem" }}>
+                Submissions on this plate
+            </div>
+            {layout.submissions.length === 0 ? (
+                <div className="text--muted font-size--small">No submissions measured on this plate yet.</div>
+            ) : (
+                <div className="flex" style={{ gap: "1rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: `repeat(${layout.columns}, 1.6rem)`,
+                            gap: "2px",
+                            justifyItems: "stretch"
+                        }}
+                    >
+                        {layout.wells.map(well => {
+                            const color = well.submission_tag ? submissionColor(well.submission_tag, layout.submissions) : "#e5e8eb"
+                            return (
+                                <div
+                                    key={well.position}
+                                    title={well.submission_tag
+                                        ? `${well.position} : ${well.run_name ?? ""} (${layout.submissions.find(s => s.submission_tag === well.submission_tag)?.submission_label ?? well.submission_tag})`
+                                        : `${well.position} : empty`}
+                                    style={{
+                                        backgroundColor: color,
+                                        borderRadius: "3px",
+                                        height: "1.6rem",
+                                        opacity: well.submission_tag ? 1 : 0.6
+                                    }}
+                                />
+                            )
+                        })}
+                    </div>
+                    <div className="flex flex-column" style={{ gap: "0.25rem" }}>
+                        {layout.submissions.map(s => (
+                            <div key={s.submission_tag} className="flex center-items font-size--small" style={{ gap: "0.4rem" }}>
+                                <span style={{
+                                    backgroundColor: submissionColor(s.submission_tag, layout.submissions),
+                                    width: "0.8rem",
+                                    height: "0.8rem",
+                                    borderRadius: "3px",
+                                    display: "inline-block",
+                                    flexShrink: 0
+                                }} />
+                                <span>
+                                    <strong>{s.submission_label}</strong>
+                                    {s.submission_title ? ` : ${s.submission_title}` : ""}
+                                    {s.user_firstname || s.user_lastname ? ` (${_.compact([s.user_firstname, s.user_lastname]).join(" ")})` : ""}
+                                    <span className="text--muted">{` ${s.n_wells} well${s.n_wells > 1 ? "s" : ""}`}</span>
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+}
+
+function PlateRunlists({ plate }) {
+
+    const { data: runlists, isLoading, isError, error } =
+        api.plates.plates.useGetPlateRunlists({ tag: plate.tag })
+
+    if (isLoading) return <div className="text--muted font-size--small margin-top--medium">Loading runlists...</div>
+    if (isError) return <div className="font-color--error font-size--small margin-top--medium">Failed to load runlists: {_.get(error, "message", "")}</div>
+    if (!runlists || runlists.length === 0) return null
+
+    return (
+        <div className="margin-top--medium">
+            <div className="font-weight--bold" style={{ fontSize: "0.8rem", marginBottom: "0.4rem" }}>
+                Runlists using this plate
+            </div>
+            <div className="flex flex-column" style={{ gap: "0.15rem" }}>
+                {runlists.map(rl => (
+                    <div key={rl.runlist_tag} className="font-size--small">
+                        <strong>{rl.instrument_text ?? "No instrument"}</strong>
+                        {` \u00b7 ${rl.n_runs_on_plate} run${rl.n_runs_on_plate > 1 ? "s" : ""} on this plate`}
+                        {` \u00b7 ${rl.submission_label}`}
+                        {rl.user_firstname || rl.user_lastname ? ` \u00b7 ${_.compact([rl.user_firstname, rl.user_lastname]).join(" ")}` : ""}
+                        {_.isNumber(rl.created_at) ? <> \u00b7 <CreatedAt createdat={rl.created_at} /></> : null}
+                    </div>
+                ))}
+            </div>
+        </div>
+    )
+}
+
+function PlateItem({ plate, onDelete, disabled, isCurator }) {
 
     const [showDetails, setShowDetails] = useState(false)
 
@@ -154,34 +264,50 @@ function PlateItem({ plate, onDelete, disabled }) {
                         </div>
                     </div>
                     {showDetails ? (
-                        <table style={{ width: "fit-content", fontSize: "0.75rem", textAlign: "left", marginTop: "0.5rem" }}>
-                            <tbody>
-                                <tr>
-                                    <th className="table-head-cell">Format</th>
-                                    <td>{plate.rows} × {plate.columns} ({plate.rows * plate.columns} wells)</td>
-                                </tr>
-                                <tr>
-                                    <th className="table-head-cell">Type</th>
-                                    <td>{plate.plate_type || dash}</td>
-                                </tr>
-                                <tr>
-                                    <th className="table-head-cell">Vendor</th>
-                                    <td>{plate.vendor || dash}</td>
-                                </tr>
-                                <tr>
-                                    <th className="table-head-cell">Cold storage</th>
-                                    <td>{plate.cold_storage || dash}</td>
-                                </tr>
-                                <tr>
-                                    <th className="table-head-cell">Location</th>
-                                    <td>{plate.location || dash}</td>
-                                </tr>
-                                <tr>
-                                    <th className="table-head-cell">Description</th>
-                                    <td>{plate.description || dash}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <>
+                            <table style={{ width: "fit-content", fontSize: "0.75rem", textAlign: "left", marginTop: "0.5rem" }}>
+                                <tbody>
+                                    <tr>
+                                        <th className="table-head-cell">Format</th>
+                                        <td>{plate.rows} × {plate.columns} ({plate.rows * plate.columns} wells)</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Type</th>
+                                        <td>{plate.plate_type || dash}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Vendor</th>
+                                        <td>{plate.vendor || dash}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Cold storage</th>
+                                        <td>{plate.cold_storage || dash}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Location</th>
+                                        <td>{plate.location || dash}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Description</th>
+                                        <td>{plate.description || dash}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Runlists / Submissions</th>
+                                        <td>{plate.n_runlists ?? 0} runlist{_.toNumber(plate.n_runlists) !== 1 ? "s" : ""} / {plate.n_submissions ?? 0} submission{_.toNumber(plate.n_submissions) !== 1 ? "s" : ""}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            {isCurator ? (
+                                <>
+                                    <PlateRunlists plate={plate} />
+                                    <PlateSubmissionsLayout plate={plate} />
+                                </>
+                            ) : (
+                                <div className="text--muted font-size--small margin-top--medium">
+                                    Plate usage (runlists and submissions on this plate) is only visible to curators and admins.
+                                </div>
+                            )}
+                        </>
                     ) : null}
                 </div>
             </button>
