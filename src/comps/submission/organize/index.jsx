@@ -45,18 +45,31 @@ function StateTimelineSegment({ state_tag, days, width, height }) {
 
 StateTimelineBar.propTypes = {
     history: PropTypes.array,
+    maxTotalDays: PropTypes.number,
     width: PropTypes.number,
     height: PropTypes.number
 }
 
 
 /**
+ * @description The total lifespan of a submission in days based on its state history
+ * (from the first state until now).
+ * @returns {Number}
+ */
+function getTotalDays(history) {
+    if (!_.isArray(history) || history.length === 0) return 0
+    return Math.max((Date.now() - history[0].state_since) / 86400000, 0)
+}
+
+
+/**
  * @description A minimalistic timeline of the states a submission was in and for how long:
- * rectangles aligned next to each other, each colored by the state color, the width scaled
- * by the time spent in that state (the current state extends to now).
+ * rectangles aligned next to each other, each colored by the state color. All timelines on
+ * the board share the same time scale (maxTotalDays maps to the full width), so the strips
+ * are comparable across submissions; the current state extends to now.
  * @returns {JSX.Element|null}
  */
-export function StateTimelineBar({ history, width = 170, height = 10 }) {
+export function StateTimelineBar({ history, maxTotalDays, width = 170, height = 10 }) {
     if (!_.isArray(history) || history.length === 0) return null
     const now = Date.now()
     const segments = history.map((entry, idx) => {
@@ -65,11 +78,14 @@ export function StateTimelineBar({ history, width = 170, height = 10 }) {
     })
     const totalDays = _.sumBy(segments, "days")
     if (!_.isFinite(totalDays) || totalDays <= 0) return null
+    const scale = _.isFinite(maxTotalDays) && maxTotalDays > 0 ? totalDays / maxTotalDays : 1
+    const stripWidth = Math.min(scale, 1) * width
     let offset = 0
     return (
         <svg width={width} height={height} style={{ display: "block", borderRadius: 2, flexShrink: 0 }}>
+            <rect width={width} height={height} fill="#f0f0f0" />
             {segments.map((segment, idx) => {
-                const segmentWidth = (segment.days / totalDays) * width
+                const segmentWidth = (segment.days / totalDays) * stripWidth
                 const x = offset
                 offset += segmentWidth
                 return (
@@ -185,6 +201,7 @@ function ProcedureOption({ procedure_tag }) {
 
 OrganizeSubmissionRow.propTypes = {
     row: PropTypes.object.isRequired,
+    maxTotalDays: PropTypes.number,
     isCurator: PropTypes.bool
 }
 
@@ -195,7 +212,7 @@ OrganizeSubmissionRow.propTypes = {
  * the current state.
  * @returns {JSX.Element}
  */
-export function OrganizeSubmissionRow({ row, isCurator = false }) {
+export function OrganizeSubmissionRow({ row, maxTotalDays, isCurator = false }) {
     const queryClient = useQueryClient()
     const [isAssignDialogOpen, setAssignDialogOpen] = useState(false)
     const { mutate: unlinkProcedure } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
@@ -206,7 +223,7 @@ export function OrganizeSubmissionRow({ row, isCurator = false }) {
             <div className="flex center-items gap--default padding-left--little font-size--small" style={{ flexWrap: "wrap" }}>
                 <UserFullName tag={row.user_tag} />
                 <span>{row.sample_count} sample{row.sample_count === 1 ? "" : "s"}</span>
-                <StateTimelineBar history={row.history} />
+                <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
             </div>
             <div className="flex center-items gap--default padding-left--little" style={{ flexWrap: "wrap" }}>
                 {procedures.map((link) => (
@@ -238,6 +255,7 @@ export function OrganizeSubmissionRow({ row, isCurator = false }) {
 OrganizeStateColumn.propTypes = {
     state_tag: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     rows: PropTypes.array.isRequired,
+    maxTotalDays: PropTypes.number,
     isCurator: PropTypes.bool
 }
 
@@ -249,7 +267,7 @@ OrganizeStateColumn.propTypes = {
  * remaining ones can be expanded.
  * @returns {JSX.Element}
  */
-export function OrganizeStateColumn({ state_tag, rows, isCurator = false }) {
+export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator = false }) {
     const [showAll, setShowAll] = useState(false)
     const sortedRows = _.orderBy(rows, ["duration_days"], ["desc"])
     const visibleRows = showAll ? sortedRows : sortedRows.slice(0, DEFAULT_VISIBLE_PER_STATE)
@@ -270,7 +288,7 @@ export function OrganizeStateColumn({ state_tag, rows, isCurator = false }) {
                     </div>
                 </div>
             </div>
-            {visibleRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} isCurator={isCurator} />)}
+            {visibleRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
             {sortedRows.length > DEFAULT_VISIBLE_PER_STATE ? (
                 <button className="basic-button basic-button--small" onClick={() => setShowAll(prev => !prev)}>
                     {showAll ? `Show top ${DEFAULT_VISIBLE_PER_STATE}` : `Show all (${hiddenCount} more)`}
@@ -298,6 +316,7 @@ export function OrganizeSubmissions({ userRole }) {
     if (isLoading || isFetching) return <div className="submission__items__container">Loading...</div>
     const allRows = _.isArray(data) ? data : []
     const rows = unassignedOnly ? allRows.filter(row => !_.isArray(row.procedures) || row.procedures.length === 0) : allRows
+    const maxTotalDays = _.max(_.map(rows, row => getTotalDays(row.history))) || 0
     const rowsByState = _.groupBy(rows, "state_tag")
     const stateTags = _.sortBy(_.keys(rowsByState), _.toNumber)
     return (
@@ -311,7 +330,7 @@ export function OrganizeSubmissions({ userRole }) {
             {rows.length === 0 ? <div>{unassignedOnly ? "No unassigned submissions. All planned!" : "No open submissions. All done!"}</div> : null}
             <div className="flex gap--default" style={{ alignItems: "flex-start", overflowX: "auto" }}>
                 {stateTags.map((state_tag) => (
-                    <OrganizeStateColumn key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} isCurator={isCurator} />
+                    <OrganizeStateColumn key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxTotalDays={maxTotalDays} isCurator={isCurator} />
                 ))}
             </div>
         </div>

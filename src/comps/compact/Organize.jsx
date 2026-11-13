@@ -65,7 +65,12 @@ function StateTimelineSegment({ state_tag, days, percent }) {
  * ({ state_tag, state_since }, oldest first)
  * @returns {JSX.Element|null} The state timeline row.
  */
-function StateTimelineBar({ history }) {
+function getTotalDays(history) {
+    if (!_.isArray(history) || history.length === 0) return 0;
+    return Math.max((Date.now() - history[0].state_since) / 86400000, 0);
+}
+
+function StateTimelineBar({ history, maxTotalDays }) {
     if (!_.isArray(history) || history.length === 0) return null;
     const now = Date.now();
     const segments = history.map((entry, idx) => {
@@ -74,17 +79,22 @@ function StateTimelineBar({ history }) {
     });
     const totalDays = _.sumBy(segments, "days");
     if (!_.isFinite(totalDays) || totalDays <= 0) return null;
+    // all timelines on the board share the same time scale, so the strips are comparable
+    const scale = _.isFinite(maxTotalDays) && maxTotalDays > 0 ? totalDays / maxTotalDays : 1;
+    const stripPercent = Math.min(scale, 1) * 100;
     return (
         <div className="compact__row">
             <div style={{ flex: 1, height: "8px", display: "flex", borderRadius: "999px", overflow: "hidden", backgroundColor: "#e1e5ea" }}>
-                {segments.map((segment, idx) => (
-                    <StateTimelineSegment
-                        key={`${segment.state_tag}-${idx}`}
-                        state_tag={segment.state_tag}
-                        days={segment.days}
-                        percent={(segment.days / totalDays) * 100}
-                    />
-                ))}
+                <div style={{ width: `${stripPercent}%`, height: "100%", display: "flex" }}>
+                    {segments.map((segment, idx) => (
+                        <StateTimelineSegment
+                            key={`${segment.state_tag}-${idx}`}
+                            state_tag={segment.state_tag}
+                            days={segment.days}
+                            percent={(segment.days / totalDays) * 100}
+                        />
+                    ))}
+                </div>
             </div>
         </div>
     );
@@ -181,7 +191,7 @@ function AssignProcedureSelect({ submission_tag, assignedProcedureTags }) {
  * @param {Boolean} [props.isCurator] Whether procedure links can be modified
  * @returns {JSX.Element} The submission card.
  */
-function OrganizeSubmissionCard({ row, isCurator = false }) {
+function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle(
         { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 }
     );
@@ -204,7 +214,7 @@ function OrganizeSubmissionCard({ row, isCurator = false }) {
             </div>
             <SubmissionProcedures row={row} isCurator={isCurator} />
             {isCurator ? <AssignProcedureSelect submission_tag={row.submission_tag} assignedProcedureTags={procedures.map(link => link.procedure_tag)} /> : null}
-            <StateTimelineBar history={row.history} />
+            <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
         </div>
     );
 }
@@ -218,7 +228,7 @@ function OrganizeSubmissionCard({ row, isCurator = false }) {
  * @param {Array} props.rows Submission rows in that state
  * @returns {JSX.Element} The state section.
  */
-function OrganizeStateSection({ state_tag, rows, isCurator = false }) {
+function OrganizeStateSection({ state_tag, rows, maxTotalDays, isCurator = false }) {
     const sortedRows = _.orderBy(rows, ["duration_days"], ["desc"]);
     const sampleCount = _.sumBy(sortedRows, "sample_count");
     return (
@@ -229,7 +239,7 @@ function OrganizeStateSection({ state_tag, rows, isCurator = false }) {
                     {sortedRows.length} submission{sortedRows.length === 1 ? "" : "s"} · {sampleCount} sample{sampleCount === 1 ? "" : "s"}
                 </span>
             </div>
-            {sortedRows.map(row => <OrganizeSubmissionCard key={row.submission_tag} row={row} isCurator={isCurator} />)}
+            {sortedRows.map(row => <OrganizeSubmissionCard key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
         </div>
     );
 }
@@ -247,6 +257,7 @@ export function CompactOrganize({ userRole }) {
     if (!isLoading && isFetching) return <div className="compact__hint">Updating…</div>;
     if (isError) return <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load open submissions."}</div>;
     const rows = _.isArray(data) ? data : [];
+    const maxTotalDays = _.max(_.map(rows, row => getTotalDays(row.history))) || 0;
     const rowsByState = _.groupBy(rows, "state_tag");
     const stateTags = _.sortBy(_.keys(rowsByState), _.toNumber);
     return (
@@ -256,7 +267,7 @@ export function CompactOrganize({ userRole }) {
             </div>
             {rows.length === 0 ? <div className="compact__hint">No open submissions. All done!</div> : null}
             {stateTags.map(state_tag => (
-                <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} isCurator={isCurator} />
+                <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxTotalDays={maxTotalDays} isCurator={isCurator} />
             ))}
         </div>
     );
