@@ -20,7 +20,7 @@ export function ModularProcedureBoard({ userRole }) {
     const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
 
     const { data: procedure_tags, isLoading, isError, error } =
-        api.modularProcedures.query.useGetModularProceduresByQuery({ status: "PUBLISHED" })
+        api.modularProcedures.query.useGetModularProceduresByQuery({ status: "PUBLISHED", latest_only: true })
 
     const { mutate: markDone, isError: doneIsError, error: doneError } =
         api.modularProcedures.modify.useMarkModularProcedureSubmissionDone()

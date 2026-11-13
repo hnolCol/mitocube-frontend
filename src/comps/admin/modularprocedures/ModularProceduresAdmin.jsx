@@ -33,6 +33,8 @@ export function ModularProceduresAdmin({ userRole }) {
         api.modularProcedures.modify.usePublishModularProcedure()
     const { mutate: linkSubmission, isError: linkIsError, error: linkError } =
         api.modularProcedures.modify.useLinkModularProcedureToSubmission()
+    const { mutate: createVersion } =
+        api.modularProcedures.modify.useCreateModularProcedureVersion()
 
     const handleInsert = (procedure) => {
         postProcedure(procedure, {
@@ -59,6 +61,16 @@ export function ModularProceduresAdmin({ userRole }) {
             onSuccess: () => {
                 setAlertProps({ isOpen: true, message: "Modular procedure published. It is now immutable and has a content hash." })
                 refetch()
+            }
+        })
+    }
+
+    const handleCreateVersion = (procedure_tag) => {
+        createVersion({ tag: procedure_tag }, {
+            onSuccess: (newVersion) => {
+                refetch()
+                setAlertProps({ isOpen: true, message: `Draft version ${newVersion.version} created. It is a copy of the published version and can be edited and published independently.` })
+                setDialogProps({ isOpen: true, editMode: true, procedure_tag: newVersion.tag })
             }
         })
     }
@@ -137,7 +149,8 @@ export function ModularProceduresAdmin({ userRole }) {
                         isCurator={isCurator} trigger={refetchTrigger}
                         onEdit={() => setDialogProps({ isOpen: true, editMode: true, procedure_tag })}
                         onPublish={() => handlePublish(procedure_tag)}
-                        onLink={() => setLinkDialogProps({ isOpen: true, procedure_tag })} />)}
+                        onLink={() => setLinkDialogProps({ isOpen: true, procedure_tag })}
+                        onNewVersion={() => handleCreateVersion(procedure_tag)} />)}
                 {procedure_tags?.length === 0 ?
                     <div className="padding--medium" style={{ color: "#888" }}>No modular procedures yet.</div> : null}
             </div>}
@@ -146,7 +159,7 @@ export function ModularProceduresAdmin({ userRole }) {
     </div>
 }
 
-function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLink }) {
+function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLink, onNewVersion }) {
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag({ tag: procedure_tag })
     const isDraft = procedure?.status === "DRAFT"
@@ -163,6 +176,8 @@ function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLin
                     color: isDraft ? "#c87619" : "#238551",
                     border: `1px solid ${isDraft ? "#c87619" : "#238551"}`
                 }}>{procedure?.status || ""}</span>
+                {_.isFinite(_.toNumber(procedure?.version)) && _.toNumber(procedure?.version) > 1 ?
+                    <span className="font-size--small" style={{ color: "#888" }}>v{procedure.version}</span> : null}
             </div>
             <div className="font-size--small" style={{ color: "#666" }}>
                 {procedure?.description ? procedure.description.substring(0, 140) : ""}
@@ -176,6 +191,7 @@ function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLin
         {isCurator ? <div className="flex" style={{ gap: "0.5rem", flexShrink: 0 }}>
             {isDraft ? <button className="basic-button basic-button--small" onClick={onEdit}>Edit</button> : null}
             {isDraft ? <button className="basic-button basic-button--small basic-button--highlighted" onClick={onPublish}>Publish</button> : null}
+            {!isDraft ? <button className="basic-button basic-button--small" onClick={onNewVersion}>New version</button> : null}
             <button className="basic-button basic-button--small" onClick={onLink}>Assign submission</button>
         </div> : null}
     </div>
