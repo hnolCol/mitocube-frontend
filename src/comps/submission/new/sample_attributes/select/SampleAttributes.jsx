@@ -21,6 +21,7 @@ const getSampleAttrIndex = (columnIndex) => columnIndex - 3;
 
 const FIXED_COLUMN_WIDTHS = [150, 150, 150];
 const MIN_ATTRIBUTE_COLUMN_WIDTH = 150;
+const ADD_COLUMN_WIDTH = 60;
 
 function useContainerWidth() {
     const containerRef = useRef(null);
@@ -49,7 +50,11 @@ const getDynamicColumnWidths = (containerWidth, numAttributeColumns) => {
         MIN_ATTRIBUTE_COLUMN_WIDTH,
         Math.floor(availableWidth / Math.max(numDynamicColumns, 1))
     );
-    return [...FIXED_COLUMN_WIDTHS, ...Array.from({ length: numAttributeColumns }, () => dynamicWidth)];
+    return [
+        ...FIXED_COLUMN_WIDTHS,
+        ...Array.from({ length: numAttributeColumns }, () => dynamicWidth),
+        ADD_COLUMN_WIDTH,
+    ];
 };
 const getGroupingInfoByColumnIndex = (columnIndex, groupings) => groupings[getSampleAttrIndex(columnIndex)];
 const getGroupingAttributeByColumnIndex = (columnIndex, groupings) => getGroupingInfoByColumnIndex(columnIndex, groupings);
