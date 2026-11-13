@@ -1,14 +1,16 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
+import { motion } from "framer-motion"
+import { useNavigate } from "react-router"
 import { Dialog, DialogBody } from "@blueprintjs/core"
 import { useQueryClient } from "@tanstack/react-query"
 
 import { api } from "@/api"
 import APIError from "@/comps/core/error/APIerror"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { CreatedAt } from "@/comps/core/metrics/CreatedAt"
 import { StateHeader } from "../view/StateHeader"
-import { MinimalSubmissionItem } from "../view/SubmissionItem"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
@@ -199,7 +201,36 @@ function ProcedureOption({ procedure_tag }) {
 }
 
 
-OrganizeSubmissionRow.propTypes = {
+PlusIconButton.propTypes = {
+    onClick: PropTypes.func.isRequired,
+    title: PropTypes.string
+}
+
+
+/**
+ * @description A minimal SVG "+" button used to assign a modular procedure to a submission.
+ * @returns {JSX.Element}
+ */
+function PlusIconButton({ onClick, title = "Assign modular procedure" }) {
+    return (
+        <motion.button
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onClick}
+            title={title}
+            aria-label={title}
+            style={{ border: "none", background: "transparent", cursor: "pointer", padding: "0.1rem", lineHeight: 0 }}
+        >
+            <svg width={14} height={14} viewBox="0 0 14 14">
+                <line x1={7} y1={2.5} x2={7} y2={11.5} stroke="#666" strokeWidth={1.5} strokeLinecap="round" />
+                <line x1={2.5} y1={7} x2={11.5} y2={7} stroke="#666" strokeWidth={1.5} strokeLinecap="round" />
+            </svg>
+        </motion.button>
+    )
+}
+
+
+OrganizeSubmissionCard.propTypes = {
     row: PropTypes.object.isRequired,
     maxTotalDays: PropTypes.number,
     isCurator: PropTypes.bool
@@ -207,25 +238,34 @@ OrganizeSubmissionRow.propTypes = {
 
 
 /**
- * @description A single submission card in a state column: the submission item, the assigned
- * modular procedures, the name of the user, the number of samples and the duration bar of
- * the current state.
+ * @description A single submission card in a state column, drawn as one cohesive component:
+ * the creation date and title on the first line, and one uniformly sized line with the
+ * user name, sample count, assigned modular procedure chips, the state timeline and the
+ * "+" assign button. Clicking the card opens the submission.
  * @returns {JSX.Element}
  */
-export function OrganizeSubmissionRow({ row, maxTotalDays, isCurator = false }) {
+export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false }) {
     const queryClient = useQueryClient()
+    const redirect = useNavigate()
     const [isAssignDialogOpen, setAssignDialogOpen] = useState(false)
     const { mutate: unlinkProcedure } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
+    const { data: title } = api.submissions.title.useGetSubmissionTitle(
+        { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 })
+    const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt(
+        { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 })
     const procedures = _.isArray(row.procedures) ? _.orderBy(row.procedures, ["position"], ["asc"]) : []
     return (
-        <div className="submission__item__container">
-            <div><MinimalSubmissionItem tag={row.submission_tag} state_tag={row.state_tag} /></div>
-            <div className="flex center-items gap--default padding-left--little font-size--small" style={{ flexWrap: "wrap" }}>
-                <UserFullName tag={row.user_tag} />
-                <span>{row.sample_count} sample{row.sample_count === 1 ? "" : "s"}</span>
-                <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
+        <div className="submission__item__container" style={{ cursor: "pointer" }} onClick={() => redirect(`/submissions/${row.submission_tag}`)}>
+            <div className="flex center-items gap--little">
+                {_.isNumber(created_at) ? <CreatedAt createdat={created_at} addFromNow={false} /> : null}
+                <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {_.isString(title) && title.trim().length > 0 ? title : row.submission_tag}
+                </span>
             </div>
-            <div className="flex center-items gap--default padding-left--little" style={{ flexWrap: "wrap" }}>
+            <div className="flex center-items gap--little" style={{ flexWrap: "wrap", color: "#555" }}>
+                <UserFullName tag={row.user_tag} />
+                <span>·</span>
+                <span>{row.sample_count} sample{row.sample_count === 1 ? "" : "s"}</span>
                 {procedures.map((link) => (
                     <ProcedureChip
                         key={link.procedure_tag}
@@ -236,9 +276,14 @@ export function OrganizeSubmissionRow({ row, maxTotalDays, isCurator = false }) 
                         })}
                     />
                 ))}
-                {isCurator ? (
-                    <button className="basic-button basic-button--small" onClick={() => setAssignDialogOpen(true)}>Assign</button>
-                ) : null}
+                <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
+                    {isCurator ? (
+                        <div onClick={(e) => { e.stopPropagation(); setAssignDialogOpen(true) }} style={{ display: "inline-flex" }}>
+                            <PlusIconButton onClick={() => setAssignDialogOpen(true)} />
+                        </div>
+                    ) : null}
+                </div>
             </div>
             {isAssignDialogOpen ? (
                 <AssignProcedureDialog
@@ -288,7 +333,7 @@ export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator =
                     </div>
                 </div>
             </div>
-            {visibleRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
+            {visibleRows.map((row) => <OrganizeSubmissionCard key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
             {sortedRows.length > DEFAULT_VISIBLE_PER_STATE ? (
                 <button className="basic-button basic-button--small" onClick={() => setShowAll(prev => !prev)}>
                     {showAll ? `Show top ${DEFAULT_VISIBLE_PER_STATE}` : `Show all (${hiddenCount} more)`}
