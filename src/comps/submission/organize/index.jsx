@@ -1,14 +1,11 @@
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
 import { Dialog, DialogBody } from "@blueprintjs/core"
 import { useQueryClient } from "@tanstack/react-query"
-import { scaleLinear } from "@visx/scale"
-import { AxisBottom } from "@visx/axis"
 
 import { api } from "@/api"
 import APIError from "@/comps/core/error/APIerror"
-import { SVG } from "@/comps/core/charts/SVGHeader"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { StateHeader } from "../view/StateHeader"
 import { MinimalSubmissionItem } from "../view/SubmissionItem"
@@ -18,40 +15,70 @@ const CURATOR_ROLE = 2 // must match the backend user role encoding; curators an
 const DEFAULT_VISIBLE_PER_STATE = 5
 
 
-StateDurationBar.propTypes = {
-    duration_days: PropTypes.number.isRequired,
+StateTimelineSegment.propTypes = {
     state_tag: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-    maxDuration: PropTypes.number.isRequired
+    days: PropTypes.number.isRequired,
+    width: PropTypes.number.isRequired,
+    height: PropTypes.number.isRequired
 }
 
 
 /**
- * @description A minimal horizontal bar showing how long a submission has been in its current state.
- * The x-axis is the duration in days, the bar is colored by the state color.
+ * @description One rectangle of the state timeline, colored by the state color with the
+ * state name and duration as tooltip.
+ * @returns {JSX.Element}
+ */
+function StateTimelineSegment({ state_tag, days, width, height }) {
+    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag })
+    const { data: stateName } = api.states.useGetStateName({ tag: state_tag })
+    return (
+        <rect
+            width={width}
+            height={height}
+            fill={_.isString(stateColor) ? stateColor : "#cfcfcf"}
+        >
+            <title>{`${_.isString(stateName) ? stateName : state_tag}: ${_.round(days, 1)} days`}</title>
+        </rect>
+    )
+}
+
+
+StateTimelineBar.propTypes = {
+    history: PropTypes.array,
+    width: PropTypes.number,
+    height: PropTypes.number
+}
+
+
+/**
+ * @description A minimalistic timeline of the states a submission was in and for how long:
+ * rectangles aligned next to each other, each colored by the state color, the width scaled
+ * by the time spent in that state (the current state extends to now).
  * @returns {JSX.Element|null}
  */
-export function StateDurationBar({ duration_days, state_tag, maxDuration, width = 170, height = 12 }) {
-    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag })
-    const xScale = useMemo(() => scaleLinear({
-        domain: [0, Math.max(maxDuration, 1)],
-        range: [0, width],
-        nice: true
-    }), [maxDuration, width])
-    if (!_.isNumber(duration_days)) return null
+export function StateTimelineBar({ history, width = 170, height = 10 }) {
+    if (!_.isArray(history) || history.length === 0) return null
+    const now = Date.now()
+    const segments = history.map((entry, idx) => {
+        const end = idx + 1 < history.length ? history[idx + 1].state_since : now
+        return { state_tag: entry.state_tag, days: Math.max((end - entry.state_since) / 86400000, 0) }
+    })
+    const totalDays = _.sumBy(segments, "days")
+    if (!_.isFinite(totalDays) || totalDays <= 0) return null
+    let offset = 0
     return (
-        <SVG width={width + 10} height={height + 22}>
-            <rect x={0} y={0} width={Math.max(xScale(duration_days), 1)} height={height} fill={_.isString(stateColor) ? stateColor : "#cfcfcf"} />
-            <AxisBottom
-                scale={xScale}
-                top={height}
-                numTicks={3}
-                tickStroke="#9a9a9a"
-                stroke="#9a9a9a"
-                label="days"
-                labelFontSize={8}
-                tickFontSize={8}
-            />
-        </SVG>
+        <svg width={width} height={height} style={{ display: "block", borderRadius: 2, flexShrink: 0 }}>
+            {segments.map((segment, idx) => {
+                const segmentWidth = (segment.days / totalDays) * width
+                const x = offset
+                offset += segmentWidth
+                return (
+                    <g key={`${segment.state_tag}-${idx}`} transform={`translate(${x}, 0)`}>
+                        <StateTimelineSegment state_tag={segment.state_tag} days={segment.days} width={Math.max(segmentWidth, 0.5)} height={height} />
+                    </g>
+                )
+            })}
+        </svg>
     )
 }
 
@@ -158,7 +185,6 @@ function ProcedureOption({ procedure_tag }) {
 
 OrganizeSubmissionRow.propTypes = {
     row: PropTypes.object.isRequired,
-    maxDuration: PropTypes.number.isRequired,
     isCurator: PropTypes.bool
 }
 
@@ -169,7 +195,7 @@ OrganizeSubmissionRow.propTypes = {
  * the current state.
  * @returns {JSX.Element}
  */
-export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
+export function OrganizeSubmissionRow({ row, isCurator = false }) {
     const queryClient = useQueryClient()
     const [isAssignDialogOpen, setAssignDialogOpen] = useState(false)
     const { mutate: unlinkProcedure } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
@@ -177,16 +203,10 @@ export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
     return (
         <div className="submission__item__container">
             <div><MinimalSubmissionItem tag={row.submission_tag} state_tag={row.state_tag} /></div>
-            <div className="flex center-items gap--default padding-left--little" style={{ flexWrap: "wrap" }}>
-                <div className="submission-metric-view" style={{ minWidth: "6rem" }}>
-                    <h4>User</h4>
-                    <UserFullName tag={row.user_tag} />
-                </div>
-                <div className="submission-metric-view" style={{ minWidth: "3rem" }}>
-                    <h4>Samples</h4>
-                    <div>{row.sample_count}</div>
-                </div>
-                <StateDurationBar duration_days={row.duration_days} state_tag={row.state_tag} maxDuration={maxDuration} />
+            <div className="flex center-items gap--default padding-left--little font-size--small" style={{ flexWrap: "wrap" }}>
+                <UserFullName tag={row.user_tag} />
+                <span>{row.sample_count} sample{row.sample_count === 1 ? "" : "s"}</span>
+                <StateTimelineBar history={row.history} />
             </div>
             <div className="flex center-items gap--default padding-left--little" style={{ flexWrap: "wrap" }}>
                 {procedures.map((link) => (
@@ -218,7 +238,6 @@ export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
 OrganizeStateColumn.propTypes = {
     state_tag: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     rows: PropTypes.array.isRequired,
-    maxDuration: PropTypes.number.isRequired,
     isCurator: PropTypes.bool
 }
 
@@ -230,7 +249,7 @@ OrganizeStateColumn.propTypes = {
  * remaining ones can be expanded.
  * @returns {JSX.Element}
  */
-export function OrganizeStateColumn({ state_tag, rows, maxDuration, isCurator = false }) {
+export function OrganizeStateColumn({ state_tag, rows, isCurator = false }) {
     const [showAll, setShowAll] = useState(false)
     const sortedRows = _.orderBy(rows, ["duration_days"], ["desc"])
     const visibleRows = showAll ? sortedRows : sortedRows.slice(0, DEFAULT_VISIBLE_PER_STATE)
@@ -251,7 +270,7 @@ export function OrganizeStateColumn({ state_tag, rows, maxDuration, isCurator = 
                     </div>
                 </div>
             </div>
-            {visibleRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxDuration={maxDuration} isCurator={isCurator} />)}
+            {visibleRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} isCurator={isCurator} />)}
             {sortedRows.length > DEFAULT_VISIBLE_PER_STATE ? (
                 <button className="basic-button basic-button--small" onClick={() => setShowAll(prev => !prev)}>
                     {showAll ? `Show top ${DEFAULT_VISIBLE_PER_STATE}` : `Show all (${hiddenCount} more)`}
@@ -279,7 +298,6 @@ export function OrganizeSubmissions({ userRole }) {
     if (isLoading || isFetching) return <div className="submission__items__container">Loading...</div>
     const allRows = _.isArray(data) ? data : []
     const rows = unassignedOnly ? allRows.filter(row => !_.isArray(row.procedures) || row.procedures.length === 0) : allRows
-    const maxDuration = _.maxBy(rows, "duration_days")?.duration_days || 0
     const rowsByState = _.groupBy(rows, "state_tag")
     const stateTags = _.sortBy(_.keys(rowsByState), _.toNumber)
     return (
@@ -293,7 +311,7 @@ export function OrganizeSubmissions({ userRole }) {
             {rows.length === 0 ? <div>{unassignedOnly ? "No unassigned submissions. All planned!" : "No open submissions. All done!"}</div> : null}
             <div className="flex gap--default" style={{ alignItems: "flex-start", overflowX: "auto" }}>
                 {stateTags.map((state_tag) => (
-                    <OrganizeStateColumn key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxDuration={maxDuration} isCurator={isCurator} />
+                    <OrganizeStateColumn key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} isCurator={isCurator} />
                 ))}
             </div>
         </div>
