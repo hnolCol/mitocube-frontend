@@ -49,9 +49,11 @@ export function SubmissionStateColorLine({ state_tag }) {
 export function MinimalSubmissionItem({ tag, state_tag, onClick, redirectOnClick = true, showCreatedAt = true }) {
     const redirect = useNavigate()
     const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
+    const { data: fetchedStateTag } = api.submissions.states.useGetSubmissionState({ tag }, { enabled: state_tag == null && _.isString(tag) && tag.length > 0 })
+    const effectiveStateTag = state_tag != null ? state_tag : fetchedStateTag
     return (
         <div className="flex width--full">
-            {state_tag != null ? <SubmissionStateColorLine state_tag={state_tag} /> : null}
+            {effectiveStateTag != null ? <SubmissionStateColorLine state_tag={effectiveStateTag} /> : null}
             <motion.button
                 onClick={(e) => {
                     onClick ? onClick(e) : null
