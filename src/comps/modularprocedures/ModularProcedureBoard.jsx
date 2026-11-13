@@ -4,6 +4,7 @@ import moment from "moment";
 import _ from "lodash";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
+import { ModularProcedureExecutionDialog } from "./ModularProcedureExecutionDialog";
 
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
 
@@ -16,6 +17,7 @@ export function ModularProcedureBoard({ userRole }) {
 
     const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
     const [alertProps, setAlertProps] = useState({ isOpen: false })
+    const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
 
     const { data: procedure_tags, isLoading, isError, error } =
         api.modularProcedures.query.useGetModularProceduresByQuery({ status: "PUBLISHED" })
@@ -33,6 +35,15 @@ export function ModularProcedureBoard({ userRole }) {
             onClose={() => setAlertProps({ isOpen: false })}>
             <p>{alertProps.message}</p>
         </Alert>
+        {executionDialogProps.isOpen ?
+            <ModularProcedureExecutionDialog
+                procedure_tag={executionDialogProps.procedure_tag}
+                isOpen={executionDialogProps.isOpen}
+                onClose={() => setExecutionDialogProps({ isOpen: false, procedure_tag: null })}
+                onExecuted={() => {
+                    setExecutionDialogProps({ isOpen: false, procedure_tag: null })
+                    setAlertProps({ isOpen: true, message: "Procedure executed. The affected submissions are done and can proceed to the next procedure." })
+                }} /> : null}
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <h3>Modular Procedures</h3>
             <p className="font-size--small" style={{ color: "#888" }}>
@@ -48,12 +59,13 @@ export function ModularProcedureBoard({ userRole }) {
                 </Callout> :
                 procedure_tags?.map((procedure_tag) =>
                     <ProcedureColumn key={procedure_tag} procedure_tag={procedure_tag}
-                        isCurator={isCurator} onMarkDone={markDone} onReopen={reopen} />)}
+                        isCurator={isCurator} onMarkDone={markDone} onReopen={reopen}
+                        onExecute={() => setExecutionDialogProps({ isOpen: true, procedure_tag })} />)}
         </div>
     </div>
 }
 
-function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen }) {
+function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExecute }) {
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag({ tag: procedure_tag })
     const { data: submissions, isLoading, refetch } =
@@ -64,7 +76,11 @@ function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen }) {
         background: "#fafafa", padding: "0.5rem", maxHeight: "70vh", overflowY: "auto"
     }}>
         <div className="padding--little" style={{ borderBottom: "1px solid #ddd" }}>
-            <h4 style={{ margin: 0 }}>{procedure?.title || procedure_tag}</h4>
+            <div className="flex justify-between center-items">
+                <h4 style={{ margin: 0 }}>{procedure?.title || procedure_tag}</h4>
+                {isCurator ? <button className="basic-button basic-button--small"
+                    onClick={onExecute}>Execute</button> : null}
+            </div>
             {procedure?.description ? <p className="font-size--small" style={{ color: "#666", margin: 0 }}>
                 {procedure.description.substring(0, 120)}{procedure.description.length > 120 ? "..." : ""}
             </p> : null}

@@ -53,7 +53,7 @@ import { phenotypeQueryAPI, phenotypeassociationQueryAPI } from "./phenotypes";
 import { variantsQueryAPI } from "./variants";
 import { crosslinksQueryAPI, externalresourceQueryAPI, externalresourceModifyAPI } from "./crosslinks";
 import { protocolsModifyAPI, protocolsQueryAPI } from "./protocols";
-import { modularProceduresQueryAPI, modularProceduresModifyAPI } from "./modularProcedures";
+import { modularProceduresQueryAPI, modularProceduresModifyAPI, modularProceduresExecuteAPI } from "./modularProcedures";
 import { policyAPI } from "./policy";
 import { similarSubmissionsAPI } from "./submission";
 import { platesAPI } from "./plates";
@@ -208,7 +208,8 @@ export const api = {
     },
     modularProcedures: {
         query: modularProceduresQueryAPI,
-        modify: modularProceduresModifyAPI
+        modify: modularProceduresModifyAPI,
+        execute: modularProceduresExecuteAPI
     },
     variants : {
         query : variantsQueryAPI
