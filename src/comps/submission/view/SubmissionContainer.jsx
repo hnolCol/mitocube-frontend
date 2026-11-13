@@ -15,7 +15,8 @@ import { PendingConsortiumShareRequestsList } from "./PendingConsortiumShareRequ
 
 
 export const SUBMISSIONS_BY_OPTIONS = ["state", "user", "date", "My Submissions"]
-export const SUBMISSION_SORT_BY_OPTION = ["date", "views"]
+export const SUBMISSION_SORT_BY_OPTION = ["date", "views", "date_asc", "state_duration"]
+export const SUBMISSION_SORT_BY_LABELS = { date: "Date", views: "Views", date_asc: "Date (Oldest)", state_duration: "State Duration" }
 
 SubmissionsByState.propTypes = {
     submission_by_state: PropTypes.object.isRequired,
@@ -160,6 +161,8 @@ export function SubmissionBy({ submissionBy = "state", submissionFilter, submiss
             group_by_date : submissionByDate,
             state: stateFilter,
             sort_by_views : submissionsQuery.sort_by_views,
+            sort_order: submissionsQuery.sort_order || "desc",
+            sort_by_state_duration: submissionsQuery.sort_by_state_duration || false,
             genotype_tag: genotypeTagString,
             user_tags: getValueByKeyAndMergeToString({ array: submissionFilter["user"], keyName: "tag" }),  
             user_role: submissionFilter.user_role || null,
