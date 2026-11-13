@@ -38,6 +38,7 @@ import SubmissionHeader from "./comps/submission";
 import SubmissionView from "./comps/submission/view";
 import SubmissionHelp from "./comps/submission/help";
 import SubmissionStatistics from "./comps/submission/statistics";
+import { OrganizeSubmissions } from "./comps/submission/organize";
 import InitialSubmission from "./comps/submission/new/InitialSubmission";
 import AddExistingSubmission from "./comps/submission/add";
 
@@ -341,6 +342,7 @@ function App() {
               element={<SubmissionView {...{ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} />}
             />
             <Route path="/submissions/existing" element={<AddExistingSubmission {...{ authenticationStatus, logout }} />} />
+            <Route path="/submissions/organize" element={<OrganizeSubmissions />} />
             <Route path="/submissions/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route
               path="/submissions/statistics"
