@@ -15,6 +15,7 @@ import { MinimalSubmissionItem } from "../view/SubmissionItem"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
+const DEFAULT_VISIBLE_PER_STATE = 5
 
 
 StateDurationBar.propTypes = {
@@ -163,9 +164,9 @@ OrganizeSubmissionRow.propTypes = {
 
 
 /**
- * @description A single row in the Organize view: the submission item, the assigned modular
- * procedures, the name of the user, the number of samples and the duration bar of the
- * current state.
+ * @description A single submission card in a state column: the submission item, the assigned
+ * modular procedures, the name of the user, the number of samples and the duration bar of
+ * the current state.
  * @returns {JSX.Element}
  */
 export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
@@ -175,13 +176,13 @@ export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
     const procedures = _.isArray(row.procedures) ? _.orderBy(row.procedures, ["position"], ["asc"]) : []
     return (
         <div className="submission__item__container">
-            <div className="flex center-items gap--default">
-                <div className="width--expand"><MinimalSubmissionItem tag={row.submission_tag} state_tag={row.state_tag} /></div>
-                <div className="submission-metric-view" style={{ minWidth: "8rem" }}>
+            <div><MinimalSubmissionItem tag={row.submission_tag} state_tag={row.state_tag} /></div>
+            <div className="flex center-items gap--default padding-left--little" style={{ flexWrap: "wrap" }}>
+                <div className="submission-metric-view" style={{ minWidth: "6rem" }}>
                     <h4>User</h4>
                     <UserFullName tag={row.user_tag} />
                 </div>
-                <div className="submission-metric-view" style={{ minWidth: "4rem" }}>
+                <div className="submission-metric-view" style={{ minWidth: "3rem" }}>
                     <h4>Samples</h4>
                     <div>{row.sample_count}</div>
                 </div>
@@ -214,7 +215,7 @@ export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
 }
 
 
-OrganizeStateSection.propTypes = {
+OrganizeStateColumn.propTypes = {
     state_tag: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     rows: PropTypes.array.isRequired,
     maxDuration: PropTypes.number.isRequired,
@@ -223,21 +224,26 @@ OrganizeStateSection.propTypes = {
 
 
 /**
- * @description A vertical section for one state: the state header with the total number of
- * samples in that state, followed by the submissions currently in that state.
+ * @description One state column of the organize board: the state header with the total number
+ * of submissions and samples in that state, followed by the submissions currently in that
+ * state (longest waiting first). Only the top submissions are shown by default; the
+ * remaining ones can be expanded.
  * @returns {JSX.Element}
  */
-export function OrganizeStateSection({ state_tag, rows, maxDuration, isCurator = false }) {
+export function OrganizeStateColumn({ state_tag, rows, maxDuration, isCurator = false }) {
+    const [showAll, setShowAll] = useState(false)
     const sortedRows = _.orderBy(rows, ["duration_days"], ["desc"])
+    const visibleRows = showAll ? sortedRows : sortedRows.slice(0, DEFAULT_VISIBLE_PER_STATE)
+    const hiddenCount = sortedRows.length - visibleRows.length
     const sampleCount = _.sumBy(sortedRows, "sample_count")
     return (
-        <div className="submission__state_container">
+        <div className="submission__state_container" style={{ minWidth: "22rem", maxWidth: "26rem", maxHeight: "80vh", overflowY: "auto" }}>
             <div className="submission__header__container">
                 <StateHeader tag={state_tag} />
                 <div className="flex center-items gap--default">
                     <div className="submission-metric-view">
                         <h4>Submissions</h4>
-                        <div>{sortedRows.length}</div>
+                        <div>{visibleRows.length}/{sortedRows.length}</div>
                     </div>
                     <div className="submission-metric-view">
                         <h4>Samples</h4>
@@ -245,7 +251,12 @@ export function OrganizeStateSection({ state_tag, rows, maxDuration, isCurator =
                     </div>
                 </div>
             </div>
-            {sortedRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxDuration={maxDuration} isCurator={isCurator} />)}
+            {visibleRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxDuration={maxDuration} isCurator={isCurator} />)}
+            {sortedRows.length > DEFAULT_VISIBLE_PER_STATE ? (
+                <button className="basic-button basic-button--small" onClick={() => setShowAll(prev => !prev)}>
+                    {showAll ? `Show top ${DEFAULT_VISIBLE_PER_STATE}` : `Show all (${hiddenCount} more)`}
+                </button>
+            ) : null}
         </div>
     )
 }
@@ -254,9 +265,10 @@ export function OrganizeStateSection({ state_tag, rows, maxDuration, isCurator =
 /**
  * @description The Organize Submission view. Shows the submissions the facility has to work on,
  * i.e. the submissions that are neither paused, canceled, done, active nor published.
- * The states are arranged vertically, each with its submissions, the assigned modular
- * procedures, the user name, the number of samples and a minimal bar plot of the duration
- * in the current state. Curators can assign and unlink modular procedures directly.
+ * The states are arranged as columns, each listing its submissions (top 5 by default,
+ * longest waiting first) with the assigned modular procedures, the user name, the number
+ * of samples and a minimal bar plot of the duration in the current state.
+ * Curators can assign and unlink modular procedures directly.
  * @returns {JSX.Element}
  */
 export function OrganizeSubmissions({ userRole }) {
@@ -279,9 +291,11 @@ export function OrganizeSubmissions({ userRole }) {
                 </OptionButton>
             </div>
             {rows.length === 0 ? <div>{unassignedOnly ? "No unassigned submissions. All planned!" : "No open submissions. All done!"}</div> : null}
-            {stateTags.map((state_tag) => (
-                <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxDuration={maxDuration} isCurator={isCurator} />
-            ))}
+            <div className="flex gap--default" style={{ alignItems: "flex-start", overflowX: "auto" }}>
+                {stateTags.map((state_tag) => (
+                    <OrganizeStateColumn key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxDuration={maxDuration} isCurator={isCurator} />
+                ))}
+            </div>
         </div>
     )
 }
