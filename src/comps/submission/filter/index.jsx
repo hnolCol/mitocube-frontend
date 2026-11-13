@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 import useDebounce from "../../../hooks/useDebounce"
 import { GenotypeDatasetFilter } from "./GenotypeFilter"
 import { ConditionApplicationFilter } from "./ConditionApplicationFilter"
-import { SUBMISSIONS_BY_OPTIONS, SUBMISSION_SORT_BY_OPTION } from "../view/SubmissionContainer"
+import { SUBMISSIONS_BY_OPTIONS, SUBMISSION_SORT_BY_OPTION, SUBMISSION_SORT_BY_LABELS } from "../view/SubmissionContainer"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useSearchParams } from "react-router";
 import { UserDatasetFilter } from "./UserFilter"
@@ -50,7 +50,12 @@ export function SubmissionFilterSelection({
     useEffect(() => {
         setSubmissionQuery(prevValues => {
             //sort by date is the default
-            return { ...prevValues, sort_by_views: selectedSortBy === "views" ? true : false }
+            return {
+                ...prevValues,
+                sort_by_views: selectedSortBy === "views" ? true : false,
+                sort_order: selectedSortBy === "date_asc" ? "asc" : "desc",
+                sort_by_state_duration: selectedSortBy === "state_duration" ? true : false
+            }
         })
     }, [selectedSortBy])
     
@@ -113,7 +118,7 @@ export function SubmissionFilterSelection({
     <h4>Sort By</h4>
     <div className="flex center-items" style={{ marginTop: "0.3rem", marginBottom: "0.3rem" }}>
         {SUBMISSION_SORT_BY_OPTION.map(option => (
-            <OptionButton key={option} isSelected={selectedSortBy === option} onClick={() => updateSortBy(option)} children={<span>{option.charAt(0).toUpperCase() + option.slice(1)}</span>} />
+            <OptionButton key={option} isSelected={selectedSortBy === option} onClick={() => updateSortBy(option)} children={<span>{SUBMISSION_SORT_BY_LABELS[option] || option}</span>} />
         ))}
                     </div>
 
