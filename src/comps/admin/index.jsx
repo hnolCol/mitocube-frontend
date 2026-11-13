@@ -27,6 +27,7 @@ const ADMIN_TAB_GROUPS = [
         tabs: [
             { text: "Plates", to: "/admin/plates" },
             { text: "Protocols", to: "/admin/protocols" },
+            { text: "Modular Procedures", to: "/admin/modular-procedures" },
         ]
     },
     {

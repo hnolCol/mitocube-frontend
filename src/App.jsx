@@ -96,6 +96,8 @@ import { PolicyManagement, TERMS_OF_USE, DATA_PROTECTION } from "./comps/admin/p
 import { ImpressumManagement } from "./comps/admin/impressum/ImpressumManagement";
 import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
+import { ModularProceduresAdmin } from "./comps/admin/modularprocedures/ModularProceduresAdmin";
+import { ModularProcedureBoard } from "./comps/modularprocedures/ModularProcedureBoard";
 import { AdminReports } from "./comps/admin/reports/Reports";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
@@ -294,6 +296,16 @@ function App() {
             }
           />
 
+          {/* Modular Procedures Route */}
+          <Route
+            path="/modular-procedures"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <ModularProcedureBoard userRole={authenticationStatus.role} />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Performance Routes */}
           <Route
             path="/performance"
@@ -424,6 +436,7 @@ function App() {
              <Route path="/admin/data-protection" element={<PolicyManagement policyType={DATA_PROTECTION} />} />,
              <Route path="/admin/impressum" element={<ImpressumManagement />} />,
               <Route path="/admin/plates" element={<PlatesAdmin userRole={authenticationStatus.role} />} />
+              <Route path="/admin/modular-procedures" element={<ModularProceduresAdmin userRole={authenticationStatus.role} />} />
               <Route path="/admin/reports" element={<AdminReports {...{ authenticationStatus }} />} />
           </Route>
 
