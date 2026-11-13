@@ -56,7 +56,7 @@ function CompactApp({ authenticationStatus }) {
 
             <div className="compact__content">
                 {activeTab === "submissions" ? <CompactSubmissions /> : null}
-                {activeTab === "organize" ? <CompactOrganize /> : null}
+                {activeTab === "organize" ? <CompactOrganize userRole={authenticationStatus?.role} /> : null}
                 {activeTab === "instruments" ? <CompactInstruments /> : null}
                 {activeTab === "messages" ? <CompactMessages user_tag={authenticationStatus?.tag} /> : null}
             </div>

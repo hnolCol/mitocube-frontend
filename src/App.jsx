@@ -354,7 +354,7 @@ function App() {
               element={<SubmissionView {...{ authenticationStatus, logout, submissionFilter, setSubmissionFilter, submissionsQuery, setSubmissionQuery }} />}
             />
             <Route path="/submissions/existing" element={<AddExistingSubmission {...{ authenticationStatus, logout }} />} />
-            <Route path="/submissions/organize" element={<OrganizeSubmissions />} />
+            <Route path="/submissions/organize" element={<OrganizeSubmissions userRole={authenticationStatus.role} />} />
             <Route path="/submissions/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route
               path="/submissions/statistics"

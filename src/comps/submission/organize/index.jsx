@@ -1,15 +1,20 @@
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
+import { Dialog, DialogBody } from "@blueprintjs/core"
+import { useQueryClient } from "@tanstack/react-query"
 import { scaleLinear } from "@visx/scale"
 import { AxisBottom } from "@visx/axis"
 
 import { api } from "@/api"
 import APIError from "@/comps/core/error/APIerror"
 import { SVG } from "@/comps/core/charts/SVGHeader"
+import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { StateHeader } from "../view/StateHeader"
 import { MinimalSubmissionItem } from "../view/SubmissionItem"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
+
+const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
 
 
 StateDurationBar.propTypes = {
@@ -50,18 +55,124 @@ export function StateDurationBar({ duration_days, state_tag, maxDuration, width 
 }
 
 
-OrganizeSubmissionRow.propTypes = {
-    row: PropTypes.object.isRequired,
-    maxDuration: PropTypes.number.isRequired
+ProcedureChip.propTypes = {
+    link: PropTypes.shape({
+        procedure_tag: PropTypes.string,
+        done: PropTypes.bool
+    }).isRequired,
+    canEdit: PropTypes.bool,
+    onUnlink: PropTypes.func
 }
 
 
 /**
- * @description A single row in the Organize view: the submission item, the name of the user,
- * the number of samples and the duration bar of the current state.
+ * @description Chip showing an assigned modular procedure of a submission. Done procedures
+ * show a checkmark; editable chips can be unlinked via the remove button.
  * @returns {JSX.Element}
  */
-export function OrganizeSubmissionRow({ row, maxDuration }) {
+export function ProcedureChip({ link, canEdit = false, onUnlink }) {
+    const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
+        { tag: link.procedure_tag }, { enabled: _.isString(link.procedure_tag), staleTime: 300000 })
+    return (
+        <span className="submission-metric-view" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", minWidth: 0 }}>
+            <span>{link.done ? "✔" : "▸"} {procedure?.title || link.procedure_tag}</span>
+            {canEdit && !link.done ? (
+                <button
+                    className="submission__filter__button"
+                    title="Unlink procedure"
+                    onClick={onUnlink}
+                    style={{ marginLeft: "0.25rem" }}
+                >×</button>
+            ) : null}
+        </span>
+    )
+}
+
+
+AssignProcedureDialog.propTypes = {
+    submission_tag: PropTypes.string,
+    assignedProcedureTags: PropTypes.array,
+    onClose: PropTypes.func.isRequired
+}
+
+
+/**
+ * @description Dialog to assign a published modular procedure to a submission.
+ * @returns {JSX.Element}
+ */
+export function AssignProcedureDialog({ submission_tag, assignedProcedureTags = [], onClose }) {
+    const queryClient = useQueryClient()
+    const [selectedTag, setSelectedTag] = useState(null)
+    const { data: procedure_tags } = api.modularProcedures.query.useGetModularProceduresByQuery(
+        { status: "PUBLISHED", latest_only: true }, { staleTime: 300000 })
+    const { mutate: linkProcedure, isPending, isError, error } = api.modularProcedures.modify.useLinkModularProcedureToSubmission()
+    const options = (_.isArray(procedure_tags) ? procedure_tags : []).filter(tag => !assignedProcedureTags.includes(tag))
+    return (
+        <Dialog title="Assign modular procedure" isOpen={_.isString(submission_tag)} onClose={onClose}>
+            <DialogBody>
+                {isError ? <APIError error={error} /> : null}
+                <select
+                    className="search-input"
+                    value={selectedTag || ""}
+                    disabled={isPending || options.length === 0}
+                    onChange={(e) => setSelectedTag(e.target.value || null)}
+                >
+                    <option value="">{options.length === 0 ? "No published procedures available" : "Select procedure…"}</option>
+                    {options.map(tag => <ProcedureOption key={tag} procedure_tag={tag} />)}
+                </select>
+                <div className="flex center-items gap--default margin-top--little">
+                    <button
+                        className="basic-button"
+                        disabled={!_.isString(selectedTag) || isPending}
+                        onClick={() => linkProcedure({ tag: selectedTag, submission_tag }, {
+                            onSuccess: () => {
+                                queryClient.invalidateQueries({ queryKey: ["getCurrentStateDurations"] })
+                                onClose()
+                            }
+                        })}
+                    >Assign</button>
+                    <button className="basic-button" onClick={onClose} disabled={isPending}>Cancel</button>
+                </div>
+            </DialogBody>
+        </Dialog>
+    )
+}
+
+
+ProcedureOption.propTypes = {
+    procedure_tag: PropTypes.string.isRequired
+}
+
+
+/**
+ * @description Select option resolving a modular procedure tag to its title and version.
+ * @returns {JSX.Element}
+ */
+function ProcedureOption({ procedure_tag }) {
+    const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
+        { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000 })
+    return <option value={procedure_tag}>{procedure?.title || procedure_tag}{_.isFinite(_.toNumber(procedure?.version)) ? ` (v${procedure.version})` : ""}</option>
+}
+
+
+OrganizeSubmissionRow.propTypes = {
+    row: PropTypes.object.isRequired,
+    maxDuration: PropTypes.number.isRequired,
+    isCurator: PropTypes.bool
+}
+
+
+/**
+ * @description A single row in the Organize view: the submission item, the assigned modular
+ * procedures, the name of the user, the number of samples and the duration bar of the
+ * current state.
+ * @returns {JSX.Element}
+ */
+export function OrganizeSubmissionRow({ row, maxDuration, isCurator = false }) {
+    const queryClient = useQueryClient()
+    const [isAssignDialogOpen, setAssignDialogOpen] = useState(false)
+    const { mutate: unlinkProcedure } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
+    const procedures = _.isArray(row.procedures) ? _.orderBy(row.procedures, ["position"], ["asc"]) : []
     return (
         <div className="submission__item__container">
             <div className="flex center-items gap--default">
@@ -76,6 +187,28 @@ export function OrganizeSubmissionRow({ row, maxDuration }) {
                 </div>
                 <StateDurationBar duration_days={row.duration_days} state_tag={row.state_tag} maxDuration={maxDuration} />
             </div>
+            <div className="flex center-items gap--default padding-left--little" style={{ flexWrap: "wrap" }}>
+                {procedures.map((link) => (
+                    <ProcedureChip
+                        key={link.procedure_tag}
+                        link={link}
+                        canEdit={isCurator}
+                        onUnlink={() => unlinkProcedure({ tag: link.procedure_tag, submission_tag: row.submission_tag }, {
+                            onSuccess: () => queryClient.invalidateQueries({ queryKey: ["getCurrentStateDurations"] })
+                        })}
+                    />
+                ))}
+                {isCurator ? (
+                    <button className="basic-button basic-button--small" onClick={() => setAssignDialogOpen(true)}>Assign</button>
+                ) : null}
+            </div>
+            {isAssignDialogOpen ? (
+                <AssignProcedureDialog
+                    submission_tag={row.submission_tag}
+                    assignedProcedureTags={procedures.map(link => link.procedure_tag)}
+                    onClose={() => setAssignDialogOpen(false)}
+                />
+            ) : null}
         </div>
     )
 }
@@ -84,7 +217,8 @@ export function OrganizeSubmissionRow({ row, maxDuration }) {
 OrganizeStateSection.propTypes = {
     state_tag: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
     rows: PropTypes.array.isRequired,
-    maxDuration: PropTypes.number.isRequired
+    maxDuration: PropTypes.number.isRequired,
+    isCurator: PropTypes.bool
 }
 
 
@@ -93,7 +227,7 @@ OrganizeStateSection.propTypes = {
  * samples in that state, followed by the submissions currently in that state.
  * @returns {JSX.Element}
  */
-export function OrganizeStateSection({ state_tag, rows, maxDuration }) {
+export function OrganizeStateSection({ state_tag, rows, maxDuration, isCurator = false }) {
     const sortedRows = _.orderBy(rows, ["duration_days"], ["desc"])
     const sampleCount = _.sumBy(sortedRows, "sample_count")
     return (
@@ -111,7 +245,7 @@ export function OrganizeStateSection({ state_tag, rows, maxDuration }) {
                     </div>
                 </div>
             </div>
-            {sortedRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxDuration={maxDuration} />)}
+            {sortedRows.map((row) => <OrganizeSubmissionRow key={row.submission_tag} row={row} maxDuration={maxDuration} isCurator={isCurator} />)}
         </div>
     )
 }
@@ -120,25 +254,34 @@ export function OrganizeStateSection({ state_tag, rows, maxDuration }) {
 /**
  * @description The Organize Submission view. Shows the submissions the facility has to work on,
  * i.e. the submissions that are neither paused, canceled, done, active nor published.
- * The states are arranged vertically, each with its submissions, the user name, the number of
- * samples and a minimal bar plot of the duration in the current state.
+ * The states are arranged vertically, each with its submissions, the assigned modular
+ * procedures, the user name, the number of samples and a minimal bar plot of the duration
+ * in the current state. Curators can assign and unlink modular procedures directly.
  * @returns {JSX.Element}
  */
-export function OrganizeSubmissions() {
+export function OrganizeSubmissions({ userRole }) {
+    const [unassignedOnly, setUnassignedOnly] = useState(false)
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
     const { data, isLoading, isFetching, isError, error } = api.stats.submissionDurations.useGetCurrentStateDurations({}, { staleTime: 0 })
     if (isError) return <APIError error={error} />
     if (isLoading || isFetching) return <div className="submission__items__container">Loading...</div>
-    const rows = _.isArray(data) ? data : []
+    const allRows = _.isArray(data) ? data : []
+    const rows = unassignedOnly ? allRows.filter(row => !_.isArray(row.procedures) || row.procedures.length === 0) : allRows
     const maxDuration = _.maxBy(rows, "duration_days")?.duration_days || 0
     const rowsByState = _.groupBy(rows, "state_tag")
     const stateTags = _.sortBy(_.keys(rowsByState), _.toNumber)
     return (
         <div className="submission__items__container">
             <div className="submission__header__container">
-                <h3>Organize Submissions ({rows.length})</h3>
+                <h3>Organize Submissions ({rows.length}{unassignedOnly && rows.length !== allRows.length ? `/${allRows.length}` : ""})</h3>
+                <OptionButton isSelected={unassignedOnly} onClick={() => setUnassignedOnly(prev => !prev)}>
+                    <span>Unassigned only</span>
+                </OptionButton>
             </div>
-            {rows.length === 0 ? <div>No open submissions. All done!</div> : null}
-            {stateTags.map((state_tag) => <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxDuration={maxDuration} />)}
+            {rows.length === 0 ? <div>{unassignedOnly ? "No unassigned submissions. All planned!" : "No open submissions. All done!"}</div> : null}
+            {stateTags.map((state_tag) => (
+                <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxDuration={maxDuration} isCurator={isCurator} />
+            ))}
         </div>
     )
 }
