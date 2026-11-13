@@ -4,9 +4,11 @@ import { Link, useSearchParams } from "react-router";
 import { CompactSubmissions } from "./Submissions";
 import { CompactInstruments } from "./Instruments";
 import { CompactMessages } from "./Messages";
+import { CompactOrganize } from "./Organize";
 
 const TABS = [
     { id: "submissions", label: "Submissions" },
+    { id: "organize", label: "Organize" },
     { id: "instruments", label: "Instruments" },
     { id: "messages", label: "Messages" },
 ];
@@ -54,6 +56,7 @@ function CompactApp({ authenticationStatus }) {
 
             <div className="compact__content">
                 {activeTab === "submissions" ? <CompactSubmissions /> : null}
+                {activeTab === "organize" ? <CompactOrganize /> : null}
                 {activeTab === "instruments" ? <CompactInstruments /> : null}
                 {activeTab === "messages" ? <CompactMessages user_tag={authenticationStatus?.tag} /> : null}
             </div>
