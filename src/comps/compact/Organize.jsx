@@ -41,21 +41,61 @@ function StatePill({ state_tag }) {
  * @description Minimal duration bar: a plain div scaled to the duration relative to the
  * longest duration, colored by the state color, with the number of days as text.
  * @param {Object} props
- * @param {Number} props.duration_days Duration in the current state in days
- * @param {Number} props.maxDuration The longest duration across all shown submissions
- * @param {String} props.color State color
- * @returns {JSX.Element} The duration bar row.
+ * @param {Array} props.history The state history of the submission
+ * ({ state_tag, state_since }, oldest first)
+ * @returns {JSX.Element} The state timeline row.
  */
-function StateDurationBar({ duration_days, maxDuration, color }) {
-    const percent = _.isNumber(duration_days) && maxDuration > 0 ? Math.max((duration_days / maxDuration) * 100, 2) : 0;
-    const days = _.round(duration_days, 1);
+function StateTimelineSegment({ state_tag, days, percent }) {
+    const { data: stateColor } = api.states.useGetStateColor({ tag: state_tag });
+    const { data: stateName } = api.states.useGetStateName({ tag: state_tag });
+    return (
+        <div
+            style={{ width: `${percent}%`, height: "100%", backgroundColor: _.isString(stateColor) ? stateColor : "#cfcfcf" }}
+            title={`${_.isString(stateName) ? stateName : state_tag}: ${_.round(days, 1)} days`}
+        />
+    );
+}
+
+/**
+ * @description Minimalistic timeline of the states a submission was in and for how long:
+ * rectangles aligned next to each other, colored by state, widths scaled by the time
+ * spent in that state (the current state extends to now).
+ * @param {Object} props
+ * @param {Array} props.history The state history of the submission
+ * ({ state_tag, state_since }, oldest first)
+ * @returns {JSX.Element|null} The state timeline row.
+ */
+function getTotalDays(history) {
+    if (!_.isArray(history) || history.length === 0) return 0;
+    return Math.max((Date.now() - history[0].state_since) / 86400000, 0);
+}
+
+function StateTimelineBar({ history, maxTotalDays }) {
+    if (!_.isArray(history) || history.length === 0) return null;
+    const now = Date.now();
+    const segments = history.map((entry, idx) => {
+        const end = idx + 1 < history.length ? history[idx + 1].state_since : now;
+        return { state_tag: entry.state_tag, days: Math.max((end - entry.state_since) / 86400000, 0) };
+    });
+    const totalDays = _.sumBy(segments, "days");
+    if (!_.isFinite(totalDays) || totalDays <= 0) return null;
+    // all timelines on the board share the same time scale, so the strips are comparable
+    const scale = _.isFinite(maxTotalDays) && maxTotalDays > 0 ? totalDays / maxTotalDays : 1;
+    const stripPercent = Math.min(scale, 1) * 100;
     return (
         <div className="compact__row">
-            <span className="compact__label">In state</span>
-            <div style={{ flex: 1, height: "8px", backgroundColor: "#e1e5ea", borderRadius: "999px", overflow: "hidden" }}>
-                <div style={{ width: `${percent}%`, height: "100%", backgroundColor: _.isString(color) ? color : "#cfcfcf", borderRadius: "999px" }} />
+            <div style={{ flex: 1, height: "8px", display: "flex", borderRadius: "999px", overflow: "hidden", backgroundColor: "#e1e5ea" }}>
+                <div style={{ width: `${stripPercent}%`, height: "100%", display: "flex" }}>
+                    {segments.map((segment, idx) => (
+                        <StateTimelineSegment
+                            key={`${segment.state_tag}-${idx}`}
+                            state_tag={segment.state_tag}
+                            days={segment.days}
+                            percent={(segment.days / totalDays) * 100}
+                        />
+                    ))}
+                </div>
             </div>
-            <span className="compact__hint">{_.isNumber(days) ? `${days} d` : "–"}</span>
         </div>
     );
 }
@@ -148,15 +188,13 @@ function AssignProcedureSelect({ submission_tag, assignedProcedureTags }) {
  * creator, sample count, assigned procedures and the duration bar of the current state.
  * @param {Object} props
  * @param {Object} props.row { submission_tag, state_tag, duration_days, sample_count, user_tag, procedures }
- * @param {Number} props.maxDuration The longest duration across all shown submissions
  * @param {Boolean} [props.isCurator] Whether procedure links can be modified
  * @returns {JSX.Element} The submission card.
  */
-function OrganizeSubmissionCard({ row, maxDuration, isCurator = false }) {
+function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false }) {
     const { data: title } = api.submissions.title.useGetSubmissionTitle(
         { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 }
     );
-    const { data: stateColor } = api.states.useGetStateColor({ tag: row.state_tag });
     const procedures = _.isArray(row.procedures) ? row.procedures : [];
     return (
         <div className="compact__card">
@@ -176,7 +214,7 @@ function OrganizeSubmissionCard({ row, maxDuration, isCurator = false }) {
             </div>
             <SubmissionProcedures row={row} isCurator={isCurator} />
             {isCurator ? <AssignProcedureSelect submission_tag={row.submission_tag} assignedProcedureTags={procedures.map(link => link.procedure_tag)} /> : null}
-            <StateDurationBar duration_days={row.duration_days} maxDuration={maxDuration} color={stateColor} />
+            <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
         </div>
     );
 }
@@ -188,10 +226,9 @@ function OrganizeSubmissionCard({ row, maxDuration, isCurator = false }) {
  * @param {Object} props
  * @param {Number} props.state_tag State tag
  * @param {Array} props.rows Submission rows in that state
- * @param {Number} props.maxDuration The longest duration across all shown submissions
  * @returns {JSX.Element} The state section.
  */
-function OrganizeStateSection({ state_tag, rows, maxDuration, isCurator = false }) {
+function OrganizeStateSection({ state_tag, rows, maxTotalDays, isCurator = false }) {
     const sortedRows = _.orderBy(rows, ["duration_days"], ["desc"]);
     const sampleCount = _.sumBy(sortedRows, "sample_count");
     return (
@@ -202,7 +239,7 @@ function OrganizeStateSection({ state_tag, rows, maxDuration, isCurator = false 
                     {sortedRows.length} submission{sortedRows.length === 1 ? "" : "s"} · {sampleCount} sample{sampleCount === 1 ? "" : "s"}
                 </span>
             </div>
-            {sortedRows.map(row => <OrganizeSubmissionCard key={row.submission_tag} row={row} maxDuration={maxDuration} isCurator={isCurator} />)}
+            {sortedRows.map(row => <OrganizeSubmissionCard key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
         </div>
     );
 }
@@ -220,7 +257,7 @@ export function CompactOrganize({ userRole }) {
     if (!isLoading && isFetching) return <div className="compact__hint">Updating…</div>;
     if (isError) return <div className="compact__hint" style={{ color: "#cd4246" }}>{error?.message || "Failed to load open submissions."}</div>;
     const rows = _.isArray(data) ? data : [];
-    const maxDuration = _.maxBy(rows, "duration_days")?.duration_days || 0;
+    const maxTotalDays = _.max(_.map(rows, row => getTotalDays(row.history))) || 0;
     const rowsByState = _.groupBy(rows, "state_tag");
     const stateTags = _.sortBy(_.keys(rowsByState), _.toNumber);
     return (
@@ -230,7 +267,7 @@ export function CompactOrganize({ userRole }) {
             </div>
             {rows.length === 0 ? <div className="compact__hint">No open submissions. All done!</div> : null}
             {stateTags.map(state_tag => (
-                <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxDuration={maxDuration} isCurator={isCurator} />
+                <OrganizeStateSection key={state_tag} state_tag={state_tag} rows={rowsByState[state_tag]} maxTotalDays={maxTotalDays} isCurator={isCurator} />
             ))}
         </div>
     );
