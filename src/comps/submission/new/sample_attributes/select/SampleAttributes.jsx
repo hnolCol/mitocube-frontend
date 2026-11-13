@@ -2,7 +2,7 @@ import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
 import { Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
-import { memo, useState, useCallback, useMemo } from "react";
+import { memo, useState, useCallback, useEffect, useMemo, useRef } from "react";
 import _ from "lodash"
 
 import { ReplicateMenu } from "./menu/ReplicateMenu"
@@ -18,6 +18,39 @@ import { GenotypeText } from "../../../../admin/genotypes/GentotypeText"
 import "./sa.css"
 
 const getSampleAttrIndex = (columnIndex) => columnIndex - 3;
+
+const FIXED_COLUMN_WIDTHS = [150, 150, 150];
+const MIN_ATTRIBUTE_COLUMN_WIDTH = 150;
+
+function useContainerWidth() {
+    const containerRef = useRef(null);
+    const [containerWidth, setContainerWidth] = useState(0);
+
+    useEffect(() => {
+        const element = containerRef.current;
+        if (!element) return undefined;
+
+        const updateWidth = () => setContainerWidth(element.clientWidth);
+        updateWidth();
+
+        const observer = new ResizeObserver(updateWidth);
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, []);
+
+    return [containerRef, containerWidth];
+}
+
+const getDynamicColumnWidths = (containerWidth, numAttributeColumns) => {
+    const fixedWidth = FIXED_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0);
+    const numDynamicColumns = numAttributeColumns + 1;
+    const availableWidth = Math.max(containerWidth - fixedWidth, 0);
+    const dynamicWidth = Math.max(
+        MIN_ATTRIBUTE_COLUMN_WIDTH,
+        Math.floor(availableWidth / Math.max(numDynamicColumns, 1))
+    );
+    return [...FIXED_COLUMN_WIDTHS, ...Array.from({ length: numAttributeColumns }, () => dynamicWidth)];
+};
 const getGroupingInfoByColumnIndex = (columnIndex, groupings) => groupings[getSampleAttrIndex(columnIndex)];
 const getGroupingAttributeByColumnIndex = (columnIndex, groupings) => getGroupingInfoByColumnIndex(columnIndex, groupings);
 
@@ -146,6 +179,8 @@ function SamplesAttributes({
     }, [groupings])
     
     const { mutate } = api.samples.core.useInsertSampleGenotype()
+
+    const [containerRef, containerWidth] = useContainerWidth()
 
     const [rowHeights, setRowHeights] = useState({})
 
@@ -421,9 +456,19 @@ function SamplesAttributes({
 );
     
 
+    const columnWidths = useMemo(
+        () => getDynamicColumnWidths(containerWidth, groupings.length),
+        [containerWidth, groupings.length]
+    )
+
+    const minColumnWidth = useMemo(
+        () => Math.min(...columnWidths),
+        [columnWidths]
+    )
+
     return (
     
-        <div className="tableContainer">
+        <div className="tableContainer" ref={containerRef}>
                 <Table2
                     //enableColumnInteractionBar = {false}
                     enableGhostCells={true}
@@ -434,8 +479,8 @@ function SamplesAttributes({
                     rowHeights={tableRowHeights}
                     selectionModes={SelectionModes.CELLS}
                     defaultColumnWidth={300}
-                    minColumnWidth={300}
-                    columnWidths={[150, 150, 150]}
+                    minColumnWidth={minColumnWidth}
+                    columnWidths={columnWidths}
                     onSelection={handleSelection}
                     selectedRegionTransform={selectedRegionTransform}>
                     <Column
