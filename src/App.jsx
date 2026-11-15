@@ -300,7 +300,7 @@ function App() {
             path="/modular-procedures"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
-                <ModularProcedureBoard userRole={authenticationStatus.role} />
+                <ModularProcedureBoard userRole={authenticationStatus.role} userTag={authenticationStatus.tag} />
               </ProtectedRoute>
             }
           />
