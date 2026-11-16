@@ -26,6 +26,7 @@ const INITIAL_ATTRIBUTE_STATE = {
     min_state : 0,
     priority : 500,
     allow_input : false,
+    placeholder: "",
     children: [],
     parents : [],
     required_trait_tags: [],
@@ -342,6 +343,10 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
             valid = false
             missingFields.push("Cannot allow input if the attribute has children.")
         }
+        if (!attribute.allow_input && _.isString(attribute.placeholder) && attribute.placeholder.length > 0) {
+            valid = false
+            missingFields.push("A placeholder can only be defined if allow input is selected.")
+        }
         const traitTexts = cleanTraits(attribute.traits).map(t => t.text.toLowerCase())
         if (traitTexts.length !== new Set(traitTexts).size) {
             valid = false
@@ -397,7 +402,7 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
         </div>
         <div className="flex flex-column">
         <div style={{ width: "100%", marginBottom: 16, display: "flex", alignItems: "center", gap: 8 }}>
-                    <input type="checkbox" id="allow_input" checked={attribute.allow_input} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, allow_input: e.target.checked } })} />
+                    <input type="checkbox" id="allow_input" checked={attribute.allow_input} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, allow_input: e.target.checked, placeholder: e.target.checked ? prevValues.placeholder : "" } })} />
                     <label htmlFor="allow_input" style={{ fontSize: 14, color: "#111827", fontWeight: 600, cursor: "pointer" }}>
                         Allow input
                     </label>
@@ -408,6 +413,9 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
                     <h4>Abbreviation</h4>
                     <input className="text-input" type="text" placeholder="Abbreviation" value={attribute.abbreviation} disabled={!attribute.allow_input} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, abbreviation: e.target.value } })} />
                     <div className="font-size--smallest">Abbreviation is used in condition application view to display a value. Only relevant if allow_input is <code>true</code></div>
+                    <h4>Placeholder</h4>
+                    <input className="text-input" type="text" placeholder="Placeholder example (e.g. 2)" value={attribute.placeholder} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, placeholder: e.target.value } })} />
+                    <div className="font-size--smallest">Example value displayed inside the input field, e.g. "2" for a concentration. Only relevant if allow_input is <code>true</code>.</div>
                 </div>}
         </div>
             <h4>Hierarchy</h4>

@@ -27,7 +27,7 @@ export function AttributeTraitInput({ has_selection, selection, childTrait, attr
     <div>
         <MinimalTextInput
                 value={getInput()}
-                placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : attribute.text}
+                placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : (attribute.placeholder || attribute.text)}
                 disabled={!has_selection}
                 callbackKey={attribute.tag}
                 allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
@@ -247,7 +247,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                         
                                 <MinimalTextInput
                                     value={getInput()}
-                                    placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : attribute.text}
+                                    placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : (attribute.placeholder || attribute.text)}
                                     disabled={!has_selection}
                                     callbackKey={attribute_tag}
                                     allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
