@@ -326,8 +326,9 @@ OrganizeStateColumn.propTypes = {
 
 
 /**
- * @description One state column of the organize board: the state header with the total number
- * of submissions and samples in that state, followed by the submissions currently in that
+ * @description One state column of the organize board: the state header spanning the full
+ * column width with the number of submissions, samples and distinct users in that state
+ * below it, followed by the submissions currently in that
  * state (longest waiting first). Only the top submissions are shown by default; the
  * remaining ones can be expanded.
  * @returns {JSX.Element}
@@ -338,10 +339,11 @@ export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator =
     const visibleRows = showAll ? sortedRows : sortedRows.slice(0, DEFAULT_VISIBLE_PER_STATE)
     const hiddenCount = sortedRows.length - visibleRows.length
     const sampleCount = _.sumBy(sortedRows, "sample_count")
+    const userCount = _.uniq(_.map(sortedRows, "user_tag")).length
     return (
         <div className="submission__state_container" style={{ minWidth: "22rem", maxWidth: "26rem", maxHeight: "80vh", overflowY: "auto" }}>
-            <div className="submission__header__container">
-                <StateHeader tag={state_tag} />
+            <div className="submission__header__container" style={{ flexDirection: "column", alignItems: "stretch", gap: "0.25rem" }}>
+                <StateHeader tag={state_tag} fullWidth />
                 <div className="flex center-items gap--default">
                     <div className="submission-metric-view">
                         <h4>Submissions</h4>
@@ -350,6 +352,10 @@ export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator =
                     <div className="submission-metric-view">
                         <h4>Samples</h4>
                         <div>{sampleCount}</div>
+                    </div>
+                    <div className="submission-metric-view">
+                        <h4>Users</h4>
+                        <div>{userCount}</div>
                     </div>
                 </div>
             </div>

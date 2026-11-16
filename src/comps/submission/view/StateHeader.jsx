@@ -5,7 +5,8 @@ import { titleFormat } from "../../../services/format/string"
 
 import { api } from "@/api"
 StateHeader.propTypes = {
-    tag: PropTypes.number.isRequired
+    tag: PropTypes.number.isRequired,
+    fullWidth: PropTypes.bool
 }
 
 /**
@@ -19,14 +20,15 @@ StateHeader.propTypes = {
  * @returns 
  */
 
-export function StateHeader({ tag }) {
+export function StateHeader({ tag, fullWidth = false }) {
     const { data: stateName } = api.states.useGetStateName({ tag })
     const { data: stateColor } = api.states.useGetStateColor({ tag })
     if (!_.isString(stateName) || !_.isString(stateColor)) return null
     return <div className="submission__state__header"
         style={{
             backgroundColor: stateColor,
-            color: isHexColorLight(stateColor) ? "black" : "white"
+            color: isHexColorLight(stateColor) ? "black" : "white",
+            ...(fullWidth ? { width: "100%" } : null)
         }}>
         {titleFormat(stateName)}
     </div>
