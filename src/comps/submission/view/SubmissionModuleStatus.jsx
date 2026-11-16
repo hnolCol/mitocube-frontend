@@ -13,8 +13,8 @@ SubmissionModuleStatus.propTypes = {
 /**
  * @description Shows the workflow module status of a submission in the submission overview:
  * the active modular procedure (the open link, if any) and the history of modules the
- * submission has already passed (done links with completion date and user). The box is
- * always rendered; if the submission is not linked to any module, a fallback text is shown.
+ * submission has already passed (done links with completion date and user). Submissions
+ * that are not linked to any module show no box at all.
  * @param {Object} props
  * @param {String} props.submission_tag Submission tag
  * @returns {JSX.Element} The workflow module status container.
@@ -25,6 +25,8 @@ export function SubmissionModuleStatus({ submission_tag }) {
     )
     const activeLinks = _.isArray(links) ? links.filter((link) => !link.done) : []
     const doneLinks = _.isArray(links) ? links.filter((link) => link.done) : []
+    // submissions that are not linked to any module show no box at all
+    if (_.isArray(links) && links.length === 0) return null
     return <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
         <div className="flex flex-column">
             <h3>Workflow Modules</h3>
