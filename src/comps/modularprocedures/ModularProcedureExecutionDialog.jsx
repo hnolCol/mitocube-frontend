@@ -7,6 +7,7 @@ import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { ConditionApplicationInput } from "@/comps/core/input/api/ConditionApplicationInput";
 import { UserInput } from "@/comps/core/input/api/UserInput";
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
+import { TraitInput } from "@/comps/core/input/api/TraitInput";
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog";
 
 const rowLabel = (rowIndex) => String.fromCharCode(rowIndex + 65)
@@ -16,9 +17,9 @@ const positionOf = (rowIndex, columnIndex) => `${rowLabel(rowIndex)}${columnInde
  * Downloads a txt template for well metrics: one header line (well + one column per attribute)
  * and one line per well, ready to be filled in and uploaded again.
  */
-export function downloadMetricsTemplate(wellPositions, attributeTags, filename = "well_metrics_template.txt") {
-    const lines = [["well", ...attributeTags].join("\t")]
-    wellPositions.forEach((position) => lines.push([position, ...attributeTags.map(() => "")].join("\t")))
+export function downloadMetricsTemplate(wellPositions, traitTags, filename = "well_metrics_template.txt") {
+    const lines = [["well", ...traitTags].join("\t")]
+    wellPositions.forEach((position) => lines.push([position, ...traitTags.map(() => "")].join("\t")))
     const blob = new Blob([lines.join("\n") + "\n"], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
@@ -33,31 +34,31 @@ export function downloadMetricsTemplate(wellPositions, attributeTags, filename =
  * The header line names the attribute tags; each following line is a well position
  * followed by one numeric value per attribute. Returns {position, values} entries.
  */
-export function parseMetricsFile(content, attributeTags) {
+export function parseMetricsFile(content, traitTags) {
     const rows = content.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0)
     if (rows.length < 2) throw new Error("The file must contain a header line and at least one well line.")
     const separator = [ "\t", ";", "," ].find((sep) => rows[0].includes(sep)) || "\t"
     const header = rows[0].split(separator).map((column) => column.trim())
     if (header[0].toLowerCase() !== "well") throw new Error("The first header column must be 'well'.")
-    const columns = header.slice(1).map((attribute_tag) => {
-        if (!attributeTags.includes(attribute_tag))
-            throw new Error(`Unknown attribute in the header: ${attribute_tag}`)
-        return attribute_tag
+    const columns = header.slice(1).map((trait_tag) => {
+        if (!traitTags.includes(trait_tag))
+            throw new Error(`Unknown trait in the header: ${trait_tag}`)
+        return trait_tag
     })
     const wellMetrics = []
     rows.slice(1).forEach((row) => {
         const cells = row.split(separator).map((cell) => cell.trim())
         const position = cells[0]
         if (!/^[A-Za-z]+[0-9]+$/.test(position)) throw new Error(`Invalid well position: ${position}`)
-        const values = {}
-        columns.forEach((attribute_tag, index) => {
+        const values = []
+        columns.forEach((trait_tag, index) => {
             const cell = cells[index + 1]
             if (cell.length === 0) return
             const value = _.toNumber(cell)
-            if (_.isNaN(value)) throw new Error(`Value '${cell}' for ${attribute_tag} in well ${position} is not a number.`)
-            values[attribute_tag] = value
+            if (_.isNaN(value)) throw new Error(`Value '${cell}' for ${trait_tag} in well ${position} is not a number.`)
+            values.push({ trait_tag, value })
         })
-        wellMetrics.push({ position: position.toUpperCase(), values })
+        values.forEach((metric) => wellMetrics.push({ position: position.toUpperCase(), trait_tag: metric.trait_tag, value: metric.value }))
     })
     return wellMetrics
 }
@@ -87,8 +88,9 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     const [outputWells, setOutputWells] = useState({})
     const [selectedOutputWell, setSelectedOutputWell] = useState(null)
     const [responsibleUserTags, setResponsibleUserTags] = useState([])
-    const [metricAttributeTags, setMetricAttributeTags] = useState([])
-    const [wellMetrics, setWellMetrics] = useState({})
+    const [metricParams, setMetricParams] = useState([])  // [{attribute_tag, trait_tag}]
+    const [metricAttributeTag, setMetricAttributeTag] = useState(null)
+    const [wellMetrics, setWellMetrics] = useState([])     // [{position, trait_tag, value}]
     const [metricsError, setMetricsError] = useState(null)
 
     const { mutate: execute, isPending, isError, error } = api.modularProcedures.execute.useExecuteModularProcedure()
@@ -179,13 +181,19 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         })
     }
 
-    const handleAddMetricAttribute = (attribute_tag) => {
-        setMetricAttributeTags((prev) => prev.includes(attribute_tag) ? prev : [...prev, attribute_tag])
+    const handleAddMetricAttribute = (attribute_tag) => setMetricAttributeTag(attribute_tag)
+
+    const handleMetricTraitSelect = (trait_tag) => {
+        if (trait_tag && metricAttributeTag) {
+            setMetricParams((prev) => prev.some((p) => p.trait_tag === trait_tag) ? prev :
+                [...prev, { attribute_tag: metricAttributeTag, trait_tag }])
+        }
+        setMetricAttributeTag(null)
     }
 
-    const handleRemoveMetricAttribute = (attribute_tag) => {
-        setMetricAttributeTags((prev) => prev.filter((tag) => tag !== attribute_tag))
-        setWellMetrics((prev) => _.mapValues(prev, (values) => _.omit(values, attribute_tag)))
+    const handleRemoveMetricParam = (trait_tag) => {
+        setMetricParams((prev) => prev.filter((p) => p.trait_tag !== trait_tag))
+        setWellMetrics((prev) => prev.filter((m) => m.trait_tag !== trait_tag))
     }
 
     const handleMetricsUpload = (event) => {
@@ -195,18 +203,14 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         const reader = new FileReader()
         reader.onload = () => {
             try {
-                const parsed = parseMetricsFile(String(reader.result), metricAttributeTags)
+                const parsed = parseMetricsFile(String(reader.result), metricParams.map((p) => p.trait_tag))
                 const outputPositions = _.keys(outputWells)
                 const unknown = parsed.map((m) => m.position).filter((position) => !outputPositions.includes(position))
                 if (unknown.length > 0)
                     throw new Error(`Wells in the file are not output wells of this execution: ${unknown.join(", ")}`)
-                setWellMetrics((prev) => {
-                    const next = { ...prev }
-                    parsed.forEach((metric) => {
-                        next[metric.position] = { ...(next[metric.position] || {}), ...metric.values }
-                    })
-                    return next
-                })
+                setWellMetrics((prev) => [
+                    ...prev.filter((m) => !parsed.some((p) => p.position === m.position && p.trait_tag === m.trait_tag)),
+                    ...parsed])
             } catch (e) {
                 setMetricsError(e.message)
             }
@@ -247,7 +251,7 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         const output_wells = _.map(outputWells, (well, position) => ({
             position, condition_application_tags: well.condition_application_tags || []
         }))
-        const output_well_metrics = _.map(wellMetrics, (values, position) => ({ position, values }))
+        const output_well_metrics = wellMetrics
         execute({ tag: procedure_tag, input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
                   responsible_user_tag: responsibleUserTags[0], input_wells, output_wells, output_well_metrics }, {
             onSuccess: () => { if (onExecuted) onExecuted() }
@@ -369,14 +373,17 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                 <div style={{ borderTop: "1px solid #ddd", paddingTop: "0.5rem" }}>
                     <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
                         <h4 style={{ margin: 0 }}>Well metrics</h4>
-                        <AttributeInput text="Add metric attribute" onItemSelect={handleAddMetricAttribute} />
-                        {metricAttributeTags.map((attribute_tag) =>
-                            <Tag key={attribute_tag} minimal onRemove={() => handleRemoveMetricAttribute(attribute_tag)}>
-                                {attribute_tag}
+                        <AttributeInput text="Add metric attribute (e.g. Concentration)" onItemSelect={handleAddMetricAttribute} />
+                        {metricAttributeTag !== null ?
+                            <TraitInput attribute_tag={metricAttributeTag} text="Pick trait (e.g. ug/ul)"
+                                onItemSelect={handleMetricTraitSelect} /> : null}
+                        {metricParams.map((param) =>
+                            <Tag key={param.trait_tag} minimal onRemove={() => handleRemoveMetricParam(param.trait_tag)}>
+                                {param.trait_tag}
                             </Tag>)}
-                        {metricAttributeTags.length > 0 && _.size(outputWells) > 0 ? <>
+                        {metricParams.length > 0 && _.size(outputWells) > 0 ? <>
                             <button className="basic-button basic-button--small"
-                                onClick={() => downloadMetricsTemplate(_.keys(outputWells), metricAttributeTags)}>
+                                onClick={() => downloadMetricsTemplate(_.keys(outputWells), metricParams.map((p) => p.trait_tag))}>
                                 Download template
                             </button>
                             <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
@@ -387,21 +394,21 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                         </> : null}
                     </div>
                     {metricsError ? <div className="font-size--small" style={{ color: "#cd4246", marginTop: "0.25rem" }}>{metricsError}</div> : null}
-                    {metricAttributeTags.length === 0 ?
+                    {metricParams.length === 0 ?
                         <div className="font-size--small" style={{ color: "#888", marginTop: "0.25rem" }}>
-                            Optionally define measured attributes (e.g. protein concentration), download the txt template,
-                            fill in the values per well and upload it. Metrics can also be added after the execution.
+                            Optionally define measured quantities: pick an attribute (e.g. Concentration) and a trait
+                            (e.g. ug/ul), download the txt template, fill in the values per well and upload it.
+                            Metrics can also be added after the execution.
                         </div> : null}
-                    {_.size(wellMetrics) > 0 ? <div style={{ marginTop: "0.5rem", maxHeight: "20vh", overflowY: "auto" }}>
-                        {_.map(wellMetrics, (values, position) =>
-                            <div key={position} className="flex center-items" style={{ gap: "0.5rem" }}>
-                                <strong style={{ minWidth: "2.5rem" }}>{position}</strong>
-                                {_.map(values, (value, attribute_tag) =>
-                                    <span key={attribute_tag} className="font-size--small">
-                                        {attribute_tag}: <strong>{value}</strong>
-                                    </span>)}
+                    {wellMetrics.length > 0 ? <div style={{ marginTop: "0.5rem", maxHeight: "20vh", overflowY: "auto" }}>
+                        {wellMetrics.map((metric) =>
+                            <div key={`${metric.position}-${metric.trait_tag}`} className="flex center-items" style={{ gap: "0.5rem" }}>
+                                <strong style={{ minWidth: "2.5rem" }}>{metric.position}</strong>
+                                <span className="font-size--small">
+                                    {metric.trait_tag}: <strong>{metric.value}</strong>
+                                </span>
                                 <button className="basic-button basic-button--small"
-                                    onClick={() => setWellMetrics((prev) => _.omit(prev, position))}>Remove</button>
+                                    onClick={() => setWellMetrics((prev) => prev.filter((m) => m !== metric))}>Remove</button>
                             </div>)}
                     </div> : null}
                 </div>
