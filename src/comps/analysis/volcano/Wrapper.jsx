@@ -177,8 +177,8 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                             <span>Volcano Plot Settings</span>
                         </button>
 
-                        <PersistentCollapse isOpen={quickSelectOpen.conditions} direction="vertical" duration={0.65} >        
-                            <div className="padding--medium"><ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching, autoSelectDefaults: true }} /></div>
+                        <PersistentCollapse isOpen={quickSelectOpen.conditions} direction="vertical" duration={0.65} className="bg--blue-lighter">        
+                            <div className="padding--medium"><ConditionApplicationSelection {...{ submission_tag, onConfirm: handleVolcano, reset_after_confirm: true, isLoadingData: isFetching, autoSelectDefaults: true, confirmButtonText: "Plot Volcano", confirmButtonHighlighted: true }} /></div>
                         </PersistentCollapse>
 
 
@@ -186,7 +186,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                         <span>Annotate favorite proteins or annotations in volcano plots.</span>
                         <Checkbox label={"Show hover labels"} checked={showHoverLabels} onChange={() => setShowHoverLabels(prev => !prev)} />
                         <button className="basic-button div--expand margin--little" style={ quickSelectOpen.proteins ? { backgroundColor: HIGHLIGHT_COLOR, color: "white" } : {}} onClick={() => setQuickSelectOpen(prev => ({ ...prev, proteins: !prev.proteins }))}><span>Proteins</span></button>
-                            <PersistentCollapse isOpen={quickSelectOpen.proteins} direction="vertical" duration={0.65} >        
+                            <PersistentCollapse isOpen={quickSelectOpen.proteins} direction="vertical" duration={0.65} className="bg--blue-lighter">        
                                 <FavoriteProteinSelection selected={favoriteProteinSelection.values} submission_tags={[submission_tag]} onSelect={handleFavoriteSelect} onHover={handleProteinHover} />
                         </PersistentCollapse>
 
@@ -196,7 +196,7 @@ export function VolcanoPlotWrapper({ submission_tag }) {
                             <span>Annotations</span>
                         </button>
 
-                        <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} >        
+                        <PersistentCollapse isOpen={quickSelectOpen.annotations} direction="vertical" duration={0.65} className="bg--blue-lighter">        
                             {markedAnnotationOverlapCount > 0 ? <Callout intent="warning" className="margin-bottom--little">
                                 {markedAnnotationOverlapCount} {markedAnnotationOverlapCount === 1 ? "protein" : "proteins"} belong{markedAnnotationOverlapCount === 1 ? "s" : ""} to more than one marked annotation. For these, only the color of the first marked annotation is shown in the volcano plots.
                             </Callout> : null}
