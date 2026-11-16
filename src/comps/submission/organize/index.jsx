@@ -14,7 +14,7 @@ import { StateHeader } from "../view/StateHeader"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
-const DEFAULT_VISIBLE_PER_STATE = 5
+const DEFAULT_VISIBLE_PER_STATE = 8
 
 
 StateTimelineSegment.propTypes = {
@@ -341,7 +341,7 @@ export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator =
     const sampleCount = _.sumBy(sortedRows, "sample_count")
     const userCount = _.uniq(_.map(sortedRows, "user_tag")).length
     return (
-        <div className="submission__state_container" style={{ minWidth: "22rem", maxWidth: "26rem", maxHeight: "80vh", overflowY: "auto" }}>
+        <div className="submission__state_container" style={{ minWidth: "22rem", maxWidth: "26rem", maxHeight: "80vh", display: "flex", flexDirection: "column" }}>
             <div className="submission__header__container" style={{ flexDirection: "column", alignItems: "stretch", gap: "0.25rem" }}>
                 <StateHeader tag={state_tag} fullWidth />
                 <div className="flex center-items gap--default">
@@ -359,12 +359,14 @@ export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator =
                     </div>
                 </div>
             </div>
-            {visibleRows.map((row) => <OrganizeSubmissionCard key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
-            {sortedRows.length > DEFAULT_VISIBLE_PER_STATE ? (
-                <button className="basic-button basic-button--small" onClick={() => setShowAll(prev => !prev)}>
-                    {showAll ? `Show top ${DEFAULT_VISIBLE_PER_STATE}` : `Show all (${hiddenCount} more)`}
-                </button>
-            ) : null}
+            <div style={{ overflowY: "auto", minHeight: 0, display: "flex", flexDirection: "column", gap: "0.3rem", paddingRight: "0.25rem" }}>
+                {visibleRows.map((row) => <OrganizeSubmissionCard key={row.submission_tag} row={row} maxTotalDays={maxTotalDays} isCurator={isCurator} />)}
+                {sortedRows.length > DEFAULT_VISIBLE_PER_STATE ? (
+                    <button className="basic-button basic-button--small" onClick={() => setShowAll(prev => !prev)}>
+                        {showAll ? `Show top ${DEFAULT_VISIBLE_PER_STATE}` : `Show all (${hiddenCount} more)`}
+                    </button>
+                ) : null}
+            </div>
         </div>
     )
 }
@@ -373,7 +375,7 @@ export function OrganizeStateColumn({ state_tag, rows, maxTotalDays, isCurator =
 /**
  * @description The Organize Submission view. Shows the submissions the facility has to work on,
  * i.e. the submissions that are neither paused, canceled, done, active nor published.
- * The states are arranged as columns, each listing its submissions (top 5 by default,
+ * The states are arranged as columns, each listing its submissions (top 8 by default,
  * longest waiting first) with the assigned modular procedures, the user name, the number
  * of samples and a minimal bar plot of the duration in the current state.
  * Curators can assign and unlink modular procedures directly.
