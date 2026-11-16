@@ -105,6 +105,11 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
             apiClient.get(`/submissions/${link.submission_tag}/samples`)
                 .then((res) => _.isArray(res.data) ? res.data : [])
                 .catch(() => [])
+                .then((tags) => tags.map((tag) => ({
+                    tag,
+                    submission_tag: link.submission_tag,
+                    submission_label: link.submission_label || link.submission_tag,
+                })))
         )).then((results) => {
             if (!cancelled) setAvailableSamples(_.flatten(results))
         })
@@ -117,10 +122,11 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     }, [isOpen, current_user_tag])
 
     const placeSample = (position) => {
+        const sample_tag = pickedSample.tag
         setInputWells((prev) => {
             const samples = prev[position]?.sample_tags || []
-            if (samples.includes(pickedSample)) return prev
-            return { ...prev, [position]: { sample_tags: [...samples, pickedSample], output_positions: prev[position]?.output_positions || [] } }
+            if (samples.includes(sample_tag)) return prev
+            return { ...prev, [position]: { sample_tags: [...samples, sample_tag], output_positions: prev[position]?.output_positions || [] } }
         })
     }
 
@@ -259,7 +265,8 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     }
 
     const placedSamples = _.flatten(_.map(inputWells, (well) => well.sample_tags))
-    const unplacedSamples = availableSamples.filter((sample) => !placedSamples.includes(sample))
+    const unplacedSamples = availableSamples.filter((sample) => !placedSamples.includes(sample.tag))
+    const unplacedBySubmission = _.groupBy(unplacedSamples, "submission_label")
     const unmappedWells = _.filter(inputWells, (well) => (well.output_positions || []).length === 0).length
     const canExecute = inputPlateTag !== null && outputPlateTag !== null &&
         _.size(inputWells) > 0 && unmappedWells === 0
@@ -323,16 +330,23 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                         </div> : null}
                         {unplacedSamples.length === 0 && availableSamples.length > 0 ?
                             <div className="font-size--small" style={{ color: "#888" }}>All samples placed.</div> : null}
-                        {unplacedSamples.map((sample) =>
-                            <button key={sample} className="basic-button basic-button--small"
-                                style={{ width: "100%", textAlign: "left", marginBottom: "0.25rem",
-                                    background: pickedSample === sample ? "#48aff0" : undefined }}
-                                onClick={() => setPickedSample(pickedSample === sample ? null : sample)}>
-                                {sample}
-                            </button>)}
+                        {_.map(unplacedBySubmission, (samples, submission_label) =>
+                            <div key={submission_label}>
+                                <div className="font-size--small" style={{ color: "#888", margin: "0.25rem 0 0.1rem 0" }}>
+                                    {submission_label}
+                                </div>
+                                {samples.map((sample) =>
+                                    <button key={sample.tag} className="basic-button basic-button--small"
+                                        title={sample.submission_tag}
+                                        style={{ width: "100%", textAlign: "left", marginBottom: "0.25rem",
+                                            background: pickedSample?.tag === sample.tag ? "#48aff0" : undefined }}
+                                        onClick={() => setPickedSample(pickedSample?.tag === sample.tag ? null : sample)}>
+                                        {sample.tag}
+                                    </button>)}
+                            </div>)}
                         {pickedSample !== null ?
                             <div className="font-size--small" style={{ color: "#48aff0", marginTop: "0.25rem" }}>
-                                Placing "{pickedSample}" — click one or more input wells.
+                                Placing "{pickedSample.tag}" — click one or more input wells.
                             </div> : null}
                     </div>
 
