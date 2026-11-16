@@ -65,6 +65,20 @@ function getTotalDays(history) {
 
 
 /**
+ * @description Humanizes a duration in days into a short phrase like "3 weeks" or "2 days".
+ * @returns {String}
+ */
+function formatDurationPhrase(days) {
+    if (!_.isFinite(days) || days < 0) return null
+    if (days < 1) return "today"
+    if (days < 7) return `${_.round(days)} day${days < 2 ? "" : "s"}`
+    if (days < 30) return `${_.round(days / 7)} week${days < 14 ? "" : "s"}`
+    if (days < 365) return `${_.round(days / 30)} month${days < 60 ? "" : "s"}`
+    return `${_.round(days / 365)} year${days < 730 ? "" : "s"}`
+}
+
+
+/**
  * @description A minimalistic timeline of the states a submission was in and for how long:
  * rectangles aligned next to each other, each colored by the state color. All timelines on
  * the board share the same time scale (maxTotalDays maps to the full width), so the strips
@@ -239,9 +253,9 @@ OrganizeSubmissionCard.propTypes = {
 
 /**
  * @description A single submission card in a state column, drawn as one cohesive component:
- * the creation date and title on the first line, and one uniformly sized line with the
- * user name, sample count, assigned modular procedure chips, the state timeline and the
- * "+" assign button. Clicking the card opens the submission.
+ * the creation date, user name and sample count on the first line, the title with the
+ * assigned modular procedure chips on the second, and the state timeline with the current
+ * state duration and the "+" assign button on the last. Clicking the card opens the submission.
  * @returns {JSX.Element}
  */
 export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false }) {
@@ -256,16 +270,17 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
     const procedures = _.isArray(row.procedures) ? _.orderBy(row.procedures, ["position"], ["asc"]) : []
     return (
         <div className="submission__item__container" style={{ cursor: "pointer" }} onClick={() => redirect(`/submissions/${row.submission_tag}`)}>
-            <div className="flex center-items gap--little">
+            <div className="flex center-items gap--little" style={{ color: "#555", fontSize: "0.85rem" }}>
                 {_.isNumber(created_at) ? <CreatedAt createdat={created_at} addFromNow={false} /> : null}
-                <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {_.isString(title) && title.trim().length > 0 ? title : row.submission_tag}
-                </span>
-            </div>
-            <div className="flex center-items gap--little" style={{ flexWrap: "wrap", color: "#555" }}>
+                <span>·</span>
                 <UserFullName tag={row.user_tag} />
                 <span>·</span>
                 <span>{row.sample_count} sample{row.sample_count === 1 ? "" : "s"}</span>
+            </div>
+            <div className="flex center-items gap--little" style={{ flexWrap: "wrap" }}>
+                <span style={{ fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {_.isString(title) && title.trim().length > 0 ? title : row.submission_tag}
+                </span>
                 {procedures.map((link) => (
                     <ProcedureChip
                         key={link.procedure_tag}
@@ -276,14 +291,19 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
                         })}
                     />
                 ))}
-                <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
-                    {isCurator ? (
-                        <div onClick={(e) => { e.stopPropagation(); setAssignDialogOpen(true) }} style={{ display: "inline-flex" }}>
-                            <PlusIconButton onClick={() => setAssignDialogOpen(true)} />
-                        </div>
-                    ) : null}
-                </div>
+            </div>
+            <div className="flex center-items gap--little">
+                <StateTimelineBar history={row.history} maxTotalDays={maxTotalDays} />
+                {_.isString(formatDurationPhrase(row.duration_days)) ? (
+                    <span style={{ fontSize: "0.7rem", color: "#777", whiteSpace: "nowrap" }}>
+                        Since {formatDurationPhrase(row.duration_days)}
+                    </span>
+                ) : null}
+                {isCurator ? (
+                    <div onClick={(e) => { e.stopPropagation(); setAssignDialogOpen(true) }} style={{ marginLeft: "auto", display: "inline-flex" }}>
+                        <PlusIconButton onClick={() => setAssignDialogOpen(true)} />
+                    </div>
+                ) : null}
             </div>
             {isAssignDialogOpen ? (
                 <AssignProcedureDialog
