@@ -31,8 +31,9 @@ function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoadin
 }
 
 /**
- * @description Dialog to edit the research groups of a consortium. The users of a consortium are
- * the members of its research groups. Users can be added by adding their research group.
+ * @description Dialog to edit the research groups of a consortium. The research groups are
+ * eligibility anchors: their heads (PIs) become direct members of the consortium, other
+ * users can be added individually by curators/admins.
  * @param {Object} props
  * @param {Boolean} props.isOpen
  * @param {String} props.tag Consortium tag
@@ -61,7 +62,8 @@ export function EditConsortiumGroupsDialog({ isOpen, tag, title, onClose }) {
         <DialogBody>
             {_.isString(tag) && _.isArray(user_tags) ?
                 <div className="font-size--small margin-bottom--little">
-                    Users in consortium (via its research groups) : <strong>{user_tags.length}</strong>
+                    Direct members of the consortium : <strong>{user_tags.length}</strong>
+                    <span className="font-size--smallest"> (the heads/PIs of the groups join automatically)</span>
                 </div> : null}
             <h4>Research groups of the consortium</h4>
             <div className="flex flex-column container--scroll-y-hide-x padding--medium" style={{ height: "35vh", gap: "0.5rem" }}>

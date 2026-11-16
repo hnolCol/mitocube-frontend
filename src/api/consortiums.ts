@@ -15,4 +15,20 @@ export const pendingConsortiumShareRequestsAPI = {
     useDenyConsortiumShareRequest
 }
 
+const {
+    useGetPendingConsortiumMembershipRequests,
+    useGetMyPendingConsortiumMembershipRequests,
+    usePostConsortiumMembershipRequest,
+    useApproveConsortiumMembershipRequest,
+    useDenyConsortiumMembershipRequest
+} = consortiumsAPI;
+
+export const consortiumMembershipRequestsAPI = {
+    useGetPendingConsortiumMembershipRequests,
+    useGetMyPendingConsortiumMembershipRequests,
+    usePostConsortiumMembershipRequest,
+    useApproveConsortiumMembershipRequest,
+    useDenyConsortiumMembershipRequest
+}
+
 export { consortiumsAPI };

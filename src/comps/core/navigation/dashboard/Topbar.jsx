@@ -15,6 +15,7 @@ import { api } from "@/api"
 import { PendingConsortiumShareRequestButton } from "../../base/user/PendingConsortiumShareRequestButton"
 import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButton"
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
+import { ConsortiumMembershipRequestsButton } from "../../base/user/ConsortiumMembershipRequestsButton"
 import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
 import { MessagesButton } from "@/comps/messages"
 import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
@@ -105,6 +106,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
             </div>
             <div className="flex">
                 <ConsortiumShareDecisionsButton />
+                <ConsortiumMembershipRequestsButton />
                 <DepositionRequestsButton userRole={userRole} />
                 <PendingConsortiumShareRequestButton />
                 <PendingCollaborationRequestButton />

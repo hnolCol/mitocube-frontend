@@ -5,6 +5,8 @@ import { api } from "@/api";
 import { AddConsortiumDialog } from "./AddConsortium";
 import { ConsortiumContainer } from "./ConsortiumContainer";
 import { EditConsortiumGroupsDialog } from "./EditConsortiumGroups";
+import { EditConsortiumUsersDialog } from "./EditConsortiumUsers";
+import { ConsortiumMembershipRequestsDialog } from "./ConsortiumMembershipRequests";
 import { ConsortiumSubmissionsDialog } from "./Submissions";
 import { OptionButton } from "../../core/base/buttons/OptionButton";
 import { useSearchParamState } from "../../../hooks/useSearchParamState";
@@ -19,7 +21,9 @@ export function AdminConsortium({ }) {
     const [refetchTrigger, setRefetchTrigger] = useState(undefined)
     const [isAddDialogOpen, setIsOpen] = useState(false)
     const [editGroupsDialog, setEditGroupsDialog] = useState({ isOpen: false, tag: undefined, title: undefined })
+    const [editUsersDialog, setEditUsersDialog] = useState({ isOpen: false, tag: undefined, title: undefined })
     const [submissionsDialog, setSubmissionsDialog] = useState({ isOpen: false, tag: undefined, title: undefined })
+    const [isMembershipRequestsDialogOpen, setIsMembershipRequestsDialogOpen] = useState(false)
 
     const handleAddDialogClose = () => {
         setIsOpen(false)
@@ -35,11 +39,19 @@ export function AdminConsortium({ }) {
             tag={editGroupsDialog.tag}
             title={editGroupsDialog.title}
             onClose={() => setEditGroupsDialog({ isOpen: false, tag: undefined, title: undefined })} />
+        <EditConsortiumUsersDialog
+            isOpen={editUsersDialog.isOpen}
+            tag={editUsersDialog.tag}
+            title={editUsersDialog.title}
+            onClose={() => setEditUsersDialog({ isOpen: false, tag: undefined, title: undefined })} />
         <ConsortiumSubmissionsDialog
             isOpen={submissionsDialog.isOpen}
             tag={submissionsDialog.tag}
             title={submissionsDialog.title}
             onClose={() => setSubmissionsDialog({ isOpen: false, tag: undefined, title: undefined })} />
+        <ConsortiumMembershipRequestsDialog
+            isOpen={isMembershipRequestsDialogOpen}
+            onClose={() => setIsMembershipRequestsDialogOpen(false)} />
 
         <h2>Consortiums</h2>
 
@@ -48,9 +60,16 @@ export function AdminConsortium({ }) {
             onClick={() => setIsOpen(prevValue => !prevValue)}
             icon={"plus"} />
 
+        <Button
+            minimal={true}
+            icon={"swap"}
+            text="Membership requests"
+            onClick={() => setIsMembershipRequestsDialogOpen(true)} />
+
         <ConsortiumView
             refetchTrigger={refetchTrigger}
             setEditGroupsDialog={setEditGroupsDialog}
+            setEditUsersDialog={setEditUsersDialog}
             setSubmissionsDialog={setSubmissionsDialog} />
     </div>
 }
@@ -60,10 +79,11 @@ export function AdminConsortium({ }) {
  * @param {Object} props
  * @param {Number} props.refetchTrigger Triggers a refetch of the consortium list
  * @param {Function} props.setEditGroupsDialog Setter for the edit groups dialog state
+ * @param {Function} props.setEditUsersDialog Setter for the edit members dialog state
  * @param {Function} props.setSubmissionsDialog Setter for the submissions dialog state
  * @returns {JSX.Element} The consortium list view.
  */
-export function ConsortiumView({ refetchTrigger, setEditGroupsDialog, setSubmissionsDialog }) {
+export function ConsortiumView({ refetchTrigger, setEditGroupsDialog, setEditUsersDialog, setSubmissionsDialog }) {
     const { searchString, setSearchString, debounced, limit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
 
     const { data: consortium_tags, refetch } = api.consortiums.useGetConsortiums(
@@ -97,6 +117,7 @@ export function ConsortiumView({ refetchTrigger, setEditGroupsDialog, setSubmiss
             <ConsortiumContainer
                 tags={consortium_tags}
                 setEditGroupsDialog={setEditGroupsDialog}
+                setEditUsersDialog={setEditUsersDialog}
                 setSubmissionsDialog={setSubmissionsDialog}
             />
         </div>

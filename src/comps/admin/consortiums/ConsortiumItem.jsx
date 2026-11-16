@@ -12,10 +12,11 @@ import { ConsortiumUsersCount } from "./UsersCount";
  * @param {Object} props
  * @param {String} props.tag Consortium tag
  * @param {Function} props.setEditGroupsDialog Setter for the edit groups dialog state
+ * @param {Function} props.setEditUsersDialog Setter for the edit members dialog state
  * @param {Function} props.setSubmissionsDialog Setter for the submissions dialog state
  * @returns {JSX.Element} The consortium item card.
  */
-export function ConsortiumItem({ tag, setEditGroupsDialog, setSubmissionsDialog }) {
+export function ConsortiumItem({ tag, setEditGroupsDialog, setEditUsersDialog, setSubmissionsDialog }) {
 
     const { data: consortium, isSuccess, isLoading, isFetching } = api.consortiums.useGetConsortiumByTag({ tag }, { enabled: _.isString(tag), staleTime: Infinity })
     return (<div className="div--round padding--medium" style={{ backgroundColor: "#fefefe", width: "100%" }}>
@@ -23,7 +24,8 @@ export function ConsortiumItem({ tag, setEditGroupsDialog, setSubmissionsDialog 
     {isSuccess && _.isObject(consortium) ?<ContextMenu content={<Menu>
             <MenuItem text={`${consortium.text}`} disabled />
             <MenuDivider />
-            <MenuItem text="Edit users" label="" onClick={() => setEditGroupsDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit research groups (users) for ${consortium.text}.` } })} />
+            <MenuItem text="Edit research groups" label="" onClick={() => setEditGroupsDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit research groups for ${consortium.text}.` } })} />
+            <MenuItem text="Edit members" label="" onClick={() => setEditUsersDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Edit members for ${consortium.text}.` } })} />
             <MenuItem text="View submissions" label="" onClick={() => setSubmissionsDialog(prevValues => { return { ...prevValues, isOpen: true, tag, title: `Submissions shared with ${consortium.text}.` } })} />
             <MenuItem text="Delete" intent="danger" label="" disabled/>
         </Menu>}>
