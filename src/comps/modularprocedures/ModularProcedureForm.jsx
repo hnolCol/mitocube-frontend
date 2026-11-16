@@ -1,16 +1,17 @@
 import { Callout } from "@blueprintjs/core";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import _ from "lodash";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { ConditionApplicationInput } from "@/comps/core/input/api/ConditionApplicationInput";
-import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
-import { TraitInput } from "@/comps/core/input/api/TraitInput";
+import { AttributesInput } from "@/comps/core/input/api/DatasetAttributeInput";
+import { DatasetAttributeView } from "@/comps/core/base/attributes/DatasetAttributeView";
+import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "@/comps/submission/new/sample_attributes/select/SamplesAttributeWrapper";
+import { getRandomID } from "@/services/random";
 import { ProtocolMinimalItem } from "@/comps/admin/protocols/ProtocolMinimalItem";
 
 const INIT_PROCEDURE = { title: "", description: "", condition_application_tags: [], condition_application_trees: [], protocol_tags: [] }
-const makeAttributeNode = (tag) => ({ tag, type: "attribute", value: null, children: [] })
-const makeTraitNode = (tag) => ({ tag, type: "trait", value: null, children: [] })
+
 
 /**
  * Form to create a new modular procedure or edit an existing draft.
@@ -49,20 +50,40 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
         })
     }
 
-    const handleAddTreeAttribute = (attribute_tag) => {
-        if (!_.isString(attribute_tag)) return
-        setProcedure((prev) => {
-            if (prev.condition_application_trees.some((tree) => tree.tag === attribute_tag)) return prev
-            return { ...prev, condition_application_trees: [...prev.condition_application_trees, makeAttributeNode(attribute_tag)] }
-        })
+    // hierarchical condition application definition, reusing the submission insert machinery
+    // (AttributesInput + DatasetAttributeView/TraitWithValueInput with its attribute checks)
+    const referenceID = useMemo(() => getRandomID(), [])
+
+    const getSelectionByPath = (path) => findChildrenByPath(procedure.condition_application_trees, path)
+
+    const handleTraitSelectionHierarchy = (path, rowIndex, enforceSingleVariantPerGroup = false,
+                                            replaceChildrenAtLeaf = false, singleTrait = false, checkExists = false) => {
+        path = addIDToPath(path, referenceID)
+        const selected_traits = procedure.condition_application_trees.slice()
+        const pathExists = checkPathExists(selected_traits, path, true)
+        const isValueInput = _.last(path).type === "trait" && _.has(_.last(path), "value") && _.isString(_.last(path).value)
+        if (checkExists && pathExists && !isValueInput) {
+            deleteByPath(selected_traits, path, true)
+        } else {
+            findAndInsertTree(selected_traits, path, {
+                enforceSingleVariantPerGroup,
+                replaceChildrenAtLeaf,
+                singleTrait
+            })
+        }
+        setProcedure((prev) => ({ ...prev, condition_application_trees: selected_traits }))
     }
 
-    const mutateTree = (rootIndex, mutator) => {
-        setProcedure((prev) => {
-            const trees = _.cloneDeep(prev.condition_application_trees)
-            mutator(trees[rootIndex])
-            return { ...prev, condition_application_trees: trees }
-        })
+    const handleTraitRemove = (path) => {
+        const selected_traits = procedure.condition_application_trees.slice()
+        deleteByPath(selected_traits, path, false)
+        setProcedure((prev) => ({ ...prev, condition_application_trees: selected_traits }))
+    }
+
+    const checkAttributeRequiredTraits = (attribute_tag, trait_tags, id) => {
+        const selected_traits = procedure.condition_application_trees.slice()
+        const foundNode = trait_tags.map((trait_tag) => findNode(selected_traits, "trait", trait_tag, id))
+        return _.some(foundNode)
     }
 
     const handleSelectProtocol = (protocol_tag) => {
@@ -100,21 +121,22 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                     </span>)}
             </div> : null}
         <Callout intent="primary" title="Define new condition applications">
-            Alternatively define condition applications newly as attribute/trait trees (like when inserting a
-            submission) — e.g. attribute <em>Liquid Handler</em> → trait <em>Hamilton</em>, even if that
-            combination was never used before.
+            Alternatively define condition applications newly as hierarchical attribute/trait trees (like when
+            inserting a submission) — e.g. attribute <em>Liquid Handler</em> → trait <em>Hamilton</em>, even if
+            that combination was never used before.
         </Callout>
-        <AttributeInput text="Add attribute (e.g. Liquid Handler)" onItemSelect={handleAddTreeAttribute} />
-        {procedure.condition_application_trees.length > 0 ?
-            <div style={{ border: "1px solid #ddd", borderRadius: "4px", padding: "0.5rem" }}>
-                {procedure.condition_application_trees.map((tree, rootIndex) =>
-                    <TreeNodeEditor key={`${tree.tag}-${rootIndex}`} node={tree}
-                        onChange={(mutator) => mutateTree(rootIndex, mutator)}
-                        onRemove={() => setProcedure((prev) => ({
-                            ...prev,
-                            condition_application_trees: prev.condition_application_trees.filter((_, i) => i !== rootIndex)
-                        }))} />)}
-            </div> : null}
+        <AttributesInput
+            handleTraitSelection={handleTraitSelectionHierarchy}
+            min_state={2}
+            selected_traits={procedure.condition_application_trees}
+            placeHolderText="Search attribute (liquid handler, instrument, ...)" />
+        <DatasetAttributeView
+            getSelectionByPath={getSelectionByPath}
+            submission_tag={referenceID}
+            attributeTraits={procedure.condition_application_trees}
+            onChildrenSelection={handleTraitSelectionHierarchy}
+            handleTraitRemove={handleTraitRemove}
+            checkAttributeRequiredTraits={checkAttributeRequiredTraits} />
         <Callout intent="primary" title="Linked Protocols">
             Select the protocols that form the basis of this modular procedure.
         </Callout>
@@ -140,56 +162,5 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 onClick={() => setProcedure(INIT_PROCEDURE)}>Reset</button>
             <button disabled={isPending} className="basic-button" onClick={onCancel}>Cancel</button>
         </div>
-    </div>
-}
-
-/**
- * Recursive editor for one node of a condition application attribute/trait tree.
- * Attribute nodes offer trait selection (via TraitInput), trait nodes offer an optional
- * value and nested child attributes (via AttributeInput) — mirroring the hierarchical
- * condition application definition of the submission insert.
- */
-function TreeNodeEditor({ node, onChange, onRemove, depth = 0 }) {
-
-    const addChildTrait = (attribute_tag, trait_tag) => {
-        if (!_.isString(trait_tag)) return
-        onChange((treeNode) => {
-            if (treeNode.children.some((child) => child.type === "trait" && child.tag === trait_tag)) return
-            treeNode.children.push(makeTraitNode(trait_tag))
-        })
-    }
-
-    const addChildAttribute = (attribute_tag) => {
-        if (!_.isString(attribute_tag)) return
-        onChange((treeNode) => {
-            if (treeNode.children.some((child) => child.type === "attribute" && child.tag === attribute_tag)) return
-            treeNode.children.push(makeAttributeNode(attribute_tag))
-        })
-    }
-
-    const setValue = (value) => {
-        onChange((treeNode) => { treeNode.value = value.length === 0 ? null : (_.isNaN(_.toNumber(value)) ? value : _.toNumber(value)) })
-    }
-
-    return <div style={{ marginLeft: `${depth * 1.25}rem`, marginTop: "0.25rem", borderLeft: depth > 0 ? "1px solid #eee" : "none", paddingLeft: depth > 0 ? "0.5rem" : 0 }}>
-        <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
-            <strong>{node.tag}</strong>
-            <span className="font-size--small" style={{ color: "#888" }}>{node.type}</span>
-            {node.type === "trait" ?
-                <input className="text-input" type="text" placeholder="Value (optional)"
-                    style={{ width: "10rem" }}
-                    value={_.isNull(node.value) || _.isUndefined(node.value) ? "" : String(node.value)}
-                    onChange={(e) => setValue(e.target.value)} /> : null}
-            <button className="basic-button basic-button--small" onClick={onRemove}>✕</button>
-        </div>
-        {node.type === "attribute" ?
-            <TraitInput attribute_tag={node.tag} text="Add trait"
-                onItemSelect={addChildTrait} /> : null}
-        {node.type === "trait" ?
-            <AttributeInput text="Add child attribute (optional)" onItemSelect={addChildAttribute} /> : null}
-        {node.children.map((child, index) =>
-            <TreeNodeEditor key={`${child.tag}-${index}`} node={child} depth={depth + 1}
-                onChange={(mutator) => onChange((treeNode) => mutator(treeNode.children[index]))}
-                onRemove={() => onChange((treeNode) => treeNode.children.splice(index, 1))} />)}
     </div>
 }
