@@ -639,6 +639,10 @@ h5 {
     color: white;
 }
 
+.bg--blue-lighter {
+    background-color: #4666881a;
+}
+
 
 .action-button {
     width: 25px;

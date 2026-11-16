@@ -258,7 +258,7 @@ export function WithinCASelection({ submission_tag, attribute_tag, selected, onC
 
 }
     
-export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = false, showAnnotationSubset = true, displayOnly = false, displayProps = {}, autoSelectDefaults = false }) {
+export function ConditionApplicationSelection({ submission_tag, onConfirm, reset_after_confirm = false, isLoadingData = false, minimal = false, showTable = false, showAnnotationSubset = true, displayOnly = false, displayProps = {}, autoSelectDefaults = false, confirmButtonText = "Confirm", confirmButtonHighlighted = false }) {
     const [attribute, setAttribute] = useState(undefined)
     const [pairwiseComp, setPairwiseComp] = useState({left : [], right : [], impute : false, annotation_tag : undefined})
     const [withinFilters, setWithinFilters] = useState({})
@@ -437,7 +437,7 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
             </Tooltip> : null}
         </div>
         <div>
-        <button className={inputIsSufficient ? `basic-button ${minimal ? "basic-button--small basic-button--highlighted" : ""}` : "basic-button basic-button--excluded " + "basic-button--highlighted"} disabled={!inputIsSufficient} onClick={handleConfirm}>Confirm</button> 
+        <button className={inputIsSufficient ? `basic-button ${confirmButtonHighlighted ? "bg--blue-light" : ""} ${minimal ? "basic-button--small basic-button--highlighted" : ""}` : "basic-button basic-button--excluded " + "basic-button--highlighted"} disabled={!inputIsSufficient} onClick={handleConfirm}>{confirmButtonText}</button> 
         <button disabled={isLoadingData} onClick={handleReset} className={`basic-button margin-top--little ${minimal ? "basic-button--small" : ""}`}>Reset</button>
         </div>
         {isLoadingData ? <strong><Loading /></strong>: null }
