@@ -5,25 +5,72 @@ import { api } from "@/api";
 import { apiClient } from "@/api/client";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { ConditionApplicationInput } from "@/comps/core/input/api/ConditionApplicationInput";
+import { UserInput } from "@/comps/core/input/api/UserInput";
+import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
+import { TraitInput } from "@/comps/core/input/api/TraitInput";
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog";
 
 const rowLabel = (rowIndex) => String.fromCharCode(rowIndex + 65)
 const positionOf = (rowIndex, columnIndex) => `${rowLabel(rowIndex)}${columnIndex + 1}`
 
 /**
+ * Downloads a txt template for well metrics: one header line (well + one column per attribute)
+ * and one line per well, ready to be filled in and uploaded again.
+ */
+export function downloadMetricsTemplate(wellPositions, traitTags, filename = "well_metrics_template.txt") {
+    const lines = [["well", ...traitTags].join("\t")]
+    wellPositions.forEach((position) => lines.push([position, ...traitTags.map(() => "")].join("\t")))
+    const blob = new Blob([lines.join("\n") + "\n"], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = filename
+    link.click()
+    URL.revokeObjectURL(url)
+}
+
+/**
+ * Parses an uploaded well metrics txt file (tab, comma or semicolon separated).
+ * The header line names the attribute tags; each following line is a well position
+ * followed by one numeric value per attribute. Returns {position, values} entries.
+ */
+export function parseMetricsFile(content, traitTags) {
+    const rows = content.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0)
+    if (rows.length < 2) throw new Error("The file must contain a header line and at least one well line.")
+    const separator = [ "\t", ";", "," ].find((sep) => rows[0].includes(sep)) || "\t"
+    const header = rows[0].split(separator).map((column) => column.trim())
+    if (header[0].toLowerCase() !== "well") throw new Error("The first header column must be 'well'.")
+    const columns = header.slice(1).map((trait_tag) => {
+        if (!traitTags.includes(trait_tag))
+            throw new Error(`Unknown trait in the header: ${trait_tag}`)
+        return trait_tag
+    })
+    const wellMetrics = []
+    rows.slice(1).forEach((row) => {
+        const cells = row.split(separator).map((cell) => cell.trim())
+        const position = cells[0]
+        if (!/^[A-Za-z]+[0-9]+$/.test(position)) throw new Error(`Invalid well position: ${position}`)
+        const values = []
+        columns.forEach((trait_tag, index) => {
+            const cell = cells[index + 1]
+            if (cell.length === 0) return
+            const value = _.toNumber(cell)
+            if (_.isNaN(value)) throw new Error(`Value '${cell}' for ${trait_tag} in well ${position} is not a number.`)
+            values.push({ trait_tag, value })
+        })
+        values.forEach((metric) => wellMetrics.push({ position: position.toUpperCase(), trait_tag: metric.trait_tag, value: metric.value }))
+    })
+    return wellMetrics
+}
+
+/**
  * Dialog to execute a published modular procedure on a set of samples:
  * select the input and output plates, place samples on the input plate,
- * map input wells to output wells (pooling and splitting supported) and
- * assign condition applications to output wells.
- *
- * Interactions:
- * - Click a sample, then click input wells to place it (click several wells to split it).
- * - Click an occupied input well to select it, then click or drag over output wells to
- *   build the transfer map (pooling: map several input wells onto the same output well).
- * - Click an output well to select it and add condition applications to it.
- * - Right-click an input well to clear it, right-click an output well to unmap the selected input well.
+ * map input wells to output wells (pooling and splitting supported),
+ * assign condition applications to output wells, pick the responsible user
+ * and optionally upload measured well metrics (e.g. protein concentration).
  */
-export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose, onExecuted }) {
+export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose, onExecuted, current_user_tag }) {
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag) && isOpen })
@@ -40,6 +87,11 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     const [selectedInputWell, setSelectedInputWell] = useState(null)
     const [outputWells, setOutputWells] = useState({})
     const [selectedOutputWell, setSelectedOutputWell] = useState(null)
+    const [responsibleUserTags, setResponsibleUserTags] = useState([])
+    const [metricParams, setMetricParams] = useState([])  // [{attribute_tag, trait_tag}]
+    const [metricAttributeTag, setMetricAttributeTag] = useState(null)
+    const [wellMetrics, setWellMetrics] = useState([])     // [{position, trait_tag, value}]
+    const [metricsError, setMetricsError] = useState(null)
 
     const { mutate: execute, isPending, isError, error } = api.modularProcedures.execute.useExecuteModularProcedure()
 
@@ -53,6 +105,11 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
             apiClient.get(`/submissions/${link.submission_tag}/samples`)
                 .then((res) => _.isArray(res.data) ? res.data : [])
                 .catch(() => [])
+                .then((tags) => tags.map((tag) => ({
+                    tag,
+                    submission_tag: link.submission_tag,
+                    submission_label: link.submission_label || link.submission_tag,
+                })))
         )).then((results) => {
             if (!cancelled) setAvailableSamples(_.flatten(results))
         })
@@ -60,11 +117,16 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     }
     useEffect(fetchSamples, [isOpen, submissions])
 
+    useEffect(() => {
+        if (isOpen && current_user_tag) setResponsibleUserTags([current_user_tag])
+    }, [isOpen, current_user_tag])
+
     const placeSample = (position) => {
+        const sample_tag = pickedSample.tag
         setInputWells((prev) => {
             const samples = prev[position]?.sample_tags || []
-            if (samples.includes(pickedSample)) return prev
-            return { ...prev, [position]: { sample_tags: [...samples, pickedSample], output_positions: prev[position]?.output_positions || [] } }
+            if (samples.includes(sample_tag)) return prev
+            return { ...prev, [position]: { sample_tags: [...samples, sample_tag], output_positions: prev[position]?.output_positions || [] } }
         })
     }
 
@@ -80,10 +142,7 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     }
 
     const handleClearInputWell = (position) => {
-        setInputWells((prev) => {
-            const next = _.omit(prev, position)
-            return next
-        })
+        setInputWells((prev) => _.omit(prev, position))
         if (selectedInputWell === position) setSelectedInputWell(null)
     }
 
@@ -128,6 +187,44 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         })
     }
 
+    const handleAddMetricAttribute = (attribute_tag) => setMetricAttributeTag(attribute_tag)
+
+    const handleMetricTraitSelect = (trait_tag) => {
+        if (trait_tag && metricAttributeTag) {
+            setMetricParams((prev) => prev.some((p) => p.trait_tag === trait_tag) ? prev :
+                [...prev, { attribute_tag: metricAttributeTag, trait_tag }])
+        }
+        setMetricAttributeTag(null)
+    }
+
+    const handleRemoveMetricParam = (trait_tag) => {
+        setMetricParams((prev) => prev.filter((p) => p.trait_tag !== trait_tag))
+        setWellMetrics((prev) => prev.filter((m) => m.trait_tag !== trait_tag))
+    }
+
+    const handleMetricsUpload = (event) => {
+        setMetricsError(null)
+        const file = event.target.files?.[0]
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = () => {
+            try {
+                const parsed = parseMetricsFile(String(reader.result), metricParams.map((p) => p.trait_tag))
+                const outputPositions = _.keys(outputWells)
+                const unknown = parsed.map((m) => m.position).filter((position) => !outputPositions.includes(position))
+                if (unknown.length > 0)
+                    throw new Error(`Wells in the file are not output wells of this execution: ${unknown.join(", ")}`)
+                setWellMetrics((prev) => [
+                    ...prev.filter((m) => !parsed.some((p) => p.position === m.position && p.trait_tag === m.trait_tag)),
+                    ...parsed])
+            } catch (e) {
+                setMetricsError(e.message)
+            }
+        }
+        reader.readAsText(file)
+        event.target.value = ""
+    }
+
     const handleAutoMap = () => {
         const outputRows = outputPlate?.rows || 0
         const outputColumns = outputPlate?.columns || 0
@@ -160,14 +257,16 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         const output_wells = _.map(outputWells, (well, position) => ({
             position, condition_application_tags: well.condition_application_tags || []
         }))
+        const output_well_metrics = wellMetrics
         execute({ tag: procedure_tag, input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
-                  input_wells, output_wells }, {
+                  responsible_user_tag: responsibleUserTags[0], input_wells, output_wells, output_well_metrics }, {
             onSuccess: () => { if (onExecuted) onExecuted() }
         })
     }
 
     const placedSamples = _.flatten(_.map(inputWells, (well) => well.sample_tags))
-    const unplacedSamples = availableSamples.filter((sample) => !placedSamples.includes(sample))
+    const unplacedSamples = availableSamples.filter((sample) => !placedSamples.includes(sample.tag))
+    const unplacedBySubmission = _.groupBy(unplacedSamples, "submission_label")
     const unmappedWells = _.filter(inputWells, (well) => (well.output_positions || []).length === 0).length
     const canExecute = inputPlateTag !== null && outputPlateTag !== null &&
         _.size(inputWells) > 0 && unmappedWells === 0
@@ -195,6 +294,13 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                             {plates?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
                         </select>
                     </label>
+                    <div style={{ minWidth: "260px" }}>
+                        <div className="font-size--small">Responsible user</div>
+                        <UserInput selected_users={responsibleUserTags}
+                            onUserSelect={(callbackKey, user_tag) => setResponsibleUserTags(user_tag ? [user_tag] : [])}
+                            current_user_tag={current_user_tag}
+                            label="Responsible" showLabel={false} isRequired={false} />
+                    </div>
                     <div className="flex center-items" style={{ gap: "0.5rem", alignSelf: "end" }}>
                         <button className="basic-button basic-button--small" disabled={!inputPlate || !outputPlate}
                             onClick={handleAutoMap}>Auto-map 1:1</button>
@@ -224,16 +330,23 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                         </div> : null}
                         {unplacedSamples.length === 0 && availableSamples.length > 0 ?
                             <div className="font-size--small" style={{ color: "#888" }}>All samples placed.</div> : null}
-                        {unplacedSamples.map((sample) =>
-                            <button key={sample} className="basic-button basic-button--small"
-                                style={{ width: "100%", textAlign: "left", marginBottom: "0.25rem",
-                                    background: pickedSample === sample ? "#48aff0" : undefined }}
-                                onClick={() => setPickedSample(pickedSample === sample ? null : sample)}>
-                                {sample}
-                            </button>)}
+                        {_.map(unplacedBySubmission, (samples, submission_label) =>
+                            <div key={submission_label}>
+                                <div className="font-size--small" style={{ color: "#888", margin: "0.25rem 0 0.1rem 0" }}>
+                                    {submission_label}
+                                </div>
+                                {samples.map((sample) =>
+                                    <button key={sample.tag} className="basic-button basic-button--small"
+                                        title={sample.submission_tag}
+                                        style={{ width: "100%", textAlign: "left", marginBottom: "0.25rem",
+                                            background: pickedSample?.tag === sample.tag ? "#48aff0" : undefined }}
+                                        onClick={() => setPickedSample(pickedSample?.tag === sample.tag ? null : sample)}>
+                                        {sample.tag}
+                                    </button>)}
+                            </div>)}
                         {pickedSample !== null ?
                             <div className="font-size--small" style={{ color: "#48aff0", marginTop: "0.25rem" }}>
-                                Placing "{pickedSample}" — click one or more input wells.
+                                Placing "{pickedSample.tag}" — click one or more input wells.
                             </div> : null}
                     </div>
 
@@ -269,6 +382,49 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                         </> :
                             <div className="font-size--small" style={{ color: "#888" }}>Select an output plate.</div>}
                     </div>
+                </div>
+
+                <div style={{ borderTop: "1px solid #ddd", paddingTop: "0.5rem" }}>
+                    <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+                        <h4 style={{ margin: 0 }}>Well metrics</h4>
+                        <AttributeInput text="Add metric attribute (e.g. Concentration)" onItemSelect={handleAddMetricAttribute} />
+                        {metricAttributeTag !== null ?
+                            <TraitInput attribute_tag={metricAttributeTag} text="Pick trait (e.g. ug/ul)"
+                                onItemSelect={handleMetricTraitSelect} /> : null}
+                        {metricParams.map((param) =>
+                            <Tag key={param.trait_tag} minimal onRemove={() => handleRemoveMetricParam(param.trait_tag)}>
+                                {param.trait_tag}
+                            </Tag>)}
+                        {metricParams.length > 0 && _.size(outputWells) > 0 ? <>
+                            <button className="basic-button basic-button--small"
+                                onClick={() => downloadMetricsTemplate(_.keys(outputWells), metricParams.map((p) => p.trait_tag))}>
+                                Download template
+                            </button>
+                            <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
+                                Upload data
+                                <input type="file" accept=".txt,.tsv,.csv" style={{ display: "none" }}
+                                    onChange={handleMetricsUpload} />
+                            </label>
+                        </> : null}
+                    </div>
+                    {metricsError ? <div className="font-size--small" style={{ color: "#cd4246", marginTop: "0.25rem" }}>{metricsError}</div> : null}
+                    {metricParams.length === 0 ?
+                        <div className="font-size--small" style={{ color: "#888", marginTop: "0.25rem" }}>
+                            Optionally define measured quantities: pick an attribute (e.g. Concentration) and a trait
+                            (e.g. ug/ul), download the txt template, fill in the values per well and upload it.
+                            Metrics can also be added after the execution.
+                        </div> : null}
+                    {wellMetrics.length > 0 ? <div style={{ marginTop: "0.5rem", maxHeight: "20vh", overflowY: "auto" }}>
+                        {wellMetrics.map((metric) =>
+                            <div key={`${metric.position}-${metric.trait_tag}`} className="flex center-items" style={{ gap: "0.5rem" }}>
+                                <strong style={{ minWidth: "2.5rem" }}>{metric.position}</strong>
+                                <span className="font-size--small">
+                                    {metric.trait_tag}: <strong>{metric.value}</strong>
+                                </span>
+                                <button className="basic-button basic-button--small"
+                                    onClick={() => setWellMetrics((prev) => prev.filter((m) => m !== metric))}>Remove</button>
+                            </div>)}
+                    </div> : null}
                 </div>
 
                 {isError ? <APIAxiosError error={error} /> : null}
