@@ -2,6 +2,7 @@ import { useOutletContext } from "react-router";
 import _ from "lodash"
 import { SamplePGCounts } from "./PGCounts";
 import { QuantificationDistribution } from "./QuantificationDistribution";
+import { ManipulationTargets } from "./ManipulationTargets";
 
 
 
@@ -26,6 +27,7 @@ function DatasetQC() {
             
             {/* <CategoricalBoxplot/> */}
             {/* <CategoricalBoxplot data={datatable} /> */}
+            <ManipulationTargets submission_tag={submission_tag} />
             <h3>Number of valid values in each sample</h3>
             <SamplePGCounts tag={submission_tag} />
             <QuantificationDistribution submission_tag={submission_tag} quantification_type="protein_groups" />
