@@ -2,14 +2,18 @@ import PropTypes from "prop-types"
 import _ from "lodash"
 import { useState } from "react"
 import { useLocation, useNavigate } from "react-router"
-import { Popover } from "@blueprintjs/core"
+import { Popover, Tooltip } from "@blueprintjs/core"
 
 GroupedTabs.propTypes = {
     groups: PropTypes.arrayOf(PropTypes.shape({
         text: PropTypes.string.isRequired,
         tabs: PropTypes.arrayOf(PropTypes.shape({
             text: PropTypes.string.isRequired,
-            to: PropTypes.string.isRequired
+            to: PropTypes.string.isRequired,
+            disabled: PropTypes.bool,
+            note: PropTypes.string,
+            disabledHint: PropTypes.string,
+            exact: PropTypes.bool
         })).isRequired
     })).isRequired
 }
@@ -18,21 +22,39 @@ TabItem.propTypes = {
     text: PropTypes.string.isRequired,
     to: PropTypes.string.isRequired,
     active: PropTypes.bool,
-    onSelect: PropTypes.func
+    onSelect: PropTypes.func,
+    disabled: PropTypes.bool,
+    note: PropTypes.string,
+    disabledHint: PropTypes.string
 }
 
-function TabItem({ text, to, active = false, onSelect }) {
+function TabItem({ text, to, active = false, onSelect, disabled = false, note, disabledHint }) {
     const redirect = useNavigate()
-    return <button
+    const button = <button
         className={"basic-button--small " + `${active ? "basic-button--highlighted" : ""}`}
-        style={{ cursor: "pointer", display: "flex", width: "100%", margin: "0.15rem 0", fontWeight: active ? 600 : 400 }}
+        style={{
+            cursor: disabled ? "not-allowed" : "pointer",
+            display: "flex",
+            width: "100%",
+            margin: "0.15rem 0",
+            fontWeight: active ? 600 : 400,
+            opacity: disabled ? 0.5 : 1
+        }}
         onClick={() => {
+            if (disabled) return
             redirect(to)
             if (_.isFunction(onSelect)) onSelect()
         }}
     >
         {text}
+        {disabled && _.isString(note) ? <span className="font-size--smallest" style={{ marginLeft: "0.3rem", color: "#8a8a8a" }}>{note}</span> : null}
     </button>
+    if (disabled && _.isString(disabledHint)) {
+        return <Tooltip compact={true} content={disabledHint}>
+            <div style={{ width: "100%" }}>{button}</div>
+        </Tooltip>
+    }
+    return button
 }
 
 /**
@@ -45,7 +67,9 @@ function GroupedTabs({ groups }) {
     const location = useLocation()
     const [openGroup, setOpenGroup] = useState(null)
 
-    const isActive = tab => location.pathname === tab.to || _.startsWith(location.pathname, tab.to + "/")
+    const isActive = tab => tab.exact
+        ? location.pathname === tab.to
+        : location.pathname === tab.to || _.startsWith(location.pathname, tab.to + "/")
 
     const activeGroup = groups.find(group => group.tabs.some(isActive))
     const activeTab = activeGroup ? activeGroup.tabs.find(isActive) : null
@@ -67,6 +91,9 @@ function GroupedTabs({ groups }) {
                         to={tab.to}
                         active={activeTab?.to === tab.to}
                         onSelect={() => setOpenGroup(null)}
+                        disabled={tab.disabled}
+                        note={tab.note}
+                        disabledHint={tab.disabledHint}
                     />)}
                 </div>}
             >

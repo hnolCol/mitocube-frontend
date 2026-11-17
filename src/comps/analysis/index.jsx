@@ -1,11 +1,14 @@
 import { Outlet, useParams } from "react-router";
 import { NonIdealState } from "@blueprintjs/core";
-import Tabs from "../core/navigation/tabs";
+import GroupedTabs from "../core/navigation/tabs/GroupedTabs";
 import Loading from "../core/base/loading";
 import _ from "lodash"
 import { useEffect } from "react";
 
 import { api } from "@/api";
+
+const NOT_AVAILABLE_NOTE = "no data"
+const NOT_AVAILABLE_HINT = "This analysis is not available without quantification data."
 
 
 /**
@@ -25,6 +28,12 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
         { enabled: _.isString(submission_tag), staleTime: 60000 }
     )
     const { mutate: insertSubmissionView } = api.submissions.views.usePostSubmissionView()
+
+    const { data: quantificationExists } = api.submissions.quantifications.useGetSubmissionQuantificationExists(
+        { tag: submission_tag, quantification_type: "any" },
+        { staleTime: 60000, enabled: _.isString(submission_tag) }
+    )
+    const analysisDisabled = quantificationExists === false
 
     const canView = permissions?.view === true
 
@@ -65,27 +74,52 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
         )
     }
 
+    const withAnalysisAvailability = (tabs) => tabs.map(tab => analysisDisabled
+        ? { ...tab, disabled: true, note: NOT_AVAILABLE_NOTE, disabledHint: NOT_AVAILABLE_HINT }
+        : tab)
+
+    const tabGroups = [
+        {
+            text: "Overview & Info",
+            tabs: [
+                { text: "Overview", to: urlStart, exact: true },
+                { text: "Metatext", to: `${urlStart}/metatext` },
+                { text: "Timeline", to: `${urlStart}/timeline` },
+                { text: "Help", to: `${urlStart}/help` },
+                { text: "Comments", to: `${urlStart}/comments` },
+            ]
+        },
+        {
+            text: "Samples & Setup",
+            tabs: [
+                { text: "Samples", to: `${urlStart}/samples` },
+                { text: "Runlist", to: `${urlStart}/runlist` },
+            ]
+        },
+        {
+            text: "Data",
+            tabs: [
+                { text: "Features", to: `${urlStart}/features` },
+                { text: "Precursors", to: `${urlStart}/precursors` },
+                { text: "QC", to: `${urlStart}/qc` },
+            ]
+        },
+        {
+            text: "Analysis",
+            tabs: withAnalysisAvailability([
+                { text: "Volcano", to: `${urlStart}/volcano` },
+                { text: "Exclusively", to: `${urlStart}/exclusively` },
+                { text: "Compare", to: `${urlStart}/compare` },
+                { text: "Heatmap", to: `${urlStart}/heatmap` },
+                { text: "PCA", to: `${urlStart}/pca` },
+                { text: "Annotation Map", to: `${urlStart}/annotationmap` },
+            ])
+        },
+    ]
+
     return (
         <div className="no-scroll div--expand" style={{ display: "flex", flexDirection: "column" }}>
-            <Tabs
-                tabs={[
-                    { text: "Overview", to: urlStart },
-                    { text: "Metatext", to: `${urlStart}/metatext` },
-                    { text: "Samples", to: `${urlStart}/samples` },
-                    { text: "QC", to: `${urlStart}/qc` },
-                    { text: "Timeline", to: `${urlStart}/timeline` },
-                    { text: "Runlist", to: `${urlStart}/runlist` },
-                    { text: "Features", to: `${urlStart}/features` },
-                    { text: "Precursors", to: `${urlStart}/precursors` },
-                    { text: "Volcano", to: `${urlStart}/volcano` },
-                    { text: "Exclusively", to: `${urlStart}/exclusively` },
-                    { text: "Compare", to: `${urlStart}/compare`},
-                    { text: "Heatmap", to: `${urlStart}/heatmap` },
-                    { text: "PCA", to: `${urlStart}/pca` }, 
-                    { text: "Annotation Map", to: `${urlStart}/annotationmap` }, 
-                    // { text: "Correlation", to: `${urlStart}/correlation` },
-                    { text: "Help", to : `${urlStart}/help`},
-                    { text: "Comments", to: `${urlStart}/comments`}]} />   
+            <GroupedTabs groups={tabGroups} />
             <div className="no-scroll div--expand" style={{ flex: 1, minHeight: 0 }}>
                 <Outlet context={{ submission_tag, authenticationStatus }} />
             </div>
