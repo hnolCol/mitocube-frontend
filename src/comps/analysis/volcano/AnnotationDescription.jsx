@@ -240,7 +240,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
         ...(topDown.length > 0 ? [`Top down: ${topDown.map(formatTopRow).join("; ")}`] : [])
     ].join("\n")
     return <div className="margin-bottom--little">
-        <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
+        <Tooltip compact={true} placement="top" content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
             <div className="flex center-items"
                 style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white", alignItems: "flex-start" }}
                 onClick={() => onToggleRow(entry.tag)}>
