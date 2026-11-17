@@ -3,7 +3,7 @@ import { api } from "@/api";
 import Numeric from "@/comps/core/metrics/Numeric";
 
 /**
- * @description Displays the total number of users of a consortium (members of its research groups).
+ * @description Displays the total number of direct members of a consortium.
  * @param {Object} props
  * @param {String} props.tag Consortium tag
  * @returns {JSX.Element} The users count metric.

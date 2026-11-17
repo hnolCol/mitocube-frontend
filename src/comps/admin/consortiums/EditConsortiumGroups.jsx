@@ -12,7 +12,7 @@ import { api } from "@/api";
  * @param {Boolean} props.isLoading
  * @returns {JSX.Element} The selectable research group item.
  */
-function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoading }) {
+function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoading, hasTerms }) {
     const { data: research_group, isSuccess } = api.researchgroups.useGetResearchGroupByTag({ tag }, { enabled: _.isString(tag) })
     return <div className="padding--little div--round" style={{ backgroundColor: "#fefefe" }}>
         {isSuccess && _.isObject(research_group) ?
@@ -20,6 +20,10 @@ function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoadin
                 <div className="flex flex-column">
                     <div>{research_group.text} ({research_group.abbreviation})</div>
                     <div className="font-size--smallest">{research_group.institute}</div>
+                    {isSelected ?
+                        <div className="font-size--smallest">
+                            {hasTerms ? "Terms agreed by the head (PI)" : "Terms not agreed yet - the head (PI) must agree before the groups users can share or see"}
+                        </div> : null}
                 </div>
                 <div style={{ float: "right" }}>
                     {isSelected ?
@@ -31,8 +35,9 @@ function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoadin
 }
 
 /**
- * @description Dialog to edit the research groups of a consortium. The users of a consortium are
- * the members of its research groups. Users can be added by adding their research group.
+ * @description Dialog to edit the research groups of a consortium. The research groups are
+ * eligibility anchors: their heads (PIs) become direct members of the consortium, other
+ * users can be added individually by curators/admins.
  * @param {Object} props
  * @param {Boolean} props.isOpen
  * @param {String} props.tag Consortium tag
@@ -43,6 +48,7 @@ function SelectableResearchGroup({ tag, isSelected, onSelect, onRemove, isLoadin
 export function EditConsortiumGroupsDialog({ isOpen, tag, title, onClose }) {
     const { data: group_tags, isLoading: groupsIsLoading, refetch } = api.consortiums.useGetConsortiumGroups({ tag }, { enabled: _.isString(tag) && isOpen })
     const { data: user_tags } = api.consortiums.useGetConsortiumUsers({ tag }, { enabled: _.isString(tag) && isOpen })
+    const { data: terms_group_tags } = api.consortiumTerms.useGetConsortiumTermsGroups({ tag }, { enabled: _.isString(tag) && isOpen })
     const { mutate: postGroups, isPending: postIsPending } = api.consortiums.usePostConsortiumGroups()
     const { mutate: deleteGroups, isPending: deleteIsPending } = api.consortiums.useDeleteConsortiumGroups()
     const { data: all_group_tags, isSuccess: isSearchSuccess } = api.researchgroups.useGetResearchGroupsByQuery({ limit: 100 }, { enabled: isOpen })
@@ -61,9 +67,15 @@ export function EditConsortiumGroupsDialog({ isOpen, tag, title, onClose }) {
         <DialogBody>
             {_.isString(tag) && _.isArray(user_tags) ?
                 <div className="font-size--small margin-bottom--little">
-                    Users in consortium (via its research groups) : <strong>{user_tags.length}</strong>
+                    Direct members of the consortium : <strong>{user_tags.length}</strong>
+                    <span className="font-size--smallest"> (the heads/PIs of the groups join automatically)</span>
                 </div> : null}
             <h4>Research groups of the consortium</h4>
+            <p className="font-size--smallest">
+                Adding a research group to the consortium joins its head (PI) automatically.
+                The head (PI) must also agree to the consortium terms before the groups users
+                can share into or see the consortium.
+            </p>
             <div className="flex flex-column container--scroll-y-hide-x padding--medium" style={{ height: "35vh", gap: "0.5rem" }}>
                 {groupsIsLoading ? "Loading research groups..." :
                     _.isArray(group_tags) && group_tags.length > 0 ?
@@ -72,7 +84,8 @@ export function EditConsortiumGroupsDialog({ isOpen, tag, title, onClose }) {
                             tag={group_tag}
                             isSelected={true}
                             onRemove={removeGroup}
-                            isLoading={isPending} />) :
+                            isLoading={isPending}
+                            hasTerms={_.isArray(terms_group_tags) && terms_group_tags.includes(group_tag)} />) :
                         <span>No research groups yet.</span>}
             </div>
             <h4>Add research group</h4>
