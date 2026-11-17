@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import _ from "lodash";
-import { Button, Checkbox, Dialog, DialogBody } from "@blueprintjs/core";
+import { Checkbox, Dialog, DialogBody, HTMLTable } from "@blueprintjs/core";
 
 import InteractiveChart from "../../core/charts/interactive";
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
@@ -16,7 +16,7 @@ import { getUniqueValuesInArrayOfObjects } from "../../../services/arrays/unique
  * Dialog to select the subset of samples the heatmap statistics are performed on.
  * Selection is applied (and the data refetched) only after clicking "Apply".
  */
-function SampleSelectionDialog({ sampleTags, selectedSampleTags, isOpen, onClose, onApply }) {
+function SampleSelectionDialog({ sampleTags, sampleConditionApplications, attribute_tags, attributeTagMap, caTagMap, selectedSampleTags, isOpen, onClose, onApply }) {
     const [draftSelection, setDraftSelection] = useState(selectedSampleTags)
     useEffect(() => {
         if (isOpen) setDraftSelection(selectedSampleTags)
@@ -24,6 +24,18 @@ function SampleSelectionDialog({ sampleTags, selectedSampleTags, isOpen, onClose
     const toggleSample = (tag) => setDraftSelection(prev =>
         prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
     const allSelected = draftSelection.length === sampleTags.length
+    const caByTag = useMemo(() => new Map((_.isArray(sampleConditionApplications) ? sampleConditionApplications : [])
+        .map(ca => [ca.tag, ca])), [sampleConditionApplications])
+    const displayValue = (value) => {
+        if (_.isArray(value)) return value.map(displayValue).join(", ")
+        if (!_.isString(value)) return "-"
+        const mapped = caTagMap instanceof Map ? caTagMap.get(value) : undefined
+        return _.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0 ? mapped.text : value
+    }
+    const attributeName = (tag) => {
+        const mapped = attributeTagMap instanceof Map ? attributeTagMap.get(tag) : undefined
+        return _.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0 ? mapped.text : tag
+    }
     return <Dialog isOpen={isOpen} onClose={onClose} title="Select samples for the statistical analysis">
         <DialogBody>
             <p className="font-size--small">
@@ -31,25 +43,42 @@ function SampleSelectionDialog({ sampleTags, selectedSampleTags, isOpen, onClose
                 At least two samples must be selected. By default all samples of the submission are used.
             </p>
             <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
-                <Button small={true} minimal={true}
+                <button className="basic-button--small"
                     onClick={() => setDraftSelection(allSelected ? [] : [...sampleTags])}>
                     {allSelected ? "Select none" : "Select all"}
-                </Button>
+                </button>
                 <span className="font-size--smallest">{draftSelection.length} of {sampleTags.length} samples selected</span>
             </div>
-            <div style={{ maxHeight: "40vh", overflowY: "auto", columns: 2, columnGap: "1.5rem" }}>
-                {sampleTags.map(tag => <div key={tag} style={{ breakInside: "avoid" }}>
-                    <Checkbox checked={draftSelection.includes(tag)} onChange={() => toggleSample(tag)}>
-                        <span className="font-size--smallest">{tag}</span>
-                    </Checkbox>
-                </div>)}
+            <div style={{ maxHeight: "50vh", overflowY: "auto" }}>
+                <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
+                    <thead style={{ position: "sticky", top: 0, backgroundColor: "#ffffff", zIndex: 1, boxShadow: "0 1px 0 rgba(0,0,0,0.2)" }}>
+                        <tr>
+                            <th></th>
+                            <th>Sample</th>
+                            {(_.isArray(attribute_tags) ? attribute_tags : []).map(attribute_tag =>
+                                <th key={attribute_tag}>{attributeName(attribute_tag)}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {sampleTags.map(tag => {
+                            const ca = caByTag.get(tag)
+                            return <tr key={tag} style={{ cursor: "pointer" }} onClick={() => toggleSample(tag)}>
+                                <td><Checkbox checked={draftSelection.includes(tag)} onChange={() => toggleSample(tag)} /></td>
+                                <td className="font-size--smallest">{tag}</td>
+                                {(_.isArray(attribute_tags) ? attribute_tags : []).map(attribute_tag =>
+                                    <td key={attribute_tag} className="font-size--smallest">{displayValue(ca?.[attribute_tag])}</td>)}
+                            </tr>
+                        })}
+                    </tbody>
+                </HTMLTable>
             </div>
             <div className="flex center-items margin-top--little" style={{ gap: "0.4rem", justifyContent: "flex-end" }}>
-                <Button small={true} minimal={true} onClick={onClose}>Cancel</Button>
-                <Button small={true} intent="primary" disabled={draftSelection.length < 2}
+                <button className="basic-button--small" onClick={onClose}>Cancel</button>
+                <button className="basic-button--small"
+                    disabled={draftSelection.length < 2}
                     onClick={() => { onApply(draftSelection); onClose() }}>
                     Apply
-                </Button>
+                </button>
             </div>
         </DialogBody>
     </Dialog>
@@ -252,19 +281,23 @@ function HeatmapViz({
 
                 <div className="flex flex-column">
                     <span>Select the samples to include in the statistical analysis. By default all samples are used.</span>
-                    <Button small={true} minimal={true} style={{justifyContent: "flex-start"}}
+                    <button className="basic-button--small"
                         onClick={() => setIsSampleDialogOpen(true)}>
                         {selectedSampleTags.length === 0
                             ? `All samples (${sampleTags.length})`
                             : `${selectedSampleTags.length} of ${sampleTags.length} samples selected`}
-                    </Button>
-                    {selectedSampleTags.length > 0 ? <Button small={true} minimal={true} style={{justifyContent: "flex-start"}}
+                    </button>
+                    {selectedSampleTags.length > 0 ? <button className="basic-button--small"
                         onClick={() => setTestProps(prevProps => ({ ...prevProps, selected_sample_tags: [] }))}>
                         Reset to all samples
-                    </Button> : null}
+                    </button> : null}
                 </div>
                 <SampleSelectionDialog
                     sampleTags={sampleTags}
+                    sampleConditionApplications={submissionSampleConditionApplications}
+                    attribute_tags={attribute_tags}
+                    attributeTagMap={attributeTagMap}
+                    caTagMap={caTagMap}
                     selectedSampleTags={selectedSampleTags}
                     isOpen={isSampleDialogOpen}
                     onClose={() => setIsSampleDialogOpen(false)}
