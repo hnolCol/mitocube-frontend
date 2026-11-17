@@ -21,7 +21,7 @@ function DatasetHeatmap() {
     }
 
     return (
-        <div>
+        <div className="div--expand flex flex-column" style={{ minHeight: 0 }}>
             <h2>Hierarchical Clustering</h2>
             <HeatmapLoad submission_tag={submission_tag} />
         </div>

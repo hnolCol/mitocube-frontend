@@ -208,8 +208,8 @@ function HeatmapViz({
     }, [submissionSampleConditionApplications, heatmapData.value_names]);
 
     return (
-        <div className="flex">
-            <div style={{ maxWidth: "300px", marginRight: "1rem" }} className="flex flex-column">
+        <div className="flex" style={{ flex: 1, minHeight: 0 }}>
+            <div style={{ maxWidth: "300px", marginRight: "1rem", overflowY: "auto", minHeight: 0 }} className="flex flex-column">
                 <h3>Settings</h3>
 
                 {attribute_tags.length > 1 ? (
@@ -340,8 +340,8 @@ function HeatmapViz({
                     filterProps
                 }, didx) => {
                     return (
-                        <div key={didx}>
-                            <div className="flex" style={{ display: "flex", height: "85vh" }}>
+                        <div key={didx} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+                            <div className="flex" style={{ display: "flex", flex: 1, minHeight: 0 }}>
                                 <div style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
                                     <div className="margin--medium padding--medium">
                                         <Combobox

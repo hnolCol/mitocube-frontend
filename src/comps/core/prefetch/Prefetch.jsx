@@ -145,7 +145,7 @@ export function WithTagMaps({
     }
 
     return (
-        <div className='div--expand'>
+        <div className='div--expand flex flex-column' style={{ minHeight: 0 }}>
             {showProteinSearch && (
                 <div className="flex center-items" style={{ gap: "0.5rem" }}>
                     <div style={{ flex: "1 1 auto", minWidth: 0 }}>

@@ -66,7 +66,7 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
     }
 
     return (
-        <div className="no-scroll div--expand">
+        <div className="no-scroll div--expand" style={{ display: "flex", flexDirection: "column" }}>
             <Tabs
                 tabs={[
                     { text: "Overview", to: urlStart },
@@ -86,7 +86,7 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
                     // { text: "Correlation", to: `${urlStart}/correlation` },
                     { text: "Help", to : `${urlStart}/help`},
                     { text: "Comments", to: `${urlStart}/comments`}]} />   
-            <div className="no-scroll div--expand">
+            <div className="no-scroll div--expand" style={{ flex: 1, minHeight: 0 }}>
                 <Outlet context={{ submission_tag, authenticationStatus }} />
             </div>
         </div>
