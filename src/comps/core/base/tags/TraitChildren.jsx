@@ -18,16 +18,11 @@ const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr", "att_sirna_sequenc
 
 
 export function AttributeTraitInput({ has_selection, selection, childTrait, attribute, attributeHasTraits, getInput, handleSingleTraitSelection, handleTraitValueInput, referenceID, }) {
-    
-    
-    
-            
-    
     return (
     <div>
         <MinimalTextInput
                 value={getInput()}
-                placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : (attribute.placeholder || attribute.text)}
+                placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : (`${attribute.text} e.g. (${attribute.placeholder})` || attribute.text)}
                 disabled={!has_selection}
                 callbackKey={attribute.tag}
                 allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
