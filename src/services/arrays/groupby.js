@@ -158,7 +158,17 @@ export function getAverageAndErrorByGroups(
             ...Object.fromEntries(keyNames.map(keyName => [keyName, groupData[0][keyName]])),
             N : groupData.filter(d => _.isNumber(d[yaxisName])).length}
     })
-    return ({ groupedAggratedData, minMaxYDomain})
+    // the error bars (mean +/- standard deviation) can exceed the raw data boundaries (e.g. for tight clusters),
+    // so they have to be included in the y-domain to not be cut off by the axis
+    const errorBoundaries = groupedAggratedData
+        .filter(d => _.isNumber(d[yaxisName]) && _.isNumber(d.e))
+        .map(d => [d[yaxisName] - d.e, d[yaxisName] + d.e])
+        .flat()
+    const minMaxYDomainWithError = errorBoundaries.length > 0 ? {
+        min: Math.min(minMaxYDomain.min, _.min(errorBoundaries)),
+        max: Math.max(minMaxYDomain.max, _.max(errorBoundaries))
+    } : minMaxYDomain
+    return ({ groupedAggratedData, minMaxYDomain: minMaxYDomainWithError})
 }
 
 
