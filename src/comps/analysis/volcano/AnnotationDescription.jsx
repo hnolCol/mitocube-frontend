@@ -209,7 +209,11 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         <g onMouseLeave={() => setHoveredPoint(null)}>
             <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#af8dc3" x={x} withDots={true} points={points.map(p => ({ ...p, isHovered: _.isObject(hoveredPoint) && hoveredPoint.tag === p.tag, onHover: () => setHoveredPoint(p) }))} />
         </g>
-        {hoveredPoint ? <text x={hoveredLabelX} y={118} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text> : null}
+        {hoveredPoint ? <g>
+            <rect x={hoveredLabelX - Math.min(hoveredName.length * 3.1 + 4, (width - 20) / 2)} y={0}
+                width={Math.min(hoveredName.length * 6.2 + 8, width - 20)} height={12} fill="#ffffff" fillOpacity={0.85} />
+            <text x={hoveredLabelX} y={10} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text>
+        </g> : null}
     </svg>
 }
 
