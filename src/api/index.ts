@@ -19,7 +19,7 @@ import {
     submissionProtocolsAPI,
     submissionSummaryAPI
 } from "./submission";
-import { tokenAuthentication, userLogin, mfaAuthentication } from "./authentication";
+import { tokenAuthentication, userLogin, mfaAuthentication, patsAPI, useTermsAPI } from "./authentication";
 import { newsAPI } from "./news";
 import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI, userCreateAPI } from "./users";
 import { metatextAPI } from "./metatexts";
@@ -121,7 +121,9 @@ export const api = {
     authentication: {
         login: userLogin,
         token: tokenAuthentication,
-        mfa : mfaAuthentication
+        mfa : mfaAuthentication,
+        pats : patsAPI,
+        useterms : useTermsAPI
     },
     condition_applications: conditionApplicationAPI,
     news: newsAPI,
