@@ -184,19 +184,19 @@ export function SubmissionExclusivelyQuantified() {
         return baseColumns.filter(column => column.attribute_tags.every(attributeIsWithinDefaultLimit));
     }, [combined, selectedPair, ca_attributes, allCombinedColumns, attributeConditionApplicationCounts]);
 
-    const { isReady, tagQueries } = usePrefetchConditionApplicationTexts(_.isArray(conditionApplicationTags) ? conditionApplicationTags : []);
-    const { isReady: isProteinsReady, tagQueries: proteinTagQueries, isLoading: isLoadingProteins } = usePrefetchProteins(proteinTags)
+    const { isReady, tagQueries, tags: validCaTags } = usePrefetchConditionApplicationTexts(_.isArray(conditionApplicationTags) ? conditionApplicationTags : []);
+    const { isReady: isProteinsReady, tagQueries: proteinTagQueries, isLoading: isLoadingProteins, tags: validProteinTags } = usePrefetchProteins(proteinTags)
 
     const caTagMap = useMemo(() => {
         if (!isReady || !_.isArray(conditionApplicationTags)) return new Map();
         const map = new Map()
         tagQueries.forEach((q, idx) => {
             if (q.data) {
-                map.set(conditionApplicationTags[idx], q.data)
+                map.set(validCaTags[idx], q.data)
             }
         })
         return map;
-    }, [tagQueries, conditionApplicationTags]);
+    }, [tagQueries, validCaTags]);
 
 
     const proteinTagGeneNameMapRef = useMemo(() => { 
@@ -204,11 +204,11 @@ export function SubmissionExclusivelyQuantified() {
         const map = new Map()
         proteinTagQueries.forEach((q, idx) => {
             if (q.data) {
-                map.set(proteinTags[idx], { text: q.data.gene_name })
+                map.set(validProteinTags[idx], { text: q.data.gene_name })
             }
         })
         return map;
-    }, [isLoadingProteins, proteinTagQueries, proteinTags]);
+    }, [isLoadingProteins, proteinTagQueries, validProteinTags]);
 
 
     const handleAttributeDownload = (attribute_tag) => {
