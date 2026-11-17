@@ -17,7 +17,8 @@ function HeatmapLoad({ submission_tag }) {
         fdr: 0.01,
         n_clusters: 8,
         selected_annotation_tags: [],
-        selected_ca_attribute_tags: []
+        selected_ca_attribute_tags: [],
+        selected_sample_tags: []
     });
     const [viewProps, setViewProps] = useState({ showSearchInProfile: true, selectedCluster: [] });
     const [requiredProteinTags, setRequiredProteinTags] = useState([]);
@@ -27,7 +28,8 @@ function HeatmapLoad({ submission_tag }) {
             tag: submission_tag,
             annotation_tag: testProps.selected_annotation_tags.length > 0 ? _.join(testProps.selected_annotation_tags, ";") : undefined,
             fdr: testProps.fdr,
-            n_clusters: testProps.n_clusters
+            n_clusters: testProps.n_clusters,
+            sample_tags: testProps.selected_sample_tags.length > 0 ? _.join(testProps.selected_sample_tags, ";") : undefined
         },
         { enabled: _.isString(submission_tag), staleTime: Infinity }
     );

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import _ from "lodash";
+import { Button, Checkbox, Dialog, DialogBody } from "@blueprintjs/core";
 
 import InteractiveChart from "../../core/charts/interactive";
 import { MultiProfiles } from "../../core/charts/profiles/MultiProfiles";
@@ -10,6 +11,49 @@ import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationS
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
 import { getUniqueValuesInArrayOfObjects } from "../../../services/arrays/unique";
+
+/**
+ * Dialog to select the subset of samples the heatmap statistics are performed on.
+ * Selection is applied (and the data refetched) only after clicking "Apply".
+ */
+function SampleSelectionDialog({ sampleTags, selectedSampleTags, isOpen, onClose, onApply }) {
+    const [draftSelection, setDraftSelection] = useState(selectedSampleTags)
+    useEffect(() => {
+        if (isOpen) setDraftSelection(selectedSampleTags)
+    }, [isOpen])
+    const toggleSample = (tag) => setDraftSelection(prev =>
+        prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag])
+    const allSelected = draftSelection.length === sampleTags.length
+    return <Dialog isOpen={isOpen} onClose={onClose} title="Select samples for the statistical analysis">
+        <DialogBody>
+            <p className="font-size--small">
+                The statistical analysis (ANOVA) and clustering are performed only on the selected samples.
+                At least two samples must be selected. By default all samples of the submission are used.
+            </p>
+            <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
+                <Button small={true} minimal={true}
+                    onClick={() => setDraftSelection(allSelected ? [] : [...sampleTags])}>
+                    {allSelected ? "Select none" : "Select all"}
+                </Button>
+                <span className="font-size--smallest">{draftSelection.length} of {sampleTags.length} samples selected</span>
+            </div>
+            <div style={{ maxHeight: "40vh", overflowY: "auto", columns: 2, columnGap: "1.5rem" }}>
+                {sampleTags.map(tag => <div key={tag} style={{ breakInside: "avoid" }}>
+                    <Checkbox checked={draftSelection.includes(tag)} onChange={() => toggleSample(tag)}>
+                        <span className="font-size--smallest">{tag}</span>
+                    </Checkbox>
+                </div>)}
+            </div>
+            <div className="flex center-items margin-top--little" style={{ gap: "0.4rem", justifyContent: "flex-end" }}>
+                <Button small={true} minimal={true} onClick={onClose}>Cancel</Button>
+                <Button small={true} intent="primary" disabled={draftSelection.length < 2}
+                    onClick={() => { onApply(draftSelection); onClose() }}>
+                    Apply
+                </Button>
+            </div>
+        </DialogBody>
+    </Dialog>
+}
 
 /**
  * Main heatmap visualization component.
@@ -37,6 +81,7 @@ function HeatmapViz({
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE;
     const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters));
     const [fdrvInputValue, setFDRVInputValue] = useState(String(testProps.fdr));
+    const [isSampleDialogOpen, setIsSampleDialogOpen] = useState(false);
 
     useEffect(() => {
         setClusterInputValue(String(testProps.n_clusters));
@@ -110,6 +155,14 @@ function HeatmapViz({
             yaxisName: heatmapData.value_names,
         }
     ], [_.join(heatmapData.value_names)]);
+
+    const sampleTags = useMemo(() => (_.isArray(submissionSampleConditionApplications)
+        ? submissionSampleConditionApplications.map(ca => ca.tag).filter(_.isString)
+        : []), [_.join(submissionSampleConditionApplications?.map(ca => ca?.tag))]);
+
+    const selectedSampleTags = useMemo(() => (_.isArray(testProps.selected_sample_tags)
+        ? testProps.selected_sample_tags.filter(tag => sampleTags.includes(tag))
+        : []), [testProps.selected_sample_tags, sampleTags]);
 
     const filteredSampleConditionApplications = useMemo(() => {
         if (!_.isArray(submissionSampleConditionApplications) || !_.isArray(heatmapData.value_names)) {
@@ -196,6 +249,27 @@ function HeatmapViz({
                         Data will be filtered after statistical analysis to be part of the given annotation. For example: MitoCarta 3.0
                     </span>
                 </div>
+
+                <div className="flex flex-column">
+                    <span>Select the samples to include in the statistical analysis. By default all samples are used.</span>
+                    <Button small={true} minimal={true} style={{justifyContent: "flex-start"}}
+                        onClick={() => setIsSampleDialogOpen(true)}>
+                        {selectedSampleTags.length === 0
+                            ? `All samples (${sampleTags.length})`
+                            : `${selectedSampleTags.length} of ${sampleTags.length} samples selected`}
+                    </Button>
+                    {selectedSampleTags.length > 0 ? <Button small={true} minimal={true} style={{justifyContent: "flex-start"}}
+                        onClick={() => setTestProps(prevProps => ({ ...prevProps, selected_sample_tags: [] }))}>
+                        Reset to all samples
+                    </Button> : null}
+                </div>
+                <SampleSelectionDialog
+                    sampleTags={sampleTags}
+                    selectedSampleTags={selectedSampleTags}
+                    isOpen={isSampleDialogOpen}
+                    onClose={() => setIsSampleDialogOpen(false)}
+                    onApply={(selected) => setTestProps(prevProps => ({ ...prevProps, selected_sample_tags: selected }))}
+                />
 
                 <div>
                     <p>
