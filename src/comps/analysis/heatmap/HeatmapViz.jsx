@@ -30,13 +30,17 @@ function SampleSelectionDialog({ sampleTags, sampleConditionApplications, attrib
         if (_.isArray(value)) return value.map(displayValue).join(", ")
         if (!_.isString(value)) return "-"
         const mapped = caTagMap instanceof Map ? caTagMap.get(value) : undefined
-        return _.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0 ? mapped.text : value
+        if (_.isString(mapped) && mapped.length > 0) return mapped
+        if (_.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0) return mapped.text
+        return value
     }
     const attributeName = (tag) => {
         const mapped = attributeTagMap instanceof Map ? attributeTagMap.get(tag) : undefined
-        return _.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0 ? mapped.text : tag
+        if (_.isString(mapped) && mapped.length > 0) return mapped
+        if (_.isObject(mapped) && _.isString(mapped.text) && mapped.text.length > 0) return mapped.text
+        return tag
     }
-    return <Dialog isOpen={isOpen} onClose={onClose} title="Select samples for the statistical analysis">
+    return <Dialog isOpen={isOpen} onClose={onClose} title="Select samples for the statistical analysis" style={{ width: "75vw", maxWidth: "1200px" }}>
         <DialogBody>
             <p className="font-size--small">
                 The statistical analysis (ANOVA) and clustering are performed only on the selected samples.
