@@ -212,9 +212,10 @@ function HeatmapViz({
             <div style={{ maxWidth: "300px", marginRight: "1rem" }} className="flex flex-column">
                 <h3>Settings</h3>
 
+                <h4>Subsetting</h4>
                 {attribute_tags.length > 1 ? (
-                    <div>
-                        <span>Select a condition application attribute to perform the statistical analysis. By default the all attributes are considered.</span>
+                    <div className="flex flex-column">
+                        <span className="font-size--small">Select a condition application attribute to perform the statistical analysis. By default all attributes are considered.</span>
                         <AttributeSelection
                             attribute_tags={attribute_tags}
                             selected={testProps.selected_ca_attribute_tags}
@@ -227,50 +228,14 @@ function HeatmapViz({
                             }))} />
                     </div>
                 ) : (
-                    <div className="flex gap--tiny">
-                        <span>Statistics is calculated using</span>
+                    <div className="flex gap--tiny center-items">
+                        <span className="font-size--small">Statistics is calculated using</span>
                         <Attribute attribute_tag={attribute_tags[0]} />
                     </div>
                 )}
 
-                <div
-                    style={{
-                        display: "grid",
-                        gridTemplateColumns: "auto 200px",
-                        columnGap: "10px",
-                        rowGap: "0.5rem",
-                        alignItems: "center",
-                    }}
-                >
-                    <div>FDR cutoff:</div>
-                    <input
-                        type="text"
-                        inputMode="decimal"
-                        placeholder="Enter FDR cutoff"
-                        onBlur={e => commitFDR(e.target.value)}
-                        value={fdrvInputValue}
-                        onChange={(e) => { setFDRVInputValue(e.target.value); }}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur(); } }}
-                        className="search-input"
-                        style={{ width: "100%" }}
-                    />
-
-                    <div>Number of clusters:</div>
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="Enter number of clusters"
-                        value={clusterInputValue}
-                        onChange={(e) => setClusterInputValue(e.target.value)}
-                        onBlur={commitClusterCount}
-                        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur(); } }}
-                        className="search-input"
-                        style={{ width: "100%" }}
-                    />
-                </div>
-
                 <div className="flex flex-column">
-                    <span>Select an annotation to subset the data.</span>
+                    <span className="font-size--small">Select an annotation to subset the data.</span>
                     <AnnotationSelectionMenu
                         placeholder={testProps.selected_annotation_tags.length === 0 ? "Select annotations" : `${testProps.selected_annotation_tags.length} selected`}
                         onSelection={handleAnnotationSelection}
@@ -284,7 +249,7 @@ function HeatmapViz({
                 </div>
 
                 <div className="flex flex-column">
-                    <span>Select the samples to include in the statistical analysis. By default all samples are used.</span>
+                    <span className="font-size--small">Select the samples to include in the statistical analysis. By default all samples are used.</span>
                     <button className="basic-button--small"
                         onClick={() => setIsSampleDialogOpen(true)}>
                         {selectedSampleTags.length === 0
@@ -308,7 +273,44 @@ function HeatmapViz({
                     onApply={(selected) => setTestProps(prevProps => ({ ...prevProps, selected_sample_tags: selected }))}
                 />
 
-                <div>
+                <h4>Statistics</h4>
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "auto 200px",
+                        columnGap: "10px",
+                        rowGap: "0.5rem",
+                        alignItems: "center",
+                    }}
+                >
+                    <div className="font-size--small">FDR cutoff:</div>
+                    <input
+                        type="text"
+                        inputMode="decimal"
+                        placeholder="Enter FDR cutoff"
+                        onBlur={e => commitFDR(e.target.value)}
+                        value={fdrvInputValue}
+                        onChange={(e) => { setFDRVInputValue(e.target.value); }}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur(); } }}
+                        className="search-input"
+                        style={{ width: "100%" }}
+                    />
+
+                    <div className="font-size--small">Number of clusters:</div>
+                    <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="Enter number of clusters"
+                        value={clusterInputValue}
+                        onChange={(e) => setClusterInputValue(e.target.value)}
+                        onBlur={commitClusterCount}
+                        onKeyDown={(e) => { if (e.key === "Enter") { e.target.blur(); } }}
+                        className="search-input"
+                        style={{ width: "100%" }}
+                    />
+                </div>
+
+                <div className="font-size--small">
                     <p>
                         The FDR cutoff was to {_.round(heatmapData.fdr * 100, 2)}% and 
                         <strong>{heatmapData.data.length}</strong> features were found significantly different.
