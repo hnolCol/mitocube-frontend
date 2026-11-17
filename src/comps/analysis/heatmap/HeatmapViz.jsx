@@ -238,6 +238,7 @@ function HeatmapViz({
                     <span className="font-size--small">Select an annotation to subset the data.</span>
                     <AnnotationSelectionMenu
                         placeholder={testProps.selected_annotation_tags.length === 0 ? "Select annotations" : `${testProps.selected_annotation_tags.length} selected`}
+                        vertical={true}
                         onSelection={handleAnnotationSelection}
                         onRemove={(e, tag) => handleAnnotationSelection(e, tag)}
                         selected_tags={testProps.selected_annotation_tags}
