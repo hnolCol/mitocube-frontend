@@ -80,14 +80,15 @@ function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
             cx={x(point.value)}
             cy={cy + (((idx * 37) % 11) - 5)}
             r={point.inList ? 3.2 : 2.4}
-            fill={point.inList ? "#d13913" : color}
+            fill={point.inList ? "#2e8540" : color}
             fillOpacity={point.inList ? 0.95 : 0.6}
             style={{ cursor: "pointer" }}
             onMouseEnter={point.onHover ? () => point.onHover() : undefined} />) : null}
     </g>
 }
 
-const LIST_COLOR = "#e8a33d"
+const LIST_COLOR = "#7fbf7b"
+const IN_LIST_COLOR = "#2e8540"
 const MEMBER_TABLE_LIMIT = 100
 
 function exportAnnotationMembersAsCSV({ entry, label, suffix, rowByTag, proteinTagMap }) {
@@ -116,7 +117,7 @@ function AnnotationMemberTable({ entry, label, suffix, rowByTag, proteinTagMap }
         .sort((a, b) => Math.abs(b[log2FCFieldName(suffix)]) - Math.abs(a[log2FCFieldName(suffix)])),
         [entry, suffix, rowByTag])
     if (rows.length === 0) return <span className="font-size--smallest">No proteins with log2FC values for this volcano.</span>
-    return <div style={{ flex: 1, minWidth: "220px" }}>
+    return <div style={{ flex: "1 1 240px", minWidth: "220px", maxWidth: "100%", overflowX: "auto" }}>
         <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
             <span className="font-size--smallest font-weight--bold">{rows.length} proteins in this annotation</span>
             <button className="basic-button--small"
@@ -195,7 +196,7 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         <BoxPlotRow sorted={backgroundValues} cy={35} boxHeight={14} color="#9a9a9a" x={x} withDots={false} points={[]} />
         <BoxPlotRow sorted={sortedListValues} cy={85} boxHeight={14} color={LIST_COLOR} x={x} withDots={false} points={[]} />
         <g onMouseLeave={() => setHoveredPoint(null)}>
-            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points.map(p => ({ ...p, onHover: () => setHoveredPoint(p) }))} />
+            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#af8dc3" x={x} withDots={true} points={points.map(p => ({ ...p, onHover: () => setHoveredPoint(p) }))} />
         </g>
         {hoveredPoint ? <text x={hoveredLabelX} y={118} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text> : null}
     </svg>
@@ -255,7 +256,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 <span className="font-size--smallest">log2FC volcano:</span>
                 {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === plotSuffix} onClick={() => setPlotSuffix(suffix)}>{suffix}</OptionButton>)}
             </div>
-            <div className="flex" style={{ gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+            <div className="flex" style={{ gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start", maxWidth: "100%", overflowX: "auto" }}>
                 <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
                     backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
                     proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
@@ -265,8 +266,8 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 {[
                     { color: "#9a9a9a", label: "all proteins of the volcano (background)", shape: "box" },
                     { color: LIST_COLOR, label: "selected list(s) distribution", shape: "box" },
-                    { color: "#4a7ba6", label: "member of this annotation", shape: "dot" },
-                    { color: "#d13913", label: "in selected list(s)", shape: "dot" }
+                    { color: "#af8dc3", label: "member of this annotation", shape: "dot" },
+                    { color: IN_LIST_COLOR, label: "in selected list(s)", shape: "dot" }
                 ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.25rem" }}>
                     {item.shape === "box"
                         ? <span style={{ width: "0.8rem", height: "0.45rem", backgroundColor: item.color, opacity: 0.35, border: `1px solid ${item.color}`, display: "inline-block" }} />
