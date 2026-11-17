@@ -28,7 +28,7 @@ export function directionLabel(direction) {
 }
 
 export function directionBarColor(direction) {
-    return direction === "up" ? "#7fbf7b" : direction === "down" ? "#af8dc3" : "#80b1d3"
+    return direction === "up" ? "#d13913" : direction === "down" ? "#4a7ba6" : "#80b1d3"
 }
 
 export function directionTags(set, direction) {

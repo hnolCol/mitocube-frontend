@@ -137,7 +137,7 @@ function AnnotationMemberTable({ entry, label, suffix, rowByTag, proteinTagMap }
                         <td className="font-size--smallest" style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
                             {proteinDisplayName(proteinTagMap, row.tag)}
                         </td>
-                        <td className="font-size--smallest" style={{ textAlign: "right", color: row[log2FCFieldName(suffix)] > 0 ? "#3d7a3a" : "#7a4d96" }}>
+                        <td className="font-size--smallest" style={{ textAlign: "right", color: row[log2FCFieldName(suffix)] > 0 ? "#d13913" : "#4a7ba6" }}>
                             {row[log2FCFieldName(suffix)].toFixed(2)}
                         </td>
                     </tr>)}
@@ -209,10 +209,19 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
         : null
     const overlapTags = entry.overlapTags
     const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
+    const fcName = log2FCFieldName(plotSuffix)
+    const formatTopRow = row => `${proteinDisplayName(proteinTagMap, row.tag)} (${_.isNumber(row[fcName]) ? row[fcName].toFixed(2) : "-"})`
+    const topUp = entry.rows.filter(row => _.isNumber(row[fcName]) && row[fcName] > 0)
+        .sort((a, b) => b[fcName] - a[fcName]).slice(0, 3)
+    const topDown = entry.rows.filter(row => _.isNumber(row[fcName]) && row[fcName] < 0)
+        .sort((a, b) => a[fcName] - b[fcName]).slice(0, 3)
     const tooltipLines = [
         `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s), |median log2FC| = ${_.isNumber(entry.med) ? Math.abs(entry.med).toFixed(2) : "-"}`,
+        `${entry.up} upregulated, ${entry.down} downregulated${entry.both > 0 ? `, ${entry.both} in both directions` : ""}`,
         ...listOptions.filter(option => selectedListKeys.includes(option.key))
-            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`)
+            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`),
+        ...(topUp.length > 0 ? [`Top up: ${topUp.map(formatTopRow).join("; ")}`] : []),
+        ...(topDown.length > 0 ? [`Top down: ${topDown.map(formatTopRow).join("; ")}`] : [])
     ].join("\n")
     return <div className="margin-bottom--little">
         <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
@@ -229,7 +238,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 <span className="font-size--smallest">of {entry.total}</span>
                 <span className="font-size--smallest" style={{
                     width: "4.5rem", flexShrink: 0, textAlign: "right",
-                    color: entry.med > 0 ? "#3d7a3a" : entry.med < 0 ? "#7a4d96" : "#8a8a8a"
+                    color: entry.med > 0 ? "#d13913" : entry.med < 0 ? "#4a7ba6" : "#8a8a8a"
                 }}>{_.isNumber(entry.med) ? entry.med.toFixed(2) : "-"}</span>
                 {_.isFunction(onMarkProteinList) ? <button className="basic-button--small" style={{ flexShrink: 0, fontWeight: listIsMarked ? "bold" : "normal" }}
                     onClick={(e) => { e.stopPropagation(); onMarkProteinList(listIsMarked ? [] : overlapTags) }}>
