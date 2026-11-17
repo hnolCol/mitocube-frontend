@@ -1,4 +1,4 @@
-import { Outlet, useParams } from "react-router";
+import { Outlet, useLocation, useParams } from "react-router";
 import { NonIdealState } from "@blueprintjs/core";
 import GroupedTabs from "../core/navigation/tabs/GroupedTabs";
 import Loading from "../core/base/loading";
@@ -34,6 +34,13 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
         { staleTime: 60000, enabled: _.isString(submission_tag) }
     )
     const analysisDisabled = quantificationExists === false
+
+    const location = useLocation()
+    const { data: submissionTitle } = api.submissions.title.useGetSubmissionTitle(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag), staleTime: 300000 }
+    )
+    const isOnOverview = location.pathname === urlStart || location.pathname === urlStart + "/"
 
     const canView = permissions?.view === true
 
@@ -119,7 +126,10 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
 
     return (
         <div className="no-scroll div--expand" style={{ display: "flex", flexDirection: "column" }}>
-            <GroupedTabs groups={tabGroups} />
+            <div className="flex center-items justify-space-between">
+                <GroupedTabs groups={tabGroups} />
+                {!isOnOverview && _.isString(submissionTitle) ? <span className="font-size--small font-weight--bold" style={{ padding: "0.3rem 1rem", overflowWrap: "anywhere" }}>{submissionTitle}</span> : null}
+            </div>
             <div className="no-scroll div--expand" style={{ flex: 1, minHeight: 0 }}>
                 <Outlet context={{ submission_tag, authenticationStatus }} />
             </div>
