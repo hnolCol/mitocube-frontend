@@ -3,7 +3,7 @@ import _ from "lodash"
 import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import { Popover, Tooltip } from "@blueprintjs/core"
-import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage"
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
 
 GroupedTabs.propTypes = {
     groups: PropTypes.arrayOf(PropTypes.shape({
