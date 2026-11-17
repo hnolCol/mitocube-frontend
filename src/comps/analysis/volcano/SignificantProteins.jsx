@@ -55,8 +55,8 @@ function RowDirectionBadge({ row, suffixes }) {
 function rowDirectionBackgroundColor(row, suffixes) {
     const { hasUp, hasDown, discordant } = rowDirectionInfo(row, suffixes)
     if (discordant) return "#fdf3d7"
-    if (hasUp) return "#eef7ee"
-    if (hasDown) return "#f5eff9"
+    if (hasUp) return "#fdecea"
+    if (hasDown) return "#eef3f8"
     return undefined
 }
 

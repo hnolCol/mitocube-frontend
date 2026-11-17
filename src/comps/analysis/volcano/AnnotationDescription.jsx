@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
-import { InputGroup, Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
+import { HTMLTable, InputGroup, Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
@@ -88,6 +88,67 @@ function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
 }
 
 const LIST_COLOR = "#e8a33d"
+const MEMBER_TABLE_LIMIT = 100
+
+function exportAnnotationMembersAsCSV({ entry, label, suffix, rowByTag, proteinTagMap }) {
+    const rows = entry.memberTags.map(tag => rowByTag.get(tag)).filter(_.isObject)
+    const lines = [["Protein", "Tags", `log2FC (${suffix})`].join("\t")]
+    rows.forEach(row => {
+        lines.push([
+            `"${proteinDisplayName(proteinTagMap, row.tag).replace(/"/g, "")}"`,
+            row.tag,
+            _.isNumber(row[log2FCFieldName(suffix)]) ? row[log2FCFieldName(suffix)].toFixed(4) : ""
+        ].join("\t"))
+    })
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `annotation-members-${(label ?? entry.tag).replace(/[^a-zA-Z0-9_-]+/g, "_")}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+}
+
+function AnnotationMemberTable({ entry, label, suffix, rowByTag, proteinTagMap }) {
+    const rows = useMemo(() => entry.memberTags
+        .map(tag => rowByTag.get(tag))
+        .filter(row => _.isObject(row) && _.isNumber(row[log2FCFieldName(suffix)]))
+        .sort((a, b) => Math.abs(b[log2FCFieldName(suffix)]) - Math.abs(a[log2FCFieldName(suffix)])),
+        [entry, suffix, rowByTag])
+    if (rows.length === 0) return <span className="font-size--smallest">No proteins with log2FC values for this volcano.</span>
+    return <div style={{ flex: 1, minWidth: "220px" }}>
+        <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
+            <span className="font-size--smallest font-weight--bold">{rows.length} proteins in this annotation</span>
+            <button className="basic-button--small"
+                onClick={() => exportAnnotationMembersAsCSV({ entry, label, suffix, rowByTag, proteinTagMap })}>
+                Export CSV
+            </button>
+        </div>
+        <div style={{ maxHeight: "190px", overflowY: "auto" }}>
+            <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
+                <thead style={{ position: "sticky", top: 0, backgroundColor: "#ffffff", zIndex: 1, boxShadow: "0 1px 0 rgba(0,0,0,0.2)" }}>
+                    <tr>
+                        <th>Protein</th>
+                        <th style={{ textAlign: "right" }}>{`log2FC (${suffix})`}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.slice(0, MEMBER_TABLE_LIMIT).map(row => <tr key={row.tag}>
+                        <td className="font-size--smallest" style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
+                            {proteinDisplayName(proteinTagMap, row.tag)}
+                        </td>
+                        <td className="font-size--smallest" style={{ textAlign: "right", color: row[log2FCFieldName(suffix)] > 0 ? "#d13913" : "#4a7ba6" }}>
+                            {row[log2FCFieldName(suffix)].toFixed(2)}
+                        </td>
+                    </tr>)}
+                </tbody>
+            </HTMLTable>
+        </div>
+        {rows.length > MEMBER_TABLE_LIMIT
+            ? <span className="font-size--smallest">Showing the top {MEMBER_TABLE_LIMIT} of {rows.length} proteins (sorted by |log2FC|). Export CSV for the full list.</span>
+            : null}
+    </div>
+}
 
 function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags, proteinTagMap, setRequiredProteinTags }) {
     const width = 340
@@ -148,10 +209,19 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
         : null
     const overlapTags = entry.overlapTags
     const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
+    const fcName = log2FCFieldName(plotSuffix)
+    const formatTopRow = row => `${proteinDisplayName(proteinTagMap, row.tag)} (${_.isNumber(row[fcName]) ? row[fcName].toFixed(2) : "-"})`
+    const topUp = entry.rows.filter(row => _.isNumber(row[fcName]) && row[fcName] > 0)
+        .sort((a, b) => b[fcName] - a[fcName]).slice(0, 3)
+    const topDown = entry.rows.filter(row => _.isNumber(row[fcName]) && row[fcName] < 0)
+        .sort((a, b) => a[fcName] - b[fcName]).slice(0, 3)
     const tooltipLines = [
         `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s), |median log2FC| = ${_.isNumber(entry.med) ? Math.abs(entry.med).toFixed(2) : "-"}`,
+        `${entry.up} upregulated, ${entry.down} downregulated${entry.both > 0 ? `, ${entry.both} in both directions` : ""}`,
         ...listOptions.filter(option => selectedListKeys.includes(option.key))
-            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`)
+            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`),
+        ...(topUp.length > 0 ? [`Top up: ${topUp.map(formatTopRow).join("; ")}`] : []),
+        ...(topDown.length > 0 ? [`Top down: ${topDown.map(formatTopRow).join("; ")}`] : [])
     ].join("\n")
     return <div className="margin-bottom--little">
         <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
@@ -168,7 +238,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 <span className="font-size--smallest">of {entry.total}</span>
                 <span className="font-size--smallest" style={{
                     width: "4.5rem", flexShrink: 0, textAlign: "right",
-                    color: entry.med > 0 ? "#3d7a3a" : entry.med < 0 ? "#7a4d96" : "#8a8a8a"
+                    color: entry.med > 0 ? "#d13913" : entry.med < 0 ? "#4a7ba6" : "#8a8a8a"
                 }}>{_.isNumber(entry.med) ? entry.med.toFixed(2) : "-"}</span>
                 {_.isFunction(onMarkProteinList) ? <button className="basic-button--small" style={{ flexShrink: 0, fontWeight: listIsMarked ? "bold" : "normal" }}
                     onClick={(e) => { e.stopPropagation(); onMarkProteinList(listIsMarked ? [] : overlapTags) }}>
@@ -185,9 +255,12 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 <span className="font-size--smallest">log2FC volcano:</span>
                 {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === plotSuffix} onClick={() => setPlotSuffix(suffix)}>{suffix}</OptionButton>)}
             </div>
-            <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
-                backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
-                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+            <div className="flex" style={{ gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start" }}>
+                <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
+                    backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
+                    proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                <AnnotationMemberTable entry={entry} label={label} suffix={plotSuffix} rowByTag={rowByTag} proteinTagMap={proteinTagMap} />
+            </div>
             <div className="flex center-items flex--wrap margin-top--little" style={{ gap: "0.6rem" }}>
                 {[
                     { color: "#9a9a9a", label: "all proteins of the volcano (background)", shape: "box" },
