@@ -108,12 +108,12 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
             tabs: [
                 { text: "Features", to: `${urlStart}/features` },
                 { text: "Precursors", to: `${urlStart}/precursors` },
-                { text: "QC", to: `${urlStart}/qc` },
             ]
         },
         {
             text: "Analysis",
             tabs: withAnalysisAvailability([
+                { text: "QC", to: `${urlStart}/qc` },
                 { text: "Volcano", to: `${urlStart}/volcano` },
                 { text: "Exclusively", to: `${urlStart}/exclusively` },
                 { text: "Compare", to: `${urlStart}/compare` },
