@@ -6,6 +6,7 @@ import { api } from "@/api"
 import { ConsortiumText } from "@/comps/submission/view/ConsortiumText"
 import { SubmissionLink } from "@/comps/core/links/Submission"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
+import { ConsortiumTermsWarning } from "@/comps/core/base/user/ConsortiumTermsButton"
 
 /**
  * @description One approved consortium share row: the submission shared with the consortium
@@ -123,6 +124,7 @@ export function ConsortiumShareDecisionsButton() {
             onClose={() => setIsOpen(false)}
             style={{ width: "50vw" }}>
             <DialogBody>
+                <ConsortiumTermsWarning />
                 <h4>Pending share requests</h4>
                 {requestsIsLoading ? <Spinner size={20} /> :
                     _.isArray(pendingRequests) && pendingRequests.length > 0 ?

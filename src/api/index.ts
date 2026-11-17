@@ -38,7 +38,7 @@ import { proceduresModifyAPI, proceduresQueryAPI } from "./maintenance/procedure
 import { externalserviceModifyAPI, externalserviceQueryAPI } from "./maintenance/externalservice";
 import { sampleCoreAPI, sampleCountAPI } from "./samples";
 import { researchGroupsQueryAPI } from "./researchgroups";
-import { consortiumsAPI, pendingConsortiumShareRequestsAPI, consortiumMembershipRequestsAPI } from "./consortiums";
+import { consortiumsAPI, pendingConsortiumShareRequestsAPI, consortiumMembershipRequestsAPI, consortiumTermsAPI } from "./consortiums";
 import { collaborationsAPI, messagesAPI } from "./collaborations";
 import { ticketsAPI } from "./tickets";
 import { maintenanceCoreAPI, maintenanceStatesAPI } from "./maintenance/maintenanceevent";
@@ -191,6 +191,7 @@ export const api = {
     consortiums : consortiumsAPI,
     consortiumShareRequests : pendingConsortiumShareRequestsAPI,
     consortiumMembershipRequests : consortiumMembershipRequestsAPI,
+    consortiumTerms : consortiumTermsAPI,
     collaborations : collaborationsAPI,
     messages : messagesAPI,
     tickets : ticketsAPI,

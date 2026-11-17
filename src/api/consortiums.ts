@@ -31,4 +31,20 @@ export const consortiumMembershipRequestsAPI = {
     useDenyConsortiumMembershipRequest
 }
 
+const {
+    useGetConsortiumTermsGroups,
+    useAgreeConsortiumTerms,
+    useRevokeConsortiumTerms,
+    useGetPendingConsortiumTerms,
+    useGetUserConsortiumsWithPendingTerms
+} = consortiumsAPI;
+
+export const consortiumTermsAPI = {
+    useGetConsortiumTermsGroups,
+    useAgreeConsortiumTerms,
+    useRevokeConsortiumTerms,
+    useGetPendingConsortiumTerms,
+    useGetUserConsortiumsWithPendingTerms
+}
+
 export { consortiumsAPI };

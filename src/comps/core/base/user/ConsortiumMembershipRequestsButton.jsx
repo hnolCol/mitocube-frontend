@@ -5,6 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
 import { ConsortiumText } from "@/comps/submission/view/ConsortiumText"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
+import { ConsortiumTermsWarning } from "@/comps/core/base/user/ConsortiumTermsButton"
 
 /**
  * @description One user row of a consortium the current user is a member of, with a button to
@@ -101,6 +102,7 @@ export function ConsortiumMembershipRequestsButton() {
             onClose={() => setIsOpen(false)}
             style={{ width: "50vw" }}>
             <DialogBody>
+                <ConsortiumTermsWarning />
                 <h4>Your pending requests</h4>
                 {requestsIsLoading ? <Spinner size={20} /> :
                     _.isArray(pendingRequests) && pendingRequests.length > 0 ?
