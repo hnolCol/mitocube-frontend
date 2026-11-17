@@ -86,7 +86,12 @@ export function FeatureData({ feature_tag, submission_tag, showTitle = true, sho
                         title={!showProteinNameInTitle ? "" :  _.isObject(feature) && _.isString(feature.gene_name) ? feature.gene_name : feature_tag}
                         onRemove={onRemove}
                         openMetadataDrawer={openMetadataDrawer}
-                        /> : <div>No data available or all quantified values are null.</div>}
+                        /> : <div className="flex flex-column" style={{ height: "100%", justifyContent: "center", alignItems: "center" }}>
+                            {showProteinNameInTitle ? <strong className="font-size--small" style={{ marginBottom: "0.3rem" }}>
+                                {_.isObject(feature) && _.isString(feature.gene_name) && feature.gene_name.length > 0 ? feature.gene_name : feature_tag}
+                            </strong> : null}
+                            <span className="font-size--small">No data available or all quantified values are null.</span>
+                        </div>}
                         </div>
                     </div>
             )}
