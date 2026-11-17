@@ -91,16 +91,16 @@ function ResultChart({
             .filter(Boolean)
         );
         }, [_.join(_.values(selection), "-"), featureTag, submission_tag, _.isArray(data) ? data.length : 0]) // we need to include featureTag and submission_tag in the dependency array, because the CA tags are derived from the selection which is reset when feature or submission changes.;
-    const { isReady, tagQueries } = usePrefetchConditionApplicationTexts(ca_tags)
+    const { isReady, tagQueries, tags: validCaTags } = usePrefetchConditionApplicationTexts(ca_tags)
     const map = new Map()
     tagQueries.forEach((q, idx) => {
-        const ca_tag = ca_tags[idx]
+        const ca_tag = validCaTags[idx]
         if (q.data) map.set(ca_tag, q.data)
     })
-    const { isReady: attributesReady, tagQueries: attributeQueries } = usePrefetchAttributes(attribute_tags)
+    const { isReady: attributesReady, tagQueries: attributeQueries, tags: validAttributeTags } = usePrefetchAttributes(attribute_tags)
     const attributeMap = new Map()
     attributeQueries.forEach((q, idx) => {
-        const attr_tag = attribute_tags[idx]
+        const attr_tag = validAttributeTags[idx]
         if (q.data) attributeMap.set(attr_tag, q.data.text) // we only need the text for attributes, as they are used for labelling and not for grouping like CA tags.
     })
     // const nomalizedData = normalizeDataToGroup(data, normalizeDialog.normalizeToSelection, yaxisName, false, normalization)

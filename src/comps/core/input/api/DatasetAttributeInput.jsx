@@ -25,11 +25,11 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @returns 
  */
 export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false, trait_paths = undefined, parent_tags = undefined }) {
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing, staleTime : 60000 })
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag) && (_.isArray(trait_tags) || isMissing), staleTime : 60000 })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
         { tag, limit : 10 },
-        { enabled: isMissing && (!_.isArray(trait_tags) || trait_tags.length === 0) }
+        { enabled: _.isString(tag) && isMissing && (!_.isArray(trait_tags) || trait_tags.length === 0) }
     )
 
     const effectiveTraitTags = _.isArray(trait_tags) && trait_tags.length > 0 ? trait_tags : (fetchedTraitTags || [])
