@@ -127,7 +127,7 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
     return (
         <div className="no-scroll div--expand" style={{ display: "flex", flexDirection: "column" }}>
             <div className="flex center-items justify-space-between">
-                <GroupedTabs groups={tabGroups} />
+                <GroupedTabs groups={tabGroups} storageScope={submission_tag} />
                 {!isOnOverview && _.isString(submissionTitle) ? <span className="font-size--small font-weight--bold" style={{ padding: "0.3rem 1rem", overflowWrap: "anywhere" }}>{submissionTitle}</span> : null}
             </div>
             <div className="no-scroll div--expand" style={{ flex: 1, minHeight: 0 }}>

@@ -1,8 +1,9 @@
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router"
 import { Popover, Tooltip } from "@blueprintjs/core"
+import { getItemFromLocalStorage, saveInLocalStorage } from "../../../services/localstorage"
 
 GroupedTabs.propTypes = {
     groups: PropTypes.arrayOf(PropTypes.shape({
@@ -15,7 +16,8 @@ GroupedTabs.propTypes = {
             disabledHint: PropTypes.string,
             exact: PropTypes.bool
         })).isRequired
-    })).isRequired
+    })).isRequired,
+    storageScope: PropTypes.string
 }
 
 TabItem.propTypes = {
@@ -62,10 +64,29 @@ function TabItem({ text, to, active = false, onSelect, disabled = false, note, d
  * buttons. Each group button opens a dropdown listing its tabs; the group
  * button is highlighted while the current route belongs to the group.
  */
-function GroupedTabs({ groups }) {
+function GroupedTabs({ groups, storageScope = "global" }) {
 
     const location = useLocation()
+    const redirect = useNavigate()
     const [openGroup, setOpenGroup] = useState(null)
+    const [lastTabByGroup, setLastTabByGroup] = useState({})
+
+    const lastTabStorageName = (groupText) => `groupedTabsLastTab_${storageScope}_${groupText}`
+
+    const lastTabOfGroup = (group) => {
+        const known = lastTabByGroup[group.text]
+        if (known) return known
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: lastTabStorageName(group.text) })
+        const stored = itemFound && _.isString(itemValue) && group.tabs.find(tab => tab.to === itemValue) !== undefined
+            ? group.tabs.find(tab => tab.to === itemValue)
+            : undefined
+        return stored ?? group.tabs[0]
+    }
+
+    const setLastTab = (group, tab) => {
+        saveInLocalStorage({ itemName: lastTabStorageName(group.text), itemValue: tab.to })
+        setLastTabByGroup(prev => ({ ...prev, [group.text]: tab }))
+    }
 
     const isActive = tab => tab.exact
         ? location.pathname === tab.to
@@ -73,6 +94,11 @@ function GroupedTabs({ groups }) {
 
     const activeGroup = groups.find(group => group.tabs.some(isActive))
     const activeTab = activeGroup ? activeGroup.tabs.find(isActive) : null
+
+    // visiting a tab (also via URL) makes it the group's "last used" tab
+    useEffect(() => {
+        if (activeGroup && activeTab) setLastTab(activeGroup, activeTab)
+    }, [activeGroup?.text, activeTab?.to])
 
     return <div className="flex tabs__container" style={{ flexWrap: "wrap", gap: "0.2rem" }}>
         {groups.map(group => {
@@ -90,30 +116,38 @@ function GroupedTabs({ groups }) {
                         text={tab.text}
                         to={tab.to}
                         active={activeTab?.to === tab.to}
-                        onSelect={() => setOpenGroup(null)}
+                        onSelect={() => { setLastTab(group, tab); setOpenGroup(null) }}
                         disabled={tab.disabled}
                         note={tab.note}
                         disabledHint={tab.disabledHint}
                     />)}
                 </div>}
             >
-                <button
+                <div
                     className={"padding--little tabs__item " + `${isGroupActive ? "tabs__item-active" : "tabs__item-inactive"}`}
                     style={{
-                        border: "none",
-                        backgroundColor: "transparent",
-                        cursor: "pointer",
                         display: "flex",
                         alignItems: "center",
-                        gap: "0.3rem",
+                        gap: "0.1rem",
                         fontWeight: isGroupActive ? 600 : 400
                     }}
-                    onClick={() => setOpenGroup(openGroup === group.text ? null : group.text)}
                 >
-                    {group.text}
-                    {isGroupActive && activeTab ? <span style={{ fontSize: "0.75rem", color: "#888" }}>/ {activeTab.text}</span> : null}
-                    <span className="basic-button--small">▾</span>
-                </button>
+                    <button
+                        style={{ border: "none", backgroundColor: "transparent", cursor: "pointer", fontWeight: "inherit" }}
+                        title={`Go to ${lastTabOfGroup(group).text}`}
+                        onClick={() => redirect(lastTabOfGroup(group).to)}
+                    >
+                        {group.text}
+                        {isGroupActive && activeTab ? <span style={{ fontSize: "0.75rem", color: "#888" }}>/ {activeTab.text}</span> : null}
+                    </button>
+                    <button
+                        className="basic-button--small"
+                        style={{ border: "none", backgroundColor: "transparent", cursor: "pointer" }}
+                        onClick={() => setOpenGroup(openGroup === group.text ? null : group.text)}
+                    >
+                        ▾
+                    </button>
+                </div>
             </Popover>
         })}
     </div>
