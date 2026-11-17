@@ -39,9 +39,11 @@
 
 .submission__state_container {
   /* Container for state specific submissions */
-  padding-bottom: 1.5rem;
-  padding-left: 0.75rem;
+  padding: 0.5rem 0.75rem 1rem 0.75rem;
   overflow-y: visible;
+  background-color: #fdfdfd;
+  border: 1px solid #e0e0e0;
+  border-radius: 0.5rem;
 
 }
 
@@ -50,6 +52,8 @@
     font-size: 0.85rem;
     background-color :#fafafa;
     cursor: default;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.25rem;
     /* border-radius: 0.25rem; */
     margin-top : 0.3rem;
     /* box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2); */
