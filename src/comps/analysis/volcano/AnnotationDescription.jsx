@@ -81,9 +81,20 @@ function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
             cy={cy + (((idx * 37) % 11) - 5)}
             r={point.inList ? 3.2 : 2.4}
             fill={point.inList ? "#2e8540" : color}
-            fillOpacity={point.inList ? 0.95 : 0.6}
+            fillOpacity={point.isHovered ? 0 : point.inList ? 0.95 : 0.6}
             style={{ cursor: "pointer" }}
             onMouseEnter={point.onHover ? () => point.onHover() : undefined} />) : null}
+        {withDots ? points.map((point, idx) => point.isHovered
+            ? <circle key={`hovered-${idx}`}
+                cx={x(point.value)}
+                cy={cy + (((idx * 37) % 11) - 5)}
+                r={6}
+                fill={point.inList ? "#2e8540" : color}
+                fillOpacity={1}
+                stroke={"#000000"}
+                strokeWidth={1.5}
+                style={{ cursor: "pointer", pointerEvents: "none" }} />
+            : null) : null}
     </g>
 }
 
@@ -196,7 +207,7 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         <BoxPlotRow sorted={backgroundValues} cy={35} boxHeight={14} color="#9a9a9a" x={x} withDots={false} points={[]} />
         <BoxPlotRow sorted={sortedListValues} cy={85} boxHeight={14} color={LIST_COLOR} x={x} withDots={false} points={[]} />
         <g onMouseLeave={() => setHoveredPoint(null)}>
-            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#af8dc3" x={x} withDots={true} points={points.map(p => ({ ...p, onHover: () => setHoveredPoint(p) }))} />
+            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#af8dc3" x={x} withDots={true} points={points.map(p => ({ ...p, isHovered: _.isObject(hoveredPoint) && hoveredPoint.tag === p.tag, onHover: () => setHoveredPoint(p) }))} />
         </g>
         {hoveredPoint ? <text x={hoveredLabelX} y={118} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text> : null}
     </svg>
