@@ -1,5 +1,6 @@
 import { Alert, Callout } from "@blueprintjs/core";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import _ from "lodash";
 import { api } from "@/api";
@@ -8,6 +9,7 @@ import { ModularProcedureExecutionDialog } from "./ModularProcedureExecutionDial
 import { ModularProcedureExecutionMetricsDialog } from "./ModularProcedureExecutionMetricsDialog";
 
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
+const STATE_CHANGE_ROLE = 3 // only curators (3) and admins (4) may change the state of an execution
 
 /**
  * Horizontal overview of the published modular procedures and the
@@ -17,6 +19,8 @@ const CURATOR_ROLE = 2 // must match the backend user role encoding; curators an
 export function ModularProcedureBoard({ userRole, userTag }) {
 
     const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
+    const canChangeState = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= STATE_CHANGE_ROLE
+    const navigate = useNavigate()
     const [alertProps, setAlertProps] = useState({ isOpen: false })
     const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
     const [metricsDialogProps, setMetricsDialogProps] = useState({ isOpen: false, procedure_tag: null })
@@ -54,7 +58,11 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 onClose={() => setMetricsDialogProps({ isOpen: false, procedure_tag: null })}
                 onSaved={() => setMetricsDialogProps({ isOpen: false, procedure_tag: null })} /> : null}
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
-            <h3>Modular Procedures</h3>
+            <div className="flex justify-between center-items">
+                <h3>Modular Procedures</h3>
+                <button className="basic-button basic-button--small"
+                    onClick={() => navigate("/modular-procedures/executions")}>Executions overview</button>
+            </div>
             <p className="font-size--small" style={{ color: "#888" }}>
                 Facility workflow modules the submissions travel through. Each column shows the submissions
                 assigned to the procedure with their assignment date and done state.
@@ -68,14 +76,14 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 </Callout> :
                 procedure_tags?.map((procedure_tag) =>
                     <ProcedureColumn key={procedure_tag} procedure_tag={procedure_tag}
-                        isCurator={isCurator} onMarkDone={markDone} onReopen={reopen}
+                        isCurator={isCurator} canChangeState={canChangeState} onMarkDone={markDone} onReopen={reopen}
                         onExecute={() => setExecutionDialogProps({ isOpen: true, procedure_tag })}
                         onMetrics={() => setMetricsDialogProps({ isOpen: true, procedure_tag })} />)}
         </div>
     </div>
 }
 
-function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExecute, onMetrics }) {
+function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone, onReopen, onExecute, onMetrics }) {
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag({ tag: procedure_tag })
     const { data: submissions, isLoading, refetch } =
@@ -101,7 +109,7 @@ function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExe
             {procedure?.protocol_tags?.length > 0 ? <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
                 {procedure.protocol_tags.map((protocol_tag) => <ProtocolLabel key={protocol_tag} protocol_tag={protocol_tag} />)}
             </div> : null}
-            <ExecutionsPanel procedure_tag={procedure_tag} isCurator={isCurator} />
+            <ExecutionsPanel procedure_tag={procedure_tag} isCurator={canChangeState} />
         </div>
         {isLoading ? <div className="padding--little">Loading ...</div> :
             submissions?.map((link) => <SubmissionCard key={link.submission_tag} link={link}
