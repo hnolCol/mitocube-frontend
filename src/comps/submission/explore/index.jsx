@@ -1,7 +1,7 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { InputGroup, Spinner, Popover, SpinnerSize } from "@blueprintjs/core"
+import { InputGroup, Spinner, Popover, SpinnerSize, Callout } from "@blueprintjs/core"
 import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
 import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
@@ -184,6 +184,9 @@ ExploreTagSearch.propTypes = {
 function ExploreTagSearch({ searchString, setSearchString, selected_ca_tags, selected_user_tags, onSelectConditionApplication, onSelectUser }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const debouncedSearch = useDebounce(searchString, 300)
+    const { data: exploreDisabled, isLoading: exploreDisabledIsLoading } = api.researchgroups.useGetMyExploreDisabled(
+        {}, { staleTime: 60000, retry: false }
+    )
     const hasSearch = _.isString(searchString) && searchString.trim().length > 0
     const { data: ca_tags, isLoading: isCALoading } = api.condition_applications.useGetConditionApplicationByQuery(
         { search_string: debouncedSearch, limit: 10 },
@@ -277,6 +280,9 @@ export function SubmissionExplore({ user_tag }) {
     const [selectedCATags, setSelectedCATags] = useState([])
     const [selectedUserTags, setSelectedUserTags] = useState([])
     const debouncedSearch = useDebounce(searchString, 300)
+    const { data: exploreDisabled, isLoading: exploreDisabledIsLoading } = api.researchgroups.useGetMyExploreDisabled(
+        {}, { staleTime: 60000, retry: false }
+    )
     const { data: submissions, isLoading, isFetching, isError } = api.collaborations.useGetSubmissionExplore(
         {
             search_string: debouncedSearch,
@@ -290,8 +296,22 @@ export function SubmissionExplore({ user_tag }) {
         setSelectedCATags(prev => prev.includes(ca_tag) ? prev.filter(tag => tag !== ca_tag) : [...prev, ca_tag])
     }
     const handleSelectUser = (user_tag) => {
-        setSelectedUserTags(prev => prev.includes(user_tag) ? prev.filter(tag => tag !== user_tag) : [...prev, user_tag])
+        setSelectedUserTags(prev => prev.includes(user_tag) ? prev.filter(tag => tag !== ca_tag) : [...prev, ca_tag])
     }
+    if (exploreDisabledIsLoading) return <div className="container--scroll-y-hide-x flex flex-column center-items padding--medium" style={{ height: "90vh" }}><Spinner size={20} /></div>
+    if (exploreDisabled === true) return <div className="container--scroll-y-hide-x flex flex-column center-items padding--medium" style={{ height: "90vh" }}>
+        <h3>Explore submissions</h3>
+        <div style={{ maxWidth: "60vw" }}>
+            <Callout intent="warning" title="Explore disabled by PI">
+                <div className="font-size--small">
+                    The head (PI) of your research group has disabled the explore view for your
+                    group. You can neither discover the submissions of other groups here nor are
+                    the submissions of your group visible to other users in the explore view.
+                    Contact your PI if you need access.
+                </div>
+            </Callout>
+        </div>
+    </div>
     return <div className="container--scroll-y-hide-x flex flex-column center-items padding--medium" style={{ height: "90vh" }}>
         <h3>Explore submissions</h3>
         <p className="font-size--small" style={{ maxWidth: "60vw", textAlign: "center" }}>

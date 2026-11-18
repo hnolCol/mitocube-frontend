@@ -1,24 +1,25 @@
 import { Outlet } from "react-router";
 import Tabs from "../core/navigation/tabs";
-import { useState } from "react";
 
 
 function SubmissionHeader({ }) {
-    
+
+    const tabs = [
+        { text: "Submissions", to: "/submissions" },
+        { text: "Organize", to: "/submissions/organize" },
+        { text: "Explore", to: "/submissions/explore" },
+        { text: "New Submission", to: "/submissions/new" },
+        { text: "Statistics", to: "/submissions/statistics" },
+        { text : "Help", to : "/submissions/help"}]
+
     return (
         <div className="no-scroll div--expand">
-            <Tabs tabs={[
-                { text: "Submissions", to: "/submissions" },
-                { text: "Organize", to: "/submissions/organize" },
-                { text: "Explore", to: "/submissions/explore" },
-                { text: "New Submission", to: "/submissions/new" },
-                { text: "Statistics", to: "/submissions/statistics" },
-                { text : "Help", to : "/submissions/help"}]} />
+            <Tabs tabs={tabs} />
             <div className="no-scroll div--expand">
-            
-                <Outlet context={{}} />
+
+                <Outlet />
             </div>
-            
+
         </div>
     )
 }

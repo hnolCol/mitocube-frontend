@@ -13,16 +13,16 @@ import { PendingCollaborationRequestsList } from "@/comps/submission/view/Pendin
 export function PendingCollaborationRequestDialog() {
     const [isOpen, setIsOpen] = useState(false)
     const hasShown = useRef(false)
-    const { data: pendingRequests, isLoading, isSuccess } = api.collaborations.useGetPendingCollaborationRequests(
+    const { data: pendingRequests, isLoading, isSuccess, isError } = api.collaborations.useGetPendingCollaborationRequests(
         {}, { staleTime: 0, retry: false }
     )
     useEffect(() => {
-        if (!hasShown.current && isSuccess && _.isArray(pendingRequests) && pendingRequests.length > 0) {
+        if (!hasShown.current && isSuccess && !isError && _.isArray(pendingRequests) && pendingRequests.length > 0) {
             hasShown.current = true
             setIsOpen(true)
         }
-    }, [isSuccess, pendingRequests])
-    if (isLoading || !_.isArray(pendingRequests) || pendingRequests.length === 0) return null
+    }, [isSuccess, isError, pendingRequests])
+    if (isLoading || isError || !_.isArray(pendingRequests) || pendingRequests.length === 0) return null
     return <Dialog
         isOpen={isOpen}
         title="Pending collaboration requests"

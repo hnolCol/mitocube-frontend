@@ -10,6 +10,7 @@ ConsortiumShare.propTypes = {
     consortium_tag: PropTypes.string.isRequired,
     submission_tag: PropTypes.string.isRequired,
     pendingConsortiumTags: PropTypes.arrayOf(PropTypes.string),
+    termsPending: PropTypes.bool,
     onInvalidate: PropTypes.func
 }
 
@@ -17,14 +18,17 @@ ConsortiumShare.propTypes = {
  * @description One consortium row in the consortium sharing panel. Resolves the shared and
  * pending state for this consortium and allows to share/unshare the submission with it.
  * A share by a non-PI user is created pending and can be revoked until a PI approved it.
+ * If the head (PI) of the users research group has not agreed to the consortium share terms
+ * of this consortium, sharing is disabled and shown as denied by the PI.
  * @param {Object} props
  * @param {String} props.consortium_tag Consortium tag
  * @param {String} props.submission_tag Submission tag
  * @param {String[]} props.pendingConsortiumTags Consortium tags with a pending share request for this submission
+ * @param {Boolean} props.termsPending True if the PI of the users research group has not agreed to the consortium terms
  * @param {Function} props.onInvalidate Callback to invalidate the share queries
  * @returns {JSX.Element} The consortium share row.
  */
-function ConsortiumShare({ consortium_tag, submission_tag, pendingConsortiumTags = [], onInvalidate }) {
+function ConsortiumShare({ consortium_tag, submission_tag, pendingConsortiumTags = [], termsPending = false, onInvalidate }) {
     const { data: submission_tags } = api.consortiums.useGetConsortiumSubmissions(
         { tag: consortium_tag }, { enabled: _.isString(consortium_tag), staleTime: 300000 }
     )
@@ -50,23 +54,28 @@ function ConsortiumShare({ consortium_tag, submission_tag, pendingConsortiumTags
         <div className="flex align-center flex-column">
             {shareFailed ? <APIAxiosError error={shareError} /> : null}
             {unshareFailed ? <APIAxiosError error={unshareError} /> : null}
-            {isPending
+            {termsPending && !isShared
                 ? <div className="flex align-center">
-                    <Tag minimal={true} round={true} intent="warning" icon="time">Pending</Tag>
-                    <Button
-                        small={true}
-                        className="margin-left--little"
-                        intent="danger"
-                        text="Revoke request"
-                        loading={isWorking}
-                        onClick={handleRevokeRequest} />
+                    <Tag minimal={true} round={true} intent="danger" icon="blocked-person">Sharing disabled by PI</Tag>
                 </div>
-                : <Button
-                    small={true}
-                    loading={isWorking}
-                    intent={isShared ? "danger" : "primary"}
-                    text={isShared ? "Remove share" : "Share"}
-                    onClick={handleToggleShare} />}
+                : isPending
+                    ? <div className="flex align-center">
+                        <Tag minimal={true} round={true} intent="warning" icon="time">Pending</Tag>
+                        <Button
+                            small={true}
+                            className="margin-left--little"
+                            intent="danger"
+                            text="Revoke request"
+                            loading={isWorking}
+                            onClick={handleRevokeRequest} />
+                    </div>
+                    : <Button
+                        small={true}
+                        loading={isWorking}
+                        disabled={termsPending}
+                        intent={isShared ? "danger" : "primary"}
+                        text={isShared ? "Remove share" : "Share"}
+                        onClick={handleToggleShare} />}
         </div>
     </div>
 }
@@ -115,7 +124,11 @@ export function ConsortiumShareSection({ submission_tag, showHeader = true }) {
     const { data: pendingConsortiumTags, isLoading: isPendingLoading } = api.consortiums.useGetPendingConsortiumShares(
         { submission_tag }, { staleTime: 300000 }
     )
+    const { data: pendingTermsConsortiums, isLoading: isTermsLoading } = api.consortiumTerms.useGetUserConsortiumsWithPendingTerms(
+        {}, { staleTime: 60000, retry: false }
+    )
     const consortiumTags = _.isArray(userConsortiums) ? userConsortiums : []
+    const pendingTermsTags = _.isArray(pendingTermsConsortiums) ? pendingTermsConsortiums : []
     if (!isConsortiumsLoading && consortiumTags.length === 0) return null
 
     const invalidate = () => {
@@ -128,13 +141,15 @@ export function ConsortiumShareSection({ submission_tag, showHeader = true }) {
         {showHeader ? <p className="font-size--small">
             Share this submission with a consortium. All members of the consortiums research groups will be able to access it.
             If you are not a research group head (PI), the share request must be approved by a PI of your research group first.
+            Consortiums whose share terms your PI has not agreed to are marked as "Sharing disabled by PI".
         </p> : null}
-        {isPendingLoading ? <p>Loading..</p> :
+        {isPendingLoading || isTermsLoading ? <p>Loading..</p> :
             consortiumTags.map(consortium_tag => <ConsortiumShare
                 key={consortium_tag}
                 consortium_tag={consortium_tag}
                 submission_tag={submission_tag}
                 pendingConsortiumTags={pendingConsortiumTags}
+                termsPending={pendingTermsTags.includes(consortium_tag)}
                 onInvalidate={invalidate} />)}
     </div>
 }

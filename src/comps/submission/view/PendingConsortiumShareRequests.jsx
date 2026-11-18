@@ -3,14 +3,7 @@ import _ from "lodash"
 import { Button, Spinner } from "@blueprintjs/core"
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
-import { ConsortiumText } from "./ConsortiumText"
-import { UserFullName } from "@/comps/core/input/api/UserInput"
-
-const REQUEST_TARGETS = [
-    { label: "Submission", key: "submission_tag" },
-    { label: "Consortium", key: "consortium_tag" },
-    { label: "Requested by", key: "requested_by" }
-]
+import { ShareRequestDescription } from "./ShareRequestDescription"
 
 PendingConsortiumShareRequestsList.propTypes = {
     isDialogTitle: PropTypes.bool
@@ -47,11 +40,10 @@ export function PendingConsortiumShareRequestsList({ isDialogTitle = false }) {
             const params = { consortium_tag: request.consortium_tag, submission_tag: request.submission_tag }
             return <div key={key} className="flex justify-between align-center margin--little">
                 <div className="flex align-center" style={{ gap: "0.75rem" }}>
-                    <ConsortiumText tag={request.consortium_tag} />
-                    <a className="font-size--small" href={`/submissions/${request.submission_tag}`}>{request.submission_tag}</a>
-                    {_.isString(request.requested_by)
-                        ? <span className="font-size--small">by <UserFullName tag={request.requested_by} /></span>
-                        : null}
+                    <ShareRequestDescription
+                        submission_tag={request.submission_tag}
+                        consortium_tag={request.consortium_tag}
+                        requested_by={request.requested_by} />
                 </div>
                 <div className="flex align-right">
                     <Button small={true} intent="primary" text="Approve" loading={isWorking} onClick={() => approve(params)} />

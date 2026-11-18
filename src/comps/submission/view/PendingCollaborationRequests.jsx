@@ -25,12 +25,13 @@ export function PendingCollaborationRequestsList({ isDialogTitle = false }) {
     )
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: ["getPendingCollaborationRequests"] })
+        queryClient.invalidateQueries({ queryKey: ["getSubmissionCollaborationRequests"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
         queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShares"] })
     }
-    const { mutate: approve, isPending: isApproving } = api.collaborations.usePostApproveCollaborationRequest({ onSuccess: invalidate })
-    const { mutate: deny, isPending: isDenying } = api.collaborations.usePostDenyCollaborationRequest({ onSuccess: invalidate })
+    const { mutate: approve, isPending: isApproving } = api.collaborations.usePostApproveCollaborationRequest({ onSuccess: invalidate, onError: invalidate })
+    const { mutate: deny, isPending: isDenying } = api.collaborations.usePostDenyCollaborationRequest({ onSuccess: invalidate, onError: invalidate })
     if (isLoading) return <div className="flex center-items padding--medium"><Spinner size={20} /></div>
     if (isError || !_.isArray(pendingRequests)) return null
     if (pendingRequests.length === 0) {
