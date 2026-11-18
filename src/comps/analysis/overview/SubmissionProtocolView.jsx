@@ -71,6 +71,8 @@ export function SubmissionProtocolsView({ submission_tag }) {
             <div style={{ height: "29vh", padding: "1rem", overflowY: "scroll" }}>
                 {submission_protocols?.map((protocol_tag) =>
                     <ProtocolMinimalItem key={protocol_tag} protocol_tag={protocol_tag} onClick={() => setDrawerProps({ isOpen: true, protocol_tag })} />)}
+                {_.isArray(submission_protocols) && submission_protocols.length === 0 &&
+                    <p className="font-size--smallest" style={{ color: "#666" }}>No protocol defined yet for this submission.</p>}
 
             </div>
         </div>
