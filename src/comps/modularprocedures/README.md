@@ -15,10 +15,10 @@ trait-based metrics).
 
 | File | Purpose |
 |---|---|
-| `ModularProcedureBoard.jsx` | Horizontal overview of all published procedures (one column per procedure, only the latest published version per lineage). Each card is a linked submission with its link date and done state. Curators can mark done / reopen, **Execute** a procedure and open the **Metrics** dialog. Route: `/modular-procedures`. |
+| `ModularProcedureBoard.jsx` | Horizontal overview of all published procedures (one column per procedure, only the latest published version per lineage). Each card is a linked submission with its link date and done state; the column header shows the utilized **protocols**. Curators can mark done / reopen, **Execute** a procedure and open the **Metrics** dialog. The **Executions** section lists the runs of the procedure with their status (RUNNING / SUCCEEDED / FAILED / ABORTED); curators confirm a running execution with **Successful / Failed / Aborted**, which frees the assigned submissions for the next procedure. Route: `/modular-procedures`. |
 | `ModularProcedureExecutionDialog.jsx` | Executes a published procedure on a set of samples. |
 | `ModularProcedureExecutionMetricsDialog.jsx` | Sets or updates well metrics of an **existing** execution. |
-| `ModularProcedureForm.jsx` | Create/edit form used by the admin area (title, description, condition applications, protocols). |
+| `ModularProcedureForm.jsx` | Create/edit form used by the admin area (title, description, condition applications, protocols, **plate setup** — required input/output plate format and type, **well attributes** — input attributes that may be filled in per input well and output attributes expected after a successful run — and the optional **success submission state** that is set automatically when an execution is confirmed successful). |
 
 ## The execution dialog
 
@@ -37,7 +37,7 @@ The dialog implements the input-plate → output-plate workflow:
    in more than one output well.
 4. **Condition applications**: click an output well and add condition applications
    (e.g. heat treatment) to it via the existing `ConditionApplicationInput`.
-5. **Responsible user**: defaults to the current user, selectable via `UserInput`.
+5. **Responsible user**: defaults to the current user, selectable via `UserInput`; the backend requires the responsible user to be a curator. Plates that do not match the plate layout defined in the procedure setup are hidden from the dropdowns.
 6. **Well metrics** (optional): define the measured quantities as **attribute → trait**
    pairs (e.g. *Concentration* → *µg/µL*) using `AttributeInput` and `TraitInput`,
    **download the txt template** (header line `well` + one column per trait, one line per
@@ -48,8 +48,13 @@ The dialog implements the input-plate → output-plate workflow:
 Right-click clears an input well / removes an output well (or unmaps the selected input
 well). The validation summary under the grids explains why the execute button is disabled.
 
-Executing marks the submissions owning the placed samples as **done** in the procedure,
-which (per the single-open-module rule) frees them for the next module.
+Executing starts the execution in the **RUNNING** state. The submissions owning the placed
+samples stay linked and open until a curator **confirms the outcome** (successful / failed /
+aborted) in the board's executions section: regardless of the outcome that frees them for the
+next module; only a successful confirmation sets the procedure's optional success submission
+state and makes the submissions adopt the condition applications of the module. Well metrics
+can be defined for both sides: **input values** (`side: INPUT`, e.g. the concentration of each
+well before harmonization) and **output metrics** (`side: OUTPUT`, measured after the run).
 
 ## The metrics dialog
 

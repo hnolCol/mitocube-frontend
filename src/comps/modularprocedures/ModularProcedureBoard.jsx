@@ -45,7 +45,7 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 current_user_tag={userTag}
                 onExecuted={() => {
                     setExecutionDialogProps({ isOpen: false, procedure_tag: null })
-                    setAlertProps({ isOpen: true, message: "Procedure executed. The affected submissions are done and can proceed to the next procedure." })
+                    setAlertProps({ isOpen: true, message: "The execution is running. Confirm its outcome (successful / failed / aborted) in the executions section of the procedure: this frees the assigned submissions for the next procedure." })
                 }} /> : null}
         {metricsDialogProps.isOpen ?
             <ModularProcedureExecutionMetricsDialog
@@ -98,6 +98,10 @@ function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExe
             {procedure?.description ? <p className="font-size--small" style={{ color: "#666", margin: 0 }}>
                 {procedure.description.substring(0, 120)}{procedure.description.length > 120 ? "..." : ""}
             </p> : null}
+            {procedure?.protocol_tags?.length > 0 ? <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+                {procedure.protocol_tags.map((protocol_tag) => <ProtocolLabel key={protocol_tag} protocol_tag={protocol_tag} />)}
+            </div> : null}
+            <ExecutionsPanel procedure_tag={procedure_tag} isCurator={isCurator} />
         </div>
         {isLoading ? <div className="padding--little">Loading ...</div> :
             submissions?.map((link) => <SubmissionCard key={link.submission_tag} link={link}
@@ -106,6 +110,59 @@ function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExe
                 onReopen={() => onReopen({ tag: procedure_tag, submission_tag: link.submission_tag }, { onSuccess: () => refetch() })} />)}
         {submissions?.length === 0 ?
             <div className="padding--little font-size--small" style={{ color: "#888" }}>No submissions linked.</div> : null}
+    </div>
+}
+
+function ProtocolLabel({ protocol_tag }) {
+    const { data: protocol } = api.protocols.query.useGetProtocolByTag(
+        { tag: protocol_tag }, { enabled: _.isString(protocol_tag), staleTime: 300000 })
+    const title = _.isObject(protocol) && _.isString(protocol.title) ? protocol.title : protocol_tag
+    return <span className="font-size--smallest" title={protocol_tag} style={{
+        color: "#5c7080", border: "1px solid #cdcfd4", borderRadius: "4px", padding: "0 0.25rem",
+        background: "#f5f8fa", display: "inline-flex", alignItems: "center", gap: "0.15rem"
+    }}>📄 {title}</span>
+}
+
+const EXECUTION_STATUS_STYLE = {
+    RUNNING: { color: "#c87619" },
+    SUCCEEDED: { color: "#43a047" },
+    FAILED: { color: "#cd4246" },
+    ABORTED: { color: "#888" },
+}
+
+function ExecutionRow({ execution_tag, isCurator }) {
+    const { data: execution } = api.modularProcedures.execute.useGetModularProcedureExecution(
+        { tag: execution_tag }, { enabled: _.isString(execution_tag) })
+    const { mutate: finishExecution } = api.modularProcedures.execute.useFinishModularProcedureExecution()
+    const status = execution?.status || "RUNNING"
+    const style = EXECUTION_STATUS_STYLE[status] || EXECUTION_STATUS_STYLE.RUNNING
+    const finish = (outcome) => finishExecution({ tag: execution_tag, outcome })
+    return <div className="flex center-items justify-between" style={{ gap: "0.25rem", margin: "0.25rem 0" }}>
+        <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
+        <span className="font-size--smallest" style={{
+            color: style.color, border: `1px solid ${style.color}`, borderRadius: "4px", padding: "0 0.25rem"
+        }}>{status}</span>
+        {isCurator && status === "RUNNING" ? <div className="flex" style={{ gap: "0.25rem" }}>
+            <button className="basic-button basic-button--small" style={{ color: "#43a047" }}
+                title="Confirms the run and frees the assigned submissions for the next procedure"
+                onClick={() => finish("SUCCEEDED")}>Successful</button>
+            <button className="basic-button basic-button--small" style={{ color: "#cd4246" }}
+                title="Frees the assigned submissions but does not adopt condition applications or change the state"
+                onClick={() => finish("FAILED")}>Failed</button>
+            <button className="basic-button basic-button--small"
+                onClick={() => finish("ABORTED")}>Aborted</button>
+        </div> : null}
+    </div>
+}
+
+function ExecutionsPanel({ procedure_tag, isCurator }) {
+    const { data: execution_tags } = api.modularProcedures.execute.useGetModularProcedureExecutions(
+        { tag: procedure_tag }, { enabled: _.isString(procedure_tag) })
+    if (!_.isArray(execution_tags) || execution_tags.length === 0) return null
+    return <div style={{ marginTop: "0.25rem", borderTop: "1px dashed #ddd", paddingTop: "0.25rem" }}>
+        <div className="font-size--smallest" style={{ color: "#888" }}>Executions</div>
+        {execution_tags.map((execution_tag) =>
+            <ExecutionRow key={execution_tag} execution_tag={execution_tag} isCurator={isCurator} />)}
     </div>
 }
 
