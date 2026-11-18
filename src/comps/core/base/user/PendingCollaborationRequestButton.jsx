@@ -13,10 +13,10 @@ import { PendingCollaborationRequestsList } from "@/comps/submission/view/Pendin
  */
 export function PendingCollaborationRequestButton() {
     const [isOpen, setIsOpen] = useState(false)
-    const { data: pendingRequests, isLoading } = api.collaborations.useGetPendingCollaborationRequests(
+    const { data: pendingRequests, isLoading, isError } = api.collaborations.useGetPendingCollaborationRequests(
         {}, { staleTime: 60000, retry: false }
     )
-    if (isLoading || !_.isArray(pendingRequests) || pendingRequests.length === 0) return null
+    if (isLoading || isError || !_.isArray(pendingRequests) || pendingRequests.length === 0) return null
     return <>
         <div className="flex flex-column justify-center margin--little">
             <Button

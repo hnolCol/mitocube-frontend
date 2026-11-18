@@ -16,7 +16,7 @@ import { PendingConsortiumShareRequestButton } from "../../base/user/PendingCons
 import { DepositionRequestsButton } from "../../base/user/DepositionRequestsButton"
 import { ConsortiumShareDecisionsButton } from "../../base/user/ConsortiumShareDecisionsButton"
 import { ConsortiumMembershipRequestsButton } from "../../base/user/ConsortiumMembershipRequestsButton"
-import { ConsortiumTermsButton } from "../../base/user/ConsortiumTermsButton"
+import { ConsortiumSharingButton } from "../../base/user/ConsortiumSharingButton"
 import { PendingCollaborationRequestButton } from "../../base/user/PendingCollaborationRequestButton"
 import { MessagesButton } from "@/comps/messages"
 import { PendingAttributeRequestsButton } from "../../base/user/PendingAttributeRequestsButton"
@@ -108,7 +108,6 @@ function Topbar({authenticationStatus,logout, user_tag}) {
             <div className="flex">
                 <ConsortiumShareDecisionsButton />
                 <ConsortiumMembershipRequestsButton />
-                <ConsortiumTermsButton />
                 <DepositionRequestsButton userRole={userRole} />
                 <PendingConsortiumShareRequestButton />
                 <PendingCollaborationRequestButton />
@@ -116,6 +115,7 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <PendingTraitRequestsButton userRole={userRole} />
                 <PendingTicketsButton userRole={userRole} userTag={user_tag} />
                 <MessagesButton user_tag={user_tag} />
+                <ConsortiumSharingButton user_tag={user_tag} user_role={userRole} />
                 <div className="flex flex-column justify-center">
                     <Tooltip content="Show the rights connected to the user roles" position={Position.BOTTOM}>
                         <Code style={{ cursor: "pointer" }} onClick={onShowRoleRights}>role: {userRole}</Code>

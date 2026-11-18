@@ -4,8 +4,8 @@ import { Button, Dialog, DialogBody, DialogFooter, Spinner } from "@blueprintjs/
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
 import { ConsortiumText } from "@/comps/submission/view/ConsortiumText"
+import { ShareRequestDescription } from "@/comps/submission/view/ShareRequestDescription"
 import { SubmissionLink } from "@/comps/core/links/Submission"
-import { UserFullName } from "@/comps/core/input/api/UserInput"
 import { ConsortiumTermsWarning } from "@/comps/core/base/user/ConsortiumTermsButton"
 
 /**
@@ -45,9 +45,10 @@ function PendingShareRequestRow({ request, onInvalidate }) {
     const isWorking = isApproving || isDenying
     return <div className="flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
         <div className="flex flex-column">
-            <SubmissionLink tag={request.submission_tag} />
-            <div className="font-size--small"><ConsortiumText tag={request.consortium_tag} /></div>
-            {_.isString(request.requested_by) ? <div className="font-size--smallest">by <UserFullName tag={request.requested_by} /></div> : null}
+            <ShareRequestDescription
+                submission_tag={request.submission_tag}
+                consortium_tag={request.consortium_tag}
+                requested_by={request.requested_by} />
         </div>
         <div className="flex">
             <Button small={true} intent="primary" text="Accept" disabled={isWorking} onClick={() => approve({ consortium_tag: request.consortium_tag, submission_tag: request.submission_tag })} />
