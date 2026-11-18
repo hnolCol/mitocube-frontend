@@ -6,5 +6,4 @@ export const userLogin = hooks.authorization.login.createAuthenticationAPI(apiCl
 export const tokenAuthentication = hooks.authorization.token.createAuthenticationTokenAPI(apiClient);
 export const mfaAuthentication = hooks.authorization.mfa.createAuthenticationMFAAPI(apiClient);
 export const patsAPI = hooks.authorization.pats.createPATsAPI(apiClient);
-export const useTermsAPI = hooks.authorization.useterms.createAcceptUseTermsAPI(apiClient);
 
