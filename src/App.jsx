@@ -94,6 +94,7 @@ import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 import { AdminExternalResources } from "./comps/admin/externalresources/AdminExternalResources";
 import { PolicyManagement, TERMS_OF_USE, DATA_PROTECTION } from "./comps/admin/policy/PolicyManagement";
 import { ImpressumManagement } from "./comps/admin/impressum/ImpressumManagement";
+import { PATsAdminView } from "./comps/admin/pats";
 import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 import { ModularProceduresAdmin } from "./comps/admin/modularprocedures/ModularProceduresAdmin";
@@ -416,7 +417,7 @@ function App() {
             {/* <Route index element={<div>Admin Settings</div>} />  */}
             <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/users" element={<UsersAdminView {...{ authenticationStatus }} />} />
-            {/* <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} /> */}
+            <Route path="/admin/pats" element={<PATsAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
