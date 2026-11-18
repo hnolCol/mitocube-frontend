@@ -210,15 +210,30 @@ UserPATsAdminSection.propTypes = {
     ownTag: PropTypes.string
 }
 
+const CURATOR_ROLE = 3  // must match UserRolesEnum.CURATOR in the backend
+
 /**
  * Admin view for personal access tokens (PATs) used by scripts, e.g.
- * automated QC run uploads. Users create, inspect and revoke their own
- * tokens; admins can additionally manage the tokens of any user.
+ * automated QC run uploads. Curators and admins create, inspect and
+ * revoke their own tokens; admins can additionally manage the tokens
+ * of any user. Standard users and guests are rejected (the backend
+ * enforces the same restriction).
  * @param {Object} props
  * @param {Object} props.authenticationStatus - Authentication status with role.
+ * @param {Number} props.userRole - Role of the current user.
  */
-export function PATsAdminView({ authenticationStatus }) {
+export function PATsAdminView({ authenticationStatus, userRole }) {
     const isAdmin = _.get(authenticationStatus, "role", 0) >= ADMIN_ROLE
+    const isCurator = _.isNumber(userRole) && userRole >= CURATOR_ROLE
+    if (!isCurator) {
+        return (
+            <div className="margin--medium width--half-viewport">
+                <Callout intent="warning" title="Not authorized">
+                    Personal access tokens are restricted to curators and admins.
+                </Callout>
+            </div>
+        )
+    }
     return (
         <div className="margin--medium width--half-viewport">
             <Header text="Personal access tokens" fontSize="1.4rem" />
@@ -233,5 +248,6 @@ export function PATsAdminView({ authenticationStatus }) {
 }
 
 PATsAdminView.propTypes = {
-    authenticationStatus: PropTypes.object
+    authenticationStatus: PropTypes.object,
+    userRole: PropTypes.number
 }
