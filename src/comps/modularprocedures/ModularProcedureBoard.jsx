@@ -7,9 +7,10 @@ import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { ModularProcedureExecutionDialog } from "./ModularProcedureExecutionDialog";
 import { ModularProcedureExecutionMetricsDialog } from "./ModularProcedureExecutionMetricsDialog";
-
-const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
-const STATE_CHANGE_ROLE = 3 // only curators (3) and admins (4) may change the state of an execution
+import {
+    CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls,
+    ProtocolChip, isUserAtLeast,
+} from "./Shared";
 
 /**
  * Horizontal overview of the published modular procedures and the
@@ -18,8 +19,8 @@ const STATE_CHANGE_ROLE = 3 // only curators (3) and admins (4) may change the s
  */
 export function ModularProcedureBoard({ userRole, userTag }) {
 
-    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
-    const canChangeState = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= STATE_CHANGE_ROLE
+    const isCurator = isUserAtLeast(userRole, CURATOR_ROLE)
+    const canChangeState = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
     const navigate = useNavigate()
     const [alertProps, setAlertProps] = useState({ isOpen: false })
     const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
@@ -106,10 +107,10 @@ function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone,
             {procedure?.description ? <p className="font-size--small" style={{ color: "#666", margin: 0 }}>
                 {procedure.description.substring(0, 120)}{procedure.description.length > 120 ? "..." : ""}
             </p> : null}
-            {procedure?.protocol_tags?.length > 0 ? <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
-                {procedure.protocol_tags.map((protocol_tag) => <ProtocolLabel key={protocol_tag} protocol_tag={protocol_tag} />)}
+            {procedure?.protocol_tags?.length > 0 ? <div className="flex gap--tiny flex--wrap margin-top--little">
+                {procedure.protocol_tags.map((protocol_tag) => <ProtocolChip key={protocol_tag} protocol_tag={protocol_tag} />)}
             </div> : null}
-            <ExecutionsPanel procedure_tag={procedure_tag} isCurator={canChangeState} />
+            <ExecutionsPanel procedure_tag={procedure_tag} canChangeState={canChangeState} />
         </div>
         {isLoading ? <div className="padding--little">Loading ...</div> :
             submissions?.map((link) => <SubmissionCard key={link.submission_tag} link={link}
@@ -121,56 +122,27 @@ function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone,
     </div>
 }
 
-function ProtocolLabel({ protocol_tag }) {
-    const { data: protocol } = api.protocols.query.useGetProtocolByTag(
-        { tag: protocol_tag }, { enabled: _.isString(protocol_tag), staleTime: 300000 })
-    const title = _.isObject(protocol) && _.isString(protocol.title) ? protocol.title : protocol_tag
-    return <span className="font-size--smallest" title={protocol_tag} style={{
-        color: "#5c7080", border: "1px solid #cdcfd4", borderRadius: "4px", padding: "0 0.25rem",
-        background: "#f5f8fa", display: "inline-flex", alignItems: "center", gap: "0.15rem"
-    }}>📄 {title}</span>
-}
-
-const EXECUTION_STATUS_STYLE = {
-    RUNNING: { color: "#c87619" },
-    SUCCEEDED: { color: "#43a047" },
-    FAILED: { color: "#cd4246" },
-    ABORTED: { color: "#888" },
-}
-
-function ExecutionRow({ execution_tag, isCurator }) {
+function ExecutionRow({ execution_tag, canChangeState, onDone }) {
     const { data: execution } = api.modularProcedures.execute.useGetModularProcedureExecution(
         { tag: execution_tag }, { enabled: _.isString(execution_tag) })
-    const { mutate: finishExecution } = api.modularProcedures.execute.useFinishModularProcedureExecution()
     const status = execution?.status || "RUNNING"
-    const style = EXECUTION_STATUS_STYLE[status] || EXECUTION_STATUS_STYLE.RUNNING
-    const finish = (outcome) => finishExecution({ tag: execution_tag, outcome })
-    return <div className="flex center-items justify-between" style={{ gap: "0.25rem", margin: "0.25rem 0" }}>
+    return <div className="flex center-items justify-between gap--tiny margin-top--tiny">
         <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
-        <span className="font-size--smallest" style={{
-            color: style.color, border: `1px solid ${style.color}`, borderRadius: "4px", padding: "0 0.25rem"
-        }}>{status}</span>
-        {isCurator && status === "RUNNING" ? <div className="flex" style={{ gap: "0.25rem" }}>
-            <button className="basic-button basic-button--small" style={{ color: "#43a047" }}
-                title="Confirms the run and frees the assigned submissions for the next procedure"
-                onClick={() => finish("SUCCEEDED")}>Successful</button>
-            <button className="basic-button basic-button--small" style={{ color: "#cd4246" }}
-                title="Frees the assigned submissions but does not adopt condition applications or change the state"
-                onClick={() => finish("FAILED")}>Failed</button>
-            <button className="basic-button basic-button--small"
-                onClick={() => finish("ABORTED")}>Aborted</button>
-        </div> : null}
+        <ExecutionStateChip status={status} />
+        {canChangeState ? <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} /> : null}
     </div>
 }
 
-function ExecutionsPanel({ procedure_tag, isCurator }) {
-    const { data: execution_tags } = api.modularProcedures.execute.useGetModularProcedureExecutions(
-        { tag: procedure_tag }, { enabled: _.isString(procedure_tag) })
+function ExecutionsPanel({ procedure_tag, canChangeState }) {
+    const { data: execution_tags, refetch: refetchExecutions } =
+        api.modularProcedures.execute.useGetModularProcedureExecutions(
+            { tag: procedure_tag }, { enabled: _.isString(procedure_tag) })
     if (!_.isArray(execution_tags) || execution_tags.length === 0) return null
-    return <div style={{ marginTop: "0.25rem", borderTop: "1px dashed #ddd", paddingTop: "0.25rem" }}>
+    return <div className="margin-top--little" style={{ borderTop: "1px dashed #ddd", paddingTop: "0.25rem" }}>
         <div className="font-size--smallest" style={{ color: "#888" }}>Executions</div>
         {execution_tags.map((execution_tag) =>
-            <ExecutionRow key={execution_tag} execution_tag={execution_tag} isCurator={isCurator} />)}
+            <ExecutionRow key={execution_tag} execution_tag={execution_tag} canChangeState={canChangeState}
+                onDone={refetchExecutions} />)}
     </div>
 }
 
