@@ -40,6 +40,12 @@ const ADMIN_TAB_GROUPS = [
         ]
     },
     {
+        text: "Access & Security",
+        tabs: [
+            { text: "API Tokens", to: "/admin/pats" },
+        ]
+    },
+    {
         text: "Platform & Content",
         tabs: [
             { text: "News", to: "/admin/news" },
