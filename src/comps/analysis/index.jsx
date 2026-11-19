@@ -9,6 +9,8 @@ import { api } from "@/api";
 
 const NOT_AVAILABLE_NOTE = "no data"
 const NOT_AVAILABLE_HINT = "This analysis is not available without quantification data."
+const FEATURES_NOT_AVAILABLE_HINT = "This view is not available without protein group or precursor quantification data."
+const PRECURSORS_NOT_AVAILABLE_HINT = "This view is not available without precursor quantification data."
 
 
 /**
@@ -33,7 +35,17 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
         { tag: submission_tag, quantification_type: "any" },
         { staleTime: 60000, enabled: _.isString(submission_tag) }
     )
+    const { data: proteinGroupQuantificationExists } = api.submissions.quantifications.useGetSubmissionQuantificationExists(
+        { tag: submission_tag, quantification_type: "protein_groups" },
+        { staleTime: 60000, enabled: _.isString(submission_tag) }
+    )
+    const { data: precursorQuantificationExists } = api.submissions.quantifications.useGetSubmissionQuantificationExists(
+        { tag: submission_tag, quantification_type: "precursors" },
+        { staleTime: 60000, enabled: _.isString(submission_tag) }
+    )
     const analysisDisabled = quantificationExists === false
+    const featuresDisabled = proteinGroupQuantificationExists === false && precursorQuantificationExists === false
+    const precursorsDisabled = precursorQuantificationExists === false
 
     const location = useLocation()
     const { data: submissionTitle } = api.submissions.title.useGetSubmissionTitle(
@@ -106,8 +118,8 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
         {
             text: "Data",
             tabs: [
-                { text: "Features", to: `${urlStart}/features` },
-                { text: "Precursors", to: `${urlStart}/precursors` },
+                { text: "Features", to: `${urlStart}/features`, disabled: featuresDisabled, note: featuresDisabled ? NOT_AVAILABLE_NOTE : undefined, disabledHint: featuresDisabled ? FEATURES_NOT_AVAILABLE_HINT : undefined },
+                { text: "Precursors", to: `${urlStart}/precursors`, disabled: precursorsDisabled, note: precursorsDisabled ? NOT_AVAILABLE_NOTE : undefined, disabledHint: precursorsDisabled ? PRECURSORS_NOT_AVAILABLE_HINT : undefined },
             ]
         },
         {
