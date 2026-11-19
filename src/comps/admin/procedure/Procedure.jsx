@@ -1,11 +1,10 @@
 import { ProcedureSearch } from "./ProcedureSearch"
 
-export function AdminProcedure() {
-    
+export function AdminProcedure({ userRole }) {
+
     return (
         <div className="div--expand padding--medium">
-            <ProcedureSearch />
+            <ProcedureSearch userRole={userRole} />
         </div>
     )
 }
-

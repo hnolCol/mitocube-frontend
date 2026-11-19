@@ -425,10 +425,10 @@ function App() {
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
             <Route path="/admin/consortiums" element={<AdminConsortium />} />
             <Route path="/admin/phenotypes" element={<AdminPhenotypeAssociations />} />
-            <Route path="/admin/symptoms" element={<AdminSymptoms />} />
-            <Route path="/admin/spareparts" element={<AdminSparepart />} />
-            <Route path="/admin/procedure" element={<AdminProcedure />} />
-            <Route path="/admin/externalservice" element={<AdminExternalService />} />
+            <Route path="/admin/symptoms" element={<AdminSymptoms userRole={authenticationStatus.role} />} />
+            <Route path="/admin/spareparts" element={<AdminSparepart userRole={authenticationStatus.role} />} />
+            <Route path="/admin/procedure" element={<AdminProcedure userRole={authenticationStatus.role} />} />
+            <Route path="/admin/externalservice" element={<AdminExternalService userRole={authenticationStatus.role} />} />
             <Route path="/admin/annotations" element={<AdminAnnotations />} />
             <Route path="/admin/news" element={<NewsManagement />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />

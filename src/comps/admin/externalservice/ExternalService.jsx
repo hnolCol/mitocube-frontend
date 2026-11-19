@@ -1,11 +1,10 @@
 import { ExternalServiceSearch } from "./ExternalServiceSearch"
 
-export function AdminExternalService() {
-    
+export function AdminExternalService({ userRole }) {
+
     return (
         <div className="div--expand padding--medium">
-            <ExternalServiceSearch />
+            <ExternalServiceSearch userRole={userRole} />
         </div>
     )
 }
-

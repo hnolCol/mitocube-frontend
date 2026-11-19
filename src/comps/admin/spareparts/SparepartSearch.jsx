@@ -3,6 +3,7 @@ import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
+import { RestrictedAreaCallout } from "../../core/base/callouts/RestrictedAreaCallout"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { SparepartContainer } from "./SparepartContainer"
 import { AddSparepartDialog } from "./AddSparepartDialog"
@@ -10,9 +11,13 @@ import { AddButton } from "../../core/base/buttons/AddButton"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
-export function SparepartSearch() {
+const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
 
-    const [dialogProps, setDialogProps] = useState({ isOpen: false });
+export function SparepartSearch({ userRole }) {
+
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
+
+    const [dialogProps] = useState({ isOpen: false });
     const { searchString, setSearchString, debouncedSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
     const [sparepartToDisplay, setSparepartToDisplay] = useState([])
 
@@ -37,6 +42,7 @@ export function SparepartSearch() {
     return (
         <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem", overflowY: "scroll" }}>
             <h3>Spare parts</h3>
+            {!isCurator ? <RestrictedAreaCallout nounPlural="spare parts" operations="creating and editing spare parts" /> : null}
             <div className="flex">
 
             <AddSparepartDialog
@@ -44,7 +50,7 @@ export function SparepartSearch() {
                             onClose={handleClose}
                         />
             
-             <AddButton onSelect={() => setDialogProps({ isOpen: true })} />
+             <AddButton onSelect={() => setDialogProps({ isOpen: true })} disabled={!isCurator} />
             
             </div>
                     

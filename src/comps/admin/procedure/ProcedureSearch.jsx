@@ -3,14 +3,18 @@ import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { useEffect, useState } from "react"
 import _ from "lodash"
 import { Loading } from "../../core/base/states/Loading"
+import { RestrictedAreaCallout } from "../../core/base/callouts/RestrictedAreaCallout"
 import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { ProcedureContainer } from "./ProcedureContainer"
 import { AddProcedureDialog } from "./AddProcedureDialog"
 import { AddButton } from "../../core/base/buttons/AddButton"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
+const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
 
-export function ProcedureSearch() {
+export function ProcedureSearch({ userRole }) {
+
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false });
     const { searchString, setSearchString, debouncedSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
@@ -38,6 +42,7 @@ export function ProcedureSearch() {
     return (
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <h3>Procedures</h3>
+            {!isCurator ? <RestrictedAreaCallout nounPlural="procedures" operations="creating and editing procedures" /> : null}
             <div className="flex">
             
                 <AddProcedureDialog
@@ -47,7 +52,7 @@ export function ProcedureSearch() {
                 
                             
                 
-                <AddButton onSelect={() => setDialogProps({ isOpen: true })} />
+                <AddButton onSelect={() => setDialogProps({ isOpen: true })} disabled={!isCurator} />
             </div>
             <div>
                 <input
