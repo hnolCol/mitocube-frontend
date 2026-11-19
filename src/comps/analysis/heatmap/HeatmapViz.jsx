@@ -11,6 +11,9 @@ import { AnnotationSelectionMenu } from "../../core/base/annotations/AnnotationS
 import { AttributeSelection } from "../../core/base/attributes/AttributeSelection";
 import { Attribute } from "@/comps/core/base/attributes/Attribute";
 import { getUniqueValuesInArrayOfObjects } from "../../../services/arrays/unique";
+import { downloadTxtFile, arrayOfObjectsToTabDel } from "../../../services/downloads/txt";
+import { downloadSvgFromString } from "../../../services/downloads/svg";
+import { buildHeatmapSvg, buildHeatmapLegendSvg } from "../../../services/downloads/heatmapSvg";
 
 /**
  * Dialog to select the subset of samples the heatmap statistics are performed on.
@@ -319,6 +322,36 @@ function HeatmapViz({
                     <p>
                         The data are divided into a total number of <strong>{heatmapData.n_clusters}</strong> clusters.
                     </p>
+                </div>
+
+                <h4>Export</h4>
+                <div className="flex flex-column gap--tiny">
+                    <button className="basic-button width--full"
+                        onClick={() => downloadSvgFromString(
+                            buildHeatmapSvg({
+                                data: heatmapData.data,
+                                valueNames: heatmapData.value_names,
+                                colorNames: (_.isArray(heatmapData.color_names) ? heatmapData.color_names : []),
+                                proteinTagMap
+                            }),
+                            `heatmap-${submission_tag}.svg`
+                        )}>
+                        Heatmap (SVG)
+                    </button>
+                    <button className="basic-button width--full"
+                        onClick={() => downloadSvgFromString(
+                            buildHeatmapLegendSvg({ heatmapData }),
+                            `heatmap-legend-${submission_tag}.svg`
+                        )}>
+                        Legend (SVG)
+                    </button>
+                    <button className="basic-button width--full"
+                        onClick={() => downloadTxtFile(
+                            arrayOfObjectsToTabDel(heatmapData.data, _.keys(heatmapData.data[0])),
+                            `heatmap-${submission_tag}.txt`
+                        )}>
+                        Data (TXT)
+                    </button>
                 </div>
             </div>
 
