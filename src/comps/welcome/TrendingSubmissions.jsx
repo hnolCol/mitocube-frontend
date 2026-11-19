@@ -1,4 +1,6 @@
 
+import _ from "lodash";
+
 import { api } from "@/api";
 import { MinimalSubmissionItem } from "../submission/view/SubmissionItem";
 import "./welcome.css";
@@ -13,7 +15,7 @@ export function TrendingSubmissions({ limit = 20 }) {
             overflowY: "scroll"}}>
         <h3>Trending Submissions</h3>
 
-        {isLoading ? <div>Loading...</div> : trendingSubmissionTags.length === 0 ? <div>No trending submissions found.</div> : (
+        {isLoading ? <div>Loading...</div> : !_.isArray(trendingSubmissionTags) || trendingSubmissionTags.length === 0 ? <div>No trending submissions found.</div> : (
             <div className="submission-list">
                 {trendingSubmissionTags.map((submission_tag) => (
                     <MinimalSubmissionItem key={submission_tag} tag={submission_tag} redirectOnClick={true} showCreatedAt={false} />
