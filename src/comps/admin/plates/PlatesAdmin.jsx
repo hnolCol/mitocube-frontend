@@ -1,7 +1,8 @@
 import { useState } from "react"
+import _ from "lodash"
 import { api } from "@/api"
 import { Alert, Callout } from "@blueprintjs/core"
-import _ from "lodash"
+import { PlateColorDot } from "@/comps/core/plates/PlateColorDot"
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { PlateCreateDialog } from "./PlateCreateDialog"
@@ -245,7 +246,9 @@ function PlateItem({ plate, onDelete, disabled, isCurator }) {
                 <div className="flex flex-column padding--medium width--full">
                     <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                         <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>
-                            <span style={{ fontSize: "0.9rem", fontWeight: 500 }}>{plate.name}</span>
+                            <span style={{ fontSize: "0.9rem", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+                                <PlateColorDot color={plate.plate_color} />{plate.name}
+                            </span>
                             <span style={{ fontSize: "0.78rem", color: "#777" }}>
                                 {plate.rows * plate.columns} wells ({plate.rows} × {plate.columns}){plate.plate_type ? ` | ${plate.plate_type}` : ""}
                             </span>
@@ -278,6 +281,12 @@ function PlateItem({ plate, onDelete, disabled, isCurator }) {
                                     <tr>
                                         <th className="table-head-cell">Vendor</th>
                                         <td>{plate.vendor || dash}</td>
+                                    </tr>
+                                    <tr>
+                                        <th className="table-head-cell">Color</th>
+                                        <td style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                                            {plate.plate_color ? <><PlateColorDot color={plate.plate_color} /> {plate.plate_color}</> : dash}
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th className="table-head-cell">Cold storage</th>

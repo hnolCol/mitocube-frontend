@@ -10,6 +10,7 @@ const initPlate = {
     cold_storage_trait_tag: "",
     plate_type_trait_tag: "",
     vendor_trait_tag: "",
+    plate_color_trait_tag: "",
     location: "",
     description: ""
 }
@@ -90,6 +91,7 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                 cold_storage_trait_tag: plate.cold_storage_trait_tag || null,
                 plate_type_trait_tag: plate.plate_type_trait_tag || null,
                 vendor_trait_tag: plate.vendor_trait_tag || null,
+                plate_color_trait_tag: plate.plate_color_trait_tag || null,
                 location: plate.location.trim() || null,
                 description: plate.description.trim() || null
             }
@@ -139,6 +141,11 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                         <FormGroup label="Vendor" labelFor="plate-vendor" labelInfo="(optional)">
                             <TraitSelect id="plate-vendor" value={plate.vendor_trait_tag} options={options?.vendor}
                                 onChange={(v) => handleChange("vendor_trait_tag", v)} />
+                        </FormGroup>
+
+                        <FormGroup label="Plate color" labelFor="plate-color" labelInfo="(optional)">
+                            <TraitSelect id="plate-color" value={plate.plate_color_trait_tag} options={options?.plate_color}
+                                onChange={(v) => handleChange("plate_color_trait_tag", v)} />
                         </FormGroup>
 
                         <FormGroup label="Description" labelFor="plate-description" labelInfo="(optional)">
