@@ -29,6 +29,7 @@ import { ConsortiumShareStatus } from "@/comps/submission/view/ConsortiumShareSt
 import { SimilarSubmissions } from "./SimilarSubmissions";
 import { DepositionStatus } from "@/comps/submission/view/DepositionStatus";
 import { SubmissionModuleStatus } from "@/comps/submission/view/SubmissionModuleStatus";
+import { SubmissionSampleLocations } from "@/comps/submission/view/SubmissionSampleLocations";
 import { overviewBoxStyle } from "./overviewBoxStyle";
 /**
  * @description React element to give an overview about a Dataset/Submission. 
@@ -124,6 +125,7 @@ function SubmissionOverview({ user_tag }) {
                     <SimilarSubmissions {...{ submission_tag, user_tag }} />
                 </div>
                 <SubmissionModuleStatus submission_tag={submission_tag} />
+                <SubmissionSampleLocations submission_tag={submission_tag} />
                 <DepositionStatus submission_tag={submission_tag} />
                 {/* <ConsortiumShares {...{ submission_tag }} /> */}
                 {/* {_.has(metadata,"links") && metadata.links.length > 0 ? <div className="bg--lightgrey margin--medium padding--little" style={{ maxWidth: "33vw", minWidth: "20vw", maxHeight: "min(50vh,500px)", overflowY: "scroll" }}>
