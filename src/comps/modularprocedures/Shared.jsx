@@ -1,3 +1,4 @@
+import { useState } from "react";
 import _ from "lodash";
 import moment from "moment";
 import { api } from "@/api";
@@ -65,19 +66,27 @@ export function ProtocolChip({ protocol_tag }) {
  * labels (Successful / Failed / Aborted) are used as on the board.
  */
 export function ExecutionStateControls({ execution_tag, status, compact = false, onDone }) {
+    const [blockWells, setBlockWells] = useState(status === "SUCCEEDED")
     const { mutate: finishExecution } = api.modularProcedures.execute.useFinishModularProcedureExecution({
         onSuccess: (updatedExecution) => { if (onDone) onDone(updatedExecution) }
     })
     const labels = compact ? { SUCCEEDED: "Successful", FAILED: "Failed", ABORTED: "Aborted" } : null
     const transitions = ["SUCCEEDED", "FAILED", "ABORTED"].filter((state) => state !== status)
-    return <div className="flex center-items gap--tiny">
+    return <div className="flex center-items gap--tiny flex--wrap">
+        <label title="Whether the output wells stay blocked after the change: keep them blocked if the
+runs left them unusable (e.g. an aborted liquid handler run with dirty wells), unblock them if
+the wells can be used again."
+            className="flex center-items gap--tiny font-size--smallest" style={{ color: "#666" }}>
+            <input type="checkbox" checked={blockWells} onChange={(e) => setBlockWells(e.target.checked)} />
+            wells stay blocked
+        </label>
         {transitions.map((state) =>
             <button key={state} className="basic-button basic-button--small"
                 style={{ color: EXECUTION_STATUS_STYLE[state].color }}
                 title={status === "RUNNING" ?
                     `Confirms the run as ${state}: frees the assigned submissions for the next procedure` :
                     `Corrects the outcome of this finished execution to ${state}`}
-                onClick={() => finishExecution({ tag: execution_tag, outcome: state })}>
+                onClick={() => finishExecution({ tag: execution_tag, outcome: state, block_output_wells: blockWells })}>
                 {labels ? labels[state] : state}
             </button>)}
     </div>
