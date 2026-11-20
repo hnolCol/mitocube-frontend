@@ -9,6 +9,7 @@ import { usePrefetchVolcanoData } from "@/api/orchestrated/volcanoData"
 import { BaseInput } from "@/comps/core/input/api/BaseInput"
 import { SubmissionTitle } from "@/comps/submission/view/SubmissionTitle"
 import { ConditionApplicationSelection } from "@/comps/core/base/attribute_selection/Pairwise"
+import { PersistentCollapse } from "@/comps/core/base/collapse/Collapse"
 import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView"
 import { WithTagMaps } from "@/comps/core/prefetch/Prefetch"
 import InteractiveChart from "@/comps/core/charts/interactive"
@@ -45,8 +46,12 @@ function PanelSetup({ panel, index, referenceTag, referenceProteomes, isFetching
     const proteomeMismatch = index > 0 && _.isString(panel.submission_tag) && referenceProteomes.length > 0
         && proteomeTags.length > 0 && _.intersection(proteomeTags, referenceProteomes).length === 0
 
-    const handleSelectSubmission = (tag) => onUpdate(panel.id, { submission_tag: tag, testParams: undefined })
-    const handleConfirm = (testParams) => onUpdate(panel.id, { testParams: { ...testParams, _nonce: Date.now() } })
+    const [caOpen, setCaOpen] = useState(true)
+    const handleSelectSubmission = (tag) => { setCaOpen(true); onUpdate(panel.id, { submission_tag: tag, testParams: undefined }) }
+    const handleConfirm = (testParams) => {
+        onUpdate(panel.id, { testParams: { ...testParams, _nonce: Date.now() } })
+        setCaOpen(false) // collapse the settings after plotting to free space
+    }
 
     return (
         <Card compact={true} className="margin-top--little">
@@ -60,14 +65,14 @@ function PanelSetup({ panel, index, referenceTag, referenceProteomes, isFetching
                     selected_tags={_.isString(panel.submission_tag) ? [panel.submission_tag] : []}
                     render_children={(tag) => <SubmissionTitle tag={tag} showCopyToClipboard={false} showEdit={false} />}
                     api_hook={useGetSubmissionsByProteome}
-                    api_hook_params={{ proteome_tags: referenceProteomes }}
+                    api_hook_params={{ proteome_tags: referenceProteomes, state: "5" }}
                     onSelect={handleSelectSubmission}
                     placeholder={_.isString(panel.submission_tag) ? panel.submission_tag : "Select submission (same proteome)..."} /> :
                 <BaseInput
                     selected_tags={_.isString(panel.submission_tag) ? [panel.submission_tag] : []}
                     render_children={(tag) => <SubmissionTitle tag={tag} showCopyToClipboard={false} showEdit={false} />}
                     api_hook={api.submissions.query.useGetSubmissionByQuery}
-                    api_hook_params={{ group_by_state: false, limit: 50 }}
+                    api_hook_params={{ group_by_state: false, limit: 50, state: "5" }}
                     onSelect={handleSelectSubmission}
                     placeholder={_.isString(panel.submission_tag) ? panel.submission_tag : "Select submission..."} />}
             {_.isString(panel.submission_tag) ? (
@@ -90,13 +95,20 @@ function PanelSetup({ panel, index, referenceTag, referenceProteomes, isFetching
             ) : null}
             {_.isString(panel.submission_tag) ?
                 <div className="margin-top--little">
-                    <ConditionApplicationSelection
-                        submission_tag={panel.submission_tag}
-                        onConfirm={handleConfirm}
-                        reset_after_confirm={true}
-                        isLoadingData={isFetching}
-                        confirmButtonText="Plot volcano"
-                        confirmButtonHighlighted={true} />
+                    <button className="basic-button div--expand margin--little" onClick={() => setCaOpen(prev => !prev)}>
+                        <span>{caOpen ? "Hide" : "Edit"} comparison settings</span>
+                    </button>
+                    <PersistentCollapse isOpen={caOpen} direction="vertical" duration={0.4}>
+                        <ConditionApplicationSelection
+                            submission_tag={panel.submission_tag}
+                            onConfirm={handleConfirm}
+                            reset_after_confirm={true}
+                            isLoadingData={isFetching}
+                            minimal={true}
+                            autoSelectDefaults={true}
+                            confirmButtonText="Plot volcano"
+                            confirmButtonHighlighted={true} />
+                    </PersistentCollapse>
                 </div> : null}
             {_.isObject(panel.testParams) ?
                 <div className="margin-top--little font-size--small flex center-items" style={{ gap: "0.3rem", flexWrap: "wrap" }}>
@@ -115,6 +127,16 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
     proteinTagMap, proteinIsLoading, proteinSearchResults, setRequiredProteinTags }) {
 
     const { data, suffixes, selection, panelBySuffix, rawStats } = volcano
+
+    // overlap of the protein groups between the compared plots - 0 overlap means the
+    // submissions likely use different proteomes (e.g. human vs mouse via att_proteome)
+    const overlapInfo = useMemo(() => {
+        if (!_.isArray(rawStats) || rawStats.length < 2) return { count: undefined, total: 0 }
+        const tagSets = rawStats.map(stats => new Set((_.isArray(stats) ? stats : []).map(row => row?.tag).filter(_.isString)))
+        if (tagSets.some(s => s.size === 0)) return { count: undefined, total: 0 }
+        const shared = tagSets.reduce((acc, s) => new Set([...acc].filter(t => s.has(t))))
+        return { count: shared.size, total: Math.max(...tagSets.map(s => s.size)) }
+    }, [rawStats])
 
     const numericKeyNames = _.isArray(data) && data.length > 0 ? _.keys(data[0]).filter(keyName => _.isNumber(data[0][keyName])) : []
     const extraLimits = useMemo(() => _.flatten(selection.map(s => [s.colorName, s.sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k)), [selection, numericKeyNames])
@@ -140,6 +162,13 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
                 <Callout intent="danger" title="Error in volcano plot generation" className="margin--medium">
                     <APIError error={errorQuery.error} />
                 </Callout> : null}
+            {suffixes.length > 1 && overlapInfo.count !== undefined ?
+                (overlapInfo.count === 0 ?
+                    <Callout intent="danger" icon="warning-sign" className="margin--medium">
+                        The compared submissions share <strong>no protein groups</strong> (0 of {overlapInfo.total}). They likely use different proteomes
+                        (e.g. human vs mouse via att_proteome) - the volcano plots cannot be meaningfully compared and no proteins overlap in the merged data.
+                    </Callout> :
+                    <div className="font-size--small margin--medium">The compared submissions share <strong>{overlapInfo.count}</strong> of {overlapInfo.total} quantified protein groups.</div>) : null}
             {suffixes.length > 0 ?
                 <div className="flex center-items" style={{ gap: "0.5rem" }}>
                     <span className="font-size--small">Download comparison:</span>

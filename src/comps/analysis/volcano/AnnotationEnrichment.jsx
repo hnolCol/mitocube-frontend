@@ -36,9 +36,11 @@ function AnnotationEnrichmentTable({ listOptions = [], selectedListKeys = [], su
     const [onlySignificant, setOnlySignificant] = useState(false)
 
     const selectedTags = useMemo(() => {
+        // list option tags are protein group tags (possibly "P1;P2") - expand to
+        // individual protein tags, which is what the backend universe uses
         const set = new Set()
         ;(listOptions ?? []).filter(option => selectedListKeys.includes(option.key))
-            .forEach(option => (option.tags ?? []).forEach(tag => set.add(tag)))
+            .forEach(option => (option.tags ?? []).forEach(tag => rowProteinTags({ tag }).forEach(t => set.add(t))))
         return set
     }, [listOptions, selectedListKeys])
 
