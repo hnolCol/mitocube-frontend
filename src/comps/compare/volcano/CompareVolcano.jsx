@@ -65,14 +65,14 @@ function PanelSetup({ panel, index, referenceTag, referenceProteomes, isFetching
                     selected_tags={_.isString(panel.submission_tag) ? [panel.submission_tag] : []}
                     render_children={(tag) => <SubmissionTitle tag={tag} showCopyToClipboard={false} showEdit={false} />}
                     api_hook={useGetSubmissionsByProteome}
-                    api_hook_params={{ proteome_tags: referenceProteomes, state: "5" }}
+                    api_hook_params={{ proteome_tags: referenceProteomes, min_state: 5 }}
                     onSelect={handleSelectSubmission}
                     placeholder={_.isString(panel.submission_tag) ? panel.submission_tag : "Select submission (same proteome)..."} /> :
                 <BaseInput
                     selected_tags={_.isString(panel.submission_tag) ? [panel.submission_tag] : []}
                     render_children={(tag) => <SubmissionTitle tag={tag} showCopyToClipboard={false} showEdit={false} />}
                     api_hook={api.submissions.query.useGetSubmissionByQuery}
-                    api_hook_params={{ group_by_state: false, limit: 50, state: "5" }}
+                    api_hook_params={{ group_by_state: false, limit: 50, min_state: 5 }}
                     onSelect={handleSelectSubmission}
                     placeholder={_.isString(panel.submission_tag) ? panel.submission_tag : "Select submission..."} />}
             {_.isString(panel.submission_tag) ? (
