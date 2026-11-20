@@ -426,6 +426,7 @@ export function CompareVolcano() {
                                     data={volcano.data}
                                     suffixes={volcano.suffixes}
                                     submission_tag={plottablePanels[0].submission_tag}
+                                    submission_tags={plottablePanels.map(p => p.submission_tag)}
                                     proteinTagMap={proteinTagMap}
                                     setRequiredProteinTags={setRequiredProteinTags}
                                     favoriteProteinSelection={favoriteProteinSelection}
