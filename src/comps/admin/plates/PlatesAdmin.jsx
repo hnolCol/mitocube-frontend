@@ -2,7 +2,7 @@ import { useState } from "react"
 import _ from "lodash"
 import { api } from "@/api"
 import { Alert, Callout } from "@blueprintjs/core"
-import { PlateColorDot } from "@/comps/core/plates/PlateColorDot"
+import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { PlateCreateDialog } from "./PlateCreateDialog"
@@ -247,10 +247,10 @@ function PlateItem({ plate, onDelete, disabled, isCurator }) {
                     <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                         <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>
                             <span style={{ fontSize: "0.9rem", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-                                <PlateColorDot color={plate.plate_color} />{plate.name}
+                                <PlateColorDot color={getPlateColor(plate)} />{plate.name}
                             </span>
                             <span style={{ fontSize: "0.78rem", color: "#777" }}>
-                                {plate.rows * plate.columns} wells ({plate.rows} × {plate.columns}){plate.plate_type ? ` | ${plate.plate_type}` : ""}
+                                {plate.rows * plate.columns} wells ({plate.rows} × {plate.columns})
                             </span>
                         </div>
                         <div className="flex align-center" style={{ gap: "0.4rem", flexShrink: 0 }}>
@@ -274,24 +274,16 @@ function PlateItem({ plate, onDelete, disabled, isCurator }) {
                                         <th className="table-head-cell">Format</th>
                                         <td>{plate.rows} × {plate.columns} ({plate.rows * plate.columns} wells)</td>
                                     </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Type</th>
-                                        <td>{plate.plate_type || dash}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Vendor</th>
-                                        <td>{plate.vendor || dash}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Color</th>
-                                        <td style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                                            {plate.plate_color ? <><PlateColorDot color={plate.plate_color} /> {plate.plate_color}</> : dash}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Cold storage</th>
-                                        <td>{plate.cold_storage || dash}</td>
-                                    </tr>
+                                    {(plate.applications || []).map(app => (
+                                        <tr key={app.trait_tag}>
+                                            <th className="table-head-cell">{app.attribute_text}</th>
+                                            <td style={getPlateColor(plate) === app.trait_text ? { display: "flex", alignItems: "center", gap: "0.35rem" } : {}}>
+                                                {getPlateColor(plate) === app.trait_text
+                                                    ? <><PlateColorDot color={app.trait_text} /> {app.trait_text}</>
+                                                    : app.trait_text}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     <tr>
                                         <th className="table-head-cell">Location</th>
                                         <td>{plate.location || dash}</td>

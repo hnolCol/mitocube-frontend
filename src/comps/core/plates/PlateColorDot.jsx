@@ -1,6 +1,6 @@
 import _ from "lodash"
 
-// muted (non-bright) colors for the plate color trait values of the storage attribute att_plate_color
+// muted (non-bright) colors for plate color trait values
 const PLATE_COLOR_HEX = {
     black: "#525358",
     blue: "#7d9cc4",
@@ -10,6 +10,18 @@ const PLATE_COLOR_HEX = {
     red: "#cf9090",
     clear: "#eef3f6",
     white: "#f2f4f5",
+}
+
+/**
+ * @description Returns the color trait text of a plate, resolved from its applications (attributes
+ * of the storage attribute group that describe it). The trait text is only returned when it is a
+ * know color word, otherwise null, so no color word has to be hard coded to an attribute tag.
+ * @param {Object} plate A plate with an applications array (attribute_text, trait_text).
+ * @returns {?String} The plate color trait text, e.g. "Black", or null.
+ */
+export function getPlateColor(plate) {
+    const application = (plate?.applications || []).find(app => PLATE_COLOR_HEX[_.toLower(_.trim(app.trait_text || ""))])
+    return application?.trait_text || null
 }
 
 /**
