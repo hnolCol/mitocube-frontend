@@ -30,7 +30,7 @@ export function TraitMenuItem({ tag, attribute_tag, onClick, active = false, sel
                         onClick={(e) => onClick(getSelectionPath())}>
 
                         <div className={`flex justify-space-between " ${selected ? "" : ""}`}>
-                            <div className="menu_item_text">{trait.text}</div>
+                            <div className="menu_item_text">{selected ? <span style={{ color: "#466688", fontWeight: "bold", marginRight: "0.35rem" }}>✓</span> : null}{trait.text}</div>
                                 {showDescription && <div className="menu_item_description">{trait.description}</div>}
                             </div>
                     </button>

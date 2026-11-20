@@ -1,3 +1,4 @@
+import _ from "lodash"
 import PropTypes from "prop-types"
 import GroupedTabs from "../core/navigation/tabs/GroupedTabs"
 import { Outlet } from "react-router"
@@ -64,13 +65,15 @@ const ADMIN_TAB_GROUPS = [
     },
 ]
 
+const CURATOR_ROLE = 3
+
 function AdminHeader({ authenticationStatus }) {
     const isCurator = _.get(authenticationStatus, "role", 0) >= CURATOR_ROLE
     const curatorOnlyGroups = ["Access & Security", "Sharing"]
     const groups = ADMIN_TAB_GROUPS.filter((group) => !curatorOnlyGroups.includes(group.text) || isCurator)
     return (
         <div className="no-scroll div--expand">
-            <GroupedTabs groups={ADMIN_TAB_GROUPS} />
+            <GroupedTabs groups={groups} />
             <div className="no-scroll div--expand">
                 <Outlet />
             </div>

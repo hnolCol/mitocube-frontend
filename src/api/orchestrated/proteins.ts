@@ -1,22 +1,23 @@
-// src/api/orchestrated/proteins.ts
+// src/api/proteins.ts
 
 import { api } from "@/api";
 import _ from "lodash"
 
 export function usePrefetchProteins(tags: string[]) {
-  const uniqueTags = _.uniq(tags);
-  const tagQueries = api.features.proteinsQuery.useGetProteins({tags: uniqueTags}, { enabled : _.isArray(uniqueTags) && uniqueTags.length > 0, staleTime : Infinity });
+  const validTags = _.uniq(tags).filter(_.isString);
+  const tagQueries = api.features.proteinsQuery.useGetProteins({tags: validTags}, { enabled : validTags.length > 0, staleTime : Infinity });
 
   const isReady = tagQueries.every(q => q.isSuccess);
   const isLoading = tagQueries.some(q => q.isLoading);
-  if (uniqueTags.length === 0) return { isReady: true, tagQueries: [], isLoading: false };
-  return { isReady, tagQueries, isLoading };
+  if (validTags.length === 0) return { isReady: true, tagQueries: [], isLoading: false, tags: [] };
+  return { isReady, tagQueries, isLoading, tags: validTags };
 }
 
 export function usePrefetchInterproFeatures(tags: string[]) {
-  const tagQueries = api.features.proteinsQuery.useGetProteinsInterproFeatures({ tags }, { enabled: _.isArray(tags) && tags.length > 0, staleTime: Infinity });
-  if (tags.length === 0) return { isReady: true, tagQueries: [], isLoading: false };
+  const validTags = tags.filter(_.isString)
+  const tagQueries = api.features.proteinsQuery.useGetProteinsInterproFeatures({ tags: validTags }, { enabled : validTags.length > 0, staleTime : Infinity });
+  if (validTags.length === 0) return { isReady: true, tagQueries: [], isLoading: false, tags: [] };
   const isReady = tagQueries.every(q => q.isSuccess);
   const isLoading = tagQueries.some(q => q.isLoading);
-    return {isReady, isLoading, tagQueries };
+    return {isReady, isLoading, tagQueries, tags: validTags };
 }

@@ -63,6 +63,10 @@ import ProteinHeader from "./comps/protein";
 import ProteinSelection from "./comps/protein/selection";
 import { ProteinPage } from "./comps/protein/charts/overview";
 
+/* Compare area (cross-submission) */
+import CompareHeader from "./comps/compare";
+import { CompareVolcanoPlot } from "./comps/compare/volcano";
+
 /* Performance area */
 import PerformanceHeader from "./comps/performance";
 import CrossSubmissionAnalysisHeader from "./comps/analysis/cross";
@@ -94,6 +98,7 @@ import { AdminProtocols } from "./comps/admin/protocols/Protocols";
 import { AdminExternalResources } from "./comps/admin/externalresources/AdminExternalResources";
 import { PolicyManagement, TERMS_OF_USE, DATA_PROTECTION } from "./comps/admin/policy/PolicyManagement";
 import { ImpressumManagement } from "./comps/admin/impressum/ImpressumManagement";
+import { PATsAdminView } from "./comps/admin/pats";
 import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 import { ModularProceduresAdmin } from "./comps/admin/modularprocedures/ModularProceduresAdmin";
@@ -340,6 +345,19 @@ function App() {
             <Route path="/analysis/attribute-proteins" element={<AttributeProteinEffects />} />
           </Route> */}
 
+          {/* Compare Routes (cross-submission, not bound to a submission tag) */}
+          <Route
+            path="/compare"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <CompareHeader />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/compare/volcano" replace />} />
+            <Route path="/compare/volcano" element={<CompareVolcanoPlot {...{ logout }} />} />
+          </Route>
+
           {/* Submission Routes */}
           <Route
             path="/submissions"
@@ -422,6 +440,7 @@ function App() {
             <Route path="/admin/pats" element={<PATsAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/sharing/consortiums" element={<ConsortiumSharingOverview {...{ authenticationStatus }} />} />
             <Route path="/admin/sharing/collaborations" element={<CollaborationSharingOverview {...{ authenticationStatus }} />} />
+            <Route path="/admin/pats" element={<PATsAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />

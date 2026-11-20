@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { memo, useCallback, useEffect, useMemo, useState } from "react"
-import { InputGroup, Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
+import { HTMLTable, InputGroup, Menu, MenuItem, Popover, Spinner, Tooltip } from "@blueprintjs/core"
 import { api } from "@/api"
 import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
@@ -80,19 +80,104 @@ function BoxPlotRow({ sorted, cy, boxHeight, color, x, withDots, points }) {
             cx={x(point.value)}
             cy={cy + (((idx * 37) % 11) - 5)}
             r={point.inList ? 3.2 : 2.4}
-            fill={point.inList ? "#d13913" : color}
-            fillOpacity={point.inList ? 0.95 : 0.6}
+            fill={point.inList ? "#2e8540" : color}
+            fillOpacity={point.isHovered ? 0 : point.inList ? 0.95 : 0.6}
             style={{ cursor: "pointer" }}
             onMouseEnter={point.onHover ? () => point.onHover() : undefined} />) : null}
+        {withDots ? points.map((point, idx) => point.isHovered
+            ? <circle key={`hovered-${idx}`}
+                cx={x(point.value)}
+                cy={cy + (((idx * 37) % 11) - 5)}
+                r={6}
+                fill={point.inList ? "#2e8540" : color}
+                fillOpacity={1}
+                stroke={"#000000"}
+                strokeWidth={1.5}
+                style={{ cursor: "pointer", pointerEvents: "none" }} />
+            : null) : null}
     </g>
 }
 
-const LIST_COLOR = "#e8a33d"
+const LIST_COLOR = "#7fbf7b"
+const IN_LIST_COLOR = "#2e8540"
+const MEMBER_TABLE_LIMIT = 100
 
-function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags, proteinTagMap, setRequiredProteinTags }) {
+function exportAnnotationMembersAsCSV({ entry, label, suffix, rowByTag, proteinTagMap, selectedTags }) {
+    const rows = entry.memberTags.map(tag => rowByTag.get(tag)).filter(_.isObject)
+    const lines = [["Protein", "Tags", `log2FC (${suffix})`, "In selected list(s)"].join("\t")]
+    rows.forEach(row => {
+        lines.push([
+            `"${proteinDisplayName(proteinTagMap, row.tag).replace(/"/g, "")}"`,
+            row.tag,
+            _.isNumber(row[log2FCFieldName(suffix)]) ? row[log2FCFieldName(suffix)].toFixed(4) : "",
+            selectedTags instanceof Set && selectedTags.has(row.tag) ? "yes" : ""
+        ].join("\t"))
+    })
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `annotation-members-${(label ?? entry.tag).replace(/[^a-zA-Z0-9_-]+/g, "_")}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+}
+
+function AnnotationMemberTable({ entry, label, suffix, rowByTag, proteinTagMap, selectedTags, hoveredTag, onHoverTag }) {
+    const rows = useMemo(() => entry.memberTags
+        .map(tag => rowByTag.get(tag))
+        .filter(row => _.isObject(row) && _.isNumber(row[log2FCFieldName(suffix)]))
+        .sort((a, b) => Math.abs(b[log2FCFieldName(suffix)]) - Math.abs(a[log2FCFieldName(suffix)])),
+        [entry, suffix, rowByTag])
+    if (rows.length === 0) return <span className="font-size--smallest">No proteins with log2FC values for this volcano.</span>
+    return <div style={{ flex: "1 1 240px", minWidth: "220px", maxWidth: "100%", overflowX: "auto" }}>
+        <div className="flex center-items margin-bottom--little" style={{ gap: "0.4rem" }}>
+            <span className="font-size--smallest font-weight--bold">{rows.length} proteins in this annotation</span>
+            <button className="basic-button--small"
+                onClick={() => exportAnnotationMembersAsCSV({ entry, label, suffix, rowByTag, proteinTagMap, selectedTags })}>
+                Export CSV
+            </button>
+        </div>
+        <div style={{ maxHeight: "190px", overflowY: "auto" }} onMouseLeave={() => _.isFunction(onHoverTag) && onHoverTag(null)}>
+            <HTMLTable compact={true} striped={true} style={{ width: "100%" }}>
+                <thead>
+                    <tr>
+                        <th>Protein</th>
+                        <th style={{ textAlign: "right" }}>{`log2FC (${suffix})`}</th>
+                        <th style={{ textAlign: "center" }}>in list</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {rows.slice(0, MEMBER_TABLE_LIMIT).map(row => {
+                        const inList = selectedTags instanceof Set && selectedTags.has(row.tag)
+                        const isHovered = hoveredTag === row.tag
+                        return <tr key={row.tag}
+                            style={{ backgroundColor: isHovered ? "#efefef" : undefined, cursor: "default" }}
+                            onMouseEnter={() => _.isFunction(onHoverTag) && onHoverTag(row.tag)}>
+                            <td className="font-size--smallest" style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>
+                                {proteinDisplayName(proteinTagMap, row.tag)}
+                            </td>
+                            <td className="font-size--smallest" style={{ textAlign: "right", color: row[log2FCFieldName(suffix)] > 0 ? "#d13913" : "#4a7ba6" }}>
+                                {row[log2FCFieldName(suffix)].toFixed(2)}
+                            </td>
+                            <td className="font-size--smallest" style={{ textAlign: "center" }}>
+                                {inList
+                                    ? <span style={{ width: "0.55rem", height: "0.55rem", borderRadius: "50%", backgroundColor: IN_LIST_COLOR, display: "inline-block" }} />
+                                    : <span style={{ color: "#9a9a9a" }}>{"\u2013"}</span>}
+                            </td>
+                        </tr>
+                    })}
+                </tbody>
+            </HTMLTable>
+        </div>
+        {rows.length > MEMBER_TABLE_LIMIT
+            ? <span className="font-size--smallest">Showing the top {MEMBER_TABLE_LIMIT} of {rows.length} proteins (sorted by |log2FC|). Export CSV for the full list.</span>
+            : null}
+    </div>
+}
+
+function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selectedTags, proteinTagMap, setRequiredProteinTags, hoveredTag, onHoverTag }) {
     const width = 340
     const height = 190
-    const [hoveredPoint, setHoveredPoint] = useState(null)
     const points = useMemo(() => entry.memberTags
         .map(tag => rowByTag.get(tag))
         .filter(row => _.isObject(row) && _.isNumber(row[log2FCFieldName(suffix)]))
@@ -121,6 +206,7 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
     const x1 = maxAbs + pad
     const x = value => 10 + ((value - x0) / (x1 - x0)) * (width - 20)
     const zeroX = x(0)
+    const hoveredPoint = _.isString(hoveredTag) ? points.find(p => p.tag === hoveredTag) : undefined
     const hoveredName = hoveredPoint ? proteinDisplayName(proteinTagMap, hoveredPoint.tag) : ""
     const hoveredLabelX = hoveredPoint ? Math.min(Math.max(x(hoveredPoint.value), 50), width - 50) : 0
     return <svg width={width} height={height} style={{ maxWidth: "100%" }}>
@@ -133,28 +219,42 @@ function AnnotationLog2FCPlot({ entry, suffix, rowByTag, backgroundValues, selec
         <text x={6} y={144} fontSize="9" fill="#8a8a8a">ann.</text>
         <BoxPlotRow sorted={backgroundValues} cy={35} boxHeight={14} color="#9a9a9a" x={x} withDots={false} points={[]} />
         <BoxPlotRow sorted={sortedListValues} cy={85} boxHeight={14} color={LIST_COLOR} x={x} withDots={false} points={[]} />
-        <g onMouseLeave={() => setHoveredPoint(null)}>
-            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#4a7ba6" x={x} withDots={true} points={points.map(p => ({ ...p, onHover: () => setHoveredPoint(p) }))} />
+        <g onMouseLeave={() => _.isFunction(onHoverTag) && onHoverTag(null)}>
+            <BoxPlotRow sorted={sortedPointValues} cy={140} boxHeight={18} color="#af8dc3" x={x} withDots={true} points={points.map(p => ({ ...p, isHovered: _.isObject(hoveredPoint) && hoveredPoint.tag === p.tag, onHover: () => _.isFunction(onHoverTag) && onHoverTag(p.tag) }))} />
         </g>
-        {hoveredPoint ? <text x={hoveredLabelX} y={118} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text> : null}
+        {hoveredPoint ? <g>
+            <rect x={hoveredLabelX - Math.min(hoveredName.length * 3.1 + 4, (width - 20) / 2)} y={0}
+                width={Math.min(hoveredName.length * 6.2 + 8, width - 20)} height={12} fill="#ffffff" fillOpacity={0.85} />
+            <text x={hoveredLabelX} y={10} fontSize="10" textAnchor="middle" fill="#000000" fontWeight="bold">{hoveredName}</text>
+        </g> : null}
     </svg>
 }
 
 const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, onToggleRow, plotSuffix, setPlotSuffix, suffixes, rowByTag,
         backgroundValuesBySuffix, selectedTags, listOptions, selectedListKeys, markedProteinTags, onMarkProteinList, onLabelProteinList,
         proteinTagMap, setRequiredProteinTags }) {
+    const [hoveredTag, setHoveredTag] = useState(null)
     const segment = (count, color, key) => count > 0
         ? <div key={key} style={{ width: `${(count / entry.total) * BAR_TRACK_WIDTH}px`, minWidth: "2px", height: "0.9rem", backgroundColor: color }} />
         : null
     const overlapTags = entry.overlapTags
     const listIsMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
+    const fcName = log2FCFieldName(plotSuffix)
+    const formatTopRow = row => `${proteinDisplayName(proteinTagMap, row.tag)} (${_.isNumber(row[fcName]) ? row[fcName].toFixed(2) : "-"})`
+    const topUp = entry.rows.filter(row => _.isNumber(row[fcName]) && row[fcName] > 0)
+        .sort((a, b) => b[fcName] - a[fcName]).slice(0, 3)
+    const topDown = entry.rows.filter(row => _.isNumber(row[fcName]) && row[fcName] < 0)
+        .sort((a, b) => a[fcName] - b[fcName]).slice(0, 3)
     const tooltipLines = [
         `${entry.tag} — ${entry.overlapCount} of ${entry.total} members in selected list(s), |median log2FC| = ${_.isNumber(entry.med) ? Math.abs(entry.med).toFixed(2) : "-"}`,
+        `${entry.up} upregulated, ${entry.down} downregulated${entry.both > 0 ? `, ${entry.both} in both directions` : ""}`,
         ...listOptions.filter(option => selectedListKeys.includes(option.key))
-            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`)
+            .map(option => `${option.label}: ${overlapTags.filter(tag => option.tags.includes(tag)).length}`),
+        ...(topUp.length > 0 ? [`Top up: ${topUp.map(formatTopRow).join("; ")}`] : []),
+        ...(topDown.length > 0 ? [`Top down: ${topDown.map(formatTopRow).join("; ")}`] : [])
     ].join("\n")
     return <div className="margin-bottom--little">
-        <Tooltip compact={true} content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
+        <Tooltip compact={true} placement="top" content={<div style={{ whiteSpace: "pre-line" }}>{tooltipLines}</div>}>
             <div className="flex center-items"
                 style={{ gap: "0.4rem", cursor: "pointer", backgroundColor: isExpanded ? "#efefef" : "white", alignItems: "flex-start" }}
                 onClick={() => onToggleRow(entry.tag)}>
@@ -168,7 +268,7 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 <span className="font-size--smallest">of {entry.total}</span>
                 <span className="font-size--smallest" style={{
                     width: "4.5rem", flexShrink: 0, textAlign: "right",
-                    color: entry.med > 0 ? "#3d7a3a" : entry.med < 0 ? "#7a4d96" : "#8a8a8a"
+                    color: entry.med > 0 ? "#d13913" : entry.med < 0 ? "#4a7ba6" : "#8a8a8a"
                 }}>{_.isNumber(entry.med) ? entry.med.toFixed(2) : "-"}</span>
                 {_.isFunction(onMarkProteinList) ? <button className="basic-button--small" style={{ flexShrink: 0, fontWeight: listIsMarked ? "bold" : "normal" }}
                     onClick={(e) => { e.stopPropagation(); onMarkProteinList(listIsMarked ? [] : overlapTags) }}>
@@ -185,15 +285,20 @@ const AnnotationRow = memo(function AnnotationRow({ entry, label, isExpanded, on
                 <span className="font-size--smallest">log2FC volcano:</span>
                 {suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === plotSuffix} onClick={() => setPlotSuffix(suffix)}>{suffix}</OptionButton>)}
             </div>
-            <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
-                backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
-                proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+            <div className="flex" style={{ gap: "0.8rem", flexWrap: "wrap", alignItems: "flex-start", maxWidth: "100%", overflowX: "auto" }}>
+                <AnnotationLog2FCPlot entry={entry} suffix={plotSuffix} rowByTag={rowByTag}
+                    backgroundValues={backgroundValuesBySuffix[plotSuffix] ?? []} selectedTags={selectedTags}
+                    proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags}
+                    hoveredTag={hoveredTag} onHoverTag={setHoveredTag} />
+                <AnnotationMemberTable entry={entry} label={label} suffix={plotSuffix} rowByTag={rowByTag} proteinTagMap={proteinTagMap}
+                    selectedTags={selectedTags} hoveredTag={hoveredTag} onHoverTag={setHoveredTag} />
+            </div>
             <div className="flex center-items flex--wrap margin-top--little" style={{ gap: "0.6rem" }}>
                 {[
                     { color: "#9a9a9a", label: "all proteins of the volcano (background)", shape: "box" },
                     { color: LIST_COLOR, label: "selected list(s) distribution", shape: "box" },
-                    { color: "#4a7ba6", label: "member of this annotation", shape: "dot" },
-                    { color: "#d13913", label: "in selected list(s)", shape: "dot" }
+                    { color: "#af8dc3", label: "member of this annotation", shape: "dot" },
+                    { color: IN_LIST_COLOR, label: "in selected list(s)", shape: "dot" }
                 ].map(item => <span key={item.label} className="flex center-items font-size--smallest" style={{ gap: "0.25rem" }}>
                     {item.shape === "box"
                         ? <span style={{ width: "0.8rem", height: "0.45rem", backgroundColor: item.color, opacity: 0.35, border: `1px solid ${item.color}`, display: "inline-block" }} />

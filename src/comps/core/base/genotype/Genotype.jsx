@@ -1,11 +1,15 @@
 import { isHexColorLight } from "../../../../services/checks/color"
+import _ from "lodash"
 
 import { api } from "@/api"
 
 
 export function Genotype({ tag, highlight }) {
 
-    const { data: genotype_text, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypeText({ tag })
+    const { data: genotype_text, isLoading, isFetching } = api.genotypes.queryGenotypes.useGetGenotypeText(
+        { tag },
+        { enabled: _.isString(tag) && tag.length > 0, staleTime: Infinity }
+    )
 
     const backgroundColor = highlight ? "#466688" : "#efefef"
     const motionBackgroundColor = highlight ? "#efefef" : "#466688"

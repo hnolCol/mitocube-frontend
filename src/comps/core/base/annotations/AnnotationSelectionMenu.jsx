@@ -118,7 +118,7 @@ export function AnnotationSelectionMenu({ placeholder = "Select annotations", on
             <button className={minimal ? "basic-button--small" : "basic-button"} onClick={() => setIsOpen(!isOpen)}>{showTags ? placeholder : selected_tags.length > 0 ? <Annotation tag={selected_tags[0]} /> : placeholder   }</button>
 
             </Popover>
-            {showTags && selected_tags.length > 0 ? <div>
+            {showTags && selected_tags.length > 0 ? <div className="flex flex--wrap" style={{ gap: "0.2rem" }}>
                 {selected_tags.map(tag => <TagLike key={tag} onRemove={(e => onRemove(e,tag))}><Annotation tag={tag} /></TagLike>)}
             </div> : null}
             </div>

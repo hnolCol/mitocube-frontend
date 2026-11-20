@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useSearchParams } from "react-router"
 import { useSearchParamState } from "../../../hooks/useSearchParamState"
 import { AttributeGroupSelection } from "./Groups"
 import { addStringToArrayOrRemove } from "../../../services/arrays/transforms"
@@ -55,7 +56,18 @@ export function AttributeQueryContainer({ search_string, limit = 50, attribute_g
  */
 export function AttributesAdminView({ userRole }) {
     const [dialogProps, setDialogProps] = useState({ isOpen: false, editMode: false, attribute_tag: null })
-    const [attribute_groups, setAttributeGroups] = useState([])
+    const [searchParams, setSearchParams] = useSearchParams()
+    const attribute_groups = _.compact(_.split(searchParams.get("groups") || "", ";"))
+    const toggleAttributeGroup = (tag) => {
+        const next_groups = addStringToArrayOrRemove({ array: attribute_groups, string: tag })
+        const newParams = new URLSearchParams(searchParams)
+        if (next_groups.length > 0) {
+            newParams.set("groups", _.join(next_groups, ";"))
+        } else {
+            newParams.delete("groups")
+        }
+        setSearchParams(newParams, { replace: true })
+    }
     const { searchString, setSearchString, debouncedSearchString, limit, setLimit } = useSearchParamState({ limitOptions: [50, 100, 200], limitAllValue: Infinity, debounceDelay: 30 })
     const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
@@ -89,9 +101,7 @@ export function AttributesAdminView({ userRole }) {
                         <div className="flex center-items">
                             <div>Groups | </div>
                             <AttributeGroupSelection
-                                onSelection={(tag) =>
-                                    setAttributeGroups((prev) => addStringToArrayOrRemove({ array: prev, string: tag }))
-                                }
+                                onSelection={toggleAttributeGroup}
                                 selected_tags={attribute_groups}
                             />
                         </div>

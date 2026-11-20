@@ -24,12 +24,12 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @param {Function} props.handleTraitSelection Handle the selection of a trait.
  * @returns 
  */
-export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, isMissing = false, trait_paths = undefined, parent_tags = undefined }) {
-    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isArray(trait_tags) || isMissing, staleTime : 60000 })
+export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, selected_trait_pairs = undefined, isMissing = false, trait_paths = undefined, parent_tags = undefined }) {
+    const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag) && (_.isArray(trait_tags) || isMissing), staleTime : 60000 })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
         { tag, limit : 10 },
-        { enabled: isMissing && (!_.isArray(trait_tags) || trait_tags.length === 0) }
+        { enabled: _.isString(tag) && isMissing && (!_.isArray(trait_tags) || trait_tags.length === 0) }
     )
 
     const effectiveTraitTags = _.isArray(trait_tags) && trait_tags.length > 0 ? trait_tags : (fetchedTraitTags || [])
@@ -88,6 +88,11 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
         resetPendingSelection()
     }
 
+    const isTraitSelected = (trait_tag) => {
+        if (_.isArray(selected_trait_pairs) && selected_trait_pairs.some(pair => pair.trait_tag === trait_tag && (!_.isString(pair.attribute_tag) || pair.attribute_tag === tag))) return true
+        return _.isArray(selected_traits) && selected_traits.includes(trait_tag)
+    }
+
     if (_.isString(pendingTraitTag)) {
         return <div style={{ backgroundColor: "#f0f4f8", borderRadius: "3px" }}>
             <div className="menu_item_header">
@@ -123,7 +128,7 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
             <span style={{color : HIGHLIGHT_COLOR}}>{attribute.text}</span>{isMissing ? <span style={{ color: "red" }}> *</span> : null}
         </div> : null}
         {_.isArray(effectiveTraitTags) ? effectiveTraitTags.map(trait_tag => {
-            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitClick} selected={_.isArray(selected_traits) && selected_traits.includes(trait_tag)} trait_path={trait_paths?.[trait_tag]} />
+            return <TraitMenuItem key={trait_tag} tag={trait_tag} attribute_tag={tag} onClick={handleTraitClick} selected={isTraitSelected(trait_tag)} trait_path={trait_paths?.[trait_tag]} />
         }) : null}
     </div>
 }
@@ -133,6 +138,7 @@ AttributeWithTraitsMenuItem.propTypes = {
     trait_tags: PropTypes.arrayOf(PropTypes.string),
     handleTraitSelection: PropTypes.func,
     selected_traits: PropTypes.arrayOf(PropTypes.string),
+    selected_trait_pairs: PropTypes.arrayOf(PropTypes.shape({ attribute_tag: PropTypes.string, trait_tag: PropTypes.string })),
     isMissing: PropTypes.bool,
     trait_paths: PropTypes.object,
     parent_tags: PropTypes.arrayOf(PropTypes.string),
@@ -187,6 +193,22 @@ AttributesInput.propTypes = {
  * @param {Boolean} props.disabled - If the input should be disabled. Default is false.
  * @returns {JSX.Element} The rendered AttributesInput component.
  */
+const collectSelectedTraitPairs = (nodes, attribute_tag = undefined, acc = []) => {
+    if (!_.isArray(nodes)) return acc
+    nodes.forEach(node => {
+        if (_.isString(node)) {
+            acc.push({ attribute_tag: undefined, trait_tag: node })
+            return
+        }
+        if (!_.isObject(node) || !_.isString(node.tag)) return
+        const childAttributeTag = node.type === "attribute" ? node.tag : attribute_tag
+        if (node.type === "trait") {
+            acc.push({ attribute_tag, trait_tag: node.tag })
+        }
+        collectSelectedTraitPairs(node.children, childAttributeTag, acc)
+    })
+    return acc
+}
 export function AttributesInput({
         min_state = 5,
         min_search_string_length = 0, //set to 0 if you want to search without any string... (E.g. getting all)
@@ -244,7 +266,8 @@ export function AttributesInput({
         if (!itemsLoaded || items.length === 0) return <div className="padding--medium"><p>Start typing...</p></div>
     
         const missingTags = checkMandatoryAttributes ? mandatoryCheck?.missing?.map(m => m.tag) || [] : []
-        const selectedTraitTags = _.isArray(selected_traits) ? selected_traits.map(t => _.isString(t) ? t : t.tag) : []
+        const selectedTraitPairs = collectSelectedTraitPairs(selected_traits)
+        const selectedTraitTags = _.uniq(selectedTraitPairs.map(pair => pair.trait_tag))
 
         const sortedItems = [...items].sort((a, b) => {
             if (missingTags.length === 0) return 0
@@ -263,6 +286,7 @@ export function AttributesInput({
                     trait_paths={attributeWithTraits.trait_paths}
                     parent_tags={attributeWithTraits.parent_tags}
                     selected_traits={selectedTraitTags}
+                    selected_trait_pairs={selectedTraitPairs}
                     handleTraitSelection={handleTraitSelection}
                     isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}
                 />

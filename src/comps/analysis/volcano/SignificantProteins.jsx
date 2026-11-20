@@ -9,6 +9,7 @@ import { AnnotationSelectionMenu } from "@/comps/core/base/annotations/Annotatio
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import { useAnnotationProteinSets } from "@/api/orchestrated/annotationProteins"
 import { AnnotationDescriptionSection, usePersistedListKeys } from "./AnnotationDescription"
+import { AnnotationEnrichmentSection } from "./AnnotationEnrichment"
 import { directionBarColor, directionLabel, directionTags, getSignificantRows, getSignatureEntries, isSignificantValue, log2FCFieldName, pValueFieldName, rowDirectionInfo, rowProteinTags, significantFieldName } from "./compareUtils"
 
 export { getSignificantRows }
@@ -55,8 +56,8 @@ function RowDirectionBadge({ row, suffixes }) {
 function rowDirectionBackgroundColor(row, suffixes) {
     const { hasUp, hasDown, discordant } = rowDirectionInfo(row, suffixes)
     if (discordant) return "#fdf3d7"
-    if (hasUp) return "#eef7ee"
-    if (hasDown) return "#f5eff9"
+    if (hasUp) return "#fdecea"
+    if (hasDown) return "#eef3f8"
     return undefined
 }
 
@@ -450,6 +451,11 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
                             listOptions={listOptions} selectedListKeys={selectedListKeys} onToggleListKey={toggleListKey}
                             markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList}
                             proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} /> } />
+                    <Tab id="enrichment" title="Enriched annotations" panel={
+                        <AnnotationEnrichmentSection
+                            data={data} suffixes={[suffix]}
+                            listOptions={listOptions} selectedListKeys={selectedListKeys}
+                            submission_tags={_.isString(submission_tag) ? [submission_tag] : []} /> } />
                 </Tabs>
             </div>
         </Drawer>
@@ -667,7 +673,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
 }
 
 
-export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
+export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag, submission_tags = undefined, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
     const [isOpen, setIsOpen] = useState(false)
     const [activeTab, setActiveTab] = useState("pairwise")
     const [direction, setDirection] = useState("up")
@@ -723,6 +729,11 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
     const vennSelectionState = vennSelectionStates[direction] ?? {}
     const upsetSelectionState = upsetSelectionStates[direction] ?? {}
 
+    // background universe for the enrichment tab: all compared submissions (cross-submission compare) or the single submission
+    const universeSubmissionTags = _.isArray(submission_tags) && submission_tags.length > 0
+        ? submission_tags
+        : (_.isString(submission_tag) ? [submission_tag] : [])
+
     if (!_.isArray(suffixes) || suffixes.length < 2) return null
 
     return <>
@@ -764,6 +775,12 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                             onToggleListKey={toggleListKey}
                             markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} onLabelProteinList={onLabelProteinList}
                             proteinTagMap={proteinTagMap} setRequiredProteinTags={setRequiredProteinTags} />
+                    } />
+                    <Tab id="enrichment" title="Enriched annotations" panel={
+                        <AnnotationEnrichmentSection
+                            data={data} suffixes={suffixes}
+                            listOptions={listOptions} selectedListKeys={validListKeys}
+                            submission_tags={universeSubmissionTags} />
                     } />
                 </Tabs>
             </div>

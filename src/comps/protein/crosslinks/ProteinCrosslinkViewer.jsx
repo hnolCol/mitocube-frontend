@@ -85,14 +85,14 @@ export function ProteinCrosslinkViewer({
         onVisiblePartnersChange(visiblePartnerTags)
     }, [visiblePartnerTags])
 
-    const { isReady: proteinsReady, tagQueries: proteinTagQueries } = usePrefetchProteins(allTags)
+    const { isReady: proteinsReady, tagQueries: proteinTagQueries, tags: validAllTags } = usePrefetchProteins(allTags)
 
-    const { tagQueries: domainTagQueries } = usePrefetchInterproFeatures(requiredProteinDomains)
+    const { tagQueries: domainTagQueries, tags: validProteinDomains } = usePrefetchInterproFeatures(requiredProteinDomains)
 
     
-    const { data: topology } = api.features.proteinsQuery.useGetProteinTopology({ tag })
+    const { data: topology } = api.features.proteinsQuery.useGetProteinTopology({ tag }, { enabled: _.isString(tag) })
 
-    const { data: structure } = api.features.proteinsQuery.useGetProteinStructure({ tag })
+    const { data: structure } = api.features.proteinsQuery.useGetProteinStructure({ tag }, { enabled: _.isString(tag) })
     const { data: partnerStructure } = api.features.proteinsQuery.useGetProteinStructure(
         { tag: focusedPartnerTag },
         { enabled: Boolean(focusedPartnerTag) }
@@ -145,12 +145,12 @@ export function ProteinCrosslinkViewer({
 
     const proteinDomainMap = useMemo(() => {
         const map = {}
-        requiredProteinDomains.forEach((t, idx) => {
+        validProteinDomains.forEach((t, idx) => {
             const q = domainTagQueries[idx]
             if (q?.data) map[t] = q.data
         })
         return map
-    }, [domainTagQueries, requiredProteinDomains])
+    }, [domainTagQueries, validProteinDomains])
     
     useEffect(() => {
         if (Object.keys(proteinDomainMap).length > 0) {
@@ -161,7 +161,7 @@ export function ProteinCrosslinkViewer({
 
     const proteinsByTag = useMemo(() => {
         const map = {}
-        allTags.forEach((t, idx) => {
+        validAllTags.forEach((t, idx) => {
             const q = proteinTagQueries[idx]
             if (q?.data) map[t] = {
                 ...q.data,
@@ -172,15 +172,15 @@ export function ProteinCrosslinkViewer({
         return map
     }, [proteinTagQueries, proteinDomainMap, allTags])
 
-    const { isReady: allPartnersReady, tagQueries: allPartnerQueries } = usePrefetchProteins(partnerOrder)
+    const { isReady: allPartnersReady, tagQueries: allPartnerQueries, tags: validPartnerOrder } = usePrefetchProteins(partnerOrder)
     const allPartnersByTag = useMemo(() => {
         const map = {}
-        partnerOrder.forEach((t, idx) => {
+        validPartnerOrder.forEach((t, idx) => {
             const q = allPartnerQueries[idx]
             if (q?.data) map[t] = q.data
         })
         return map
-    }, [allPartnerQueries, partnerOrder])
+    }, [allPartnerQueries, validPartnerOrder])
 
     useEffect(() => {
         if (!allPartnersReady) return

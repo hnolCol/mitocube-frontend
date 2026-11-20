@@ -75,16 +75,16 @@ export function CrosslinksTable({ protein_tag, resource_tag, droppedTags = new S
         return Array.from(tags)
     }, [sortedCrosslinks])
 
-    const { tagQueries } = usePrefetchProteins(allTags)
+    const { tagQueries, tags: validAllTags } = usePrefetchProteins(allTags)
 
     const geneNameByTag = useMemo(() => {
         const map = {}
-        allTags.forEach((t, idx) => {
+        validAllTags.forEach((t, idx) => {
             const q = tagQueries[idx]
             if (q?.data) map[t] = q.data.gene_name ?? t
         })
         return map
-    }, [allTags, tagQueries])
+    }, [validAllTags, tagQueries])
 
     if (isLoading) return <div className="padding--little">Loading crosslinks...</div>
     if (isError) return <div className="padding--little">Error loading crosslinks.</div>

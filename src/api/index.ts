@@ -19,13 +19,13 @@ import {
     submissionProtocolsAPI,
     submissionSummaryAPI
 } from "./submission";
-import { tokenAuthentication, userLogin, mfaAuthentication } from "./authentication";
+import { tokenAuthentication, userLogin, mfaAuthentication, patsAPI } from "./authentication";
 import { newsAPI } from "./news";
 import { usersViewsAPI, userActiveAPI, userCountAPI, userCoreAPI, userRolesAPI, queryUserByQueryAPI, userEditAPI, userCreateAPI } from "./users";
 import { metatextAPI } from "./metatexts";
 import { stateAPI } from "./states";
 import { attributesModifyAPI, attributesQueryAPI, traitsModifyAPI, traitsQueryAPI, attributesRequestsAPI } from "./attributes";
-import { backendInfoAPI, statisticsInfoAPI, termsInfoAPI, keyFiguresInfoAPI } from "./info";
+import { backendInfoAPI, statisticsInfoAPI, keyFiguresInfoAPI } from "./info";
 import { impressumAPI } from "./impressum";
 import { conditionApplicationAPI } from "./condition_applications";
 import genotypes from "@/types/genotypes";
@@ -121,7 +121,8 @@ export const api = {
     authentication: {
         login: userLogin,
         token: tokenAuthentication,
-        mfa : mfaAuthentication
+        mfa : mfaAuthentication,
+        pats : patsAPI
     },
     condition_applications: conditionApplicationAPI,
     news: newsAPI,
@@ -148,7 +149,6 @@ export const api = {
     info: { 
         backend : backendInfoAPI,
         statistics : statisticsInfoAPI,
-        terms : termsInfoAPI,
         keyfigures : keyFiguresInfoAPI
     },
     maintenance : {

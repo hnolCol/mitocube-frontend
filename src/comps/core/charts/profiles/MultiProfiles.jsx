@@ -52,7 +52,9 @@ export function MultiProfiles({
             return () => "#000";
 
         return scaleOrdinal({
-            domain: uniqueColorValues,
+            // Object.keys() lookups are always strings, so the domain must be stringified too
+            // (e.g. cluster numbers), otherwise the palette is misaligned or falls back to black.
+            domain: uniqueColorValues.map(value => String(value)),
             range: getColorPalette(uniqueColorValues.length)
         });
 

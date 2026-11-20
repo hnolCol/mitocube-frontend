@@ -25,7 +25,7 @@ export function ProteinOverview({ feature_tag }) {
             </div>
             <div className="div--expand" />
             <div><ProteinQuantCounts tag={feature_tag} /></div>
-            <ProteinConditionEffects proteinTag={feature_tag} />
+            {/* <ProteinConditionEffects proteinTag={feature_tag} /> */}
             <ProteinFavorite tag={feature_tag} />
         </div>
     );

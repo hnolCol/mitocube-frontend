@@ -29,8 +29,8 @@ export function ProteinPage() {
         { tag: "correlation", text: "Correlation" },
         { tag: "abundance", text: "Abundance" },
         { tag: "crosslinks", text: "Crosslinks" },
-        { tag: "literature", text: "Literature (AI)" },
-        { tag: "publications", text: "Publications" },
+        // { tag: "literature", text: "Literature (AI)" },
+        // { tag: "publications", text: "Publications" },
         {tag : "documentation", text : "Documentation"}];
     
     const viewParam = searchParams.get("view");

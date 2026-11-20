@@ -42,11 +42,12 @@ export function WithTagMaps({
         useState({ tags: [], trigger: undefined })
     const proteinTagGeneNameMapRef = useRef(new Map())
 
-    const { isReady, tagQueries } =
+    const { isReady, tagQueries, tags: validCaTags } =
         usePrefetchConditionApplicationTexts(ca_tags)
     const {
         isReady: attributeIsReady,
         tagQueries: attributeTagQueries,
+        tags: validAttributeTags,
     } = usePrefetchAttributes(attribute_tags)
 
     const missingProteinTags = protein_tags.filter(
@@ -56,32 +57,33 @@ export function WithTagMaps({
         isReady: proteinIsReady,
         isLoading: proteinIsLoading,
         tagQueries: proteinTagQueries,
+        tags: validProteinTags,
     } = usePrefetchProteins(missingProteinTags)
 
     const caTagMap = useMemo(() => {
         const map = new Map()
         tagQueries.forEach((q, idx) => {
             if (q.data) {
-                map.set(ca_tags[idx], q.data)
+                map.set(validCaTags[idx], q.data)
             }
         })
         return map
-    }, [tagQueries, ca_tags])
+    }, [tagQueries, validCaTags])
 
     const attributeTagMap = useMemo(() => {
         const map = new Map()
         attributeTagQueries.forEach((q, idx) => {
             if (q.data) {
-                map.set(attribute_tags[idx], q.data)
+                map.set(validAttributeTags[idx], q.data)
             }
         })
         return map
-    }, [attributeTagQueries, attribute_tags])
+    }, [attributeTagQueries, validAttributeTags])
 
     const proteinTagMap = useMemo(() => {
         // Keep old values while loading
         if (_.isArray(missingProteinTags)) {
-            missingProteinTags.forEach((protein_tag, idx) => {
+            validProteinTags.forEach((protein_tag, idx) => {
                 const q = proteinTagQueries[idx]
                 if (q?.data) {
                     proteinTagGeneNameMapRef.current.set(
@@ -92,7 +94,7 @@ export function WithTagMaps({
             })
         }
         return proteinTagGeneNameMapRef.current
-    }, [proteinTagQueries, missingProteinTags])
+    }, [proteinTagQueries, validProteinTags])
 
     const handleProteinSearchSuccess = (proteinTags) => {
         setProteinSearchTags(prev => ({ key: "tag", values: proteinTags, trigger: Math.random() }))
@@ -100,27 +102,27 @@ export function WithTagMaps({
 
     const { failedCaTags, caTagError } = useMemo(() => {
         const failed = tagQueries
-            .map((q, idx) => (q.isError ? ca_tags[idx] : null))
+            .map((q, idx) => (q.isError ? validCaTags[idx] : null))
             .filter(_.isString)
         const errorQuery = tagQueries.find(q => q.isError)
         return {
             failedCaTags: failed,
             caTagError: errorQuery?.error,
         }
-    }, [tagQueries, ca_tags])
+    }, [tagQueries, validCaTags])
 
     const ready = isReady && attributeIsReady
 
     const { failedAttributeTags, attributeTagError } = useMemo(() => {
         const failed = attributeTagQueries
-            .map((q, idx) => (q.isError ? attribute_tags[idx] : null))
+            .map((q, idx) => (q.isError ? validAttributeTags[idx] : null))
             .filter(_.isString)
         const errorQuery = attributeTagQueries.find(q => q.isError)
         return {
             failedAttributeTags: failed,
             attributeTagError: errorQuery?.error,
         }
-    }, [attributeTagQueries, attribute_tags])
+    }, [attributeTagQueries, validAttributeTags])
 
     if (failedCaTags.length > 0) {
         return (
@@ -145,7 +147,7 @@ export function WithTagMaps({
     }
 
     return (
-        <div className='div--expand'>
+        <div className='div--expand flex flex-column' style={{ minHeight: 0 }}>
             {showProteinSearch && (
                 <div className="flex center-items" style={{ gap: "0.5rem" }}>
                     <div style={{ flex: "1 1 auto", minWidth: 0 }}>
@@ -159,8 +161,8 @@ export function WithTagMaps({
             )}
             <Component
                 {...rest}
-                ca_tags={ca_tags}
-                attribute_tags={attribute_tags}
+                ca_tags={validCaTags}
+                attribute_tags={validAttributeTags}
                 caTagMap={caTagMap}
                 attributeTagMap={attributeTagMap}
                 proteinTagMap={proteinTagMap}

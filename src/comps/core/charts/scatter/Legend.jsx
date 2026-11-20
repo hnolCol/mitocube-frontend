@@ -75,8 +75,8 @@ const ScatterLegend = React.memo(
         } = useTooltip();
 
 
-    const { data: colorAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute, staleTime: Infinity })
-    const { data: sizeAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute, staleTime: Infinity })
+    const { data: colorAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: colorName }, { enabled: colorNameIsAttribute && _.isString(colorName), staleTime: Infinity })
+    const { data: sizeAttribute } = api.attributes.queryAttributes.useGetAttribute({ tag: sizeName }, { enabled: sizeNameIsAttribute && _.isString(sizeName), staleTime: Infinity })
     
 
     /**

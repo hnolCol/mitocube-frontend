@@ -408,9 +408,9 @@ export function ConditionApplicationSelection({ submission_tag, onConfirm, reset
                     )}
                 </div> : null}
 
-        {_.isString(attribute) && _.isArray(ca_attributes) && ca_attributes.length > 2 && !hasActiveWithinFilters
+        {_.isString(attribute) && _.isArray(ca_attributes) && ca_attributes.filter(t => t !== attribute).length > 0 && !hasActiveWithinFilters
             ? <Callout intent="warning" icon="warning-sign" className="margin-top--little">
-                <strong>More than two attributes found.</strong> If you do not select a within attribute, the samples of the other attributes will be pooled in each comparison group.
+                <strong>Other attributes are available for this submission.</strong> If you do not select a within attribute, the samples of the other attributes will be pooled in each comparison group.
             </Callout>
             : null}
 
