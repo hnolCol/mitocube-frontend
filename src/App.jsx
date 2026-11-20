@@ -103,6 +103,7 @@ import { Impressum } from "./comps/core/documents/Impressum";
 import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 import { ModularProceduresAdmin } from "./comps/admin/modularprocedures/ModularProceduresAdmin";
 import { ModularProcedureBoard } from "./comps/modularprocedures/ModularProcedureBoard";
+import { ModularProceduresExecutionsOverview } from "./comps/modularprocedures/ModularProceduresExecutionsOverview";
 import { AdminReports } from "./comps/admin/reports/Reports";
 import { CollaborationSharingOverview } from "./comps/admin/sharing/SharingOverview";
 import { ConsortiumSharingOverview } from "./comps/admin/sharing/SharingOverview";
@@ -303,12 +304,20 @@ function App() {
             }
           />
 
-          {/* Modular Procedures Route */}
+          {/* Modular Procedures Routes */}
           <Route
             path="/modular-procedures"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
                 <ModularProcedureBoard userRole={authenticationStatus.role} userTag={authenticationStatus.tag} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/modular-procedures/executions"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <ModularProceduresExecutionsOverview userRole={authenticationStatus.role} />
               </ProtectedRoute>
             }
           />

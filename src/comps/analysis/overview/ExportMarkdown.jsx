@@ -10,6 +10,7 @@ const EXPORT_SECTIONS = [
     { key: "include_samples", label: "Samples" },
     { key: "include_protocols", label: "Protocols" },
     { key: "include_runlist", label: "Run lists" },
+    { key: "include_modular_procedures", label: "Workflow modules (executions & plate data)" },
     { key: "include_timeline", label: "Timeline (state history & events)" },
 ];
 

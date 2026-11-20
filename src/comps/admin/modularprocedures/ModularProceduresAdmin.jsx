@@ -35,6 +35,8 @@ export function ModularProceduresAdmin({ userRole }) {
         api.modularProcedures.modify.useLinkModularProcedureToSubmission()
     const { mutate: createVersion } =
         api.modularProcedures.modify.useCreateModularProcedureVersion()
+    const { mutate: retireProcedure, isError: retireIsError, error: retireError } =
+        api.modularProcedures.modify.useRetireModularProcedure()
 
     const handleInsert = (procedure) => {
         postProcedure(procedure, {
@@ -60,6 +62,17 @@ export function ModularProceduresAdmin({ userRole }) {
         publishProcedure({ tag: procedure_tag }, {
             onSuccess: () => {
                 setAlertProps({ isOpen: true, message: "Modular procedure published. It is now immutable and has a content hash." })
+                refetch()
+            }
+        })
+    }
+
+    const handleRetire = (procedure_tag) => {
+        if (!window.confirm("Retire this modular procedure? It stays reproducible forever (content, hash and history) " +
+            "but can no longer be assigned or executed.")) return
+        retireProcedure({ tag: procedure_tag }, {
+            onSuccess: () => {
+                setAlertProps({ isOpen: true, message: "Modular procedure retired. It stays visible with its content and hash, but can no longer be assigned or executed." })
                 refetch()
             }
         })
@@ -150,32 +163,40 @@ export function ModularProceduresAdmin({ userRole }) {
                         onEdit={() => setDialogProps({ isOpen: true, editMode: true, procedure_tag })}
                         onPublish={() => handlePublish(procedure_tag)}
                         onLink={() => setLinkDialogProps({ isOpen: true, procedure_tag })}
-                        onNewVersion={() => handleCreateVersion(procedure_tag)} />)}
+                        onNewVersion={() => handleCreateVersion(procedure_tag)}
+                        onRetire={() => handleRetire(procedure_tag)} />)}
                 {procedure_tags?.length === 0 ?
                     <div className="padding--medium" style={{ color: "#888" }}>No modular procedures yet.</div> : null}
             </div>}
 
         {publishIsError ? <div className="padding--medium"><APIAxiosError error={publishError} /></div> : null}
+        {retireIsError ? <div className="padding--medium"><APIAxiosError error={retireError} /></div> : null}
     </div>
 }
 
-function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLink, onNewVersion }) {
+function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLink, onNewVersion, onRetire }) {
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag({ tag: procedure_tag })
     const isDraft = procedure?.status === "DRAFT"
+    const isRetired = procedure?.status === "RETIRED"
 
     return <div style={{
         border: "1px solid #ccc", borderRadius: "6px", background: "#fff",
-        padding: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem"
+        padding: "0.75rem", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem",
+        opacity: isRetired ? 0.6 : 1,
+        filter: isRetired ? "grayscale(0.9)" : undefined
     }}>
         <div>
             <div className="flex center-items" style={{ gap: "0.5rem" }}>
                 <strong>{procedure?.title || procedure_tag}</strong>
                 <span style={{
                     fontSize: "0.75rem", borderRadius: "4px", padding: "0 0.25rem",
-                    color: isDraft ? "#c87619" : "#238551",
-                    border: `1px solid ${isDraft ? "#c87619" : "#238551"}`
+                    color: isDraft ? "#c87619" : (isRetired ? "#8f99a8" : "#238551"),
+                    border: `1px solid ${isDraft ? "#c87619" : (isRetired ? "#8f99a8" : "#238551")}`
                 }}>{procedure?.status || ""}</span>
+                {isRetired ? <span className="font-size--smallest" style={{ color: "#8f99a8" }}>
+                    retired — kept forever for reproducibility, no longer assignable or executable
+                </span> : null}
                 {_.isFinite(_.toNumber(procedure?.version)) && _.toNumber(procedure?.version) > 1 ?
                     <span className="font-size--small" style={{ color: "#888" }}>v{procedure.version}</span> : null}
             </div>
@@ -191,8 +212,9 @@ function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLin
         {isCurator ? <div className="flex" style={{ gap: "0.5rem", flexShrink: 0 }}>
             {isDraft ? <button className="basic-button basic-button--small" onClick={onEdit}>Edit</button> : null}
             {isDraft ? <button className="basic-button basic-button--small basic-button--highlighted" onClick={onPublish}>Publish</button> : null}
-            {!isDraft ? <button className="basic-button basic-button--small" onClick={onNewVersion}>New version</button> : null}
-            <button className="basic-button basic-button--small" onClick={onLink}>Assign submission</button>
+            {procedure?.status === "PUBLISHED" ? <button className="basic-button basic-button--small" onClick={onNewVersion}>New version</button> : null}
+            {procedure?.status === "PUBLISHED" ? <button className="basic-button basic-button--small" onClick={onRetire}>Retire</button> : null}
+            {!isRetired ? <button className="basic-button basic-button--small" onClick={onLink}>Assign submission</button> : null}
         </div> : null}
     </div>
 }

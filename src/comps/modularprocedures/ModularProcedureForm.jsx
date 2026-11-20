@@ -9,8 +9,13 @@ import { DatasetAttributeView } from "@/comps/core/base/attributes/DatasetAttrib
 import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "@/comps/submission/new/sample_attributes/select/SamplesAttributeWrapper";
 import { getRandomID } from "@/services/random";
 import { ProtocolMinimalItem } from "@/comps/admin/protocols/ProtocolMinimalItem";
+import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
 
-const INIT_PROCEDURE = { title: "", description: "", condition_application_tags: [], condition_application_trees: [], protocol_tags: [] }
+const INIT_PROCEDURE = { title: "", description: "", condition_application_tags: [], condition_application_trees: [], protocol_tags: [],
+    input_plate_format: "", input_plate_type: "", output_plate_format: "", output_plate_type: "",
+    input_attribute_tags: [], output_attribute_tags: [], success_submission_state: "" }
+
+const SUBMISSION_STATE_OPTIONS = ["PROCESSED", "MEASURING", "ANALYSIS", "DONE"]
 
 
 /**
@@ -28,6 +33,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
 
     const { data: protocol_tags } = api.protocols.query.useGetProtocolsByQuery(
         { search_string: protocolSearchString, limit: 30 }, { enabled: true })
+    const { data: plateOptions } = api.plates.plates.useGetPlateOptions({})
 
     useEffect(() => {
         if (isEditMode && isSuccess && _.isObject(existingProcedure)) {
@@ -36,7 +42,14 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 description: existingProcedure.description || "",
                 condition_application_tags: existingProcedure.condition_application_tags || [],
                 condition_application_trees: [],
-                protocol_tags: existingProcedure.protocol_tags || []
+                protocol_tags: existingProcedure.protocol_tags || [],
+                input_plate_format: existingProcedure.input_plate_format || "",
+                input_plate_type: existingProcedure.input_plate_type || "",
+                output_plate_format: existingProcedure.output_plate_format || "",
+                output_plate_type: existingProcedure.output_plate_type || "",
+                input_attribute_tags: existingProcedure.input_attribute_tags || [],
+                output_attribute_tags: existingProcedure.output_attribute_tags || [],
+                success_submission_state: existingProcedure.success_submission_state || ""
             })
         }
     }, [isEditMode, isSuccess, existingProcedure])
@@ -85,6 +98,16 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
         const foundNode = trait_tags.map((trait_tag) => findNode(selected_traits, "trait", trait_tag, id))
         return _.some(foundNode)
     }
+
+    const makeAttributeTagHandler = (field) => (attribute_tag) => {
+        setProcedure((prev) => prev[field].includes(attribute_tag) ?
+            { ...prev, [field]: prev[field].filter((tag) => tag !== attribute_tag) } :
+            { ...prev, [field]: [...prev[field], attribute_tag] })
+    }
+    const handleSelectInputAttribute = makeAttributeTagHandler("input_attribute_tags")
+    const handleSelectOutputAttribute = makeAttributeTagHandler("output_attribute_tags")
+
+    const handleSubmit = () => onSubmit(_.omitBy(procedure, (value) => value === ""))
 
     const handleSelectProtocol = (protocol_tag) => {
         setProcedure((prev) => {
@@ -154,10 +177,86 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                         onClick={() => handleSelectProtocol(protocol_tag)} />
                 </div>)}
         </div>
+        <Callout intent="primary" title="Plate Setup">
+            Define the plate layout of the input and output plates this procedure requires (e.g. 8x12 = 96 well
+            plate, or a PCR strip). Executions are rejected if the selected plates do not match.
+        </Callout>
+        <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
+            <label>
+                <div className="font-size--small">Input plate format</div>
+                <select className="text-input" value={procedure.input_plate_format}
+                    onChange={(e) => setProcedure({ ...procedure, input_plate_format: e.target.value })}>
+                    <option value="">Any format</option>
+                    {plateOptions?.formats?.map((format) =>
+                        <option key={format.tag} value={format.text}>{format.text}</option>)}
+                </select>
+            </label>
+            <label>
+                <div className="font-size--small">Input plate type</div>
+                <select className="text-input" value={procedure.input_plate_type}
+                    onChange={(e) => setProcedure({ ...procedure, input_plate_type: e.target.value })}>
+                    <option value="">Any type</option>
+                    {plateOptions?.plate_type?.map((type) =>
+                        <option key={type.tag} value={type.text}>{type.text}</option>)}
+                </select>
+            </label>
+            <label>
+                <div className="font-size--small">Output plate format</div>
+                <select className="text-input" value={procedure.output_plate_format}
+                    onChange={(e) => setProcedure({ ...procedure, output_plate_format: e.target.value })}>
+                    <option value="">Any format</option>
+                    {plateOptions?.formats?.map((format) =>
+                        <option key={format.tag} value={format.text}>{format.text}</option>)}
+                </select>
+            </label>
+            <label>
+                <div className="font-size--small">Output plate type</div>
+                <select className="text-input" value={procedure.output_plate_type}
+                    onChange={(e) => setProcedure({ ...procedure, output_plate_type: e.target.value })}>
+                    <option value="">Any type</option>
+                    {plateOptions?.plate_type?.map((type) =>
+                        <option key={type.tag} value={type.text}>{type.text}</option>)}
+                </select>
+            </label>
+        </div>
+        <Callout intent="primary" title="Well Attributes">
+            Declare the per-well attributes of this procedure: input attributes may be filled in per input well
+            before the execution (e.g. protein concentration before harmonization), output attributes are
+            expected as data on the output wells of a successful execution.
+        </Callout>
+        <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
+            <div>
+                <div className="font-size--small">Input attributes (allow input)</div>
+                <AttributeInput text="Add input attribute" onItemSelect={handleSelectInputAttribute} />
+                <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+                    {procedure.input_attribute_tags.map((tag) =>
+                        <button key={tag} className="basic-button basic-button--small"
+                            onClick={() => handleSelectInputAttribute(tag)}>{tag} ✕</button>)}
+                </div>
+            </div>
+            <div>
+                <div className="font-size--small">Output attributes (expected data)</div>
+                <AttributeInput text="Add output attribute" onItemSelect={handleSelectOutputAttribute} />
+                <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+                    {procedure.output_attribute_tags.map((tag) =>
+                        <button key={tag} className="basic-button basic-button--small"
+                            onClick={() => handleSelectOutputAttribute(tag)}>{tag} ✕</button>)}
+                </div>
+            </div>
+        </div>
+        <Callout intent="primary" title="Success State (optional)">
+            If set, confirming an execution of this procedure as successful automatically changes the state of
+            the linked submissions (e.g. to Processed) and they adopt the condition applications of this module.
+        </Callout>
+        <select className="text-input" value={procedure.success_submission_state}
+            onChange={(e) => setProcedure({ ...procedure, success_submission_state: e.target.value })}>
+            <option value="">Do not change the submission state</option>
+            {SUBMISSION_STATE_OPTIONS.map((state) => <option key={state} value={state}>{state}</option>)}
+        </select>
         {isError ? <div><APIAxiosError error={error} /></div> : null}
         <div className="flex center-items justify-end" style={{ gap: "1rem", marginTop: "1rem" }}>
             <button disabled={isPending} className="basic-button basic-button--highlighted"
-                onClick={() => onSubmit(procedure)}>{isPending ? "Saving..." : "Save"}</button>
+                onClick={handleSubmit}>{isPending ? "Saving..." : "Save"}</button>
             <button disabled={isPending} className="basic-button"
                 onClick={() => setProcedure(INIT_PROCEDURE)}>Reset</button>
             <button disabled={isPending} className="basic-button" onClick={onCancel}>Cancel</button>
