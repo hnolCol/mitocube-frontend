@@ -10,6 +10,7 @@ import { Button, ButtonGroup } from "@blueprintjs/core"
 import { CreatedAt } from "@/comps/core/metrics/CreatedAt"
 import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
+import { getItemFromLocalStorage, saveInLocalStorage } from "@/services/localstorage"
 import { ExploreGraph } from "./ExploreGraph"
 
 ExploreSubmissionRow.propTypes = {
@@ -280,7 +281,14 @@ export function SubmissionExplore({ user_tag }) {
     const [searchString, setSearchString] = useState("")
     const [selectedCATags, setSelectedCATags] = useState([])
     const [selectedUserTags, setSelectedUserTags] = useState([])
-    const [viewMode, setViewMode] = useState("list")
+    const [viewMode, setViewMode] = useState(() => {
+        const { itemFound, itemValue } = getItemFromLocalStorage({ itemName: "exploreViewMode" })
+        return itemFound && itemValue === "graph" ? "graph" : "list"
+    })
+    const handleViewModeChange = (viewMode) => {
+        setViewMode(viewMode)
+        saveInLocalStorage({ itemName: "exploreViewMode", itemValue: viewMode })
+    }
     const [graphSelection, setGraphSelection] = useState(null)
     const debouncedSearch = useDebounce(searchString, 300)
     const { data: exploreDisabled, isLoading: exploreDisabledIsLoading } = api.researchgroups.useGetMyExploreDisabled(
@@ -334,8 +342,8 @@ export function SubmissionExplore({ user_tag }) {
         <div style={{ maxWidth: "1100px", width: "70vw" }} className="margin-top--little">
             <div className="flex justify-end">
                 <ButtonGroup small={true}>
-                    <Button small={true} text="List" icon="list" active={viewMode === "list"} onClick={() => setViewMode("list")} />
-                    <Button small={true} text="Graph" icon="graph" active={viewMode === "graph"} onClick={() => setViewMode("graph")} />
+                    <Button small={true} text="List" icon="list" active={viewMode === "list"} onClick={() => handleViewModeChange("list")} />
+                    <Button small={true} text="Graph" icon="graph" active={viewMode === "graph"} onClick={() => handleViewModeChange("graph")} />
                 </ButtonGroup>
             </div>
             {viewMode === "graph" ?
