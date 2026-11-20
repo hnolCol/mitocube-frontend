@@ -1,0 +1,65 @@
+.explore-graph {
+    width: 100%;
+}
+
+.explore-graph__canvas {
+    position: relative;
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-height: 55vh;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    background: #ffffff;
+}
+
+.explore-graph__link {
+    transition: stroke 0.1s ease;
+}
+
+.explore-graph__node circle {
+    transition: stroke 0.1s ease;
+    cursor: pointer;
+}
+
+.explore-graph__label {
+    font-size: 11px;
+    fill: #333333;
+    pointer-events: none;
+}
+
+.explore-graph__count {
+    font-size: 10px;
+    fill: #888888;
+    pointer-events: none;
+}
+
+.explore-graph__hint {
+    font-size: 12px;
+    font-weight: bold;
+    fill: #888888;
+    pointer-events: none;
+}
+
+.explore-graph__tooltip {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    padding: 0.35rem 0.5rem;
+    background: rgba(30, 30, 30, 0.92);
+    color: #ffffff;
+    border-radius: 4px;
+    font-size: 11px;
+    pointer-events: none;
+    z-index: 10;
+    max-width: 240px;
+}
+
+.explore-graph-tube {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+    max-height: 30vh;
+    overflow-y: auto;
+}
