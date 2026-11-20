@@ -5,34 +5,70 @@ import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
 
 const initPlate = {
-    format_trait_tag: "",
     name: "",
-    cold_storage_trait_tag: "",
-    plate_type_trait_tag: "",
-    vendor_trait_tag: "",
-    plate_color_trait_tag: "",
+    trait_tags: {},   // attribute_tag -> selected trait_tag
     location: "",
     description: ""
 }
 
 /**
- * @description Optional trait select with an empty "–" option.
+ * @description Optional trait select with an empty "-" option.
  */
 function TraitSelect({ id, value, options, onChange }) {
     return (
         <HTMLSelect
             id={id}
             fill
-            value={value}
+            value={value || ""}
             onChange={(e) => onChange(e.target.value)}
-            options={[{ value: "", label: "–" }, ...(options || []).map(o => ({ value: o.tag, label: o.text }))]}
+            options={[{ value: "", label: "\u2013" }, ...(options || []).map(o => ({ value: o.tag, label: o.text }))]}
         />
     )
 }
 
 /**
- * @description Dialog to create a new plate. Format, cold storage, plate type and vendor are traits
- * of the storage attributes and are stored as condition applications of the plate.
+ * @description One attribute of the storage attribute group with its child attributes. Child
+ * attributes (e.g. a container material under the container format) only appear once a trait
+ * of the parent attribute is selected, like in the condition application selects.
+ */
+function AttributeSelect({ attribute, trait_tags, onChange, childrenSelects }) {
+    const selectedTrait = trait_tags[attribute.tag]
+    const isFormat = attribute.is_format
+    return (
+        <>
+            <FormGroup
+                label={attribute.text}
+                labelFor={`plate-attribute-${attribute.tag}`}
+                labelInfo={isFormat ? "(required)" : "(optional)"}
+                helperText={attribute.description}
+            >
+                {isFormat ? (
+                    <HTMLSelect
+                        id={`plate-attribute-${attribute.tag}`}
+                        fill
+                        value={selectedTrait || ""}
+                        onChange={(e) => onChange(attribute.tag, e.target.value)}
+                        options={(attribute.traits || []).map(o => ({ value: o.tag, label: o.description ? `${o.description} (${o.text})` : o.text }))}
+                    />
+                ) : (
+                    <TraitSelect
+                        id={`plate-attribute-${attribute.tag}`}
+                        value={selectedTrait}
+                        options={attribute.traits}
+                        onChange={(v) => onChange(attribute.tag, v)}
+                    />
+                )}
+            </FormGroup>
+            {childrenSelects && selectedTrait ? <div className="padding-left--medium">{childrenSelects}</div> : null}
+        </>
+    )
+}
+
+/**
+ * @description Dialog to create a new plate. The plate is fully defined by the attributes of the
+ * storage attribute group: every attribute added to the group (also nested child attributes)
+ * is offered as a select and the selected traits are stored as condition applications of the plate.
+ * The attribute whose traits have values of the form '<rows>x<columns>' is the container format.
  * @param {Object} props
  * @param {Boolean} props.isOpen If the dialog is open.
  * @param {Function} props.onClose Called on close.
@@ -45,19 +81,31 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
     const { data: options, isLoading: optionsLoading, isError: optionsIsError, error: optionsError } =
         api.plates.plates.useGetPlateOptions({ enabled: isOpen })
 
+    const attributes = options?.attributes || []
+    const formatAttributes = attributes.filter(a => a.is_format)
+
     // preselect 96 wells (or the first format) when the options are loaded
     useEffect(() => {
-        if (isOpen && options?.formats?.length > 0 && !plate.format_trait_tag) {
-            const preferred = options.formats.find(f => f.rows * f.columns === 96) || options.formats[0]
-            setPlate(prev => ({ ...prev, format_trait_tag: preferred.tag }))
+        if (isOpen && formatAttributes.length > 0) {
+            setPlate(prev => {
+                const trait_tags = { ...prev.trait_tags }
+                for (const attribute of formatAttributes) {
+                    if (trait_tags[attribute.tag]) continue
+                    const preferred = attribute.traits.find(t => t.rows * t.columns === 96) || attribute.traits[0]
+                    if (preferred) trait_tags[attribute.tag] = preferred.tag
+                }
+                return { ...prev, trait_tags }
+            })
         }
     }, [isOpen, options])
 
-    const format = options?.formats?.find(f => f.tag === plate.format_trait_tag)
+    const selectedFormatTrait = formatAttributes
+        .map(a => a.traits.find(t => t.tag === plate.trait_tags[a.tag]))
+        .find(t => !!t)
 
     const { data: suggestedName, refetch: refetchName } = api.plates.plates.useGetNextPlateName(
-        { rows: format?.rows, columns: format?.columns },
-        { enabled: isOpen && !!format }
+        { rows: selectedFormatTrait?.rows, columns: selectedFormatTrait?.columns },
+        { enabled: isOpen && !!selectedFormatTrait?.rows && !!selectedFormatTrait?.columns }
     )
 
     // fill in the suggested name when the format changes
@@ -73,9 +121,16 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
         }
     })
 
-    const isFormValid = plate.name.trim().length > 0 && !!format
+    const isFormValid = plate.name.trim().length > 0 && !!selectedFormatTrait?.rows && !!selectedFormatTrait?.columns
 
     const handleChange = (key, value) => setPlate(prev => ({ ...prev, [key]: value }))
+
+    const handleTraitChange = (attributeTag, traitTag) => setPlate(prev => {
+        const trait_tags = { ...prev.trait_tags }
+        if (traitTag) trait_tags[attributeTag] = traitTag
+        else delete trait_tags[attributeTag]
+        return { ...prev, trait_tags }
+    })
 
     const handleClose = () => {
         setPlate(initPlate)
@@ -87,15 +142,30 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
         postPlate({
             plate: {
                 name: plate.name.trim(),
-                format_trait_tag: plate.format_trait_tag,
-                cold_storage_trait_tag: plate.cold_storage_trait_tag || null,
-                plate_type_trait_tag: plate.plate_type_trait_tag || null,
-                vendor_trait_tag: plate.vendor_trait_tag || null,
-                plate_color_trait_tag: plate.plate_color_trait_tag || null,
+                trait_tags: Object.fromEntries(Object.entries(plate.trait_tags).filter(([, t]) => !!t)),
                 location: plate.location.trim() || null,
                 description: plate.description.trim() || null
             }
         })
+    }
+
+    const rootAttributes = attributes.filter(a => !a.parent_tag)
+    const childAttributesOf = (attributeTag) => attributes.filter(a => a.parent_tag === attributeTag)
+
+    const renderAttribute = (attribute) => {
+        const childTags = childAttributesOf(attribute.tag)
+        const childrenSelects = childTags.length > 0 && plate.trait_tags[attribute.tag]
+            ? childTags.map(child => renderAttribute(child))
+            : null
+        return (
+            <AttributeSelect
+                key={attribute.tag}
+                attribute={attribute}
+                trait_tags={plate.trait_tags}
+                onChange={handleTraitChange}
+                childrenSelects={childrenSelects}
+            />
+        )
     }
 
     return (
@@ -103,21 +173,14 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
             <DialogBody>
                 {optionsLoading ? <Loading /> : optionsIsError ? <APIError error={optionsError} /> : (
                     <>
-                        {options?.formats?.length === 0 && (
+                        {isOpen && formatAttributes.length === 0 && (
                             <Callout className="margin-bottom--medium" intent="warning">
-                                No formats defined. Add traits to the "Container Format" attribute (value e.g. 8x12) in the attributes admin view.
+                                No container format defined. Add traits with values of the form '&lt;rows&gt;x&lt;columns&gt;' (e.g. 8x12)
+                                to an attribute of the storage attribute group in the attributes admin view.
                             </Callout>
                         )}
 
-                        <FormGroup label="Format" labelFor="plate-format" labelInfo="(required)">
-                            <HTMLSelect
-                                id="plate-format"
-                                fill
-                                value={plate.format_trait_tag}
-                                onChange={(e) => handleChange("format_trait_tag", e.target.value)}
-                                options={(options?.formats || []).map(f => ({ value: f.tag, label: f.description ? `${f.description} (${f.text})` : f.text }))}
-                            />
-                        </FormGroup>
+                        {rootAttributes.map(attribute => renderAttribute(attribute))}
 
                         <FormGroup label="Name" labelFor="plate-name" labelInfo="(required)" helperText="Write this name on the plate label. Must be unique.">
                             <InputGroup
@@ -128,24 +191,13 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                             />
                         </FormGroup>
 
-                        <FormGroup label="Cold storage" labelFor="plate-cold-storage" labelInfo="(optional)">
-                            <TraitSelect id="plate-cold-storage" value={plate.cold_storage_trait_tag} options={options?.cold_storage}
-                                onChange={(v) => handleChange("cold_storage_trait_tag", v)} />
-                        </FormGroup>
-
-                        <FormGroup label="Plate type" labelFor="plate-type" labelInfo="(optional)">
-                            <TraitSelect id="plate-type" value={plate.plate_type_trait_tag} options={options?.plate_type}
-                                onChange={(v) => handleChange("plate_type_trait_tag", v)} />
-                        </FormGroup>
-
-                        <FormGroup label="Vendor" labelFor="plate-vendor" labelInfo="(optional)">
-                            <TraitSelect id="plate-vendor" value={plate.vendor_trait_tag} options={options?.vendor}
-                                onChange={(v) => handleChange("vendor_trait_tag", v)} />
-                        </FormGroup>
-
-                        <FormGroup label="Plate color" labelFor="plate-color" labelInfo="(optional)">
-                            <TraitSelect id="plate-color" value={plate.plate_color_trait_tag} options={options?.plate_color}
-                                onChange={(v) => handleChange("plate_color_trait_tag", v)} />
+                        <FormGroup label="Location" labelFor="plate-location" labelInfo="(optional)">
+                            <InputGroup
+                                id="plate-location"
+                                value={plate.location}
+                                maxLength={200}
+                                onChange={(e) => handleChange("location", e.target.value)}
+                            />
                         </FormGroup>
 
                         <FormGroup label="Description" labelFor="plate-description" labelInfo="(optional)">
