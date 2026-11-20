@@ -24,7 +24,7 @@ function MetaText({ onMetaTextChange, metatextValues, allowTextForState = 0, all
                         value={_.isObject(metatextValues)?_.isString(metatextValues[ metatextTag])?metatextValues[metatextTag]:"":""}
                         placeholder={metatext.placeholders[ metatextTag]}
                         minLength={metatext["min_text_length"][ metatextTag]}
-                        isRequired={metatext["required"][ metatextTag]}
+                        isRequired={metatext["required"][ metatextTag] || metatextTag === "metatext:research_aim"}
                         hint={metatextTitle}
                         callbackKey={metatextTag}
                         onChange={onMetaTextChange} />}
