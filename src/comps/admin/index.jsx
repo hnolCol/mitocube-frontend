@@ -47,6 +47,13 @@ const ADMIN_TAB_GROUPS = [
         ]
     },
     {
+        text: "Sharing",
+        tabs: [
+            { text: "Consortiums", to: "/admin/sharing/consortiums" },
+            { text: "Collaborations", to: "/admin/sharing/collaborations" },
+        ]
+    },
+    {
         text: "Platform & Content",
         tabs: [
             { text: "News", to: "/admin/news" },
@@ -62,7 +69,8 @@ const CURATOR_ROLE = 3
 
 function AdminHeader({ authenticationStatus }) {
     const isCurator = _.get(authenticationStatus, "role", 0) >= CURATOR_ROLE
-    const groups = ADMIN_TAB_GROUPS.filter((group) => group.text !== "Access & Security" || isCurator)
+    const curatorOnlyGroups = ["Access & Security", "Sharing"]
+    const groups = ADMIN_TAB_GROUPS.filter((group) => !curatorOnlyGroups.includes(group.text) || isCurator)
     return (
         <div className="no-scroll div--expand">
             <GroupedTabs groups={groups} />

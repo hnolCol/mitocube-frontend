@@ -1,11 +1,9 @@
 import { SymptomsSearch } from "./SymptomsSearch"
 
-export function AdminSymptoms() {
-    
+export function AdminSymptoms({ userRole }) {
     return (
         <div className="div--expand padding--medium">
-            <SymptomsSearch />
+            <SymptomsSearch userRole={userRole} />
         </div>
     )
 }
-
