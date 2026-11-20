@@ -299,7 +299,7 @@ export function SubmissionExplore({ user_tag }) {
         { limit: 1000 },
         { enabled: viewMode === "graph", staleTime: 60000, retry: false }
     )
-    const { data: caAggregates, isFetching: caAggregatesIsFetching } = api.collaborations.useGetSubmissionExploreConditionApplications(
+    const { data: caAggregates, isFetching: caAggregatesIsFetching, isError: caAggregatesIsError } = api.collaborations.useGetSubmissionExploreConditionApplications(
         { limit: 1000 },
         { enabled: viewMode === "graph", staleTime: 60000, retry: false }
     )
@@ -342,6 +342,13 @@ export function SubmissionExplore({ user_tag }) {
                 <div className="margin-top--little">
                     {caAggregatesIsFetching ?
                         <div className="flex center-items padding--medium"><Spinner size={20} /></div> :
+                        caAggregatesIsError ?
+                            <Callout intent="warning" title="Condition application graph unavailable">
+                                <div className="font-size--small">
+                                    The condition application graph requires that searching by condition applications is
+                                    enabled on this instance. Contact your instance administrator if you need it.
+                                </div>
+                            </Callout> :
                         <>
                             <ExploreGraph
                                 submissions={_.isArray(graphSubmissions) ? graphSubmissions : []}
