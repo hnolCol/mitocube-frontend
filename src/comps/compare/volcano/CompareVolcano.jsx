@@ -151,6 +151,12 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
         return { values, trigger: values.join("|"), key: "tag" }
     }, [favoriteProteinSelection])
 
+    // marked protein lists (e.g. from the Mark button of the enriched annotations tab) are highlighted in the plots
+    const externalHoverResult = useMemo(() => {
+        const values = _.uniq(markedProteinList?.values || [])
+        return { values, trigger: values.join("|"), key: "tag" }
+    }, [markedProteinList])
+
     const passOnProps = useMemo(() => ({ setRequiredProteinTags, proteinTagMap, proteinIsLoading }), [setRequiredProteinTags, proteinTagMap, proteinIsLoading])
 
     return (
@@ -190,6 +196,7 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
                 extraLimitNames={extraLimits}
                 externalSearchResult={proteinSearchResults}
                 externalLabelResult={externalLabelResult}
+                externalHoverResult={externalHoverResult}
                 keyNames={chartKeyNames}
                 isPointChart={isPointChart}
                 passOnProps={passOnProps}

@@ -455,7 +455,8 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
                         <AnnotationEnrichmentSection
                             data={data} suffixes={[suffix]}
                             listOptions={listOptions} selectedListKeys={selectedListKeys}
-                            submission_tags={_.isString(submission_tag) ? [submission_tag] : []} /> } />
+                            submission_tags={_.isString(submission_tag) ? [submission_tag] : []}
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} /> } />
                 </Tabs>
             </div>
         </Drawer>
@@ -780,7 +781,8 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                         <AnnotationEnrichmentSection
                             data={data} suffixes={suffixes}
                             listOptions={listOptions} selectedListKeys={validListKeys}
-                            submission_tags={universeSubmissionTags} />
+                            submission_tags={universeSubmissionTags}
+                            markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} />
                     } />
                 </Tabs>
             </div>

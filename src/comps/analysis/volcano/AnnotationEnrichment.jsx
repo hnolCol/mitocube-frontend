@@ -1,15 +1,75 @@
 
 import _ from "lodash"
-import { useEffect, useMemo, useState } from "react"
+import { Fragment, useEffect, useMemo, useState } from "react"
+import { useQueries } from "@tanstack/react-query"
 import { Checkbox, HTMLTable, InputGroup, NonIdealState, Spinner, Tab, Tabs } from "@blueprintjs/core"
 import { api } from "@/api"
+import { apiClient } from "@/api/client"
 import { Annotation } from "@/comps/core/base/annotations/Annotation"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
+import { Subsetboxplot } from "@/comps/core/charts/boxplot/Subsetboxplot"
 import APIError from "@/comps/core/error/APIerror"
 import useDebounce from "@/hooks/useDebounce"
 import { log2FCFieldName, rowProteinTags } from "./compareUtils"
 
 const FDR_THRESHOLD = 0.05
+const MEMBER_TAG_FETCH_LIMIT = 100
+
+/**
+ * Fetches the member protein tags of the given annotations (without submission
+ * scope, so it also works for cross-submission comparisons).
+ */
+function useAnnotationMemberTags(annotation_tags = []) {
+    const uniqueTags = useMemo(
+        () => _.uniq((annotation_tags ?? []).filter(_.isString)).slice(0, MEMBER_TAG_FETCH_LIMIT),
+        [_.join(annotation_tags ?? [], ";")])
+    const queries = useQueries({
+        queries: uniqueTags.map(tag => ({
+            queryKey: ["getAnnotationProteinsNoScope", tag],
+            queryFn: () => apiClient.get(`/annotations/${tag}/proteins`).then(res => res.data),
+            enabled: _.isString(tag) && tag.length > 0,
+            staleTime: Infinity
+        }))
+    })
+    return useMemo(() => {
+        const map = new Map()
+        uniqueTags.forEach((tag, idx) => {
+            const data = queries[idx]?.data
+            map.set(tag, _.isArray(data) ? new Set(data) : new Set())
+        })
+        return map
+    }, [queries, uniqueTags])
+}
+
+function usePlotProteinTags(data) {
+    return useMemo(() => {
+        const set = new Set()
+        ;(_.isArray(data) ? data : []).forEach(row => rowProteinTags(row).forEach(tag => set.add(tag)))
+        return set
+    }, [data])
+}
+
+/**
+ * Mark/Unmark button: highlights the annotation's member proteins that are present
+ * in the volcano plot data (markedProteinList is rendered highlighted in the plots).
+ */
+function MarkAnnotationButton({ annotationTag, memberTagsByAnnotation, plotTags, markedProteinTags, onMarkProteinList }) {
+    const members = memberTagsByAnnotation.get(annotationTag)
+    const overlapTags = useMemo(
+        () => (members instanceof Set ? [...members].filter(tag => plotTags.has(tag)) : []),
+        [members, plotTags])
+    const isMarked = overlapTags.length > 0 && _.difference(overlapTags, markedProteinTags ?? []).length === 0
+    if (!_.isFunction(onMarkProteinList)) return null
+    return (
+        <button
+            className="basic-button--small"
+            style={{ flexShrink: 0, fontWeight: isMarked ? "bold" : "normal" }}
+            title={overlapTags.length > 0 ? `Highlight the ${overlapTags.length} member proteins in the volcano plot` : "No member proteins in the plotted data"}
+            onClick={(e) => { e.stopPropagation(); onMarkProteinList(isMarked ? [] : overlapTags) }}>
+            {isMarked ? "Unmark" : "Mark"}
+        </button>
+    )
+}
 
 function formatPValue(p) {
     if (!_.isNumber(p)) return "-"
@@ -30,10 +90,11 @@ function formatOddsRatio(or) {
     return or >= 100 ? or.toFixed(0) : or.toFixed(2)
 }
 
-function AnnotationEnrichmentTable({ listOptions = [], selectedListKeys = [], submission_tags = [], proteome_tag = undefined }) {
+function AnnotationEnrichmentTable({ data, listOptions = [], selectedListKeys = [], submission_tags = [], proteome_tag = undefined, markedProteinTags = [], onMarkProteinList }) {
     const [searchInput, setSearchInput] = useState("")
     const searchString = useDebounce(searchInput, 300)
     const [onlySignificant, setOnlySignificant] = useState(false)
+    const plotTags = usePlotProteinTags(data)
 
     const selectedTags = useMemo(() => {
         // list option tags are protein group tags (possibly "P1;P2") - expand to
@@ -66,6 +127,8 @@ function AnnotationEnrichmentTable({ listOptions = [], selectedListKeys = [], su
         if (!_.isArray(enrichment)) return []
         return onlySignificant ? enrichment.filter(r => _.isNumber(r.fdr) && r.fdr <= FDR_THRESHOLD) : enrichment
     }, [enrichment, onlySignificant])
+
+    const memberTagsByAnnotation = useAnnotationMemberTags(useMemo(() => rows.map(r => r.annotation_tag), [rows]))
 
     if (targetProteins.length === 0) {
         return <NonIdealState icon="list-detail-view" title="No protein list selected"
@@ -102,6 +165,7 @@ function AnnotationEnrichmentTable({ listOptions = [], selectedListKeys = [], su
                             <th>Odds ratio</th>
                             <th>p-value</th>
                             <th>FDR</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,6 +181,7 @@ function AnnotationEnrichmentTable({ listOptions = [], selectedListKeys = [], su
                                     <td>{formatOddsRatio(row.odds_ratio)}</td>
                                     <td>{formatPValue(row.p_value)}</td>
                                     <td><strong>{formatPValue(row.fdr)}</strong></td>
+                                    <td><MarkAnnotationButton annotationTag={row.annotation_tag} memberTagsByAnnotation={memberTagsByAnnotation} plotTags={plotTags} markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} /></td>
                                 </tr>
                             )
                         })}
@@ -127,12 +192,14 @@ function AnnotationEnrichmentTable({ listOptions = [], selectedListKeys = [], su
 }
 
 
-function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], proteome_tag = undefined }) {
+function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], proteome_tag = undefined, markedProteinTags = [], onMarkProteinList }) {
     const [plotSuffix, setPlotSuffix] = useState(_.isArray(suffixes) ? suffixes[0] : undefined)
     const [directionFilter, setDirectionFilter] = useState("all")
     const [onlySignificant, setOnlySignificant] = useState(false)
     const [searchInput, setSearchInput] = useState("")
     const searchString = useDebounce(searchInput, 300)
+    const [expandedTag, setExpandedTag] = useState(undefined)
+    const plotTags = usePlotProteinTags(data)
 
     useEffect(() => {
         if (_.isArray(suffixes) && !suffixes.includes(plotSuffix)) setPlotSuffix(suffixes[0])
@@ -177,6 +244,19 @@ function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], pro
             .filter(r => !onlySignificant || (_.isNumber(r.fdr) && r.fdr <= FDR_THRESHOLD))
     }, [shiftResult, directionFilter, onlySignificant])
 
+    const memberTagsByAnnotation = useAnnotationMemberTags(useMemo(() => rows.map(r => r.annotation_tag), [rows]))
+
+    // boxplot data for the expanded annotation: all plotted values, member indices as subset
+    const boxData = useMemo(() => {
+        if (!_.isString(expandedTag)) return null
+        const members = memberTagsByAnnotation.get(expandedTag)
+        if (!(members instanceof Set) || members.size === 0) return null
+        const boxRows = Object.entries(proteinValues).map(([tag, v]) => ({ tag, v }))
+        const memberIdx = boxRows.map((r, i) => i).filter(i => members.has(boxRows[i].tag))
+        if (memberIdx.length === 0) return null
+        return { boxRows, memberIdx }
+    }, [expandedTag, memberTagsByAnnotation, proteinValues])
+
     return (
         <div>
             <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
@@ -197,6 +277,7 @@ function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], pro
                     ? <> the proteins quantified in <strong>{submission_tags.length}</strong> submission(s) ({submission_tags.join(", ")})</>
                     : <> the proteome <strong>{proteome_tag}</strong></>}
                 . Benjamini-Hochberg FDR corrected. {_.size(proteinValues)} protein(s) with a value.
+                Note: <em>n out</em> = universe proteins with a value minus the annotation's own members, so it differs per annotation.
                 {isPending ? <Spinner size={14} className="margin-left--little" /> : null}
             </div>
             {isError ? <div className="margin-bottom--little"><APIError error={error} /></div> : null}
@@ -216,23 +297,46 @@ function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], pro
                             <th>Direction</th>
                             <th>p-value</th>
                             <th>FDR</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map(row => {
                             const significant = _.isNumber(row.fdr) && row.fdr <= FDR_THRESHOLD
+                            const expanded = expandedTag === row.annotation_tag
                             return (
-                                <tr key={row.annotation_tag} style={significant ? { backgroundColor: "#edf8b1" } : undefined}>
-                                    <td><Annotation tag={row.annotation_tag} indicateNumberProteins={false} /> <span className="font-size--smallest" style={{ color: "grey" }}>({row.annotation_tag})</span></td>
-                                    <td>{row.n_in}</td>
-                                    <td>{row.n_out}</td>
-                                    <td>{formatNumber(row.mean_in)}</td>
-                                    <td>{formatNumber(row.mean_out)}</td>
-                                    <td>{formatNumber(row.shift)}</td>
-                                    <td>{row.direction === "up" ? "↑ up" : "↓ down"}</td>
-                                    <td>{formatPValue(row.p_value)}</td>
-                                    <td><strong>{formatPValue(row.fdr)}</strong></td>
-                                </tr>
+                                <Fragment key={row.annotation_tag}>
+                                    <tr style={significant ? { backgroundColor: "#edf8b1" } : undefined}>
+                                        <td>
+                                            <span
+                                                style={{ cursor: "pointer", textDecoration: expanded ? "underline" : "none" }}
+                                                title="Click to show the boxplot of member vs. background values"
+                                                onClick={() => setExpandedTag(prev => prev === row.annotation_tag ? undefined : row.annotation_tag)}>
+                                                <Annotation tag={row.annotation_tag} indicateNumberProteins={false} />
+                                            </span> <span className="font-size--smallest" style={{ color: "grey" }}>({row.annotation_tag})</span>
+                                        </td>
+                                        <td>{row.n_in}</td>
+                                        <td>{row.n_out}</td>
+                                        <td>{formatNumber(row.mean_in)}</td>
+                                        <td>{formatNumber(row.mean_out)}</td>
+                                        <td>{formatNumber(row.shift)}</td>
+                                        <td>{row.direction === "up" ? "↑ up" : "↓ down"}</td>
+                                        <td>{formatPValue(row.p_value)}</td>
+                                        <td><strong>{formatPValue(row.fdr)}</strong></td>
+                                        <td className="flex center-items" style={{ gap: "0.2rem" }}>
+                                            <MarkAnnotationButton annotationTag={row.annotation_tag} memberTagsByAnnotation={memberTagsByAnnotation} plotTags={plotTags} markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} />
+                                        </td>
+                                    </tr>
+                                    {expanded && boxData ?
+                                        <tr key={`${row.annotation_tag}-box`}>
+                                            <td colSpan={10}>
+                                                <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                                                    <span className="font-size--smallest">Boxplot of log2FC ({activeSuffix}): grey = all plotted proteins, red = members of this annotation</span>
+                                                    <Subsetboxplot data={boxData.boxRows} yaxisName="v" subsetIndices={[boxData.memberIdx]} subsetNames={["In annotation"]} width={260} height={130} />
+                                                </div>
+                                            </td>
+                                        </tr> : null}
+                                </Fragment>
                             )
                         })}
                     </tbody>
@@ -261,7 +365,7 @@ function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], pro
  * @param {String[]} [props.submission_tags] Submissions defining the universe (submission-wide / compare).
  * @param {String} [props.proteome_tag] Proteome defining the universe (alternative to submission_tags).
  */
-export function AnnotationEnrichmentSection({ data, suffixes = [], listOptions = [], selectedListKeys = [], submission_tags = [], proteome_tag = undefined }) {
+export function AnnotationEnrichmentSection({ data, suffixes = [], listOptions = [], selectedListKeys = [], submission_tags = [], proteome_tag = undefined, markedProteinTags = [], onMarkProteinList }) {
     const [subTab, setSubTab] = useState("fisher")
 
     return (
@@ -269,12 +373,15 @@ export function AnnotationEnrichmentSection({ data, suffixes = [], listOptions =
             <Tabs id="annotation-enrichment-tabs" selectedTabId={subTab} onChange={setSubTab} renderActiveTabPanelOnly={true}>
                 <Tab id="fisher" title="Overrepresentation (Fisher)" panel={
                     <AnnotationEnrichmentTable
+                        data={data}
                         listOptions={listOptions} selectedListKeys={selectedListKeys}
-                        submission_tags={submission_tags} proteome_tag={proteome_tag} /> } />
+                        submission_tags={submission_tags} proteome_tag={proteome_tag}
+                        markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} /> } />
                 <Tab id="shift" title="Systematic shift (U-test)" panel={
                     <AnnotationShiftSection
                         data={data} suffixes={suffixes}
-                        submission_tags={submission_tags} proteome_tag={proteome_tag} /> } />
+                        submission_tags={submission_tags} proteome_tag={proteome_tag}
+                        markedProteinTags={markedProteinTags} onMarkProteinList={onMarkProteinList} /> } />
             </Tabs>
         </div>
     )
