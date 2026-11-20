@@ -19,6 +19,7 @@ import APIError from "@/comps/core/error/APIerror"
 import { VolcanoListButton, VolcanoCompareButton } from "@/comps/analysis/volcano/SignificantProteins"
 import { log2FCFieldName, pValueFieldName, significantFieldName } from "@/comps/analysis/volcano/compareUtils"
 import { addStringToArrayOrRemove } from "@/services/arrays/transforms"
+import { DownloadData } from "@/comps/protein/charts/resultCard/chartselection/DownloadChart"
 
 
 let panelIdCounter = 0
@@ -113,7 +114,7 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
     onToggleProteinLabel, onLabelProteinList, onMarkProteinList, onRemoveAllLabels,
     proteinTagMap, proteinIsLoading, proteinSearchResults, setRequiredProteinTags }) {
 
-    const { data, suffixes, selection, panelBySuffix } = volcano
+    const { data, suffixes, selection, panelBySuffix, rawStats } = volcano
 
     const numericKeyNames = _.isArray(data) && data.length > 0 ? _.keys(data[0]).filter(keyName => _.isNumber(data[0][keyName])) : []
     const extraLimits = useMemo(() => _.flatten(selection.map(s => [s.colorName, s.sizeName])).filter(k => _.isString(k) && numericKeyNames.includes(k)), [selection, numericKeyNames])
@@ -139,6 +140,22 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
                 <Callout intent="danger" title="Error in volcano plot generation" className="margin--medium">
                     <APIError error={errorQuery.error} />
                 </Callout> : null}
+            {suffixes.length > 0 ?
+                <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                    <span className="font-size--small">Download comparison:</span>
+                    <DownloadData
+                        elements={[data, ...suffixes.map((suffix, idx) => `compare-volcano-${idx}`)]}
+                        elementTypes={["data", ...suffixes.map(() => "svg")]}
+                        elementNames={[
+                            `Merged data of all ${suffixes.length} volcano plot(s)`,
+                            ...suffixes.map(suffix => `SVG plot ${suffix}`)
+                        ]}
+                        fileNames={[
+                            "compare-volcano-plots-data.txt",
+                            ...suffixes.map((suffix, idx) => `compare-volcano-plot-${idx + 1}.svg`)
+                        ]}
+                        itemIsAttribute={false} />
+                </div> : null}
             <InteractiveChart
                 data={data}
                 extraLimitNames={extraLimits}
@@ -204,6 +221,12 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
                                     markedProteinTags={markedProteinList?.values ?? []}
                                     onMarkProteinList={onMarkProteinList}
                                     onRemoveAllLabels={onRemoveAllLabels} />
+                                <DownloadData
+                                    elements={[`compare-volcano-${chartIdx}`, rawStats[chartIdx] ?? []]}
+                                    elementTypes={["svg", "data"]}
+                                    elementNames={["SVG", `Data (${(rawStats[chartIdx] ?? []).length} rows)`]}
+                                    fileNames={[`${panel.submission_tag}-VolcanoPlot.svg`, `${panel.submission_tag}-VolcanoPlot-Data.txt`]}
+                                    itemIsAttribute={false} />
                             </div>
                             {_.isObject(panel.testParams) ?
                                 <div className="font-size--smallest flex center-items" style={{ gap: "0.3rem", flexWrap: "wrap" }}>
@@ -335,7 +358,7 @@ export function CompareVolcano() {
     const errorQuery = _.isArray(tagQueries) ? tagQueries.find(q => q.isError) : undefined
 
     const volcano = useMemo(() => {
-        const suffixes = [], selection = [], panelBySuffix = [], merged = new Map()
+        const suffixes = [], selection = [], panelBySuffix = [], rawStats = [], merged = new Map()
         if (isReady && _.isArray(tagQueries)) {
             tagQueries.forEach((q, idx) => {
                 const panel = plottablePanels[idx]
@@ -352,6 +375,7 @@ export function CompareVolcano() {
                 })
                 suffixes.push(suffix)
                 panelBySuffix.push(panel)
+                rawStats.push(q.data.stats)
                 selection.push({
                     xaxisName: log2FCFieldName(suffix),
                     yaxisName: pValueFieldName(suffix),
@@ -362,14 +386,16 @@ export function CompareVolcano() {
                 })
             })
         }
-        return { data: Array.from(merged.values()), suffixes, selection, panelBySuffix }
+        const allKeys = _.uniq(["tag", ...suffixes.flatMap(suffix => [log2FCFieldName(suffix), pValueFieldName(suffix), significantFieldName(suffix)])])
+        const data = Array.from(merged.values()).map(row => _.fromPairs(allKeys.map(key => [key, row[key]])))
+        return { data, suffixes, selection, panelBySuffix, rawStats }
     }, [isReady, tagQueries, plottablePanels])
 
     return (
         <div className="div--expand flex">
             <div className="padding--medium" style={{ height: "90vh", overflowY: "auto", minWidth: "340px", maxWidth: "460px" }}>
                 <h2>Compare volcano plots</h2>
-                <span>Select a submission and define a pairwise comparison to plot its volcano plot. Then add another submission of the same proteome and plot its volcano plot as well - both are shown side by side for comparison.</span>
+                <span>Select a submission and define a pairwise comparison to plot its volcano plot. Then add further submissions of the same proteome (two or more plots can be compared) and plot their volcano plots as well - all plots are shown side by side for comparison.</span>
                 {panels.map((panel, idx) => (
                     <PanelSetup
                         key={panel.id}
@@ -384,7 +410,7 @@ export function CompareVolcano() {
                         canRemove={panels.length > 1} />
                 ))}
                 <Button icon="plus" variant="minimal" className="margin-top--little" onClick={handleAddPanel}>
-                    Add volcano plot
+                    Add another volcano plot
                 </Button>
             </div>
             <div className="div--expand">
@@ -425,7 +451,7 @@ export function CompareVolcano() {
                     <NonIdealState
                         icon="comparison"
                         title="No volcano plot selected"
-                        description="Select a submission on the left and confirm a pairwise comparison with 'Plot volcano' to show its volcano plot here. Add another submission of the same proteome to compare both plots." />
+                        description="Select a submission on the left and confirm a pairwise comparison with 'Plot volcano' to show its volcano plot here. Add further submissions of the same proteome to compare two or more plots." />
                 }
             </div>
         </div>
