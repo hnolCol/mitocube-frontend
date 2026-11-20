@@ -15,7 +15,7 @@ const MAX_LABEL_LENGTH = 22
 
 // The number of attribute levels that are expanded by default when the data
 // loads; deeper levels are expanded on demand by clicking a node.
-const AUTO_EXPAND_DEPTH = 4
+const AUTO_EXPAND_DEPTH = 2
 
 const defaultRootNode = (submissionTags) => ({
     root: { id: "root", parentId: null, label: "All submissions", attribute_text: null, submission_tags: submissionTags, childIds: null, split: null, depth: 0 }
@@ -160,7 +160,7 @@ export function ExploreGraph({ submissions, caAggregates, onSelectionChange }) {
     if (submissionTags.length === 0) return <div className="flex center-items padding--medium"><Spinner size={20} /></div>
 
     return <div className="explore-graph">
-        <div className="explore-graph__canvas container--scroll-y-hide-x">
+        <div className="explore-graph__canvas">
             <svg width={layout.width} height={layout.height} onClick={event => handleNodeClick(event, "root")}>
                 {Object.values(nodeMap).map(node => {
                     if (node.parentId === null) return null
