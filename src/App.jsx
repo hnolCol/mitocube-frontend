@@ -63,6 +63,10 @@ import ProteinHeader from "./comps/protein";
 import ProteinSelection from "./comps/protein/selection";
 import { ProteinPage } from "./comps/protein/charts/overview";
 
+/* Compare area (cross-submission) */
+import CompareHeader from "./comps/compare";
+import { CompareVolcanoPlot } from "./comps/compare/volcano";
+
 /* Performance area */
 import PerformanceHeader from "./comps/performance";
 import CrossSubmissionAnalysisHeader from "./comps/analysis/cross";
@@ -338,6 +342,19 @@ function App() {
             <Route path="/analysis/attributes" element={<AttributeEffects />} />
             <Route path="/analysis/attribute-proteins" element={<AttributeProteinEffects />} />
           </Route> */}
+
+          {/* Compare Routes (cross-submission, not bound to a submission tag) */}
+          <Route
+            path="/compare"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <CompareHeader />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/compare/volcano" replace />} />
+            <Route path="/compare/volcano" element={<CompareVolcanoPlot {...{ logout }} />} />
+          </Route>
 
           {/* Submission Routes */}
           <Route
