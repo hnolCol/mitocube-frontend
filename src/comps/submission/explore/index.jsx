@@ -6,10 +6,11 @@ import { api } from "@/api"
 import useDebounce from "@/hooks/useDebounce"
 import { ResearchGroupInput } from "@/comps/core/input/api/ResearchGroupInput"
 import TooltipButton from "@/comps/core/base/buttons/TooltipButton"
-import { Button } from "@blueprintjs/core"
+import { Button, ButtonGroup } from "@blueprintjs/core"
 import { CreatedAt } from "@/comps/core/metrics/CreatedAt"
 import { ConditionApplicationsView } from "@/comps/core/base/condition_applications/ConditionApplicationView"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
+import { ExploreGraph } from "./ExploreGraph"
 
 ExploreSubmissionRow.propTypes = {
     submission: PropTypes.object.isRequired,
@@ -279,6 +280,8 @@ export function SubmissionExplore({ user_tag }) {
     const [searchString, setSearchString] = useState("")
     const [selectedCATags, setSelectedCATags] = useState([])
     const [selectedUserTags, setSelectedUserTags] = useState([])
+    const [viewMode, setViewMode] = useState("list")
+    const [graphSelection, setGraphSelection] = useState(null)
     const debouncedSearch = useDebounce(searchString, 300)
     const { data: exploreDisabled, isLoading: exploreDisabledIsLoading } = api.researchgroups.useGetMyExploreDisabled(
         {}, { staleTime: 60000, retry: false }
@@ -290,13 +293,21 @@ export function SubmissionExplore({ user_tag }) {
             ca_tags: selectedCATags,
             user_tags: selectedUserTags
         },
-        { enabled: true, staleTime: 500, retry: false }
+        { enabled: viewMode === "list", staleTime: 500, retry: false }
+    )
+    const { data: graphSubmissions } = api.collaborations.useGetSubmissionExplore(
+        { limit: 1000 },
+        { enabled: viewMode === "graph", staleTime: 60000, retry: false }
+    )
+    const { data: caAggregates, isFetching: caAggregatesIsFetching } = api.collaborations.useGetSubmissionExploreConditionApplications(
+        { limit: 1000 },
+        { enabled: viewMode === "graph", staleTime: 60000, retry: false }
     )
     const handleSelectConditionApplication = (ca_tag) => {
         setSelectedCATags(prev => prev.includes(ca_tag) ? prev.filter(tag => tag !== ca_tag) : [...prev, ca_tag])
     }
     const handleSelectUser = (user_tag) => {
-        setSelectedUserTags(prev => prev.includes(user_tag) ? prev.filter(tag => tag !== ca_tag) : [...prev, ca_tag])
+        setSelectedUserTags(prev => prev.includes(user_tag) ? prev.filter(tag => tag !== user_tag) : [...prev, user_tag])
     }
     if (exploreDisabledIsLoading) return <div className="container--scroll-y-hide-x flex flex-column center-items padding--medium" style={{ height: "90vh" }}><Spinner size={20} /></div>
     if (exploreDisabled === true) return <div className="container--scroll-y-hide-x flex flex-column center-items padding--medium" style={{ height: "90vh" }}>
@@ -321,6 +332,39 @@ export function SubmissionExplore({ user_tag }) {
             approved your collaboration request.
         </p>
         <div style={{ maxWidth: "1100px", width: "70vw" }} className="margin-top--little">
+            <div className="flex justify-end">
+                <ButtonGroup small={true}>
+                    <Button small={true} text="List" icon="list" active={viewMode === "list"} onClick={() => setViewMode("list")} />
+                    <Button small={true} text="Graph" icon="graph" active={viewMode === "graph"} onClick={() => setViewMode("graph")} />
+                </ButtonGroup>
+            </div>
+            {viewMode === "graph" ?
+                <div className="margin-top--little">
+                    {caAggregatesIsFetching ?
+                        <div className="flex center-items padding--medium"><Spinner size={20} /></div> :
+                        <>
+                            <ExploreGraph
+                                submissions={_.isArray(graphSubmissions) ? graphSubmissions : []}
+                                caAggregates={_.isArray(caAggregates) ? caAggregates : []}
+                                onSelectionChange={setGraphSelection} />
+                            {_.isObject(graphSelection) && _.isArray(graphSelection.submissions) && graphSelection.submissions.length > 0 ?
+                                <div>
+                                    <div className="flex align-center flex-wrap gap--smallest margin-top--little font-size--small">
+                                        <span className="font-weight--bold">{graphSelection.submissions.length} submission{graphSelection.submissions.length === 1 ? "" : "s"}</span>
+                                        {_.isArray(graphSelection.label_path) && graphSelection.label_path.length > 0 ?
+                                            <span className="font-size--smallest">{graphSelection.label_path.join(" > ")}</span> : null}
+                                    </div>
+                                    <div className="explore-graph-tube">
+                                        {graphSelection.submissions.map(submission => <ExploreSubmissionRow
+                                            key={submission.tag}
+                                            submission={submission}
+                                            user_tag={user_tag} />)}
+                                    </div>
+                                </div> : null}
+                        </>}
+                </div>
+                :
+                <>
             <ExploreTagSearch
                 searchString={searchString}
                 setSearchString={setSearchString}
@@ -329,6 +373,7 @@ export function SubmissionExplore({ user_tag }) {
                 onSelectConditionApplication={handleSelectConditionApplication}
                 onSelectUser={handleSelectUser} />
             <div className="margin-top--little">
+
                 {isLoading || isFetching ? <div className="flex center-items padding--medium"><Spinner size={20} /></div> :
                     isError ? <div className="padding--little font-size--small">Failed to load submissions.</div> :
                         !_.isArray(submissions) || submissions.length === 0 ?
@@ -340,6 +385,8 @@ export function SubmissionExplore({ user_tag }) {
                                     user_tag={user_tag} />)}
                             </div>}
             </div>
+                </>
+            }
         </div>
     </div>
 }
