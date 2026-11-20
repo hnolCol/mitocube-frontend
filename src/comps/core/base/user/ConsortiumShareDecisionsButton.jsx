@@ -145,3 +145,38 @@ export function ConsortiumShareDecisionsButton() {
         </Dialog>
     </>
 }
+export function ConsortiumShareDecisionsContent() {
+    const queryClient = useQueryClient()
+    const { data: userConsortiums, isLoading: consortiumsIsLoading, isSuccess } = api.consortiums.useGetUserConsortiums(
+        {}, { staleTime: 300000, retry: false }
+    )
+    const { data: pendingRequests, isLoading: requestsIsLoading } = api.consortiumShareRequests.useGetPendingConsortiumShareRequests(
+        {}, { staleTime: 60000, retry: false }
+    )
+    const consortiumTags = _.isArray(userConsortiums) ? userConsortiums : []
+
+    const invalidate = () => {
+        queryClient.invalidateQueries({ queryKey: ["getConsortiumSubmissions"] })
+        queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumShareRequests"] })
+    }
+
+    if (consortiumsIsLoading || requestsIsLoading) return <div className="flex center-items padding--medium"><Spinner size={20} /></div>
+    if (!isSuccess || !_.isArray(pendingRequests)) return null
+    if (consortiumTags.length === 0 && pendingRequests.length === 0) return null
+
+    return <div>
+        <h4>Pending share requests</h4>
+        {pendingRequests.length > 0 ?
+            pendingRequests.map((request, idx) => <PendingShareRequestRow
+                key={`${request.consortium_tag}-${request.submission_tag}-${idx}`}
+                request={request}
+                onInvalidate={invalidate} />) :
+            <div className="font-size--small padding--little">No pending share requests.</div>}
+        <h4>Approved shares</h4>
+        <p className="font-size--smallest">
+            Approved shares can be revoked by the submission owner, a head (PI) of the owners research group or a curator.
+            Denied requests are not listed since they are removed on denial - the owner can simply request a new share.
+        </p>
+        {consortiumTags.map(consortium_tag => <ApprovedShares key={consortium_tag} tag={consortium_tag} onInvalidate={invalidate} />)}
+    </div>
+}

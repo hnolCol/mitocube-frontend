@@ -23,6 +23,8 @@ import { PendingAttributeRequestsButton } from "../../base/user/PendingAttribute
 import { PendingTraitRequestsButton } from "../../base/user/PendingTraitRequestButton"
 import { RoleRights } from "../../base/user/RoleRights"
 import { PendingTicketsButton } from "../../tickets/PendingTicketButton"
+import { ConsortiumDialogButton } from "../../base/user/ConsortiumDialogButton"
+
 /**
  * 
  * @param {Object} props 
@@ -106,8 +108,9 @@ function Topbar({authenticationStatus,logout, user_tag}) {
                 <Link to="/index"><Header text={backendInfoIsSucces ? backendInfo.app_name : null} /></Link>
             </div>
             <div className="flex">
-                <ConsortiumShareDecisionsButton />
-                <ConsortiumMembershipRequestsButton />
+                {/* <ConsortiumShareDecisionsButton />
+                <ConsortiumMembershipRequestsButton userRole={userRole} userTag={user_tag} /> */}
+                <ConsortiumDialogButton userTag={user_tag} userRole={userRole} />
                 <DepositionRequestsButton userRole={userRole} />
                 <PendingConsortiumShareRequestButton />
                 <PendingCollaborationRequestButton />

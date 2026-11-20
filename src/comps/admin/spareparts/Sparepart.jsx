@@ -1,10 +1,10 @@
 import { SparepartSearch } from "./SparepartSearch"
 
-export function AdminSparepart() {
+export function AdminSparepart({ userRole }) {
     
     return (
         <div className="div--expand padding--medium">
-            <SparepartSearch />
+            <SparepartSearch userRole={userRole}/>
         </div>
     )
 }

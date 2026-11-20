@@ -7,9 +7,16 @@ import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { BlockUserDialog } from "./dialogs/BlockUser"
 import { EditUserRoleDialog } from "./dialogs/EditUserRole"
 
+const ROLE_LABELS = {
+    1: "Standard",
+    2: "Group Curator",
+    3: "Curator",
+    4: "Admin"
+}
 const ROLE_INTENTS = {
-    4: "danger",
-    2: "warning"
+    2: "warning",
+    3: "warning",
+    4: "danger"
 }
 
 export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = false, canEditRole = false }) {
@@ -46,13 +53,13 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
             <div className="flex align-center gap--small">
                 {_.isNumber(userRole) ?
                     <Tag
-                        minimal
-                        intent={ROLE_INTENTS[userRole] || "none"}
-                        title={`User role: ${userRole}`}
-                        style={{ borderRadius: 3 }}
-                    >
-                        {userRole === 4 ? "Admin" : userRole === 2 ? "Curator" : userRole === 1 ? "Standard" : "Guest"}
-                    </Tag> : null}
+                    minimal
+                    intent={ROLE_INTENTS[userRole] || "none"}
+                    title={`User role: ${userRole}`}
+                    style={{ borderRadius: 3 }}
+                >
+                    {_.isString(ROLE_LABELS[userRole]) ? ROLE_LABELS[userRole] : "Guest"}
+                </Tag> : null}
                 <Tag
                     minimal
                     intent={isUserActive ? "success" : "danger"}

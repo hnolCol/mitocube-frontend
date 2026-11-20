@@ -9,6 +9,7 @@ import { UserInput } from "@/comps/core/input/api/UserInput";
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
 import { TraitInput } from "@/comps/core/input/api/TraitInput";
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog";
+import { PlateColorDot } from "@/comps/core/plates/PlateColorDot";
 
 const rowLabel = (rowIndex) => String.fromCharCode(rowIndex + 65)
 const positionOf = (rowIndex, columnIndex) => `${rowLabel(rowIndex)}${columnIndex + 1}`
@@ -357,14 +358,14 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                     </Callout> : null}
                 <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
                     <label>
-                        <div className="font-size--small">Input plate</div>
+                        <div className="font-size--small">Input plate {inputPlate ? <PlateColorDot color={inputPlate.plate_color} size={12} /> : null}</div>
                         <select className="text-input" value={inputPlateTag || ""} onChange={(e) => { setInputPlateTag(e.target.value || null); setInputWells({}); setSelectedInputWell(null) }}>
                             <option value="">Select plate ...</option>
                             {inputPlateOptions?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
                         </select>
                     </label>
                     <label>
-                        <div className="font-size--small">Output plate</div>
+                        <div className="font-size--small">Output plate {outputPlate ? <PlateColorDot color={outputPlate.plate_color} size={12} /> : null}</div>
                         <select className="text-input" value={outputPlateTag || ""} onChange={(e) => { setOutputPlateTag(e.target.value || null); setOutputWells({}); setSelectedOutputWell(null) }}>
                             <option value="">Select plate ...</option>
                             {outputPlateOptions?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
@@ -427,7 +428,9 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                     </div>
 
                     <div>
-                        <h4 style={{ margin: "0 0 0.5rem 0" }}>Input plate {inputPlate ? `(${inputPlate.name})` : ""}</h4>
+                        <h4 style={{ margin: "0 0 0.5rem 0", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                            Input plate {inputPlate ? <> (<PlateColorDot color={inputPlate.plate_color} /> {inputPlate.name})</> : ""}
+                        </h4>
                         {inputPlate ? <PlateGrid plate={inputPlate} wells={inputWells} selectedWell={selectedInputWell}
                             onWellClick={handleInputWellClick} onWellAltClick={handleClearInputWell}
                             renderWell={(well) => well ?
@@ -439,7 +442,9 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                     </div>
 
                     <div>
-                        <h4 style={{ margin: "0 0 0.5rem 0" }}>Output plate {outputPlate ? `(${outputPlate.name})` : ""}</h4>
+                        <h4 style={{ margin: "0 0 0.5rem 0", display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                            Output plate {outputPlate ? <> (<PlateColorDot color={outputPlate.plate_color} /> {outputPlate.name})</> : ""}
+                        </h4>
                         {outputPlate ? <>
                             <PlateGrid plate={outputPlate} wells={outputWells} selectedWell={selectedOutputWell}
                                 onWellClick={handleOutputWellClick} onWellAltClick={handleOutputWellRightClick}

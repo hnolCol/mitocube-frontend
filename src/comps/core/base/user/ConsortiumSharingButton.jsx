@@ -8,6 +8,7 @@ import { ConsortiumText } from "@/comps/submission/view/ConsortiumText"
 import { SubmissionLink } from "@/comps/core/links/Submission"
 import { ResearchGroupTitle } from "@/comps/core/input/api/ResearchGroupInput"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
+import { CollaborationPermissionsFlow } from "@/comps/core/base/user/CollaborationPermissionsFlow"
 
 const PI_ROLE_THRESHOLD = 2
 
@@ -53,8 +54,8 @@ PendingTermsRow.propTypes = {
  */
 function PendingTermsRow({ pending, onInvalidate }) {
     const { mutate: agree, isPending } = api.consortiumTerms.useAgreeConsortiumTerms({ onSuccess: onInvalidate })
-    return <div className="flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
-        <div className="flex align-center" style={{ gap: "0.5rem" }}>
+    return <div className="flex align-center margin--little padding--little bg--lightgrey div--round">
+        <div className="flex align-center flex-wrap" style={{ gap: "0.5rem", flex: "1 1 auto", minWidth: 0 }}>
             <ConsortiumText tag={pending.consortium_tag} />
             <span className="font-size--smallest">for</span>
             <ResearchGroupTitle tag={pending.group_tag} />
@@ -64,6 +65,7 @@ function PendingTermsRow({ pending, onInvalidate }) {
             intent="primary"
             text="Agree to terms"
             disabled={isPending}
+            style={{ flexShrink: 0 }}
             onClick={() => agree({ consortium_tag: pending.consortium_tag, group_tag: pending.group_tag })} />
     </div>
 }
@@ -92,20 +94,21 @@ function AgreedTermsRow({ consortium_tag, group_tag, user_tag, onInvalidate }) {
     const { mutate: revoke, isPending } = api.consortiumTerms.useRevokeConsortiumTerms({ onSuccess: onInvalidate })
     const isHead = _.isArray(heads) && _.isString(user_tag) && heads.includes(user_tag)
     if (!isLoading && !isHead) return null
-    return <div className="flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
-        <div className="flex align-center" style={{ gap: "0.5rem" }}>
-            <ConsortiumText tag={consortium_tag} />
-            <span className="font-size--smallest">for</span>
-            <ResearchGroupTitle tag={group_tag} />
-        </div>
-        {isLoading ? <Spinner size={16} />
-            : <Button
-                small={true}
-                intent="danger"
-                text="Disagree (revoke)"
-                disabled={isPending}
-                onClick={() => revoke({ consortium_tag, group_tag })} />}
+    return <div className="flex align-center margin--little padding--little bg--lightgrey div--round">
+    <div className="flex align-center flex-wrap" style={{ gap: "0.5rem", flex: "1 1 auto", minWidth: 0 }}>
+        <ConsortiumText tag={consortium_tag} />
+        <span className="font-size--smallest">for</span>
+        <ResearchGroupTitle tag={group_tag} />
     </div>
+    {isLoading ? <Spinner size={16} />
+        : <Button
+            small={true}
+            intent="danger"
+            text="Disagree (revoke)"
+            disabled={isPending}
+            style={{ flexShrink: 0, marginLeft: "auto" }}
+            onClick={() => revoke({ consortium_tag, group_tag })} />}
+</div>
 }
 
 AgreedTermsSection.propTypes = {
@@ -216,18 +219,19 @@ function SharedSubmissionsReportTab() {
     const collaborationEntries = entries.filter(entry =>
         _.isArray(entry.collaborator_tags) && entry.collaborator_tags.length > 0)
     return <div className="flex flex-column">
-        <Callout intent="primary" icon="info-sign" className="margin--little">
+                <Callout intent="primary" icon="info-sign" title="What this report shows">
             <p className="font-size--small margin--none">
-                This report shows every submission of you and your group members that
+                As head (PI) this report shows every submission of you and your group members that
                 is currently shared outside the group. As long as you have agreed to a consortiums
                 share terms, your members can request shares to it and you approve each request
                 before it becomes visible. Disagreeing to the terms revokes all consortium shares
                 of your groups submissions at once.
             </p>
         </Callout>
-        <div className="font-weight--bold font-size--small margin-top--little">Consortiums</div>
-        <p className="font-size--smallest margin--none">
-            Submissions shared with a consortium. 
+        <h5 className="margin-top--little">Consortiums</h5>
+        <p className="font-size--small margin--none">
+            Submissions shared with a consortium. Green tags are approved shares; pending tags
+            wait for your approval.
         </p>
         {consortiumEntries.length === 0
             ? <p className="font-size--small">No submissions are shared with a consortium.</p>
@@ -235,8 +239,8 @@ function SharedSubmissionsReportTab() {
                 key={entry.submission_tag}
                 entry={entry}
                 variant="consortium" />)}
-        <div className="font-weight--bold font-size--small margin-top--little">Collaboration</div>
-        <p className="font-size--smallest margin--none">
+        <h5 className="margin-top--little">Collaboration</h5>
+        <p className="font-size--small margin--none">
             Submissions shared with individual users via approved collaboration requests from the
             explore view. These are not affected by consortium share terms.
         </p>
@@ -316,17 +320,20 @@ function ExploreGroupRow({ group_tag, user_tag, onInvalidate }) {
     const { mutate: setDisabled, isPending } = api.researchgroups.useSetResearchGroupExploreDisabled({ onSuccess: onInvalidate })
     if (isLoading || disabledIsLoading) return <div className="margin--little padding--little bg--lightgrey div--round"><Spinner size={16} /></div>
     const isHead = _.isArray(heads) && _.isString(user_tag) && heads.includes(user_tag)
-    return <div className="flex justify-between align-center margin--little padding--little bg--lightgrey div--round">
-        <ResearchGroupTitle tag={group_tag} />
+    return <div className="flex align-center margin--little padding--little bg--lightgrey div--round">
+        <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+            <ResearchGroupTitle tag={group_tag} />
+        </div>
         {isHead
             ? <Switch
                 innerLabelChecked="Disabled"
                 innerLabel="Enabled"
-                checked={exploreDisabled === true}
+                checked={exploreDisabled !== false}
                 disabled={isPending}
-                onChange={() => setDisabled({ tag: group_tag, disabled: !(exploreDisabled === true) })} />
-            : <Tag minimal={true} round={true} intent={exploreDisabled ? "danger" : "success"}>
-                {exploreDisabled ? "Disabled by PI" : "Enabled by PI"}
+                style={{ flexShrink: 0 }}
+                onChange={() => setDisabled({ tag: group_tag, disabled: !(exploreDisabled !== false) })} />
+            : <Tag minimal={true} round={true} intent={exploreDisabled !== false ? "danger" : "success"}>
+                {exploreDisabled !== false ? "Disabled by PI" : "Enabled by PI"}
             </Tag>}
     </div>
 }
@@ -362,7 +369,8 @@ function ConsortiumExploreTab({ user_tag }) {
                 your group lose access to the explore tab (they see an "Explore disabled by PI"
                 message instead). All collaboration access granted to your groups submissions via
                 explore collaboration requests is revoked (similar to disagreeing to consortium share
-                terms revoking the consortium shares).
+                terms revoking the consortium shares). New research groups have explore disabled by
+                    default; use the toggle to enable it.
             </div>
         </Callout>
         {groups.length === 0 ? <p className="font-size--small">You are not a member of any research group.</p> :
@@ -424,8 +432,8 @@ export function ConsortiumSharingButton({ user_tag, user_role }) {
             isOpen={isOpen}
             title="Sharing"
             onClose={() => setIsOpen(false)}
-            style={{ width: "60vw", minWidth: "600px" }}>
-            <DialogBody>
+            style={{ width: "60vw", minWidth: "600px", height: "70vh" }}>
+            <DialogBody style={{ overflowY: "auto" }}>
                 <Tabs
                     activeTabId={activeTab}
                     onChange={setActiveTab}
@@ -433,6 +441,7 @@ export function ConsortiumSharingButton({ user_tag, user_role }) {
                     <Tab id="terms" title="Share terms" panel={<ConsortiumTermsTab user_tag={user_tag} />} />
                     <Tab id="report" title="Sharing report" panel={<SharedSubmissionsReportTab />} />
                     <Tab id="explore" title="Explore visibility" panel={<ConsortiumExploreTab user_tag={user_tag} />} />
+                    <Tab id="permissions" title="Permissions" panel={<CollaborationPermissionsFlow />} />
                 </Tabs>
             </DialogBody>
             <DialogFooter actions={<Button text="Close" onClick={() => setIsOpen(false)} />} />

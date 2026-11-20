@@ -334,10 +334,12 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
     }
 
     const repeatSelection = (rowIdcs, attribute_tag) => {
+        const rowIdcsOrdered = rowIdcs.slice().sort((a, b) => a - b)
+
         let d = submission.attributeTable.slice()
         const n_samples = d.length
-        const selection = rowIdcs.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
-        const lastIdx = rowIdcs.at(-1)
+        const selection = rowIdcsOrdered.map(rowIdx => d[rowIdx].filter(p => p.type === "attribute" && p.tag === attribute_tag)).slice()
+        const lastIdx = rowIdcsOrdered.at(-1)
         const diff = (n_samples + 1) - lastIdx
         const n_repeat = _.toInteger((diff) / rowIdcs.length + 0.5)
         const fillValues = Array(n_repeat).fill(selection).flat();
@@ -345,7 +347,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
             const rowIndex = lastIdx + 1 + idx 
             const id = submission.referenceIDs[rowIndex] 
             if (id !== undefined) { 
-                const v = addIDToHierarchy(_.cloneDeep(fillValues.at(idx % rowIdcs.length)), id)
+                const v = addIDToHierarchy(_.cloneDeep(fillValues.at(idx % rowIdcsOrdered.length)), id)
                 d[rowIndex] = [...d[rowIndex].filter(p => p.type === "attribute" && p.tag !== attribute_tag), ...v]
                
             }
@@ -543,14 +545,16 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
         if (!_.isArray(rowIdcs) || rowIdcs.length === 0) return
 
+        const rowIdcsOrdered = rowIdcs.slice().sort((a, b) => a - b)
+
         let genotypes = submission.genotypes.slice()
-        const selection = rowIdcs.map(rowIdx => _.isArray(genotypes[rowIdx]) ? genotypes[rowIdx].slice() : []).slice()
-        const lastIdx = rowIdcs.at(-1)
+        const selection = rowIdcsOrdered.map(rowIdx => _.isArray(genotypes[rowIdx]) ? genotypes[rowIdx].slice() : []).slice()
+        const lastIdx = rowIdcsOrdered.at(-1)
         const diff = submission.sampleNames.length - lastIdx - 1
 
-        _.forEach(_.range(1, diff + 1), idx => {
-            const rowIndex = lastIdx + idx
-            genotypes[rowIndex] = selection.at(idx % rowIdcs.length).slice()
+        _.forEach(_.range(diff), idx => {
+            const rowIndex = lastIdx + 1 + idx
+            genotypes[rowIndex] = selection.at(idx % rowIdcsOrdered.length).slice()
         })
 
         update({ genotypes });

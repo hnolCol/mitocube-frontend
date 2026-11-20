@@ -20,7 +20,8 @@ const {
     useGetMyPendingConsortiumMembershipRequests,
     usePostConsortiumMembershipRequest,
     useApproveConsortiumMembershipRequest,
-    useDenyConsortiumMembershipRequest
+    useDenyConsortiumMembershipRequest,
+    useGetUserJoinableConsortiums
 } = consortiumsAPI;
 
 export const consortiumMembershipRequestsAPI = {
@@ -28,7 +29,8 @@ export const consortiumMembershipRequestsAPI = {
     useGetMyPendingConsortiumMembershipRequests,
     usePostConsortiumMembershipRequest,
     useApproveConsortiumMembershipRequest,
-    useDenyConsortiumMembershipRequest
+    useDenyConsortiumMembershipRequest,
+    useGetUserJoinableConsortiums
 }
 
 const {
