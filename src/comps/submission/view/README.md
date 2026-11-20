@@ -40,15 +40,16 @@ are not linked to any modular procedure show no box at all. See
 
 ## Module Flow box
 
-`SubmissionModuleFlow.jsx` renders the "Module Flow" box: a directed, left-to-right
-flow graph (@visx/hierarchy `Cluster`) of the modules the submission passed through —
-submission → modules (assignment order) → executions (run order) → input wells → the
-output wells they were transferred to. Node colors carry the status reports (module
-done/open, execution state per the shared execution status colors); hovering a node shows
-a tooltip with its details (procedure/version, states and dates, responsible user,
-samples, per-well values and condition applications). Only the wells and values of the
-requesting user's submissions are visible (the backend masks everything else); executions
-holding other users' data never appear.
+`SubmissionModuleFlow.jsx` renders the "Module Flow" box: a directed, left-to-right flow
+graph (@visx/hierarchy `Cluster`) of the runs the submission's samples went through —
+**chained by plate continuity** (the output plate of one run is the input plate of the
+next) starting at the input plate of the material; a run whose plate feeds several
+subsequent runs opens a branch. Node colors are the status reports (execution state per
+the shared status colors; the module link shows done/open); hovering a run shows a
+summary, **clicking a run opens its detail view** (state history with the user who
+changed it, plate tables with samples, per-well values and condition applications). Only
+the wells and values of the requesting user's submissions are visible (the backend masks
+everything else); runs holding no accessible data never appear.
 
 ## Sample Locations box
 

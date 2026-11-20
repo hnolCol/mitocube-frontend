@@ -7,57 +7,8 @@ import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import useDebounce from "@/hooks/useDebounce";
 import {
     ExecutionStateChip, ExecutionStateControls, ProcedureTitle, formatExecutionTime,
-    isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS,
+    isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS, StateHistory, WellTable,
 } from "./Shared";
-
-function WellTable({ wells, side }) {
-    if (!_.isArray(wells) || wells.length === 0) {
-        return <div className="font-size--small" style={{ color: "#888" }}>No {side} wells.</div>
-    }
-    return <table className="font-size--smallest" style={{ borderCollapse: "collapse", width: "100%" }}>
-        <thead>
-            <tr style={{ textAlign: "left", borderBottom: "1px solid #ccc" }}>
-                <th className="padding--little">Well</th>
-                <th className="padding--little">Samples</th>
-                {side === "input"
-                    ? <th className="padding--little">Mapped to</th>
-                    : <th className="padding--little">Condition applications</th>}
-                <th className="padding--little">Values</th>
-            </tr>
-        </thead>
-        <tbody>
-            {wells.map((well) => <tr key={well.position} style={{ borderBottom: "1px solid #eee" }}>
-                <td className="padding--little"><strong>{well.position}</strong></td>
-                <td className="padding--little">{well.sample_tags?.length > 0 ? well.sample_tags.join(", ") : "–"}</td>
-                {side === "input"
-                    ? <td className="padding--little">{well.output_positions?.join(", ") || "–"}</td>
-                    : <td className="padding--little">{well.condition_application_tags?.join(", ") || "–"}</td>}
-                <td className="padding--little">
-                    {well.metrics?.length > 0 ? well.metrics.map((metric) =>
-                        <span key={metric.trait_tag} className="margin-right--little">
-                            {`${metric.trait_tag}: ${metric.value}`}
-                        </span>) : "–"}
-                </td>
-            </tr>)}
-        </tbody>
-    </table>
-}
-
-function StateHistory({ execution_tag }) {
-    const { data: states, isLoading, isError, error } =
-        api.modularProcedures.execute.useGetModularProcedureExecutionStates({ tag: execution_tag })
-    if (isLoading) return <div className="font-size--small" style={{ color: "#888" }}>Loading states ...</div>
-    if (isError) return <APIAxiosError error={error} />
-    return <ol className="font-size--smallest" style={{ paddingLeft: "1rem", margin: 0 }}>
-        {states?.map((entry, index) => <li key={`${entry.state}-${index}`} className="flex center-items gap--tiny margin-top--tiny">
-            <ExecutionStateChip status={entry.state} />
-            <span style={{ color: "#666" }}>
-                {entry.created_at ? formatExecutionTime(entry.created_at) : ""}
-                {entry.user_tag ? ` by ${entry.user_tag}` : ""}
-            </span>
-        </li>)}
-    </ol>
-}
 
 function ExecutionDetails({ execution, canChangeState, onStateChanged }) {
     return <div className="flex flex-column gap--small" style={{ borderTop: "1px solid #ddd", paddingTop: "0.75rem" }}>
