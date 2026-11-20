@@ -12,17 +12,20 @@ import { apiClient } from "../client";
  * @param {Object} props
  * @param {String[]} props.proteome_tags The proteome tags to match.
  * @param {String} [props.search_string] Optional text search on the submission title/tag.
+ * @param {Number} [props.min_state] Optional minimum submission state (e.g. 5 = ACTIVE and PUBLISHED, i.e. has quantification data).
  * @returns {String[]} The submission tags associated with any of the proteome tags.
  */
-export function useGetSubmissionsByProteome(APIParams: { proteome_tags: string[], search_string?: string } = { proteome_tags: [] }, useQueryOptions = {}) {
+export function useGetSubmissionsByProteome(APIParams: { proteome_tags: string[], search_string?: string, min_state?: number } = { proteome_tags: [] }, useQueryOptions = {}) {
     const proteome_tags = Array.isArray(APIParams.proteome_tags) ? APIParams.proteome_tags.filter(t => typeof t === "string") : [];
     const search_string = typeof APIParams.search_string === "string" && APIParams.search_string.length > 0 ? APIParams.search_string : undefined;
+    const min_state = typeof APIParams.min_state === "number" && APIParams.min_state > 0 ? APIParams.min_state : undefined;
     return useQuery({
-        queryKey: ["submissionsByProteome", search_string, ...proteome_tags],
+        queryKey: ["submissionsByProteome", search_string, min_state, ...proteome_tags],
         queryFn: () => apiClient
             .get("/submissions/q", {
                 params: {
                     search_string,
+                    min_state,
                     attribute_tag: "att_proteome",
                     trait_tags: proteome_tags.join(";"),
                     group_by_state: false,
