@@ -5,13 +5,17 @@ import { Spinner } from "@blueprintjs/core"
 import { Group } from "@visx/group"
 import { localPoint } from "@visx/event"
 import { getColorPalette, HIGHLIGHT_COLOR } from "@/comps/core/colors/colorPalette"
-import { buildSubmissionCAIndex, computeCASplit } from "./cas"
+import { buildSubmissionCAIndex, splitIntoChildren } from "./cas"
 import "./explore.css"
 
 const SLOT_WIDTH = 120
 const LEVEL_HEIGHT = 130
 const MARGIN = { top: 30, right: 30, bottom: 30, left: 60 }
 const MAX_LABEL_LENGTH = 22
+
+// The number of attribute levels that are expanded by default when the data
+// loads; deeper levels are expanded on demand by clicking a node.
+const AUTO_EXPAND_DEPTH = 4
 
 const defaultRootNode = (submissionTags) => ({
     root: { id: "root", parentId: null, label: "All submissions", attribute_text: null, submission_tags: submissionTags, childIds: null, split: null, depth: 0 }
@@ -49,9 +53,28 @@ export function ExploreGraph({ submissions, caAggregates, onSelectionChange }) {
     const [hovered, setHovered] = useState(null)
 
     useEffect(() => {
-        setExpanded(null)
         setSelectedId("root")
         setLeafHintId(null)
+        if (submissionTags.length === 0) {
+            setExpanded(null)
+            return
+        }
+        const nodeMap = defaultRootNode(submissionTags)
+        let changed = true
+        let expandedAny = false
+        while (changed) {
+            changed = false
+            for (const node of Object.values(nodeMap)) {
+                if (node.depth >= AUTO_EXPAND_DEPTH || _.isArray(node.childIds)) continue
+                const result = splitIntoChildren(node, caIndex)
+                if (result === null) continue
+                nodeMap[node.id] = { ...node, childIds: result.children.map(child => child.id), split: result.split }
+                for (const child of result.children) nodeMap[child.id] = child
+                changed = true
+                expandedAny = true
+            }
+        }
+        setExpanded(expandedAny ? nodeMap : null)
     }, [caIndex, submissionTags])
 
     const nodeMap = useMemo(() => (expanded === null ? defaultRootNode(submissionTags) : expanded), [expanded, submissionTags])
@@ -90,29 +113,15 @@ export function ExploreGraph({ submissions, caAggregates, onSelectionChange }) {
             }
             nextNodes[id] = { ...node, childIds: null, split: null }
         } else {
-            const split = computeCASplit(node.submission_tags, caIndex)
-            if (split === null) {
+            const result = splitIntoChildren(node, caIndex)
+            if (result === null) {
                 setLeafHintId(id)
                 reportSelection(id, nextNodes)
                 return
             }
             setLeafHintId(null)
-            const childIds = []
-            for (const group of split.groups) {
-                const childId = `${id}/${split.attribute_tag}=${group.key}`
-                childIds.push(childId)
-                nextNodes[childId] = {
-                    id: childId,
-                    parentId: id,
-                    label: group.label,
-                    attribute_text: split.attribute_text,
-                    submission_tags: group.submission_tags,
-                    childIds: null,
-                    split: null,
-                    depth: node.depth + 1
-                }
-            }
-            nextNodes[id] = { ...node, childIds, split }
+            for (const child of result.children) nextNodes[child.id] = child
+            nextNodes[id] = { ...node, childIds: result.children.map(child => child.id), split: result.split }
         }
         setExpanded(nextNodes)
         reportSelection(id, nextNodes)
@@ -222,7 +231,7 @@ export function ExploreGraph({ submissions, caAggregates, onSelectionChange }) {
                 No condition application attribute divides the selected submissions further.
             </div> : null}
         <div className="font-size--smallest padding--little">
-            Click a node to expand it by the condition application attribute with the highest dividing power. The node area is proportional to the number of submissions.
+            The first {AUTO_EXPAND_DEPTH} levels are expanded by default. Click a node to expand it further by the condition application attribute with the highest dividing power or to collapse it again. The node area is proportional to the number of submissions.
         </div>
     </div>
 }

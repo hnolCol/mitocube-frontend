@@ -112,3 +112,29 @@ export function computeCASplit(submission_tags, index) {
     candidates.sort((a, b) => b.score - a.score || a.groups.length - b.groups.length || a.attribute_tag.localeCompare(b.attribute_tag))
     return { attribute_tag: candidates[0].attribute_tag, attribute_text: candidates[0].attribute_text, groups: candidates[0].groups }
 }
+
+/**
+ * @description Computes the children of a node for the best condition
+ * application attribute split, shared between the interactive click expansion
+ * and the initial auto-expansion of the graph.
+ * @param {Object} node The node ({ id, depth, submission_tags, ... }).
+ * @param {Map} index The submission condition application index.
+ * @returns {Object|null} { children, split } or null if the node cannot be split.
+ */
+export function splitIntoChildren(node, index) {
+    const split = computeCASplit(node.submission_tags, index)
+    if (split === null) return null
+    return {
+        split: { attribute_tag: split.attribute_tag, attribute_text: split.attribute_text },
+        children: split.groups.map(group => ({
+            id: `${node.id}/${split.attribute_tag}=${group.key}`,
+            parentId: node.id,
+            label: group.label,
+            attribute_text: split.attribute_text,
+            submission_tags: group.submission_tags,
+            childIds: null,
+            split: null,
+            depth: node.depth + 1
+        }))
+    }
+}
