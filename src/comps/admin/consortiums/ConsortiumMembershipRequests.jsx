@@ -12,7 +12,7 @@ import { UserFullName } from "@/comps/core/input/api/UserInput";
  * @param {Function} props.onInvalidate Callback to invalidate the membership request queries
  * @returns {JSX.Element} The pending membership request row.
  */
-function PendingMembershipRequestRow({ request, onInvalidate }) {
+export function PendingMembershipRequestRow({ request, onInvalidate }) {
     const { mutate: approve, isPending: isApproving } = api.consortiumMembershipRequests.useApproveConsortiumMembershipRequest({ onSuccess: onInvalidate })
     const { mutate: deny, isPending: isDenying } = api.consortiumMembershipRequests.useDenyConsortiumMembershipRequest({ onSuccess: onInvalidate })
     const isWorking = isApproving || isDenying
@@ -54,6 +54,8 @@ export function ConsortiumMembershipRequestsDialog({ isOpen, onClose }) {
 
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: ["getPendingConsortiumMembershipRequests"] })
+        queryClient.invalidateQueries({ queryKey: ["getMyPendingConsortiumMembershipRequests"] })
+        queryClient.invalidateQueries({ queryKey: ["getUserJoinableConsortiums"] })
         queryClient.invalidateQueries({ queryKey: ["getConsortiumUsers"] })
     }
 

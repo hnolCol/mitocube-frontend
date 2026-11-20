@@ -99,6 +99,8 @@ import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 import { ModularProceduresAdmin } from "./comps/admin/modularprocedures/ModularProceduresAdmin";
 import { ModularProcedureBoard } from "./comps/modularprocedures/ModularProcedureBoard";
 import { AdminReports } from "./comps/admin/reports/Reports";
+import { CollaborationSharingOverview } from "./comps/admin/sharing/SharingOverview";
+import { ConsortiumSharingOverview } from "./comps/admin/sharing/SharingOverview";
 /* Other pages / utilities */
 import PTM from "./comps/ptm";
 import Welcome from "./comps/welcome";
@@ -417,17 +419,20 @@ function App() {
             <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/users" element={<UsersAdminView {...{ authenticationStatus }} />} />
             {/* <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} /> */}
+            <Route path="/admin/pats" element={<PATsAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
+            <Route path="/admin/sharing/consortiums" element={<ConsortiumSharingOverview {...{ authenticationStatus }} />} />
+            <Route path="/admin/sharing/collaborations" element={<CollaborationSharingOverview {...{ authenticationStatus }} />} />
             <Route path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/genotypes" element={<AdminGenotypes />} />
             <Route path="/admin/proteomes" element={<AdminProteomes />} />
             {/* <Route path="/admin/sets" element={<AdminFilterSets />} /> */}
             <Route path="/admin/researchgroup" element={<AdminResearchGroup />} />
-            <Route path="/admin/consortiums" element={<AdminConsortium />} />
+            <Route path="/admin/consortiums" element={<AdminConsortium userRole={authenticationStatus.role} />} />
             <Route path="/admin/phenotypes" element={<AdminPhenotypeAssociations />} />
-            <Route path="/admin/symptoms" element={<AdminSymptoms />} />
-            <Route path="/admin/spareparts" element={<AdminSparepart />} />
-            <Route path="/admin/procedure" element={<AdminProcedure />} />
-            <Route path="/admin/externalservice" element={<AdminExternalService />} />
+            <Route path="/admin/symptoms" element={<AdminSymptoms userRole={authenticationStatus.role} />} />
+            <Route path="/admin/spareparts" element={<AdminSparepart userRole={authenticationStatus.role} />} />
+            <Route path="/admin/procedure" element={<AdminProcedure userRole={authenticationStatus.role} />} />
+            <Route path="/admin/externalservice" element={<AdminExternalService userRole={authenticationStatus.role} />} />
             <Route path="/admin/annotations" element={<AdminAnnotations />} />
             <Route path="/admin/news" element={<NewsManagement />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />

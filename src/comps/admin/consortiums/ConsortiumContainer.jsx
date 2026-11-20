@@ -6,12 +6,13 @@ import { ConsortiumItem } from "./ConsortiumItem";
  * @description Renders the list of consortium item cards.
  * @param {Object} props
  * @param {String[]} props.tags Consortium tags
+ * @param {Boolean} props.canEditGroups Whether the current user may edit the research groups of a consortium
  * @param {Function} props.setEditGroupsDialog Setter for the edit groups dialog state
  * @param {Function} props.setEditUsersDialog Setter for the edit members dialog state
  * @param {Function} props.setSubmissionsDialog Setter for the submissions dialog state
  * @returns {JSX.Element} The consortium container.
  */
-export function ConsortiumContainer({ tags, setEditGroupsDialog, setEditUsersDialog, setSubmissionsDialog }) {
+export function ConsortiumContainer({ tags, canEditGroups, setEditGroupsDialog, setEditUsersDialog, setSubmissionsDialog }) {
     return (
         <div style={{ overflowY: "auto", paddingBottom: "5rem", paddingRight: "0.5rem" }} className="flex flex-column">
             {_.isArray(tags) && tags.length > 0 ? tags.map((tag, idx) => (
@@ -21,7 +22,7 @@ export function ConsortiumContainer({ tags, setEditGroupsDialog, setEditUsersDia
                         whileHover={{ backgroundColor: "#efefef" }}
                         style={{ backgroundColor: "#fff", borderRadius: "6px", border: "none", width: "100%" }}
                     >
-                        <ConsortiumItem tag={tag} setEditGroupsDialog={setEditGroupsDialog} setEditUsersDialog={setEditUsersDialog} setSubmissionsDialog={setSubmissionsDialog} />
+                        <ConsortiumItem tag={tag} canEditGroups={canEditGroups} setEditGroupsDialog={setEditGroupsDialog} setEditUsersDialog={setEditUsersDialog} setSubmissionsDialog={setSubmissionsDialog} />
                     </motion.div>
                 </div>
             )) : null}

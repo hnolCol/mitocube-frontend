@@ -13,9 +13,10 @@ import { UserFullName } from "@/comps/core/input/api/UserInput";
  * @param {Function} props.onRemove
  * @param {Boolean} props.isLoading
  * @param {String} props.hint Optional hint text shown next to the user.
+ * @param {Boolean} props.canRemove Whether the current user may remove this member.
  * @returns {JSX.Element} The selectable consortium member item.
  */
-function SelectableMember({ tag, isSelected, onSelect, onRemove, isLoading, hint }) {
+function SelectableMember({ tag, isSelected, onSelect, onRemove, isLoading, hint, canRemove = true }) {
     return <div className="padding--little div--round" style={{ backgroundColor: "#fefefe" }}>
         <div className="flex padding--little center-items justify-space-between">
             <div className="flex flex-column">
@@ -24,7 +25,9 @@ function SelectableMember({ tag, isSelected, onSelect, onRemove, isLoading, hint
             </div>
             <div style={{ float: "right" }}>
                 {isSelected ?
-                    <button className="dialog-button" disabled={isLoading} onClick={() => onRemove(tag)}>Remove</button> :
+                    canRemove ?
+                        <button className="dialog-button" disabled={isLoading} onClick={() => onRemove(tag)}>Remove</button> :
+                        <span className="font-size--smallest">Only admins and curators can remove this member</span> :
                     <button className="dialog-button" disabled={isLoading} onClick={() => onSelect(tag)}>Add</button>}
             </div>
         </div>
@@ -39,10 +42,14 @@ function SelectableMember({ tag, isSelected, onSelect, onRemove, isLoading, hint
  * @param {Boolean} props.isOpen
  * @param {String} props.tag Consortium tag
  * @param {String} props.title
+ * @param {Number} props.userRole Role of the current user. Group curators and heads (PIs) can
+ * only add and remove the members of their own research groups, the addable users shown are
+ * scoped to those by the backend.
  * @param {Function} props.onClose
  * @returns {JSX.Element} The edit consortium members dialog.
  */
-export function EditConsortiumUsersDialog({ isOpen, tag, title, onClose }) {
+export function EditConsortiumUsersDialog({ isOpen, tag, title, userRole = 0, onClose }) {
+    const isCurator = userRole >= 3
     const queryClient = useQueryClient()
     const { data: user_tags, isLoading: usersIsLoading, refetch } = api.consortiums.useGetConsortiumUsers({ tag }, { enabled: _.isString(tag) && isOpen })
     const { data: eligible_user_tags } = api.consortiums.useGetConsortiumEligibleUsers({ tag }, { enabled: _.isString(tag) && isOpen })
@@ -87,7 +94,8 @@ export function EditConsortiumUsersDialog({ isOpen, tag, title, onClose }) {
                             tag={user_tag}
                             isSelected={true}
                             onRemove={removeUser}
-                            isLoading={isPending} />) :
+                            isLoading={isPending}
+                            canRemove={isCurator || eligibleTags.includes(user_tag)} />) :
                         <span>No members yet.</span>}
             </div>
             <h4>Add member</h4>

@@ -8,10 +8,15 @@ import { SymptomsContainer } from "./SymptomsContainer"
 import { AddSymptomDialog } from "./AddSymptomsDialog"
 import { AddButton } from "../../core/base/buttons/AddButton"
 import { useSearchParams } from "react-router"
+import { RestrictedAreaCallout } from "../../core/base/callouts/RestrictedAreaCallout"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
-export function SymptomsSearch() {
+const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
+
+export function SymptomsSearch({ userRole }) {
+
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false });
     const [symptomsToDisplay, setSymptomsToDisplay] = useState([])
@@ -50,6 +55,7 @@ export function SymptomsSearch() {
     return (
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <h3>Symptoms</h3>
+            {!isCurator ? <RestrictedAreaCallout nounPlural="Symptoms" operations="creating and editing symptoms" /> : null}
             <div className="flex">
             
                 <AddSymptomDialog
@@ -59,7 +65,7 @@ export function SymptomsSearch() {
                 
                             
                 
-                <AddButton onSelect={() => setDialogProps({ isOpen: true })} />
+                <AddButton onSelect={() => setDialogProps({ isOpen: true })} disabled={!isCurator} />
             </div>
             <div>
                 <input

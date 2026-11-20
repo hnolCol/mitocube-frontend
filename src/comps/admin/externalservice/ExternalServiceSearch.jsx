@@ -7,10 +7,15 @@ import { OptionButton } from "../../core/base/buttons/OptionButton"
 import { ExternalServiceContainer } from "./ExternalServiceContainer"
 import { AddExternalServiceDialog } from "./AddExternalServiceDialog"
 import { AddButton } from "../../core/base/buttons/AddButton"
+import { RestrictedAreaCallout } from "../../core/base/callouts/RestrictedAreaCallout"
 
 const LIMIT_OPTIONS = [10, 25, 50, 100]
 
-export function ExternalServiceSearch() {
+const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
+
+export function ExternalServiceSearch({ userRole }) {
+    
+    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false });
     const { searchString, setSearchString, debouncedSearchString, limit: selectedLimit, setLimit } = useSearchParamState({ limitOptions: LIMIT_OPTIONS })
@@ -37,6 +42,7 @@ export function ExternalServiceSearch() {
     return (
         <div className="flex flex-column margin--medium padding--medium" style={{ gap: "0.4rem", overflowY: "scroll" }}>
             <h3>External Service</h3>
+            {!isCurator ? <RestrictedAreaCallout nounPlural="External services" operations="creating and editing external services" /> : null}
             <div className="flex">
 
             <AddExternalServiceDialog
@@ -44,7 +50,7 @@ export function ExternalServiceSearch() {
                             onClose={handleClose}
                         />
             
-             <AddButton onSelect={() => setDialogProps({ isOpen: true })} />
+             <AddButton onSelect={() => setDialogProps({ isOpen: true })} disabled={!isCurator} />
             
             </div>
                     
