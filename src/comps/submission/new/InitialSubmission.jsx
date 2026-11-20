@@ -205,6 +205,17 @@ function InitialSubmission({
             
         }
         
+        const researchAim = submission.metatext["metatext:research_aim"]
+        const minResearchAimLength = _.toInteger(_.get(metatext, ["min_text_length", "metatext:research_aim"], 100))
+        if (!_.isString(researchAim) || researchAim.trim().length === 0) {
+            errMsgs.push("Research aim not defined. It is a required field.")
+        }
+        else {
+            if (researchAim.length < minResearchAimLength) {
+                errMsgs.push("Research aim is too short (min. " + minResearchAimLength + " characters).")
+            }
+        }
+        
         // check if sample attributes are non-unique
         const uniqueValuesPerSampleAttribute = getUniqueValuesFromArrayOfObjectsByKey(submission.attributeTable)
         const sampleAttributesWithSingleUniqueValue = _.filter(Object.keys(uniqueValuesPerSampleAttribute), sampleAttribute => uniqueValuesPerSampleAttribute[sampleAttribute].length < 2)
