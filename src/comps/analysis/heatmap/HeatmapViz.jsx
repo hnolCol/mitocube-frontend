@@ -14,6 +14,7 @@ import { getUniqueValuesInArrayOfObjects } from "../../../services/arrays/unique
 import { downloadTxtFile, arrayOfObjectsToTabDel } from "../../../services/downloads/txt";
 import { downloadSvgFromString } from "../../../services/downloads/svg";
 import { buildHeatmapSvg, buildHeatmapLegendSvg } from "../../../services/downloads/heatmapSvg";
+import { buildCombinedSvgFromContainer } from "../../../services/downloads/domSvg";
 
 /**
  * Dialog to select the subset of samples the heatmap statistics are performed on.
@@ -114,6 +115,7 @@ function HeatmapViz({
     setProteinSearchTrigger
 }) {
     const scrollContainerRef = useRef(null);
+    const profilesRef = useRef(null);
     const colorPalette = viz.colors.palette.STD_CHART_COLOR_PALETTE;
     const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters));
     const [fdrvInputValue, setFDRVInputValue] = useState(String(testProps.fdr));
@@ -327,6 +329,8 @@ function HeatmapViz({
                 <h4>Export</h4>
                 <div className="flex flex-column gap--tiny">
                     <button className="basic-button width--full"
+                        disabled={proteinIsLoading}
+                        title={proteinIsLoading ? "Resolving gene names..." : undefined}
                         onClick={() => downloadSvgFromString(
                             buildHeatmapSvg({
                                 data: heatmapData.data,
@@ -340,10 +344,28 @@ function HeatmapViz({
                     </button>
                     <button className="basic-button width--full"
                         onClick={() => downloadSvgFromString(
-                            buildHeatmapLegendSvg({ heatmapData }),
+                            buildHeatmapLegendSvg({
+                                heatmapData,
+                                grouping: {
+                                    data: filteredSampleConditionApplications,
+                                    keyNames: attribute_tags,
+                                    is_condition_application: attribute_tags.map(() => true),
+                                    caTagMap,
+                                    attributeTagMap
+                                }
+                            }),
                             `heatmap-legend-${submission_tag}.svg`
                         )}>
                         Legend (SVG)
+                    </button>
+                    <button className="basic-button width--full"
+                        onClick={() => {
+                            const profilesSvg = buildCombinedSvgFromContainer(profilesRef.current);
+                            if (_.isString(profilesSvg)) {
+                                downloadSvgFromString(profilesSvg, `heatmap-profiles-${submission_tag}.svg`);
+                            }
+                        }}>
+                        Profile charts (SVG)
                     </button>
                     <button className="basic-button width--full"
                         onClick={() => downloadTxtFile(
@@ -378,7 +400,7 @@ function HeatmapViz({
                     return (
                         <div key={didx} style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
                             <div className="flex" style={{ display: "flex", flex: 1, minHeight: 0 }}>
-                                <div style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
+                                <div ref={profilesRef} style={{ overflowY: "scroll", flex: "0 0 500px", height: "100%" }}>
                                     <div className="margin--medium padding--medium">
                                         <Combobox
                                             selectedItems={_.isArray(viewProps.selectedCluster) ? viewProps.selectedCluster.map(item => item.tag) : []}
