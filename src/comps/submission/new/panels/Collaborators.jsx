@@ -38,7 +38,7 @@ export function CollaboratorsTab({submission, setSubmission}){
         <ConsortiumInput
             selected_consortium_tags={submission.consortium_tags || []}
             onSelect={handleConsortiumSelection}
-            helperText="Share your submission with the selected consortium. All members of the consortiums research groups will be able to access it." />
+            helperText="Share your submission with the selected consortium. All members of the consortiums research groups will be able to access it. The sharing only becomes active after the head (PI) of your research group has agreed first." />
     
         
 
