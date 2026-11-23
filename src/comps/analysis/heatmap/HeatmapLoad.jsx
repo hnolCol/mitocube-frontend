@@ -53,6 +53,13 @@ function HeatmapLoad({ submission_tag }) {
         );
     }, [_.join(sample_ca_attribute_tags, ";"), _.isArray(submissionSampleConditionApplications)]);
 
+    const heatmapProteinTags = useMemo(() => {
+        if (!_.isObject(heatmapData) || !_.isArray(heatmapData.data)) return [];
+        return heatmapData.data.flatMap(row => (_.isString(row.tag)
+            ? row.tag.split(";").map(subTag => subTag.trim()).filter(Boolean)
+            : []));
+    }, [heatmapData]);
+
     if (isError) return <APIError error={error} />;
     if (isLoading || isFetching) return <div><Loading /> Clustering data containing NaN may take some time...</div>;
     if (!_.isObject(heatmapData) || !_.has(heatmapData, "data") || !_.has(heatmapData, "cluster_indices")) {
@@ -64,7 +71,7 @@ function HeatmapLoad({ submission_tag }) {
             Component={HeatmapViz}
             ca_tags={unique_ca_tags}
             attribute_tags={sample_ca_attribute_tags}
-            protein_tags={requiredProteinTags}
+            protein_tags={_.uniq(_.concat(requiredProteinTags, heatmapProteinTags))}
             heatmapData={heatmapData}
             submissionSampleConditionApplications={submissionSampleConditionApplications}
             testProps={testProps}
