@@ -6,6 +6,7 @@ import { Loading } from "../../core/base/states/Loading"
 import { InstrumentMenu } from "./Menu"
 import { InstrumentCosts } from "./Costs"
 import { InstrumentStateIndicator } from "./StateIndicator"
+import { InstrumentInfo } from "./InstrumentInfo"
 import { InsertMaintenanceEvent } from "../maintenance/InsertMaintenanceEvent"
 import { MaintenanceView } from "../maintenance/MaintenanceView"
 import { InstrumentStateDurationChart, InstrumentStateHeatmap, UtilizationStat } from "../Statistics/StateCharts"
@@ -131,6 +132,7 @@ export function InstrumentView() {
                             </div>
                             <div className="font-size--small">{instrument.description}</div>
                         </div>
+                        <InstrumentInfo instrument_tag={instrument_tag} />
                     </div>
                 ) : null}
 
