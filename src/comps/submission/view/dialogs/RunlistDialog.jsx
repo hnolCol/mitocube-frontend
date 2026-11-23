@@ -339,7 +339,12 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
      * @description Exports the runlist to a tab-delimited txt-file. 
      */    
     const exportRunlistToTxtFile = () => {
-        let infoString = objectToKeyValueString({ obj: runlist, ignoreKeys: ["runs"] })
+        const { instruments, ...info } = runlist
+        // the runlist can have multiple instruments, render them as a readable list in the download
+        const infoString = objectToKeyValueString({
+            obj: { ...info, "instruments": (instruments || []).map(i => i.text).filter(Boolean).join(", ") },
+            ignoreKeys: ["runs"]
+        })
         let runString = arrayObjectsToString({ array: runlist.runs})
         //finally download the data
         downloadTxtFile(`${infoString}\n\n\n${runString}`,`${submission.label}-${runlist["runs"].length}-runs.txt`)

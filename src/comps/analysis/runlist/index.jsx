@@ -113,8 +113,13 @@ function Runlist() {
 
     const exportRunlistToTxtFile = (runlist) => {
         if (!runlist) return
-        let infoString = objectToKeyValueString({ obj: runlist, ignoreKeys: ["runs"] })
-        let runString = arrayObjectsToString({ array: runlist.runs })
+        const { instruments, ...info } = runlist
+        // the runlist can have multiple instruments, render them as a readable list in the download
+        const infoString = objectToKeyValueString({
+            obj: { ...info, "instruments": (instruments || []).map(i => i.text).filter(Boolean).join(", ") },
+            ignoreKeys: ["runs"]
+        })
+        const runString = arrayObjectsToString({ array: runlist.runs })
         downloadTxtFile(`${infoString}\n\n\n${runString}`, `${submission_tag}-${runlist.tag}-${runlist.n_runs}-runs.txt`)
     }
 
