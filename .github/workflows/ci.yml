@@ -28,6 +28,8 @@ jobs:
           mkdir -p node_modules/@mitocube
           ln -s "$PWD/../mitocube-api-hooks" node_modules/@mitocube/api-hooks
           ln -s "$PWD/../mitocube-viz" node_modules/@mitocube/viz
+          mkdir -p ../mitocube-viz/node_modules/@mitocube
+          ln -s "$PWD/../mitocube-api-hooks" ../mitocube-viz/node_modules/@mitocube/api-hooks
 
       - name: Build
         run: yarn build
