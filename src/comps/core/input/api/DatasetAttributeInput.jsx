@@ -24,7 +24,7 @@ import { HIGHLIGHT_COLOR } from "../../colors/colorPalette";
  * @param {Function} props.handleTraitSelection Handle the selection of a trait.
  * @returns 
  */
-export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, selected_traits, selected_trait_pairs = undefined, isMissing = false, trait_paths = undefined, parent_tags = undefined }) {
+export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelection, handleTraitDeselect = undefined, selected_traits, selected_trait_pairs = undefined, isMissing = false, trait_paths = undefined, parent_tags = undefined }) {
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag }, { enabled: _.isString(tag) && (_.isArray(trait_tags) || isMissing), staleTime : 60000 })
     
     const { data: fetchedTraitTags } = api.traits.queryTraits.useGetTraitsByAttributeTag(
@@ -62,6 +62,11 @@ export function AttributeWithTraitsMenuItem({ tag, trait_tags, handleTraitSelect
 
     const handleTraitClick = (path) => {
         const trait_tag = _.last(path).tag
+        // clicking a selected trait removes it if the consumer provides a deselect handler
+        if (_.isFunction(handleTraitDeselect) && isTraitSelected(trait_tag)) {
+            handleTraitDeselect(path)
+            return
+        }
         if (_.isArray(trait_paths?.[trait_tag])) {
             handleTraitSelection(path)
             return
@@ -137,6 +142,7 @@ AttributeWithTraitsMenuItem.propTypes = {
     tag: PropTypes.string.isRequired,
     trait_tags: PropTypes.arrayOf(PropTypes.string),
     handleTraitSelection: PropTypes.func,
+    handleTraitDeselect: PropTypes.func,
     selected_traits: PropTypes.arrayOf(PropTypes.string),
     selected_trait_pairs: PropTypes.arrayOf(PropTypes.shape({ attribute_tag: PropTypes.string, trait_tag: PropTypes.string })),
     isMissing: PropTypes.bool,
@@ -169,6 +175,7 @@ AttributesInput.propTypes = {
     matchTargetWidth: PropTypes.bool,
     placeHolderText: PropTypes.string,
     handleTraitSelection: PropTypes.func,
+    handleTraitDeselect: PropTypes.func,
     selected_traits: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ tag: PropTypes.string })])),
     submission_tag: PropTypes.string,
     checkMandatoryAttributes: PropTypes.bool,
@@ -220,7 +227,8 @@ export function AttributesInput({
     submission_tag,
     checkMandatoryAttributes = true,
     disabled = false,
-    attribute_tags = undefined
+    attribute_tags = undefined,
+    handleTraitDeselect = undefined
 }) {
  
     const { data: mandatoryCheck } = api.submissions.core.useCheckSubmission(
@@ -288,6 +296,7 @@ export function AttributesInput({
                     selected_traits={selectedTraitTags}
                     selected_trait_pairs={selectedTraitPairs}
                     handleTraitSelection={handleTraitSelection}
+                    handleTraitDeselect={handleTraitDeselect}
                     isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}
                 />
             ))}

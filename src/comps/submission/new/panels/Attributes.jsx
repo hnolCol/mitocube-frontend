@@ -56,6 +56,13 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         setSubmission(prevValues => { return { ...prevValues, selected_traits } })
     }
 
+    // clicking a selected trait in the additional attributes menu removes it again
+    const handleTraitDeselect = (path) => {
+        let selected_traits = submission.selected_traits.slice()
+        deleteByPath(selected_traits, addIDToPath(path, submission.tag), true)
+        setSubmission(prevValues => { return { ...prevValues, selected_traits } })
+    }
+
      const checkAttributeRequiredTraits = (attribute_tag, trait_tags, referenceID) => {
             let selected_traits = submission.selected_traits.slice()
             const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, referenceID))
@@ -79,6 +86,7 @@ export function AttributesTab({submission, setSubmission, setComponentKey, compo
         
         <AttributesInput
             handleTraitSelection = {handleTraitSelectionHierarchy}
+            handleTraitDeselect = {handleTraitDeselect}
             min_state={submission.state}
             selected_traits={submission.selected_traits} />
         <span className="font-size--smallest">Cellline, organ, tissue, ... anything that applies to all samples.</span> 

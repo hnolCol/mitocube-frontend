@@ -59,8 +59,9 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
 
     const attributes = options?.attributes || []
     const formatAttributes = attributes.filter(a => a.is_format)
-    // attributes that are also part of the mandatory attribute group are entered directly
-    const mandatoryAttributes = attributes.filter(a => a.is_format || (a.mandatory && !a.parent_tag))
+    // attributes that are also part of the mandatory attribute group are entered directly;
+    // the mandatory flag comes from the database (storage group + mandatory group membership)
+    const mandatoryAttributes = attributes.filter(a => a.mandatory && !a.parent_tag)
 
     const getSelectionByPath = (path) => findChildrenByPath(plate.selected_traits, path)
 
@@ -97,6 +98,13 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
         setPlate(prevValues => { return { ...prevValues, selected_traits } })
     }
 
+    // clicking a selected trait in the additional attributes menu removes it again
+    const handleTraitDeselect = (path) => {
+        let selected_traits = plate.selected_traits.slice()
+        deleteByPath(selected_traits, addIDToPath(path, PLATE_REFERENCE_ID), true)
+        setPlate(prevValues => { return { ...prevValues, selected_traits } })
+    }
+
     const checkAttributeRequiredTraits = (attribute_tag, trait_tags) => {
         const selected_traits = plate.selected_traits.slice()
         const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, PLATE_REFERENCE_ID))
@@ -104,12 +112,28 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
     }
 
     const selectedPairs = getSelectedTraitPairs(plate.selected_traits)
-    const trait_tags = _.fromPairs(selectedPairs)
+    // the plate API expects one trait per attribute
+    const trait_tags = Object.fromEntries(selectedPairs.map(p => [p.attribute_tag, p.trait_tag]))
+
+    // a mandatory attribute must have a selected trait as soon as it is reachable, i.e. its
+    // parent chain is selected (mandatory child attributes only apply under a selected parent,
+    // like in the backend insert validation); mandatory root attributes always apply
+    const hasSelectedTrait = (attribute_tag) => _.isString(trait_tags[attribute_tag])
+    const isParentChainSelected = (attribute) => {
+        let parent_tag = attribute.parent_tag
+        while (_.isString(parent_tag)) {
+            if (!hasSelectedTrait(parent_tag)) return false
+            parent_tag = attributes.find(a => a.tag === parent_tag)?.parent_tag
+        }
+        return true
+    }
+    const missingMandatoryAttributes = attributes
+        .filter(a => a.mandatory && !hasSelectedTrait(a.tag) && isParentChainSelected(a))
 
     const selectedFormatTrait = formatAttributes
         .flatMap(a => a.traits.map(t => ({ ...t, attribute_tag: a.tag })))
         .find(t => trait_tags[t.attribute_tag] === t.tag) || null
-    const missingMandatoryAttributes = mandatoryAttributes.filter(a => !_.isString(trait_tags[a.tag]))
+
 
     // preselect 96 wells (or the first format) when the options are loaded
     useEffect(() => {
@@ -177,47 +201,6 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                             </Callout>
                         )}
 
-                        {mandatoryAttributes.map(attribute => {
-                            const path = [{ type: "attribute", tag: attribute.tag, id: attribute.tag }]
-                            const selection = findDataForPath(path)
-                            return (
-                                <TraitsInput
-                                    key={attribute.tag}
-                                    attribute_tag={attribute.tag}
-                                    onItemSelect={mandatoryTraitSelect}
-                                    path={path}
-                                    isMandatory={true}
-                                    referenceID={PLATE_REFERENCE_ID}
-                                    selected_traits={_.isObject(selection) && _.isArray(selection.children) && selection.children.length > 0
-                                        ? selection.children.map(c => c.tag)
-                                        : []}
-                                />
-                            )
-                        })}
-                        {missingMandatoryAttributes.length > 0 && (
-                            <Callout className="margin-bottom--medium" intent="warning">
-                                Select a trait for: {missingMandatoryAttributes.map(a => a.text).join(", ")}.
-                            </Callout>
-                        )}
-
-                        <h4>Additional Attributes</h4>
-                        <AttributesInput
-                            handleTraitSelection={handleTraitSelectionHierarchy}
-                            min_state={0}
-                            selected_traits={plate.selected_traits}
-                            checkMandatoryAttributes={false}
-                            attribute_tags={attributes.map(a => a.tag)}
-                            placeHolderText="Search storage attribute (format, storage, vendor, container, ...)"
-                        />
-                        <span className="font-size--smallest">Vendor, plate type, color, ... anything that describes the storage of the plate.</span>
-                        <DatasetAttributeView
-                            getSelectionByPath={getSelectionByPath}
-                            attributeTraits={plate.selected_traits}
-                            onChildrenSelection={handleTraitSelectionHierarchy}
-                            handleTraitRemove={handleTraitRemove}
-                            checkAttributeRequiredTraits={checkAttributeRequiredTraits}
-                        />
-
                         <FormGroup label="Name" labelFor="plate-name" labelInfo="(required)" helperText="Write this name on the plate label. Must be unique.">
                             <InputGroup
                                 id="plate-name"
@@ -244,6 +227,48 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                                 onChange={(e) => handleChange("description", e.target.value)}
                             />
                         </FormGroup>
+
+                        {mandatoryAttributes.map(attribute => {
+                            const path = [{ type: "attribute", tag: attribute.tag, id: attribute.tag }]
+                            const selection = findDataForPath(path)
+                            return (
+                                <TraitsInput
+                                    key={attribute.tag}
+                                    attribute_tag={attribute.tag}
+                                    onItemSelect={mandatoryTraitSelect}
+                                    path={path}
+                                    isMandatory={true}
+                                    referenceID={PLATE_REFERENCE_ID}
+                                    selected_traits={_.isObject(selection) && _.isArray(selection.children) && selection.children.length > 0
+                                        ? selection.children.map(c => c.tag)
+                                        : []}
+                                />
+                            )
+                        })}
+                        {missingMandatoryAttributes.length > 0 && (
+                            <Callout className="margin-bottom--medium" intent="warning">
+                                Select a trait for: {missingMandatoryAttributes.map(a => a.text).join(", ")}.
+                            </Callout>
+                        )}
+
+                        <h4>Additional Attributes</h4>
+                        <AttributesInput
+                            handleTraitSelection={handleTraitSelectionHierarchy}
+                            handleTraitDeselect={handleTraitDeselect}
+                            min_state={0}
+                            selected_traits={plate.selected_traits}
+                            checkMandatoryAttributes={false}
+                            attribute_tags={attributes.map(a => a.tag)}
+                            placeHolderText="Search storage attribute (format, storage, vendor, container, ...)"
+                        />
+                        <span className="font-size--smallest">Vendor, plate type, color, ... anything that describes the storage of the plate.</span>
+                        <DatasetAttributeView
+                            getSelectionByPath={getSelectionByPath}
+                            attributeTraits={plate.selected_traits}
+                            onChildrenSelection={handleTraitSelectionHierarchy}
+                            handleTraitRemove={handleTraitRemove}
+                            checkAttributeRequiredTraits={checkAttributeRequiredTraits}
+                        />
 
                         {isError && <APIError error={error} />}
                     </>
