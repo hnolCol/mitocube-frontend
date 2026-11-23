@@ -110,3 +110,22 @@ export function getConditionApplicationCounts({ data = [], attribute_tags = [] }
 export function filterAttributeTagsByConditionApplicationCount({ attribute_tags = [], counts = {}, max = MAX_DEFAULT_CONDITION_APPLICATIONS }) {
     return attribute_tags.filter(attribute_tag => !_.has(counts, attribute_tag) || counts[attribute_tag] <= max)
 }
+
+/**
+ * Warnings for attribute group combinations that have cross-module effects.
+ * An attribute that is part of the mandatory, storage AND dataset group is a required input for
+ * plates (mandatory + storage) but also becomes mandatory for submissions (the submission
+ * completeness check considers the attributes of the mandatory AND the dataset group).
+ *
+ * @param {Object} props
+ * @param {String[]} props.group_tags - The selected attribute group tags.
+ * @returns {String[]} Warning messages, empty if the combination is unproblematic.
+ */
+export function getAttributeGroupWarnings({ group_tags = [] }) {
+    const has = tag => group_tags.includes(tag)
+    let warnings = []
+    if (has("mandatory") && has("storage") && has("dataset")) {
+        warnings.push("This attribute is part of the mandatory, storage and dataset groups: it is a required input for plates (mandatory + storage) and also becomes mandatory for every submission (the submission check considers mandatory + dataset attributes). If that is not intended, remove one of the groups.")
+    }
+    return warnings
+}
