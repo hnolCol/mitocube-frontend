@@ -59,8 +59,9 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
 
     const attributes = options?.attributes || []
     const formatAttributes = attributes.filter(a => a.is_format)
-    // attributes that are also part of the mandatory attribute group are entered directly
-    const mandatoryAttributes = attributes.filter(a => a.is_format || (a.mandatory && !a.parent_tag))
+    // attributes that are also part of the mandatory attribute group are entered directly;
+    // the mandatory flag comes from the database (storage group + mandatory group membership)
+    const mandatoryAttributes = attributes.filter(a => a.mandatory && !a.parent_tag)
 
     const getSelectionByPath = (path) => findChildrenByPath(plate.selected_traits, path)
 
@@ -104,7 +105,8 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
     }
 
     const selectedPairs = getSelectedTraitPairs(plate.selected_traits)
-    const trait_tags = _.fromPairs(selectedPairs)
+    // the plate API expects one trait per attribute
+    const trait_tags = Object.fromEntries(selectedPairs.map(p => [p.attribute_tag, p.trait_tag]))
 
     const selectedFormatTrait = formatAttributes
         .flatMap(a => a.traits.map(t => ({ ...t, attribute_tag: a.tag })))
@@ -177,6 +179,33 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                             </Callout>
                         )}
 
+                        <FormGroup label="Name" labelFor="plate-name" labelInfo="(required)" helperText="Write this name on the plate label. Must be unique.">
+                            <InputGroup
+                                id="plate-name"
+                                value={plate.name}
+                                maxLength={50}
+                                onChange={(e) => handleChange("name", e.target.value)}
+                            />
+                        </FormGroup>
+
+                        <FormGroup label="Location" labelFor="plate-location" labelInfo="(optional)">
+                            <InputGroup
+                                id="plate-location"
+                                value={plate.location}
+                                maxLength={200}
+                                onChange={(e) => handleChange("location", e.target.value)}
+                            />
+                        </FormGroup>
+
+                        <FormGroup label="Description" labelFor="plate-description" labelInfo="(optional)">
+                            <TextArea
+                                id="plate-description"
+                                fill
+                                value={plate.description}
+                                onChange={(e) => handleChange("description", e.target.value)}
+                            />
+                        </FormGroup>
+
                         {mandatoryAttributes.map(attribute => {
                             const path = [{ type: "attribute", tag: attribute.tag, id: attribute.tag }]
                             const selection = findDataForPath(path)
@@ -217,33 +246,6 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                             handleTraitRemove={handleTraitRemove}
                             checkAttributeRequiredTraits={checkAttributeRequiredTraits}
                         />
-
-                        <FormGroup label="Name" labelFor="plate-name" labelInfo="(required)" helperText="Write this name on the plate label. Must be unique.">
-                            <InputGroup
-                                id="plate-name"
-                                value={plate.name}
-                                maxLength={50}
-                                onChange={(e) => handleChange("name", e.target.value)}
-                            />
-                        </FormGroup>
-
-                        <FormGroup label="Location" labelFor="plate-location" labelInfo="(optional)">
-                            <InputGroup
-                                id="plate-location"
-                                value={plate.location}
-                                maxLength={200}
-                                onChange={(e) => handleChange("location", e.target.value)}
-                            />
-                        </FormGroup>
-
-                        <FormGroup label="Description" labelFor="plate-description" labelInfo="(optional)">
-                            <TextArea
-                                id="plate-description"
-                                fill
-                                value={plate.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                            />
-                        </FormGroup>
 
                         {isError && <APIError error={error} />}
                     </>
