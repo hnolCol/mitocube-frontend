@@ -336,7 +336,12 @@ function HeatmapViz({
                                 data: heatmapData.data,
                                 valueNames: heatmapData.value_names,
                                 colorNames: (_.isArray(heatmapData.color_names) ? heatmapData.color_names : []),
-                                proteinTagMap
+                                proteinTagMap,
+                                grouping: {
+                                    data: filteredSampleConditionApplications,
+                                    keyNames: attribute_tags,
+                                    attributeTagMap
+                                }
                             }),
                             `heatmap-${submission_tag}.svg`
                         )}>
