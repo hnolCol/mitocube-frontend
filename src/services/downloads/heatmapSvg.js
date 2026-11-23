@@ -1,4 +1,5 @@
 import _ from "lodash";
+import { getColorPalette } from "@mitocube/viz/src/colors/palette";
 
 const RED_BLUE_SCALE_ANCHORS = ["#466688", "#ffffff", "#a82331"];
 const NAN_FILL_COLOR = "#fafafa";
@@ -70,6 +71,10 @@ function rect({ x, y, width, height, fill }) {
 
 function text({ x, y, content, fontSize, transform, textAnchor = "start", dominantBaseline = "middle", fill = "#000000" }) {
     return `<text x="${_.round(x, 3)}" y="${_.round(y, 3)}" font-family="Helvetica, Arial, sans-serif" font-size="${fontSize}" text-anchor="${textAnchor}" dominant-baseline="${dominantBaseline}" fill="${fill}"${transform ? ` transform="${transform}"` : ""}>${escapeXml(content)}</text>`;
+}
+
+function estimateTextWidth(content, fontSize = 12) {
+    return _.toString(content).replace(/&[a-z]+;/g, "x").length * fontSize * 0.6;
 }
 
 function getFeatureLabel(row, proteinTagMap) {
@@ -230,7 +235,40 @@ export function buildHeatmapSvg({
  * @param {Number} props.steps - Number of gradient steps.
  * @returns {String} The SVG string.
  */
-export function buildHeatmapLegendSvg({ heatmapData, minMax = [-6, 6], steps = 7 }) {
+function getGroupingLegendParts({ data, keyNames, is_condition_application, caTagMap, attributeTagMap, startY }) {
+    const elementSize = 20;
+    const blockPadding = 24;
+    const parts = [];
+    let y = startY;
+    keyNames.forEach((keyName, keyIdx) => {
+        const isCa = !_.isArray(is_condition_application) || is_condition_application[keyIdx] !== false;
+        const title = isCa && attributeTagMap instanceof Map && _.isObject(attributeTagMap.get(keyName)) && _.isString(attributeTagMap.get(keyName).text)
+            ? attributeTagMap.get(keyName).text
+            : keyName;
+        const groupKey = (item) => (_.isArray(item[keyName]) ? _.join(item[keyName], ",") : item[keyName]);
+        const uniqueValues = _.uniq((_.isArray(data) ? data : []).map(groupKey));
+        parts.push(text({ x: 0, y: y + 12, content: title, fontSize: 16 }));
+        y += blockPadding;
+        uniqueValues.forEach((value) => {
+            const label = _.isString(value)
+                ? value.split(",").map((tag) => {
+                    const mapped = caTagMap instanceof Map ? caTagMap.get(tag) : undefined;
+                    return _.isString(mapped) && mapped.length > 0 ? mapped : (_.isObject(mapped) && _.isString(mapped.text) ? mapped.text : tag);
+                }).join(", ")
+                : _.toString(value);
+            const colorIdx = uniqueValues.indexOf(value);
+            const colorPalette = getColorPalette(uniqueValues.length, false, keyIdx);
+            const actualFill = colorIdx === uniqueValues.indexOf("-") ? "#fafafa" : (colorPalette[colorIdx] || "#000000");
+            parts.push(rect({ x: 0, y, width: elementSize, height: elementSize, fill: actualFill }));
+            parts.push(text({ x: elementSize + 6, y: y + elementSize / 2, content: label, fontSize: 12 }));
+            y += elementSize;
+        });
+        y += blockPadding;
+    });
+    return { parts, endY: y };
+}
+
+export function buildHeatmapLegendSvg({ heatmapData, minMax = [-6, 6], steps = 7, grouping = null }) {
     const valueScale = getValueColorScale(minMax);
     const elementSize = 20;
     const gradientValues = Array.from(
@@ -282,8 +320,27 @@ export function buildHeatmapLegendSvg({ heatmapData, minMax = [-6, 6], steps = 7
         });
     }
 
-    const width = 280;
-    const height = clusterCount > 0 ? 104 + (clusterCount + 1) * 26 : 68;
+    let endY = clusterCount > 0 ? 104 + (clusterCount + 1) * 26 : 68;
+    let legendaryWidth = 280;
+    if (_.isObject(grouping) && _.isArray(grouping.keyNames) && grouping.keyNames.length > 0) {
+        const { parts: groupingParts, endY: groupingEndY } = getGroupingLegendParts({
+            data: grouping.data,
+            keyNames: grouping.keyNames,
+            is_condition_application: grouping.is_condition_application,
+            caTagMap: grouping.caTagMap,
+            attributeTagMap: grouping.attributeTagMap,
+            startY: endY
+        });
+        groupingParts.forEach((part) => {
+            const labelMatch = part.match(/^<text[^>]*>(.*)<\/text>$/);
+            if (labelMatch) legendaryWidth = Math.max(legendaryWidth, estimateTextWidth(labelMatch[1]) + 26 + 6);
+            parts.push(part);
+        });
+        endY = groupingEndY;
+    }
+
+    const width = Math.max(280, Math.ceil(legendaryWidth));
+    const height = Math.ceil(endY);
     return `<?xml version="1.0" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
     ${parts.join("\n    ")}
