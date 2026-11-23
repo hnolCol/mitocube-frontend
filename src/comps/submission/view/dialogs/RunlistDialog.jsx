@@ -1,4 +1,4 @@
-import { Button, Callout, Code, Dialog, DialogBody, DialogFooter, Menu, MenuItem, Popover, Switch } from "@blueprintjs/core";
+import { Button, Callout, Code, Collapse, Dialog, DialogBody, DialogFooter, Menu, MenuItem, Popover, Switch, Tag } from "@blueprintjs/core";
 import { useState, useMemo } from "react";
 import { api } from "@/api";
 import _ from "lodash"
@@ -82,6 +82,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
     const [selectedInstrument, setSelectedInstrument] = useState(null)
     const [createPlateOpen, setCreatePlateOpen] = useState(false)
+    const [showFractionation, setShowFractionation] = useState(false)
 
     // physical plates from the database
     const { data: dbPlates, refetch: refetchPlates } = api.plates.plates.useGetPlates({ enabled: isOpen })
@@ -359,7 +360,19 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                     
                     </div>
 
-                    <h3>Fractionation</h3>
+                    <h3
+                        style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: "0.35rem" }}
+                        onClick={() => setShowFractionation(prev => !prev)}
+                    >
+                        <span style={{ fontSize: "0.75rem", color: "#5c7080" }}>{showFractionation ? "\u25BE" : "\u25B8"}</span>
+                        Fractionation
+                        {runlistProps.fractionate
+                            ? <Tag minimal intent="primary" style={{ marginLeft: "0.25rem" }}>
+                                on{runlistProps.n_fractions !== "" && _.toInteger(runlistProps.n_fractions) > 0 ? ` \u00b7 ${runlistProps.n_fractions} fraction${_.toInteger(runlistProps.n_fractions) > 1 ? "s" : ""}` : ""}
+                              </Tag>
+                            : null}
+                    </h3>
+                    <Collapse isOpen={showFractionation}>
                     <div className="flex center-items">
                         <div style={{ minWidth: "min(200px,20vw)" }}>
                         <div>
@@ -386,6 +399,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                         </Callout>
                         </div>
                     </div>
+                    </Collapse>
                     <hr />
                     <h3>Instrument</h3>
                     <div className="flex center-items">
