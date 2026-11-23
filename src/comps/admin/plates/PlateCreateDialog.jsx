@@ -108,10 +108,25 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
     // the plate API expects one trait per attribute
     const trait_tags = Object.fromEntries(selectedPairs.map(p => [p.attribute_tag, p.trait_tag]))
 
+    // a mandatory attribute must have a selected trait as soon as it is reachable, i.e. its
+    // parent chain is selected (mandatory child attributes only apply under a selected parent,
+    // like in the backend insert validation); mandatory root attributes always apply
+    const hasSelectedTrait = (attribute_tag) => _.isString(trait_tags[attribute_tag])
+    const isParentChainSelected = (attribute) => {
+        let parent_tag = attribute.parent_tag
+        while (_.isString(parent_tag)) {
+            if (!hasSelectedTrait(parent_tag)) return false
+            parent_tag = attributes.find(a => a.tag === parent_tag)?.parent_tag
+        }
+        return true
+    }
+    const missingMandatoryAttributes = attributes
+        .filter(a => a.mandatory && !hasSelectedTrait(a.tag) && isParentChainSelected(a))
+
     const selectedFormatTrait = formatAttributes
         .flatMap(a => a.traits.map(t => ({ ...t, attribute_tag: a.tag })))
         .find(t => trait_tags[t.attribute_tag] === t.tag) || null
-    const missingMandatoryAttributes = mandatoryAttributes.filter(a => !_.isString(trait_tags[a.tag]))
+
 
     // preselect 96 wells (or the first format) when the options are loaded
     useEffect(() => {
