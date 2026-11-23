@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [neo4j_comp, main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Provide sibling packages (@mitocube/api-hooks, @mitocube/viz)
+        run: |
+          git clone --depth 1 https://github.com/hnolCol/mitocube-api-hooks ../mitocube-api-hooks
+          git clone --depth 1 https://github.com/hnolCol/mitocube-viz ../mitocube-viz
+          yarn --cwd ../mitocube-api-hooks install --frozen-lockfile --production
+          yarn --cwd ../mitocube-viz install --frozen-lockfile --production
+          mkdir -p node_modules/@mitocube
+          ln -s "$PWD/../mitocube-api-hooks" node_modules/@mitocube/api-hooks
+          ln -s "$PWD/../mitocube-viz" node_modules/@mitocube/viz
+          mkdir -p ../mitocube-viz/node_modules/@mitocube
+          ln -s "$PWD/../mitocube-api-hooks" ../mitocube-viz/node_modules/@mitocube/api-hooks
+
+      - name: Build
+        run: yarn build
+
+  lint:
+    runs-on: ubuntu-latest
+    # Advisory until the lint findings from the newly added .eslintrc.cjs are resolved.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
