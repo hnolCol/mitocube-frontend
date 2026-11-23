@@ -111,6 +111,7 @@ function roundNumberLabel({ number, limit }) {
  * @param {Number[]} props.minMax - The z-score color scale domain.
  * @param {Number} props.binHeight - Bin size in pixels.
  * @param {Map} props.proteinTagMap - Map feature/protein tag to display text.
+ * @param {Object} [props.grouping] - Sample assignment grouping rendered as colored bars above the value columns (mirrors @mitocube/viz HeatmapGrouping). `{ data: condition applications ordered like valueNames, keyNames: attribute tags, attributeTagMap }`.
  * @returns {String} The SVG string.
  */
 export function buildHeatmapSvg({
@@ -119,7 +120,8 @@ export function buildHeatmapSvg({
     colorNames = [],
     minMax = [-6, 6],
     binHeight = 15,
-    proteinTagMap
+    proteinTagMap,
+    grouping = null
 }) {
     const valueScale = getValueColorScale(minMax);
     const clusterValues = _.uniq(data.map(row => row.cluster).filter(value => value !== undefined));
@@ -130,48 +132,101 @@ export function buildHeatmapSvg({
     const colorValuesExist = colorValues.length > 0;
     const extraColorScale = getPaletteColorScale(colorValues);
 
-    const columnHeaderHeight = valueNames.length > 0 ? 160 : 0;
+    const groupingRows = _.isObject(grouping) && _.isArray(grouping.keyNames)
+        ? grouping.keyNames
+            .map((keyName, keyIdx) => {
+                const groupKey = (item) => (_.isArray(item[keyName]) ? _.join(item[keyName], ",") : item[keyName]);
+                const uniqueValues = _.uniq((_.isArray(grouping.data) ? grouping.data : []).map(groupKey));
+                const colorPalette = getColorPalette(uniqueValues.length, false, keyIdx);
+                return {
+                    keyName,
+                    values: (_.isArray(grouping.data) ? grouping.data : []).map(groupKey),
+                    fillColor: (value) => {
+                        const colorIdx = uniqueValues.indexOf(value);
+                        return colorIdx === uniqueValues.indexOf("-") ? "#fafafa" : (colorPalette[colorIdx] || "#000000");
+                    },
+                    title: grouping.attributeTagMap instanceof Map && _.isObject(grouping.attributeTagMap.get(keyName)) && _.isString(grouping.attributeTagMap.get(keyName).text)
+                        ? grouping.attributeTagMap.get(keyName).text
+                        : keyName
+                };
+            })
+        : [];
+    const groupingRowHeight = binHeight;
+    const groupingVerticalMargin = 5;
+    const groupingHeight = groupingRows.length > 0
+        ? groupingRows.length * (groupingRowHeight + groupingVerticalMargin) - groupingVerticalMargin
+        : 0;
+
     const numberRows = data.length;
     const heatmapWidth = valueNames.length * binHeight + colorNames.length * binHeight + 300;
     const heatmapHeight = numberRows * binHeight;
     const svgWidth = Math.max(heatmapWidth, 400);
-    const svgHeight = columnHeaderHeight + heatmapHeight;
+    const maxBottomLabelLength = _.max([
+        "Cluster",
+        ...valueNames,
+        ...colorNames
+    ].map(name => _.toString(name).length)) || 0;
+    const bottomLabelHeight = _.clamp(_.round(maxBottomLabelLength * 11 * 0.87) + 4, 16, 160);
+    const svgHeight = groupingHeight + heatmapHeight + bottomLabelHeight;
     const xValuesEnd = valueNames.length * binHeight + 1;
     const marginBetweenValuesAndColors = colorValuesExist ? binHeight : 0;
     const marginBetweenValuesAndLabels = colorValuesExist
         ? colorNames.length * binHeight + marginBetweenValuesAndColors
         : marginBetweenValuesAndColors;
 
-    const columnHeaderParts = [];
-    const columnTextY = columnHeaderHeight - 10;
+    const groupingParts = groupingRows.map((row, rowIdx) => {
+        const y = rowIdx * (groupingRowHeight + groupingVerticalMargin);
+        const sampleRects = valueNames.map((valueName, sampleIdx) => {
+            const sample = _.isArray(grouping.data) ? grouping.data[sampleIdx] : undefined;
+            return rect({
+                x: binHeight + binHeight / 4 + sampleIdx * binHeight,
+                y,
+                width: binHeight,
+                height: groupingRowHeight,
+                fill: sample === undefined ? NAN_FILL_COLOR : row.fillColor(row.values[sampleIdx])
+            });
+        });
+        const title = text({
+            x: xValuesEnd + binHeight / 4 + 5,
+            y: y + groupingRowHeight / 2,
+            content: row.title,
+            fontSize: 11
+        });
+        return sampleRects.join("") + title;
+    });
+
+    const bottomLabelParts = [];
+    const bottomLabelY = 2;
     if (clusterValues.length > 0) {
-        columnHeaderParts.push(text({
+        bottomLabelParts.push(text({
             x: binHeight / 2,
-            y: columnTextY,
+            y: bottomLabelY,
             content: "Cluster",
             fontSize: 11,
-            transform: `rotate(-60, ${binHeight / 2}, ${columnTextY})`
+            textAnchor: "end",
+            transform: `rotate(-60, ${binHeight / 2}, ${bottomLabelY})`
         }));
     }
     valueNames.forEach((valueName, valueIdx) => {
-        const valueNameIdx = valueIdx;
-        const x = (valueNameIdx + 1) * binHeight + binHeight / 4 + binHeight / 2;
-        columnHeaderParts.push(text({
+        const x = (valueIdx + 1) * binHeight + binHeight / 4 + binHeight / 2;
+        bottomLabelParts.push(text({
             x,
-            y: columnTextY,
+            y: bottomLabelY,
             content: valueName,
             fontSize: 11,
-            transform: `rotate(-60, ${x}, ${columnTextY})`
+            textAnchor: "end",
+            transform: `rotate(-60, ${x}, ${bottomLabelY})`
         }));
     });
     colorNames.forEach((colorName, colorIdx) => {
         const x = xValuesEnd + marginBetweenValuesAndColors + colorIdx * binHeight + binHeight / 2;
-        columnHeaderParts.push(text({
+        bottomLabelParts.push(text({
             x,
-            y: columnTextY,
+            y: bottomLabelY,
             content: colorName,
             fontSize: 11,
-            transform: `rotate(-60, ${x}, ${columnTextY})`
+            textAnchor: "end",
+            transform: `rotate(-60, ${x}, ${bottomLabelY})`
         }));
     });
 
@@ -216,11 +271,12 @@ export function buildHeatmapSvg({
 
     return `<?xml version="1.0" standalone="no"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
-    <g transform="translate(0, ${columnHeaderHeight})">
-        <g transform="translate(0, ${-columnHeaderHeight})">
-            ${columnHeaderParts.join("\n            ")}
-        </g>
+    ${groupingParts.length > 0 ? `<g>${groupingParts.join("\n    ")}</g>` : ""}
+    <g transform="translate(0, ${groupingHeight})">
         ${rowParts.join("\n        ")}
+    </g>
+    <g transform="translate(0, ${groupingHeight + heatmapHeight})">
+        ${bottomLabelParts.join("\n        ")}
     </g>
 </svg>`;
 }
