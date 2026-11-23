@@ -5,7 +5,7 @@
 .explore-graph__canvas {
     position: relative;
     overflow-x: auto;
-    overflow-y: hidden;
+    overflow-y: auto;
     max-height: 55vh;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
