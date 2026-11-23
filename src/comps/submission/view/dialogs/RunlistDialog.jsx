@@ -120,6 +120,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     const [instrumentCombos, setInstrumentCombos] = useState([init_instrument_combo()])
     const [createPlateOpen, setCreatePlateOpen] = useState(false)
     const [showFractionation, setShowFractionation] = useState(false)
+    const [showPooling, setShowPooling] = useState(false)
 
     // physical plates from the database
     const { data: dbPlates, refetch: refetchPlates } = api.plates.plates.useGetPlates({ enabled: isOpen })
@@ -293,8 +294,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
         reset()
         setRunlistProps(init_runprops)
         setPlates(initPlates)
-        setSelectedInstrumentType(null)
-        setSelectedInstrument(null)
+        setInstrumentCombos([init_instrument_combo()])
     }
 
     const handleSubmit = () => {
@@ -366,7 +366,19 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                         Another example, if samples are pooled (<strong>aggregated</strong>), the number of runs is smaller than the number of samples. For this, a sample attribute must be defined that can 
                         be used to indicate pooling (see below for more information).
                     </p>
-                    <h3>Sample pooling/aggregation</h3>
+                    <h3
+                        style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: "0.35rem" }}
+                        onClick={() => setShowPooling(prev => !prev)}
+                    >
+                        <span style={{ fontSize: "0.75rem", color: "#5c7080" }}>{showPooling ? "\u25BE" : "\u25B8"}</span>
+                        Sample pooling/aggregation
+                        {runlistProps.aggregate_on
+                            ? <Tag minimal intent="primary" style={{ marginLeft: "0.25rem" }}>
+                                pooled on {_.get(runlistProps, "aggregate_on.text")}
+                              </Tag>
+                            : null}
+                    </h3>
+                    <Collapse isOpen={showPooling}>
                     <div className="flex center-items">
                         <div style={{minWidth: "min(200px,20vw)"}}>
                             <div className="flex center-items">
@@ -398,6 +410,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                     
                     
                     </div>
+                    </Collapse>
 
                     <h3
                         style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: "0.35rem" }}
