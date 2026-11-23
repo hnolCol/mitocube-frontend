@@ -1,4 +1,4 @@
-import { Button, Callout, Code, Dialog, DialogBody, DialogFooter, Menu, MenuItem, Popover, Switch } from "@blueprintjs/core";
+import { Button, Callout, Code, Collapse, Dialog, DialogBody, DialogFooter, Menu, MenuItem, Popover, Switch, Tag } from "@blueprintjs/core";
 import { useState, useMemo } from "react";
 import { api } from "@/api";
 import _ from "lodash"
@@ -30,6 +30,44 @@ function getNumberOfSamples(submission, aggregate_on = undefined, n_fractions = 
 
 const initplateLabel = getRandomID(5)
 const init_runprops = {n_fractions : "", fractionate : false, aggregate_on : undefined, rows_first : true, scramble : true, scramble_across_plates : false, plate_format : {rows : 8, columns : 12}}
+const init_instrument_combo = () => ({ type: null, instrument: null })
+
+/**
+ * @description One (instrument type -> instrument) combination a runlist is measured with.
+ * Each row picks the instrument type (e.g. mass spectrometer, LC system) and then the specific
+ * instrument. Types already used in another row are not selectable, so each combination is unique.
+ */
+function InstrumentComboRow({ combo, takenTypeTags = [], onChange, onRemove }) {
+    const { data: allTypes } = api.instruments.core.useGetInstrumentTypes()
+    const instrument_types = (allTypes || []).filter(t => !takenTypeTags.includes(t.tag) || t.tag === combo.type?.tag)
+    const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
+        { tag: combo.type?.tag },
+        { enabled: !!combo.type?.tag }
+    )
+    return (
+        <div className="flex center-items gap--small" style={{ marginBottom: "0.35rem" }}>
+            <Combobox
+                items={instrument_types}
+                placeholder="Select instrument type..."
+                textKey="text"
+                matchTargetWidth={false}
+                onChange={(item) => onChange({ type: item, instrument: null })}
+                value={combo.type?.text || null}
+            />
+            {combo.type ? (
+                <Combobox
+                    items={instruments || []}
+                    placeholder="Select instrument..."
+                    textKey="text"
+                    matchTargetWidth={false}
+                    onChange={(item) => onChange({ type: combo.type, instrument: item })}
+                    value={combo.instrument?.text || null}
+                />
+            ) : null}
+            <RemoveButton onRemove={onRemove} />
+        </div>
+    )
+}
 const initSelectedWells = { isMouseDown: false, selected: [], lastClicked: undefined, fromRectangleSelection: false, rectangleSelectionStarted: undefined, currentRectangleSelection: [] }
 const initPlates = {
     activePlateLabel: initplateLabel,
@@ -79,9 +117,9 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     })
     const runlistLoading = runlistSubmitIsLoading || runlistSubmitIsFetching
 
-    const [selectedInstrumentType, setSelectedInstrumentType] = useState(null)
-    const [selectedInstrument, setSelectedInstrument] = useState(null)
+    const [instrumentCombos, setInstrumentCombos] = useState([init_instrument_combo()])
     const [createPlateOpen, setCreatePlateOpen] = useState(false)
+    const [showFractionation, setShowFractionation] = useState(false)
 
     // physical plates from the database
     const { data: dbPlates, refetch: refetchPlates } = api.plates.plates.useGetPlates({ enabled: isOpen })
@@ -211,18 +249,15 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
     
     const allPlatesAssigned = plates.labels.every(label => !!plates.plateTags?.[label])
 
+    const allInstrumentsSelected = instrumentCombos.length > 0 && instrumentCombos.every(c => !!c.instrument)
+
     const isFormValid =
-        !!selectedInstrument &&
+        allInstrumentsSelected &&
         (!runlistProps.fractionate || (_.toInteger(runlistProps.n_fractions) > 0)) &&
         totalWellsSelected >= wellsNeeded &&
         totalWellsSelected > 0 &&
         allPlatesAssigned
     
-    const { data: instrumentTypes } = api.instruments.core.useGetInstrumentTypes()
-    const { data: instruments } = api.instruments.core.useGetInstrumentsByType(
-        { tag: selectedInstrumentType?.tag },
-        { enabled: !!selectedInstrumentType }
-    )
     const handleItemChange = (key, value) => {
         setRunlistProps(prevValues => {return {...prevValues, [key] : value}})
     }
@@ -294,7 +329,7 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
             scramble_across_plates: runlistProps.scramble_across_plates,
             n_fractions: runlistProps.n_fractions === "" || !runlistProps.fractionate ? undefined : _.toInteger(runlistProps.n_fractions),
             free_plate_positions: freePlatePositions,
-            instrument_tag: selectedInstrument?.tag,
+            instrument_tags: instrumentCombos.map(c => c.instrument?.tag).filter(tag => !!tag),
             plate_tags: plates.labels.map(label => plates.plateTags[label])
         }
         
@@ -304,7 +339,12 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
      * @description Exports the runlist to a tab-delimited txt-file. 
      */    
     const exportRunlistToTxtFile = () => {
-        let infoString = objectToKeyValueString({ obj: runlist, ignoreKeys: ["runs"] })
+        const { instruments, ...info } = runlist
+        // the runlist can have multiple instruments, render them as a readable list in the download
+        const infoString = objectToKeyValueString({
+            obj: { ...info, "instruments": (instruments || []).map(i => i.text).filter(Boolean).join(", ") },
+            ignoreKeys: ["runs"]
+        })
         let runString = arrayObjectsToString({ array: runlist.runs})
         //finally download the data
         downloadTxtFile(`${infoString}\n\n\n${runString}`,`${submission.label}-${runlist["runs"].length}-runs.txt`)
@@ -359,7 +399,19 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                     
                     </div>
 
-                    <h3>Fractionation</h3>
+                    <h3
+                        style={{ cursor: "pointer", userSelect: "none", display: "flex", alignItems: "center", gap: "0.35rem" }}
+                        onClick={() => setShowFractionation(prev => !prev)}
+                    >
+                        <span style={{ fontSize: "0.75rem", color: "#5c7080" }}>{showFractionation ? "\u25BE" : "\u25B8"}</span>
+                        Fractionation
+                        {runlistProps.fractionate
+                            ? <Tag minimal intent="primary" style={{ marginLeft: "0.25rem" }}>
+                                on{runlistProps.n_fractions !== "" && _.toInteger(runlistProps.n_fractions) > 0 ? ` \u00b7 ${runlistProps.n_fractions} fraction${_.toInteger(runlistProps.n_fractions) > 1 ? "s" : ""}` : ""}
+                              </Tag>
+                            : null}
+                    </h3>
+                    <Collapse isOpen={showFractionation}>
                     <div className="flex center-items">
                         <div style={{ minWidth: "min(200px,20vw)" }}>
                         <div>
@@ -386,37 +438,31 @@ export function RunlistCreatorDialog({ isOpen, submission, onClose }) {
                         </Callout>
                         </div>
                     </div>
+                    </Collapse>
                     <hr />
-                    <h3>Instrument</h3>
+                    <h3>Instruments</h3>
                     <div className="flex center-items">
-                        <div style={{ minWidth: "min(200px,20vw)" }}>
-                            <Combobox
-                                items={instrumentTypes || []}
-                                placeholder="Select instrument type..."
-                                callbackKey="instrumentType"
-                                textKey="text"
-                                matchTargetWidth={false}
-                                onChange={(key, item) => {
-                                    setSelectedInstrumentType(item)
-                                    setSelectedInstrument(null)
-                                }}
-                                value={selectedInstrumentType?.text || null}
-                            />
-                            {selectedInstrumentType && (
-                                <Combobox
-                                    items={instruments || []} 
-                                    placeholder="Select instrument..."
-                                    callbackKey="instrument"
-                                    textKey="text"
-                                    matchTargetWidth={false}
-                                    onChange={(key, item) => setSelectedInstrument(item)}
-                                    value={selectedInstrument?.text || null}
+                        <div className="flex flex-column" style={{ minWidth: "min(280px,30vw)" }}>
+                            {instrumentCombos.map((combo, idx) => (
+                                <InstrumentComboRow
+                                    key={idx}
+                                    combo={combo}
+                                    takenTypeTags={instrumentCombos.filter((_, i) => i !== idx).map(c => c.type?.tag).filter(Boolean)}
+                                    onChange={(value) => setInstrumentCombos(prev => prev.map((c, i) => i === idx ? value : c))}
+                                    onRemove={() => setInstrumentCombos(prev => prev.filter((_, i) => i !== idx))}
                                 />
-                            )}
+                            ))}
+                            <Button
+                                small
+                                icon="plus"
+                                text="Add instrument"
+                                onClick={() => setInstrumentCombos(prev => [...prev, init_instrument_combo()])}
+                                disabled={instrumentCombos.some(c => !c.type)}
+                            />
                         </div>
                         <div style={{ maxWidth: "min(600px,70vw)", marginLeft: "2rem" }}>
                             <Callout>
-                                <p>Select the instrument that will measure this runlist. First pick the instrument type (e.g. mass spectrometer, LC system), then select the specific instrument.</p>
+                                <p>Select the instrument(s) that will measure this runlist. First pick the instrument type (e.g. mass spectrometer, LC system), then the specific instrument. Add another combination to record e.g. the LC system coupled to the mass spectrometer.</p>
                             </Callout>
                         </div>
                     </div>
