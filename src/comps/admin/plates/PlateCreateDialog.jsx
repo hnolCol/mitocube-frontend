@@ -1,79 +1,49 @@
-import { Button, Callout, Dialog, DialogBody, DialogFooter, FormGroup, HTMLSelect, InputGroup, TextArea } from "@blueprintjs/core"
+import { Button, Callout, Dialog, DialogBody, DialogFooter, FormGroup, InputGroup, TextArea } from "@blueprintjs/core"
 import { useEffect, useState } from "react"
 import { api } from "@/api"
 import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
+import _ from "lodash"
+import { AttributesInput } from "../../core/input/api/DatasetAttributeInput"
+import { DatasetAttributeView } from "../../core/base/attributes/DatasetAttributeView"
+import { TraitsInput } from "../../core/input/api/TraitsInput"
+import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPathExists, addIDToPath, findNode } from "../../submission/new/sample_attributes/select/SamplesAttributeWrapper"
+
+// reference id of the plate-to-be; like the submission tag it scopes the selected traits tree
+const PLATE_REFERENCE_ID = "new-plate"
 
 const initPlate = {
     name: "",
-    trait_tags: {},   // attribute_tag -> selected trait_tag
-    optional_attributes: [],  // tags of the non-mandatory attributes the user added via the picker
+    selected_traits: [],   // selected traits tree like the submission dataset attributes
     location: "",
     description: ""
 }
 
 /**
- * @description Optional trait select with an empty "-" option.
+ * @description Flattens the selected traits tree into (attribute_tag, trait_tag) pairs. The
+ * attribute of a trait is its nearest ancestor attribute node, so child attributes that were
+ * entered under a parent trait keep their own attribute tag.
  */
-function TraitSelect({ id, value, options, onChange }) {
-    return (
-        <HTMLSelect
-            id={id}
-            fill
-            value={value || ""}
-            onChange={(e) => onChange(e.target.value)}
-            options={[{ value: "", label: "\u2013" }, ...(options || []).map(o => ({ value: o.tag, label: o.text }))]}
-        />
-    )
+function getSelectedTraitPairs(nodes, attribute_tag = undefined, acc = []) {
+    if (!_.isArray(nodes)) return acc
+    nodes.forEach(node => {
+        if (!_.isObject(node) || !_.isString(node.tag)) return
+        if (node.type === "attribute") {
+            getSelectedTraitPairs(node.children, node.tag, acc)
+        } else if (node.type === "trait") {
+            if (_.isString(attribute_tag)) acc.push({ attribute_tag, trait_tag: node.tag })
+            getSelectedTraitPairs(node.children, attribute_tag, acc)
+        }
+    })
+    return acc
 }
 
 /**
- * @description One attribute of the storage attribute group with its child attributes. Mandatory
- * attributes (also part of the mandatory attribute group) offer their traits as a required
- * select; the others have an empty "-" option and can be added via the attribute picker. Child
- * attributes (e.g. a container material under the container format) only appear once a trait
- * of the parent attribute is selected, like in the condition application selects.
- */
-function AttributeSelect({ attribute, trait_tags, onChange, childrenSelects }) {
-    const selectedTrait = trait_tags[attribute.tag]
-    const isRequired = attribute.is_format || attribute.mandatory
-    return (
-        <>
-            <FormGroup
-                label={attribute.text}
-                labelFor={`plate-attribute-${attribute.tag}`}
-                labelInfo={isRequired ? "(required)" : "(optional)"}
-                helperText={attribute.description}
-            >
-                {isRequired ? (
-                    <HTMLSelect
-                        id={`plate-attribute-${attribute.tag}`}
-                        fill
-                        value={selectedTrait || ""}
-                        onChange={(e) => onChange(attribute.tag, e.target.value)}
-                        options={(attribute.traits || []).map(o => ({ value: o.tag, label: o.description ? `${o.description} (${o.text})` : o.text }))}
-                    />
-                ) : (
-                    <TraitSelect
-                        id={`plate-attribute-${attribute.tag}`}
-                        value={selectedTrait}
-                        options={attribute.traits}
-                        onChange={(v) => onChange(attribute.tag, v)}
-                    />
-                )}
-            </FormGroup>
-            {childrenSelects && selectedTrait ? <div className="padding-left--medium">{childrenSelects}</div> : null}
-        </>
-    )
-}
-
-/**
- * @description Dialog to create a new plate. The plate is fully defined by the attributes of the
- * storage attribute group; the selected traits are stored as condition applications of the plate.
- * Attributes that are also part of the mandatory attribute group (e.g. the container format) are
- * entered directly as required selects. The other attributes of the group can be added via an
- * attribute picker and are then shown with their traits (and child attributes) below, like the
- * condition applications of a submission.
+ * @description Like the dataset attributes of a submission: the mandatory attributes of the
+ * storage attribute group are entered directly, the other storage attributes can be added via
+ * the additional attributes input. The selected traits are rendered below as condition
+ * applications (child attributes can be entered under a selected trait) and are stored as
+ * condition applications of the plate.
  * The attribute whose traits have values of the form '<rows>x<columns>' is the container format.
  * @param {Object} props
  * @param {Boolean} props.isOpen If the dialog is open.
@@ -89,35 +59,71 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
 
     const attributes = options?.attributes || []
     const formatAttributes = attributes.filter(a => a.is_format)
-    // attributes that are also part of the mandatory attribute group are entered directly; the
-    // container format is always a required input even without the mandatory flag
-    const mandatoryAttributes = attributes.filter(a => (a.is_format || (a.mandatory && !a.parent_tag)))
-    const missingMandatoryAttributes = mandatoryAttributes.filter(a => !plate.trait_tags[a.tag])
-    // the other root attributes of the storage group are offered via the attribute picker
-    const optionalRootAttributes = attributes.filter(a => !a.mandatory && !a.parent_tag)
-    const addedOptionalAttributes = plate.optional_attributes
-        .map(tag => attributes.find(a => a.tag === tag))
-        .filter(Boolean)
-    const unpickedOptionalAttributes = optionalRootAttributes.filter(a => !plate.optional_attributes.includes(a.tag))
+    // attributes that are also part of the mandatory attribute group are entered directly
+    const mandatoryAttributes = attributes.filter(a => a.is_format || (a.mandatory && !a.parent_tag))
+
+    const getSelectionByPath = (path) => findChildrenByPath(plate.selected_traits, path)
+
+    const findDataForPath = (path) => {
+        path = addIDToPath(path, PLATE_REFERENCE_ID)
+        return findPath(plate.selected_traits, path)
+    }
+
+    const handleTraitSelectionHierarchy = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false, singleTrait = false, checkExists = false) => {
+        //row index is just for the table, not used here.
+        path = addIDToPath(path, PLATE_REFERENCE_ID)
+        let selected_traits = plate.selected_traits.slice()
+        const pathExists = checkPathExists(selected_traits, path, true)
+        const isValueInput = _.has(_.last(path), "value") && _.isString(_.last(path).value)
+        if (checkExists && pathExists && !isValueInput) {
+            deleteByPath(selected_traits, path, true)
+        } else {
+            findAndInsertTree(selected_traits, path, {
+                enforceSingleVariantPerGroup,
+                replaceChildrenAtLeaf,
+                singleTrait
+            })
+        }
+        setPlate(prevValues => { return { ...prevValues, selected_traits } })
+    }
+
+    const mandatoryTraitSelect = (path, rowIndex, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false, singleTrait = false) => {
+        handleTraitSelectionHierarchy(path, rowIndex, enforceSingleVariantPerGroup, replaceChildrenAtLeaf, singleTrait, true)
+    }
+
+    const handleTraitRemove = (path) => {
+        let selected_traits = plate.selected_traits.slice()
+        deleteByPath(selected_traits, path, false)
+        setPlate(prevValues => { return { ...prevValues, selected_traits } })
+    }
+
+    const checkAttributeRequiredTraits = (attribute_tag, trait_tags) => {
+        const selected_traits = plate.selected_traits.slice()
+        const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, PLATE_REFERENCE_ID))
+        return _.some(foundNode)
+    }
+
+    const selectedPairs = getSelectedTraitPairs(plate.selected_traits)
+    const trait_tags = _.fromPairs(selectedPairs)
+
+    const selectedFormatTrait = formatAttributes
+        .flatMap(a => a.traits.map(t => ({ ...t, attribute_tag: a.tag })))
+        .find(t => trait_tags[t.attribute_tag] === t.tag) || null
+    const missingMandatoryAttributes = mandatoryAttributes.filter(a => !_.isString(trait_tags[a.tag]))
 
     // preselect 96 wells (or the first format) when the options are loaded
     useEffect(() => {
         if (isOpen && formatAttributes.length > 0) {
-            setPlate(prev => {
-                const trait_tags = { ...prev.trait_tags }
-                for (const attribute of formatAttributes) {
-                    if (trait_tags[attribute.tag]) continue
-                    const preferred = attribute.traits.find(t => t.rows * t.columns === 96) || attribute.traits[0]
-                    if (preferred) trait_tags[attribute.tag] = preferred.tag
-                }
-                return { ...prev, trait_tags }
-            })
+            const formatAttribute = formatAttributes[0]
+            const preferred = formatAttribute.traits.find(t => t.rows * t.columns === 96) || formatAttribute.traits[0]
+            if (preferred && !trait_tags[formatAttribute.tag]) {
+                handleTraitSelectionHierarchy([
+                    { type: "attribute", tag: formatAttribute.tag },
+                    { type: "trait", tag: preferred.tag, id: PLATE_REFERENCE_ID }
+                ])
+            }
         }
     }, [isOpen, options])
-
-    const selectedFormatTrait = formatAttributes
-        .map(a => a.traits.find(t => t.tag === plate.trait_tags[a.tag]))
-        .find(t => !!t)
 
     const { data: suggestedName, refetch: refetchName } = api.plates.plates.useGetNextPlateName(
         { rows: selectedFormatTrait?.rows, columns: selectedFormatTrait?.columns },
@@ -126,7 +132,7 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
 
     // fill in the suggested name when the format changes
     useEffect(() => {
-        if (isOpen && suggestedName) setPlate(prev => ({ ...prev, name: suggestedName }))
+        if (isOpen && suggestedName) setPlate(prevValues => ({ ...prev, name: suggestedName }))
     }, [suggestedName, isOpen])
 
     const { mutate: postPlate, isLoading, isError, error, reset } = api.plates.plates.usePostPlate({
@@ -142,22 +148,6 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
 
     const handleChange = (key, value) => setPlate(prev => ({ ...prev, [key]: value }))
 
-    const handleTraitChange = (attributeTag, traitTag) => setPlate(prev => {
-        const trait_tags = { ...prev.trait_tags }
-        if (traitTag) trait_tags[attributeTag] = traitTag
-        else delete trait_tags[attributeTag]
-        // changing or clearing a parent trait removes the traits of its child attributes
-        for (const child of attributes.filter(a => a.parent_tag === attributeTag)) {
-            delete trait_tags[child.tag]
-        }
-        return { ...prev, trait_tags }
-    })
-
-    const handleAddOptionalAttribute = (attributeTag) => {
-        if (!attributeTag) return
-        setPlate(prev => ({ ...prev, optional_attributes: [...prev.optional_attributes, attributeTag] }))
-    }
-
     const handleClose = () => {
         setPlate(initPlate)
         reset()
@@ -168,33 +158,15 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
         postPlate({
             plate: {
                 name: plate.name.trim(),
-                trait_tags: Object.fromEntries(Object.entries(plate.trait_tags).filter(([, t]) => !!t)),
+                trait_tags: trait_tags,
                 location: plate.location.trim() || null,
                 description: plate.description.trim() || null
             }
         })
     }
 
-    const childAttributesOf = (attributeTag) => attributes.filter(a => a.parent_tag === attributeTag)
-
-    const renderAttribute = (attribute) => {
-        const childTags = childAttributesOf(attribute.tag)
-        const childrenSelects = childTags.length > 0 && plate.trait_tags[attribute.tag]
-            ? childTags.map(child => renderAttribute(child))
-            : null
-        return (
-            <AttributeSelect
-                key={attribute.tag}
-                attribute={attribute}
-                trait_tags={plate.trait_tags}
-                onChange={handleTraitChange}
-                childrenSelects={childrenSelects}
-            />
-        )
-    }
-
     return (
-        <Dialog isOpen={isOpen} onClose={handleClose} title="Create Plate" style={{ minWidth: "min(500px,95vw)" }}>
+        <Dialog isOpen={isOpen} onClose={handleClose} title="Create Plate" style={{ minWidth: "min(650px,95vw)" }}>
             <DialogBody>
                 {optionsLoading ? <Loading /> : optionsIsError ? <APIError error={optionsError} /> : (
                     <>
@@ -205,33 +177,46 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                             </Callout>
                         )}
 
-                        {mandatoryAttributes.map(attribute => renderAttribute(attribute))}
+                        {mandatoryAttributes.map(attribute => {
+                            const path = [{ type: "attribute", tag: attribute.tag, id: attribute.tag }]
+                            const selection = findDataForPath(path)
+                            return (
+                                <TraitsInput
+                                    key={attribute.tag}
+                                    attribute_tag={attribute.tag}
+                                    onItemSelect={mandatoryTraitSelect}
+                                    path={path}
+                                    isMandatory={true}
+                                    referenceID={PLATE_REFERENCE_ID}
+                                    selected_traits={_.isObject(selection) && _.isArray(selection.children) && selection.children.length > 0
+                                        ? selection.children.map(c => c.tag)
+                                        : []}
+                                />
+                            )
+                        })}
                         {missingMandatoryAttributes.length > 0 && (
                             <Callout className="margin-bottom--medium" intent="warning">
                                 Select a trait for: {missingMandatoryAttributes.map(a => a.text).join(", ")}.
                             </Callout>
                         )}
 
-                        {optionalRootAttributes.length > 0 && (
-                            <FormGroup
-                                label="Add attribute"
-                                labelFor="plate-add-attribute"
-                                labelInfo="(optional)"
-                                helperText="Further attributes of the storage attribute group. Selecting one shows its traits (and child attributes) below, like the condition applications of a submission."
-                            >
-                                <HTMLSelect
-                                    id="plate-add-attribute"
-                                    fill
-                                    value=""
-                                    onChange={(e) => handleAddOptionalAttribute(e.target.value)}
-                                    options={[
-                                        { value: "", label: "Select an attribute…" },
-                                        ...unpickedOptionalAttributes.map(a => ({ value: a.tag, label: a.text }))
-                                    ]}
-                                />
-                            </FormGroup>
-                        )}
-                        {addedOptionalAttributes.map(attribute => renderAttribute(attribute))}
+                        <h4>Additional Attributes</h4>
+                        <AttributesInput
+                            handleTraitSelection={handleTraitSelectionHierarchy}
+                            min_state={0}
+                            selected_traits={plate.selected_traits}
+                            checkMandatoryAttributes={false}
+                            attribute_tags={attributes.map(a => a.tag)}
+                            placeHolderText="Search storage attribute (format, storage, vendor, container, ...)"
+                        />
+                        <span className="font-size--smallest">Vendor, plate type, color, ... anything that describes the storage of the plate.</span>
+                        <DatasetAttributeView
+                            getSelectionByPath={getSelectionByPath}
+                            attributeTraits={plate.selected_traits}
+                            onChildrenSelection={handleTraitSelectionHierarchy}
+                            handleTraitRemove={handleTraitRemove}
+                            checkAttributeRequiredTraits={checkAttributeRequiredTraits}
+                        />
 
                         <FormGroup label="Name" labelFor="plate-name" labelInfo="(required)" helperText="Write this name on the plate label. Must be unique.">
                             <InputGroup
