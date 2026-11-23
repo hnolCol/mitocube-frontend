@@ -9,6 +9,9 @@ import { PlateCreateDialog } from "./PlateCreateDialog"
 
 const dash = <span className="text--muted">–</span>
 
+// a runlist can be measured with multiple instruments (e.g. LC system + mass spectrometer)
+const instrumentsText = (rl) => (rl.instruments || []).map(i => i.text).filter(Boolean).join(" · ") || null
+
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
 
 /**
@@ -211,7 +214,7 @@ function PlateRunlists({ plate }) {
             <div className="flex flex-column" style={{ gap: "0.15rem" }}>
                 {runlists.map(rl => (
                     <div key={rl.runlist_tag} className="font-size--small">
-                        <strong>{rl.instrument_text ?? "No instrument"}</strong>
+                        <strong>{instrumentsText(rl) ?? "No instrument"}</strong>
                         {` \u00b7 ${rl.n_runs_on_plate} run${rl.n_runs_on_plate > 1 ? "s" : ""} on this plate`}
                         {` \u00b7 ${rl.submission_label}`}
                         {rl.user_firstname || rl.user_lastname ? ` ${_.compact([rl.user_firstname, rl.user_lastname]).join(" ")}` : ""}

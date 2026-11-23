@@ -3,6 +3,8 @@ import { useState, useMemo, useEffect } from "react"
 import { useOutletContext } from "react-router"
 import { api } from "@/api"
 import _ from "lodash"
+// the runlist can be measured with multiple instruments (e.g. LC system + mass spectrometer)
+const instrumentsText = (rl) => (rl.instruments || []).map(i => i.text).filter(Boolean).join(" \u00b7 ") || null
 import APIError from "../../core/error/APIerror"
 import Loading from "../../core/base/loading"
 import { WellPosition } from "../../core/plate/wellplate"
@@ -204,7 +206,7 @@ function Runlist() {
                                     key={rl.tag}
                                     id={rl.tag}
                                     title={<span>
-                                        <strong>{rl.instrument_text ?? "No instrument"}</strong>
+                                        <strong>{instrumentsText(rl) ?? "No instrument"}</strong>
                                         {` · ${rl.n_runs} runs`}
                                         {rl.fractionated ? ` · ${rl.n_fractions} fractions` : ""}
                                     </span>}
@@ -217,7 +219,7 @@ function Runlist() {
                                 <div className="flex center-items justify-space-between margin-bottom--medium">
                                     <div>
                                         <h3 className="margin--none" style={{ fontSize: "1rem" }}>
-                                        {activeRunlist.instrument_text ?? "No instrument"} · {activeRunlist.n_runs} runs
+                                        {instrumentsText(activeRunlist) ?? "No instrument"} · {activeRunlist.n_runs} runs
                                         </h3>
                                         <div className="text--muted" style={{ fontSize: "0.8rem", marginTop: "0.25rem" }}>
                                             {activeRunlist.n_plates} plate{activeRunlist.n_plates > 1 ? 's' : ''} •
