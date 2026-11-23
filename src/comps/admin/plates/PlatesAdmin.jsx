@@ -3,6 +3,8 @@ import _ from "lodash"
 import { api } from "@/api"
 import { Alert, Callout } from "@blueprintjs/core"
 import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
+import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
+import { SubmissionTitle } from "@/comps/submission/view/SubmissionTitle"
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { PlateCreateDialog } from "./PlateCreateDialog"
@@ -22,8 +24,18 @@ export function PlatesAdmin({ userRole }) {
     const [alertProps, setAlertProps] = useState({ isOpen: false })
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [warning, setWarning] = useState(null)
+    const [submissionTag, setSubmissionTag] = useState(null)
 
     const { data: plates, isLoading, isError, error, refetch } = api.plates.plates.useGetPlates()
+
+    const { data: platesBySubmission, isLoading: bySubmissionLoading, isError: bySubmissionIsError, error: bySubmissionError } =
+        api.plates.plates.useGetPlatesBySubmission({ tag: submissionTag }, { enabled: !!submissionTag })
+
+    // while a submission is selected, only the plates that contain it are shown
+    const shownPlates = submissionTag ? platesBySubmission : plates
+    const shownPlatesLoading = submissionTag ? bySubmissionLoading : isLoading
+    const shownPlatesIsError = submissionTag ? bySubmissionIsError : isError
+    const shownPlatesError = submissionTag ? bySubmissionError : error
 
     const { mutate: deletePlate, isError: deleteIsError, error: deleteError } =
         api.plates.plates.useDeletePlate({ onSuccess: () => refetch() })
@@ -82,6 +94,28 @@ export function PlatesAdmin({ userRole }) {
                     />
                     <AddButton onSelect={() => setDialogOpen(true)} disabled={!isCurator} />
                 </div>
+                <div className="flex center-items gap--medium margin-bottom--medium" style={{ flexWrap: "wrap" }}>
+                    <SubmissionInput
+                        selected_submission_tags={submissionTag ? [submissionTag] : []}
+                        onSelect={(tag) => setSubmissionTag(tag || null)}
+                        minimal={true}
+                    />
+                    {submissionTag
+                        ? <button className="basic-button--small" onClick={() => setSubmissionTag(null)}>Show all plates</button>
+                        : null}
+                </div>
+                {submissionTag ? (
+                    <Callout className="margin-bottom--medium" intent="primary" icon="locate">
+                        <div className="flex center-items justify-space-between">
+                            <span>
+                                Plates containing <SubmissionTitle tag={submissionTag} showEdit={false} showCopyToClipboard={false} />
+                            </span>
+                            <button className="basic-button--small" onClick={() => setSubmissionTag(null)}>
+                                ✕
+                            </button>
+                        </div>
+                    </Callout>
+                ) : null}
                 {warning ? (
                     <Callout className="margin-bottom--medium" intent="warning" icon="warning-sign">
                         <div className="flex center-items justify-space-between">
@@ -91,14 +125,14 @@ export function PlatesAdmin({ userRole }) {
                     </Callout>
                 ) : null}
                 {deleteIsError ? <div className="font-color--error">Failed to delete plate: {_.get(deleteError, "message", "")}</div> : null}
-                {isError ? <div className="font-color--error">Failed to load plates: {_.get(error, "message", "")}</div> : null}
-                {isLoading ? <div>Loading...</div> : null}
+                {shownPlatesIsError ? <div className="font-color--error">Failed to load plates: {_.get(shownPlatesError, "message", "")}</div> : null}
+                {shownPlatesLoading ? <div>Loading...</div> : null}
                 <div className="div--expand padding--medium">
-                    {!isLoading && !isError && (_.isArray(plates) ? plates.length : 0) === 0
-                        ? <p className="text--muted">No plates yet. Create one to get started.</p>
+                    {!shownPlatesLoading && !shownPlatesIsError && (_.isArray(shownPlates) ? shownPlates.length : 0) === 0
+                        ? <p className="text--muted">{submissionTag ? "This submission was not measured on any plate yet." : "No plates yet. Create one to get started."}</p>
                         : null}
                     <div style={{ maxHeight: "70vh", overflowY: "scroll", paddingBottom: "3rem", paddingRight: "0.5rem" }} className="flex flex-column">
-                        {_.isArray(plates) ? plates.map(plate => (
+                        {_.isArray(shownPlates) ? shownPlates.map(plate => (
                             <PlateItem
                                 key={plate.tag}
                                 plate={plate}
