@@ -98,6 +98,13 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
         setPlate(prevValues => { return { ...prevValues, selected_traits } })
     }
 
+    // clicking a selected trait in the additional attributes menu removes it again
+    const handleTraitDeselect = (path) => {
+        let selected_traits = plate.selected_traits.slice()
+        deleteByPath(selected_traits, addIDToPath(path, PLATE_REFERENCE_ID), true)
+        setPlate(prevValues => { return { ...prevValues, selected_traits } })
+    }
+
     const checkAttributeRequiredTraits = (attribute_tag, trait_tags) => {
         const selected_traits = plate.selected_traits.slice()
         const foundNode = trait_tags.map(trait_tag => findNode(selected_traits, "trait", trait_tag, PLATE_REFERENCE_ID))
@@ -247,6 +254,7 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
                         <h4>Additional Attributes</h4>
                         <AttributesInput
                             handleTraitSelection={handleTraitSelectionHierarchy}
+                            handleTraitDeselect={handleTraitDeselect}
                             min_state={0}
                             selected_traits={plate.selected_traits}
                             checkMandatoryAttributes={false}
