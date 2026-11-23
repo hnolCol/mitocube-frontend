@@ -13,7 +13,8 @@ import { StateSelectionMenu } from "../states/StateSelectionMenu";
 
 import { APIAxiosError } from "../states/APIError";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
-import { Alert, Button, DialogBody } from "@blueprintjs/core";
+import { Alert, Callout, DialogBody } from "@blueprintjs/core";
+import { getAttributeGroupWarnings } from "@/services/attributes";
 
 const TRAIT_COLUMNS = [
     { key: "text", label: "Text" },
@@ -396,6 +397,9 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
                 allowAdd
                 onSelection={group_tag => setAttribute(prevValues => { return { ...prevValues, group_tags: addStringToArrayOrRemove({ array: prevValues.group_tags, string: group_tag }) } })}
                 selected_tags={attribute.group_tags} /></div>
+            {getAttributeGroupWarnings({ group_tags: attribute.group_tags }).map(warning =>
+                <Callout key={warning} className="margin-bottom--medium" intent="warning">{warning}</Callout>
+            )}
         <h4>Value Input</h4>
             <div>    
             <span>Allowing users to enter a value. For example for a concentration, id, duration etc. If set to true a values must always be entered. In addition, a trait must also be defined (examples:  °C, min, h, mM, etc).</span>
