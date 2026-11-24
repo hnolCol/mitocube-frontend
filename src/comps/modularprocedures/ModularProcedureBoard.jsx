@@ -5,7 +5,7 @@ import _ from "lodash";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import {
-    CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls,
+    CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls, ExecutionDraftControls,
     ProtocolChip, isUserAtLeast,
 } from "./Shared";
 
@@ -105,7 +105,9 @@ function ExecutionRow({ execution_tag, canChangeState, onDone }) {
     return <div className="flex center-items justify-between gap--tiny margin-top--tiny">
         <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
         <ExecutionStateChip status={status} />
-        {canChangeState ? <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} /> : null}
+        {canChangeState ? (status === "DRAFT" ?
+            <ExecutionDraftControls execution_tag={execution_tag} onDeleted={onDone} /> :
+            <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} />) : null}
     </div>
 }
 
