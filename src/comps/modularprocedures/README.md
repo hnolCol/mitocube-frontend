@@ -29,10 +29,14 @@ Executions are designed on the setup page, not in a dialog:
 1. **New draft**: via the board's / Modular Processes tab's **Setup New** button or the
    executions overview's "New execution" — the backend generates a stable execution tag
    (so the setup has a permanent URL and several setups can be worked on in parallel).
-2. **Input plate** (left column): get-or-design the input plate (like in the runlist,
-   including inline plate creation), the assigned submissions are listed on top with
-   per-submission colors and placed via **drag & drop**; more submissions can be pooled
-   into the run and the responsible user is assigned (defaults to the draft creator).
+2. **Input plate** (left column, the well visualization of the runlist / admin plates):
+   get-or-design the input plate (like in the runlist, including inline plate creation), the
+   assigned submissions are listed on top with per-submission colors. The samples are placed
+   runlist-style: **Fill free wells** assigns them in submission order to the free input wells
+   — **rows first** (A1, A2, ... B1) or **columns first** (A1, B1, ... A2), as chosen — and the
+   placements stay editable afterwards (drag & drop, click-place, right-click clear) to swap a
+   sample that was mixed up. More submissions can be pooled into the run and the responsible
+   user is assigned (defaults to the draft creator).
 3. **Module console** (middle): the module description and — for procedures that declare
    input/output **well attributes** — the per-well value entry: download the txt template,
    fill it in and upload it. Procedures without declared attributes (e.g. SP3) show no
@@ -40,7 +44,11 @@ Executions are designed on the setup page, not in a dialog:
 4. **Output plate** (right column): occupies only free wells (runlist occupancy ∪
    execution occupancy), the transfer map supports pooling (several input wells → one
    output well) and splitting (one sample → several wells).
-5. **Save / Start**: the draft can be saved anytime and continued later; starting
+5. **Plate export**: the input and the output plate can be downloaded as a tab-delimited txt
+   like the runlist export — one row per sample with its well (`sample_tag → well`), with an
+   info header (procedure, execution, plate). The export dialog offers a **scramble** option
+   that shuffles only the order of the rows in the file, never the sample-to-well mapping.
+6. **Save / Start**: the draft can be saved anytime and continued later; starting
    validates the whole design, occupies the wells and sets the execution **RUNNING**.
    Confirming the outcome (successful / failed / aborted) in the executions overview
    frees the assigned submissions for the next module (with the chosen

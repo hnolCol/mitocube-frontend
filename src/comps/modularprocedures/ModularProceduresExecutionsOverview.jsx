@@ -6,11 +6,15 @@ import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import useDebounce from "@/hooks/useDebounce";
 import {
+    ExecutionPlateExportDialog,
+} from "@/comps/modularprocedures/ModularProcedureExecutionDialog";
+import {
     ExecutionStateChip, ExecutionStateControls, ProcedureTitle, formatExecutionTime,
     isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS, StateHistory, WellTable,
 } from "./Shared";
 
-function ExecutionDetails({ execution, canChangeState, onStateChanged, onEditDraft }) {
+function ExecutionDetails({ execution, canChangeState, onStateChanged }) {
+    const [exportSide, setExportSide] = useState(null)
     return <div className="flex flex-column gap--small" style={{ borderTop: "1px solid #ddd", paddingTop: "0.75rem" }}>
         <div className="flex center-items justify-between gap--tiny flex--wrap">
             <div className="flex center-items gap--tiny">
@@ -37,13 +41,25 @@ function ExecutionDetails({ execution, canChangeState, onStateChanged, onEditDra
         </div>
         {execution.finish_comment ? <div className="font-size--small" style={{ color: "#666" }}>Comment: {execution.finish_comment}</div> : null}
         <div>
-            <h5 style={{ margin: "0.25rem 0" }}>Input plate details</h5>
+            <div className="flex center-items justify-between">
+                <h5 style={{ margin: "0.25rem 0" }}>Input plate details</h5>
+                <button className="basic-button basic-button--small"
+                    title="Download the sample -> well table of the input plate like the runlist export"
+                    onClick={() => setExportSide("input")}>Export input plate</button>
+            </div>
             <WellTable wells={execution.input_wells} side="input" />
         </div>
         <div>
-            <h5 style={{ margin: "0.25rem 0" }}>Output plate details</h5>
+            <div className="flex center-items justify-between">
+                <h5 style={{ margin: "0.25rem 0" }}>Output plate details</h5>
+                <button className="basic-button basic-button--small"
+                    title="Download the sample -> well table of the output plate like the runlist export"
+                    onClick={() => setExportSide("output")}>Export output plate</button>
+            </div>
             <WellTable wells={execution.output_wells} side="output" />
         </div>
+        <ExecutionPlateExportDialog isOpen={_.isString(exportSide)} side={exportSide}
+            execution={execution} onClose={() => setExportSide(null)} />
     </div>
 }
 

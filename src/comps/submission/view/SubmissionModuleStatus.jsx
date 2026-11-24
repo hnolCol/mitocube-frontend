@@ -1,5 +1,6 @@
 import PropTypes from "prop-types"
 import { useState } from "react"
+import { Link } from "react-router"
 import _ from "lodash"
 import moment from "moment"
 import { Button, Dialog, DialogBody, DialogFooter, Spinner, Tag } from "@blueprintjs/core"
@@ -85,8 +86,6 @@ export function SubmissionModuleStatus({ submission_tag, userRole }) {
     const isCurator = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
     const activeLinks = _.isArray(links) ? links.filter((link) => !link.done) : []
     const doneLinks = _.isArray(links) ? links.filter((link) => link.done) : []
-    // submissions that are not linked to any module show no box - unless the user could assign one
-    if (_.isArray(links) && links.length === 0 && !isCurator) return null
     return <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
         <div className="flex flex-column">
             <div className="flex center-items justify-between" style={{ gap: "0.5rem" }}>
@@ -135,7 +134,11 @@ function ModuleLinkRow({ link, active }) {
             icon={active ? "play" : "tick"}>
             {active ? "active" : "done"}
         </Tag>
-        <strong>{procedure?.title || link.procedure_tag}</strong>
+        <strong>
+            <Link to={`/modular-procedures`} title={`Open ${procedure?.title || link.procedure_tag} on the Modular Procedures board`}>
+                {procedure?.title || link.procedure_tag}
+            </Link>
+        </strong>
         {_.isNumber(procedure?.version) && procedure.version > 1 ?
             <span className="font-size--small" style={{ color: "#888" }}>v{procedure.version}</span> : null}
         {active && _.isNumber(link.created_at) ?

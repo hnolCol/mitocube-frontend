@@ -13,7 +13,7 @@ import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
 import { ProcedureTitle, formatExecutionTime, ExecutionStateChip } from "@/comps/modularprocedures/Shared"
 import {
-    PlateGrid, downloadMetricsTemplate, parseMetricsFile,
+    PlateGrid, downloadMetricsTemplate, parseMetricsFile, ExecutionPlateExportDialog,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
 
 const SUBMISSION_COLORS = ["#4051b5", "#238551", "#c87619", "#9d5bd2", "#48aff0", "#cd4246", "#8f99a8", "#2e7d32"]
@@ -84,6 +84,9 @@ export function ExecutionSetupPage() {
         INPUT: { metrics: [] },
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
+    const [fillRowsFirst, setFillRowsFirst] = useState(true)
+    const [exportDialogProps, setExportDialogProps] = useState({ isOpen: false, side: null })
+    const [fillMessage, setFillMessage] = useState(null)
     const [savedMessage, setSavedMessage] = useState(null)
     const [started, setStarted] = useState(false)
 
@@ -274,6 +277,65 @@ export function ExecutionSetupPage() {
         }
         reader.readAsText(file)
         event.target.value = ""
+    }
+
+    // runlist-style sample assignment: the samples (in submission order) fill the free input
+    // wells row by row or column by column - the placements stay editable afterwards (drag &
+    // drop, click, right-click clear), e.g. to correct a sample that was mixed up
+    const handleFillFreeWells = () => {
+        if (!_.isObject(inputPlate)) return
+        setFillMessage(null)
+        const rows = inputPlate.rows || 0
+        const columns = inputPlate.columns || 0
+        const rowLabelOf = (rowIndex) => String.fromCharCode(rowIndex + 65)
+        const positionsInOrder = fillRowsFirst ?
+            _.flatten(_.range(rows).map((rowIndex) =>
+                _.range(columns).map((columnIndex) => `${rowLabelOf(rowIndex)}${columnIndex + 1}`))) :
+            _.flatten(_.range(columns).map((columnIndex) =>
+                _.range(rows).map((rowIndex) => `${rowLabelOf(rowIndex)}${columnIndex + 1}`)))
+        const freeWells = positionsInOrder.filter((position) =>
+            !inputWellDisabled(position) && !(inputWells[position]?.sample_tags || []).length)
+        const toPlace = _.flatten(submissionOrder.map((submission_tag) => unplacedBySubmission[submission_tag] || []))
+        if (toPlace.length === 0) return
+        const assigned = freeWells.slice(0, toPlace.length)
+        setInputWells((prev) => {
+            const next = { ...prev }
+            assigned.forEach((position, index) => {
+                next[position] = { sample_tags: [toPlace[index].tag], output_positions: next[position]?.output_positions || [] }
+            })
+            return next
+        })
+        if (toPlace.length > freeWells.length) {
+            setFillMessage(`${freeWells.length} free well(s) available, but ${toPlace.length} sample(s) unplaced — assign the remaining samples on further plates or move them manually.`)
+        } else {
+            setFillMessage(`Assigned ${toPlace.length} sample(s) filling ${fillRowsFirst ? "rows" : "columns"} first.`)
+        }
+    }
+
+    // the pseudo execution handed to the shared plate export: the draft side data in the shape of
+    // a stored execution (the output samples are derived from the transfer map)
+    const exportExecution = () => {
+        const outputSamples = {}
+        _.forEach(inputWells, (well) => (well.output_positions || []).forEach((position) =>
+            (well.sample_tags || []).forEach((tag) => {
+                outputSamples[position] = outputSamples[position] || new Set()
+                outputSamples[position].add(tag)
+            })))
+        return {
+            procedure_tag, tag: (execution && execution.tag) || execution_tag,
+            input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
+            input_wells: _.map(inputWells, (well, position) => ({
+                position, plate_tag: inputPlate.tag, sample_tags: well.sample_tags || [] })),
+            output_wells: _.map(outputWells, (well, position) => ({
+                position, plate_tag: outputPlate ? outputPlate.tag : undefined,
+                sample_tags: [...(outputSamples[position] || [])] })),
+        }
+    }
+
+    const handleClearPlacements = () => {
+        setInputWells({})
+        setSelectedInputWell(null)
+        setFillMessage(null)
     }
 
     const handleAutoMap = () => {
@@ -515,6 +577,23 @@ export function ExecutionSetupPage() {
                         <div className="font-size--small" style={{ fontWeight: 600, color: placedSampleTagSet.size > 0 ? "#238551" : "#c87619" }}>
                             ② Place the samples on the input plate
                         </div>
+                        <div className="flex center-items flex--wrap" style={{ gap: "0.35rem", margin: "0.3rem 0" }}>
+                            <div className="flex center-items" style={{ gap: "0.2rem" }}>
+                                <button className={`basic-button basic-button--small ${fillRowsFirst ? "basic-button--highlighted" : ""}`}
+                                    title="Fill A1, A2, A3 ... then B1, B2, B3"
+                                    onClick={() => setFillRowsFirst(true)}>rows first</button>
+                                <button className={`basic-button basic-button--small ${!fillRowsFirst ? "basic-button--highlighted" : ""}`}
+                                    title="Fill A1, B1, C1 ... then A2, B2, C2"
+                                    onClick={() => setFillRowsFirst(false)}>columns first</button>
+                            </div>
+                            <button className="basic-button basic-button--small"
+                                title="Assign the unplaced samples (in submission order) to the free wells — like the runlist"
+                                onClick={handleFillFreeWells}>Fill free wells</button>
+                            {placedSampleTagSet.size > 0 ?
+                                <button className="basic-button basic-button--small"
+                                    onClick={handleClearPlacements}>Clear placements</button> : null}
+                        </div>
+                        {fillMessage ? <div className="font-size--smallest" style={{ color: "#c87619" }}>{fillMessage}</div> : null}
                         {pickedSample !== null ?
                             <div className="font-size--small" style={{ color: submissionColor(submissionIndexOf(pickedSample.submission_tag)) }}>
                                 Placing "{pickedSample.tag}" — click one or more input wells
@@ -522,8 +601,10 @@ export function ExecutionSetupPage() {
                                     onClick={() => setPickedSample(null)}>unpick</button>
                             </div> :
                             <div className="font-size--smallest" style={{ color: "#888" }}>
-                                {placedSampleTagSet.size} sample(s) placed — drag a sample onto a well (or click it, then wells);
-                                right-click a well to clear it; crossed-out wells already hold a run.
+                                {placedSampleTagSet.size} sample(s) placed — "Fill free wells" assigns the samples in
+                                submission order to the free wells (rows or columns first, like the runlist); afterwards
+                                drag a sample onto a well (or click it, then wells) to change the placement, right-click
+                                a well to clear it; crossed-out wells already hold a run.
                             </div>}
                         <div style={{ maxHeight: "18vh", overflowY: "auto" }}>
                             {submissionOrder.map((submission_tag, index) =>
@@ -549,8 +630,11 @@ export function ExecutionSetupPage() {
                                 <span className="font-size--smallest">{_.size(well.sample_tags)}</span>
                                 {wellColorDots(well)}
                             </span> : ""} />
-                    <div className="flex center-items" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
+                    <div className="flex center-items flex--wrap" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
                         <button className="basic-button basic-button--small" onClick={handleAutoMap}>Auto-map 1:1</button>
+                        <button className="basic-button basic-button--small"
+                            title="Download the sample -> well table of the input plate like the runlist export"
+                            onClick={() => setExportDialogProps({ isOpen: true, side: "input" })}>Export input plate</button>
                         <span className="font-size--smallest" style={{ color: "#888" }}>
                             then select a well and click output wells to map
                         </span>
@@ -628,9 +712,16 @@ export function ExecutionSetupPage() {
                         Select an input well (left) and click/drag over output wells to map it — mapping
                         several input wells onto the same output well pools them; right-click removes a well.
                     </div>
+                    <button className="basic-button basic-button--small" style={{ marginTop: "0.25rem" }}
+                        title="Download the sample -> well table of the output plate like the runlist export"
+                        onClick={() => setExportDialogProps({ isOpen: true, side: "output" })}>Export output plate</button>
                 </> : <div className="font-size--small" style={{ color: "#888", marginTop: "0.5rem" }}>Select an output plate.</div>}
             </div>
         </div>
+        <ExecutionPlateExportDialog
+            isOpen={exportDialogProps.isOpen} side={exportDialogProps.side}
+            execution={exportExecution()}
+            onClose={() => setExportDialogProps({ isOpen: false, side: null })} />
         </>}
     </div>
 }
