@@ -1,12 +1,9 @@
-import { Alert, Callout } from "@blueprintjs/core";
-import { useState } from "react";
+import { Callout } from "@blueprintjs/core";
 import { useNavigate } from "react-router";
 import moment from "moment";
 import _ from "lodash";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
-import { ModularProcedureExecutionDialog } from "./ModularProcedureExecutionDialog";
-import { ModularProcedureExecutionMetricsDialog } from "./ModularProcedureExecutionMetricsDialog";
 import {
     CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls,
     ProtocolChip, isUserAtLeast,
@@ -22,9 +19,6 @@ export function ModularProcedureBoard({ userRole, userTag }) {
     const isCurator = isUserAtLeast(userRole, CURATOR_ROLE)
     const canChangeState = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
     const navigate = useNavigate()
-    const [alertProps, setAlertProps] = useState({ isOpen: false })
-    const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
-    const [metricsDialogProps, setMetricsDialogProps] = useState({ isOpen: false, procedure_tag: null })
 
     const { data: procedure_tags, isLoading, isError, error } =
         api.modularProcedures.query.useGetModularProceduresByQuery({ status: "PUBLISHED", latest_only: true })
@@ -38,26 +32,6 @@ export function ModularProcedureBoard({ userRole, userTag }) {
     if (isError) return <div className="padding--medium"><APIAxiosError error={error} /></div>
 
     return <div className="div--expand padding--medium">
-        <Alert isOpen={alertProps.isOpen} intent="success" confirmButtonText="OK"
-            onClose={() => setAlertProps({ isOpen: false })}>
-            <p>{alertProps.message}</p>
-        </Alert>
-        {executionDialogProps.isOpen ?
-            <ModularProcedureExecutionDialog
-                procedure_tag={executionDialogProps.procedure_tag}
-                isOpen={executionDialogProps.isOpen}
-                onClose={() => setExecutionDialogProps({ isOpen: false, procedure_tag: null })}
-                current_user_tag={userTag}
-                onExecuted={() => {
-                    setExecutionDialogProps({ isOpen: false, procedure_tag: null })
-                    setAlertProps({ isOpen: true, message: "The execution is running. Confirm its outcome (successful / failed / aborted) in the executions section of the procedure: this frees the assigned submissions for the next procedure." })
-                }} /> : null}
-        {metricsDialogProps.isOpen ?
-            <ModularProcedureExecutionMetricsDialog
-                procedure_tag={metricsDialogProps.procedure_tag}
-                isOpen={metricsDialogProps.isOpen}
-                onClose={() => setMetricsDialogProps({ isOpen: false, procedure_tag: null })}
-                onSaved={() => setMetricsDialogProps({ isOpen: false, procedure_tag: null })} /> : null}
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <div className="flex justify-between center-items">
                 <h3>Modular Procedures</h3>
@@ -78,14 +52,14 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 procedure_tags?.map((procedure_tag) =>
                     <ProcedureColumn key={procedure_tag} procedure_tag={procedure_tag}
                         isCurator={isCurator} canChangeState={canChangeState} onMarkDone={markDone} onReopen={reopen}
-                        onExecute={() => setExecutionDialogProps({ isOpen: true, procedure_tag })}
-                        onMetrics={() => setMetricsDialogProps({ isOpen: true, procedure_tag })} />)}
+                        onSetupNew={() => navigate(`/modular-procedures/setup?procedure=${procedure_tag}`)} />)}
         </div>
     </div>
 }
 
-function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone, onReopen, onExecute, onMetrics }) {
+function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone, onReopen, onSetupNew }) {
 
+    const navigate = useNavigate()
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag({ tag: procedure_tag })
     const { data: submissions, isLoading, refetch } =
         api.modularProcedures.query.useGetModularProcedureSubmissions({ tag: procedure_tag })
@@ -99,9 +73,11 @@ function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone,
                 <h4 style={{ margin: 0 }}>{procedure?.title || procedure_tag}</h4>
                 {isCurator ? <div className="flex" style={{ gap: "0.25rem" }}>
                     <button className="basic-button basic-button--small"
-                        onClick={onExecute}>Execute</button>
+                        title="Create a new execution draft of this module and design it on the setup page"
+                        onClick={onSetupNew}>Setup New</button>
                     <button className="basic-button basic-button--small"
-                        onClick={onMetrics}>Metrics</button>
+                        title="The admin overview: the definition, status and full information of this module"
+                        onClick={() => navigate("/admin/modular-procedures")}>Admin</button>
                 </div> : null}
             </div>
             {procedure?.description ? <p className="font-size--small" style={{ color: "#666", margin: 0 }}>
