@@ -78,6 +78,8 @@ export function ExecutionSetupPage() {
         INPUT: { params: [], attributeTag: null, metrics: [] },
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
+    const [fillRowsFirst, setFillRowsFirst] = useState(true)
+    const [fillMessage, setFillMessage] = useState(null)
     const [savedMessage, setSavedMessage] = useState(null)
     const [started, setStarted] = useState(false)
 
@@ -267,6 +269,45 @@ export function ExecutionSetupPage() {
         }
         reader.readAsText(file)
         event.target.value = ""
+    }
+
+    // runlist-style sample assignment: the samples (in submission order) fill the free input
+    // wells row by row or column by column - the placements stay editable afterwards (drag &
+    // drop, click, right-click clear), e.g. to correct a sample that was mixed up
+    const handleFillFreeWells = () => {
+        if (!_.isObject(inputPlate)) return
+        setFillMessage(null)
+        const rows = inputPlate.rows || 0
+        const columns = inputPlate.columns || 0
+        const rowLabelOf = (rowIndex) => String.fromCharCode(rowIndex + 65)
+        const positionsInOrder = fillRowsFirst ?
+            _.flatten(_.range(rows).map((rowIndex) =>
+                _.range(columns).map((columnIndex) => `${rowLabelOf(rowIndex)}${columnIndex + 1}`))) :
+            _.flatten(_.range(columns).map((columnIndex) =>
+                _.range(rows).map((rowIndex) => `${rowLabelOf(rowIndex)}${columnIndex + 1}`)))
+        const freeWells = positionsInOrder.filter((position) =>
+            !inputWellDisabled(position) && !(inputWells[position]?.sample_tags || []).length)
+        const toPlace = _.flatten(submissionOrder.map((submission_tag) => unplacedBySubmission[submission_tag] || []))
+        if (toPlace.length === 0) return
+        const assigned = freeWells.slice(0, toPlace.length)
+        setInputWells((prev) => {
+            const next = { ...prev }
+            assigned.forEach((position, index) => {
+                next[position] = { sample_tags: [toPlace[index].tag], output_positions: next[position]?.output_positions || [] }
+            })
+            return next
+        })
+        if (toPlace.length > freeWells.length) {
+            setFillMessage(`${freeWells.length} free well(s) available, but ${toPlace.length} sample(s) unplaced — assign the remaining samples on further plates or move them manually.`)
+        } else {
+            setFillMessage(`Assigned ${toPlace.length} sample(s) filling ${fillRowsFirst ? "rows" : "columns"} first.`)
+        }
+    }
+
+    const handleClearPlacements = () => {
+        setInputWells({})
+        setSelectedInputWell(null)
+        setFillMessage(null)
     }
 
     const handleAutoMap = () => {
@@ -505,6 +546,23 @@ export function ExecutionSetupPage() {
                         <div className="font-size--small" style={{ fontWeight: 600, color: placedSampleTagSet.size > 0 ? "#238551" : "#c87619" }}>
                             ② Place the samples on the input plate
                         </div>
+                        <div className="flex center-items flex--wrap" style={{ gap: "0.35rem", margin: "0.3rem 0" }}>
+                            <div className="flex center-items" style={{ gap: "0.2rem" }}>
+                                <button className={`basic-button basic-button--small ${fillRowsFirst ? "basic-button--highlighted" : ""}`}
+                                    title="Fill A1, A2, A3 ... then B1, B2, B3"
+                                    onClick={() => setFillRowsFirst(true)}>rows first</button>
+                                <button className={`basic-button basic-button--small ${!fillRowsFirst ? "basic-button--highlighted" : ""}`}
+                                    title="Fill A1, B1, C1 ... then A2, B2, C2"
+                                    onClick={() => setFillRowsFirst(false)}>columns first</button>
+                            </div>
+                            <button className="basic-button basic-button--small"
+                                title="Assign the unplaced samples (in submission order) to the free wells — like the runlist"
+                                onClick={handleFillFreeWells}>Fill free wells</button>
+                            {placedSampleTagSet.size > 0 ?
+                                <button className="basic-button basic-button--small"
+                                    onClick={handleClearPlacements}>Clear placements</button> : null}
+                        </div>
+                        {fillMessage ? <div className="font-size--smallest" style={{ color: "#c87619" }}>{fillMessage}</div> : null}
                         {pickedSample !== null ?
                             <div className="font-size--small" style={{ color: submissionColor(submissionIndexOf(pickedSample.submission_tag)) }}>
                                 Placing "{pickedSample.tag}" — click one or more input wells
@@ -512,8 +570,10 @@ export function ExecutionSetupPage() {
                                     onClick={() => setPickedSample(null)}>unpick</button>
                             </div> :
                             <div className="font-size--smallest" style={{ color: "#888" }}>
-                                {placedSampleTagSet.size} sample(s) placed — drag a sample onto a well (or click it, then wells);
-                                right-click a well to clear it; crossed-out wells already hold a run.
+                                {placedSampleTagSet.size} sample(s) placed — "Fill free wells" assigns the samples in
+                                submission order to the free wells (rows or columns first, like the runlist); afterwards
+                                drag a sample onto a well (or click it, then wells) to change the placement, right-click
+                                a well to clear it; crossed-out wells already hold a run.
                             </div>}
                         <div style={{ maxHeight: "18vh", overflowY: "auto" }}>
                             {submissionOrder.map((submission_tag, index) =>

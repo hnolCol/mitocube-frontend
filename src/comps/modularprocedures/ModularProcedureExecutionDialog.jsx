@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import _ from "lodash";
+import "@/comps/core/plate/plate.css";
 
 /**
  * Reusable pieces of the modular procedure execution setup.
@@ -79,16 +80,10 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                     const well = wells[position]
                     const isSelected = selectedWell === position
                     const disabled = isWellDisabled !== null && isWellDisabled(position)
-                    return <button key={position}
+                    return <div key={position}
                         title={disabled ? `${position} — already used` : position}
-                        className="basic-button basic-button--small"
-                        style={{
-                            width: "4.5rem", height: "2.6rem", fontSize: "0.6rem", padding: "0.1rem",
-                            border: disabled ? "1px dashed #cd4246" : (isSelected ? "2px solid #48aff0" : "1px solid #ccc"),
-                            background: disabled ? "#f2dede" : (well ? "#d8f3d8" : "#fff"),
-                            color: disabled ? "#a06060" : "#000", textAlign: "center", overflow: "hidden",
-                            whiteSpace: "normal", cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer")
-                        }}
+                        className="well-border prevent-select"
+                        style={{ cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer") }}
                         onMouseDown={(e) => { if (e.button === 0 && !disabled) handleMouseDown(position) }}
                         onMouseEnter={() => handleMouseEnter(position)}
                         onMouseUp={handleMouseUp}
@@ -100,9 +95,18 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                             onWellDrop(position, e.dataTransfer.getData("text/plain"))
                         }}
                         onContextMenu={(e) => { e.preventDefault(); if (onWellAltClick && !disabled) onWellAltClick(position) }}>
-                        <div><strong>{position}</strong>{disabled ? " ✕" : ""}</div>
-                        <div>{renderWell(well)}</div>
-                    </button>
+                        <div className={`well__base bg--grey ${isSelected ? "well__base--selected" : ""}`}
+                            style={{
+                                width: "4.2rem", height: "2.4rem", fontSize: "0.6rem",
+                                border: disabled ? "1px dashed #cd4246" : (isSelected ? "2px solid #48aff0" : "1px solid #ccc"),
+                                background: disabled ? "#f2dede" : (well ? "#d8f3d8" : undefined),
+                                color: disabled ? "#a06060" : undefined, textAlign: "center",
+                                display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden"
+                            }}>
+                            <div><strong>{position}</strong>{disabled ? " ✕" : ""}</div>
+                            <div>{renderWell(well)}</div>
+                        </div>
+                    </div>
                 })}
             </div>)}
     </div>

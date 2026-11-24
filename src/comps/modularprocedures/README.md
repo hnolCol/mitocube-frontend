@@ -29,10 +29,14 @@ Executions are designed on the setup page, not in a dialog:
 1. **New draft**: via the board's / Modular Processes tab's **Setup New** button or the
    executions overview's "New execution" — the backend generates a stable execution tag
    (so the setup has a permanent URL and several setups can be worked on in parallel).
-2. **Input plate** (left column): get-or-design the input plate (like in the runlist,
-   including inline plate creation), the assigned submissions are listed on top with
-   per-submission colors and placed via **drag & drop**; more submissions can be pooled
-   into the run and the responsible user is assigned (defaults to the draft creator).
+2. **Input plate** (left column, the well visualization of the runlist / admin plates):
+   get-or-design the input plate (like in the runlist, including inline plate creation), the
+   assigned submissions are listed on top with per-submission colors. The samples are placed
+   runlist-style: **Fill free wells** assigns them in submission order to the free input wells
+   — **rows first** (A1, A2, ... B1) or **columns first** (A1, B1, ... A2), as chosen — and the
+   placements stay editable afterwards (drag & drop, click-place, right-click clear) to swap a
+   sample that was mixed up. More submissions can be pooled into the run and the responsible
+   user is assigned (defaults to the draft creator).
 3. **Module console** (middle): the module description and — for procedures that declare
    input/output **well attributes** — the per-well value entry: download the txt template,
    fill it in and upload it. Procedures without declared attributes (e.g. SP3) show no
