@@ -453,7 +453,7 @@ function App() {
             <Route path="/admin/procedure" element={<AdminProcedure userRole={authenticationStatus.role} />} />
             <Route path="/admin/externalservice" element={<AdminExternalService userRole={authenticationStatus.role} />} />
             <Route path="/admin/annotations" element={<AdminAnnotations />} />
-            <Route path="/admin/news" element={<NewsManagement />} />
+            <Route path="/admin/news" element={<NewsManagement {...{ authenticationStatus }} />} />
              <Route path="/admin/protocols" element={<AdminProtocols />} />
              <Route path="/admin/externalresources" element={<AdminExternalResources />} />
              <Route path="/admin/terms-of-use" element={<PolicyManagement policyType={TERMS_OF_USE} />} />,

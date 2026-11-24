@@ -13,13 +13,19 @@ import { MinimalUserIcon } from "../core/base/user"
 import { AddButton } from "../core/base/buttons/AddButton"
 import { RemoveButton } from "../core/base/buttons/RemoveButton"
 import { SubmissionLink } from "../core/links/Submission"
+import { ResearchGroupText } from "../admin/researchgroup/ResearchGroupText"
 import "./welcome.css"
 
 import { api } from "@/api"
+
+const CURATOR_ROLE = 3   // must match UserRolesEnum.CURATOR in the backend
+
 export function NewsItem({ 
     news_tag, 
     showDelete = false, 
     showEdit = false,
+    authenticationStatus = null,
+    own_research_group_tags = null,
     onDeleteSuccess = () => {}, 
     onEditSuccess = () => {},
     onDeleteError = console.log 
@@ -48,6 +54,13 @@ export function NewsItem({
     if (isError) return <APIError error={error} />
     if (!_.isObject(news)) return <div>News not found</div>
     
+    // news targeted at a research group is only shown to members of that group, curators and admins
+    // (same scoping as submissions); news without a research group is public
+    if (_.isObject(authenticationStatus) && _.toNumber(authenticationStatus?.role) < CURATOR_ROLE
+        && _.isString(news.research_group_tag) && !_.includes(own_research_group_tags || [], news.research_group_tag)) {
+        return null
+    }
+    
     return (
         <>
             <Dialog
@@ -74,6 +87,7 @@ export function NewsItem({
                     <div>
                         {_.isString(news.title) && <TitleText title={news.title} />}
                         <CreatedAt createdat={news.created_at} />
+                        {_.isString(news.research_group_tag) ? <div><ResearchGroupText research_group_tag={news.research_group_tag} /></div> : null}
                     </div>
                     
                     <div className="flex flex-column" style={{ alignItems: "flex-end" }}>
@@ -120,10 +134,13 @@ export function NewsItem({
  * Displays the latest news items in a scrollable container with an option to insert new news.
  * @returns 
  */
-export function NewsView() {
+export function NewsView({ authenticationStatus = null }) {
 
     const [dialogProps, setDialogProps] = useState({ isOpen: false })
 
+    // the backend already restricts the news list to public news and the user's
+    // research groups (curators/admins receive all news, like for submissions);
+    // the own groups are additionally used to hide individual news items client-side.
     const { data: news, isLoading, isFetching, isError, error, refetch } = api.news.useFindNews({ limit: 5 }, {
         staleTime: 1000 * 60 * 5,
         placeHolderData: (prev) => prev || []
@@ -131,6 +148,12 @@ export function NewsView() {
 
     const { data: newsPermissions, isSuccess: permissionIsSuccess } = api.news.useGetNewsPermissions({}, { staleTime: 1000 * 60 * 5 })
     const permissionLoaded = _.isObject(newsPermissions) && permissionIsSuccess
+
+    const { data: ownUser } = api.users.core.useGetPublicUserByTag(
+        { tag: authenticationStatus?.tag },
+        { enabled: _.isObject(authenticationStatus) && _.isString(authenticationStatus?.tag), staleTime: 1000 * 60 * 5 }
+    )
+    const ownResearchGroupTags = _.isArray(ownUser?.research_group_tags) ? ownUser.research_group_tags : []
     return (
         
         <div
@@ -148,7 +171,7 @@ export function NewsView() {
             canOutsideClickClose={true}
             title="Insert News"
             style={{ width: "50vw", height: "70vh", minHeight: "600px", fontSize: "1rem" }}>
-            <InsertNews onSuccess={() => {
+            <InsertNews authenticationStatus={authenticationStatus} onSuccess={() => {
                 refetch()
             }}/>
         </Dialog>
@@ -162,7 +185,7 @@ export function NewsView() {
                 <AddButton onSelect={() => setDialogProps({ isOpen: true })} /> : null}
         </div>
         </div>
-        
+       
 
         {isError ?
             <APIError error={error} /> :
@@ -170,7 +193,7 @@ export function NewsView() {
                     <Loading /> :
                 <div className="welcome-panel__list">
                         {_.isArray(news) ? _.map(news, news_tag =>
-                            <NewsItem key={news_tag} news_tag={news_tag} />) : null}
+                            <NewsItem key={news_tag} news_tag={news_tag} authenticationStatus={authenticationStatus} own_research_group_tags={ownResearchGroupTags} />) : null}
                         {_.isArray(news) && news.length === 0 ? <div>No news available.</div> : null}
                 </div> }
        
