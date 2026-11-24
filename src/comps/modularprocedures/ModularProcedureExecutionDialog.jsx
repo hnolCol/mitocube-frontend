@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import _ from "lodash";
+import { Dialog, DialogBody, DialogFooter, Button, Intent, Switch } from "@blueprintjs/core";
 import "@/comps/core/plate/plate.css";
+import { downloadTxtFile } from "@/services/downloads/txt";
 
 /**
  * Reusable pieces of the modular procedure execution setup.
@@ -110,4 +112,85 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                 })}
             </div>)}
     </div>
+}
+
+
+/**
+ * The sample -> well rows of one plate side of an execution: one row per placed sample with the
+ * well it is in (wells on additional plates are plate-qualified), ordered row-wise over the
+ * plates (A1, A2, ... then B1). The `execution` needs `input_wells` (with sample_tags and, for
+ * drafts, output_positions) and/or `output_wells` (with the derived sample_tags).
+ */
+export function executionPlateRows(execution, side = "input") {
+    const wells = side === "input" ? (execution.input_wells || []) : (execution.output_wells || [])
+    const plates = _.uniq(wells.map((well) => well.plate_tag).filter(_.isString))
+    const qualified = plates.length > 1
+    const wellSortKey = (well) => {
+        const position = well.position || ""
+        const match = /^([A-Za-z]+)([0-9]+)$/.exec(position)
+        const rowIndex = match ? match[1].toUpperCase().split("").reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 64), 0) : 0
+        const columnIndex = match ? _.toInteger(match[2]) : 0
+        return `${well.plate_tag || ""}|${rowIndex}|${columnIndex}`
+    }
+    const rows = []
+    _.sortBy(wells, wellSortKey).forEach((well) => {
+        (well.sample_tags || []).forEach((sample_tag) =>
+            rows.push({ sample_tag, well: qualified && well.plate_tag ? `${well.plate_tag}:${well.position}` : well.position }))
+    })
+    return rows
+}
+
+/**
+ * Downloads one plate side of an execution like the runlist export: an info header (procedure,
+ * execution, plates, side) followed by a tab-delimited `sample_tag -> well` table. `scramble`
+ * only randomizes the order of the rows in the file — never the sample-to-well mapping.
+ */
+export function downloadExecutionPlate({ execution, side = "input", scramble = false }) {
+    const rows = executionPlateRows(execution, side)
+    const ordered = scramble ? _.shuffle(rows) : rows
+    const plates = side === "input" ? (execution.input_plate_tags || [execution.input_plate_tag].filter(_.isString))
+                                   : (execution.output_plate_tags || [execution.output_plate_tag].filter(_.isString))
+    const infoLines = [
+        `procedure_tag\t${execution.procedure_tag}`,
+        `execution_tag\t${execution.tag}`,
+        `${side}_plate_tags\t${plates.join(", ")}`,
+        `side\t${side.toUpperCase()}`,
+        `scrambled\t${scramble}`,
+    ]
+    const tableLines = ["sample_tag\twell", ...ordered.map((entry) => `${entry.sample_tag}\t${entry.well}`)]
+    downloadTxtFile(`${infoLines.join("\n")}\n\n\n${tableLines.join("\n")}`,
+        `execution-${side}-plate${plates.length > 1 ? "s" : ""}-${(plates[0] || "unknown").replace(/[^a-zA-Z0-9_-]/g, "")}.txt`)
+}
+
+/**
+ * The plate export dialog: one row per sample with its well, like the runlist export, with an
+ * optional scramble (random row order in the file only). Used on the execution setup page and
+ * in the executions overview — the download is also available for running / finished executions.
+ */
+export function ExecutionPlateExportDialog({ isOpen, side, execution, onClose }) {
+    const [scramble, setScramble] = useState(false)
+    useEffect(() => { if (isOpen) setScramble(false) }, [isOpen])
+    if (!isOpen || !_.isString(side)) return null
+    return <Dialog title={`Export ${side} plate`} isOpen={isOpen} onClose={onClose}>
+        <DialogBody>
+            <div className="font-size--small" style={{ maxWidth: "420px" }}>
+                Download the plate layout as a tab-delimited txt — one row per sample with the well it
+                is in (sample_tag → well), like the runlist export.
+            </div>
+            <div style={{ margin: "0.75rem 0" }}>
+                <Switch label="Scramble (download the sample rows in random order)"
+                    checked={scramble}
+                    onChange={(e) => setScramble(e.target.checked)} />
+            </div>
+            <div className="font-size--smallest" style={{ color: "#888" }}>
+                Scrambling only shuffles the order of the rows in the file — the mapping of the
+                samples to their wells in this execution is never changed.
+            </div>
+        </DialogBody>
+        <DialogFooter actions={<>
+            <Button text="Cancel" onClick={onClose} />
+            <Button intent={Intent.PRIMARY} icon="download" text="Download"
+                onClick={() => { downloadExecutionPlate({ execution, side, scramble }); onClose() }} />
+        </>} />
+    </Dialog>
 }

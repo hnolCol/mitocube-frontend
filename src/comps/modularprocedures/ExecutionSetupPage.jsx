@@ -1,8 +1,7 @@
 import _ from "lodash"
 import { useState, useEffect, useMemo } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router"
-import { Callout, Dialog, DialogBody, DialogFooter, Button, Intent, Switch, Tag } from "@blueprintjs/core"
-import { downloadTxtFile } from "@/services/downloads/txt"
+import { Callout, Tag } from "@blueprintjs/core"
 import { api } from "@/api"
 import { apiClient } from "@/api/client"
 import { APIAxiosError } from "@/comps/core/base/states/APIError"
@@ -14,7 +13,7 @@ import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
 import { ProcedureTitle, formatExecutionTime, ExecutionStateChip } from "@/comps/modularprocedures/Shared"
 import {
-    PlateGrid, downloadMetricsTemplate, parseMetricsFile,
+    PlateGrid, downloadMetricsTemplate, parseMetricsFile, ExecutionPlateExportDialog,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
 
 const SUBMISSION_COLORS = ["#4051b5", "#238551", "#c87619", "#9d5bd2", "#48aff0", "#cd4246", "#8f99a8", "#2e7d32"]
@@ -81,7 +80,6 @@ export function ExecutionSetupPage() {
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
     const [fillRowsFirst, setFillRowsFirst] = useState(true)
     const [exportDialogProps, setExportDialogProps] = useState({ isOpen: false, side: null })
-    const [exportScramble, setExportScramble] = useState(false)
     const [fillMessage, setFillMessage] = useState(null)
     const [savedMessage, setSavedMessage] = useState(null)
     const [started, setStarted] = useState(false)
@@ -307,48 +305,24 @@ export function ExecutionSetupPage() {
         }
     }
 
-    // export of the plate layouts like the runlist export: a tab-delimited txt with one row per
-    // sample and the well it is in (sample_tag -> well); scramble randomizes the row order only,
-    // the mapping of samples to wells stays untouched
-    const plateRowsInOrder = (plate) => {
-        const rows = plate?.rows || 0
-        const columns = plate?.columns || 0
-        return _.flatten(_.range(rows).map((rowIndex) =>
-            _.range(columns).map((columnIndex) => `${String.fromCharCode(rowIndex + 65)}${columnIndex + 1}`)))
-    }
-    const sampleWellsOnOutput = () => {
-        // derive the output well of each sample from the transfer map
-        const entries = []
-        _.forEach(inputWells, (well, position) =>
-            (well.output_positions || []).forEach((outputPosition) =>
-                (well.sample_tags || []).forEach((sample_tag) =>
-                    entries.push({ sample_tag, well: outputPosition }))))
-        return entries
-    }
-    const handleExportPlate = (side) => {
-        const isInput = side === "input"
-        const plate = isInput ? inputPlate : outputPlate
-        if (!_.isObject(plate)) return
-        const entries = isInput ?
-            _.flatten(_.map(inputWells, (well, position) =>
-                (well.sample_tags || []).map((sample_tag) => ({ sample_tag, well: position })))) :
-            sampleWellsOnOutput()
-        // the runlist style: ordered row-wise over the plate (A1, A2, ... B1) / by transfer order
-        const wellOrder = plateRowsInOrder(plate)
-        let rows = _.sortBy(entries, (entry) => wellOrder.indexOf(entry.well))
-        if (exportScramble) rows = _.shuffle(rows)
-        const infoLines = [
-            `procedure_tag\t${procedure_tag}`,
-            `execution_tag\t${execution_tag}`,
-            `${side}_plate_tag\t${plate.tag}`,
-            `${side}_plate\t${plate.name} (${plate.format})`,
-            `side\t${side.toUpperCase()}`,
-            `scrambled\t${exportScramble}`,
-        ]
-        const tableLines = ["sample_tag\twell", ...rows.map((entry) => `${entry.sample_tag}\t${entry.well}`)]
-        downloadTxtFile(`${infoLines.join("\n")}\n\n\n${tableLines.join("\n")}`,
-            `execution-${side}-plate-${plate.tag}.txt`)
-        setExportDialogProps({ isOpen: false, side: null })
+    // the pseudo execution handed to the shared plate export: the draft side data in the shape of
+    // a stored execution (the output samples are derived from the transfer map)
+    const exportExecution = () => {
+        const outputSamples = {}
+        _.forEach(inputWells, (well) => (well.output_positions || []).forEach((position) =>
+            (well.sample_tags || []).forEach((tag) => {
+                outputSamples[position] = outputSamples[position] || new Set()
+                outputSamples[position].add(tag)
+            })))
+        return {
+            procedure_tag, tag: (execution && execution.tag) || execution_tag,
+            input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
+            input_wells: _.map(inputWells, (well, position) => ({
+                position, plate_tag: inputPlate.tag, sample_tags: well.sample_tags || [] })),
+            output_wells: _.map(outputWells, (well, position) => ({
+                position, plate_tag: outputPlate ? outputPlate.tag : undefined,
+                sample_tags: [...(outputSamples[position] || [])] })),
+        }
     }
 
     const handleClearPlacements = () => {
@@ -734,31 +708,10 @@ export function ExecutionSetupPage() {
                 </> : <div className="font-size--small" style={{ color: "#888", marginTop: "0.5rem" }}>Select an output plate.</div>}
             </div>
         </div>
-        {exportDialogProps.isOpen ? <Dialog
-            title={`Export ${exportDialogProps.side} plate`}
-            isOpen={exportDialogProps.isOpen}
-            onClose={() => setExportDialogProps({ isOpen: false, side: null })}>
-            <DialogBody>
-                <div className="font-size--small" style={{ maxWidth: "420px" }}>
-                    Download the plate layout as a tab-delimited txt — one row per sample with the well it
-                    is in (sample_tag → well), like the runlist export.
-                </div>
-                <div style={{ margin: "0.75rem 0" }}>
-                    <Switch label="Scramble (download the sample rows in random order)"
-                        checked={exportScramble}
-                        onChange={(e) => setExportScramble(e.target.checked)} />
-                </div>
-                <div className="font-size--smallest" style={{ color: "#888" }}>
-                    Scrambling only shuffles the order of the rows in the file — the mapping of the samples
-                    to their wells in this execution is never changed.
-                </div>
-            </DialogBody>
-            <DialogFooter actions={<>
-                <Button text="Cancel" onClick={() => setExportDialogProps({ isOpen: false, side: null })} />
-                <Button intent={Intent.PRIMARY} icon="download" text="Download"
-                    onClick={() => handleExportPlate(exportDialogProps.side)} />
-            </>} />
-        </Dialog> : null}
+        <ExecutionPlateExportDialog
+            isOpen={exportDialogProps.isOpen} side={exportDialogProps.side}
+            execution={exportExecution()}
+            onClose={() => setExportDialogProps({ isOpen: false, side: null })} />
         </>}
     </div>
 }
