@@ -94,6 +94,9 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         INPUT: { params: [], attributeTag: null, metrics: [] },
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
+    const [extraSubmissionTag, setExtraSubmissionTag] = useState("")
+    const [extraSubmissionTags, setExtraSubmissionTags] = useState([])
+    const [extraSubmissionError, setExtraSubmissionError] = useState(null)
 
     const { mutate: execute, isPending, isError, error } = api.modularProcedures.execute.useExecuteModularProcedure()
 
@@ -114,7 +117,12 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     const fetchSamples = () => {
         if (!isOpen || !_.isArray(submissions)) return
         let cancelled = false
-        Promise.all(submissions.map((link) =>
+        // the module's own submissions + explicitly added extra submissions (e.g. pooled runs)
+        const allLinks = [
+            ...submissions,
+            ...extraSubmissionTags.map((tag) => ({ submission_tag: tag, submission_label: tag })),
+        ]
+        Promise.all(allLinks.map((link) =>
             apiClient.get(`/submissions/${link.submission_tag}/samples`)
                 .then((res) => _.isArray(res.data) ? res.data : [])
                 .catch(() => [])
@@ -128,7 +136,23 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         })
         return () => { cancelled = true }
     }
-    useEffect(fetchSamples, [isOpen, submissions])
+    useEffect(fetchSamples, [isOpen, submissions, extraSubmissionTags])
+
+    const linkedSubmissionTags = _.map(submissions, "submission_tag")
+    const handleAddExtraSubmission = () => {
+        const tag = extraSubmissionTag.trim()
+        if (!_.isString(tag) || tag.length === 0) return
+        setExtraSubmissionError(null)
+        apiClient.get(`/submissions/${tag}/samples`)
+            .then((res) => {
+                setExtraSubmissionTags((prev) => prev.includes(tag) ? prev : [...prev, tag])
+                setExtraSubmissionTag("")
+            })
+            .catch(() => setExtraSubmissionError(
+                `Submission '${tag}' not found or not accessible to you.`))
+    }
+    const handleRemoveExtraSubmission = (tag) =>
+        setExtraSubmissionTags((prev) => prev.filter((t) => t !== tag))
 
     useEffect(() => {
         if (isOpen && current_user_tag) setResponsibleUserTags([current_user_tag])
@@ -402,8 +426,29 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                 <div className="flex" style={{ gap: "1rem", alignItems: "flex-start" }}>
                     <div style={{ width: "280px", maxHeight: "55vh", overflowY: "auto" }}>
                         <h4 style={{ margin: "0 0 0.5rem 0" }}>Samples {availableSamples.length > 0 ? `(${unplacedSamples.length} unplaced)` : ""}</h4>
+                        <div className="flex center-items" style={{ gap: "0.25rem", marginBottom: "0.5rem" }}>
+                            <input className="text-input" type="text" placeholder="Add other submission (tag)"
+                                style={{ flex: 1 }} value={extraSubmissionTag}
+                                onChange={(e) => setExtraSubmissionTag(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleAddExtraSubmission()} />
+                            <button className="basic-button basic-button--small" onClick={handleAddExtraSubmission}>Add</button>
+                        </div>
+                        {extraSubmissionTags.map((tag) =>
+                            <Tag key={tag} minimal onRemove={() => handleRemoveExtraSubmission(tag)}
+                                intent={linkedSubmissionTags.includes(tag) ? "success" : "warning"}
+                                title={linkedSubmissionTags.includes(tag) ?
+                                    "This submission is assigned to the module." :
+                                    "Added submission: its samples can be pooled into this run, but this module is not" +
+                                    " in the submission's module chain — the run does not mark it done. Assign it to" +
+                                    " the procedure instead if it should be tracked and freed by this module."}>
+                                {tag}{linkedSubmissionTags.includes(tag) ? "" : " (added)"}
+                            </Tag>)}
+                        {extraSubmissionError ?
+                            <div className="font-size--small" style={{ color: "#cd4246", margin: "0.25rem 0" }}>
+                                {extraSubmissionError}
+                            </div> : null}
                         {availableSamples.length === 0 ? <div className="font-size--small" style={{ color: "#888" }}>
-                            No samples found. Assign submissions to this procedure first.
+                            No samples found. Assign submissions to this procedure first, or add one above.
                         </div> : null}
                         {unplacedSamples.length === 0 && availableSamples.length > 0 ?
                             <div className="font-size--small" style={{ color: "#888" }}>All samples placed.</div> : null}

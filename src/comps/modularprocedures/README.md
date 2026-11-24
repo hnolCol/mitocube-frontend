@@ -32,6 +32,12 @@ The dialog implements the input-plate → output-plate workflow:
 2. **Samples**: the samples of *all* submissions linked to the procedure are listed,
    grouped by submission label. Click a sample, then click one or more input wells to
    place it (placing one sample into several wells is the splitting case).
+   **Other submissions** can be pooled into the run via the "Add other submission (tag)"
+   input (only submissions the user can access; the samples endpoint enforces the
+   visibility scope). Added submissions that are not assigned to the module are marked
+   "(added)": their samples are placed in this run, but the run does not mark them done —
+   assign such a submission to the procedure instead if it should be tracked and freed by
+   this module.
 3. **Transfer map**: click an occupied input well to select it, then click or **drag over
    output wells** to map it. Mapping several input wells onto the same output well is the
    pooling case (e.g. differently treated samples pooled into one column well). The
