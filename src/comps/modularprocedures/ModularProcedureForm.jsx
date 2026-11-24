@@ -35,6 +35,11 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
     const { data: protocol_tags } = api.protocols.query.useGetProtocolsByQuery(
         { search_string: protocolSearchString, limit: 30 }, { enabled: true })
     const { data: plateOptions } = api.plates.plates.useGetPlateOptions({})
+    // the plate options come from the storage attribute group: the traits of the format attribute
+    // (values like '8x12') define the container formats, the traits of the other attributes are
+    // the selectable plate types (e.g. a container material)
+    const formatTraits = _.flatten((plateOptions?.attributes || []).filter((attribute) => attribute.is_format).map((attribute) => attribute.traits))
+    const typeTraits = _.flatten((plateOptions?.attributes || []).filter((attribute) => !attribute.is_format).map((attribute) => attribute.traits))
 
     useEffect(() => {
         if (isEditMode && isSuccess && _.isObject(existingProcedure)) {
@@ -203,8 +208,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 <select className="text-input" value={procedure.input_plate_format}
                     onChange={(e) => setProcedure({ ...procedure, input_plate_format: e.target.value })}>
                     <option value="">Any format</option>
-                    {plateOptions?.formats?.map((format) =>
-                        <option key={format.tag} value={format.text}>{format.text}</option>)}
+                    {formatTraits.map((trait) =>
+                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
                 </select>
             </label>
             <label>
@@ -212,8 +217,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 <select className="text-input" value={procedure.input_plate_type}
                     onChange={(e) => setProcedure({ ...procedure, input_plate_type: e.target.value })}>
                     <option value="">Any type</option>
-                    {plateOptions?.plate_type?.map((type) =>
-                        <option key={type.tag} value={type.text}>{type.text}</option>)}
+                    {typeTraits.map((trait) =>
+                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
                 </select>
             </label>
             <label>
@@ -221,8 +226,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 <select className="text-input" value={procedure.output_plate_format}
                     onChange={(e) => setProcedure({ ...procedure, output_plate_format: e.target.value })}>
                     <option value="">Any format</option>
-                    {plateOptions?.formats?.map((format) =>
-                        <option key={format.tag} value={format.text}>{format.text}</option>)}
+                    {formatTraits.map((trait) =>
+                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
                 </select>
             </label>
             <label>
@@ -230,8 +235,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 <select className="text-input" value={procedure.output_plate_type}
                     onChange={(e) => setProcedure({ ...procedure, output_plate_type: e.target.value })}>
                     <option value="">Any type</option>
-                    {plateOptions?.plate_type?.map((type) =>
-                        <option key={type.tag} value={type.text}>{type.text}</option>)}
+                    {typeTraits.map((trait) =>
+                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
                 </select>
             </label>
         </div>
