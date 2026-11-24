@@ -263,16 +263,13 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
     const queryClient = useQueryClient()
     const redirect = useNavigate()
     const [isAssignDialogOpen, setAssignDialogOpen] = useState(false)
-    const [executionDialogProps, setExecutionDialogProps] = useState(null)
     const { mutate: unlinkProcedure } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
-    const { mutate: createDraft } = api.modularProcedures.execute.useCreateExecutionDraft()
-    // assigning a module on the Organize tab continues directly in the execution setup:
-    // a new draft execution of the module is created (backend-generated ID) whose design
-    // (plates, sample placement, transfer map, values) can be saved and started from here
+    // assigning a module on the Organize tab continues directly in the execution setup page:
+    // the page creates a new draft execution of the module (backend-generated ID, stable URL)
+    // where the plates, sample placement, transfer map and values are designed
+    const executionDialogProps = null
     const handleAssigned = (procedure_tag) => {
-        createDraft({ tag: procedure_tag }, {
-            onSuccess: (draftExecution) => setExecutionDialogProps({ procedure_tag, tag: draftExecution.tag })
-        })
+        redirect(`/modular-procedures/setup?procedure=${procedure_tag}`)
     }
     const { data: title } = api.submissions.title.useGetSubmissionTitle(
         { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 })
@@ -322,18 +319,6 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
                     assignedProcedureTags={procedures.map(link => link.procedure_tag)}
                     onClose={() => setAssignDialogOpen(false)}
                     onAssigned={handleAssigned}
-                />
-            ) : null}
-            {executionDialogProps ? (
-                <ModularProcedureExecutionDialog
-                    procedure_tag={executionDialogProps.procedure_tag}
-                    draft={{ tag: executionDialogProps.tag }}
-                    isOpen={true}
-                    onClose={() => setExecutionDialogProps(null)}
-                    onExecuted={() => {
-                        setExecutionDialogProps(null)
-                        queryClient.invalidateQueries({ queryKey: ["getCurrentStateDurations"] })
-                    }}
                 />
             ) : null}
         </div>

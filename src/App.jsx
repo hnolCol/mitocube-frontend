@@ -105,6 +105,7 @@ import { PlatesAdmin } from "./comps/admin/plates/PlatesAdmin";
 import { ModularProceduresAdmin } from "./comps/admin/modularprocedures/ModularProceduresAdmin";
 import { ModularProcedureBoard } from "./comps/modularprocedures/ModularProcedureBoard";
 import { ModularProceduresExecutionsOverview } from "./comps/modularprocedures/ModularProceduresExecutionsOverview";
+import { ExecutionSetupPage } from "./comps/modularprocedures/ExecutionSetupPage";
 import { AdminReports } from "./comps/admin/reports/Reports";
 import { CollaborationSharingOverview } from "./comps/admin/sharing/SharingOverview";
 import { ConsortiumSharingOverview } from "./comps/admin/sharing/SharingOverview";
@@ -311,6 +312,22 @@ function App() {
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
                 <ModularProcedureBoard userRole={authenticationStatus.role} userTag={authenticationStatus.tag} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/modular-procedures/setup"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <ExecutionSetupPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/modular-procedures/setup/:execution_tag"
+            element={
+              <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
+                <ExecutionSetupPage />
               </ProtectedRoute>
             }
           />

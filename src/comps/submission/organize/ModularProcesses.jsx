@@ -121,7 +121,7 @@ export function ModularProcesses({ userRole, userTag }) {
             {(_.isArray(procedure_tags) ? procedure_tags : []).map((procedure_tag) =>
                 <ModularProcessColumn key={procedure_tag} procedure_tag={procedure_tag}
                     isCurator={isCurator} canChangeState={isCurator}
-                    onExecute={() => setExecutionDialogProps({ isOpen: true, procedure_tag })}
+                    onExecute={() => navigate(`/modular-procedures/setup?procedure=${procedure_tag}`)}
                     onMarkDone={markDone} onReopen={reopen} />)}
         </div>
     </div>
