@@ -248,7 +248,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
         <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
             <div>
                 <div className="font-size--small">Input attributes (allow input)</div>
-                <AttributeInput text="Add input attribute" onItemSelect={handleSelectInputAttribute} />
+                <AttributeInput text="Add input attribute" allow_input={true} onItemSelect={handleSelectInputAttribute} />
                 <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
                     {procedure.input_attribute_tags.map((tag) =>
                         <button key={tag} className="basic-button basic-button--small"
@@ -257,7 +257,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
             </div>
             <div>
                 <div className="font-size--small">Output attributes (expected data)</div>
-                <AttributeInput text="Add output attribute" onItemSelect={handleSelectOutputAttribute} />
+                <AttributeInput text="Add output attribute" allow_input={true} onItemSelect={handleSelectOutputAttribute} />
                 <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
                     {procedure.output_attribute_tags.map((tag) =>
                         <button key={tag} className="basic-button basic-button--small"
