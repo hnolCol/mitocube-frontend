@@ -416,10 +416,16 @@ function ExploreScopeSelector({ group_tag }) {
                 <p className="font-size--smallest margin--none margin-top--little">
                     Only the members of the selected research groups see the submissions of your
                     research group in the explore view. With an empty selection, users outside of
-                    your research group do not see any of your submissions there.
+                    your research group do not see any of your submissions there. "Select all"
+                    adds the research groups that currently exist: research groups that join
+                    later are not included automatically - add them here once you want to share
+                    with them.
                 </p>
             </div>
-            : null}
+            : <p className="font-size--smallest margin--none margin-top--little">
+                All research groups - including research groups that join later - can discover
+                your submissions in the explore view.
+            </p>}
     </div>
 }
 

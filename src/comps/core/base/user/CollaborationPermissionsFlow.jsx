@@ -24,7 +24,7 @@ const ROLE_STYLES = {
 const SX = 230
 const RX = 535
 const VIEW_W = 680
-const VIEW_H = 980
+const VIEW_H = 1240
 
 /**
  * @description Colored role chip of the flowchart legend.
@@ -144,7 +144,10 @@ export function CollaborationPermissionsFlow() {
             <div className="font-size--small">
                 Explore is disabled for every new research group until its head (PI) enables it.
                 While disabled, the group's members cannot use the explore view and their
-                submissions are hidden from others. A collaboration request from another research
+                submissions are hidden from others. The PI can also restrict which research
+                groups may discover the group's submissions: either all research groups (also
+                research groups joining later) or an explicit selection that never includes
+                research groups automatically. A collaboration request from another research
                 group is solely decided by the head (PI) of the submission owner's research group,
                 backend enforced.
             </div>
@@ -165,9 +168,9 @@ export function CollaborationPermissionsFlow() {
             </defs>
 
             <Note x={8} y={40} section>VISIBILITY</Note>
-            <Note x={8} y={348} section>DISCOVERY</Note>
-            <Note x={8} y={490} section>DECISION</Note>
-            <Note x={8} y={848} section>OUTCOME</Note>
+            <Note x={8} y={575} section>DISCOVERY</Note>
+            <Note x={8} y={672} section>DECISION</Note>
+            <Note x={8} y={1053} section>OUTCOME</Note>
 
             {/* visibility */}
             <FlowNode kind="pill" cx={SX} cy={40} w={300} h={50} color={C.admin}
@@ -186,49 +189,64 @@ export function CollaborationPermissionsFlow() {
             <Arrow d={`M${SX},215 V255`} />
             <BranchTag x={SX} y={235} yes />
             <FlowNode cx={SX} cy={280} h={50} color={C.ok}
-                title={["Explore view available"]}
-                body={["members can browse; submissions", "discoverable by others"]} />
+                title={["Members can browse the", "explore view"]} />
+
+            <Arrow d={`M${SX},305 V340`} />
+            <FlowNode kind="diamond" cx={SX} cy={392} w={230} h={104} color={C.pi}
+                title={["Visibility restricted to", "selected research", "groups?"]} roles={["pi"]} />
+
+            <Arrow d={`M${SX + 115},392 H${RX - 102}`} />
+            <BranchTag x={392} y={392} yes={false} />
+            <FlowNode cx={RX} cy={392} w={204} h={84} color={C.member}
+                title={["All research groups"]}
+                body={["every research group can", "discover the submissions -", "also groups joining later"]} />
+
+            <Arrow d={`M${SX},444 V485`} />
+            <BranchTag x={SX} y={464} yes />
+            <FlowNode cx={SX} cy={512} h={54} color={C.member}
+                title={["Selected research groups only"]}
+                body={["only allowed groups discover", "them; newcomers only after", "the PI added them"]} />
 
             {/* discovery */}
-            <Arrow d={`M${SX},305 V348`} />
-            <FlowNode cx={SX} cy={375} h={50} color={C.member}
+            <Arrow d={`M${SX},539 V578`} />
+            <FlowNode cx={SX} cy={605} h={50} color={C.member}
                 title={["Request collaboration"]} body={["for self or the own research group"]} roles={["member"]} />
 
             {/* decision */}
-            <Arrow d={`M${SX},400 V438`} />
-            <FlowNode kind="diamond" cx={SX} cy={490} w={230} h={100} color={C.pi}
+            <Arrow d={`M${SX},630 V668`} />
+            <FlowNode kind="diamond" cx={SX} cy={720} w={230} h={100} color={C.pi}
                 title={["Same research group", "as the owner?"]} />
 
-            <Arrow d={`M${SX + 115},490 H${RX - 102}`} />
-            <BranchTag x={392} y={490} yes={false} />
-            <FlowNode cx={RX} cy={490} w={204} h={84} color={C.pi}
+            <Arrow d={`M${SX + 115},720 H${RX - 102}`} />
+            <BranchTag x={392} y={720} yes={false} />
+            <FlowNode cx={RX} cy={720} w={204} h={84} color={C.pi}
                 title={["Solely the owner's PI", "decides"]}
                 body={["admins & curators cannot;", "hidden from everybody else"]} roles={["pi"]} />
 
-            <Arrow d={`M${SX},540 V585`} />
-            <BranchTag x={SX} y={562} yes />
-            <FlowNode cx={SX} cy={610} h={60} color={C.group_curator}
+            <Arrow d={`M${SX},770 V815`} />
+            <BranchTag x={SX} y={792} yes />
+            <FlowNode cx={SX} cy={845} h={60} color={C.group_curator}
                 title={["Owner, heads (PIs) &", "curators decide"]} />
 
             {/* both paths converge in the final decision */}
-            <Arrow d={`M${SX},640 V672`} />
-            <Arrow d={`M${RX},532 V656 H${SX + 3}`} />
-            <FlowNode kind="diamond" cx={SX} cy={720} w={230} h={96} color={C.pi}
+            <Arrow d={`M${SX},875 V907`} />
+            <Arrow d={`M${RX},762 V890 H${SX + 3}`} />
+            <FlowNode kind="diamond" cx={SX} cy={955} w={230} h={96} color={C.pi}
                 title={["Request accepted?"]} />
 
-            <Arrow d={`M${SX + 115},720 H${RX - 97}`} />
-            <BranchTag x={392} y={720} yes={false} />
-            <FlowNode kind="pill" cx={RX} cy={720} w={200} h={64} color={C.no}
+            <Arrow d={`M${SX + 115},955 H${RX - 107}`} />
+            <BranchTag x={392} y={955} yes={false} />
+            <FlowNode kind="pill" cx={RX} cy={955} w={200} h={64} color={C.no}
                 title={["Request denied"]} body={["dropped - no access,", "a new one can be filed"]} />
 
-            <Arrow d={`M${SX},768 V806`} />
-            <BranchTag x={SX} y={786} yes />
-            <FlowNode kind="pill" cx={SX} cy={848} w={280} h={64} color={C.ok}
+            <Arrow d={`M${SX},1003 V1045`} />
+            <BranchTag x={SX} y={1024} yes />
+            <FlowNode kind="pill" cx={SX} cy={1085} w={280} h={64} color={C.ok}
                 title={["Collaboration active"]} body={["the requester or the whole", "requested group gains access"]} />
 
-            <Arrow d={`M${SX},880 V920`} dashed />
-            <Note x={SX + 10} y={902}>anytime</Note>
-            <FlowNode kind="pill" cx={SX} cy={948} w={280} h={56} color={C.no} dashed
+            <Arrow d={`M${SX},1117 V1155`} dashed />
+            <Note x={SX + 10} y={1138}>anytime</Note>
+            <FlowNode kind="pill" cx={SX} cy={1185} w={280} h={56} color={C.no} dashed
                 title={["Collaboration revoked"]} body={["by the submission owner"]} />
         </svg>
     </div>
