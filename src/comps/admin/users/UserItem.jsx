@@ -6,6 +6,8 @@ import _ from "lodash"
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { BlockUserDialog } from "./dialogs/BlockUser"
 import { EditUserRoleDialog } from "./dialogs/EditUserRole"
+import { ResetAccountDialog } from "./dialogs/ResetAccount"
+import { ResetMfaDialog } from "./dialogs/ResetMfa"
 
 const ROLE_LABELS = {
     1: "Standard",
@@ -19,10 +21,12 @@ const ROLE_INTENTS = {
     4: "danger"
 }
 
-export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = false, canEditRole = false }) {
+export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = false, canEditRole = false, canReset = false }) {
     const redirect = useNavigate()
     const [isBlockDialogOpen, setIsBlockDialogOpen] = useState(false)
     const [isEditRoleDialogOpen, setIsEditRoleDialogOpen] = useState(false)
+    const [isResetAccountDialogOpen, setIsResetAccountDialogOpen] = useState(false)
+    const [isResetMfaDialogOpen, setIsResetMfaDialogOpen] = useState(false)
     const {data : user, isLoading, isError, error} = api.users.core.useGetPublicUserByTag({tag}, {enabled: tag && tag.length > 0})
     const { data: isUserActive } = api.users.active.useGetUserIsActive({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
     const { data: userRole } = api.users.roles.useGetUserRoleByTag(
@@ -89,6 +93,28 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
                         Block
                     </button>
                 ) : null}
+                {isUserActive && canReset ? (
+                    <button
+                        className="basic-button--small"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setIsResetMfaDialogOpen(true)
+                        }}
+                    >
+                        Reset MFA
+                    </button>
+                ) : null}
+                {isUserActive && canReset ? (
+                    <button
+                        className="basic-button--small"
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            setIsResetAccountDialogOpen(true)
+                        }}
+                    >
+                        Reset account
+                    </button>
+                ) : null}
             </div>
             <BlockUserDialog
                 tag={tag}
@@ -101,6 +127,20 @@ export function UserItem({ tag, redirectOnClick = true, onClick, canBlock = fals
                     role={_.isNumber(userRole) ? userRole : undefined}
                     isOpen={isEditRoleDialogOpen}
                     onClose={() => setIsEditRoleDialogOpen(false)}
+                />
+            ) : null}
+            {canReset ? (
+                <ResetMfaDialog
+                    tag={tag}
+                    isOpen={isResetMfaDialogOpen}
+                    onClose={() => setIsResetMfaDialogOpen(false)}
+                />
+            ) : null}
+            {canReset ? (
+                <ResetAccountDialog
+                    tag={tag}
+                    isOpen={isResetAccountDialogOpen}
+                    onClose={() => setIsResetAccountDialogOpen(false)}
                 />
             ) : null}
         </div>
