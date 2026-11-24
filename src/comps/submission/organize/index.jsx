@@ -226,6 +226,31 @@ PlusIconButton.propTypes = {
  * @description A minimal SVG "+" button used to assign a modular procedure to a submission.
  * @returns {JSX.Element}
  */
+/**
+ * @description A minimal link icon button that opens the submission page explicitly.
+ * @returns {JSX.Element}
+ */
+function LinkIconButton({ onClick, title = "Open the submission page" }) {
+    return (
+        <motion.button
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={onClick}
+            title={title}
+            aria-label={title}
+            style={{ border: "none", background: "transparent", cursor: "pointer", padding: "0.1rem", lineHeight: 0 }}
+        >
+            <svg width={14} height={14} viewBox="0 0 14 14" fill="none">
+                <path d="M5 2.5H4A1.5 1.5 0 0 0 2.5 4v6A1.5 1.5 0 0 0 4 11.5h6A1.5 1.5 0 0 0 11.5 10V9"
+                    stroke="#666" strokeWidth="1.4" strokeLinecap="round" />
+                <path d="M8 2.5h3.5V6" stroke="#666" strokeWidth="1.4" strokeLinecap="round" />
+                <path d="M11.5 2.5L6 8" stroke="#666" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
+        </motion.button>
+    )
+}
+
+
 function PlusIconButton({ onClick, title = "Assign modular procedure" }) {
     return (
         <motion.button
@@ -277,7 +302,7 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
         { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 })
     const procedures = _.isArray(row.procedures) ? _.orderBy(row.procedures, ["position"], ["asc"]) : []
     return (
-        <div className="submission__item__container" style={{ cursor: "pointer" }} onClick={() => redirect(`/submissions/${row.submission_tag}`)}>
+        <div className="submission__item__container">
             <div className="flex center-items gap--little" style={{ color: "#555", fontSize: "0.85rem" }}>
                 {_.isNumber(created_at) ? <CreatedAt createdat={created_at} addFromNow={false} /> : null}
                 <span>·</span>
@@ -307,11 +332,13 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
                         Since {formatDurationPhrase(row.duration_days)}
                     </span>
                 ) : null}
-                {isCurator ? (
-                    <div onClick={(e) => { e.stopPropagation(); setAssignDialogOpen(true) }} style={{ marginLeft: "auto", display: "inline-flex" }}>
+                <div style={{ marginLeft: "auto", display: "inline-flex", gap: "0.25rem" }}>
+                    {isCurator ? (
                         <PlusIconButton onClick={() => setAssignDialogOpen(true)} />
-                    </div>
-                ) : null}
+                    ) : null}
+                    <LinkIconButton title="Open the submission page"
+                        onClick={() => redirect(`/submissions/${row.submission_tag}`)} />
+                </div>
             </div>
             {isAssignDialogOpen ? (
                 <AssignProcedureDialog
