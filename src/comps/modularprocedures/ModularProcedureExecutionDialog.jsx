@@ -112,7 +112,8 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     const outputPlate = useMemo(() => _.find(plates, { tag: outputPlateTag }), [plates, outputPlateTag])
 
     const plateMatches = (plate, format, type) =>
-        (!format || plate?.format === format) && (!type || plate?.plate_type === type)
+        (!format || plate?.format === format) &&
+        (!type || (plate?.applications || []).some((application) => application.trait_text === type))
     const inputConstraint = { format: procedure?.input_plate_format, type: procedure?.input_plate_type }
     const outputConstraint = { format: procedure?.output_plate_format, type: procedure?.output_plate_type }
     const inputPlateOptions = (inputConstraint.format || inputConstraint.type) ?
