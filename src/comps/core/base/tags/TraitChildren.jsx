@@ -187,7 +187,23 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
         }
         else if (requiredTraitsChecked && _.isArray(required_traits) && path.length > 0) {
             const pathTags = path.map(p => p.tag)
-            setRequiredTraitsValid(_.intersection(required_traits, pathTags).length > 0)
+            const pathAttributeTags = path.filter(p => p.type === "attribute").map(p => p.tag)
+            // only check required traits whose owning attribute tag (trait tags are
+            // "<attribute_tag>:...") is part of the current parent hierarchy; entries
+            // belonging to other attributes are ignored here, so that an attribute
+            // (e.g. concentration) can be a dependency of multiple parent attributes
+            // while each parent branch still enforces its own specific traits
+            const applicableRequiredTraits = required_traits.filter(required_tag => {
+                const colonIdx = required_tag.indexOf(":")
+                if (colonIdx === -1) return true // unprefixed entry (e.g. a plain attribute tag): legacy check
+                const ownerAttributeTag = required_tag.slice(0, colonIdx)
+                return pathAttributeTags.length > 0 ? pathAttributeTags.includes(ownerAttributeTag) : pathTags.includes(ownerAttributeTag)
+            })
+            if (applicableRequiredTraits.length === 0) {
+                setRequiredTraitsValid(true) // no required trait applies to this parent branch
+            } else {
+                setRequiredTraitsValid(_.intersection(applicableRequiredTraits, pathTags).length > 0)
+            }
         }
         else {
             setRequiredTraitsValid(false)
