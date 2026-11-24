@@ -104,7 +104,7 @@ export function UsersAdminView({ authenticationStatus }) {
                     <div style={{ height: "70vh", overflowY: "scroll", paddingBottom: "3rem", paddingRight: "0.5rem" }} className="flex flex-column">
                         {_.isArray(user_tags) ? user_tags.map((user_tag, idx) => (
                             <div key={`${user_tag}-${idx}-${refreshKey}`} className="margin-bottom--little">
-                                <UserItem tag={user_tag} canBlock={isAdmin} canEditRole={isAdmin} />
+                                <UserItem tag={user_tag} canBlock={isAdmin} canEditRole={isAdmin} canReset={isAdmin} />
                             </div>
                         )) : null}
                     </div>
