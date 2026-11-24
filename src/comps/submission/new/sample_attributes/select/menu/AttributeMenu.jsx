@@ -19,6 +19,7 @@ const readClipboardValues = async () => {
 
 export function AttributeContextMenuSearch({ attribute_tag,
                 selectedTraits,
+                usedTraits = [],
                 onSampleTraitSelection,
                 rowIdces = [],
                 clearAttributeTableByRowIndex = undefined,
@@ -82,6 +83,22 @@ export function AttributeContextMenuSearch({ attribute_tag,
                     })}
                 </Menu>
                 <MenuDivider />
+                <MenuItem
+                    icon="history"
+                    disabled={usedTraits.length === 0}
+                    text={`Used in other rows (${usedTraits.length})`}>
+                    {usedTraits.map(usedTrait => {
+                        const pathKey = usedTrait.trait_path.map(s => `${s.attribute_tag}:${s.trait_tag}`).join(">")
+                        return <div key={pathKey} style={{ paddingLeft: `${usedTrait.depth * 0.75}rem` }}>
+                            <TraitMenuItem
+                                tag={usedTrait.trait_tag}
+                                attribute_tag={attribute_tag}
+                                trait_path={usedTrait.trait_path}
+                                selected={_.includes(selectedTraits, usedTrait.trait_tag)}
+                                onClick={(p) => onSampleTraitSelection(p, rowIdces)} />
+                        </div>
+                    })}
+                </MenuItem>
                 <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces, attribute_tag)} />
                 {inputFields.length > 0
                     ? <MenuItem

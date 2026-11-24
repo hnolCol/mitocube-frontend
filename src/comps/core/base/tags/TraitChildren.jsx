@@ -35,7 +35,7 @@ export function AttributeTraitInput({ has_selection, selection, childTrait, attr
             <TraitInput
                 attribute_tag={attribute.tag}
                 onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
-                selected_trait={has_selection ? selection[0].tag : undefined}
+                selected_trait={has_selection && _.isString(childTrait) ? childTrait : undefined}
                 onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
             /> : null}
     </div>

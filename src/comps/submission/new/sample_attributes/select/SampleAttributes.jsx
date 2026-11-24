@@ -59,6 +59,31 @@ const getDynamicColumnWidths = (containerWidth, numAttributeColumns) => {
 const getGroupingInfoByColumnIndex = (columnIndex, groupings) => groupings[getSampleAttrIndex(columnIndex)];
 const getGroupingAttributeByColumnIndex = (columnIndex, groupings) => getGroupingInfoByColumnIndex(columnIndex, groupings);
 
+/**
+ * @description Recursively collects the trait nodes below an attribute node together with
+ * their full trait path (root first), e.g. [{attribute_tag: "att_compound", trait_tag: "dmso"},
+ * {attribute_tag: "att_concentration", trait_tag: "mM"}]. Used for the "Used in other rows" menu.
+ * @param {Object[]} children - The children (trait nodes) of an attribute node.
+ * @param {String} attribute_tag - The tag of the attribute the children belong to.
+ * @param {Object[]} trail - The trait path steps collected so far (root first).
+ * @returns {{trait_tag: String, trait_path: Object[], depth: Number}[]}
+ */
+const collectUsedTraitPaths = (children, attribute_tag, trail) => {
+    const acc = []
+    _.forEach(children, child => {
+        if (!_.isObject(child) || child.type !== "trait") return
+        const step = { attribute_tag, trait_tag: child.tag }
+        const path = [...trail, step]
+        acc.push({ trait_tag: child.tag, trait_path: path, depth: trail.length })
+        _.forEach(child.children, grandChild => {
+            if (_.isObject(grandChild) && grandChild.type === "attribute") {
+                acc.push(...collectUsedTraitPaths(grandChild.children, grandChild.tag, path))
+            }
+        })
+    })
+    return acc
+}
+
 function useSampleTableSelection() {
     const [selectedRows, setSelectedRows] = useState([]);
     const [copiedRows, setCopiedRows] = useState([]);
@@ -85,6 +110,7 @@ const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
                 text: attributeSelected ? attribute.text : "",
                 attribute_groups : ["sample"],
                 min_state: 0, disabled,
+                include_traits: true,
                 onItemSelect: (attribute_tag) => onSampleAttributeSelect(sampleAttrIndex, attribute_tag)
             }} />}
         </div>
@@ -241,9 +267,22 @@ function SamplesAttributes({
                 const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
 
                 if (!attributeDefined) return <Menu><MenuItem text="Please select attribute type first.." disabled={true} /></Menu>
-                //find row indices from the selected region
-                // if there is no attribute values, then a numeric value can be inserted by the user
-                const prevSelection = [] //_.uniqBy(_.flatten(selectedRows.map(idx => attributeTable[idx][attribute.tag])).filter(v => _.isObject(v)), "tag")
+                // traits selected under this attribute in the selected rows (marked in the menu)
+                const selectedTraits = _.uniq(_.flatten(selectedRows.map(rowIndex => {
+                    const row = attributeTable[rowIndex]
+                    const attributeNode = _.isArray(row) ? row.find(p => p.type === "attribute" && p.tag === attribute_tag) : undefined
+                    return _.isArray(attributeNode?.children) ? attributeNode.children.filter(c => c.type === "trait").map(c => c.tag) : []
+                })))
+                // traits (with their full paths) selected under this attribute in the other rows - shown as "Used in other rows"
+                const usedTraits = _.uniqBy(_.flatten(
+                    _.range(attributeTable.length)
+                        .filter(rowIndex => !selectedRows.includes(rowIndex))
+                        .map(rowIndex => {
+                            const row = attributeTable[rowIndex]
+                            const attributeNode = _.isArray(row) ? row.find(p => p.type === "attribute" && p.tag === attribute_tag) : undefined
+                            return _.isArray(attributeNode?.children) ? collectUsedTraitPaths(attributeNode.children, attribute_tag, []) : []
+                        })
+                ), u => u.trait_path.map(s => `${s.attribute_tag}:${s.trait_tag}`).join(">"))
                 // input fields available under this attribute in the selected rows (for clipboard paste)
                 const pasteSourceRow = attributeTable[selectedRows[0]]
                 const inputFields = collectInputFields(pasteSourceRow, attribute_tag)
@@ -251,7 +290,8 @@ function SamplesAttributes({
                     <AttributeContextMenuSearch
                         {...{
                             attribute_tag,
-                            selectedTraits: prevSelection,
+                            selectedTraits,
+                            usedTraits,
                             onSampleTraitSelection,
                             rowIdces: selectedRows,
                             clearAttributeTableByRowIndex,
@@ -267,6 +307,7 @@ function SamplesAttributes({
             }
         }
     }, [
+        attributeTable,
         clearAttributeTableByRowIndex,
         clearGenotypeColumn,
         copiedRows,
