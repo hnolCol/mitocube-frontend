@@ -1,5 +1,6 @@
 import _ from "lodash"
 import { useState, useEffect, useMemo } from "react"
+import { useQueries } from "@tanstack/react-query"
 import { useNavigate, useParams, useSearchParams } from "react-router"
 import { Callout, Tag } from "@blueprintjs/core"
 import { api } from "@/api"
@@ -8,7 +9,6 @@ import { APIAxiosError } from "@/comps/core/base/states/APIError"
 import { ConditionApplicationInput } from "@/comps/core/input/api/ConditionApplicationInput"
 import { UserInput } from "@/comps/core/input/api/UserInput"
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput"
-import { TraitInput } from "@/comps/core/input/api/TraitInput"
 import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
 import { ProcedureTitle, formatExecutionTime, ExecutionStateChip } from "@/comps/modularprocedures/Shared"
@@ -30,6 +30,12 @@ const submissionColor = (index) => SUBMISSION_COLORS[index % SUBMISSION_COLORS.l
  * saved draft: it can be saved anytime and continued later, or started (full validation) directly.
  * @returns {JSX.Element} The setup page.
  */
+function AttributeTitle({ attribute_tag }) {
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute(
+        { tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: 300000, retry: false })
+    return <span>{_.isObject(attribute) && _.isString(attribute.text) ? attribute.text : attribute_tag}</span>
+}
+
 export function ExecutionSetupPage() {
     const { execution_tag } = useParams()
     const [searchParams] = useSearchParams()
@@ -74,8 +80,8 @@ export function ExecutionSetupPage() {
     const [selectedOutputWell, setSelectedOutputWell] = useState(null)
     const [responsibleUserTags, setResponsibleUserTags] = useState([])
     const [metricStates, setMetricStates] = useState({
-        OUTPUT: { params: [], attributeTag: null, metrics: [] },
-        INPUT: { params: [], attributeTag: null, metrics: [] },
+        OUTPUT: { metrics: [] },
+        INPUT: { metrics: [] },
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
     const [savedMessage, setSavedMessage] = useState(null)
@@ -97,6 +103,24 @@ export function ExecutionSetupPage() {
 
     const inputPlate = useMemo(() => _.find(plates, { tag: inputPlateTag }), [plates, inputPlateTag])
     const outputPlate = useMemo(() => _.find(plates, { tag: outputPlateTag }), [plates, outputPlateTag])
+
+    // the measurable quantities are part of the module definition: the input/output attributes
+    // declared by the procedure and their traits (the units). Nothing declared (e.g. a plain
+    // digestion) - nothing to enter.
+    const declaredAttributes = (side) => _.isArray(side === "INPUT" ?
+        procedure?.input_attribute_tags : procedure?.output_attribute_tags) ?
+        (side === "INPUT" ? procedure.input_attribute_tags : procedure.output_attribute_tags) : []
+    const traitQueries = useQueries({
+        queries: _.uniq([...declaredAttributes("INPUT"), ...declaredAttributes("OUTPUT")]).map((attribute_tag) => ({
+            queryKey: ["traitsByTag", attribute_tag, 100],
+            queryFn: () => apiClient.get(`/attributes/${attribute_tag}/traits`, { params: { tag: attribute_tag, limit: 100 } })
+                .then((response) => response.data),
+            staleTime: 300000, retry: false,
+        }))
+    })
+    const traitsByAttribute = _.fromPairs(_.zip(_.uniq([...declaredAttributes("INPUT"), ...declaredAttributes("OUTPUT")]),
+        traitQueries.map((query) => (_.isArray(query.data) ? query.data : []))))
+    const sideTraitTags = (side) => _.flatten(declaredAttributes(side).map((attribute_tag) => traitsByAttribute[attribute_tag] || []))
 
     const plateMatches = (plate, format, type) =>
         (!format || plate?.format === format) &&
@@ -143,13 +167,9 @@ export function ExecutionSetupPage() {
         const inputMetrics = (execution.input_well_metrics || [])
             .concat(_.flatten((execution.input_wells || []).map((well) => well.metrics || [])))
         const outputMetrics = _.flatten((execution.output_wells || []).map((well) => well.metrics || []))
-        const toParams = (metrics, side) => _.uniqBy(metrics.map((metric) =>
-            ({ attribute_tag: metric.attribute_tag, trait_tag: metric.trait_tag, side })), "trait_tag")
         setMetricStates({
-            INPUT: { params: toParams(inputMetrics, "INPUT"), attributeTag: null,
-                     metrics: inputMetrics.map((metric) => ({ position: metric.position, trait_tag: metric.trait_tag, value: metric.value })) },
-            OUTPUT: { params: toParams(outputMetrics, "OUTPUT"), attributeTag: null,
-                      metrics: outputMetrics.map((metric) => ({ position: metric.position, trait_tag: metric.trait_tag, value: metric.value })) },
+            INPUT: { metrics: inputMetrics.map((metric) => ({ position: metric.position, trait_tag: metric.trait_tag, value: metric.value })) },
+            OUTPUT: { metrics: outputMetrics.map((metric) => ({ position: metric.position, trait_tag: metric.trait_tag, value: metric.value })) },
         })
     }, [execution, loadedRevision])
 
@@ -224,19 +244,6 @@ export function ExecutionSetupPage() {
     const updateMetricState = (side, updater) =>
         setMetricStates((prev) => ({ ...prev, [side]: updater(prev[side]) }))
 
-    const handleMetricTraitSelect = (side) => (trait_tag) =>
-        updateMetricState(side, (state) => trait_tag && state.attributeTag ?
-            { ...state, attributeTag: null, params: state.params.some((p) => p.trait_tag === trait_tag) ?
-                state.params : [...state.params, { attribute_tag: state.attributeTag, trait_tag }] } :
-            { ...state, attributeTag: null })
-
-    const handleRemoveMetricParam = (side) => (trait_tag) =>
-        updateMetricState(side, (state) => ({
-            ...state,
-            params: state.params.filter((p) => p.trait_tag !== trait_tag),
-            metrics: state.metrics.filter((m) => m.trait_tag !== trait_tag),
-        }))
-
     const handleRemoveMetric = (side) => (metric) =>
         updateMetricState(side, (state) => ({ ...state, metrics: state.metrics.filter((m) => m !== metric) }))
 
@@ -250,7 +257,7 @@ export function ExecutionSetupPage() {
         const reader = new FileReader()
         reader.onload = () => {
             try {
-                const parsed = parseMetricsFile(String(reader.result), metricStates[side].params.map((p) => p.trait_tag))
+                const parsed = parseMetricsFile(String(reader.result), sideTraitTags(side))
                 const wells = sideWellPositions(side)
                 const unknown = parsed.map((m) => m.position).filter((position) => !wells.includes(position))
                 if (unknown.length > 0)
@@ -358,30 +365,33 @@ export function ExecutionSetupPage() {
     const renderMetricsSection = (side, title) => {
         const state = metricStates[side]
         const positions = sideWellPositions(side)
+        const attributes = declaredAttributes(side)
+        if (attributes.length === 0) return null
+        const attributeTags = attributes
         return <div style={{ borderTop: "1px dashed #ddd", marginTop: "0.5rem", paddingTop: "0.5rem" }}>
             <div className="font-size--small" style={{ fontWeight: 600 }}>{title}</div>
-            <div className="flex center-items flex--wrap" style={{ gap: "0.35rem", marginTop: "0.25rem" }}>
-                <AttributeInput text="Attribute" onItemSelect={(attribute_tag) =>
-                    updateMetricState(side, (s) => ({ ...s, attributeTag: attribute_tag }))} />
-                {state.attributeTag !== null ?
-                    <TraitInput attribute_tag={state.attributeTag} text="Trait"
-                        onItemSelect={handleMetricTraitSelect(side)} /> : null}
-                {state.params.map((param) =>
-                    <Tag key={param.trait_tag} minimal onRemove={() => handleRemoveMetricParam(side)(param.trait_tag)}>
-                        {param.trait_tag}
-                    </Tag>)}
-                {state.params.length > 0 && positions.length > 0 ? <>
-                    <button className="basic-button basic-button--small"
-                        onClick={() => downloadMetricsTemplate(positions, state.params.map((p) => p.trait_tag))}>
-                        Template
-                    </button>
-                    <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
-                        Upload
-                        <input type="file" accept=".txt,.tsv,.csv" style={{ display: "none" }}
-                            onChange={handleMetricsUpload(side)} />
-                    </label>
-                </> : null}
+            <div className="font-size--smallest" style={{ color: "#888", margin: "0.25rem 0" }}>
+                Declared by the module definition{positions.length > 0 ? " — download the template, fill in one line per well and upload it" : " — place the wells first to enter values"}.
             </div>
+            {attributeTags.map((attribute_tag) =>
+                <div key={attribute_tag} className="margin-top--little">
+                    <span className="font-size--smallest" style={{ fontWeight: 600 }}><AttributeTitle attribute_tag={attribute_tag} />:</span>
+                    <span className="flex flex--wrap" style={{ gap: "0.25rem" }}>
+                        {(traitsByAttribute[attribute_tag] || []).map((trait_tag) =>
+                            <Tag key={trait_tag} minimal>{trait_tag}</Tag>)}
+                    </span>
+                </div>)}
+            {positions.length > 0 ? <div className="flex center-items flex--wrap" style={{ gap: "0.35rem", marginTop: "0.35rem" }}>
+                <button className="basic-button basic-button--small"
+                    onClick={() => downloadMetricsTemplate(positions, sideTraitTags(side))}>
+                    Template
+                </button>
+                <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
+                    Upload data
+                    <input type="file" accept=".txt,.tsv,.csv" style={{ display: "none" }}
+                        onChange={handleMetricsUpload(side)} />
+                </label>
+            </div> : null}
             {metricErrors[side] ? <div className="font-size--small" style={{ color: "#cd4246" }}>{metricErrors[side]}</div> : null}
             {state.metrics.length > 0 ? <div style={{ marginTop: "0.35rem", maxHeight: "12vh", overflowY: "auto" }}>
                 {state.metrics.map((metric) =>
@@ -548,8 +558,8 @@ export function ExecutionSetupPage() {
                 </> : <div className="font-size--small" style={{ color: "#888", marginTop: "0.5rem" }}>Select an input plate first.</div>}
 
                 <h4 style={{ margin: "0.75rem 0 0.25rem 0" }}>Responsible user</h4>
-                <UserInput selected_user_tags={responsibleUserTags}
-                    onSelect={(user_tag) => setResponsibleUserTags([user_tag])} />
+                <UserInput selected_users={responsibleUserTags} showLabel={false}
+                    onUserSelect={(callbackKey, user_tag) => setResponsibleUserTags(user_tag ? [user_tag] : [])} />
             </div>
 
         {/* ---------------- MIDDLE: the module console ---------------- */}
