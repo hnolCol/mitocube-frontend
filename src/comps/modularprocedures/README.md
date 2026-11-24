@@ -44,7 +44,11 @@ Executions are designed on the setup page, not in a dialog:
 4. **Output plate** (right column): occupies only free wells (runlist occupancy ∪
    execution occupancy), the transfer map supports pooling (several input wells → one
    output well) and splitting (one sample → several wells).
-5. **Save / Start**: the draft can be saved anytime and continued later; starting
+5. **Plate export**: the input and the output plate can be downloaded as a tab-delimited txt
+   like the runlist export — one row per sample with its well (`sample_tag → well`), with an
+   info header (procedure, execution, plate). The export dialog offers a **scramble** option
+   that shuffles only the order of the rows in the file, never the sample-to-well mapping.
+6. **Save / Start**: the draft can be saved anytime and continued later; starting
    validates the whole design, occupies the wells and sets the execution **RUNNING**.
    Confirming the outcome (successful / failed / aborted) in the executions overview
    frees the assigned submissions for the next module (with the chosen

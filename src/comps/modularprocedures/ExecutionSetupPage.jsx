@@ -1,7 +1,8 @@
 import _ from "lodash"
 import { useState, useEffect, useMemo } from "react"
 import { useNavigate, useParams, useSearchParams } from "react-router"
-import { Callout, Tag } from "@blueprintjs/core"
+import { Callout, Dialog, DialogBody, DialogFooter, Button, Intent, Switch, Tag } from "@blueprintjs/core"
+import { downloadTxtFile } from "@/services/downloads/txt"
 import { api } from "@/api"
 import { apiClient } from "@/api/client"
 import { APIAxiosError } from "@/comps/core/base/states/APIError"
@@ -79,6 +80,8 @@ export function ExecutionSetupPage() {
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
     const [fillRowsFirst, setFillRowsFirst] = useState(true)
+    const [exportDialogProps, setExportDialogProps] = useState({ isOpen: false, side: null })
+    const [exportScramble, setExportScramble] = useState(false)
     const [fillMessage, setFillMessage] = useState(null)
     const [savedMessage, setSavedMessage] = useState(null)
     const [started, setStarted] = useState(false)
@@ -302,6 +305,50 @@ export function ExecutionSetupPage() {
         } else {
             setFillMessage(`Assigned ${toPlace.length} sample(s) filling ${fillRowsFirst ? "rows" : "columns"} first.`)
         }
+    }
+
+    // export of the plate layouts like the runlist export: a tab-delimited txt with one row per
+    // sample and the well it is in (sample_tag -> well); scramble randomizes the row order only,
+    // the mapping of samples to wells stays untouched
+    const plateRowsInOrder = (plate) => {
+        const rows = plate?.rows || 0
+        const columns = plate?.columns || 0
+        return _.flatten(_.range(rows).map((rowIndex) =>
+            _.range(columns).map((columnIndex) => `${String.fromCharCode(rowIndex + 65)}${columnIndex + 1}`)))
+    }
+    const sampleWellsOnOutput = () => {
+        // derive the output well of each sample from the transfer map
+        const entries = []
+        _.forEach(inputWells, (well, position) =>
+            (well.output_positions || []).forEach((outputPosition) =>
+                (well.sample_tags || []).forEach((sample_tag) =>
+                    entries.push({ sample_tag, well: outputPosition }))))
+        return entries
+    }
+    const handleExportPlate = (side) => {
+        const isInput = side === "input"
+        const plate = isInput ? inputPlate : outputPlate
+        if (!_.isObject(plate)) return
+        const entries = isInput ?
+            _.flatten(_.map(inputWells, (well, position) =>
+                (well.sample_tags || []).map((sample_tag) => ({ sample_tag, well: position })))) :
+            sampleWellsOnOutput()
+        // the runlist style: ordered row-wise over the plate (A1, A2, ... B1) / by transfer order
+        const wellOrder = plateRowsInOrder(plate)
+        let rows = _.sortBy(entries, (entry) => wellOrder.indexOf(entry.well))
+        if (exportScramble) rows = _.shuffle(rows)
+        const infoLines = [
+            `procedure_tag\t${procedure_tag}`,
+            `execution_tag\t${execution_tag}`,
+            `${side}_plate_tag\t${plate.tag}`,
+            `${side}_plate\t${plate.name} (${plate.format})`,
+            `side\t${side.toUpperCase()}`,
+            `scrambled\t${exportScramble}`,
+        ]
+        const tableLines = ["sample_tag\twell", ...rows.map((entry) => `${entry.sample_tag}\t${entry.well}`)]
+        downloadTxtFile(`${infoLines.join("\n")}\n\n\n${tableLines.join("\n")}`,
+            `execution-${side}-plate-${plate.tag}.txt`)
+        setExportDialogProps({ isOpen: false, side: null })
     }
 
     const handleClearPlacements = () => {
@@ -599,8 +646,11 @@ export function ExecutionSetupPage() {
                                 <span className="font-size--smallest">{_.size(well.sample_tags)}</span>
                                 {wellColorDots(well)}
                             </span> : ""} />
-                    <div className="flex center-items" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
+                    <div className="flex center-items flex--wrap" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
                         <button className="basic-button basic-button--small" onClick={handleAutoMap}>Auto-map 1:1</button>
+                        <button className="basic-button basic-button--small"
+                            title="Download the sample -> well table of the input plate like the runlist export"
+                            onClick={() => setExportDialogProps({ isOpen: true, side: "input" })}>Export input plate</button>
                         <span className="font-size--smallest" style={{ color: "#888" }}>
                             then select a well and click output wells to map
                         </span>
@@ -678,9 +728,37 @@ export function ExecutionSetupPage() {
                         Select an input well (left) and click/drag over output wells to map it — mapping
                         several input wells onto the same output well pools them; right-click removes a well.
                     </div>
+                    <button className="basic-button basic-button--small" style={{ marginTop: "0.25rem" }}
+                        title="Download the sample -> well table of the output plate like the runlist export"
+                        onClick={() => setExportDialogProps({ isOpen: true, side: "output" })}>Export output plate</button>
                 </> : <div className="font-size--small" style={{ color: "#888", marginTop: "0.5rem" }}>Select an output plate.</div>}
             </div>
         </div>
+        {exportDialogProps.isOpen ? <Dialog
+            title={`Export ${exportDialogProps.side} plate`}
+            isOpen={exportDialogProps.isOpen}
+            onClose={() => setExportDialogProps({ isOpen: false, side: null })}>
+            <DialogBody>
+                <div className="font-size--small" style={{ maxWidth: "420px" }}>
+                    Download the plate layout as a tab-delimited txt — one row per sample with the well it
+                    is in (sample_tag → well), like the runlist export.
+                </div>
+                <div style={{ margin: "0.75rem 0" }}>
+                    <Switch label="Scramble (download the sample rows in random order)"
+                        checked={exportScramble}
+                        onChange={(e) => setExportScramble(e.target.checked)} />
+                </div>
+                <div className="font-size--smallest" style={{ color: "#888" }}>
+                    Scrambling only shuffles the order of the rows in the file — the mapping of the samples
+                    to their wells in this execution is never changed.
+                </div>
+            </DialogBody>
+            <DialogFooter actions={<>
+                <Button text="Cancel" onClick={() => setExportDialogProps({ isOpen: false, side: null })} />
+                <Button intent={Intent.PRIMARY} icon="download" text="Download"
+                    onClick={() => handleExportPlate(exportDialogProps.side)} />
+            </>} />
+        </Dialog> : null}
         </>}
     </div>
 }
