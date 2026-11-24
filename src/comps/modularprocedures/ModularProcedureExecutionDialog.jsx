@@ -597,7 +597,8 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     </Dialog>
 }
 
-function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, renderWell, paintMode = false }) {
+export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, renderWell, paintMode = false,
+                            isWellDisabled = null, onWellDrop = null }) {
     const [isPainting, setIsPainting] = useState(false)
     const handleMouseDown = (position) => { if (paintMode) { setIsPainting(true); onWellClick(position) } }
     const handleMouseEnter = (position) => { if (paintMode && isPainting) onWellClick(position) }
@@ -617,22 +618,29 @@ function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, re
                     const position = positionOf(rowIndex, columnIndex)
                     const well = wells[position]
                     const isSelected = selectedWell === position
+                    const disabled = isWellDisabled !== null && isWellDisabled(position)
                     return <button key={position}
-                        title={position}
+                        title={disabled ? `${position} — already used` : position}
                         className="basic-button basic-button--small"
                         style={{
                             width: "4.5rem", height: "2.6rem", fontSize: "0.6rem", padding: "0.1rem",
-                            border: isSelected ? "2px solid #48aff0" : "1px solid #ccc",
-                            background: well ? "#d8f3d8" : "#fff",
-                            color: "#000", textAlign: "center", overflow: "hidden",
-                            whiteSpace: "normal", cursor: paintMode ? "crosshair" : "pointer"
+                            border: disabled ? "1px dashed #cd4246" : (isSelected ? "2px solid #48aff0" : "1px solid #ccc"),
+                            background: disabled ? "#f2dede" : (well ? "#d8f3d8" : "#fff"),
+                            color: disabled ? "#a06060" : "#000", textAlign: "center", overflow: "hidden",
+                            whiteSpace: "normal", cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer")
                         }}
-                        onMouseDown={(e) => { if (e.button === 0) handleMouseDown(position) }}
+                        onMouseDown={(e) => { if (e.button === 0 && !disabled) handleMouseDown(position) }}
                         onMouseEnter={() => handleMouseEnter(position)}
                         onMouseUp={handleMouseUp}
-                        onClick={() => onWellClick(position)}
-                        onContextMenu={(e) => { e.preventDefault(); if (onWellAltClick) onWellAltClick(position) }}>
-                        <div><strong>{position}</strong></div>
+                        onClick={() => { if (!disabled) onWellClick(position) }}
+                        onDragOver={(e) => { if (onWellDrop !== null && !disabled) e.preventDefault() }}
+                        onDrop={(e) => {
+                            if (onWellDrop === null || disabled) return
+                            e.preventDefault()
+                            onWellDrop(position, e.dataTransfer.getData("text/plain"))
+                        }}
+                        onContextMenu={(e) => { e.preventDefault(); if (onWellAltClick && !disabled) onWellAltClick(position) }}>
+                        <div><strong>{position}</strong>{disabled ? " ✕" : ""}</div>
                         <div>{renderWell(well)}</div>
                     </button>
                 })}

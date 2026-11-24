@@ -140,7 +140,7 @@ export function ProcedureChip({ link, canEdit = false, onUnlink }) {
                 <button
                     className="submission__filter__button"
                     title="Unlink procedure"
-                    onClick={onUnlink}
+                    onClick={(e) => { e.stopPropagation(); onUnlink() }}
                     style={{ marginLeft: "0.25rem" }}
                 >×</button>
             ) : null}
@@ -160,7 +160,7 @@ AssignProcedureDialog.propTypes = {
  * @description Dialog to assign a published modular procedure to a submission.
  * @returns {JSX.Element}
  */
-export function AssignProcedureDialog({ submission_tag, assignedProcedureTags = [], onClose }) {
+export function AssignProcedureDialog({ submission_tag, assignedProcedureTags = [], onClose, onAssigned }) {
     const queryClient = useQueryClient()
     const [selectedTag, setSelectedTag] = useState(null)
     const { data: procedure_tags } = api.modularProcedures.query.useGetModularProceduresByQuery(
@@ -187,6 +187,7 @@ export function AssignProcedureDialog({ submission_tag, assignedProcedureTags = 
                         onClick={() => linkProcedure({ tag: selectedTag, submission_tag }, {
                             onSuccess: () => {
                                 queryClient.invalidateQueries({ queryKey: ["getCurrentStateDurations"] })
+                                if (_.isFunction(onAssigned)) onAssigned(selectedTag)
                                 onClose()
                             }
                         })}
@@ -263,6 +264,13 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
     const redirect = useNavigate()
     const [isAssignDialogOpen, setAssignDialogOpen] = useState(false)
     const { mutate: unlinkProcedure } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
+    // assigning a module on the Organize tab continues directly in the execution setup page:
+    // the page creates a new draft execution of the module (backend-generated ID, stable URL)
+    // where the plates, sample placement, transfer map and values are designed
+    const executionDialogProps = null
+    const handleAssigned = (procedure_tag) => {
+        redirect(`/modular-procedures/setup?procedure=${procedure_tag}`)
+    }
     const { data: title } = api.submissions.title.useGetSubmissionTitle(
         { tag: row.submission_tag }, { enabled: _.isString(row.submission_tag), staleTime: 300000 })
     const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt(
@@ -310,6 +318,7 @@ export function OrganizeSubmissionCard({ row, maxTotalDays, isCurator = false })
                     submission_tag={row.submission_tag}
                     assignedProcedureTags={procedures.map(link => link.procedure_tag)}
                     onClose={() => setAssignDialogOpen(false)}
+                    onAssigned={handleAssigned}
                 />
             ) : null}
         </div>

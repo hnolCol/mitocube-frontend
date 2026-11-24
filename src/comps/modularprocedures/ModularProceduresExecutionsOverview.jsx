@@ -1,7 +1,7 @@
 import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Intent, Tag } from "@blueprintjs/core";
 import { useState } from "react";
 import _ from "lodash";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import useDebounce from "@/hooks/useDebounce";
@@ -74,7 +74,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
             onSuccess: (draftExecution) => {
                 setNewDraftDialogOpen(false)
                 setNewDraftProcedureTag("")
-                setDraftDialogProps({ isOpen: true, procedure_tag: draftExecution.procedure_tag, tag: draftExecution.tag })
+                navigate(`/modular-procedures/setup/${draftExecution.tag}`)
                 refetchExecutions()
             }
         })
@@ -167,8 +167,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                                     {execution.status === "DRAFT" ? <div className="flex center-items" style={{ gap: "0.25rem" }}>
                                         <button className="basic-button basic-button--small"
                                             title="Continue the saved setup: plates, samples, transfer map, values"
-                                            onClick={() => setDraftDialogProps({
-                                                isOpen: true, procedure_tag: execution.procedure_tag, tag: execution.tag })}>
+                                            onClick={() => navigate(`/modular-procedures/setup/${execution.tag}`)}>
                                             Open setup
                                         </button>
                                         <button className="basic-button basic-button--small basic-button--highlighted"
@@ -216,7 +215,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                     disabled={newDraftProcedureTag.length === 0} onClick={handleCreateDraft} />
             </>} />
         </Dialog> : null}
-        {draftDialogProps.isOpen && canChangeState ?
+        {draftDialogProps.isOpen && canChangeState && false ?
             <ModularProcedureExecutionDialog
                 procedure_tag={draftDialogProps.procedure_tag}
                 isOpen={draftDialogProps.isOpen}
