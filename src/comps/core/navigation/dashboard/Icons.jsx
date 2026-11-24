@@ -8,6 +8,7 @@ import PTMDashboardIcon from "../../svg/icons/dashboard/Ptm";
 import ProteinDashboardIcon from "../../svg/icons/dashboard/Protein";
 import AIChatIcon from "../../svg/icons/dashboard/AIChat";
 import CompareDashboardIcon from "../../svg/icons/dashboard/Compare";
+import ModularProceduresDashboardIcon from "../../svg/icons/dashboard/ModularProcedures";
 
 const icons = {
     Protein : ProteinDashboardIcon,
@@ -17,7 +18,8 @@ const icons = {
     Settings:  SettingDashboardIcon,
     Ptm: PTMDashboardIcon,
     AIChat: AIChatIcon,
-    Compare: CompareDashboardIcon
+    Compare: CompareDashboardIcon,
+    ModularProcedures: ModularProceduresDashboardIcon
   }
   
 getDashBoardIcon.propTypes = {

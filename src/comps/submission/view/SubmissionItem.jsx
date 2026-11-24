@@ -46,14 +46,14 @@ export function SubmissionStateColorLine({ state_tag }) {
  * @description A minimal submission item that displays the created at date and the title of the submission.
  * @returns {JSX.Element} A minimal submission item that displays the created at date and the title of the submission.
  */
-export function MinimalSubmissionItem({ tag, state_tag, onClick, redirectOnClick = true, showCreatedAt = true }) {
+export function MinimalSubmissionItem({ tag, state_tag, onClick, redirectOnClick = true, showCreatedAt = true, showStateHeaders = true }) {
     const redirect = useNavigate()
     const { data: created_at } = api.submissions.core.useGetSubmissionCreatedAt({ tag }, { enabled: _.isString(tag) && tag.length > 0 })
-    const { data: fetchedStateTag } = api.submissions.states.useGetSubmissionState({ tag }, { enabled: state_tag == null && _.isString(tag) && tag.length > 0 })
+    const { data: fetchedStateTag } = api.submissions.states.useGetSubmissionState({ tag }, { enabled: showStateHeaders && state_tag == null && _.isString(tag) && tag.length > 0 })
     const effectiveStateTag = state_tag != null ? state_tag : fetchedStateTag
     return (
         <div className="flex width--full">
-            {effectiveStateTag != null ? <SubmissionStateColorLine state_tag={effectiveStateTag} /> : null}
+            {showStateHeaders && effectiveStateTag != null ? <SubmissionStateColorLine state_tag={effectiveStateTag} /> : null}
             <motion.button
                 onClick={(e) => {
                     onClick ? onClick(e) : null

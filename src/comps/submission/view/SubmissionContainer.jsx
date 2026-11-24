@@ -32,12 +32,12 @@ SubmissionsByUser.propTypes = {
  * @description The component that displays a list of submissions grouped by their state.
  * It uses the SubmissionItem component to display each submission.
  * @param {Object} props - The props object.
- * @param {Object} props.submissionFilter - The submission filter object.
- * @param {Object} props.submissionsQuery - The submissions query object.
+ * @param {Object} props.submission_by_state - The submissions grouped by state.
  * @param {boolean} [props.minimal = true] - If true, uses MinimalSubmissionItem, otherwise uses SubmissionItem.
+ * @param {boolean} [props.showStateHeaders = true] - If true, shows the state headers.
  * @returns {JSX.Element} The SubmissionsByState component.
  */
-export function SubmissionsByState({ submission_by_state, minimal = true}) {
+export function SubmissionsByState({ submission_by_state, minimal = true, showStateHeaders = true }) {
 
     
     const { data: submissionStates } = api.submissions.states.useGetStates()
@@ -48,7 +48,7 @@ export function SubmissionsByState({ submission_by_state, minimal = true}) {
                 .filter(state_tag => _.has(submission_by_state, state_tag) && _.isArray(submission_by_state[state_tag]) && submission_by_state[state_tag].length > 0)
                 .map((state_tag, idx) => {
                     return <div key={`${state_tag}-${idx}`}>
-                        <StateHeader key={`${idx}-${state_tag}`} tag={state_tag} />
+                        {showStateHeaders ? <StateHeader key={`${idx}-${state_tag}`} tag={state_tag} /> : null}
                         <div className="flex flex-column padding-left--little margin-bottom--little gap--default">
                             {submission_by_state[state_tag].map((submission_tag, submissionIdx) => {
                                 return (

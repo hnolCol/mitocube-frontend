@@ -1,5 +1,4 @@
 import PropTypes from "prop-types"
-import { useState } from "react"
 import _ from "lodash"
 import { useNavigate } from "react-router"
 import { api } from "@/api"
@@ -46,8 +45,8 @@ function ModularProcessColumn({ procedure_tag, isCurator, canChangeState, onExec
                         <span className="font-size--small" style={{ color: "#888" }}> v{procedure.version}</span> : null}
                 </div>
                 {isCurator ? <button className="basic-button basic-button--small basic-button--highlighted"
-                    title="Design the plate execution for this module: input/output plates, sample placement, transfer map and per-well values"
-                    onClick={onExecute}>Execute</button> : null}
+                    title="Set up a new execution draft of this module: input/output plates, sample placement, transfer map and per-well values"
+                    onClick={onExecute}>Setup New</button> : null}
             </div>
             <div className="font-size--small" style={{ color: "#888" }}>
                 {nSubmissions} submission{nSubmissions === 1 ? "" : "s"} in this module
@@ -73,8 +72,8 @@ function ModularProcessColumn({ procedure_tag, isCurator, canChangeState, onExec
  * Organize tab, but grouped by workflow module instead of state — one column per modular
  * procedure with the executions of the module under the header and the assigned submissions
  * below. Curators and admins start the plate design ("Execute": input/output plates, sample
- * placement, transfer map and the per-well input values) directly from the column header and
- * can pool further submissions into the run there.
+ * placement, transfer map and the per-well input values; "Setup New") directly from the column
+ * header and can pool further submissions into the run there.
  * @param {Object} props
  * @param {Number} props.userRole The role of the signed-in user.
  * @param {String} props.userTag The tag of the signed-in user.
@@ -83,7 +82,6 @@ function ModularProcessColumn({ procedure_tag, isCurator, canChangeState, onExec
 export function ModularProcesses({ userRole, userTag }) {
     const navigate = useNavigate()
     const isCurator = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
-    const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
 
     const { data: procedure_tags, isLoading, isError, error } =
         api.modularProcedures.query.useGetModularProceduresByQuery(
@@ -97,18 +95,11 @@ export function ModularProcesses({ userRole, userTag }) {
     if (isError) return <div className="padding--medium">Modular processes not available.</div>
 
     return <div className="div--expand padding--medium">
-        {executionDialogProps.isOpen ?
-            <ModularProcedureExecutionDialog
-                procedure_tag={executionDialogProps.procedure_tag}
-                isOpen={executionDialogProps.isOpen}
-                current_user_tag={userTag}
-                onClose={() => setExecutionDialogProps({ isOpen: false, procedure_tag: null })}
-                onExecuted={() => setExecutionDialogProps({ isOpen: false, procedure_tag: null })} /> : null}
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <h3>Modular Processes</h3>
             <p className="font-size--small" style={{ color: "#888" }}>
                 The workflow modules of the submissions, in the format of the Organize tab: one column per modular
-                procedure with its executions and the assigned submissions. <strong>Execute</strong> designs the plate
+                procedure with its executions and the assigned submissions. <strong>Setup New</strong> designs the plate
                 run of the module — input and output plates, sample placement, the transfer map (pooling and splitting)
                 and the per-well input values; further submissions can be pooled into the run there.
                 The outcomes (including corrections and whether the output wells stay blocked) are handled on the

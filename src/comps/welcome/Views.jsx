@@ -15,7 +15,7 @@ export function LastViewed({user_tag, type, limit}) {
             {isLoading ? <div>Loading...</div> : isError ? <div>Error loading views.</div> : _.isArray(userSubmissionViews) && userSubmissionViews.length === 0 ? <div>No views found.</div> : (
                 <div className="submission-list">
                     {userSubmissionViews.map((submission_tag) => (
-                        <MinimalSubmissionItem key={submission_tag} tag={submission_tag} redirectOnClick={true} showCreatedAt={false} />
+                        <MinimalSubmissionItem key={submission_tag} tag={submission_tag} redirectOnClick={true} showCreatedAt={false} showStateHeaders={false} />
                     ))}
                 </div>
             )}

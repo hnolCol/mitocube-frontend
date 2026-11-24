@@ -10,16 +10,22 @@ import {
     isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS, StateHistory, WellTable,
 } from "./Shared";
 
-function ExecutionDetails({ execution, canChangeState, onStateChanged }) {
+function ExecutionDetails({ execution, canChangeState, onStateChanged, onEditDraft }) {
     return <div className="flex flex-column gap--small" style={{ borderTop: "1px solid #ddd", paddingTop: "0.75rem" }}>
         <div className="flex center-items justify-between gap--tiny flex--wrap">
             <div className="flex center-items gap--tiny">
                 <h4 style={{ margin: 0 }}>Execution {execution.tag}</h4>
                 <ExecutionStateChip status={execution.status} />
             </div>
-            {canChangeState ?
-                <ExecutionStateControls execution_tag={execution.tag} status={execution.status} compact
-                    onDone={onStateChanged} /> : null}
+            {canChangeState && execution.status !== "DRAFT" ?
+                <div className="flex" style={{ alignItems: "center", whiteSpace: "nowrap" }}>
+                    <ExecutionStateControls execution_tag={execution.tag} status={execution.status} compact
+                        onDone={onStateChanged} />
+                </div> : null}
+            {canChangeState && execution.status === "DRAFT" ?
+                <button className="basic-button basic-button--small basic-button--highlighted"
+                    title="Continue the saved setup: plates, samples, transfer map, values and start"
+                    onClick={onEditDraft}>Edit setup</button> : null}
         </div>
         <StateHistory execution_tag={execution.tag} />
         <div className="flex font-size--smallest flex--wrap gap--tiny" style={{ color: "#666" }}>
@@ -56,7 +62,6 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
     const [searchString, setSearchString] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
     const [selectedTag, setSelectedTag] = useState(null)
-    const [draftDialogProps, setDraftDialogProps] = useState({ isOpen: false, procedure_tag: null, tag: null })
     const [newDraftDialogOpen, setNewDraftDialogOpen] = useState(false)
     const [newDraftProcedureTag, setNewDraftProcedureTag] = useState("")
     const debouncedSearch = useDebounce(searchString, 300)
@@ -65,7 +70,6 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
         { status: "PUBLISHED", latest_only: true }, { enabled: newDraftDialogOpen, staleTime: 60000 })
     const { mutate: createDraft, isPending: createDraftIsPending, isError: createDraftIsError, error: createDraftError } =
         api.modularProcedures.execute.useCreateExecutionDraft()
-    const { mutate: startDraft } = api.modularProcedures.execute.useStartExecutionDraft()
     const { mutate: deleteDraft } = api.modularProcedures.execute.useDeleteExecutionDraft()
 
     const handleCreateDraft = () => {
@@ -164,29 +168,25 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                                 <td className="padding--little">{execution.responsible_user_tag || "–"}</td>
                                 <td className="padding--little">{formatExecutionTime(execution.created_at)}</td>
                                 {canChangeState ? <td className="padding--little" onClick={(event) => event.stopPropagation()}>
-                                    {execution.status === "DRAFT" ? <div className="flex center-items" style={{ gap: "0.25rem" }}>
-                                        <button className="basic-button basic-button--small"
-                                            title="Continue the saved setup: plates, samples, transfer map, values"
-                                            onClick={() => navigate(`/modular-procedures/setup/${execution.tag}`)}>
-                                            Open setup
-                                        </button>
-                                        <button className="basic-button basic-button--small basic-button--highlighted"
-                                            title="Validate the saved design in full and start the run"
-                                            onClick={() => startDraft({ tag: execution.tag }, {
-                                                onSuccess: () => {
-                                                    refetchExecutions()
-                                                    setAlertProps({ isOpen: true, message: "The execution is running." })
-                                                }
-                                            })}>Start</button>
-                                        <button className="basic-button basic-button--small"
-                                            title="Delete this draft (only drafts can be deleted)"
-                                            onClick={() => deleteDraft({ tag: execution.tag }, {
-                                                onSuccess: () => {
-                                                    setSelectedTag(null)
-                                                    refetchExecutions()
-                                                }
-                                            })}>Delete</button>
-                                    </div> : null}
+                                    {execution.status === "DRAFT" ?
+                                        <div className="flex" style={{ gap: "0.5rem", flexWrap: "nowrap",
+                                            alignItems: "center", whiteSpace: "nowrap" }}>
+                                            <button className="basic-button basic-button--small"
+                                                style={{ margin: 0, padding: "0.15rem 0.5rem" }}
+                                                title="Continue the saved setup: plates, samples, transfer map, values and start"
+                                                onClick={() => navigate(`/modular-procedures/setup/${execution.tag}`)}>
+                                                Edit
+                                            </button>
+                                            <button className="basic-button basic-button--small"
+                                                style={{ margin: 0, padding: "0.15rem 0.5rem" }}
+                                                title="Delete this draft (only drafts can be deleted)"
+                                                onClick={() => deleteDraft({ tag: execution.tag }, {
+                                                    onSuccess: () => {
+                                                        setSelectedTag(null)
+                                                        refetchExecutions()
+                                                    }
+                                                })}>Delete</button>
+                                        </div> : null}
                                 </td> : null}
                             </tr>)}
                         </tbody>
@@ -215,23 +215,9 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                     disabled={newDraftProcedureTag.length === 0} onClick={handleCreateDraft} />
             </>} />
         </Dialog> : null}
-        {draftDialogProps.isOpen && canChangeState && false ?
-            <ModularProcedureExecutionDialog
-                procedure_tag={draftDialogProps.procedure_tag}
-                isOpen={draftDialogProps.isOpen}
-                current_user_tag={draftDialogProps.userTag}
-                draft={{ tag: draftDialogProps.tag, onSaved: () => {
-                    refetchExecutions()
-                    setAlertProps({ isOpen: true, message: "Execution setup saved. You can continue it anytime from the executions overview." })
-                } }}
-                onClose={() => setDraftDialogProps({ isOpen: false, procedure_tag: null, tag: null })}
-                onExecuted={() => {
-                    setDraftDialogProps({ isOpen: false, procedure_tag: null, tag: null })
-                    refetchExecutions()
-                    setAlertProps({ isOpen: true, message: "The execution is running. Confirm its outcome in this overview." })
-                }} /> : null}
         {_.isObject(selectedExecution) ?
             <ExecutionDetails execution={selectedExecution} canChangeState={canChangeState}
+                onEditDraft={() => navigate(`/modular-procedures/setup/${selectedExecution.tag}`)}
                 onStateChanged={(updatedExecution) => {
                     refetchSelected()
                     refetchExecutions()
