@@ -56,6 +56,10 @@ function CreatePATSection() {
             setErrorMessage("Please provide a name for the token.")
             return
         }
+        if (!_.isInteger(expiresInDays) || expiresInDays < 1) {
+            setErrorMessage("Expires after (days) must be at least 1.")
+            return
+        }
         createPAT({ patProps: { name: _.trim(name), scopes, expires_in_days: expiresInDays } }, {
             onSuccess: (data) => {
                 setCreatedToken(data.token)
