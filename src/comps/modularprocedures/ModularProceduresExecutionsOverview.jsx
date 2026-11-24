@@ -1,7 +1,7 @@
 import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Intent, Tag } from "@blueprintjs/core";
 import { useState } from "react";
 import _ from "lodash";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import useDebounce from "@/hooks/useDebounce";

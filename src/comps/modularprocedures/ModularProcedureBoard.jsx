@@ -1,6 +1,6 @@
 import { Alert, Callout } from "@blueprintjs/core";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 import moment from "moment";
 import _ from "lodash";
 import { api } from "@/api";
