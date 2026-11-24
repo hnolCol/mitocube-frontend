@@ -2,12 +2,17 @@ import { useState } from "react"
 import _ from "lodash"
 import { api } from "@/api"
 import { Alert, Callout } from "@blueprintjs/core"
-import { PlateColorDot } from "@/comps/core/plates/PlateColorDot"
+import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
+import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
+import { SubmissionTitle } from "@/comps/submission/view/SubmissionTitle"
 import { CreatedAt } from "../../core/metrics/CreatedAt"
 import { AddButton } from "@/comps/core/base/buttons/AddButton"
 import { PlateCreateDialog } from "./PlateCreateDialog"
 
 const dash = <span className="text--muted">–</span>
+
+// a runlist can be measured with multiple instruments (e.g. LC system + mass spectrometer)
+const instrumentsText = (rl) => (rl.instruments || []).map(i => i.text).filter(Boolean).join(" · ") || null
 
 const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
 
@@ -22,8 +27,18 @@ export function PlatesAdmin({ userRole }) {
     const [alertProps, setAlertProps] = useState({ isOpen: false })
     const [deleteTarget, setDeleteTarget] = useState(null)
     const [warning, setWarning] = useState(null)
+    const [submissionTag, setSubmissionTag] = useState(null)
 
     const { data: plates, isLoading, isError, error, refetch } = api.plates.plates.useGetPlates()
+
+    const { data: platesBySubmission, isLoading: bySubmissionLoading, isError: bySubmissionIsError, error: bySubmissionError } =
+        api.plates.plates.useGetPlatesBySubmission({ tag: submissionTag }, { enabled: !!submissionTag })
+
+    // while a submission is selected, only the plates that contain it are shown
+    const shownPlates = submissionTag ? platesBySubmission : plates
+    const shownPlatesLoading = submissionTag ? bySubmissionLoading : isLoading
+    const shownPlatesIsError = submissionTag ? bySubmissionIsError : isError
+    const shownPlatesError = submissionTag ? bySubmissionError : error
 
     const { mutate: deletePlate, isError: deleteIsError, error: deleteError } =
         api.plates.plates.useDeletePlate({ onSuccess: () => refetch() })
@@ -82,6 +97,28 @@ export function PlatesAdmin({ userRole }) {
                     />
                     <AddButton onSelect={() => setDialogOpen(true)} disabled={!isCurator} />
                 </div>
+                <div className="flex center-items gap--medium margin-bottom--medium" style={{ flexWrap: "wrap" }}>
+                    <SubmissionInput
+                        selected_submission_tags={submissionTag ? [submissionTag] : []}
+                        onSelect={(tag) => setSubmissionTag(tag || null)}
+                        minimal={true}
+                    />
+                    {submissionTag
+                        ? <button className="basic-button--small" onClick={() => setSubmissionTag(null)}>Show all plates</button>
+                        : null}
+                </div>
+                {submissionTag ? (
+                    <Callout className="margin-bottom--medium" intent="primary" icon="locate">
+                        <div className="flex center-items justify-space-between">
+                            <span>
+                                Plates containing <SubmissionTitle tag={submissionTag} showEdit={false} showCopyToClipboard={false} />
+                            </span>
+                            <button className="basic-button--small" onClick={() => setSubmissionTag(null)}>
+                                ✕
+                            </button>
+                        </div>
+                    </Callout>
+                ) : null}
                 {warning ? (
                     <Callout className="margin-bottom--medium" intent="warning" icon="warning-sign">
                         <div className="flex center-items justify-space-between">
@@ -91,14 +128,14 @@ export function PlatesAdmin({ userRole }) {
                     </Callout>
                 ) : null}
                 {deleteIsError ? <div className="font-color--error">Failed to delete plate: {_.get(deleteError, "message", "")}</div> : null}
-                {isError ? <div className="font-color--error">Failed to load plates: {_.get(error, "message", "")}</div> : null}
-                {isLoading ? <div>Loading...</div> : null}
+                {shownPlatesIsError ? <div className="font-color--error">Failed to load plates: {_.get(shownPlatesError, "message", "")}</div> : null}
+                {shownPlatesLoading ? <div>Loading...</div> : null}
                 <div className="div--expand padding--medium">
-                    {!isLoading && !isError && (_.isArray(plates) ? plates.length : 0) === 0
-                        ? <p className="text--muted">No plates yet. Create one to get started.</p>
+                    {!shownPlatesLoading && !shownPlatesIsError && (_.isArray(shownPlates) ? shownPlates.length : 0) === 0
+                        ? <p className="text--muted">{submissionTag ? "This submission was not measured on any plate yet." : "No plates yet. Create one to get started."}</p>
                         : null}
                     <div style={{ maxHeight: "70vh", overflowY: "scroll", paddingBottom: "3rem", paddingRight: "0.5rem" }} className="flex flex-column">
-                        {_.isArray(plates) ? plates.map(plate => (
+                        {_.isArray(shownPlates) ? shownPlates.map(plate => (
                             <PlateItem
                                 key={plate.tag}
                                 plate={plate}
@@ -211,7 +248,7 @@ function PlateRunlists({ plate }) {
             <div className="flex flex-column" style={{ gap: "0.15rem" }}>
                 {runlists.map(rl => (
                     <div key={rl.runlist_tag} className="font-size--small">
-                        <strong>{rl.instrument_text ?? "No instrument"}</strong>
+                        <strong>{instrumentsText(rl) ?? "No instrument"}</strong>
                         {` \u00b7 ${rl.n_runs_on_plate} run${rl.n_runs_on_plate > 1 ? "s" : ""} on this plate`}
                         {` \u00b7 ${rl.submission_label}`}
                         {rl.user_firstname || rl.user_lastname ? ` ${_.compact([rl.user_firstname, rl.user_lastname]).join(" ")}` : ""}
@@ -247,10 +284,10 @@ function PlateItem({ plate, onDelete, disabled, isCurator }) {
                     <div className="flex justify-space-between align-center" style={{ width: "100%", gap: "1rem" }}>
                         <div className="flex flex-column" style={{ gap: "0.1rem", flex: 1, minWidth: 0 }}>
                             <span style={{ fontSize: "0.9rem", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-                                <PlateColorDot color={plate.plate_color} />{plate.name}
+                                <PlateColorDot color={getPlateColor(plate)} />{plate.name}
                             </span>
                             <span style={{ fontSize: "0.78rem", color: "#777" }}>
-                                {plate.rows * plate.columns} wells ({plate.rows} × {plate.columns}){plate.plate_type ? ` | ${plate.plate_type}` : ""}
+                                {plate.rows * plate.columns} wells ({plate.rows} × {plate.columns})
                             </span>
                         </div>
                         <div className="flex align-center" style={{ gap: "0.4rem", flexShrink: 0 }}>
@@ -274,24 +311,16 @@ function PlateItem({ plate, onDelete, disabled, isCurator }) {
                                         <th className="table-head-cell">Format</th>
                                         <td>{plate.rows} × {plate.columns} ({plate.rows * plate.columns} wells)</td>
                                     </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Type</th>
-                                        <td>{plate.plate_type || dash}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Vendor</th>
-                                        <td>{plate.vendor || dash}</td>
-                                    </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Color</th>
-                                        <td style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                                            {plate.plate_color ? <><PlateColorDot color={plate.plate_color} /> {plate.plate_color}</> : dash}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <th className="table-head-cell">Cold storage</th>
-                                        <td>{plate.cold_storage || dash}</td>
-                                    </tr>
+                                    {(plate.applications || []).map(app => (
+                                        <tr key={app.trait_tag}>
+                                            <th className="table-head-cell">{app.attribute_text}</th>
+                                            <td style={getPlateColor(plate) === app.trait_text ? { display: "flex", alignItems: "center", gap: "0.35rem" } : {}}>
+                                                {getPlateColor(plate) === app.trait_text
+                                                    ? <><PlateColorDot color={app.trait_text} /> {app.trait_text}</>
+                                                    : app.trait_text}
+                                            </td>
+                                        </tr>
+                                    ))}
                                     <tr>
                                         <th className="table-head-cell">Location</th>
                                         <td>{plate.location || dash}</td>

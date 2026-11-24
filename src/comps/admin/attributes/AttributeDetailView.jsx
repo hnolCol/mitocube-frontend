@@ -20,6 +20,14 @@ export function AttributeDetailView({ userRole }) {
     const [addOpen, setAddOpen] = useState(false)
     const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
 
+    const goBack = () => {
+        if (_.get(window.history.state, "idx", 0) > 0) {
+            redirect(-1)
+        } else {
+            redirect("/admin/attributes")
+        }
+    }
+
     const {
         data: attribute,
         isLoading: attributeLoading,
@@ -72,7 +80,7 @@ export function AttributeDetailView({ userRole }) {
                         <Button
                             minimal
                             icon="arrow-left"
-                            onClick={() => redirect("/admin/attributes")}
+                            onClick={goBack}
                         >
                             Back
                         </Button>
