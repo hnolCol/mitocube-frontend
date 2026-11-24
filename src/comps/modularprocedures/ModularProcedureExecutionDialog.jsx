@@ -71,7 +71,9 @@ export function parseMetricsFile(content, traitTags) {
  * assign condition applications to output wells, pick the responsible user
  * and optionally upload measured well metrics (e.g. protein concentration).
  */
-export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose, onExecuted, current_user_tag }) {
+export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose, onExecuted, current_user_tag, draft }) {
+    // with a `draft` ({tag}) the dialog continues the saved setup of an existing DRAFT execution:
+    // the design can be saved (and re-saved) anytime and started when complete
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag) && isOpen })
@@ -99,6 +101,12 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     const [extraSubmissionError, setExtraSubmissionError] = useState(null)
 
     const { mutate: execute, isPending, isError, error } = api.modularProcedures.execute.useExecuteModularProcedure()
+    const { mutate: saveDraftMutation, isPending: saveIsPending, isError: saveIsError, error: saveError } =
+        api.modularProcedures.execute.useSaveExecutionDraft()
+    const { mutate: startDraft, isPending: startIsPending } = api.modularProcedures.execute.useStartExecutionDraft()
+    const isDraftMode = _.isObject(draft) && _.isString(draft.tag)
+    const { data: draftExecution } = api.modularProcedures.execute.useGetModularProcedureExecution(
+        { tag: isDraftMode ? draft.tag : null }, { enabled: isOpen && isDraftMode, staleTime: 0 })
 
     const inputPlate = useMemo(() => _.find(plates, { tag: inputPlateTag }), [plates, inputPlateTag])
     const outputPlate = useMemo(() => _.find(plates, { tag: outputPlateTag }), [plates, outputPlateTag])
@@ -137,6 +145,30 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         return () => { cancelled = true }
     }
     useEffect(fetchSamples, [isOpen, submissions, extraSubmissionTags])
+
+    // load the saved design of the draft into the dialog state (once per saved revision)
+    const [loadedDraftRevision, setLoadedDraftRevision] = useState(null)
+    useEffect(() => {
+        if (!isDraftMode || !_.isObject(draftExecution) || loadedDraftRevision === draftExecution) return
+        setLoadedDraftRevision(draftExecution)
+        setInputPlateTag(draftExecution.input_plate_tag || null)
+        setOutputPlateTag(draftExecution.output_plate_tag || null)
+        setInputWells(_.fromPairs((draftExecution.input_wells || []).map((well) =>
+            [well.position, { sample_tags: [...(well.sample_tags || [])], output_positions: [...(well.output_positions || [])] }])))
+        setOutputWells(_.fromPairs((draftExecution.output_wells || []).map((well) =>
+            [well.position, { condition_application_tags: [...(well.condition_application_tags || [])] }])))
+        const inputMetrics = (draftExecution.input_well_metrics || [])
+            .concat(_.flatten((draftExecution.input_wells || []).map((well) => well.metrics || [])))
+        const outputMetrics = _.flatten((draftExecution.output_wells || []).map((well) => well.metrics || []))
+        const toParams = (metrics, side) => _.uniqBy(metrics.map((metric) =>
+            ({ attribute_tag: metric.attribute_tag, trait_tag: metric.trait_tag, side })), "trait_tag")
+        setMetricStates({
+            INPUT: { params: toParams(inputMetrics, "INPUT"), attributeTag: null,
+                     metrics: inputMetrics.map((metric) => ({ position: metric.position, trait_tag: metric.trait_tag, value: metric.value })) },
+            OUTPUT: { params: toParams(outputMetrics, "OUTPUT"), attributeTag: null,
+                      metrics: outputMetrics.map((metric) => ({ position: metric.position, trait_tag: metric.trait_tag, value: metric.value })) },
+        })
+    }, [isDraftMode, draftExecution, loadedDraftRevision])
 
     const linkedSubmissionTags = _.map(submissions, "submission_tag")
     const handleAddExtraSubmission = () => {
@@ -301,19 +333,34 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         })
     }
 
-    const handleExecute = () => {
-        const input_wells = _.map(inputWells, (well, position) => ({
+    const buildExecutionPayload = () => ({
+        input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
+        responsible_user_tag: responsibleUserTags[0],
+        input_wells: _.map(inputWells, (well, position) => ({
             position, sample_tags: well.sample_tags, output_positions: well.output_positions || []
-        }))
-        const output_wells = _.map(outputWells, (well, position) => ({
+        })),
+        output_wells: _.map(outputWells, (well, position) => ({
             position, condition_application_tags: well.condition_application_tags || []
-        }))
-        const output_well_metrics = metricStates.OUTPUT.metrics.map((metric) => ({ ...metric, side: "OUTPUT" }))
-        const input_well_metrics = metricStates.INPUT.metrics.map((metric) => ({ ...metric, side: "INPUT" }))
-        execute({ tag: procedure_tag, input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
-                  responsible_user_tag: responsibleUserTags[0], input_wells, output_wells,
-                  output_well_metrics, input_well_metrics }, {
+        })),
+        output_well_metrics: metricStates.OUTPUT.metrics.map((metric) => ({ ...metric, side: "OUTPUT" })),
+        input_well_metrics: metricStates.INPUT.metrics.map((metric) => ({ ...metric, side: "INPUT" })),
+    })
+
+    const handleExecute = () => {
+        execute({ tag: procedure_tag, ...buildExecutionPayload() }, {
             onSuccess: () => { if (onExecuted) onExecuted() }
+        })
+    }
+
+    const handleSaveDraft = () => {
+        saveDraftMutation({ tag: draft.tag, ...buildExecutionPayload() }, {
+            onSuccess: () => { if (draft.onSaved) draft.onSaved() }
+        })
+    }
+
+    const handleSaveAndStartDraft = () => {
+        saveDraftMutation({ tag: draft.tag, ...buildExecutionPayload() }, {
+            onSuccess: () => startDraft({ tag: draft.tag }, { onSuccess: () => { if (onExecuted) onExecuted() } })
         })
     }
 
@@ -524,10 +571,25 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                         {canExecute ? `${_.size(inputWells)} input well(s) → ${_.size(outputWells)} output well(s)` : executeDisabledReason}
                     </div>
                     <div className="flex center-items" style={{ gap: "1rem" }}>
-                        <button disabled={isPending || !canExecute} className="basic-button basic-button--highlighted"
-                            onClick={handleExecute}>{isPending ? "Executing..." : "Execute procedure"}</button>
-                        <button disabled={isPending} className="basic-button" onClick={onClose}>Cancel</button>
+                        {isDraftMode ? <>
+                            <button disabled={saveIsPending || startIsPending
+                                || !(inputPlateTag && outputPlateTag && _.size(inputWells) >= 0 && inputPlateTag)}
+                                className="basic-button" title="Save the setup and come back later"
+                                onClick={handleSaveDraft}>{saveIsPending ? "Saving..." : "Save setup"}</button>
+                            <button disabled={saveIsPending || startIsPending || !canExecute}
+                                className="basic-button basic-button--highlighted"
+                                title="Save the setup, validate it in full and start the run"
+                                onClick={handleSaveAndStartDraft}>
+                                {startIsPending ? "Starting..." : "Start execution"}</button>
+                        </> : <button disabled={isPending || !canExecute} className="basic-button basic-button--highlighted"
+                            onClick={handleExecute}>{isPending ? "Executing..." : "Execute procedure"}</button>}
+                        <button disabled={isPending || saveIsPending} className="basic-button" onClick={onClose}>Cancel</button>
                     </div>
+                    {isDraftMode && saveIsError ? <div className="font-size--small" style={{ color: "#cd4246" }}>
+                        Saving the draft failed.</div> : null}
+                    {isDraftMode && _.isObject(draftExecution) ? <div className="font-size--smallest" style={{ color: "#888" }}>
+                        Draft {draft.tag} — the setup can be saved and continued anytime; nothing is blocked until the run starts.
+                    </div> : null}
                 </div>
             </div>
         </DialogBody>

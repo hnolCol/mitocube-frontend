@@ -39,6 +39,7 @@ import SubmissionView from "./comps/submission/view";
 import SubmissionHelp from "./comps/submission/help";
 import SubmissionStatistics from "./comps/submission/statistics";
 import { OrganizeSubmissions } from "./comps/submission/organize";
+import { ModularProcesses } from "./comps/submission/organize/ModularProcesses";
 import InitialSubmission from "./comps/submission/new/InitialSubmission";
 import AddExistingSubmission from "./comps/submission/add";
 
@@ -384,6 +385,7 @@ function App() {
             />
             <Route path="/submissions/existing" element={<AddExistingSubmission {...{ authenticationStatus, logout }} />} />
             <Route path="/submissions/organize" element={<OrganizeSubmissions userRole={authenticationStatus.role} />} />
+            <Route path="/submissions/modular-processes" element={<ModularProcesses userRole={authenticationStatus.role} userTag={authenticationStatus.tag} />} />
             <Route path="/submissions/help" element={<SubmissionHelp authStatus={authenticationStatus} />} />
             <Route
               path="/submissions/statistics"

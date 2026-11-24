@@ -14,7 +14,7 @@ export const EXECUTION_STATUS_STYLE = {
     ABORTED: { color: "#888" },
 }
 
-export const EXECUTION_STATE_TAGS = ["RUNNING", "SUCCEEDED", "FAILED", "ABORTED"]
+export const EXECUTION_STATE_TAGS = ["DRAFT", "RUNNING", "SUCCEEDED", "FAILED", "ABORTED"]
 
 export const isUserAtLeast = (userRole, role) =>
     _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= role

@@ -7,6 +7,7 @@ function SubmissionHeader({ }) {
     const tabs = [
         { text: "Submissions", to: "/submissions" },
         { text: "Organize", to: "/submissions/organize" },
+        { text: "Modular Processes", to: "/submissions/modular-processes" },
         { text: "Explore", to: "/submissions/explore" },
         { text: "New Submission", to: "/submissions/new" },
         { text: "Statistics", to: "/submissions/statistics" },
