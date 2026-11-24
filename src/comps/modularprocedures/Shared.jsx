@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import _ from "lodash";
 import moment from "moment";
 import { api } from "@/api";
@@ -8,6 +9,7 @@ export const CURATOR_ROLE = 2;
 export const STATE_CHANGE_ROLE = 3;
 
 export const EXECUTION_STATUS_STYLE = {
+    DRAFT: { color: "#8f99a8" },
     RUNNING: { color: "#c87619" },
     SUCCEEDED: { color: "#43a047" },
     FAILED: { color: "#cd4246" },
@@ -66,7 +68,34 @@ export function ProtocolChip({ protocol_tag }) {
  * corrected. onDone is called after a successful change. If compact, short
  * labels (Successful / Failed / Aborted) are used as on the board.
  */
+/**
+ * The controls of a DRAFT execution: edit its saved setup on the setup page or delete it.
+ * Drafts are setup work, not recorded facility history - started executions get the outcome
+ * controls (ExecutionStateControls) instead.
+ */
+export function ExecutionDraftControls({ execution_tag, onDeleted }) {
+    const navigate = useNavigate()
+    const { mutate: deleteDraft, isPending: deleteIsPending, isError: deleteIsError, error: deleteError } =
+        api.modularProcedures.execute.useDeleteExecutionDraft({
+            onSuccess: () => { if (onDeleted) onDeleted() }
+        })
+    return <div className="flex center-items gap--tiny" style={{ flexShrink: 0 }}>
+        <button className="basic-button basic-button--small"
+            title="Continue the saved setup: plates, samples, transfer map, values"
+            onClick={() => navigate(`/modular-procedures/setup/${execution_tag}`)}>Edit</button>
+        <button className="basic-button basic-button--small"
+            title="Delete this draft (only drafts can be deleted)"
+            disabled={deleteIsPending}
+            onClick={() => deleteDraft({ tag: execution_tag })}>Delete</button>
+        {deleteIsError ? <span className="font-size--smallest" style={{ color: "#cd4246" }}>
+            <APIAxiosError error={deleteError} /></span> : null}
+    </div>
+}
+
 export function ExecutionStateControls({ execution_tag, status, compact = false, onDone }) {
+    // drafts have no outcome controls: their setup is edited / deleted instead, the outcome
+    // buttons only exist once the execution actually started running
+    if (status === "DRAFT") return null
     const [blockWells, setBlockWells] = useState(status === "SUCCEEDED")
     const { mutate: finishExecution } = api.modularProcedures.execute.useFinishModularProcedureExecution({
         onSuccess: (updatedExecution) => { if (onDone) onDone(updatedExecution) }

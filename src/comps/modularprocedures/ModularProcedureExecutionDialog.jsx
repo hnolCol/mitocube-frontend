@@ -10,6 +10,9 @@ import { downloadTxtFile } from "@/services/downloads/txt";
  * dedicated setup page (`ExecutionSetupPage.jsx`) with backend-generated draft IDs.
  */
 
+const rowLabel = (rowIndex) => String.fromCharCode(rowIndex + 65)
+const positionOf = (rowIndex, columnIndex) => `${rowLabel(rowIndex)}${columnIndex + 1}`
+
 /**
  * Downloads a txt template for well metrics: one header line (well + one column per attribute)
  * and one line per well, ready to be filled in and uploaded again.

@@ -10,10 +10,10 @@ import {
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog";
 import {
     ExecutionStateChip, ExecutionStateControls, ProcedureTitle, formatExecutionTime,
-    isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS, StateHistory, WellTable,
+    isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS, StateHistory, WellTable, ExecutionDraftControls,
 } from "./Shared";
 
-function ExecutionDetails({ execution, canChangeState, onStateChanged }) {
+function ExecutionDetails({ execution, canChangeState, onStateChanged, onDeleted }) {
     const [exportSide, setExportSide] = useState(null)
     return <div className="flex flex-column gap--small" style={{ borderTop: "1px solid #ddd", paddingTop: "0.75rem" }}>
         <div className="flex center-items justify-between gap--tiny flex--wrap">
@@ -27,9 +27,7 @@ function ExecutionDetails({ execution, canChangeState, onStateChanged }) {
                         onDone={onStateChanged} />
                 </div> : null}
             {canChangeState && execution.status === "DRAFT" ?
-                <button className="basic-button basic-button--small basic-button--highlighted"
-                    title="Continue the saved setup: plates, samples, transfer map, values and start"
-                    onClick={onEditDraft}>Edit setup</button> : null}
+                <ExecutionDraftControls execution_tag={execution.tag} onDeleted={onDeleted} /> : null}
         </div>
         <StateHistory execution_tag={execution.tag} />
         <div className="flex font-size--smallest flex--wrap gap--tiny" style={{ color: "#666" }}>
@@ -238,6 +236,11 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                     refetchSelected()
                     refetchExecutions()
                     setAlertProps({ isOpen: true, message: `Execution state changed to ${updatedExecution.status}.` })
+                }}
+                onDeleted={() => {
+                    setSelectedTag(null)
+                    refetchExecutions()
+                    setAlertProps({ isOpen: true, message: "Execution draft deleted." })
                 }} /> : null}
     </div>
 }
