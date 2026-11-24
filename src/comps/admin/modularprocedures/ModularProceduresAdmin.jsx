@@ -206,6 +206,12 @@ function AdminProcedureItem({ procedure_tag, isCurator, onEdit, onPublish, onLin
             <div className="font-size--small" style={{ color: "#888" }}>
                 {procedure?.condition_application_tags?.length || 0} condition applications,
                 {" "}{procedure?.protocol_tags?.length || 0} protocols
+                {procedure?.pubmed_ids?.length ? `, ${procedure.pubmed_ids.length} PubMed refs` : ""}
+                {(procedure?.max_output_wells_per_sample || procedure?.min_output_wells_per_sample > 1) ?
+                    `, ${procedure.min_output_wells_per_sample || 1}${procedure?.max_output_wells_per_sample ?
+                        `–${procedure.max_output_wells_per_sample === (procedure.min_output_wells_per_sample || 1) ? "" : procedure.max_output_wells_per_sample}`
+                        : ""} output well${(procedure.max_output_wells_per_sample || procedure.min_output_wells_per_sample || 1) > 1 ? "s" : ""} per sample`
+                    : ""}
                 {procedure?.content_hash ? `, hash ${procedure.content_hash.substring(0, 12)}...` : ""}
             </div>
         </div>

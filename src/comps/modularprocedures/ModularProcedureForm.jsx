@@ -13,7 +13,8 @@ import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
 
 const INIT_PROCEDURE = { title: "", description: "", condition_application_tags: [], condition_application_trees: [], protocol_tags: [],
     input_plate_format: "", input_plate_type: "", output_plate_format: "", output_plate_type: "",
-    input_attribute_tags: [], output_attribute_tags: [], success_submission_state: "" }
+    input_attribute_tags: [], output_attribute_tags: [], success_submission_state: "",
+    pubmed_ids: "", min_output_wells_per_sample: "", max_output_wells_per_sample: "" }
 
 const SUBMISSION_STATE_OPTIONS = ["PROCESSED", "MEASURING", "ANALYSIS", "DONE"]
 
@@ -49,7 +50,10 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 output_plate_type: existingProcedure.output_plate_type || "",
                 input_attribute_tags: existingProcedure.input_attribute_tags || [],
                 output_attribute_tags: existingProcedure.output_attribute_tags || [],
-                success_submission_state: existingProcedure.success_submission_state || ""
+                success_submission_state: existingProcedure.success_submission_state || "",
+                pubmed_ids: (existingProcedure.pubmed_ids || []).join(", "),
+                min_output_wells_per_sample: _.toString(existingProcedure.min_output_wells_per_sample || ""),
+                max_output_wells_per_sample: _.toString(existingProcedure.max_output_wells_per_sample || "")
             })
         }
     }, [isEditMode, isSuccess, existingProcedure])
@@ -107,7 +111,19 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
     const handleSelectInputAttribute = makeAttributeTagHandler("input_attribute_tags")
     const handleSelectOutputAttribute = makeAttributeTagHandler("output_attribute_tags")
 
-    const handleSubmit = () => onSubmit(_.omitBy(procedure, (value) => value === ""))
+    const handleSubmit = () => {
+        // split the comma separated PubMed IDs into a list, normalize numbers ("" = not set)
+        const payload = {
+            ...procedure,
+            pubmed_ids: _.compact(_.map(_.split(procedure.pubmed_ids, ","), (id) => _.trim(id))),
+            min_output_wells_per_sample: procedure.min_output_wells_per_sample === "" ?
+                1 : _.toInteger(procedure.min_output_wells_per_sample),
+            max_output_wells_per_sample: procedure.max_output_wells_per_sample === "" ?
+                null : _.toInteger(procedure.max_output_wells_per_sample),
+        }
+        if (payload.max_output_wells_per_sample === null) delete payload.max_output_wells_per_sample
+        onSubmit(_.omitBy(payload, (value) => value === ""))
+    }
 
     const handleSelectProtocol = (protocol_tag) => {
         setProcedure((prev) => {
@@ -243,6 +259,29 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                             onClick={() => handleSelectOutputAttribute(tag)}>{tag} ✕</button>)}
                 </div>
             </div>
+        </div>
+        <Callout intent="primary" title="Publication references (optional)">
+            PubMed IDs of the publications this module is based on (comma separated, e.g. 12345678, 87654321).
+            They are part of the content that becomes immutable with the content hash on publishing.
+        </Callout>
+        <input className="text-input" type="text" placeholder="PubMed IDs, comma separated"
+            value={procedure.pubmed_ids}
+            onChange={(e) => setProcedure({ ...procedure, pubmed_ids: e.target.value })} />
+        <Callout intent="primary" title="Sample numbers: mirroring or duplication? (optional)">
+            How an execution of this module may treat the sample numbers: leave empty for no constraint.
+            Min = max = 1 means the module mirrors the samples (one output well per sample);
+            min = max = N describes an N-fold duplication like an N-fraction fractionation;
+            a range allows anything between min and max output wells per sample.
+        </Callout>
+        <div className="flex center-items" style={{ gap: "0.5rem" }}>
+            <span className="font-size--small">Output wells per sample:</span>
+            <input className="text-input" type="number" min={1} placeholder="min" style={{ width: "5rem" }}
+                value={procedure.min_output_wells_per_sample}
+                onChange={(e) => setProcedure({ ...procedure, min_output_wells_per_sample: e.target.value })} />
+            <span className="font-size--small">to</span>
+            <input className="text-input" type="number" min={1} placeholder="max (empty = unbounded)" style={{ width: "10rem" }}
+                value={procedure.max_output_wells_per_sample}
+                onChange={(e) => setProcedure({ ...procedure, max_output_wells_per_sample: e.target.value })} />
         </div>
         <Callout intent="primary" title="Success State (optional)">
             If set, confirming an execution of this procedure as successful automatically changes the state of
