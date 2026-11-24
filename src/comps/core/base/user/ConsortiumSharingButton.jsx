@@ -1,7 +1,7 @@
 import { useState } from "react"
 import PropTypes from "prop-types"
 import _ from "lodash"
-import { Button, Callout, Dialog, DialogBody, DialogFooter, Spinner, Switch, Tab, Tabs, Tag } from "@blueprintjs/core"
+import { Button, Callout, Dialog, DialogBody, DialogFooter, SegmentedControl, Spinner, Switch, Tab, Tabs, Tag } from "@blueprintjs/core"
 import { useQueryClient } from "@tanstack/react-query"
 import { api } from "@/api"
 import { ConsortiumText } from "@/comps/submission/view/ConsortiumText"
@@ -9,6 +9,8 @@ import { SubmissionLink } from "@/comps/core/links/Submission"
 import { ResearchGroupTitle } from "@/comps/core/input/api/ResearchGroupInput"
 import { UserFullName } from "@/comps/core/input/api/UserInput"
 import { CollaborationPermissionsFlow } from "@/comps/core/base/user/CollaborationPermissionsFlow"
+import { AddButton } from "@/comps/core/base/buttons/AddButton"
+import { RemoveButton } from "@/comps/core/base/buttons/RemoveButton"
 
 const PI_ROLE_THRESHOLD = 2
 
@@ -294,6 +296,133 @@ function SharedSubmissionRow({ entry, variant }) {
     </div>
 }
 
+ExploreScopeTargetRow.propTypes = {
+    group: PropTypes.object.isRequired,
+    isSelected: PropTypes.bool,
+    isLoading: PropTypes.bool,
+    onSelect: PropTypes.func,
+    onRemove: PropTypes.func
+}
+
+/**
+ * @description One row of the explore visibility allow list: a research group with a button to
+ * add it to or remove it from the allow list, styled like the users list dialogs.
+ * @param {Object} props
+ * @param {Object} props.group The research group model (tag, text, abbreviation, institute, ...)
+ * @param {Boolean} [props.isSelected] True if the group is part of the allow list
+ * @param {Boolean} [props.isLoading] True while the allow list is being updated
+ * @param {Function} props.onSelect Callback to add the group to the allow list
+ * @param {Function} props.onRemove Callback to remove the group from the allow list
+ * @returns {JSX.Element} The allow list research group row.
+ */
+function ExploreScopeTargetRow({ group, isSelected, isLoading, onSelect, onRemove }) {
+    return <div className="padding--little div--round" style={{ backgroundColor: "#fefefe" }}>
+        <div className="flex padding--little center-items justify-space-between">
+            <div className="flex flex-column">
+                <div>{group.text} ({group.abbreviation})</div>
+                <div className="font-size--smallest">{group.institute}</div>
+            </div>
+            <div style={{ flexShrink: 0 }}>
+                {isSelected
+                    ? <RemoveButton isLoading={isLoading} fontColor={"#000000"} onRemove={() => onRemove(group.tag)} />
+                    : <AddButton isLoading={isLoading} fontColor={"#000000"} onSelect={() => onSelect(group.tag)} />}
+            </div>
+        </div>
+    </div>
+}
+
+ExploreScopeSelector.propTypes = {
+    group_tag: PropTypes.string.isRequired
+}
+
+/**
+ * @description Lets the head (PI) restrict the explore visibility of the research groups
+ * submissions: visible to all research groups or only to the research groups of an explicit
+ * allow list. The allow list shows all other research groups in alphabetical order with
+ * Select all / Deselect all buttons.
+ * @param {Object} props
+ * @param {String} props.group_tag Research group tag
+ * @returns {JSX.Element} The explore scope selector of one research group.
+ */
+function ExploreScopeSelector({ group_tag }) {
+    const queryClient = useQueryClient()
+    const { data: scope, isLoading } = api.researchgroups.useGetResearchGroupExploreScope(
+        { tag: group_tag }, { staleTime: 60000, retry: false }
+    )
+    const { data: targets, isLoading: targetsIsLoading } = api.researchgroups.useGetResearchGroupExploreScopeTargets(
+        { tag: group_tag }, { staleTime: 300000, retry: false }
+    )
+    const { mutate: setScope, isPending } = api.researchgroups.useSetResearchGroupExploreScope({
+        onSuccess: (data) => {
+            queryClient.setQueryData(["getResearchGroupExploreScope", group_tag], data)
+            queryClient.invalidateQueries({ queryKey: ["getResearchGroupExploreScopeTargets", group_tag] })
+        }
+    })
+
+    if (isLoading) return <div className="flex center-items padding--little"><Spinner size={16} /></div>
+
+    const mode = _.isObject(scope) && scope.scope === "GROUPS" ? "GROUPS" : "ALL"
+    const visibleTo = _.isObject(scope) && _.isArray(scope.visible_to) ? scope.visible_to : []
+    const targetGroups = _.isArray(targets) ? targets : []
+
+    const applyScope = (nextMode, nextVisibleTo) => setScope({ tag: group_tag, scope: nextMode, visible_to: nextVisibleTo })
+    const handleModeSelect = (nextMode) => applyScope(nextMode, nextMode === "GROUPS" ? visibleTo : [])
+    const handleSelect = (group_tag) => applyScope("GROUPS", _.union(visibleTo, [group_tag]))
+    const handleRemove = (group_tag) => applyScope("GROUPS", visibleTo.filter(tag => tag !== group_tag))
+
+    return <div className="margin-top--little padding--little bg--lightgrey div--round">
+        <div className="flex align-center justify-space-between margin-bottom--little">
+            <span className="font-size--small font-weight--bold">Visible to</span>
+            <SegmentedControl
+                small={true}
+                value={mode}
+                onValueChange={handleModeSelect}
+                options={[
+                    { label: "All research groups", value: "ALL" },
+                    { label: "Selected research groups", value: "GROUPS" }
+                ]}
+            />
+        </div>
+        {mode === "GROUPS"
+            ? <div className="flex flex-column">
+                <div className="flex align-center justify-space-between font-size--small margin-bottom--little">
+                    <span>Allowed research groups: <strong>{visibleTo.length}</strong> of {targetGroups.length}</span>
+                    <span className="flex align-center" style={{ gap: "0.3rem" }}>
+                        <Button
+                            small={true}
+                            text="Select all"
+                            disabled={isPending || targetsIsLoading || targetGroups.length === 0 || visibleTo.length === targetGroups.length}
+                            onClick={() => applyScope("GROUPS", targetGroups.map(group => group.tag))} />
+                        <Button
+                            small={true}
+                            minimal={true}
+                            text="Deselect all"
+                            disabled={isPending || visibleTo.length === 0}
+                            onClick={() => applyScope("GROUPS", [])} />
+                    </span>
+                </div>
+                <div className="flex flex-column container--scroll-y-hide-x" style={{ maxHeight: "25vh", gap: "0.3rem" }}>
+                    {targetsIsLoading ? <Spinner size={16} />
+                        : targetGroups.length === 0
+                            ? <p className="font-size--small margin--none">There are no other research groups yet.</p>
+                            : targetGroups.map(group => <ExploreScopeTargetRow
+                                key={group.tag}
+                                group={group}
+                                isSelected={visibleTo.includes(group.tag)}
+                                isLoading={isPending}
+                                onSelect={handleSelect}
+                                onRemove={handleRemove} />)}
+                </div>
+                <p className="font-size--smallest margin--none margin-top--little">
+                    Only the members of the selected research groups see the submissions of your
+                    research group in the explore view. With an empty selection, users outside of
+                    your research group do not see any of your submissions there.
+                </p>
+            </div>
+            : null}
+    </div>
+}
+
 ExploreGroupRow.propTypes = {
     group_tag: PropTypes.string.isRequired,
     user_tag: PropTypes.string,
@@ -320,21 +449,25 @@ function ExploreGroupRow({ group_tag, user_tag, onInvalidate }) {
     const { mutate: setDisabled, isPending } = api.researchgroups.useSetResearchGroupExploreDisabled({ onSuccess: onInvalidate })
     if (isLoading || disabledIsLoading) return <div className="margin--little padding--little bg--lightgrey div--round"><Spinner size={16} /></div>
     const isHead = _.isArray(heads) && _.isString(user_tag) && heads.includes(user_tag)
-    return <div className="flex align-center margin--little padding--little bg--lightgrey div--round">
-        <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-            <ResearchGroupTitle tag={group_tag} />
+    const isEnabled = exploreDisabled === false
+    return <div className="flex flex-column margin--little padding--little bg--lightgrey div--round">
+        <div className="flex align-center">
+            <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+                <ResearchGroupTitle tag={group_tag} />
+            </div>
+            {isHead
+                ? <Switch
+                    innerLabelChecked="Disabled"
+                    innerLabel="Enabled"
+                    checked={!isEnabled}
+                    disabled={isPending}
+                    style={{ flexShrink: 0 }}
+                    onChange={() => setDisabled({ tag: group_tag, disabled: !(!isEnabled) })} />
+                : <Tag minimal={true} round={true} intent={!isEnabled ? "danger" : "success"}>
+                    {!isEnabled ? "Disabled by PI" : "Enabled by PI"}
+                </Tag>}
         </div>
-        {isHead
-            ? <Switch
-                innerLabelChecked="Disabled"
-                innerLabel="Enabled"
-                checked={exploreDisabled !== false}
-                disabled={isPending}
-                style={{ flexShrink: 0 }}
-                onChange={() => setDisabled({ tag: group_tag, disabled: !(exploreDisabled !== false) })} />
-            : <Tag minimal={true} round={true} intent={exploreDisabled !== false ? "danger" : "success"}>
-                {exploreDisabled !== false ? "Disabled by PI" : "Enabled by PI"}
-            </Tag>}
+        {isHead && isEnabled ? <ExploreScopeSelector group_tag={group_tag} /> : null}
     </div>
 }
 
@@ -355,6 +488,7 @@ function ConsortiumExploreTab({ user_tag }) {
     const invalidate = () => {
         queryClient.invalidateQueries({ queryKey: ["getMyExploreDisabled"] })
         queryClient.invalidateQueries({ queryKey: ["getResearchGroupExploreDisabled"] })
+        queryClient.invalidateQueries({ queryKey: ["getResearchGroupExploreScope"] })
         queryClient.invalidateQueries({ queryKey: ["getPendingCollaborationRequests"] })
         queryClient.invalidateQueries({ queryKey: ["getSubmissionCollaborationRequests"] })
         queryClient.invalidateQueries({ queryKey: ["getMySharedSubmissionsOverview"] })
@@ -370,7 +504,11 @@ function ConsortiumExploreTab({ user_tag }) {
                 message instead). All collaboration access granted to your groups submissions via
                 explore collaboration requests is revoked (similar to disagreeing to consortium share
                 terms revoking the consortium shares). New research groups have explore disabled by
-                    default; use the toggle to enable it.
+                default; use the toggle to enable it.
+                While explore is enabled you can also restrict the visibility of your groups
+                submissions to selected research groups instead of all research groups: research
+                groups that are not on your allow list (e.g. a newly joined group) do not see
+                your submissions in the explore view.
             </div>
         </Callout>
         {groups.length === 0 ? <p className="font-size--small">You are not a member of any research group.</p> :
