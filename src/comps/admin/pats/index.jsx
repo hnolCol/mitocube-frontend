@@ -8,7 +8,11 @@ import { api } from "@/api"
 import Loading from "@/comps/core/base/loading"
 import { Header } from "@/comps/core/base/Header"
 
-const PAT_SCOPES = [{ value: "qc.upload", label: "QC run upload (qc.upload)" }]
+const PAT_SCOPES = [
+    { value: "qc.upload", label: "QC run upload (qc.upload)" },
+    { value: "submissions.read", label: "Read newly added submission tags, e.g. to create NAS folders (submissions.read)" },
+    { value: "sample.measuring", label: "Mark a sample as being measured, optionally on instruments (sample.measuring)" }
+]
 const ADMIN_ROLE = 4
 
 function formatDate(epochMillis) {
