@@ -56,7 +56,6 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
     const [searchString, setSearchString] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
     const [selectedTag, setSelectedTag] = useState(null)
-    const [draftDialogProps, setDraftDialogProps] = useState({ isOpen: false, procedure_tag: null, tag: null })
     const [newDraftDialogOpen, setNewDraftDialogOpen] = useState(false)
     const [newDraftProcedureTag, setNewDraftProcedureTag] = useState("")
     const debouncedSearch = useDebounce(searchString, 300)
@@ -215,21 +214,6 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                     disabled={newDraftProcedureTag.length === 0} onClick={handleCreateDraft} />
             </>} />
         </Dialog> : null}
-        {draftDialogProps.isOpen && canChangeState && false ?
-            <ModularProcedureExecutionDialog
-                procedure_tag={draftDialogProps.procedure_tag}
-                isOpen={draftDialogProps.isOpen}
-                current_user_tag={draftDialogProps.userTag}
-                draft={{ tag: draftDialogProps.tag, onSaved: () => {
-                    refetchExecutions()
-                    setAlertProps({ isOpen: true, message: "Execution setup saved. You can continue it anytime from the executions overview." })
-                } }}
-                onClose={() => setDraftDialogProps({ isOpen: false, procedure_tag: null, tag: null })}
-                onExecuted={() => {
-                    setDraftDialogProps({ isOpen: false, procedure_tag: null, tag: null })
-                    refetchExecutions()
-                    setAlertProps({ isOpen: true, message: "The execution is running. Confirm its outcome in this overview." })
-                }} /> : null}
         {_.isObject(selectedExecution) ?
             <ExecutionDetails execution={selectedExecution} canChangeState={canChangeState}
                 onStateChanged={(updatedExecution) => {
