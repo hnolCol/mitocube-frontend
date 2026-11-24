@@ -34,7 +34,10 @@ SubmissionView expects to get the following formats from the API.
 `SubmissionModuleStatus.jsx` renders the "Workflow Modules" box in the submission
 overview (analysis view): the **active module** (the open modular procedure link, if any)
 and the **module history** (done links with completion date and user). Submissions that
-are not linked to any modular procedure show no box at all. See
+are not linked to any modular procedure show no box - curators and admins, however, always
+see the box with the **"Assign module"** button: the submission-centric entry point of the
+workflow (pick submission -> assign module -> design the execution on the workflow board,
+where further submissions can be pooled into the run via the execution dialog). See
 `src/comps/modularprocedures/README.md` and the backend
 `docs/modular-procedures.md` for the full workflow documentation.
 

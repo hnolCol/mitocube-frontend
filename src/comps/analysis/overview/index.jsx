@@ -125,7 +125,7 @@ function SubmissionOverview({ user_tag }) {
                     <h3>Similar Submissions</h3>
                     <SimilarSubmissions {...{ submission_tag, user_tag }} />
                 </div>
-                <SubmissionModuleStatus submission_tag={submission_tag} />
+                <SubmissionModuleStatus submission_tag={submission_tag} userRole={authenticationStatus?.role} />
                 <SubmissionModuleFlow submission_tag={submission_tag} />
                 <SubmissionSampleLocations submission_tag={submission_tag} />
                 <DepositionStatus submission_tag={submission_tag} />
