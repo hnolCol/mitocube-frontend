@@ -133,7 +133,7 @@ function ExecutionRow({ execution_tag, canChangeState, onDone }) {
     </div>
 }
 
-function ExecutionsPanel({ procedure_tag, canChangeState }) {
+export function ExecutionsPanel({ procedure_tag, canChangeState }) {
     const { data: execution_tags, refetch: refetchExecutions } =
         api.modularProcedures.execute.useGetModularProcedureExecutions(
             { tag: procedure_tag }, { enabled: _.isString(procedure_tag) })
@@ -146,7 +146,7 @@ function ExecutionsPanel({ procedure_tag, canChangeState }) {
     </div>
 }
 
-function SubmissionCard({ link, isCurator, onMarkDone, onReopen, onMutated }) {
+export function SubmissionCard({ link, isCurator, onMarkDone, onReopen, onMutated }) {
 
     const created_at = _.isNumber(link.created_at) ? moment.unix(link.created_at).format("YYYY-MM-DD HH:mm") : "–"
     const done_at = _.isNumber(link.done_at) ? moment.unix(link.done_at).format("YYYY-MM-DD HH:mm") : null

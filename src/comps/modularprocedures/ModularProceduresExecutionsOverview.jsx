@@ -1,4 +1,4 @@
-import { Alert, Callout, Tag } from "@blueprintjs/core";
+import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Intent, Tag } from "@blueprintjs/core";
 import { useState } from "react";
 import _ from "lodash";
 import { useNavigate } from "react-router-dom";
@@ -56,7 +56,29 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
     const [searchString, setSearchString] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
     const [selectedTag, setSelectedTag] = useState(null)
+    const [draftDialogProps, setDraftDialogProps] = useState({ isOpen: false, procedure_tag: null, tag: null })
+    const [newDraftDialogOpen, setNewDraftDialogOpen] = useState(false)
+    const [newDraftProcedureTag, setNewDraftProcedureTag] = useState("")
     const debouncedSearch = useDebounce(searchString, 300)
+
+    const { data: procedure_tags } = api.modularProcedures.query.useGetModularProceduresByQuery(
+        { status: "PUBLISHED", latest_only: true }, { enabled: newDraftDialogOpen, staleTime: 60000 })
+    const { mutate: createDraft, isPending: createDraftIsPending, isError: createDraftIsError, error: createDraftError } =
+        api.modularProcedures.execute.useCreateExecutionDraft()
+    const { mutate: startDraft } = api.modularProcedures.execute.useStartExecutionDraft()
+    const { mutate: deleteDraft } = api.modularProcedures.execute.useDeleteExecutionDraft()
+
+    const handleCreateDraft = () => {
+        if (!_.isString(newDraftProcedureTag) || newDraftProcedureTag.length === 0) return
+        createDraft({ tag: newDraftProcedureTag }, {
+            onSuccess: (draftExecution) => {
+                setNewDraftDialogOpen(false)
+                setNewDraftProcedureTag("")
+                setDraftDialogProps({ isOpen: true, procedure_tag: draftExecution.procedure_tag, tag: draftExecution.tag })
+                refetchExecutions()
+            }
+        })
+    }
 
     const { data: executions, isLoading, isError, error, refetch: refetchExecutions } =
         api.modularProcedures.execute.useQueryModularProcedureExecutions({
@@ -75,8 +97,13 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
             <div className="flex justify-between center-items">
                 <h3 style={{ margin: 0 }}>Modular Procedure Executions</h3>
-                <button className="basic-button basic-button--small"
-                    onClick={() => navigate("/modular-procedures")}>Back to the board</button>
+                <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                    {canChangeState ? <button className="basic-button basic-button--small basic-button--highlighted"
+                        title="Create an empty execution with a backend-generated ID, set up the plate design, save it and start it later"
+                        onClick={() => setNewDraftDialogOpen(true)}>New execution</button> : null}
+                    <button className="basic-button basic-button--small"
+                        onClick={() => navigate("/modular-procedures")}>Back to the board</button>
+                </div>
             </div>
             <p className="font-size--small" style={{ color: "#888" }}>
                 All executions of the facility's workflow modules with their states and the data of the
@@ -117,6 +144,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                                 <th className="padding--little">Wells</th>
                                 <th className="padding--little">Responsible</th>
                                 <th className="padding--little">Created</th>
+                                {canChangeState ? <th className="padding--little">Setup</th> : null}
                             </tr>
                         </thead>
                         <tbody>
@@ -135,11 +163,74 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                                 <td className="padding--little">{execution.n_input_wells} → {execution.n_output_wells}</td>
                                 <td className="padding--little">{execution.responsible_user_tag || "–"}</td>
                                 <td className="padding--little">{formatExecutionTime(execution.created_at)}</td>
+                                {canChangeState ? <td className="padding--little" onClick={(event) => event.stopPropagation()}>
+                                    {execution.status === "DRAFT" ? <div className="flex center-items" style={{ gap: "0.25rem" }}>
+                                        <button className="basic-button basic-button--small"
+                                            title="Continue the saved setup: plates, samples, transfer map, values"
+                                            onClick={() => setDraftDialogProps({
+                                                isOpen: true, procedure_tag: execution.procedure_tag, tag: execution.tag })}>
+                                            Open setup
+                                        </button>
+                                        <button className="basic-button basic-button--small basic-button--highlighted"
+                                            title="Validate the saved design in full and start the run"
+                                            onClick={() => startDraft({ tag: execution.tag }, {
+                                                onSuccess: () => {
+                                                    refetchExecutions()
+                                                    setAlertProps({ isOpen: true, message: "The execution is running." })
+                                                }
+                                            })}>Start</button>
+                                        <button className="basic-button basic-button--small"
+                                            title="Delete this draft (only drafts can be deleted)"
+                                            onClick={() => deleteDraft({ tag: execution.tag }, {
+                                                onSuccess: () => {
+                                                    setSelectedTag(null)
+                                                    refetchExecutions()
+                                                }
+                                            })}>Delete</button>
+                                    </div> : null}
+                                </td> : null}
                             </tr>)}
                         </tbody>
                     </table>}
             </div>}
         {selectedIsError ? <div className="padding--medium"><APIAxiosError error={selectedError} /></div> : null}
+        {newDraftDialogOpen ? <Dialog isOpen={newDraftDialogOpen}
+            onClose={() => setNewDraftDialogOpen(false)} title="New execution" icon="flows">
+            <DialogBody>
+                <p className="font-size--small">
+                    Create an empty execution of a published module with a backend-generated ID. The setup
+                    (plates, sample placement, transfer map and per-well values) can be saved and continued
+                    anytime; starting the run validates everything in full.
+                </p>
+                <select className="text-input" style={{ width: "100%" }} value={newDraftProcedureTag}
+                    onChange={(event) => setNewDraftProcedureTag(event.target.value)}>
+                    <option value="">Select a published module ...</option>
+                    {(_.isArray(procedure_tags) ? procedure_tags : []).map((tag) =>
+                        <option key={tag} value={tag}>{tag}</option>)}
+                </select>
+                {createDraftIsError ? <APIAxiosError error={createDraftError} /> : null}
+            </DialogBody>
+            <DialogFooter actions={<>
+                <Button text="Cancel" onClick={() => setNewDraftDialogOpen(false)} />
+                <Button intent={Intent.PRIMARY} icon="flows" text="Create draft" loading={createDraftIsPending}
+                    disabled={newDraftProcedureTag.length === 0} onClick={handleCreateDraft} />
+            </>} />
+        </Dialog> : null}
+        {draftDialogProps.isOpen && canChangeState ?
+            <ModularProcedureExecutionDialog
+                procedure_tag={draftDialogProps.procedure_tag}
+                isOpen={draftDialogProps.isOpen}
+                current_user_tag={draftDialogProps.userTag}
+                draft={{ tag: draftDialogProps.tag, onSaved: () => {
+                    refetchExecutions()
+                    setAlertProps({ isOpen: true, message: "Execution setup saved. You can continue it anytime from the executions overview." })
+                } }}
+                onClose={() => setDraftDialogProps({ isOpen: false, procedure_tag: null, tag: null })}
+                onExecuted={() => {
+                    setDraftDialogProps({ isOpen: false, procedure_tag: null, tag: null })
+                    refetchExecutions()
+                    setAlertProps({ isOpen: true, message: "The execution is running. Confirm its outcome in this overview." })
+                }} /> : null}
         {_.isObject(selectedExecution) ?
             <ExecutionDetails execution={selectedExecution} canChangeState={canChangeState}
                 onStateChanged={(updatedExecution) => {
