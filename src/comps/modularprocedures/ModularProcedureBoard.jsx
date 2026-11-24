@@ -1,13 +1,16 @@
 import { Alert, Callout } from "@blueprintjs/core";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import _ from "lodash";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { ModularProcedureExecutionDialog } from "./ModularProcedureExecutionDialog";
 import { ModularProcedureExecutionMetricsDialog } from "./ModularProcedureExecutionMetricsDialog";
-
-const CURATOR_ROLE = 2 // must match the backend user role encoding; curators and admins are >= 2
+import {
+    CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls,
+    ProtocolChip, isUserAtLeast,
+} from "./Shared";
 
 /**
  * Horizontal overview of the published modular procedures and the
@@ -16,7 +19,9 @@ const CURATOR_ROLE = 2 // must match the backend user role encoding; curators an
  */
 export function ModularProcedureBoard({ userRole, userTag }) {
 
-    const isCurator = _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= CURATOR_ROLE
+    const isCurator = isUserAtLeast(userRole, CURATOR_ROLE)
+    const canChangeState = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
+    const navigate = useNavigate()
     const [alertProps, setAlertProps] = useState({ isOpen: false })
     const [executionDialogProps, setExecutionDialogProps] = useState({ isOpen: false, procedure_tag: null })
     const [metricsDialogProps, setMetricsDialogProps] = useState({ isOpen: false, procedure_tag: null })
@@ -45,7 +50,7 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 current_user_tag={userTag}
                 onExecuted={() => {
                     setExecutionDialogProps({ isOpen: false, procedure_tag: null })
-                    setAlertProps({ isOpen: true, message: "Procedure executed. The affected submissions are done and can proceed to the next procedure." })
+                    setAlertProps({ isOpen: true, message: "The execution is running. Confirm its outcome (successful / failed / aborted) in the executions section of the procedure: this frees the assigned submissions for the next procedure." })
                 }} /> : null}
         {metricsDialogProps.isOpen ?
             <ModularProcedureExecutionMetricsDialog
@@ -54,7 +59,11 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 onClose={() => setMetricsDialogProps({ isOpen: false, procedure_tag: null })}
                 onSaved={() => setMetricsDialogProps({ isOpen: false, procedure_tag: null })} /> : null}
         <div className="flex flex-column margin--medium padding--medium gap--medium-small">
-            <h3>Modular Procedures</h3>
+            <div className="flex justify-between center-items">
+                <h3>Modular Procedures</h3>
+                <button className="basic-button basic-button--small"
+                    onClick={() => navigate("/modular-procedures/executions")}>Executions overview</button>
+            </div>
             <p className="font-size--small" style={{ color: "#888" }}>
                 Facility workflow modules the submissions travel through. Each column shows the submissions
                 assigned to the procedure with their assignment date and done state.
@@ -68,14 +77,14 @@ export function ModularProcedureBoard({ userRole, userTag }) {
                 </Callout> :
                 procedure_tags?.map((procedure_tag) =>
                     <ProcedureColumn key={procedure_tag} procedure_tag={procedure_tag}
-                        isCurator={isCurator} onMarkDone={markDone} onReopen={reopen}
+                        isCurator={isCurator} canChangeState={canChangeState} onMarkDone={markDone} onReopen={reopen}
                         onExecute={() => setExecutionDialogProps({ isOpen: true, procedure_tag })}
                         onMetrics={() => setMetricsDialogProps({ isOpen: true, procedure_tag })} />)}
         </div>
     </div>
 }
 
-function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExecute, onMetrics }) {
+function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone, onReopen, onExecute, onMetrics }) {
 
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag({ tag: procedure_tag })
     const { data: submissions, isLoading, refetch } =
@@ -98,6 +107,10 @@ function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExe
             {procedure?.description ? <p className="font-size--small" style={{ color: "#666", margin: 0 }}>
                 {procedure.description.substring(0, 120)}{procedure.description.length > 120 ? "..." : ""}
             </p> : null}
+            {procedure?.protocol_tags?.length > 0 ? <div className="flex gap--tiny flex--wrap margin-top--little">
+                {procedure.protocol_tags.map((protocol_tag) => <ProtocolChip key={protocol_tag} protocol_tag={protocol_tag} />)}
+            </div> : null}
+            <ExecutionsPanel procedure_tag={procedure_tag} canChangeState={canChangeState} />
         </div>
         {isLoading ? <div className="padding--little">Loading ...</div> :
             submissions?.map((link) => <SubmissionCard key={link.submission_tag} link={link}
@@ -106,6 +119,30 @@ function ProcedureColumn({ procedure_tag, isCurator, onMarkDone, onReopen, onExe
                 onReopen={() => onReopen({ tag: procedure_tag, submission_tag: link.submission_tag }, { onSuccess: () => refetch() })} />)}
         {submissions?.length === 0 ?
             <div className="padding--little font-size--small" style={{ color: "#888" }}>No submissions linked.</div> : null}
+    </div>
+}
+
+function ExecutionRow({ execution_tag, canChangeState, onDone }) {
+    const { data: execution } = api.modularProcedures.execute.useGetModularProcedureExecution(
+        { tag: execution_tag }, { enabled: _.isString(execution_tag) })
+    const status = execution?.status || "RUNNING"
+    return <div className="flex center-items justify-between gap--tiny margin-top--tiny">
+        <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
+        <ExecutionStateChip status={status} />
+        {canChangeState ? <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} /> : null}
+    </div>
+}
+
+function ExecutionsPanel({ procedure_tag, canChangeState }) {
+    const { data: execution_tags, refetch: refetchExecutions } =
+        api.modularProcedures.execute.useGetModularProcedureExecutions(
+            { tag: procedure_tag }, { enabled: _.isString(procedure_tag) })
+    if (!_.isArray(execution_tags) || execution_tags.length === 0) return null
+    return <div className="margin-top--little" style={{ borderTop: "1px dashed #ddd", paddingTop: "0.25rem" }}>
+        <div className="font-size--smallest" style={{ color: "#888" }}>Executions</div>
+        {execution_tags.map((execution_tag) =>
+            <ExecutionRow key={execution_tag} execution_tag={execution_tag} canChangeState={canChangeState}
+                onDone={refetchExecutions} />)}
     </div>
 }
 

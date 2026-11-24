@@ -89,20 +89,40 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
     const [outputWells, setOutputWells] = useState({})
     const [selectedOutputWell, setSelectedOutputWell] = useState(null)
     const [responsibleUserTags, setResponsibleUserTags] = useState([])
-    const [metricParams, setMetricParams] = useState([])  // [{attribute_tag, trait_tag}]
-    const [metricAttributeTag, setMetricAttributeTag] = useState(null)
-    const [wellMetrics, setWellMetrics] = useState([])     // [{position, trait_tag, value}]
-    const [metricsError, setMetricsError] = useState(null)
+    const [metricStates, setMetricStates] = useState({
+        OUTPUT: { params: [], attributeTag: null, metrics: [] },
+        INPUT: { params: [], attributeTag: null, metrics: [] },
+    })
+    const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
+    const [extraSubmissionTag, setExtraSubmissionTag] = useState("")
+    const [extraSubmissionTags, setExtraSubmissionTags] = useState([])
+    const [extraSubmissionError, setExtraSubmissionError] = useState(null)
 
     const { mutate: execute, isPending, isError, error } = api.modularProcedures.execute.useExecuteModularProcedure()
 
     const inputPlate = useMemo(() => _.find(plates, { tag: inputPlateTag }), [plates, inputPlateTag])
     const outputPlate = useMemo(() => _.find(plates, { tag: outputPlateTag }), [plates, outputPlateTag])
 
+    const plateMatches = (plate, format, type) =>
+        (!format || plate?.format === format) && (!type || plate?.plate_type === type)
+    const inputConstraint = { format: procedure?.input_plate_format, type: procedure?.input_plate_type }
+    const outputConstraint = { format: procedure?.output_plate_format, type: procedure?.output_plate_type }
+    const inputPlateOptions = (inputConstraint.format || inputConstraint.type) ?
+        (plates || []).filter((plate) => plateMatches(plate, inputConstraint.format, inputConstraint.type)) : plates
+    const outputPlateOptions = (outputConstraint.format || outputConstraint.type) ?
+        (plates || []).filter((plate) => plateMatches(plate, outputConstraint.format, outputConstraint.type)) : plates
+    const constraintText = ({ format, type }) =>
+        !format && !type ? null : [format, type].filter((part) => part).join(" / ")
+
     const fetchSamples = () => {
         if (!isOpen || !_.isArray(submissions)) return
         let cancelled = false
-        Promise.all(submissions.map((link) =>
+        // the module's own submissions + explicitly added extra submissions (e.g. pooled runs)
+        const allLinks = [
+            ...submissions,
+            ...extraSubmissionTags.map((tag) => ({ submission_tag: tag, submission_label: tag })),
+        ]
+        Promise.all(allLinks.map((link) =>
             apiClient.get(`/submissions/${link.submission_tag}/samples`)
                 .then((res) => _.isArray(res.data) ? res.data : [])
                 .catch(() => [])
@@ -116,7 +136,23 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         })
         return () => { cancelled = true }
     }
-    useEffect(fetchSamples, [isOpen, submissions])
+    useEffect(fetchSamples, [isOpen, submissions, extraSubmissionTags])
+
+    const linkedSubmissionTags = _.map(submissions, "submission_tag")
+    const handleAddExtraSubmission = () => {
+        const tag = extraSubmissionTag.trim()
+        if (!_.isString(tag) || tag.length === 0) return
+        setExtraSubmissionError(null)
+        apiClient.get(`/submissions/${tag}/samples`)
+            .then((res) => {
+                setExtraSubmissionTags((prev) => prev.includes(tag) ? prev : [...prev, tag])
+                setExtraSubmissionTag("")
+            })
+            .catch(() => setExtraSubmissionError(
+                `Submission '${tag}' not found or not accessible to you.`))
+    }
+    const handleRemoveExtraSubmission = (tag) =>
+        setExtraSubmissionTags((prev) => prev.filter((t) => t !== tag))
 
     useEffect(() => {
         if (isOpen && current_user_tag) setResponsibleUserTags([current_user_tag])
@@ -188,38 +224,52 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         })
     }
 
-    const handleAddMetricAttribute = (attribute_tag) => setMetricAttributeTag(attribute_tag)
+    const updateMetricState = (side, updater) =>
+        setMetricStates((prev) => ({ ...prev, [side]: updater(prev[side]) }))
 
-    const handleMetricTraitSelect = (trait_tag) => {
-        if (trait_tag && metricAttributeTag) {
-            setMetricParams((prev) => prev.some((p) => p.trait_tag === trait_tag) ? prev :
-                [...prev, { attribute_tag: metricAttributeTag, trait_tag }])
-        }
-        setMetricAttributeTag(null)
+    const handleAddMetricAttribute = (side) => (attribute_tag) =>
+        updateMetricState(side, (state) => ({ ...state, attributeTag: attribute_tag }))
+
+    const handleMetricTraitSelect = (side) => (trait_tag) => {
+        updateMetricState(side, (state) => trait_tag && state.attributeTag ?
+            { ...state, attributeTag: null, params: state.params.some((p) => p.trait_tag === trait_tag) ?
+                state.params : [...state.params, { attribute_tag: state.attributeTag, trait_tag }] } :
+            { ...state, attributeTag: null })
     }
 
-    const handleRemoveMetricParam = (trait_tag) => {
-        setMetricParams((prev) => prev.filter((p) => p.trait_tag !== trait_tag))
-        setWellMetrics((prev) => prev.filter((m) => m.trait_tag !== trait_tag))
-    }
+    const handleRemoveMetricParam = (side) => (trait_tag) =>
+        updateMetricState(side, (state) => ({
+            ...state,
+            params: state.params.filter((p) => p.trait_tag !== trait_tag),
+            metrics: state.metrics.filter((m) => m.trait_tag !== trait_tag),
+        }))
 
-    const handleMetricsUpload = (event) => {
-        setMetricsError(null)
+    const handleRemoveMetric = (side) => (metric) =>
+        updateMetricState(side, (state) => ({ ...state, metrics: state.metrics.filter((m) => m !== metric) }))
+
+    const sideWellPositions = (side) => _.keys(side === "OUTPUT" ? outputWells : inputWells)
+    const sideWellName = (side) => side === "OUTPUT" ? "output" : "input"
+
+    const handleMetricsUpload = (side) => (event) => {
+        setMetricErrors((prev) => ({ ...prev, [side]: null }))
         const file = event.target.files?.[0]
         if (!file) return
         const reader = new FileReader()
         reader.onload = () => {
             try {
-                const parsed = parseMetricsFile(String(reader.result), metricParams.map((p) => p.trait_tag))
-                const outputPositions = _.keys(outputWells)
-                const unknown = parsed.map((m) => m.position).filter((position) => !outputPositions.includes(position))
+                const parsed = parseMetricsFile(String(reader.result), metricStates[side].params.map((p) => p.trait_tag))
+                const wells = sideWellPositions(side)
+                const unknown = parsed.map((m) => m.position).filter((position) => !wells.includes(position))
                 if (unknown.length > 0)
-                    throw new Error(`Wells in the file are not output wells of this execution: ${unknown.join(", ")}`)
-                setWellMetrics((prev) => [
-                    ...prev.filter((m) => !parsed.some((p) => p.position === m.position && p.trait_tag === m.trait_tag)),
-                    ...parsed])
+                    throw new Error(`Wells in the file are not ${sideWellName(side)} wells of this execution: ${unknown.join(", ")}`)
+                updateMetricState(side, (state) => ({
+                    ...state,
+                    metrics: [
+                        ...state.metrics.filter((m) => !parsed.some((p) => p.position === m.position && p.trait_tag === m.trait_tag)),
+                        ...parsed.map((metric) => ({ ...metric, side }))],
+                }))
             } catch (e) {
-                setMetricsError(e.message)
+                setMetricErrors((prev) => ({ ...prev, [side]: e.message }))
             }
         }
         reader.readAsText(file)
@@ -258,11 +308,56 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         const output_wells = _.map(outputWells, (well, position) => ({
             position, condition_application_tags: well.condition_application_tags || []
         }))
-        const output_well_metrics = wellMetrics
+        const output_well_metrics = metricStates.OUTPUT.metrics.map((metric) => ({ ...metric, side: "OUTPUT" }))
+        const input_well_metrics = metricStates.INPUT.metrics.map((metric) => ({ ...metric, side: "INPUT" }))
         execute({ tag: procedure_tag, input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
-                  responsible_user_tag: responsibleUserTags[0], input_wells, output_wells, output_well_metrics }, {
+                  responsible_user_tag: responsibleUserTags[0], input_wells, output_wells,
+                  output_well_metrics, input_well_metrics }, {
             onSuccess: () => { if (onExecuted) onExecuted() }
         })
+    }
+
+    const renderMetricsSection = (side, title, helper) => {
+        const state = metricStates[side]
+        const positions = sideWellPositions(side)
+        return <div style={{ borderTop: "1px solid #ddd", paddingTop: "0.5rem" }}>
+            <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+                <h4 style={{ margin: 0 }}>{title}</h4>
+                <AttributeInput text="Add metric attribute (e.g. Concentration)" onItemSelect={handleAddMetricAttribute(side)} />
+                {state.attributeTag !== null ?
+                    <TraitInput attribute_tag={state.attributeTag} text="Pick trait (e.g. ug/ul)"
+                        onItemSelect={handleMetricTraitSelect(side)} /> : null}
+                {state.params.map((param) =>
+                    <Tag key={param.trait_tag} minimal onRemove={() => handleRemoveMetricParam(side)(param.trait_tag)}>
+                        {param.trait_tag}
+                    </Tag>)}
+                {state.params.length > 0 && positions.length > 0 ? <>
+                    <button className="basic-button basic-button--small"
+                        onClick={() => downloadMetricsTemplate(positions, state.params.map((p) => p.trait_tag))}>
+                        Download template
+                    </button>
+                    <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
+                        Upload data
+                        <input type="file" accept=".txt,.tsv,.csv" style={{ display: "none" }}
+                            onChange={handleMetricsUpload(side)} />
+                    </label>
+                </> : null}
+            </div>
+            {metricErrors[side] ? <div className="font-size--small" style={{ color: "#cd4246", marginTop: "0.25rem" }}>{metricErrors[side]}</div> : null}
+            {state.params.length === 0 ?
+                <div className="font-size--small" style={{ color: "#888", marginTop: "0.25rem" }}>{helper}</div> : null}
+            {state.metrics.length > 0 ? <div style={{ marginTop: "0.5rem", maxHeight: "20vh", overflowY: "auto" }}>
+                {state.metrics.map((metric) =>
+                    <div key={`${metric.position}-${metric.trait_tag}`} className="flex center-items" style={{ gap: "0.5rem" }}>
+                        <strong style={{ minWidth: "2.5rem" }}>{metric.position}</strong>
+                        <span className="font-size--small">
+                            {metric.trait_tag}: <strong>{metric.value}</strong>
+                        </span>
+                        <button className="basic-button basic-button--small"
+                            onClick={() => handleRemoveMetric(side)(metric)}>Remove</button>
+                    </div>)}
+            </div> : null}
+        </div>
     }
 
     const placedSamples = _.flatten(_.map(inputWells, (well) => well.sample_tags))
@@ -280,19 +375,24 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
         title={`Execute : ${procedure?.title || procedure_tag}`} canOutsideClickClose={false} canEscapeKeyClose={true}>
         <DialogBody>
             <div className="flex flex-column" style={{ gap: "0.75rem" }}>
+                {constraintText(inputConstraint) || constraintText(outputConstraint) ?
+                    <Callout intent="warning" icon="info-sign">
+                        This procedure requires a fixed plate layout: input {constraintText(inputConstraint) || "— any —"},
+                        output {constraintText(outputConstraint) || "— any —"}. Only matching plates can be selected.
+                    </Callout> : null}
                 <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
                     <label>
                         <div className="font-size--small">Input plate {inputPlate ? <PlateColorDot color={getPlateColor(inputPlate)} size={12} /> : null}</div>
                         <select className="text-input" value={inputPlateTag || ""} onChange={(e) => { setInputPlateTag(e.target.value || null); setInputWells({}); setSelectedInputWell(null) }}>
                             <option value="">Select plate ...</option>
-                            {plates?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
+                            {inputPlateOptions?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
                         </select>
                     </label>
                     <label>
                         <div className="font-size--small">Output plate {outputPlate ? <PlateColorDot color={getPlateColor(outputPlate)} size={12} /> : null}</div>
                         <select className="text-input" value={outputPlateTag || ""} onChange={(e) => { setOutputPlateTag(e.target.value || null); setOutputWells({}); setSelectedOutputWell(null) }}>
                             <option value="">Select plate ...</option>
-                            {plates?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
+                            {outputPlateOptions?.map((plate) => <option key={plate.tag} value={plate.tag}>{plate.name}</option>)}
                         </select>
                     </label>
                     <div style={{ minWidth: "260px" }}>
@@ -326,8 +426,29 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                 <div className="flex" style={{ gap: "1rem", alignItems: "flex-start" }}>
                     <div style={{ width: "280px", maxHeight: "55vh", overflowY: "auto" }}>
                         <h4 style={{ margin: "0 0 0.5rem 0" }}>Samples {availableSamples.length > 0 ? `(${unplacedSamples.length} unplaced)` : ""}</h4>
+                        <div className="flex center-items" style={{ gap: "0.25rem", marginBottom: "0.5rem" }}>
+                            <input className="text-input" type="text" placeholder="Add other submission (tag)"
+                                style={{ flex: 1 }} value={extraSubmissionTag}
+                                onChange={(e) => setExtraSubmissionTag(e.target.value)}
+                                onKeyDown={(e) => e.key === "Enter" && handleAddExtraSubmission()} />
+                            <button className="basic-button basic-button--small" onClick={handleAddExtraSubmission}>Add</button>
+                        </div>
+                        {extraSubmissionTags.map((tag) =>
+                            <Tag key={tag} minimal onRemove={() => handleRemoveExtraSubmission(tag)}
+                                intent={linkedSubmissionTags.includes(tag) ? "success" : "warning"}
+                                title={linkedSubmissionTags.includes(tag) ?
+                                    "This submission is assigned to the module." :
+                                    "Added submission: its samples can be pooled into this run, but this module is not" +
+                                    " in the submission's module chain — the run does not mark it done. Assign it to" +
+                                    " the procedure instead if it should be tracked and freed by this module."}>
+                                {tag}{linkedSubmissionTags.includes(tag) ? "" : " (added)"}
+                            </Tag>)}
+                        {extraSubmissionError ?
+                            <div className="font-size--small" style={{ color: "#cd4246", margin: "0.25rem 0" }}>
+                                {extraSubmissionError}
+                            </div> : null}
                         {availableSamples.length === 0 ? <div className="font-size--small" style={{ color: "#888" }}>
-                            No samples found. Assign submissions to this procedure first.
+                            No samples found. Assign submissions to this procedure first, or add one above.
                         </div> : null}
                         {unplacedSamples.length === 0 && availableSamples.length > 0 ?
                             <div className="font-size--small" style={{ color: "#888" }}>All samples placed.</div> : null}
@@ -389,48 +510,13 @@ export function ModularProcedureExecutionDialog({ procedure_tag, isOpen, onClose
                     </div>
                 </div>
 
-                <div style={{ borderTop: "1px solid #ddd", paddingTop: "0.5rem" }}>
-                    <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
-                        <h4 style={{ margin: 0 }}>Well metrics</h4>
-                        <AttributeInput text="Add metric attribute (e.g. Concentration)" onItemSelect={handleAddMetricAttribute} />
-                        {metricAttributeTag !== null ?
-                            <TraitInput attribute_tag={metricAttributeTag} text="Pick trait (e.g. ug/ul)"
-                                onItemSelect={handleMetricTraitSelect} /> : null}
-                        {metricParams.map((param) =>
-                            <Tag key={param.trait_tag} minimal onRemove={() => handleRemoveMetricParam(param.trait_tag)}>
-                                {param.trait_tag}
-                            </Tag>)}
-                        {metricParams.length > 0 && _.size(outputWells) > 0 ? <>
-                            <button className="basic-button basic-button--small"
-                                onClick={() => downloadMetricsTemplate(_.keys(outputWells), metricParams.map((p) => p.trait_tag))}>
-                                Download template
-                            </button>
-                            <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
-                                Upload data
-                                <input type="file" accept=".txt,.tsv,.csv" style={{ display: "none" }}
-                                    onChange={handleMetricsUpload} />
-                            </label>
-                        </> : null}
-                    </div>
-                    {metricsError ? <div className="font-size--small" style={{ color: "#cd4246", marginTop: "0.25rem" }}>{metricsError}</div> : null}
-                    {metricParams.length === 0 ?
-                        <div className="font-size--small" style={{ color: "#888", marginTop: "0.25rem" }}>
-                            Optionally define measured quantities: pick an attribute (e.g. Concentration) and a trait
-                            (e.g. ug/ul), download the txt template, fill in the values per well and upload it.
-                            Metrics can also be added after the execution.
-                        </div> : null}
-                    {wellMetrics.length > 0 ? <div style={{ marginTop: "0.5rem", maxHeight: "20vh", overflowY: "auto" }}>
-                        {wellMetrics.map((metric) =>
-                            <div key={`${metric.position}-${metric.trait_tag}`} className="flex center-items" style={{ gap: "0.5rem" }}>
-                                <strong style={{ minWidth: "2.5rem" }}>{metric.position}</strong>
-                                <span className="font-size--small">
-                                    {metric.trait_tag}: <strong>{metric.value}</strong>
-                                </span>
-                                <button className="basic-button basic-button--small"
-                                    onClick={() => setWellMetrics((prev) => prev.filter((m) => m !== metric))}>Remove</button>
-                            </div>)}
-                    </div> : null}
-                </div>
+                {renderMetricsSection("INPUT", `Input values — entered per ${_.size(inputWells)} input well(s) before the execution`,
+                    `Define the numeric quantities of the input attributes declared by this procedure (e.g. Concentration → ug/ul),
+                    download the txt template, fill in the values per input well and upload it.`)}
+                {renderMetricsSection("OUTPUT", "Output metrics — measured after the run",
+                    `Define measured quantities: pick an attribute (e.g. Concentration) and a trait (e.g. ug/ul),
+                    download the txt template, fill in the values per output well and upload it.
+                    Metrics can also be added after the execution.`)}
 
                 {isError ? <APIAxiosError error={error} /> : null}
                 <div className="flex center-items justify-between" style={{ gap: "1rem" }}>
