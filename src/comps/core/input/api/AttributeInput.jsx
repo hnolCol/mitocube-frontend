@@ -45,7 +45,8 @@ AttributeInput.propTypes = {
     attribute_groups: PropTypes.arrayOf(PropTypes.string),
     onItemSelect: PropTypes.func.isRequired,
     min_state: PropTypes.number,
-    disabled : PropTypes.bool
+    disabled : PropTypes.bool,
+    allow_input: PropTypes.bool
 }
 
 
@@ -69,7 +70,8 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
         search_string: debouncedString,
         min_state,
         attribute_groups : _.join(attribute_groups, ";"),
-        include_traits: false, limit: 20
+        include_traits: false, limit: 20,
+        allow_input
     }, {
         staleTime: 300000,
         placeholderData: (prev) => prev ? prev : []
