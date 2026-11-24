@@ -18,7 +18,7 @@ export function TrendingSubmissions({ limit = 20 }) {
         {isLoading ? <div>Loading...</div> : !_.isArray(trendingSubmissionTags) || trendingSubmissionTags.length === 0 ? <div>No trending submissions found.</div> : (
             <div className="submission-list">
                 {trendingSubmissionTags.map((submission_tag) => (
-                    <MinimalSubmissionItem key={submission_tag} tag={submission_tag} redirectOnClick={true} showCreatedAt={false} />
+                    <MinimalSubmissionItem key={submission_tag} tag={submission_tag} redirectOnClick={true} showCreatedAt={false} showStateHeaders={false} />
                 ))}
             </div>
         )}

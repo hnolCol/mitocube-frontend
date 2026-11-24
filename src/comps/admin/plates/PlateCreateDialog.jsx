@@ -156,7 +156,7 @@ export function PlateCreateDialog({ isOpen, onClose, onCreated }) {
 
     // fill in the suggested name when the format changes
     useEffect(() => {
-        if (isOpen && suggestedName) setPlate(prevValues => ({ ...prev, name: suggestedName }))
+        if (isOpen && suggestedName) setPlate(prevValues => ({ ...prevValues, name: suggestedName }))
     }, [suggestedName, isOpen])
 
     const { mutate: postPlate, isLoading, isError, error, reset } = api.plates.plates.usePostPlate({
