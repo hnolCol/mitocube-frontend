@@ -16,8 +16,7 @@ function Leftbar ({
         // { name: "Explore post-translational modifications", linkTo: "/ptm", iconName: "Ptm"},
         { name: "Performance Monitoring", linkTo: "/performance", iconName: "PerformanceMonitor" },
         { name: "Sample Submission", linkTo: "/submissions", iconName: "SampleSubmission" },
-        { name: "Modular Procedures", linkTo: "/modular-procedures", iconName: "SampleSubmission" },
-        { name: "Executions", linkTo: "/modular-procedures/executions", iconName: "Dataset" },
+        { name: "Modular Procedures", linkTo: "/modular-procedures", iconName: "ModularProcedures" },
         { name : "Chat with AI", linkTo: "/ai/chat", iconName: "AIChat" },
         { name: "Settings", linkTo: "/admin", iconName: "Settings" }]
             }) {
