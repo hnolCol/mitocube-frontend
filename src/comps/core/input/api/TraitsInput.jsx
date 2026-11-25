@@ -25,6 +25,7 @@ function TraitTag({ tag }) {
  */
 export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path, isMandatory = false, referenceID }) {
     const [query, setQuery] = useState("")
+    const [popoverOpen, setPopoverOpen] = useState(false)
     const debouncedString = useDebounce(query, 2)
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : 600000})
     const { data: trait_tags, isError, isLoading, isFetching } = api.traits.queryTraits.useGetTraitBySearchString({
@@ -37,11 +38,12 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
      * @description Handles the item selection 
      * @param {String} trait_tag The trait_tag 
      */
-        const handleItemSelection = (trait_tag,e) => {
-            if (_.isFunction(e.stopPropagation)) {
+        const handleItemSelection = (trait_tag,e, closePopover = true) => {
+            if (_.isFunction(e?.stopPropagation)) {
                 e.stopPropagation()
             }
             onItemSelect(_.concat(path, [{"type": "trait", "tag": trait_tag, id : _.isString(referenceID) ? referenceID :  getRandomID()}]))
+            if (closePopover) setPopoverOpen(false) // close the menu upon selection
         }
     
     
@@ -51,7 +53,7 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
         return <AttributeWithTraitsMenuItem
             tag={attribute_tag}
             trait_tags={trait_tags}
-            handleTraitSelection={onItemSelect}
+            handleTraitSelection={(p) => { onItemSelect(p); setPopoverOpen(false) }} // close the menu upon selection
             selected_traits={selected_traits} />
              
     }
@@ -70,13 +72,13 @@ export function TraitsInput({ attribute_tag, selected_traits, onItemSelect, path
             items={_.isArray(trait_tags) ? trait_tags : []}
             placeholder={isSuccess ? (isMandatory ? "Search..." : attribute.text) : null}
             tagRenderer={(tag) => <TraitTag tag={tag} />}
-            onItemSelect={handleItemSelection}
+            onItemSelect={(tag, e) => handleItemSelection(tag, e, true)}
             itemListRenderer={renderTraits}
             onQueryChange={(query_string) => setQuery(query_string)}
             resetOnSelect={true}
-            onRemove={handleItemSelection}
+            onRemove={(tag, e) => handleItemSelection(tag, e, false)}
             
-            popoverProps={{minimal : true, matchTargetWidth : true}}
+            popoverProps={{minimal : true, matchTargetWidth : true, isOpen: popoverOpen, onInteraction: (nextOpenState) => setPopoverOpen(nextOpenState)}}
             tagInputProps={{
                 
                 rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,

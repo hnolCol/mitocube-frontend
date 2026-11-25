@@ -238,6 +238,12 @@ export function AttributesInput({
     const [searchString, setSearchString] = useState("")
     const debouncedSearchString = useDebounce(searchString,200)
     const [itemsLoaded, setItemsLoaded] = useState(false)
+    const [popoverOpen, setPopoverOpen] = useState(false)
+    // close the menu upon a trait/attribute selection
+    const handleTraitSelectionClosed = (path) => {
+        if (_.isFunction(handleTraitSelection)) handleTraitSelection(path)
+        setPopoverOpen(false)
+    }
     const { data: queried_attributes, isLoading, isFetching } = api.attributes.queryAttributes.useGetAttributesByQuery(
         {
             search_string: debouncedSearchString,
@@ -295,7 +301,7 @@ export function AttributesInput({
                     parent_tags={attributeWithTraits.parent_tags}
                     selected_traits={selectedTraitTags}
                     selected_trait_pairs={selectedTraitPairs}
-                    handleTraitSelection={handleTraitSelection}
+                    handleTraitSelection={handleTraitSelectionClosed}
                     handleTraitDeselect={handleTraitDeselect}
                     isMissing={missingTags.includes(attributeWithTraits.attribute_tag)}
                 />
@@ -321,7 +327,7 @@ export function AttributesInput({
             resetOnQuery={true}
             onQueryChange={(searchString => setSearchString(searchString))}
            // onRemove={handleItemSelection}
-            popoverProps={{minimal : true, matchTargetWidth}}
+            popoverProps={{minimal : true, matchTargetWidth, isOpen: popoverOpen, onInteraction: (nextOpenState) => setPopoverOpen(nextOpenState)}}
             tagInputProps={{
                 rightElement : <Button icon="blank" minimal={true} loading={isLoading || isFetching} intent="primary" />,
                 inputProps: { intent: "primary", onFocus : checkValues},
