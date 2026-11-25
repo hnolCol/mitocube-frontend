@@ -15,7 +15,7 @@ import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
 import { ProcedureTitle, formatExecutionTime, ExecutionStateChip, TinyXButton, isUserAtLeast, STATE_CHANGE_ROLE, submissionStateTag }
     from "@/comps/modularprocedures/Shared"
 import {
-    PlateGrid, downloadMetricsTemplate, parseMetricsFile, ExecutionPlateExportDialog,
+    PlateGrid, downloadMetricsTemplate, parseMetricsFile, parseMetricsClipboard, ExecutionPlateExportDialog,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
 
 const SUBMISSION_COLORS = ["#4051b5", "#238551", "#c87619", "#9d5bd2", "#48aff0", "#cd4246", "#8f99a8", "#2e7d32"]
@@ -160,6 +160,8 @@ export function ExecutionSetupPage() {
     // per side and declared attribute: the trait (unit) the well values are recorded in — it
     // drives the value template (one line per well and selected trait) and the upload check
     const [metricTraitSelection, setMetricTraitSelection] = useState({ INPUT: {}, OUTPUT: {} })
+    // values pasted from a spreadsheet (e.g. rows copied out of Excel) per side
+    const [metricClipboards, setMetricClipboards] = useState({ INPUT: "", OUTPUT: "" })
     const [exportDialogProps, setExportDialogProps] = useState({ isOpen: false, side: null })
     const [fillMessage, setFillMessage] = useState(null)
     const [savedMessage, setSavedMessage] = useState(null)
@@ -173,6 +175,17 @@ export function ExecutionSetupPage() {
         { tag: outputPlateTag }, { enabled: _.isString(outputPlateTag), staleTime: 15000 })
     const { data: occupiedOutputExecutionWells } = api.modularProcedures.execute.useGetProcedurePlateOccupied(
         { tag: outputPlateTag }, { enabled: _.isString(outputPlateTag), staleTime: 15000 })
+    // other curators may set up their own drafts on the same plate in parallel: drafts block
+    // nothing, but their wells get a warning overlay — only the run that starts first gets them
+    const { data: inputDraftWells } = api.modularProcedures.execute.useGetProcedurePlateDraftWells(
+        { tag: inputPlateTag }, { enabled: _.isString(inputPlateTag), staleTime: 15000 })
+    const { data: outputDraftWells } = api.modularProcedures.execute.useGetProcedurePlateDraftWells(
+        { tag: outputPlateTag }, { enabled: _.isString(outputPlateTag), staleTime: 15000 })
+    const foreignDraftPositions = (draftWells) => _.isPlainObject(draftWells) ?
+        _.keys(draftWells).filter((position) =>
+            _.uniq((draftWells[position] || []).filter((tag) => tag !== execution_tag)).length > 0) : []
+    const inputDraftPositions = foreignDraftPositions(inputDraftWells)
+    const outputDraftPositions = foreignDraftPositions(outputDraftWells)
     const inputWellDisabled = (position) => (_.isArray(occupiedInputWells) ? occupiedInputWells : [])
         .some((well) => well.position === position)
     const outputWellDisabled = (position) =>
@@ -568,6 +581,17 @@ export function ExecutionSetupPage() {
         startBlockers.push(`remove duplicated output wells — the module declares at most ${maxOutputs} output well(s) per sample (${samplesAboveMax.length} sample(s) exceed it)`)
     if (inputValuesMissing) startBlockers.push(`fill in the per-well input values (${missingInputValues} well value(s) missing)`)
     const startButtonTitle = startBlockers.length > 0 ? `To start: ${startBlockers.join(" · ")}` : ""
+    // conflicts with other curators' drafts on the same plates: drafts block nothing, so both
+    // setups remain possible — the collision is warned about and the start decides (first wins)
+    const draftConflictTags = (draftWells, positions) =>
+        _.uniq(_.flatten(positions.map((position) =>
+            ((draftWells || {})[position] || []).filter((tag) => tag !== execution_tag))))
+    const inputDraftConflicts = _.intersection(_.keys(inputWells), inputDraftPositions)
+    const inputConflictTags = draftConflictTags(inputDraftWells, inputDraftConflicts)
+    const outputPositionsUsed = _.uniq([
+        ..._.flatten(_.map(inputWells, (well) => well.output_positions || [])), ..._.keys(outputWells)])
+    const outputDraftConflicts = _.intersection(outputPositionsUsed, outputDraftPositions)
+    const outputConflictTags = draftConflictTags(outputDraftWells, outputDraftConflicts)
 
     const handleSave = () => {
         setSavedMessage(null)
@@ -595,8 +619,8 @@ export function ExecutionSetupPage() {
         [submission_tag, (samplesOfSubmission[submission_tag] || []).filter((sample) => !placedSampleTagSet.has(sample.tag))]))
     // whole-well fill in the color(s) of the submission(s) whose samples sit in the well: a
     // well holding samples of several submissions is split proportionally (hard gradient stops)
-    const wellFillStyle = (well) => {
-        const tags = well.sample_tags || []
+    const wellFillStyle = (sample_tags) => {
+        const tags = sample_tags || []
         if (tags.length === 0) return null
         const counts = _.countBy(tags.map((tag) => submissionIndexOf(sampleSubmissions[tag])))
         const groups = _.keys(counts).map((index) => ({ index: _.toInteger(index), n: counts[index] })).sort((a, b) => a.index - b.index)
@@ -620,15 +644,18 @@ export function ExecutionSetupPage() {
             outputs.length > 0 ? `→ ${outputs}` : null]
         return parts.filter((part) => part).join(" ") || null
     }
-    // the samples collected in an output well (derived from the transfer map) for its tooltip
+    // the samples collected in an output well (derived from the transfer map) — the base of
+    // its tooltip and of the whole-well fill, which uses the same submission colors as the
+    // input plate so a sample is recognizable on both plates
     const outputSampleEntries = {}
     _.forEach(inputWells, (well) => (well.output_positions || []).forEach((position) =>
         (well.sample_tags || []).forEach((sample_tag) => {
             outputSampleEntries[position] = outputSampleEntries[position] || []
-            outputSampleEntries[position].push(`${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
+            outputSampleEntries[position].push(sample_tag)
         })))
     const outputWellTooltip = (position, well) => {
-        const entries = _.uniq(outputSampleEntries[position] || [])
+        const entries = _.uniq(outputSampleEntries[position] || []).map((sample_tag) =>
+            `${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
         const cas = (well.condition_application_tags || []).join(", ")
         const parts = [entries.length > 0 ? `${position} — ${entries.join(", ")}` : null,
             cas.length > 0 ? `parameters: ${cas}` : null]
@@ -747,6 +774,41 @@ export function ExecutionSetupPage() {
                         style={{ display: "none" }} onChange={handleMetricsUpload(side)} />
                 </label>
             </div> : null}
+            {positions.length > 0 ? <div className="flex flex-column gap--tiny">
+                <div className="font-size--smallest" style={{ color: "#888" }}>
+                    ... or paste rows copied from Excel: well&nbsp;+&nbsp;value (select the trait first),
+                    well&nbsp;+&nbsp;trait&nbsp;+&nbsp;value, or the template's four columns — a "well" header row is
+                    detected automatically, and a single values column fills the wells in order.
+                </div>
+                <div className="flex gap--tiny">
+                    <textarea className="text-input padding--tiny font-size--small" rows={2}
+                        style={{ flex: 1 }} placeholder="A1<TAB>2.5"
+                        value={metricClipboards[side]}
+                        onChange={(event) => setMetricClipboards((prev) => ({ ...prev, [side]: event.target.value }))} />
+                    <button className="basic-button basic-button--small" style={{ alignSelf: "flex-end" }}
+                        disabled={metricClipboards[side].trim().length === 0}
+                        onClick={() => {
+                            try {
+                                const parsed = parseMetricsClipboard(metricClipboards[side], {
+                                    wellPositions: positions, selectedTraitPairs,
+                                    allowedTraits: sideTraitTags(side), traitToAttribute: traitAttributeMap(side) })
+                                if (parsed.length === 0) throw new Error("No values found in the pasted rows.")
+                                updateMetricState(side, (prevState) => ({
+                                    ...prevState,
+                                    metrics: [
+                                        ...prevState.metrics.filter((metric) => !parsed.some((p) =>
+                                            p.position === metric.position && p.trait_tag === metric.trait_tag)),
+                                        ...parsed.map((metric) => ({
+                                            position: metric.position, trait_tag: metric.trait_tag,
+                                            value: metric.value, side }))],
+                                }))
+                                setMetricClipboards((prev) => ({ ...prev, [side]: "" }))
+                            } catch (e) {
+                                setMetricErrors((prev) => ({ ...prev, [side]: e.message }))
+                            }
+                        }}>Paste values</button>
+                </div>
+            </div> : null}
             {metricErrors[side] ? <div className="font-size--small" style={{ color: "#cd4246" }}>{metricErrors[side]}</div> : null}
             {state.metrics.length > 0 ? <div style={{ marginTop: "0.35rem", maxHeight: "12vh", overflowY: "auto" }}>
                 {state.metrics.map((metric) =>
@@ -840,6 +902,12 @@ export function ExecutionSetupPage() {
                 {inputPlate ? <div className="font-size--smallest flex center-items" style={{ color: "#888", gap: "0.35rem", margin: "0.25rem 0" }}>
                     <PlateColorDot color={getPlateColor(inputPlate)} /> {inputPlate.name} · {inputPlate.format}
                 </div> : null}
+                {inputDraftConflicts.length > 0 ?
+                    <Callout intent="warning" icon="warning-sign" style={{ margin: "0.25rem 0" }}>
+                        Wells {inputDraftConflicts.join(", ")} on this plate are also set up in another
+                        draft execution{inputConflictTags.length > 0 ? ` (${inputConflictTags.join(", ")})` : ""} —
+                        coordinate before starting: only the run that starts first gets these wells.
+                    </Callout> : null}
 
                 <h4 style={{ margin: "0.75rem 0 0.25rem 0" }}>Assigned submissions</h4>
                 {submissionOrder.map((submission_tag, index) => {
@@ -933,6 +1001,7 @@ export function ExecutionSetupPage() {
                         isWellDisabled={inputWellDisabled} onWellDrop={handleInputWellDrop}
                         isWellHighlighted={isInputWellHighlighted}
                         onWellHover={(position) => setHoveredWell(position === null ? null : { side: "input", position })}
+                        isWellWarned={(position) => inputDraftPositions.includes(position)}
                         wellStyle={(position, well) => wellFillStyle(well)}
                         wellTitle={wellTooltip}
                         renderWell={(well, position) => well && _.size(well.sample_tags) > 0 ?
@@ -1006,7 +1075,7 @@ export function ExecutionSetupPage() {
                         <Tag key={ca_tag} minimal style={{ margin: "0.15rem 0.15rem 0 0" }}>{ca_tag}</Tag>)}
                 </div>
 
-                {renderMetricsSection("OUTPUT", "Measured output values")}
+                {renderMetricsSection("OUTPUT", "Measured result values (often only known after the run — they can also be added later from the executions overview)")}
             </div>
 
             {/* ---------------- RIGHT: the output plate ---------------- */}
@@ -1032,6 +1101,12 @@ export function ExecutionSetupPage() {
                         different plate. This is only correct if the module re-arranges or pools samples into
                         (free) wells of the very same plate; double-check the transfer map before starting.
                     </Callout> : null}
+                {outputDraftConflicts.length > 0 ?
+                    <Callout intent="warning" icon="warning-sign" style={{ margin: "0.5rem 0" }}>
+                        The output wells {outputDraftConflicts.join(", ")} are also set up in another
+                        draft execution{outputConflictTags.length > 0 ? ` (${outputConflictTags.join(", ")})` : ""} —
+                        coordinate before starting: only the run that starts first gets these wells.
+                    </Callout> : null}
                 {samplesDuplicated.length > 0 ?
                     <Callout intent="warning" icon="duplicate" style={{ margin: "0.5rem 0" }}>
                         {samplesDuplicated.length} sample(s) are mapped to more than one output well although
@@ -1044,10 +1119,18 @@ export function ExecutionSetupPage() {
                         isWellDisabled={outputWellDisabled}
                         isWellHighlighted={isOutputWellHighlighted}
                         onWellHover={(position) => setHoveredWell(position === null ? null : { side: "output", position })}
+                        isWellWarned={(position) => outputDraftPositions.includes(position)}
                         paintMode={selectedInputWell !== null}
                         wellTitle={outputWellTooltip}
-                        renderWell={(well) => well ? <span className="font-size--smallest">
-                            CA{well.condition_application_tags.length}</span> : ""} />
+                        wellStyle={(position, well) => wellFillStyle(outputSampleEntries[position] || [])}
+                        renderWell={(well, position) => well ?
+                            <span className="flex center-items" style={{ gap: "0.15rem", color: "#ffffff", fontWeight: 600,
+                                textShadow: "0 0 2px rgba(0,0,0,0.95), 0 0 5px rgba(0,0,0,0.8)" }}>
+                                <span className="font-size--smallest">{position}</span>
+                                {(outputSampleEntries[position] || []).length > 0 ?
+                                    <span style={{ opacity: 0.9 }}>{_.size(outputSampleEntries[position])}</span> : null}
+                                <span className="font-size--smallest" style={{ opacity: 0.75 }}>CA{well.condition_application_tags.length}</span>
+                            </span> : ""} />
                     <div className="font-size--smallest" style={{ color: "#888", marginTop: "0.25rem" }}>
                         Select an input well (left) and click/drag over output wells to map it — mapping
                         several input wells onto the same output well pools them; right-click removes a well.

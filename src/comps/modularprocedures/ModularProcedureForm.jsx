@@ -207,7 +207,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                             </> : null}
 
                             {tabKey.current === "condition_applications" ? <>
-                                <Callout intent="primary" title="Condition Applications">
+                                {/* <Callout intent="primary" title="Condition Applications">
                                     Assign the attributes/traits (e.g. instrument, protocol) that describe when this modular procedure applies.
                                 </Callout>
                                 <ConditionApplicationInput
@@ -222,7 +222,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                                                 onClick={() => handleSelectConditionApplication(ca_tag)}>
                                                 {ca_tag} ✕
                                             </span>)}
-                                    </div> : null}
+                                    </div> : null} */}
                                 <Callout intent="primary" title="Define new condition applications">
                                     Alternatively define condition applications newly as hierarchical attribute/trait trees (like when
                                     inserting a submission) — e.g. attribute <em>Liquid Handler</em> → trait <em>Hamilton</em>, even if
@@ -230,7 +230,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                                 </Callout>
                                 <AttributesInput
                                     handleTraitSelection={handleTraitSelectionHierarchy}
-                                    min_state={2}
+                                    min_state={6}
+                                    checkMandatoryAttributes={false}
                                     selected_traits={procedure.condition_application_trees}
                                     placeHolderText="Search attribute (liquid handler, instrument, ...)" />
                                 <DatasetAttributeView
@@ -306,9 +307,10 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                                     </label>
                                 </div>
                                 <Callout intent="primary" title="Well Attributes">
-                                    Declare the per-well attributes of this procedure: input attributes may be filled in per input well
-                                    before the execution (e.g. protein concentration before harmonization), output attributes are
-                                    expected as data on the output wells of a successful execution.
+                                    Declare the per-well attributes of this procedure: input attributes are filled in per input well
+                                    before the execution (e.g. protein concentration before harmonization). Output attributes are the
+                                    results of the module: their values usually can only be read out after the run succeeded — they
+                                    are recorded on the execution's output wells later (also from the executions overview).
                                 </Callout>
                                 <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
                                     <div>
@@ -321,8 +323,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                                         </div>
                                     </div>
                                     <div>
-                                        <div className="font-size--small">Output attributes (expected data)</div>
-                                        <AttributeInput text="Add output attribute" allow_input={true} onItemSelect={handleSelectOutputAttribute} />
+                                        <div className="font-size--small">Result attributes (recorded after a successful run)</div>
+                                        <AttributeInput text="Add result attribute" allow_input={true} onItemSelect={handleSelectOutputAttribute} />
                                         <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
                                             {procedure.output_attribute_tags.map((tag) =>
                                                 <button key={tag} className="basic-button basic-button--small"
