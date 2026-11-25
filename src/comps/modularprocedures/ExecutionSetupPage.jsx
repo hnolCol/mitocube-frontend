@@ -45,6 +45,7 @@ export function ExecutionSetupPage() {
 
     const { mutate: createDraft, isPending: createDraftIsPending, isError: createDraftIsError, error: createDraftError } =
         api.modularProcedures.execute.useCreateExecutionDraft()
+    const { mutate: unlinkSubmission } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
     const { mutate: saveDraft, isPending: saveIsPending } = api.modularProcedures.execute.useSaveExecutionDraft()
     const { mutate: startDraft, isPending: startIsPending, isError: startIsError, error: startError } =
         api.modularProcedures.execute.useStartExecutionDraft()

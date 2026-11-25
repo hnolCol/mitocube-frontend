@@ -124,7 +124,7 @@ export function ExecutionsPanel({ procedure_tag, canChangeState }) {
     </div>
 }
 
-export function SubmissionCard({ link, isCurator, onMarkDone, onReopen, onMutated }) {
+export function SubmissionCard({ link, isCurator, onMarkDone, onReopen, onUnlink }) {
 
     const created_at = _.isNumber(link.created_at) ? moment.unix(link.created_at).format("YYYY-MM-DD HH:mm") : "–"
     const done_at = _.isNumber(link.done_at) ? moment.unix(link.done_at).format("YYYY-MM-DD HH:mm") : null
@@ -144,10 +144,11 @@ export function SubmissionCard({ link, isCurator, onMarkDone, onReopen, onMutate
             <div>linked: {created_at}</div>
             {link.done ? <div>done: {done_at}{link.done_by ? ` by ${link.done_by}` : ""}</div> : null}
         </div>
-        {isCurator ? <div className="flex" style={{ gap: "0.5rem", marginTop: "0.25rem" }}>
+        {isCurator ? <div className="flex center-items" style={{ gap: "0.5rem", marginTop: "0.25rem" }}>
             {!link.done ?
                 <button className="basic-button basic-button--small" onClick={onMarkDone}>Mark done</button> :
                 <button className="basic-button basic-button--small" onClick={onReopen}>Reopen</button>}
+            {onUnlink ? <TinyXButton title="Unassign this submission from the module" onClick={onUnlink} /> : null}
         </div> : null}
     </div>
 }

@@ -55,6 +55,25 @@ export function ExecutionStateChip({ status, padding = "tiny" }) {
 /**
  * @description Resolves a modular procedure tag to its title.
  */
+/**
+ * @description A tiny "x" button to remove an item from a list (e.g. to unlink a submission from a
+ * modular procedure or to drop a pooled submission from an execution setup). Stands next to long
+ * lists of tags so every entry can be removed right where it is listed. The click does not
+ * propagate into the surrounding card (no accidental navigation).
+ * @param {Object} props
+ * @param {Function} props.onClick - Called when the button is clicked
+ * @param {String} [props.title] - The tooltip text
+ * @returns {JSX.Element} The tiny x button.
+ */
+export function TinyXButton({ onClick, title = "Remove" }) {
+    return <button onClick={(event) => { event.stopPropagation(); onClick() }}
+        title={title} aria-label={title}
+        style={{ border: "none", background: "transparent", cursor: "pointer", padding: "0.1rem",
+            lineHeight: 0, color: "#888", fontSize: "0.85rem", fontWeight: 600 }}>
+        &#215;
+    </button>
+}
+
 export function ProcedureTitle({ procedure_tag }) {
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000 })

@@ -35,7 +35,7 @@ export function AttributeTraitInput({ has_selection, selection, childTrait, attr
             <TraitInput
                 attribute_tag={attribute.tag}
                 onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
-                selected_trait={has_selection ? selection[0].tag : undefined}
+                selected_trait={has_selection && _.isString(childTrait) ? childTrait : undefined}
                 onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
             /> : null}
     </div>
@@ -108,6 +108,9 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     const [requiredTraitsValid, setRequiredTraitsValid] = useState()
     const { data: attribute, isSuccess } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, {enabled : _.isString(attribute_tag), staleTime : Infinity})
     const { data: required_traits, isSuccess : requiredTraitsChecked, isLoading : isLoadingRequirements } = api.traits.queryTraits.useGetRequiredTraits({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess, staleTime : Infinity })
+    // owner attribute tags of each required trait, resolved backend-side via HAS_TRAIT from the unique trait tag
+    const hasRequiredTraits = requiredTraitsChecked && _.isArray(required_traits) && required_traits.length > 0
+    const { data: requiredTraitOwners, isSuccess: requiredTraitOwnersChecked, isError: requiredTraitOwnersError } = api.traits.queryTraits.useGetRequiredTraitOwners({ tag: attribute_tag }, { enabled: _.isString(attribute_tag) && isSuccess && hasRequiredTraits, staleTime : Infinity })
     const {data : children, isSuccess : childrenIsSuccess} = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess, staleTime : Infinity})
     const {data : traitCount, isSuccess : isSuccessTraitCount} = api.traits.queryTraits.useGetTraitCount({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && isSuccess, staleTime : Infinity})
     const default_proteome = selected_proteome_tags.length > 0 ? selected_proteome_tags.length > 1 ? selected_proteome_tags.filter(t => t !== "ctrl")[0] : selected_proteome_tags[0] : undefined
@@ -184,15 +187,32 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     useEffect(() => {
         if (requiredTraitsChecked && _.isArray(required_traits) && required_traits.length === 0) {
             setRequiredTraitsValid(true)
+            return
         }
-        else if (requiredTraitsChecked && _.isArray(required_traits) && path.length > 0) {
-            const pathTags = path.map(p => p.tag)
-            setRequiredTraitsValid(_.intersection(required_traits, pathTags).length > 0)
-        }
-        else {
+        if (!(requiredTraitsChecked && _.isArray(required_traits) && path.length > 0)) {
             setRequiredTraitsValid(false)
+            return
         }
-    }, [path.map(p => p.tag).join("-"), _.isArray(required_traits) ? required_traits.join("-") : "", requiredTraitsChecked])
+        // wait until the owner alignment is loaded (fall back to legacy behavior if the endpoint errors)
+        if (hasRequiredTraits && !requiredTraitOwnersChecked && !requiredTraitOwnersError) return
+        const ownersMap = requiredTraitOwnersError ? undefined : requiredTraitOwners
+        const pathTags = path.map(p => p.tag)
+        const pathAttributeTags = path.filter(p => p.type === "attribute").map(p => p.tag)
+        // only check required traits whose owning attribute is part of the current parent
+        // hierarchy; entries owned by other attributes are ignored here, so that an attribute
+        // (e.g. concentration) can be a dependency of multiple parent attributes while each
+        // parent branch still enforces its own specific traits
+        const applicableRequiredTraits = required_traits.filter(required_tag => {
+            const ownerTags = ownersMap?.[required_tag]
+            if (!_.isArray(ownerTags)) return true // no owner info (legacy endpoint or plain tag): keep entry applicable, legacy check below
+            return ownerTags.some(ownerTag => (pathAttributeTags.length > 0 ? pathAttributeTags : pathTags).includes(ownerTag))
+        })
+        if (applicableRequiredTraits.length === 0) {
+            setRequiredTraitsValid(true) // no required trait applies to this parent branch
+        } else {
+            setRequiredTraitsValid(_.intersection(applicableRequiredTraits, pathTags).length > 0)
+        }
+    }, [path.map(p => p.tag).join("-"), _.isArray(required_traits) ? required_traits.join("-") : "", requiredTraitsChecked, requiredTraitOwnersChecked, requiredTraitOwnersError, JSON.stringify(requiredTraitOwners ?? null)])
 
     const getFeatureInput = () => {
         const input = getSelectionByPath(track_path, rowIndex)

@@ -5,6 +5,8 @@ import { api } from "@/api"
 import {
     ExecutionsPanel, SubmissionCard,
 } from "@/comps/modularprocedures/ModularProcedureBoard"
+import { TinyXButton } from "@/comps/modularprocedures/Shared"
+import { ModularProcedureExecutionDialog } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
 import { isUserAtLeast, STATE_CHANGE_ROLE } from "@/comps/modularprocedures/Shared"
 
 ModularProcessColumn.propTypes = {
@@ -22,7 +24,7 @@ ModularProcessColumn.propTypes = {
  * submissions and their pending/done state), the executions of the module right below it, and
  * beneath that the assigned submissions with mark done / reopen (curators and admins).
  */
-function ModularProcessColumn({ procedure_tag, isCurator, canChangeState, onExecute, onMarkDone, onReopen }) {
+function ModularProcessColumn({ procedure_tag, isCurator, canChangeState, onExecute, onMarkDone, onReopen, onUnlink }) {
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000, retry: false })
     const { data: submissions, refetch } = api.modularProcedures.query.useGetModularProcedureSubmissions(
@@ -55,7 +57,8 @@ function ModularProcessColumn({ procedure_tag, isCurator, canChangeState, onExec
         {(_.isArray(submissions) ? submissions : []).map((link) =>
             <SubmissionCard key={link.submission_tag} link={link} isCurator={isCurator}
                 onMarkDone={() => { onMarkDone({ tag: procedure_tag, submission_tag: link.submission_tag }, { onSuccess: refetch }) }}
-                onReopen={() => { onReopen({ tag: procedure_tag, submission_tag: link.submission_tag }, { onSuccess: refetch }) }} />)}
+                onReopen={() => { onReopen({ tag: procedure_tag, submission_tag: link.submission_tag }, { onSuccess: refetch }) }}
+                onUnlink={canChangeState ? () => { onUnlink({ tag: procedure_tag, submission_tag: link.submission_tag }, { onSuccess: refetch }) } : null} />)}
         {nSubmissions === 0 ?
             <div className="font-size--small padding--little" style={{ color: "#888" }}>
                 No submissions linked — assign one on the submission overview or in the admin area.
@@ -86,6 +89,7 @@ export function ModularProcesses({ userRole, userTag }) {
 
     const { mutate: markDone } = api.modularProcedures.modify.useMarkModularProcedureSubmissionDone()
     const { mutate: reopen } = api.modularProcedures.modify.useReopenModularProcedureSubmission()
+    const { mutate: unlink } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
 
     if (isLoading) return <div className="padding--medium">Loading modular processes ...</div>
     if (isError) return <div className="padding--medium">Modular processes not available.</div>
@@ -112,7 +116,7 @@ export function ModularProcesses({ userRole, userTag }) {
                 <ModularProcessColumn key={procedure_tag} procedure_tag={procedure_tag}
                     isCurator={isCurator} canChangeState={isCurator}
                     onExecute={() => navigate(`/modular-procedures/setup?procedure=${procedure_tag}`)}
-                    onMarkDone={markDone} onReopen={reopen} />)}
+                    onMarkDone={markDone} onReopen={reopen} onUnlink={unlink} />)}
         </div>
     </div>
 }
