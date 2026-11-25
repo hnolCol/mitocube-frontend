@@ -116,7 +116,8 @@ function TraitWithValueInputComponent({
                                     onRemove,
                                     referenceID,
                                     checkAttributeRequiredTraits,
-                                    selected_proteome_tags
+                                    selected_proteome_tags,
+                                    highlight
                                 }} /> : null}
                         </div> : 
                             <div className="flex flex-column" style={{ width: "100%", marginRight: "1rem" }}>
@@ -128,6 +129,7 @@ function TraitWithValueInputComponent({
                                     attribute = {attribute}
                                     attributeHasTraits={hasChildren}
                                     referenceID={referenceID}
+                                    highlight={highlight}
                                     getInput={() => getInput()}
                                     handleTraitValueInput={handleTraitValueInput}
                                     handleSingleTraitSelection={handleTraitSelection} />

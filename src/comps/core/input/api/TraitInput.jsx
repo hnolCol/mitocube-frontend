@@ -40,7 +40,7 @@ function TraitMenuItem({ tag, menuItemProps, selected, descriptionWidth = "15rem
  * an item has been already selected.  
  * @returns 
  */
-export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess, descriptionWidth = "400px" }) {
+export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_trait, onTraitLoadSuccess, descriptionWidth = "400px", highlight = false }) {
    
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 30)
@@ -79,7 +79,7 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
                 popoverProps={{ popoverClassName: "default_bp_menu"}}
                 >
                 
-                <Button variant="minimal" text={text} loading={isLoading} icon={"chevron-down"}/>
+                <Button variant="minimal" text={text} loading={isLoading} icon={"chevron-down"} style={highlight ? { color: "#fff" } : undefined}/>
             
             </Select>
         </div>
