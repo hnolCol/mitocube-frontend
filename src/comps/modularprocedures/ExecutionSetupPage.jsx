@@ -7,6 +7,7 @@ import { api } from "@/api"
 import { apiClient } from "@/api/client"
 import { APIAxiosError } from "@/comps/core/base/states/APIError"
 import { ConditionApplicationInput } from "@/comps/core/input/api/ConditionApplicationInput"
+import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
 import { UserInput } from "@/comps/core/input/api/UserInput"
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput"
 import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
@@ -73,8 +74,6 @@ export function ExecutionSetupPage() {
     const [outputPlateTag, setOutputPlateTag] = useState(null)
     const [availableSamples, setAvailableSamples] = useState([])
     const [extraSubmissionTags, setExtraSubmissionTags] = useState([])
-    const [extraSubmissionTag, setExtraSubmissionTag] = useState("")
-    const [extraSubmissionError, setExtraSubmissionError] = useState(null)
     const [pickedSample, setPickedSample] = useState(null)
     const [inputWells, setInputWells] = useState({})
     const [selectedInputWell, setSelectedInputWell] = useState(null)
@@ -284,7 +283,7 @@ export function ExecutionSetupPage() {
     // runlist-style sample assignment: the samples (in submission order) fill the free input
     // wells row by row or column by column - the placements stay editable afterwards (drag &
     // drop, click, right-click clear), e.g. to correct a sample that was mixed up
-    const handleFillFreeWells = () => {
+    const handleFillFreeWells = (separate) => {
         if (!_.isObject(inputPlate)) return
         setFillMessage(null)
         const rows = inputPlate.rows || 0
@@ -299,18 +298,51 @@ export function ExecutionSetupPage() {
             !inputWellDisabled(position) && !(inputWells[position]?.sample_tags || []).length)
         const toPlace = _.flatten(submissionOrder.map((submission_tag) => unplacedBySubmission[submission_tag] || []))
         if (toPlace.length === 0) return
-        const assigned = freeWells.slice(0, toPlace.length)
+        // separate submissions: every submission starts in its own line (rows first: the next row
+        // index, columns first: the next column - so the first samples all sit in row A)
+        let assignments = null
+        if (separate) {
+            const lineOf = fillRowsFirst ?
+                (position) => position.charCodeAt(0) - 65 :
+                (position) => _.toInteger(position.slice(1)) - 1
+            const freeByLine = {}
+            freeWells.forEach((position) => {
+                const line = lineOf(position)
+                ;(freeByLine[line] = freeByLine[line] || []).push(position)
+            })
+            const maxLines = fillRowsFirst ? rows : columns
+            const used = new Set()
+            assignments = []
+            let line = -1
+            submissionOrder.forEach((submission_tag) => {
+                const remaining = [...(unplacedBySubmission[submission_tag] || [])]
+                if (remaining.length === 0) return
+                line += 1
+                while (remaining.length > 0 && line < maxLines) {
+                    const candidates = (freeByLine[line] || []).filter((position) => !used.has(position))
+                    if (candidates.length === 0) { line += 1; continue }
+                    const take = Math.min(candidates.length, remaining.length)
+                    for (let index = 0; index < take; index++) {
+                        assignments.push([candidates[index], remaining[index].tag])
+                        used.add(candidates[index])
+                    }
+                    remaining.splice(0, take)
+                    if (remaining.length > 0) line += 1
+                }
+            })
+        }
+        const assignedPairs = separate ? assignments : freeWells.slice(0, toPlace.length).map((position, index) => [position, toPlace[index].tag])
         setInputWells((prev) => {
             const next = { ...prev }
-            assigned.forEach((position, index) => {
-                next[position] = { sample_tags: [toPlace[index].tag], output_positions: next[position]?.output_positions || [] }
+            assignedPairs.forEach(([position, sample_tag]) => {
+                next[position] = { sample_tags: [sample_tag], output_positions: next[position]?.output_positions || [] }
             })
             return next
         })
-        if (toPlace.length > freeWells.length) {
-            setFillMessage(`${freeWells.length} free well(s) available, but ${toPlace.length} sample(s) unplaced — assign the remaining samples on further plates or move them manually.`)
+        if (toPlace.length > assignedPairs.length) {
+            setFillMessage(`${assignedPairs.length} of ${toPlace.length} sample(s) placed — assign the remaining samples on further plates or move them manually.`)
         } else {
-            setFillMessage(`Assigned ${toPlace.length} sample(s) filling ${fillRowsFirst ? "rows" : "columns"} first.`)
+            setFillMessage(`Assigned ${toPlace.length} sample(s) filling ${fillRowsFirst ? "rows" : "columns"} first${separate ? " (separate submissions)" : ""}.`)
         }
     }
 
@@ -355,16 +387,12 @@ export function ExecutionSetupPage() {
         })
     }
 
-    const handleAddExtraSubmission = () => {
-        const tag = extraSubmissionTag.trim()
+    const handleAddExtraSubmission = (tag) => {
         if (!_.isString(tag) || tag.length === 0) return
-        setExtraSubmissionError(null)
+        if (extraSubmissionTags.includes(tag) || (submissions || []).some((link) => link.submission_tag === tag)) return
         apiClient.get(`/submissions/${tag}/samples`)
-            .then(() => {
-                setExtraSubmissionTags((prev) => prev.includes(tag) ? prev : [...prev, tag])
-                setExtraSubmissionTag("")
-            })
-            .catch(() => setExtraSubmissionError(`Submission '${tag}' not found or not accessible to you.`))
+            .then(() => setExtraSubmissionTags((prev) => prev.includes(tag) ? prev : [...prev, tag]))
+            .catch(() => {})
     }
     const handleRemoveExtraSubmission = (tag) =>
         setExtraSubmissionTags((prev) => prev.filter((t) => t !== tag))
@@ -528,7 +556,7 @@ export function ExecutionSetupPage() {
                 </div>
             </div>
             <div className="flex center-items" style={{ gap: "0.5rem" }}>
-                <button disabled={saveIsPending || startIsPending || !(inputPlateTag && outputPlateTag)}
+                <button disabled={saveIsPending || startIsPending}
                     className="basic-button" onClick={handleSave}>{saveIsPending ? "Saving..." : "Save setup"}</button>
                 <button disabled={saveIsPending || startIsPending || !canExecute}
                     className="basic-button basic-button--highlighted" onClick={handleStart}>
@@ -581,14 +609,12 @@ export function ExecutionSetupPage() {
                             onClick={() => handleRemoveSubmission(submission_tag)} />
                     </div>
                 })}
-                <div className="flex center-items" style={{ gap: "0.25rem", margin: "0.5rem 0" }}>
-                    <input className="text-input" type="text" placeholder="Pool another submission (tag)"
-                        style={{ flex: 1 }} value={extraSubmissionTag}
-                        onChange={(e) => setExtraSubmissionTag(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleAddExtraSubmission()} />
-                    <button className="basic-button basic-button--small" onClick={handleAddExtraSubmission}>Add</button>
+                <div style={{ margin: "0.5rem 0" }}>
+                    <SubmissionInput
+                        selected_submission_tags={extraSubmissionTags}
+                        onSelect={(tag) => handleAddExtraSubmission(tag)}
+                        minimal={true} />
                 </div>
-                {extraSubmissionError ? <div className="font-size--small" style={{ color: "#cd4246" }}>{extraSubmissionError}</div> : null}
 
                 {inputPlate ? <>
                     <div style={{ marginTop: "0.5rem" }}>
@@ -606,7 +632,10 @@ export function ExecutionSetupPage() {
                             </div>
                             <button className="basic-button basic-button--small"
                                 title="Assign the unplaced samples (in submission order) to the free wells — like the runlist"
-                                onClick={handleFillFreeWells}>Fill free wells</button>
+                                onClick={() => handleFillFreeWells(false)}>Fill empty wells</button>
+                            <button className="basic-button basic-button--small"
+                                title={`Each submission starts in its own ${fillRowsFirst ? "row" : "column"} — the first sample of every submission sits in ${fillRowsFirst ? "column 1" : "row A"}`}
+                                onClick={() => handleFillFreeWells(true)}>Fill empty wells (separate submissions)</button>
                             {placedSampleTagSet.size > 0 ?
                                 <button className="basic-button basic-button--small"
                                     onClick={handleClearPlacements}>Clear placements</button> : null}
@@ -619,8 +648,9 @@ export function ExecutionSetupPage() {
                                     onClick={() => setPickedSample(null)}>unpick</button>
                             </div> :
                             <div className="font-size--smallest" style={{ color: "#888" }}>
-                                {placedSampleTagSet.size} sample(s) placed — "Fill free wells" assigns the samples in
-                                submission order to the free wells (rows or columns first, like the runlist); afterwards
+                                {placedSampleTagSet.size} sample(s) placed — "Fill empty wells" assigns the samples in
+                                submission order to the free wells (rows or columns first, like the runlist; "(separate
+                                submissions)" starts every submission in its own row / column); afterwards
                                 drag a sample onto a well (or click it, then wells) to change the placement, right-click
                                 a well to clear it; crossed-out wells already hold a run.
                             </div>}

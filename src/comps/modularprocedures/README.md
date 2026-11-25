@@ -32,11 +32,14 @@ Executions are designed on the setup page, not in a dialog:
 2. **Input plate** (left column, the well visualization of the runlist / admin plates):
    get-or-design the input plate (like in the runlist, including inline plate creation), the
    assigned submissions are listed on top with per-submission colors. The samples are placed
-   runlist-style: **Fill free wells** assigns them in submission order to the free input wells
-   — **rows first** (A1, A2, ... B1) or **columns first** (A1, B1, ... A2), as chosen — and the
-   placements stay editable afterwards (drag & drop, click-place, right-click clear) to swap a
-   sample that was mixed up. More submissions can be pooled into the run and the responsible
-   user is assigned (defaults to the draft creator).
+   runlist-style: **Fill empty wells** assigns them in submission order to the free input wells
+   — **rows first** (A1, A2, ... B1) or **columns first** (A1, B1, ... A2), as chosen — and
+   **Fill empty wells (separate submissions)** starts every submission in its own line (rows
+   first: the next row, columns first: the next column, so the first samples all sit in row A).
+   The placements stay editable afterwards (drag & drop, click-place, right-click clear) to swap
+   a sample that was mixed up. More submissions can be pooled into the run via a searchable
+   submission input (by title and text) and the responsible user is assigned (defaults to the
+   draft creator). The setup can be saved at any stage — partial drafts keep no plates yet.
 3. **Module console** (middle): the module description and — for procedures that declare
    input/output **well attributes** — the per-well value entry: download the txt template,
    fill it in and upload it. Procedures without declared attributes (e.g. SP3) show no
