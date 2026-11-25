@@ -155,7 +155,7 @@ export function SubmissionPanelStack({
                         padding: "2rem",
                         marginTop: "0.5rem",
                         height: "98%",
-                        overflow: "scroll",
+                        overflow: componentKey.current === "samples" ? "hidden" : "scroll",
                         
                     }}
                     key={componentKey.current}

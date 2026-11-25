@@ -601,7 +601,7 @@ function SamplesAttributes({
                     //enableColumnInteractionBar = {false}
                     enableGhostCells={true}
                     numRows={sampleNames.length}
-                    cellRendererDependencies={[rerenderTableDependency]}
+                    cellRendererDependencies={[rerenderTableDependency, hiddenColumns, columnWidths]}
                     bodyContextMenuRenderer={renderBodyContextMenu}
                     defaultRowHeight={60}
                     rowHeights={tableRowHeights}
