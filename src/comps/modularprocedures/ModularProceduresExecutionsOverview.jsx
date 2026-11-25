@@ -343,7 +343,9 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                                 <td className="padding--little"><ExecutionStateChip status={execution.status} /></td>
                                 <td className="padding--little">{execution.input_plate_tag}</td>
                                 <td className="padding--little">{execution.output_plate_tag}</td>
-                                <td className="padding--little">{execution.n_input_wells} → {execution.n_output_wells}</td>
+                                <td className="padding--little">{execution.n_input_wells} → {execution.n_output_wells}
+                                    <span title="Distinct submissions placed in the input wells" style={{ color: "#888" }}>
+                                        &nbsp;({execution.n_submissions || 0} submission{(execution.n_submissions || 0) !== 1 ? "s" : ""})</span></td>
                                 <td className="padding--little">{_.isString(execution.responsible_user_tag) ?
                                     <UserFullName tag={execution.responsible_user_tag} /> : "–"}</td>
                                 <td className="padding--little">{formatExecutionTime(execution.created_at)}</td>
