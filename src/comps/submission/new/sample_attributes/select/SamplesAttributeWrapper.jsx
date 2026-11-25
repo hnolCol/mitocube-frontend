@@ -260,6 +260,30 @@ export function addIDToHierarchy(data, id) {
 }
 
 /**
+ * @description Deep-merges a source trait subtree (with values and children) into the target
+ * children array, matching nodes by type+tag. Existing nodes are kept and their value is
+ * updated when the source carries one, so re-applying a "used" entry is idempotent.
+ * @param {Object[]} targetChildren - The children array to merge into (mutated).
+ * @param {Object} sourceNode - The source node ({type, tag, value?, children?}).
+ */
+export const mergeSubtreeInto = (targetChildren, sourceNode) => {
+    if (!_.isArray(targetChildren) || !_.isObject(sourceNode) || !_.isString(sourceNode.tag)) return
+    let node = targetChildren.find(n => n.type === sourceNode.type && n.tag === sourceNode.tag)
+    if (!node) {
+        node = _.cloneDeep(sourceNode)
+        node.children = []
+        targetChildren.push(node)
+    }
+    if (Object.prototype.hasOwnProperty.call(sourceNode, "value") && sourceNode.value !== node.value) {
+        node.value = sourceNode.value
+    }
+    if (_.isArray(sourceNode.children) && sourceNode.children.length > 0) {
+        if (!_.isArray(node.children)) node.children = []
+        sourceNode.children.forEach(child => mergeSubtreeInto(node.children, child))
+    }
+}
+
+/**
  * Wrapper for the sample attribute table component.
  * @param {Object} props 
  * @param {Object} props.submission - The submission object (e.g. coming from a useState) 
@@ -566,6 +590,34 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
      * @param {Number} sampleAttrIdx 
      * @param {String} attribute_tag
      */
+    /**
+     * @description Inserts a complete trait subtree (including child attribute values, e.g.
+     * "EtBr (20 µM, 15 h)") from a "Used in other rows" entry into the selected rows.
+     * The subtree is deep-cloned per row and merged under the attribute node in a single update.
+     * @param {String} attribute_tag - The sample attribute (table column).
+     * @param {Object} subtree - The trait node with children and values.
+     * @param {Number[]} rowIdces - The target row indices.
+     */
+    const onSampleSubtreeSelection = (attribute_tag, subtree, rowIdces) => {
+        if (!_.isString(attribute_tag) || !_.isObject(subtree) || !_.isArray(rowIdces)) return
+        let d = submission.attributeTable.slice()
+        rowIdces
+            .filter(rowIndex => rowIndex < submission.sampleNames.length)
+            .forEach(rowIndex => {
+                const id = submission.referenceIDs[rowIndex]
+                if (id === undefined) return
+                const source = addIDToHierarchy([_.cloneDeep(subtree)], id)[0]
+                const attributeNode = d[rowIndex].find(p => p.type === "attribute" && p.tag === attribute_tag)
+                if (attributeNode) {
+                    if (!_.isArray(attributeNode.children)) attributeNode.children = []
+                    mergeSubtreeInto(attributeNode.children, source)
+                } else {
+                    d[rowIndex].push({ type: "attribute", tag: attribute_tag, id, children: [source] })
+                }
+            })
+        update({ attributeTable: d });
+    }
+
     const onSampleAttributeSelect = (sampleAttrIdx, attribute_tag) => {
         let sampleAttrs = [...submission.samplesAttributes]
         let sampleAttr = sampleAttrs[sampleAttrIdx]
@@ -624,6 +676,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
                 onSampleTraitSelection={onSampleTraitSelection}
                 onTagRemove={onSampleAttrRemove}
                 onPasteRowsInAttribute = {onPasteRowsForAttribute}
+                onSampleSubtreeSelection={onSampleSubtreeSelection}
                 onPasteRowsInGenotype = {onPasteRowsForGenotype}
                 onRepeatRowsInGenotype = {onRepeatRowsForGenotype}
                 onPasteValuesInAttribute = {onPasteValuesForAttribute}

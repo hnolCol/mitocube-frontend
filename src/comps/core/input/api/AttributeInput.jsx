@@ -136,9 +136,15 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
                 itemRenderer={renderItem}
                 inputValueRenderer={(i) => _.isObject(i) ? i.attribute_tag : i.text}
                 onQueryChange={handleQueryChange}
-                onItemSelect={(item) => onItemSelect(_.isString(item) ? item : item.attribute_tag)}>
+                onItemSelect={(item) => onItemSelect(_.isString(item) ? item : item.attribute_tag)}
+                popoverProps={{
+                    popoverClassName: "attribute-input-popover",
+                    // stop scroll propagation so scrolling the menu does not scroll the underlying table
+                    onWheelCapture: (e) => e.stopPropagation(),
+                    onTouchMoveCapture: (e) => e.stopPropagation(),
+                }}>
                 
-                <Button icon="chevron-down" minimal small loading={isLoading || isFetching} text={text} />
+                <Button rightIcon="chevron-down" minimal small loading={isLoading || isFetching} text={text} />
             
             </Select>
         </div>

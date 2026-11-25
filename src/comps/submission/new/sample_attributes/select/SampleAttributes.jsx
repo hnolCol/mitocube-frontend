@@ -1,7 +1,7 @@
 import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
+import { Menu, MenuItem, Tag, Button, MenuDivider, Popover } from "@blueprintjs/core"
 import { memo, useState, useCallback, useEffect, useMemo, useRef } from "react";
 import _ from "lodash"
 
@@ -60,28 +60,52 @@ const getGroupingInfoByColumnIndex = (columnIndex, groupings) => groupings[getSa
 const getGroupingAttributeByColumnIndex = (columnIndex, groupings) => getGroupingInfoByColumnIndex(columnIndex, groupings);
 
 /**
- * @description Recursively collects the trait nodes below an attribute node together with
- * their full trait path (root first), e.g. [{attribute_tag: "att_compound", trait_tag: "dmso"},
- * {attribute_tag: "att_concentration", trait_tag: "mM"}]. Used for the "Used in other rows" menu.
- * @param {Object[]} children - The children (trait nodes) of an attribute node.
- * @param {String} attribute_tag - The tag of the attribute the children belong to.
- * @param {Object[]} trail - The trait path steps collected so far (root first).
- * @returns {{trait_tag: String, trait_path: Object[], depth: Number}[]}
+ * @description Collects the direct child-attribute branches of a selected trait node with their
+ * values, e.g. [{attribute_tag: "att_concentration", trait_tag: "µM", value: 20},
+ * {attribute_tag: "att_duration", trait_tag: "h", value: 15}] - used to label "Used in other rows"
+ * entries as e.g. "EtBr (20 µM, 15 h)".
+ * @param {Object} traitNode - A selected trait node of an attribute.
+ * @returns {{attribute_tag: String, trait_tag: String, value: *}[]}
  */
-const collectUsedTraitPaths = (children, attribute_tag, trail) => {
-    const acc = []
-    _.forEach(children, child => {
-        if (!_.isObject(child) || child.type !== "trait") return
-        const step = { attribute_tag, trait_tag: child.tag }
-        const path = [...trail, step]
-        acc.push({ trait_tag: child.tag, trait_path: path, depth: trail.length })
-        _.forEach(child.children, grandChild => {
-            if (_.isObject(grandChild) && grandChild.type === "attribute") {
-                acc.push(...collectUsedTraitPaths(grandChild.children, grandChild.tag, path))
+const collectSubtreeBranches = (traitNode) => {
+    const branches = []
+    _.forEach(traitNode.children, childAttr => {
+        if (!_.isObject(childAttr) || childAttr.type !== "attribute") return
+        _.forEach(childAttr.children, childTrait => {
+            if (_.isObject(childTrait) && childTrait.type === "trait") {
+                branches.push({ attribute_tag: childAttr.tag, trait_tag: childTrait.tag, value: childTrait.value })
             }
         })
     })
-    return acc
+    return branches
+}
+
+const subtreeSignature = (node) => JSON.stringify({
+    tag: node.tag,
+    type: node.type,
+    value: node.value ?? null,
+    children: _.isArray(node.children) ? node.children.map(subtreeSignature) : []
+})
+
+/**
+ * @description Collects the used entries for the "Used in other rows" menu: one entry per
+ * top-level trait selected under the attribute in another row, carrying the full trait subtree
+ * (deep-cloned, including child attribute values) so that selecting the entry copies the values too.
+ * Entries are deduplicated by trait tag + subtree signature, so e.g. "EtBr (20 µM, 15 h)" and
+ * "EtBr (5 µM, 15 h)" appear as separate entries.
+ * @param {Object[]} traitNodes - The selected trait nodes of an attribute node in another row.
+ * @returns {{trait_tag: String, subtree: Object, branches: Object[], signature: String}[]}
+ */
+const collectUsedTraitSubtrees = (traitNodes) => {
+    if (!_.isArray(traitNodes)) return []
+    return traitNodes
+        .filter(c => _.isObject(c) && c.type === "trait" && _.isString(c.tag))
+        .map(traitNode => ({
+            trait_tag: traitNode.tag,
+            subtree: _.cloneDeep(traitNode),
+            branches: collectSubtreeBranches(traitNode),
+            signature: `${traitNode.tag}|${subtreeSignature(traitNode)}`
+        }))
 }
 
 function useSampleTableSelection() {
@@ -100,14 +124,15 @@ const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
     selected_attribute_tag,
     sampleAttrIndex,
     onSampleAttributeSelect,
-    disabled = false }) {
+    disabled = false,
+    emptyText = "" }) {
    
     const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : typeof selected_attribute_tag === "string", staleTime : Infinity})
     const attributeSelected = _.isObject(attribute) && attribute?.text
     return (
         <div style={{marginRight : "2rem"}}>
             {<AttributeInput {...{
-                text: attributeSelected ? attribute.text : "",
+                text: attributeSelected ? attribute.text : emptyText,
                 attribute_groups : ["sample"],
                 min_state: 0, disabled,
                 include_traits: true,
@@ -152,6 +177,7 @@ function SamplesAttributes({
     onPasteValuesInAttribute,
     repeatSelection,
     onPasteRowsInAttribute,
+    onSampleSubtreeSelection,
     checkAttributeRequiredTraits,
     selected_proteome_tags
     }) {
@@ -273,16 +299,17 @@ function SamplesAttributes({
                     const attributeNode = _.isArray(row) ? row.find(p => p.type === "attribute" && p.tag === attribute_tag) : undefined
                     return _.isArray(attributeNode?.children) ? attributeNode.children.filter(c => c.type === "trait").map(c => c.tag) : []
                 })))
-                // traits (with their full paths) selected under this attribute in the other rows - shown as "Used in other rows"
+                // traits selected under this attribute in the other rows, with their full subtree
+                // (incl. child attribute values) - shown as "Used in other rows" entries like "EtBr (20 µM, 15 h)"
                 const usedTraits = _.uniqBy(_.flatten(
                     _.range(attributeTable.length)
                         .filter(rowIndex => !selectedRows.includes(rowIndex))
                         .map(rowIndex => {
                             const row = attributeTable[rowIndex]
                             const attributeNode = _.isArray(row) ? row.find(p => p.type === "attribute" && p.tag === attribute_tag) : undefined
-                            return _.isArray(attributeNode?.children) ? collectUsedTraitPaths(attributeNode.children, attribute_tag, []) : []
+                            return collectUsedTraitSubtrees(attributeNode?.children)
                         })
-                ), u => u.trait_path.map(s => `${s.attribute_tag}:${s.trait_tag}`).join(">"))
+                ), u => u.signature)
                 // input fields available under this attribute in the selected rows (for clipboard paste)
                 const pasteSourceRow = attributeTable[selectedRows[0]]
                 const inputFields = collectInputFields(pasteSourceRow, attribute_tag)
@@ -292,6 +319,7 @@ function SamplesAttributes({
                             attribute_tag,
                             selectedTraits,
                             usedTraits,
+                            onSubtreeSelection: onSampleSubtreeSelection,
                             onSampleTraitSelection,
                             rowIdces: selectedRows,
                             clearAttributeTableByRowIndex,
@@ -320,6 +348,7 @@ function SamplesAttributes({
         onRepeatRowsInGenotype,
         onPasteValuesInAttribute,
         onReplicateChange,
+        onSampleSubtreeSelection,
         onSampleTraitSelection,
         repeatSelection,
         sampleNames.length,
@@ -442,12 +471,10 @@ function SamplesAttributes({
         const attribute_tag = groupings[sampleAttrIndex] 
         return (
             <ColumnHeaderCell style={{ minHeight: "3rem" }}
-                menuRenderer={renderAttributeHeaderMenu}
-                selectCellsOnMenuClick={false}
                 isColumnSelected={false}
             >
                     <div className="margin--little attributeSelectionHeaderInner"
-                        >
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <AttributeSelectionHeader
                             {...{
                                 selected_attribute_tag : attribute_tag,
@@ -455,7 +482,11 @@ function SamplesAttributes({
                                 onSampleAttributeSelect,
                                 columnIndex,
                                 disabled : sampleNames.length === 0,
+                                emptyText : sampleNames.length === 0 ? "Select number of samples first" : "",
                             }} />
+                        <Popover content={renderAttributeHeaderMenu(columnIndex)} position="bottom-right" minimal>
+                            <Button icon="more" minimal small />
+                        </Popover>
                     </div>
             </ColumnHeaderCell>)
     }, [groupings, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length])
