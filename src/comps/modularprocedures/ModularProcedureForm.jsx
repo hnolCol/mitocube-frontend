@@ -1,4 +1,5 @@
 import { Callout } from "@blueprintjs/core";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import _ from "lodash";
 import { api } from "@/api";
@@ -11,6 +12,7 @@ import { getRandomID } from "@/services/random";
 import { ProtocolMinimalItem } from "@/comps/admin/protocols/ProtocolMinimalItem";
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
 import { SUBMISSION_STATES } from "@/comps/modularprocedures/Shared";
+import { TabNavigation } from "@/comps/submission/new/panels/TabNavigation";
 
 const INIT_PROCEDURE = { title: "", description: "", condition_application_tags: [], condition_application_trees: [], protocol_tags: [],
     input_plate_format: "", input_plate_type: "", output_plate_format: "", output_plate_type: "",
@@ -19,6 +21,17 @@ const INIT_PROCEDURE = { title: "", description: "", condition_application_tags:
     pubmed_ids: "", min_output_wells_per_sample: "", max_output_wells_per_sample: "" }
 
 const SUBMISSION_STATE_OPTIONS = ["PROCESSED", "MEASURING", "ANALYSIS", "DONE"]
+
+// the tabs of the module definition, in scheme of the new submission page (see TabStack):
+// basics first, then the parameters, the protocols, the plate/attribute constraints and the
+// submission state workflow with the publication references
+const PROCEDURE_TABS = {
+    "basics": "Basics",
+    "condition_applications": "Parameters",
+    "protocols": "Protocols",
+    "plates_attributes": "Plates & Attributes",
+    "states_references": "States & Refs",
+}
 
 
 /**
@@ -30,6 +43,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
     const isEditMode = _.isString(procedure_tag)
     const [procedure, setProcedure] = useState(INIT_PROCEDURE)
     const [protocolSearchString, setProtocolSearchString] = useState("")
+    const [tabKey, setTabKey] = useState({ current: "basics", prev: undefined })
 
     const { data: existingProcedure, isSuccess } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: isEditMode })
@@ -142,176 +156,238 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
         })
     }
 
+    const canSave = _.isString(procedure.title) && procedure.title.trim().length > 0 &&
+        _.isString(procedure.description) && procedure.description.trim().length > 0
+
+    // tabbed navigation in the scheme of the new submission page: one vertical tab bar
+    // (with the animated indicator) on the left, the sliding content on the right and the
+    // action bar below — one tab per conceptual group of the module definition
+    const componentKeys = _.keys(PROCEDURE_TABS)
+    const tabDirection = _.isString(tabKey.prev) ?
+        _.indexOf(componentKeys, tabKey.current) - _.indexOf(componentKeys, tabKey.prev) : 0
+
+    const tabVariants = {
+        enter: (direction) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
+        center: { x: 0, opacity: 1, scale: 1, transition: { duration: 0.25 } },
+        exit: (direction) => ({ x: direction < 0 ? -50 : 50, opacity: 0, transition: { duration: 0.15 } }),
+    }
+
     return <div className="flex flex-column" style={{ gap: "0.5rem" }}>
         <h3>{isEditMode ? "Edit Modular Procedure" : "Insert Modular Procedure"}</h3>
-        <input className="text-input" type="text" placeholder="Title"
-            value={procedure.title}
-            onChange={(e) => setProcedure({ ...procedure, title: e.target.value })} />
-        <textarea className="text-input padding--medium" style={{ width: "100%", height: "150px" }}
-            placeholder="Describe the modular procedure (e.g. how the facility performs it)."
-            value={procedure.description}
-            onChange={(e) => setProcedure({ ...procedure, description: e.target.value })} />
-        <Callout intent="primary" title="Condition Applications">
-            Assign the attributes/traits (e.g. instrument, protocol) that describe when this modular procedure applies.
-        </Callout>
-        <ConditionApplicationInput
-            selected_ca_tags={procedure.condition_application_tags}
-            onSelect={handleSelectConditionApplication}
-            samples_only={false}
-            placeholder="Select condition applications" />
-        {procedure.condition_application_tags.length > 0 ?
-            <div className="flex" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
-                {procedure.condition_application_tags.map((ca_tag) =>
-                    <span key={ca_tag} className="basic-button basic-button--small"
-                        onClick={() => handleSelectConditionApplication(ca_tag)}>
-                        {ca_tag} ✕
-                    </span>)}
-            </div> : null}
-        <Callout intent="primary" title="Define new condition applications">
-            Alternatively define condition applications newly as hierarchical attribute/trait trees (like when
-            inserting a submission) — e.g. attribute <em>Liquid Handler</em> → trait <em>Hamilton</em>, even if
-            that combination was never used before.
-        </Callout>
-        <AttributesInput
-            handleTraitSelection={handleTraitSelectionHierarchy}
-            min_state={2}
-            selected_traits={procedure.condition_application_trees}
-            placeHolderText="Search attribute (liquid handler, instrument, ...)" />
-        <DatasetAttributeView
-            getSelectionByPath={getSelectionByPath}
-            submission_tag={referenceID}
-            attributeTraits={procedure.condition_application_trees}
-            onChildrenSelection={handleTraitSelectionHierarchy}
-            handleTraitRemove={handleTraitRemove}
-            checkAttributeRequiredTraits={checkAttributeRequiredTraits} />
-        <Callout intent="primary" title="Linked Protocols">
-            Select the protocols that form the basis of this modular procedure.
-        </Callout>
-        <input className="text-input padding--tiny margin--tiny" type="text" placeholder="Search protocols..."
-            value={protocolSearchString}
-            onChange={(e) => setProtocolSearchString(e.target.value)}
-            style={{ width: "100%" }} />
-        <div style={{ height: "25vh", overflowY: "scroll" }}>
-            {protocol_tags?.map((protocol_tag) =>
-                <div key={protocol_tag} style={{
-                    border: procedure.protocol_tags.includes(protocol_tag) ? "2px solid #48aff0" : "none",
-                    borderRadius: "4px", marginBottom: "0.25rem"
-                }}>
-                    <ProtocolMinimalItem protocol_tag={protocol_tag}
-                        onClick={() => handleSelectProtocol(protocol_tag)} />
-                </div>)}
-        </div>
-        <Callout intent="primary" title="Plate Setup">
-            Define the plate layout of the input and output plates this procedure requires (e.g. 8x12 = 96 well
-            plate, or a PCR strip). Executions are rejected if the selected plates do not match.
-        </Callout>
-        <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
-            <label>
-                <div className="font-size--small">Input plate format</div>
-                <select className="text-input" value={procedure.input_plate_format}
-                    onChange={(e) => setProcedure({ ...procedure, input_plate_format: e.target.value })}>
-                    <option value="">Any format</option>
-                    {formatTraits.map((trait) =>
-                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
-                </select>
-            </label>
-            <label>
-                <div className="font-size--small">Input plate type</div>
-                <select className="text-input" value={procedure.input_plate_type}
-                    onChange={(e) => setProcedure({ ...procedure, input_plate_type: e.target.value })}>
-                    <option value="">Any type</option>
-                    {typeTraits.map((trait) =>
-                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
-                </select>
-            </label>
-            <label>
-                <div className="font-size--small">Output plate format</div>
-                <select className="text-input" value={procedure.output_plate_format}
-                    onChange={(e) => setProcedure({ ...procedure, output_plate_format: e.target.value })}>
-                    <option value="">Any format</option>
-                    {formatTraits.map((trait) =>
-                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
-                </select>
-            </label>
-            <label>
-                <div className="font-size--small">Output plate type</div>
-                <select className="text-input" value={procedure.output_plate_type}
-                    onChange={(e) => setProcedure({ ...procedure, output_plate_type: e.target.value })}>
-                    <option value="">Any type</option>
-                    {typeTraits.map((trait) =>
-                        <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
-                </select>
-            </label>
-        </div>
-        <Callout intent="primary" title="Well Attributes">
-            Declare the per-well attributes of this procedure: input attributes may be filled in per input well
-            before the execution (e.g. protein concentration before harmonization), output attributes are
-            expected as data on the output wells of a successful execution.
-        </Callout>
-        <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
-            <div>
-                <div className="font-size--small">Input attributes (allow input)</div>
-                <AttributeInput text="Add input attribute" allow_input={true} onItemSelect={handleSelectInputAttribute} />
-                <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
-                    {procedure.input_attribute_tags.map((tag) =>
-                        <button key={tag} className="basic-button basic-button--small"
-                            onClick={() => handleSelectInputAttribute(tag)}>{tag} ✕</button>)}
-                </div>
+        <div className="flex" style={{ gap: "1rem", alignItems: "stretch", minHeight: "50vh" }}>
+            <div style={{ width: "10rem", flexShrink: 0 }}>
+                <TabNavigation {...{ componentKeys, componentNames: PROCEDURE_TABS, componentKey: tabKey, setComponentKey: setTabKey }} />
             </div>
-            <div>
-                <div className="font-size--small">Output attributes (expected data)</div>
-                <AttributeInput text="Add output attribute" allow_input={true} onItemSelect={handleSelectOutputAttribute} />
-                <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
-                    {procedure.output_attribute_tags.map((tag) =>
-                        <button key={tag} className="basic-button basic-button--small"
-                            onClick={() => handleSelectOutputAttribute(tag)}>{tag} ✕</button>)}
-                </div>
+            <div className="position--relative div--expand" style={{ zIndex: 2 }}>
+                <AnimatePresence>
+                    <motion.div
+                        custom={tabDirection}
+                        variants={tabVariants}
+                        initial="enter" animate="center" exit="exit"
+                        key={tabKey.current}
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+                            overflowY: "auto", paddingRight: "0.25rem" }}>
+                        <div className="flex flex-column" style={{ gap: "0.5rem" }}>
+
+                            {tabKey.current === "basics" ? <>
+                                <Callout intent="primary" title="Title & Description">
+                                    A concise title and a description of how the facility performs this module.
+                                    Both are required — the Save button stays disabled until they are filled in.
+                                </Callout>
+                                <input className="text-input" type="text" placeholder="Title"
+                                    value={procedure.title}
+                                    onChange={(e) => setProcedure({ ...procedure, title: e.target.value })} />
+                                <textarea className="text-input padding--medium" style={{ width: "100%", height: "180px" }}
+                                    placeholder="Describe the modular procedure (e.g. how the facility performs it)."
+                                    value={procedure.description}
+                                    onChange={(e) => setProcedure({ ...procedure, description: e.target.value })} />
+                                {!canSave ? <div className="font-size--small" style={{ color: "#c87619" }}>
+                                    Title and description are required before saving.
+                                </div> : null}
+                            </> : null}
+
+                            {tabKey.current === "condition_applications" ? <>
+                                <Callout intent="primary" title="Condition Applications">
+                                    Assign the attributes/traits (e.g. instrument, protocol) that describe when this modular procedure applies.
+                                </Callout>
+                                <ConditionApplicationInput
+                                    selected_ca_tags={procedure.condition_application_tags}
+                                    onSelect={handleSelectConditionApplication}
+                                    samples_only={false}
+                                    placeholder="Select condition applications" />
+                                {procedure.condition_application_tags.length > 0 ?
+                                    <div className="flex" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+                                        {procedure.condition_application_tags.map((ca_tag) =>
+                                            <span key={ca_tag} className="basic-button basic-button--small"
+                                                onClick={() => handleSelectConditionApplication(ca_tag)}>
+                                                {ca_tag} ✕
+                                            </span>)}
+                                    </div> : null}
+                                <Callout intent="primary" title="Define new condition applications">
+                                    Alternatively define condition applications newly as hierarchical attribute/trait trees (like when
+                                    inserting a submission) — e.g. attribute <em>Liquid Handler</em> → trait <em>Hamilton</em>, even if
+                                    that combination was never used before.
+                                </Callout>
+                                <AttributesInput
+                                    handleTraitSelection={handleTraitSelectionHierarchy}
+                                    min_state={2}
+                                    selected_traits={procedure.condition_application_trees}
+                                    placeHolderText="Search attribute (liquid handler, instrument, ...)" />
+                                <DatasetAttributeView
+                                    getSelectionByPath={getSelectionByPath}
+                                    submission_tag={referenceID}
+                                    attributeTraits={procedure.condition_application_trees}
+                                    onChildrenSelection={handleTraitSelectionHierarchy}
+                                    handleTraitRemove={handleTraitRemove}
+                                    checkAttributeRequiredTraits={checkAttributeRequiredTraits} />
+                            </> : null}
+
+                            {tabKey.current === "protocols" ? <>
+                                <Callout intent="primary" title="Linked Protocols">
+                                    Select the protocols that form the basis of this modular procedure.
+                                </Callout>
+                                <input className="text-input padding--tiny margin--tiny" type="text" placeholder="Search protocols..."
+                                    value={protocolSearchString}
+                                    onChange={(e) => setProtocolSearchString(e.target.value)}
+                                    style={{ width: "100%" }} />
+                                <div style={{ height: "35vh", overflowY: "scroll" }}>
+                                    {protocol_tags?.map((protocol_tag) =>
+                                        <div key={protocol_tag} style={{
+                                            border: procedure.protocol_tags.includes(protocol_tag) ? "2px solid #48aff0" : "none",
+                                            borderRadius: "4px", marginBottom: "0.25rem"
+                                        }}>
+                                            <ProtocolMinimalItem protocol_tag={protocol_tag}
+                                                onClick={() => handleSelectProtocol(protocol_tag)} />
+                                        </div>)}
+                                </div>
+                            </> : null}
+
+                            {tabKey.current === "plates_attributes" ? <>
+                                <Callout intent="primary" title="Plate Setup">
+                                    Define the plate layout of the input and output plates this procedure requires (e.g. 8x12 = 96 well
+                                    plate, or a PCR strip). Executions are rejected if the selected plates do not match.
+                                </Callout>
+                                <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
+                                    <label>
+                                        <div className="font-size--small">Input plate format</div>
+                                        <select className="text-input" value={procedure.input_plate_format}
+                                            onChange={(e) => setProcedure({ ...procedure, input_plate_format: e.target.value })}>
+                                            <option value="">Any format</option>
+                                            {formatTraits.map((trait) =>
+                                                <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <div className="font-size--small">Input plate type</div>
+                                        <select className="text-input" value={procedure.input_plate_type}
+                                            onChange={(e) => setProcedure({ ...procedure, input_plate_type: e.target.value })}>
+                                            <option value="">Any type</option>
+                                            {typeTraits.map((trait) =>
+                                                <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <div className="font-size--small">Output plate format</div>
+                                        <select className="text-input" value={procedure.output_plate_format}
+                                            onChange={(e) => setProcedure({ ...procedure, output_plate_format: e.target.value })}>
+                                            <option value="">Any format</option>
+                                            {formatTraits.map((trait) =>
+                                                <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
+                                        </select>
+                                    </label>
+                                    <label>
+                                        <div className="font-size--small">Output plate type</div>
+                                        <select className="text-input" value={procedure.output_plate_type}
+                                            onChange={(e) => setProcedure({ ...procedure, output_plate_type: e.target.value })}>
+                                            <option value="">Any type</option>
+                                            {typeTraits.map((trait) =>
+                                                <option key={trait.tag} value={trait.text}>{trait.text}</option>)}
+                                        </select>
+                                    </label>
+                                </div>
+                                <Callout intent="primary" title="Well Attributes">
+                                    Declare the per-well attributes of this procedure: input attributes may be filled in per input well
+                                    before the execution (e.g. protein concentration before harmonization), output attributes are
+                                    expected as data on the output wells of a successful execution.
+                                </Callout>
+                                <div className="flex" style={{ gap: "1rem", flexWrap: "wrap" }}>
+                                    <div>
+                                        <div className="font-size--small">Input attributes (allow input)</div>
+                                        <AttributeInput text="Add input attribute" allow_input={true} onItemSelect={handleSelectInputAttribute} />
+                                        <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+                                            {procedure.input_attribute_tags.map((tag) =>
+                                                <button key={tag} className="basic-button basic-button--small"
+                                                    onClick={() => handleSelectInputAttribute(tag)}>{tag} ✕</button>)}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="font-size--small">Output attributes (expected data)</div>
+                                        <AttributeInput text="Add output attribute" allow_input={true} onItemSelect={handleSelectOutputAttribute} />
+                                        <div className="flex" style={{ gap: "0.25rem", flexWrap: "wrap", marginTop: "0.25rem" }}>
+                                            {procedure.output_attribute_tags.map((tag) =>
+                                                <button key={tag} className="basic-button basic-button--small"
+                                                    onClick={() => handleSelectOutputAttribute(tag)}>{tag} ✕</button>)}
+                                        </div>
+                                    </div>
+                                </div>
+                            </> : null}
+
+                            {tabKey.current === "states_references" ? <>
+                                <Callout intent="primary" title="Required State (optional)">
+                                    If set, executions of this procedure only consider submissions in this state: the submission search on the
+                                    execution setup page only offers submissions in the selected state (e.g. SUBMITTED for submissions in state 0).
+                                </Callout>
+                                <select className="text-input" value={procedure.required_submission_state}
+                                    onChange={(e) => setProcedure({ ...procedure, required_submission_state: e.target.value })}>
+                                    <option value="">Any submission state</option>
+                                    {Object.keys(SUBMISSION_STATES).map((state) => <option key={state} value={state}>{state} ({SUBMISSION_STATES[state]})</option>)}
+                                </select>
+                                <Callout intent="primary" title="Success State (optional)">
+                                    If set, confirming an execution of this procedure as successful automatically changes the state of
+                                    the linked submissions (e.g. to Processed) and they adopt the condition applications of this module.
+                                </Callout>
+                                <select className="text-input" value={procedure.success_submission_state}
+                                    onChange={(e) => setProcedure({ ...procedure, success_submission_state: e.target.value })}>
+                                    <option value="">Do not change the submission state</option>
+                                    {SUBMISSION_STATE_OPTIONS.map((state) => <option key={state} value={state}>{state}</option>)}
+                                </select>
+                                <Callout intent="primary" title="Publication references (optional)">
+                                    PubMed IDs of the publications this module is based on (comma separated, e.g. 12345678, 87654321).
+                                    They are part of the content that becomes immutable with the content hash on publishing.
+                                </Callout>
+                                <input className="text-input" type="text" placeholder="PubMed IDs, comma separated"
+                                    value={procedure.pubmed_ids}
+                                    onChange={(e) => setProcedure({ ...procedure, pubmed_ids: e.target.value })} />
+                                <Callout intent="primary" title="Sample numbers: mirroring or duplication? (optional)">
+                                    How an execution of this module may treat the sample numbers: leave empty for no constraint.
+                                    Min = max = 1 means the module mirrors the samples (one output well per sample);
+                                    min = max = N describes an N-fold duplication like an N-fraction fractionation;
+                                    a range allows anything between min and max output wells per sample.
+                                </Callout>
+                                <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                                    <span className="font-size--small">Output wells per sample:</span>
+                                    <input className="text-input" type="number" min={1} placeholder="min" style={{ width: "5rem" }}
+                                        value={procedure.min_output_wells_per_sample}
+                                        onChange={(e) => setProcedure({ ...procedure, min_output_wells_per_sample: e.target.value })} />
+                                    <span className="font-size--small">to</span>
+                                    <input className="text-input" type="number" min={1} placeholder="max (empty = unbounded)" style={{ width: "10rem" }}
+                                        value={procedure.max_output_wells_per_sample}
+                                        onChange={(e) => setProcedure({ ...procedure, max_output_wells_per_sample: e.target.value })} />
+                                </div>
+                            </> : null}
+
+                        </div>
+                    </motion.div>
+                </AnimatePresence>
             </div>
         </div>
-        <Callout intent="primary" title="Publication references (optional)">
-            PubMed IDs of the publications this module is based on (comma separated, e.g. 12345678, 87654321).
-            They are part of the content that becomes immutable with the content hash on publishing.
-        </Callout>
-        <input className="text-input" type="text" placeholder="PubMed IDs, comma separated"
-            value={procedure.pubmed_ids}
-            onChange={(e) => setProcedure({ ...procedure, pubmed_ids: e.target.value })} />
-        <Callout intent="primary" title="Sample numbers: mirroring or duplication? (optional)">
-            How an execution of this module may treat the sample numbers: leave empty for no constraint.
-            Min = max = 1 means the module mirrors the samples (one output well per sample);
-            min = max = N describes an N-fold duplication like an N-fraction fractionation;
-            a range allows anything between min and max output wells per sample.
-        </Callout>
-        <div className="flex center-items" style={{ gap: "0.5rem" }}>
-            <span className="font-size--small">Output wells per sample:</span>
-            <input className="text-input" type="number" min={1} placeholder="min" style={{ width: "5rem" }}
-                value={procedure.min_output_wells_per_sample}
-                onChange={(e) => setProcedure({ ...procedure, min_output_wells_per_sample: e.target.value })} />
-            <span className="font-size--small">to</span>
-            <input className="text-input" type="number" min={1} placeholder="max (empty = unbounded)" style={{ width: "10rem" }}
-                value={procedure.max_output_wells_per_sample}
-                onChange={(e) => setProcedure({ ...procedure, max_output_wells_per_sample: e.target.value })} />
-        </div>
-        <Callout intent="primary" title="Success State (optional)">
-            If set, confirming an execution of this procedure as successful automatically changes the state of
-            the linked submissions (e.g. to Processed) and they adopt the condition applications of this module.
-        </Callout>
-        <select className="text-input" value={procedure.success_submission_state}
-            onChange={(e) => setProcedure({ ...procedure, success_submission_state: e.target.value })}>
-            <option value="">Do not change the submission state</option>
-            {SUBMISSION_STATE_OPTIONS.map((state) => <option key={state} value={state}>{state}</option>)}
-        </select>
-        <Callout intent="primary" title="Required State (optional)">
-            If set, executions of this procedure only consider submissions in this state: the submission search on the
-            execution setup page only offers submissions in the selected state (e.g. SUBMITTED for submissions in state 0).
-        </Callout>
-        <select className="text-input" value={procedure.required_submission_state}
-            onChange={(e) => setProcedure({ ...procedure, required_submission_state: e.target.value })}>
-            <option value="">Any submission state</option>
-            {Object.keys(SUBMISSION_STATES).map((state) => <option key={state} value={state}>{state} ({SUBMISSION_STATES[state]})</option>)}
-        </select>
         {isError ? <div><APIAxiosError error={error} /></div> : null}
-        <div className="flex center-items justify-end" style={{ gap: "1rem", marginTop: "1rem" }}>
-            <button disabled={isPending} className="basic-button basic-button--highlighted"
+        <div className="flex center-items justify-end" style={{ gap: "1rem", marginTop: "0.5rem" }}>
+            {!canSave ? <span className="font-size--smallest" style={{ color: "#888", marginRight: "auto" }}>
+                Title and description are required.
+            </span> : null}
+            <button disabled={isPending || !canSave} className="basic-button basic-button--highlighted"
+                title={canSave ? "" : "Title and description are required before saving."}
                 onClick={handleSubmit}>{isPending ? "Saving..." : "Save"}</button>
             <button disabled={isPending} className="basic-button"
                 onClick={() => setProcedure(INIT_PROCEDURE)}>Reset</button>
