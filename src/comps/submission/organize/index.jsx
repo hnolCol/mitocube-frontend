@@ -137,12 +137,7 @@ export function ProcedureChip({ link, canEdit = false, onUnlink }) {
         <span className="submission-metric-view" style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", minWidth: 0 }}>
             <span>{link.done ? "✔" : "▸"} {procedure?.title || link.procedure_tag}</span>
             {canEdit && !link.done ? (
-                <button
-                    className="submission__filter__button"
-                    title="Unlink procedure"
-                    onClick={(e) => { e.stopPropagation(); onUnlink() }}
-                    style={{ marginLeft: "0.25rem" }}
-                >×</button>
+                <TinyXButton title="Unassign this submission from the module" onClick={onUnlink} />
             ) : null}
         </span>
     )

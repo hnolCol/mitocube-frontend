@@ -11,7 +11,7 @@ import { UserInput } from "@/comps/core/input/api/UserInput"
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput"
 import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
-import { ProcedureTitle, formatExecutionTime, ExecutionStateChip } from "@/comps/modularprocedures/Shared"
+import { ProcedureTitle, formatExecutionTime, ExecutionStateChip, TinyXButton } from "@/comps/modularprocedures/Shared"
 import {
     PlateGrid, downloadMetricsTemplate, parseMetricsFile, ExecutionPlateExportDialog,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
@@ -44,6 +44,7 @@ export function ExecutionSetupPage() {
 
     const { mutate: createDraft, isPending: createDraftIsPending, isError: createDraftIsError, error: createDraftError } =
         api.modularProcedures.execute.useCreateExecutionDraft()
+    const { mutate: unlinkSubmission } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
     const { mutate: saveDraft, isPending: saveIsPending } = api.modularProcedures.execute.useSaveExecutionDraft()
     const { mutate: startDraft, isPending: startIsPending, isError: startIsError, error: startError } =
         api.modularProcedures.execute.useStartExecutionDraft()
@@ -558,9 +559,30 @@ export function ExecutionSetupPage() {
                         <span className="font-size--smallest" style={{ color: "#888", flexShrink: 0 }}>
                             {`${unplaced.length} of ${(samplesOfSubmission[submission_tag] || []).length} unplaced`}
                         </span>
-                        {extraSubmissionTags.includes(submission_tag) ?
-                            <button className="basic-button basic-button--small"
-                                onClick={() => handleRemoveExtraSubmission(submission_tag)}>×</button> : null}
+                        <TinyXButton
+                            title={extraSubmissionTags.includes(submission_tag) ?
+                                "Drop this submission from the execution setup" :
+                                "Unassign this submission from the module (it can be assigned again anytime)"}
+                            onClick={() => {
+                                if (extraSubmissionTags.includes(submission_tag)) {
+                                    handleRemoveExtraSubmission(submission_tag)
+                                } else {
+                                    unlinkSubmission({ tag: procedure_tag, submission_tag: submission_tag }, {
+                                        onSuccess: () => {
+                                            setInputWells((prev) => {
+                                                const next = {}
+                                                _.forEach(prev, (well, position) => {
+                                                    const samples = (well.sample_tags || [])
+                                                        .filter((tag) => tag !== submission_tag)
+                                                    if (samples.length > 0 || (well.output_positions || []).length > 0)
+                                                        next[position] = { ...well, sample_tags: samples }
+                                                })
+                                                return next
+                                            })
+                                        }
+                                    })
+                                }
+                            }} />
                     </div>
                 })}
                 <div className="flex center-items" style={{ gap: "0.25rem", margin: "0.5rem 0" }}>
