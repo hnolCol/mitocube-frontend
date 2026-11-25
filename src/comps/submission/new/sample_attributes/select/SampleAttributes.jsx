@@ -139,7 +139,8 @@ const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
     sampleAttrIndex,
     onSampleAttributeSelect,
     disabled = false,
-    emptyText = "" }) {
+    emptyText = "",
+    exclude_tags = [] }) {
    
     const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : typeof selected_attribute_tag === "string", staleTime : Infinity})
     const attributeSelected = _.isObject(attribute) && attribute?.text
@@ -150,6 +151,7 @@ const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
                 attribute_groups : ["sample"],
                 min_state: 0, disabled,
                 include_traits: true,
+                exclude_tags,
                 onItemSelect: (attribute_tag) => onSampleAttributeSelect(sampleAttrIndex, attribute_tag)
             }} />}
         </div>
@@ -261,6 +263,13 @@ function SamplesAttributes({
     const selectedSampleTags = useMemo(
         () => selectedRows.map(r => `${submission_tag}|${sampleNames[r]}`),
         [selectedRows, submission_tag, sampleNames]
+    );
+
+    // attribute tags already assigned to a column - excluded from the header menus so an
+    // attribute cannot be selected twice (each sample attribute may be used only once)
+    const usedAttributeTags = useMemo(
+        () => _.isArray(groupings) ? groupings.filter(g => _.isString(g) && g.length > 0) : [],
+        [groupings]
     );
     
     /**
@@ -534,13 +543,14 @@ function SamplesAttributes({
                                     columnIndex,
                                     disabled : sampleNames.length === 0,
                                     emptyText : sampleNames.length === 0 ? "Select number of samples first" : "",
+                                    exclude_tags: usedAttributeTags,
                                 }} />
                             <Popover content={renderAttributeHeaderMenu(columnIndex)} position="bottom-right" minimal>
                                 <Button icon="more" minimal small />
                             </Popover>
                         </div>}
             </ColumnHeaderCell>)
-    }, [groupings, isColumnHidden, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length])
+    }, [groupings, isColumnHidden, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length, usedAttributeTags])
 
    
 

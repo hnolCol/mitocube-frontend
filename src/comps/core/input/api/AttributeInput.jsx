@@ -1,7 +1,7 @@
 import { Suggest, Select} from "@blueprintjs/select";
 import  hooks from "@mitocube/api-hooks"
 import _ from "lodash"
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import useDebounce from "../../../../hooks/useDebounce";
 import { Button, MenuItem } from "@blueprintjs/core";
 import PropTypes from "prop-types";
@@ -73,7 +73,8 @@ AttributeInput.propTypes = {
     min_state: PropTypes.number,
     disabled : PropTypes.bool,
     allow_input: PropTypes.bool,
-    include_traits: PropTypes.bool
+    include_traits: PropTypes.bool,
+    exclude_tags: PropTypes.arrayOf(PropTypes.string)
 }
 
 
@@ -90,9 +91,11 @@ AttributeInput.propTypes = {
  * @param {Boolean} props.include_traits - If true, the search also matches traits of the attributes. Matching traits
  * are shown below their attribute in grey and are not selectable (e.g. typing "dmso" shows the attribute
  * "Chemical compound treatment" with the greyed out trait "DMSO" below it).
+ * @param {String[]} props.exclude_tags - Attribute tags that are removed from the menu (e.g. attributes already
+ * assigned to another column), so they cannot be selected again.
  * @returns 
  */
-export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled = false, allow_input = undefined, include_traits = false }) {
+export function AttributeInput({ text, min_state, attribute_groups, onItemSelect, disabled = false, allow_input = undefined, include_traits = false, exclude_tags = [] }) {
 
     const [query, setQuery] = useState("")
     const debouncedString = useDebounce(query, 50)
@@ -107,6 +110,14 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
         staleTime: 300000,
         placeholderData: (prev) => prev ? prev : []
     })
+
+    // remove already used attributes (by tag) from the selectable items
+    const items = useMemo(() => {
+        const list = _.isArray(attribute_tags) ? attribute_tags : []
+        if (!_.isArray(exclude_tags) || exclude_tags.length === 0) return list
+        const excluded = new Set(exclude_tags)
+        return list.filter(item => !excluded.has(_.isString(item) ? item : item?.attribute_tag))
+    }, [attribute_tags, exclude_tags])
 
     const renderItem = (item, itemProps) => {
         if (!include_traits || _.isString(item)) {
@@ -132,7 +143,7 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
         <div>
             <Select
                 disabled={disabled || isError}
-                items={_.isArray(attribute_tags) ? attribute_tags : []}
+                items={items}
                 itemRenderer={renderItem}
                 inputValueRenderer={(i) => _.isObject(i) ? i.attribute_tag : i.text}
                 onQueryChange={handleQueryChange}
