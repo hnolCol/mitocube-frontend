@@ -159,7 +159,7 @@ export function parseMetricsClipboard(text, { wellPositions, selectedTraitPairs 
 }
 
 export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, renderWell, paintMode = false,
-                            isWellDisabled = null, onWellDrop = null, wellTitle = null, wellStyle = null }) {
+                            isWellDisabled = null, onWellDrop = null, wellTitle = null, wellStyle = null, isWellWarned = null }) {
     const [isPainting, setIsPainting] = useState(false)
     const handleMouseDown = (position) => { if (paintMode) { setIsPainting(true); onWellClick(position) } }
     const handleMouseEnter = (position) => { if (paintMode && isPainting) onWellClick(position) }
@@ -203,6 +203,9 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                         {disabled ? <div style={{
                             position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
                             border: "2px dashed #cd4246", background: "rgba(205, 66, 70, 0.15)" }} /> : null}
+                        {!disabled && isWellWarned !== null && isWellWarned(position) ? <div style={{
+                            position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
+                            border: "2px dashed #d9a032", background: "rgba(217, 160, 50, 0.12)" }} /> : null}
                         {well && wellStyle !== null && wellStyle(position, well) !== null ? <div style={{
                             position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
                             ...wellStyle(position, well) }} /> : null}
