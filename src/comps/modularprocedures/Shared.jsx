@@ -4,6 +4,7 @@ import _ from "lodash";
 import moment from "moment";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
+import { getUserFullName } from "@/services/format/user";
 
 export const CURATOR_ROLE = 2;
 export const STATE_CHANGE_ROLE = 3;
@@ -182,6 +183,13 @@ export function WellTable({ wells, side }) {
     </table>
 }
 
+export function StateUser({ user_tag }) {
+    // the full name of the user who set a state (falls back to the tag, e.g. unknown users)
+    const { data: user, isSuccess } = api.users.core.useGetPublicUserByTag(
+        { tag: user_tag }, { enabled: _.isString(user_tag) })
+    return <span>{isSuccess && _.isObject(user) ? getUserFullName(user) : (user_tag || "")}</span>
+}
+
 export function StateHistory({ execution_tag }) {
     const { data: states, isLoading, isError, error } =
         api.modularProcedures.execute.useGetModularProcedureExecutionStates({ tag: execution_tag })
@@ -192,7 +200,7 @@ export function StateHistory({ execution_tag }) {
             <ExecutionStateChip status={entry.state} />
             <span style={{ color: "#666" }}>
                 {entry.created_at ? formatExecutionTime(entry.created_at) : ""}
-                {entry.user_tag ? ` by ${entry.user_tag}` : ""}
+                {entry.user_tag ? <> by <StateUser user_tag={entry.user_tag} /></> : ""}
             </span>
         </li>)}
     </ol>
