@@ -66,7 +66,7 @@ export function AttributeContextMenuSearch({ attribute_tag,
                     id="attribute-context-input"
                     value={searchString}
                     callbackKey={"a"}
-                    placeholder="Search attribute value..."
+                    placeholder="Search trait..."
                     onChange={(key, value, type) => setQuery(value)}
                 />
 

@@ -21,19 +21,7 @@ export const EXECUTION_STATE_TAGS = ["DRAFT", "RUNNING", "SUCCEEDED", "FAILED", 
 export const isUserAtLeast = (userRole, role) =>
     _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= role
 
-/**
- * A tiny "x" button to remove an item from a list (e.g. to unlink a submission from a modular
- * procedure or to drop a pooled submission from an execution setup). Stops the click from
- * propagating into the surrounding card.
- */
-export function TinyXButton({ onClick, title = "Remove" }) {
-    return <button onClick={(event) => { event.stopPropagation(); onClick() }}
-        title={title} aria-label={title}
-        style={{ border: "none", background: "transparent", cursor: "pointer", padding: "0.1rem",
-            lineHeight: 0, color: "#888", fontSize: "0.85rem", fontWeight: 600 }}>
-        &#215;
-    </button>
-}
+
 
 export function formatExecutionTime(value) {
     return _.isNumber(value) ? moment.unix(value).format("YYYY-MM-DD HH:mm") : "–"

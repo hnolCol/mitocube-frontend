@@ -5,8 +5,7 @@ import { api } from "@/api"
 import {
     ExecutionsPanel, SubmissionCard,
 } from "@/comps/modularprocedures/ModularProcedureBoard"
-import { TinyXButton } from "@/comps/modularprocedures/Shared"
-import { ModularProcedureExecutionDialog } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
+
 import { isUserAtLeast, STATE_CHANGE_ROLE } from "@/comps/modularprocedures/Shared"
 
 ModularProcessColumn.propTypes = {
