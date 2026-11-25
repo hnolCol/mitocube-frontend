@@ -118,8 +118,8 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
 
 
     return (
-        <div>
-            {!isPermissionsLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%" }}>
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            {!isPermissionsLoading ? <div className="flex flex-column" style={{ overflow: "hidden", width: "100%", flex: 1, minHeight: 0 }}>
                 <div className="flex center-items justify-space-between" >
                     <h3>Condition Applications</h3>
                     <MandatoryCheckBadge submission_tag={submission_tag} />
@@ -127,7 +127,7 @@ export function SubmissionConditionApplicationView({ submission_tag, group_by_mi
                         <button className="dialog-button" onClick={handleOpen}>+</button>
                     )}
                 </div>
-                <div style={{ height: "29vh", padding: "1rem", overflowY: "scroll" }}>
+                <div style={{ flex: "1 1 auto", minHeight: 0, padding: "1rem", overflowY: "auto" }}>
                     {group_by_min_state ? <div>
                         {_.sortBy(submission_ca_tags, 'state_tag').map(state_ca_item => {
                             return <div key={state_ca_item.state_tag}>

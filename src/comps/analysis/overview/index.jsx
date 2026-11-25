@@ -135,7 +135,7 @@ function SubmissionOverview({ user_tag }) {
                 {hasGenotype && _.isString(submission_tag) ? <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
                     <SubmissionGenotypesView {...{ submission_tag }}/>
                 </div> : null}
-                <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
+                <div className="container--shadow padding--little margin-top--little" style={{ ...overviewBoxStyle, display: "flex", flexDirection: "column" }}>
                     <SubmissionConditionApplicationView {...{ submission_tag }}/>
                 </div>
                 <div className="container--shadow padding--little margin-top--little" style={overviewBoxStyle}>
