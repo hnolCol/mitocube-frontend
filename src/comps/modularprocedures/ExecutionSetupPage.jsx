@@ -12,7 +12,7 @@ import { UserInput } from "@/comps/core/input/api/UserInput"
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput"
 import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
-import { ProcedureTitle, formatExecutionTime, ExecutionStateChip, TinyXButton, isUserAtLeast, STATE_CHANGE_ROLE }
+import { ProcedureTitle, formatExecutionTime, ExecutionStateChip, TinyXButton, isUserAtLeast, STATE_CHANGE_ROLE, submissionStateTag }
     from "@/comps/modularprocedures/Shared"
 import {
     PlateGrid, downloadMetricsTemplate, parseMetricsFile, ExecutionPlateExportDialog,
@@ -613,7 +613,12 @@ export function ExecutionSetupPage() {
                     <SubmissionInput
                         selected_submission_tags={extraSubmissionTags}
                         onSelect={(tag) => handleAddExtraSubmission(tag)}
+                        state={submissionStateTag(procedure?.required_submission_state)}
                         minimal={true} />
+                    {_.isString(procedure?.required_submission_state) ?
+                        <div className="font-size--smallest" style={{ color: "#888" }}>
+                            Only submissions in state {procedure.required_submission_state} can be pooled into this module.
+                        </div> : null}
                 </div>
 
                 {inputPlate ? <>
@@ -708,7 +713,9 @@ export function ExecutionSetupPage() {
                       procedure?.output_plate_type ? `output type: ${procedure.output_plate_type}` : null,
                       procedure?.pubmed_ids?.length ? `PubMed: ${procedure.pubmed_ids.join(", ")}` : null,
                       procedure?.min_output_wells_per_sample > 1 || procedure?.max_output_wells_per_sample ?
-                          `${procedure.min_output_wells_per_sample || 1}-${procedure.max_output_wells_per_sample || "n"} output wells per sample` : null]
+                          `${procedure.min_output_wells_per_sample || 1}-${procedure.max_output_wells_per_sample || "n"} output wells per sample` : null,
+                      procedure?.required_submission_state ? `requires submissions in state ${procedure.required_submission_state}` : null,
+                      procedure?.success_submission_state ? `success sets submissions to ${procedure.success_submission_state}` : null]
                         .filter((part) => part).join(" · ")}
                 </div>
 

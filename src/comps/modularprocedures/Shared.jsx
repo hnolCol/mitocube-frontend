@@ -18,6 +18,12 @@ export const EXECUTION_STATUS_STYLE = {
 
 export const EXECUTION_STATE_TAGS = ["DRAFT", "RUNNING", "SUCCEEDED", "FAILED", "ABORTED"]
 
+// the submission states as named by the backend (SubmissionStatesEnums): the names are the
+// stored values of the optional procedure submission state fields, the numbers are the state
+// tags the submission search filter expects
+export const SUBMISSION_STATES = { CANCELED: -2, PAUSED: -1, SUBMITTED: 0, PROCESSED: 1, MEASURING: 2, ANALYSIS: 3, DONE: 4, ACTIVE: 5, PUBLISHED: 6 }
+export const submissionStateTag = (state_name) => SUBMISSION_STATES[state_name]
+
 export const isUserAtLeast = (userRole, role) =>
     _.isFinite(_.toNumber(userRole)) && _.toNumber(userRole) >= role
 
