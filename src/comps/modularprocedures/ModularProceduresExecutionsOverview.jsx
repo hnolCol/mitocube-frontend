@@ -231,11 +231,13 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
     const canChangeState = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
     const [alertProps, setAlertProps] = useState({ isOpen: false })
     const [searchString, setSearchString] = useState("")
+    const [plateFilter, setPlateFilter] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
     const [selectedTag, setSelectedTag] = useState(null)
     const [newDraftDialogOpen, setNewDraftDialogOpen] = useState(false)
     const [newDraftProcedureTag, setNewDraftProcedureTag] = useState("")
     const debouncedSearch = useDebounce(searchString, 300)
+    const debouncedPlateFilter = useDebounce(plateFilter, 300)
 
     const { data: procedure_tags } = api.modularProcedures.query.useGetModularProceduresByQuery(
         { status: "PUBLISHED", latest_only: true }, { enabled: newDraftDialogOpen, staleTime: 60000 })
@@ -258,6 +260,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
     const { data: executions, isLoading, isError, error, refetch: refetchExecutions } =
         api.modularProcedures.execute.useQueryModularProcedureExecutions({
             search_submission_tag: debouncedSearch.length > 0 ? debouncedSearch : null,
+            search_plate_tag: debouncedPlateFilter.length > 0 ? debouncedPlateFilter : null,
             status: statusFilter.length > 0 ? statusFilter : null,
         })
     const { data: selectedExecution, isError: selectedIsError, error: selectedError, refetch: refetchSelected } =
@@ -288,16 +291,21 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
             </p>
             <div className="flex center-items gap--medium-small flex--wrap">
                 <input className="text-input" type="text" placeholder="Search for a submission tag ..."
+                    title="Filters the executions to those involving this submission"
                     value={searchString} onChange={(event) => setSearchString(event.target.value)}
-                    style={{ minWidth: "280px" }} />
-                <select className="text-input" value={statusFilter}
+                    style={{ minWidth: "220px" }} />
+                <input className="text-input" type="text" placeholder="Search for a plate tag ..."
+                    title="Filters the executions to those whose input or output plate tag contains this fragment"
+                    value={plateFilter} onChange={(event) => setPlateFilter(event.target.value)}
+                    style={{ minWidth: "220px" }} />
+                <select className="text-input" value={statusFilter} title="Filters the executions by their current state"
                     onChange={(event) => setStatusFilter(event.target.value)}>
                     <option value="">All states</option>
                     {EXECUTION_STATE_TAGS.map((state) => <option key={state} value={state}>{state}</option>)}
                 </select>
-                {searchString.length > 0 || statusFilter.length > 0 ?
+                {searchString.length > 0 || plateFilter.length > 0 || statusFilter.length > 0 ?
                     <button className="basic-button basic-button--small"
-                        onClick={() => { setSearchString(""); setStatusFilter("") }}>Clear</button> : null}
+                        onClick={() => { setSearchString(""); setPlateFilter(""); setStatusFilter("") }}>Clear</button> : null}
                 <Tag minimal intent="primary">{executions?.length ?? 0} execution(s)</Tag>
             </div>
         </div>
@@ -306,7 +314,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
             <div className="padding--medium" style={{ overflowX: "auto" }}>
                 {executions?.length === 0 ?
                     <Callout intent="warning" icon="warning-sign">
-                        No executions visible{searchString.length > 0 ? " for this search. You may not have access to this submission." : " yet."}
+                        No executions visible{searchString.length > 0 || plateFilter.length > 0 || statusFilter.length > 0 ? " for these filters — try clearing them. You may not have access to this submission or plate." : " yet."}
                     </Callout> :
                     <table className="font-size--small" style={{ borderCollapse: "collapse", width: "100%" }}>
                         <thead>
