@@ -578,6 +578,16 @@ h5 {
     border-color: #153880;
 }
 
+.basic-button--selected, .basic-button--selected:hover:not(:disabled) {
+    background-color: #2e528b;
+    color: #ffffff;
+    border-color: #2e528b;
+}
+
+.basic-button--selected:active:not(:disabled) {
+    background-color: #243f6d;
+}
+
 .basic-button--danger {
     background-color: #fdecea;
     color: #b3261e;

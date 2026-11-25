@@ -74,7 +74,7 @@ export function parseMetricsFile(content, traitTags, traitToAttribute = {}) {
 }
 
 export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, renderWell, paintMode = false,
-                            isWellDisabled = null, onWellDrop = null }) {
+                            isWellDisabled = null, onWellDrop = null, wellTitle = null, wellStyle = null }) {
     const [isPainting, setIsPainting] = useState(false)
     const handleMouseDown = (position) => { if (paintMode) { setIsPainting(true); onWellClick(position) } }
     const handleMouseEnter = (position) => { if (paintMode && isPainting) onWellClick(position) }
@@ -96,7 +96,9 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                     const well = wells[position]
                     const isSelected = selectedWell === position
                     const disabled = isWellDisabled !== null && isWellDisabled(position)
-                    return <div key={position} title={disabled ? `${position} — already used` : position}
+                    const wellTooltip = wellTitle !== null && well ? wellTitle(position, well) : null
+                    return <div key={position} title={disabled ? `${position} — already used`
+                        : (wellTooltip !== null ? wellTooltip : position)}
                         style={{ position: "relative", opacity: disabled ? 0.75 : 1,
                             cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer") }}
                         onClick={() => { if (!disabled) onWellClick(position) }}
@@ -116,6 +118,9 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                         {disabled ? <div style={{
                             position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
                             border: "2px dashed #cd4246", background: "rgba(205, 66, 70, 0.15)" }} /> : null}
+                        {well && wellStyle !== null && wellStyle(position, well) !== null ? <div style={{
+                            position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
+                            ...wellStyle(position, well) }} /> : null}
                         {well ? <div style={{
                             position: "absolute", inset: 0, pointerEvents: "none",
                             display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
