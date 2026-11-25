@@ -241,6 +241,7 @@ function CompareVolcanoCharts({ panels, volcano, isFetching, errorQuery, favorit
                                 <VolcanoListButton
                                     data={data}
                                     suffix={suffix}
+                                    testParams={panel?.testParams}
                                     submission_tag={panel.submission_tag}
                                     proteinTagMap={tagMap}
                                     setRequiredProteinTags={setRequiredTags}
