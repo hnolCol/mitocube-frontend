@@ -62,3 +62,8 @@
 .default_bp_menu .bp5-menu {
     min-width: 700px;
 }
+/* keep scrolling inside the attribute select dropdown (no scroll chaining to the underlying table) */
+.attribute-input-popover,
+.attribute-input-popover * {
+    overscroll-behavior: contain;
+}
