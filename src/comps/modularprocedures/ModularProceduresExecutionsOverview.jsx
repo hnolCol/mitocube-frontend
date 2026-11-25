@@ -9,7 +9,7 @@ import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { UserFullName } from "@/comps/core/input/api/UserInput";
 import useDebounce from "@/hooks/useDebounce";
 import {
-    ExecutionPlateExportDialog, downloadMetricsTemplate, parseMetricsFile,
+    ExecutionPlateExportDialog, downloadMetricsTemplate, parseMetricsFile, parseMetricsClipboard,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog";
 import {
     ExecutionStateChip, ExecutionStateControls, ProcedureTitle, formatExecutionTime,
@@ -109,6 +109,8 @@ function ExecutionWellValuesDialog({ execution, isOpen, onClose, onSaved }) {
         (traitsByAttribute[attribute_tag] || []).map((trait_tag) => [trait_tag, attribute_tag]))))
     const [traitSelection, setTraitSelection] = useState({})
     const [uploadError, setUploadError] = useState(null)
+    const [clipboardText, setClipboardText] = useState("")
+    const [pastedMetrics, setPastedMetrics] = useState(null)
     const outputPositions = (execution.output_wells || []).map((well) => well.position)
     const selectedTraitPairs = _.compact(attributeTags.map((attribute_tag) =>
         traitSelection[attribute_tag] ? { attribute_tag, trait_tag: traitSelection[attribute_tag] } : null))
@@ -167,6 +169,43 @@ function ExecutionWellValuesDialog({ execution, isOpen, onClose, onSaved }) {
                         <input type="file" accept=".txt,.tsv,.csv" disabled={selectedTraitPairs.length === 0 || isPending}
                             style={{ display: "none" }} onChange={handleUpload} />
                     </label>
+                </div>
+                <div className="flex flex-column gap--tiny">
+                    <div className="font-size--smallest" style={{ color: "#888" }}>
+                        ... or paste rows copied from Excel: well&nbsp;+&nbsp;value (select the trait first),
+                        well&nbsp;+&nbsp;trait&nbsp;+&nbsp;value, or the template's four columns — a "well" header row is
+                        detected automatically, and a single values column fills the output wells in order.
+                    </div>
+                    <textarea className="text-input padding--tiny font-size--small" rows={3}
+                        style={{ width: "100%" }} placeholder="A1<TAB>2.5" value={clipboardText}
+                        onChange={(event) => { setClipboardText(event.target.value); setPastedMetrics(null); setUploadError(null) }} />
+                    <div className="flex center-items gap--tiny">
+                        <button className="basic-button basic-button--small" disabled={clipboardText.trim().length === 0}
+                            onClick={() => {
+                                setUploadError(null)
+                                setPastedMetrics(null)
+                                try {
+                                    const parsed = parseMetricsClipboard(clipboardText, {
+                                        wellPositions: outputPositions,
+                                        selectedTraitPairs, allowedTraits, traitToAttribute })
+                                    if (parsed.length === 0) throw new Error("No values found in the pasted rows.")
+                                    setPastedMetrics(parsed)
+                                } catch (e) { setUploadError(e.message) }
+                            }}>Parse pasted values</button>
+                        {pastedMetrics ? <span className="font-size--small">
+                            {pastedMetrics.length} value(s): {pastedMetrics.map((metric) =>
+                                `${metric.position}=${metric.value}`).join(", ")}
+                        </span> : null}
+                        {pastedMetrics ? <button className="basic-button basic-button--small basic-button--highlighted"
+                            disabled={isPending}
+                            onClick={() => setMetrics({ tag: execution.tag,
+                                well_metrics: pastedMetrics.map((metric) => ({
+                                    position: metric.position, trait_tag: metric.trait_tag,
+                                    value: metric.value, side: "OUTPUT" })) },
+                                { onSuccess: () => { if (onSaved) onSaved(); onClose() } })}>
+                            {isPending ? "Saving..." : "Save pasted values"}
+                        </button> : null}
+                    </div>
                 </div>
                 {uploadError ? <div className="font-size--small font-color--error">{uploadError}</div> : null}
                 {isError ? <APIAxiosError error={error} /> : null}
