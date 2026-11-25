@@ -75,7 +75,8 @@ export function TraitInput({ attribute_tag, text = "", onItemSelect, selected_tr
                 inputValueRenderer={(i) => i.text}
                 onQueryChange={handleQueryChange}
                 onItemSelect={handleSelect}
-                menuProps={{style : {minWidth : "600px"}}}
+                menuProps={{ style: { minWidth: "600px" } }}
+                popoverContentProps={{onWheelCapture: (e) => e.stopPropagation(), onTouchMoveCapture: (e) => e.stopPropagation()}}
                 popoverProps={{ popoverClassName: "default_bp_menu"}}
                 >
                 

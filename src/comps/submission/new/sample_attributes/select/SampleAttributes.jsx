@@ -502,15 +502,15 @@ function SamplesAttributes({
      */
     const renderAttributeHeaderMenu = useCallback((columnIndex) => {
         const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
-        const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute_tag])?rowData[attribute_tag].length === 0:true).length:attributeTable.length
-        const allSamplesDefined = missingAttributeValues === 0
+        const missingSamples = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute_tag])?rowData[attribute_tag].length === 0:true).length:attributeTable.length
+        const allSamplesDefined = missingSamples === 0
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
         const hidden = isColumnHidden(columnIndex)
         return (
             <Menu small={true}>
                 <MenuItem text={<AttributeMenuLabel attribute_tag={attributeDefined ? attribute_tag : undefined} />} disabled={true} />
                 <MenuDivider />
-                <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
+                <MenuItem text={allSamplesDefined ? "Attribute values defined." : `Traits missing for ${missingSamples} samples.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
                 <MenuItem text="Clear" icon="clean" onClick={() => clearColumnByAttributeTag(attribute_tag)} disabled={!attributeDefined} />
                 <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(sampleAttrIndex)} />
