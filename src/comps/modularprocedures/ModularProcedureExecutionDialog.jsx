@@ -14,13 +14,20 @@ const rowLabel = (rowIndex) => String.fromCharCode(rowIndex + 65)
 const positionOf = (rowIndex, columnIndex) => `${rowLabel(rowIndex)}${columnIndex + 1}`
 
 /**
- * Downloads a txt template for well metrics: one header line (well + one column per attribute)
- * and one line per well, ready to be filled in and uploaded again.
+ * Downloads a txt template for well metrics in the long format: one line per well and
+ * selected trait pair (the value cell stays empty to be filled in) — header
+ * `well<TAB>attribute_tag<TAB>trait_tag<TAB>value`. `traitSelection` is a list of
+ * {attribute_tag, trait_tag} pairs, the trait selected as the unit to record the values in;
+ * wells are repeated once per pair so several declared attributes are covered by one file.
  */
-export function downloadMetricsTemplate(wellPositions, traitTags, filename = "well_metrics_template.txt") {
-    const lines = [["well", ...traitTags].join("\t")]
-    wellPositions.forEach((position) => lines.push([position, ...traitTags.map(() => "")].join("\t")))
-    const blob = new Blob([lines.join("\n") + "\n"], { type: "text/plain" })
+export function downloadMetricsTemplate(wellPositions, traitSelection, filename = "well_metrics_template.txt") {
+    const pairs = _.isArray(traitSelection) ? traitSelection : []
+    const lines = ["well\tattribute_tag\ttrait_tag\tvalue"]
+    wellPositions.forEach((position) =>
+        pairs.forEach(({ attribute_tag, trait_tag }) =>
+            lines.push([position, attribute_tag, trait_tag, ""].join("\t"))))
+    const linesOut = [lines[0], ...lines.slice(1).filter((line) => line.length > 0)]
+    const blob = new Blob([linesOut.join("\n") + "\n"], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
@@ -30,35 +37,38 @@ export function downloadMetricsTemplate(wellPositions, traitTags, filename = "we
 }
 
 /**
- * Parses an uploaded well metrics txt file (tab, comma or semicolon separated).
- * The header line names the attribute tags; each following line is a well position
- * followed by one numeric value per attribute. Returns {position, values} entries.
+ * Parses an uploaded well metrics txt file (tab, semicolon or comma separated) in the
+ * long format: a header line `well, attribute_tag, trait_tag, value` followed by one line
+ * per measurement. Every trait must be one of the allowed (declared) trait tags and the
+ * attribute tag must match the trait (checked against the traitToAttribute map); values
+ * must be numbers. Returns {position, trait_tag, value} entries.
  */
-export function parseMetricsFile(content, traitTags) {
+export function parseMetricsFile(content, traitTags, traitToAttribute = {}) {
+    const allowed = _.isArray(traitTags) ? traitTags : []
     const rows = content.split(/\r?\n/).map((line) => line.trim()).filter((line) => line.length > 0)
     if (rows.length < 2) throw new Error("The file must contain a header line and at least one well line.")
-    const separator = [ "\t", ";", "," ].find((sep) => rows[0].includes(sep)) || "\t"
-    const header = rows[0].split(separator).map((column) => column.trim())
-    if (header[0].toLowerCase() !== "well") throw new Error("The first header column must be 'well'.")
-    const columns = header.slice(1).map((trait_tag) => {
-        if (!traitTags.includes(trait_tag))
-            throw new Error(`Unknown trait in the header: ${trait_tag}`)
-        return trait_tag
-    })
+    const separator = ["\t", ";", ","].find((sep) => rows[0].includes(sep)) || "\t"
+    const header = rows[0].split(separator).map((column) => column.trim().toLowerCase())
+    if (header[0] !== "well" || header[1] !== "attribute_tag" || header[2] !== "trait_tag" || header[3] !== "value")
+        throw new Error("The header must be 'well, attribute_tag, trait_tag, value' — download the template to get it.")
     const wellMetrics = []
     rows.slice(1).forEach((row) => {
         const cells = row.split(separator).map((cell) => cell.trim())
+        if (cells.length < 4) throw new Error(`Incomplete line (well, attribute_tag, trait_tag and value expected): '${row}'`)
         const position = cells[0]
         if (!/^[A-Za-z]+[0-9]+$/.test(position)) throw new Error(`Invalid well position: ${position}`)
-        const values = []
-        columns.forEach((trait_tag, index) => {
-            const cell = cells[index + 1]
-            if (cell.length === 0) return
-            const value = _.toNumber(cell)
-            if (_.isNaN(value)) throw new Error(`Value '${cell}' for ${trait_tag} in well ${position} is not a number.`)
-            values.push({ trait_tag, value })
-        })
-        values.forEach((metric) => wellMetrics.push({ position: position.toUpperCase(), trait_tag: metric.trait_tag, value: metric.value }))
+        const attribute_tag = cells[1]
+        const trait_tag = cells[2]
+        if (!allowed.includes(trait_tag))
+            throw new Error(`Unknown trait '${trait_tag}' in well ${position} — use one of: ${allowed.join(", ")}`)
+        if (_.has(traitToAttribute, trait_tag) && traitToAttribute[trait_tag] !== attribute_tag)
+            throw new Error(`Trait '${trait_tag}' belongs to attribute '${traitToAttribute[trait_tag]}', ` +
+                `but '${attribute_tag}' was given in well ${position}.`)
+        const valueCell = cells.slice(3).join(separator)
+        if (valueCell.length === 0) return
+        const value = _.toNumber(valueCell)
+        if (_.isNaN(value)) throw new Error(`Value '${valueCell}' for ${trait_tag} in well ${position} is not a number.`)
+        wellMetrics.push({ position: position.toUpperCase(), trait_tag, value })
     })
     return wellMetrics
 }
