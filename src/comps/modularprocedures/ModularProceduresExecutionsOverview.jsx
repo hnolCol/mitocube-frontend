@@ -233,6 +233,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
     const [searchString, setSearchString] = useState("")
     const [plateFilter, setPlateFilter] = useState("")
     const [statusFilter, setStatusFilter] = useState("")
+    const [procedureFilter, setProcedureFilter] = useState("")
     const [selectedTag, setSelectedTag] = useState(null)
     const [newDraftDialogOpen, setNewDraftDialogOpen] = useState(false)
     const [newDraftProcedureTag, setNewDraftProcedureTag] = useState("")
@@ -261,8 +262,13 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
         api.modularProcedures.execute.useQueryModularProcedureExecutions({
             search_submission_tag: debouncedSearch.length > 0 ? debouncedSearch : null,
             search_plate_tag: debouncedPlateFilter.length > 0 ? debouncedPlateFilter : null,
+            search_procedure_tag: procedureFilter.length > 0 ? procedureFilter : null,
             status: statusFilter.length > 0 ? statusFilter : null,
         })
+    // the module filter dropdown: every published procedure version can have executions, so the
+    // list is not restricted to the latest version per lineage
+    const { data: procedureTags } = api.modularProcedures.query.useGetModularProceduresByQuery(
+        { status: "PUBLISHED" }, { staleTime: 60000 })
     const { data: selectedExecution, isError: selectedIsError, error: selectedError, refetch: refetchSelected } =
         api.modularProcedures.execute.useGetModularProcedureExecution(
             { tag: selectedTag }, { enabled: _.isString(selectedTag) })
@@ -298,14 +304,22 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                     title="Filters the executions to those whose input or output plate tag contains this fragment"
                     value={plateFilter} onChange={(event) => setPlateFilter(event.target.value)}
                     style={{ minWidth: "220px" }} />
+                <select className="text-input" value={procedureFilter}
+                    title="Filters the executions by their modular process (matches the procedure tag, case-insensitive)"
+                    style={{ maxWidth: "280px" }}
+                    onChange={(event) => setProcedureFilter(event.target.value)}>
+                    <option value="">All modules ...</option>
+                    {(_.isArray(procedureTags) ? procedureTags : []).map((tag) =>
+                        <option key={tag} value={tag}><ProcedureOptionTitle procedure_tag={tag} /></option>)}
+                </select>
                 <select className="text-input" value={statusFilter} title="Filters the executions by their current state"
                     onChange={(event) => setStatusFilter(event.target.value)}>
                     <option value="">All states</option>
                     {EXECUTION_STATE_TAGS.map((state) => <option key={state} value={state}>{state}</option>)}
                 </select>
-                {searchString.length > 0 || plateFilter.length > 0 || statusFilter.length > 0 ?
+                {searchString.length > 0 || plateFilter.length > 0 || statusFilter.length > 0 || procedureFilter.length > 0 ?
                     <button className="basic-button basic-button--small"
-                        onClick={() => { setSearchString(""); setPlateFilter(""); setStatusFilter("") }}>Clear</button> : null}
+                        onClick={() => { setSearchString(""); setPlateFilter(""); setStatusFilter(""); setProcedureFilter("") }}>Clear</button> : null}
                 <Tag minimal intent="primary">{executions?.length ?? 0} execution(s)</Tag>
             </div>
         </div>
@@ -314,7 +328,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
             <div className="padding--medium" style={{ overflowX: "auto" }}>
                 {executions?.length === 0 ?
                     <Callout intent="warning" icon="warning-sign">
-                        No executions visible{searchString.length > 0 || plateFilter.length > 0 || statusFilter.length > 0 ? " for these filters — try clearing them. You may not have access to this submission or plate." : " yet."}
+                        No executions visible{searchString.length > 0 || plateFilter.length > 0 || statusFilter.length > 0 || procedureFilter.length > 0 ? " for these filters — try clearing them. You may not have access to this submission, plate or module." : " yet."}
                     </Callout> :
                     <table className="font-size--small" style={{ borderCollapse: "collapse", width: "100%" }}>
                         <thead>
