@@ -4,6 +4,7 @@ import _ from "lodash";
 import { useNavigate } from "react-router";
 import { api } from "@/api";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
+import { UserFullName } from "@/comps/core/input/api/UserInput";
 import useDebounce from "@/hooks/useDebounce";
 import {
     ExecutionPlateExportDialog,
@@ -34,7 +35,8 @@ function ExecutionDetails({ execution, canChangeState, onStateChanged, onDeleted
             <span className="flex center-items gap--tiny">Procedure: <ProcedureTitle procedure_tag={execution.procedure_tag} /></span>
             <span>Input plate: {execution.input_plate_tag}</span>
             <span>Output plate: {execution.output_plate_tag}</span>
-            <span>Responsible: {execution.responsible_user_tag || "–"}</span>
+            <span>Responsible: {_.isString(execution.responsible_user_tag) ?
+                <UserFullName tag={execution.responsible_user_tag} /> : "–"}</span>
             <span>Created: {formatExecutionTime(execution.created_at)} by {execution.user_tag}</span>
         </div>
         {execution.finish_comment ? <div className="font-size--small" style={{ color: "#666" }}>Comment: {execution.finish_comment}</div> : null}
@@ -179,7 +181,8 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                                 <td className="padding--little">{execution.input_plate_tag}</td>
                                 <td className="padding--little">{execution.output_plate_tag}</td>
                                 <td className="padding--little">{execution.n_input_wells} → {execution.n_output_wells}</td>
-                                <td className="padding--little">{execution.responsible_user_tag || "–"}</td>
+                                <td className="padding--little">{_.isString(execution.responsible_user_tag) ?
+                                    <UserFullName tag={execution.responsible_user_tag} /> : "–"}</td>
                                 <td className="padding--little">{formatExecutionTime(execution.created_at)}</td>
                                 {canChangeState ? <td className="padding--little" onClick={(event) => event.stopPropagation()}>
                                     {execution.status === "DRAFT" ?
