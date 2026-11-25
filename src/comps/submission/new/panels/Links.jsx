@@ -7,7 +7,7 @@ export function LinksTab({ submission, setSubmission, setComponentKey, component
     const addLink = () => {
         // add a new link
         const linkID = getRandomID(5)
-        setSubmission(prevValues => {return {...prevValues,links : _.concat(submission.links, [{link : "", comment : "", id : linkID }])}})
+        setSubmission(prevValues => {return {...prevValues,links : _.concat(submission.links, [{url : "", comment : "", id : linkID }])}})
     }
 
     const removeLinkByIndex = (linkIdx) => {

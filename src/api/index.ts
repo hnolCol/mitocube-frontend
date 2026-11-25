@@ -3,6 +3,7 @@
 import {
     submissionAnalysisAPI,
     submissionTitleAPI,
+    submissionLinksAPI,
     submissionCoreAPI,
     submissionMetatextAPI, submissionPermissionsAPI,
     submissionStateAPI,
@@ -100,6 +101,7 @@ export const api = {
     submissions: {
         core : submissionCoreAPI,
         title : submissionTitleAPI,
+        links : submissionLinksAPI,
         analysis: submissionAnalysisAPI,
         similar: similarSubmissionsAPI,
         metatexts: submissionMetatextAPI,

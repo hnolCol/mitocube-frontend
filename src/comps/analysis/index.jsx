@@ -103,6 +103,7 @@ function SubmissionAnalysisHeader({ authenticationStatus }) {
             tabs: [
                 { text: "Overview", to: urlStart, exact: true },
                 { text: "Metatext", to: `${urlStart}/metatext` },
+                { text: "Links", to: `${urlStart}/links` },
                 { text: "Timeline", to: `${urlStart}/timeline` },
                 { text: "Help", to: `${urlStart}/help` },
                 { text: "Comments", to: `${urlStart}/comments` },

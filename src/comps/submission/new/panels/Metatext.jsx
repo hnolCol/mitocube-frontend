@@ -52,7 +52,7 @@ export function MetatextTab({ submission, setSubmission, setComponentKey, compon
             <span style={{ color: HIGHLIGHT_COLOR }}><strong>Add Meta Text</strong></span>
             </button>
         </div>
-        <MetaText metatextValues={submission.metatext} {...{ onMetaTextChange }} />
+        <MetaText metatextValues={submission.metatext} excludeTags={["metatext:research_aim"]} {...{ onMetaTextChange }} />
         <div>
             
             {submission.extraMetaText.length > 0 ? submission.extraMetaText.map((meta, index) => {

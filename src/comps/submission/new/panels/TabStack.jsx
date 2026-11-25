@@ -53,13 +53,14 @@ export function TabNextButton({ componentKey, setComponentKey }) {
     
     if (nextComponentKey !== -1) {
         return <button
+            className="basic-button"
             onClick={() => setComponentKey(prevValues => {
                 return {
                     current: nextComponentKey,
                     prev: prevValues.current
                 }
             })}>
-            Next
+            Next &rarr;
         </button>
     }    
 }
@@ -96,7 +97,14 @@ function SelectedComponent({ componentKey, submission, setSubmission, setCompone
     if (!SelectedComponent) {
         return <div>Component not found</div>;
     }
-    return <div style={{ minHeight: "calc(80vh - 150px - 1rem)"}} className="div--expand bg--grey div--round"><SelectedComponent {...{setComponentKey, submission, setSubmission}} /></div>;
+    return <div style={{ minHeight: "calc(80vh - 150px - 1rem)", display: "flex", flexDirection: "column" }} className="div--expand bg--grey div--round">
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+            <SelectedComponent {...{setComponentKey, submission, setSubmission}} />
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: "0.5rem" }}>
+            <TabNextButton {...{ componentKey, setComponentKey }} />
+        </div>
+    </div>;
 }
 
 export function SubmissionPanelStack({
