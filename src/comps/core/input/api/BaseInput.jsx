@@ -45,7 +45,11 @@ export function BaseInput({ render_children, api_hook, onSelect, selected_tags, 
         
         items={_.isArray(item_tags) ? item_tags : []} itemRenderer={handleRenderItem}
         onItemSelect={handleSelect}
-        onQueryChange={(query) => setSearch(query)}>
+        onQueryChange={(query) => setSearch(query)}
+        popoverContentProps={{
+            onWheelCapture: (e) => e.stopPropagation(),
+            onTouchMoveCapture: (e) => e.stopPropagation(),
+        }}>
         <button style={{width : fill ? "100%" : "auto"}} className={`${minimal ? "basic-button--small" : "basic-button"}`}>{placeholder}</button>
     </Select>
 
