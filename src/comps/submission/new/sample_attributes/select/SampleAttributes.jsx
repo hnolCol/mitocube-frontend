@@ -22,6 +22,16 @@ const getSampleAttrIndex = (columnIndex) => columnIndex - 3;
 const FIXED_COLUMN_WIDTHS = [150, 150, 150];
 const MIN_ATTRIBUTE_COLUMN_WIDTH = 150;
 const ADD_COLUMN_WIDTH = 60;
+const HIDDEN_COLUMN_WIDTH = 40;
+
+// stable key per attribute column: the attribute tag once defined, else the column position
+const getAttributeColumnKey = (sampleAttrIndex, groupings) => {
+    const attribute_tag = groupings[sampleAttrIndex]
+    return _.isString(attribute_tag) && attribute_tag.length > 0 ? attribute_tag : `__idx_${sampleAttrIndex}`
+}
+
+const isAttributeColumnHidden = (sampleAttrIndex, groupings, hiddenColumns) =>
+    hiddenColumns.has(getAttributeColumnKey(sampleAttrIndex, groupings))
 
 function useContainerWidth() {
     const containerRef = useRef(null);
@@ -42,17 +52,21 @@ function useContainerWidth() {
     return [containerRef, containerWidth];
 }
 
-const getDynamicColumnWidths = (containerWidth, numAttributeColumns) => {
+const getDynamicColumnWidths = (containerWidth, groupings, hiddenColumns) => {
     const fixedWidth = FIXED_COLUMN_WIDTHS.reduce((sum, width) => sum + width, 0);
-    const numDynamicColumns = numAttributeColumns + 1;
-    const availableWidth = Math.max(containerWidth - fixedWidth, 0);
+    const hiddenCount = groupings.reduce(
+        (count, _, idx) => count + (isAttributeColumnHidden(idx, groupings, hiddenColumns) ? 1 : 0),
+        0
+    );
+    const numVisibleDynamicColumns = groupings.length - hiddenCount + 1; // + add column
+    const availableWidth = Math.max(containerWidth - fixedWidth - hiddenCount * HIDDEN_COLUMN_WIDTH, 0);
     const dynamicWidth = Math.max(
         MIN_ATTRIBUTE_COLUMN_WIDTH,
-        Math.floor(availableWidth / Math.max(numDynamicColumns, 1))
+        Math.floor(availableWidth / Math.max(numVisibleDynamicColumns, 1))
     );
     return [
         ...FIXED_COLUMN_WIDTHS,
-        ...Array.from({ length: numAttributeColumns }, () => dynamicWidth),
+        ...groupings.map((_, idx) => isAttributeColumnHidden(idx, groupings, hiddenColumns) ? HIDDEN_COLUMN_WIDTH : dynamicWidth),
         ADD_COLUMN_WIDTH,
     ];
 };
@@ -142,6 +156,14 @@ const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
     )
 })
 
+const AttributeMenuLabel = memo(function AttributeMenuLabel({ attribute_tag }) {
+    const { data: attribute } = api.attributes.queryAttributes.useGetAttribute({ tag: attribute_tag }, { enabled: _.isString(attribute_tag), staleTime: Infinity })
+    if (_.isString(attribute_tag) && attribute_tag.length > 0) {
+        return <span>{_.isObject(attribute) && attribute.text ? `${attribute.text} (${attribute_tag})` : attribute_tag}</span>
+    }
+    return <span>Sample Attribute</span>
+})
+
 
 SamplesAttributes.propTypes = {
 
@@ -217,6 +239,23 @@ function SamplesAttributes({
     const { selectedRows, copiedRows, setSelectedRows, setCopiedRows } = useSampleTableSelection()
 
     const [isGenotypeDialogOpen, setIsGenotypeDialogOpen] = useState(false)
+
+    // attribute columns hidden via the "more" menu (keyed by attribute tag / position, session-only)
+    const [hiddenColumns, setHiddenColumns] = useState(() => new Set())
+
+    const isColumnHidden = useCallback((columnIndex) =>
+        isAttributeColumnHidden(getSampleAttrIndex(columnIndex), groupings, hiddenColumns),
+    [groupings, hiddenColumns])
+
+    const toggleColumnHidden = useCallback((columnIndex) => {
+        const key = getAttributeColumnKey(getSampleAttrIndex(columnIndex), groupings)
+        setHiddenColumns(current => {
+            const next = new Set(current)
+            if (next.has(key)) next.delete(key)
+            else next.add(key)
+            return next
+        })
+    }, [groupings])
 
     
     const selectedSampleTags = useMemo(
@@ -382,6 +421,8 @@ function SamplesAttributes({
         const cellKey = `${rowIndex}-${columnIndex}`
         const [attributeDefined, attribute_tag] = isGroupingAttributeDefined(columnIndex)
 
+        if (columnIndex >= 3 && isColumnHidden(columnIndex)) return <Cell key={cellKey}></Cell>
+
         if (columnIndex === 0) {
             return <Cell key={cellKey}>
                 {sampleNames.length === 0? "Adjust sample number" : sampleNames[rowIndex]}
@@ -429,6 +470,7 @@ function SamplesAttributes({
         attributeTable.length,
         checkAttributeRequiredTraits,
         getSelectionByPath,
+        isColumnHidden,
         isGroupingAttributeDefined,
         onSampleTraitSelection,
         onTagRemove,
@@ -454,42 +496,51 @@ function SamplesAttributes({
         const missingAttributeValues = attributeDefined?attributeTable.filter(rowData => _.isArray(rowData[attribute_tag])?rowData[attribute_tag].length === 0:true).length:attributeTable.length
         const allSamplesDefined = missingAttributeValues === 0
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
+        const hidden = isColumnHidden(columnIndex)
         return (
             <Menu small={true}>
-                <MenuItem text="Sample Attribute" disabled={true} />
+                <MenuItem text={<AttributeMenuLabel attribute_tag={attributeDefined ? attribute_tag : undefined} />} disabled={true} />
                 <MenuDivider />
                 <MenuItem text={allSamplesDefined ? "Attribute values defined." : `${missingAttributeValues} attribute values missing.`} intent={allSamplesDefined?"primary":"danger"}/>
                 <MenuDivider />
                 <MenuItem text="Clear" icon="clean" onClick={() => clearColumnByAttributeTag(attribute_tag)} disabled={!attributeDefined} />
                 <MenuItem text="Delete" icon="cross" onClick={() => removeSampleAttrByIndex(sampleAttrIndex)} />
-                
+                <MenuDivider />
+                <MenuItem text={hidden ? "Unhide column" : "Hide column"} icon={hidden ? "eye-open" : "eye-off"} onClick={() => toggleColumnHidden(columnIndex)} />
             </Menu>)
-    }, [attributeTable, clearColumnByAttributeTag, isGroupingAttributeDefined, removeSampleAttrByIndex])
+    }, [attributeTable, clearColumnByAttributeTag, isColumnHidden, isGroupingAttributeDefined, removeSampleAttrByIndex, toggleColumnHidden])
 
     const renderAttributeHeader = useCallback((columnIndex) => {
         const sampleAttrIndex = getSampleAttrIndex(columnIndex)
         const attribute_tag = groupings[sampleAttrIndex] 
+        const hidden = isColumnHidden(columnIndex)
         return (
             <ColumnHeaderCell style={{ minHeight: "3rem" }}
                 isColumnSelected={false}
             >
-                    <div className="margin--little attributeSelectionHeaderInner"
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <AttributeSelectionHeader
-                            {...{
-                                selected_attribute_tag : attribute_tag,
-                                sampleAttrIndex,
-                                onSampleAttributeSelect,
-                                columnIndex,
-                                disabled : sampleNames.length === 0,
-                                emptyText : sampleNames.length === 0 ? "Select number of samples first" : "",
-                            }} />
-                        <Popover content={renderAttributeHeaderMenu(columnIndex)} position="bottom-right" minimal>
-                            <Button icon="more" minimal small />
-                        </Popover>
-                    </div>
+                    {hidden ?
+                        <div className="margin--little" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Popover content={renderAttributeHeaderMenu(columnIndex)} position="bottom-right" minimal>
+                                <Button icon="more" minimal small />
+                            </Popover>
+                        </div> :
+                        <div className="margin--little attributeSelectionHeaderInner"
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                            <AttributeSelectionHeader
+                                {...{
+                                    selected_attribute_tag : attribute_tag,
+                                    sampleAttrIndex,
+                                    onSampleAttributeSelect,
+                                    columnIndex,
+                                    disabled : sampleNames.length === 0,
+                                    emptyText : sampleNames.length === 0 ? "Select number of samples first" : "",
+                                }} />
+                            <Popover content={renderAttributeHeaderMenu(columnIndex)} position="bottom-right" minimal>
+                                <Button icon="more" minimal small />
+                            </Popover>
+                        </div>}
             </ColumnHeaderCell>)
-    }, [groupings, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length])
+    }, [groupings, isColumnHidden, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length])
 
    
 
@@ -534,8 +585,8 @@ function SamplesAttributes({
     
 
     const columnWidths = useMemo(
-        () => getDynamicColumnWidths(containerWidth, groupings.length),
-        [containerWidth, groupings.length]
+        () => getDynamicColumnWidths(containerWidth, groupings, hiddenColumns),
+        [containerWidth, groupings, hiddenColumns]
     )
 
     const minColumnWidth = useMemo(
