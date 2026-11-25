@@ -1002,7 +1002,7 @@ export function ExecutionSetupPage() {
                         isWellHighlighted={isInputWellHighlighted}
                         onWellHover={(position) => setHoveredWell(position === null ? null : { side: "input", position })}
                         isWellWarned={(position) => inputDraftPositions.includes(position)}
-                        wellStyle={(position, well) => wellFillStyle(well)}
+                        wellStyle={(position, well) => wellFillStyle(well.sample_tags || [])}
                         wellTitle={wellTooltip}
                         renderWell={(well, position) => well && _.size(well.sample_tags) > 0 ?
                             <span className="flex center-items" style={{ gap: "0.15rem", color: "#ffffff", fontWeight: 600,
