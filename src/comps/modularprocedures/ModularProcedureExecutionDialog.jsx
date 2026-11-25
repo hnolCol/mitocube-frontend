@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import _ from "lodash";
 import { Dialog, DialogBody, DialogFooter, Button, Intent, Switch } from "@blueprintjs/core";
-import "@/comps/core/plate/plate.css";
+import { Well as RunlistWell } from "@/comps/core/plate/wellplate";
 import { downloadTxtFile } from "@/services/downloads/txt";
 
 /**
@@ -75,6 +75,7 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
         window.addEventListener("mouseup", stopPaint)
         return () => window.removeEventListener("mouseup", stopPaint)
     }, [paintMode])
+    const noOp = () => {}
 
     return <div className="flex flex-column" style={{ gap: "2px" }} onMouseLeave={handleMouseUp}>
         {_.range(plate.rows).map((rowIndex) =>
@@ -85,13 +86,9 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                     const well = wells[position]
                     const isSelected = selectedWell === position
                     const disabled = isWellDisabled !== null && isWellDisabled(position)
-                    return <div key={position}
-                        title={disabled ? `${position} — already used` : position}
-                        className="well-border prevent-select"
-                        style={{ cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer") }}
-                        onMouseDown={(e) => { if (e.button === 0 && !disabled) handleMouseDown(position) }}
-                        onMouseEnter={() => handleMouseEnter(position)}
-                        onMouseUp={handleMouseUp}
+                    return <div key={position} title={disabled ? `${position} — already used` : position}
+                        style={{ position: "relative", opacity: disabled ? 0.75 : 1,
+                            cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer") }}
                         onClick={() => { if (!disabled) onWellClick(position) }}
                         onDragOver={(e) => { if (onWellDrop !== null && !disabled) e.preventDefault() }}
                         onDrop={(e) => {
@@ -100,17 +97,25 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                             onWellDrop(position, e.dataTransfer.getData("text/plain"))
                         }}
                         onContextMenu={(e) => { e.preventDefault(); if (onWellAltClick && !disabled) onWellAltClick(position) }}>
-                        <div className={`well__base bg--grey ${isSelected ? "well__base--selected" : ""}`}
-                            style={{
-                                width: "4.2rem", height: "2.4rem", fontSize: "0.6rem",
-                                border: disabled ? "1px dashed #cd4246" : (isSelected ? "2px solid #48aff0" : "1px solid #ccc"),
-                                background: disabled ? "#f2dede" : (well ? "#d8f3d8" : undefined),
-                                color: disabled ? "#a06060" : undefined, textAlign: "center",
-                                display: "flex", flexDirection: "column", justifyContent: "center", overflow: "hidden"
-                            }}>
-                            <div><strong>{position}</strong>{disabled ? " ✕" : ""}</div>
-                            <div>{renderWell(well)}</div>
-                        </div>
+                        <RunlistWell row={rowIndex} column={columnIndex} rowLabel={rowLabel(rowIndex)}
+                            handleMouseDown={() => { if (!disabled) handleMouseDown(position) }}
+                            handleMouseUp={noOp}
+                            handleMouseEnter={() => { if (!disabled) handleMouseEnter(position) }}
+                            handleMouseLeave={noOp}
+                            selected={isSelected} />
+                        {disabled ? <div style={{
+                            position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
+                            border: "2px dashed #cd4246", background: "rgba(205, 66, 70, 0.15)" }} /> : null}
+                        {well ? <div style={{
+                            position: "absolute", inset: 0, pointerEvents: "none",
+                            display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+                            <span style={{
+                                transform: "scale(0.62)", transformOrigin: "bottom center", whiteSpace: "nowrap",
+                                fontSize: "0.55rem", lineHeight: "0.75rem", color: "#1c2a1c",
+                                display: "flex", alignItems: "center", gap: "1px" }}>
+                                {renderWell(well)}
+                            </span>
+                        </div> : null}
                     </div>
                 })}
             </div>)}

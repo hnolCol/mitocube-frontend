@@ -11,7 +11,8 @@ import { UserInput } from "@/comps/core/input/api/UserInput"
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput"
 import { PlateColorDot, getPlateColor } from "@/comps/core/plates/PlateColorDot"
 import { PlateCreateDialog } from "@/comps/admin/plates/PlateCreateDialog"
-import { ProcedureTitle, formatExecutionTime, ExecutionStateChip, TinyXButton } from "@/comps/modularprocedures/Shared"
+import { ProcedureTitle, formatExecutionTime, ExecutionStateChip, TinyXButton, isUserAtLeast, STATE_CHANGE_ROLE }
+    from "@/comps/modularprocedures/Shared"
 import {
     PlateGrid, downloadMetricsTemplate, parseMetricsFile, ExecutionPlateExportDialog,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog"
@@ -63,8 +64,9 @@ export function ExecutionSetupPage() {
     const procedure_tag = execution?.procedure_tag || procedureFromQuery
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000, retry: false })
-    const { data: submissions } = api.modularProcedures.query.useGetModularProcedureSubmissions(
+    const { data: submissions, refetch: refetchSubmissions } = api.modularProcedures.query.useGetModularProcedureSubmissions(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 30000, retry: false })
+    const { mutate: unlinkSubmission } = api.modularProcedures.modify.useUnlinkModularProcedureFromSubmission()
     const { data: plates, refetch: refetchPlates } = api.plates.plates.useGetPlates()
     const [createPlateTarget, setCreatePlateTarget] = useState(null) // "input" | "output"
 
@@ -368,6 +370,17 @@ export function ExecutionSetupPage() {
     const handleRemoveExtraSubmission = (tag) =>
         setExtraSubmissionTags((prev) => prev.filter((t) => t !== tag))
 
+    // assigned (linked) submissions are unlinked from the procedure; extra pooled submissions are
+    // only dropped from this execution setup - both right where they are listed
+    const handleRemoveSubmission = (submission_tag) => {
+        if (extraSubmissionTags.includes(submission_tag)) {
+            handleRemoveExtraSubmission(submission_tag)
+            return
+        }
+        if (!_.isString(procedure_tag)) return
+        unlinkSubmission({ tag: procedure_tag, submission_tag }, { onSuccess: () => refetchSubmissions() })
+    }
+
     const buildExecutionPayload = () => ({
         input_plate_tag: inputPlateTag, output_plate_tag: outputPlateTag,
         responsible_user_tag: responsibleUserTags[0],
@@ -420,9 +433,12 @@ export function ExecutionSetupPage() {
         </div>
     }
 
+    // the three columns share the full width of the parent equally and stretch to its full
+    // height; each column scrolls its own content
     const columnStyle = {
-        minWidth: "320px", width: "340px", border: "1px solid #ccc", borderRadius: "6px",
-        background: "#fafafa", padding: "0.75rem", maxHeight: "80vh", overflowY: "auto"
+        flex: "1 1 0", minWidth: 0, border: "1px solid #ccc", borderRadius: "6px",
+        background: "#fafafa", padding: "0.75rem", overflowY: "auto", display: "flex",
+        flexDirection: "column", minHeight: 0
     }
 
     const renderMetricsSection = (side, title) => {
@@ -523,9 +539,9 @@ export function ExecutionSetupPage() {
         {savedMessage ? <Callout intent="success" style={{ margin: "0 1rem" }}>{savedMessage}</Callout> : null}
         {startIsError ? <div className="padding--medium"><APIAxiosError error={startError} /></div> : null}
 
-        <div className="flex" style={{ gap: "1rem", alignItems: "flex-start", padding: "1rem" }}>
+        <div className="flex div--expand" style={{ gap: "1rem", alignItems: "stretch", padding: "1rem", minHeight: "60vh" }}>
             {/* ---------------- LEFT: input plate + assigned submissions ---------------- */}
-            <div style={{ ...columnStyle, minWidth: "360px", width: "380px" }}>
+            <div style={columnStyle}>
                 <h4 style={{ margin: "0 0 0.25rem 0" }}>
                     <span style={{ color: inputPlateTag ? "#238551" : "#c87619" }}>① Input plate</span>
                     <span className="font-size--smallest" style={{ color: "#888" }}>
@@ -561,28 +577,9 @@ export function ExecutionSetupPage() {
                         </span>
                         <TinyXButton
                             title={extraSubmissionTags.includes(submission_tag) ?
-                                "Drop this submission from the execution setup" :
-                                "Unassign this submission from the module (it can be assigned again anytime)"}
-                            onClick={() => {
-                                if (extraSubmissionTags.includes(submission_tag)) {
-                                    handleRemoveExtraSubmission(submission_tag)
-                                } else {
-                                    unlinkSubmission({ tag: procedure_tag, submission_tag: submission_tag }, {
-                                        onSuccess: () => {
-                                            setInputWells((prev) => {
-                                                const next = {}
-                                                _.forEach(prev, (well, position) => {
-                                                    const samples = (well.sample_tags || [])
-                                                        .filter((tag) => tag !== submission_tag)
-                                                    if (samples.length > 0 || (well.output_positions || []).length > 0)
-                                                        next[position] = { ...well, sample_tags: samples }
-                                                })
-                                                return next
-                                            })
-                                        }
-                                    })
-                                }
-                            }} />
+                                `Drop ${submission_tag} from this execution` :
+                                `Unlink ${submission_tag} from ${procedure?.title || procedure_tag}`}
+                            onClick={() => handleRemoveSubmission(submission_tag)} />
                     </div>
                 })}
                 <div className="flex center-items" style={{ gap: "0.25rem", margin: "0.5rem 0" }}>
@@ -669,7 +666,7 @@ export function ExecutionSetupPage() {
             </div>
 
         {/* ---------------- MIDDLE: the module console ---------------- */}
-            <div style={{ ...columnStyle, minWidth: "340px", width: "360px" }}>
+            <div style={columnStyle}>
                 <h4 style={{ margin: "0 0 0.5rem 0" }}>{procedure?.title || procedure_tag}
                     {_.isNumber(procedure?.version) && procedure.version > 1 ?
                         <span className="font-size--small" style={{ color: "#888" }}> v{procedure.version}</span> : null}
