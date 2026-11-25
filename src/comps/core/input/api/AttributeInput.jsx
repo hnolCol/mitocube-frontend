@@ -144,7 +144,7 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
                     onTouchMoveCapture: (e) => e.stopPropagation(),
                 }}>
                 
-                <Button icon="chevron-down" minimal small loading={isLoading || isFetching} text={text} />
+                <Button rightIcon="chevron-down" minimal small loading={isLoading || isFetching} text={text} />
             
             </Select>
         </div>

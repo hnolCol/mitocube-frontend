@@ -1,7 +1,7 @@
 import PropTypes from "prop-types"
 
 import { Column, Table2, ColumnHeaderCell, SelectionModes, Cell,} from "@blueprintjs/table"
-import { Menu, MenuItem, Tag, Button, MenuDivider } from "@blueprintjs/core"
+import { Menu, MenuItem, Tag, Button, MenuDivider, Popover } from "@blueprintjs/core"
 import { memo, useState, useCallback, useEffect, useMemo, useRef } from "react";
 import _ from "lodash"
 
@@ -124,14 +124,15 @@ const AttributeSelectionHeader = memo(function AttributeSelectionHeader({
     selected_attribute_tag,
     sampleAttrIndex,
     onSampleAttributeSelect,
-    disabled = false }) {
+    disabled = false,
+    emptyText = "" }) {
    
     const {data : attribute} = api.attributes.queryAttributes.useGetAttribute({tag : selected_attribute_tag},{enabled : typeof selected_attribute_tag === "string", staleTime : Infinity})
     const attributeSelected = _.isObject(attribute) && attribute?.text
     return (
         <div style={{marginRight : "2rem"}}>
             {<AttributeInput {...{
-                text: attributeSelected ? attribute.text : "",
+                text: attributeSelected ? attribute.text : emptyText,
                 attribute_groups : ["sample"],
                 min_state: 0, disabled,
                 include_traits: true,
@@ -470,12 +471,10 @@ function SamplesAttributes({
         const attribute_tag = groupings[sampleAttrIndex] 
         return (
             <ColumnHeaderCell style={{ minHeight: "3rem" }}
-                menuRenderer={renderAttributeHeaderMenu}
-                selectCellsOnMenuClick={false}
                 isColumnSelected={false}
             >
                     <div className="margin--little attributeSelectionHeaderInner"
-                        >
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                         <AttributeSelectionHeader
                             {...{
                                 selected_attribute_tag : attribute_tag,
@@ -483,7 +482,11 @@ function SamplesAttributes({
                                 onSampleAttributeSelect,
                                 columnIndex,
                                 disabled : sampleNames.length === 0,
+                                emptyText : sampleNames.length === 0 ? "Select number of samples first" : "",
                             }} />
+                        <Popover content={renderAttributeHeaderMenu(columnIndex)} position="bottom-right" minimal>
+                            <Button icon="more" minimal small />
+                        </Popover>
                     </div>
             </ColumnHeaderCell>)
     }, [groupings, onSampleAttributeSelect, renderAttributeHeaderMenu, sampleNames.length])
