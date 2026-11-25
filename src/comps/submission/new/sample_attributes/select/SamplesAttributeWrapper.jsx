@@ -663,7 +663,7 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
     
     return (
-        <div style={{minHeight:"600x", overflow: "scroll"}}>
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, overflow: "hidden" }}>
             <Alert style={{ minWidth: "700px" }} canEscapeKeyCancel={true} canOutsideClickCancel={true}
                 onConfirm={resetAlert} onClose={resetAlert} {...alertProps} />
 

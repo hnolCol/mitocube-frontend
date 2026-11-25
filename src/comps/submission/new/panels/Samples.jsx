@@ -28,7 +28,7 @@ export function SamplesTab({ submission, setSubmission, setComponentKey, compone
     }, [_.join(submission.selected_traits.map(t => t.tag), ",")])
 
     return (
-        <div>
+        <div style={{ height: "100%", display: "flex", flexDirection: "column", minHeight: 0, overflow: "hidden" }}>
                 <h3>Samples</h3>
                     <p>Sample attributes describe each sample, for example its <span className="h1-span">Genotype</span>, <span className="h2-span">Treatment</span>, or <span className="h0-span">Timepoint</span>.
                         They are used for statistics and visualization, so please define them carefully. If an attribute you need is missing, contact the administrator.</p>
