@@ -137,6 +137,9 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
                 inputValueRenderer={(i) => _.isObject(i) ? i.attribute_tag : i.text}
                 onQueryChange={handleQueryChange}
                 onItemSelect={(item) => onItemSelect(_.isString(item) ? item : item.attribute_tag)}
+                popoverProps={{
+                    popoverClassName: "attribute-input-popover",
+                }}
                 popoverContentProps={ 
                     {
                     
