@@ -620,6 +620,8 @@ export function SampleAttributeTableWrapper({ submission, updateSubmission, numb
 
     const onSampleAttributeSelect = (sampleAttrIdx, attribute_tag) => {
         let sampleAttrs = [...submission.samplesAttributes]
+        // each sample attribute may be used only once - ignore a tag already assigned to another column
+        if (sampleAttrs.some((tag, idx) => idx !== sampleAttrIdx && tag === attribute_tag)) return
         let sampleAttr = sampleAttrs[sampleAttrIdx]
 
         sampleAttrs[sampleAttrIdx] = attribute_tag
