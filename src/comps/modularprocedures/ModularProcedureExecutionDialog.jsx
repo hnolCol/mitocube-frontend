@@ -73,6 +73,91 @@ export function parseMetricsFile(content, traitTags, traitToAttribute = {}) {
     return wellMetrics
 }
 
+const wellPositionOrderKey = (position) => {
+    const match = /^([A-Za-z]+)([0-9]+)$/.exec(position)
+    if (!match) return [0, 0]
+    const row = match[1].toUpperCase().split("").reduce((acc, char) => acc * 26 + (char.charCodeAt(0) - 64), 0)
+    return [row, _.toInteger(match[2])]
+}
+
+/**
+ * Parses values pasted from a spreadsheet (e.g. rows copied out of Excel) into well metrics.
+ * Tab, semicolon, comma and whitespace-cell input is detected automatically; the header row is
+ * optional and recognized by a leading "well" cell. Supported layouts:
+ * - 4 columns: well, attribute_tag, trait_tag, value (the template format)
+ * - 3 columns: well, trait_tag, value
+ * - 2 columns: well, value (needs exactly one selected attribute/trait pair)
+ * - 1 column: values only, filled onto `wellPositions` in row-wise order (needs one pair too)
+ * Position, trait (and attribute) and numeric values are validated like the file upload.
+ */
+export function parseMetricsClipboard(text, { wellPositions, selectedTraitPairs = [], allowedTraits = [], traitToAttribute = {} }) {
+    const rows = String(text || "").split(/\r?\n|\r/).map((line) => line.trim()).filter((line) => line.length > 0)
+    if (rows.length === 0) throw new Error("The clipboard is empty.")
+    const separator = ["\t", ";", ","].find((sep) => rows[0].includes(sep))
+    const cells = rows.map((row) => separator ? row.split(separator).map((cell) => cell.trim())
+        : row.split(/\s+/).map((cell) => cell.trim()))
+    if (cells[0][0].toLowerCase() === "well") cells.shift()
+    if (cells.length === 0) throw new Error("The clipboard only contains a header line.")
+    const widths = _.uniq(cells.map((row) => row.length))
+    if (widths.length > 1) throw new Error("All pasted rows must have the same number of columns.")
+    const width = widths[0]
+    const positions = _.isArray(wellPositions) ? [...wellPositions].sort((a, b) => {
+        const [aRow, aCol] = wellPositionOrderKey(a)
+        const [bRow, bCol] = wellPositionOrderKey(b)
+        return (aRow - bRow) || (aCol - bCol)
+    }) : []
+    const singlePair = _.isArray(selectedTraitPairs) && selectedTraitPairs.length === 1 ? selectedTraitPairs[0] : null
+    const metrics = []
+    cells.forEach((row, index) => {
+        let position = null
+        let attribute_tag = null
+        let trait_tag = null
+        let valueCell = null
+        if (width >= 4) {
+            position = row[0]
+            attribute_tag = row[1]
+            trait_tag = row[2]
+            valueCell = row.slice(3).join(separator || " ")
+        } else if (width === 3) {
+            position = row[0]
+            trait_tag = row[1]
+            valueCell = row.slice(2).join(separator || " ")
+        } else if (width === 2) {
+            if (singlePair === null)
+                throw new Error("Two pasted columns (well + value) need exactly one selected attribute trait — select the trait first.")
+            position = row[0]
+            attribute_tag = singlePair.attribute_tag
+            trait_tag = singlePair.trait_tag
+            valueCell = row[1]
+        } else {
+            if (singlePair === null)
+                throw new Error("A single pasted values column needs exactly one selected attribute trait — select the trait first.")
+            if (index >= positions.length)
+                throw new Error(`More pasted values (${cells.length}) than wells (${positions.length}).`)
+            position = positions[index]
+            attribute_tag = singlePair.attribute_tag
+            trait_tag = singlePair.trait_tag
+            valueCell = row[0]
+        }
+        if (!/^[A-Za-z]+[0-9]+$/.test(position)) throw new Error(`Invalid well position: '${position}'`)
+        position = position.toUpperCase()
+        if (positions.length > 0 && !positions.includes(position))
+            throw new Error(`${position} is not a well this setup records values for.`)
+        if (valueCell.length === 0) return
+        const value = _.toNumber(valueCell)
+        if (_.isNaN(value)) throw new Error(`Value '${valueCell}' for ${trait_tag} in well ${position} is not a number.`)
+        if (allowedTraits.length > 0 && !allowedTraits.includes(trait_tag))
+            throw new Error(`Unknown trait '${trait_tag}' — use one of: ${allowedTraits.join(", ")}`)
+        if (attribute_tag !== null && _.has(traitToAttribute, trait_tag) && traitToAttribute[trait_tag] !== attribute_tag)
+            throw new Error(`Trait '${trait_tag}' belongs to attribute '${traitToAttribute[trait_tag]}', but '${attribute_tag}' was given in well ${position}.`)
+        metrics.push({ position, attribute_tag, trait_tag, value })
+    })
+    // a repeated well/trait from the clipboard overrides the earlier value
+    const byKey = {}
+    metrics.forEach((metric) => { byKey[`${metric.position}:${metric.trait_tag}`] = metric })
+    return _.map(byKey)
+}
+
 export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, renderWell, paintMode = false,
                             isWellDisabled = null, onWellDrop = null, wellTitle = null, wellStyle = null }) {
     const [isPainting, setIsPainting] = useState(false)
