@@ -540,10 +540,28 @@ export function ExecutionSetupPage() {
         })
         return { background: `linear-gradient(to right, ${stops.join(", ")})` }
     }
-    // the hover tooltip of a placed well (like the plate specific view in admin/plates)
+    // the hover tooltip of a placed input well (like the plate specific view in admin/plates):
+    // every sample with its submission, plus the transfer targets of the well
     const wellTooltip = (position, well) => {
         const entries = (well.sample_tags || []).map((sample_tag) => `${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
-        return entries.length > 0 ? `${position} — ${entries.join(", ")}` : null
+        const outputs = (well.output_positions || []).join(", ")
+        const parts = [entries.length > 0 ? `${position} — ${entries.join(", ")}` : null,
+            outputs.length > 0 ? `→ ${outputs}` : null]
+        return parts.filter((part) => part).join(" ") || null
+    }
+    // the samples collected in an output well (derived from the transfer map) for its tooltip
+    const outputSampleEntries = {}
+    _.forEach(inputWells, (well) => (well.output_positions || []).forEach((position) =>
+        (well.sample_tags || []).forEach((sample_tag) => {
+            outputSampleEntries[position] = outputSampleEntries[position] || []
+            outputSampleEntries[position].push(`${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
+        })))
+    const outputWellTooltip = (position, well) => {
+        const entries = _.uniq(outputSampleEntries[position] || [])
+        const cas = (well.condition_application_tags || []).join(", ")
+        const parts = [entries.length > 0 ? `${position} — ${entries.join(", ")}` : null,
+            cas.length > 0 ? `parameters: ${cas}` : null]
+        return parts.filter((part) => part).join(" ") || null
     }
 
     // the three columns share the full width of the parent equally and stretch to its full
@@ -783,18 +801,30 @@ export function ExecutionSetupPage() {
                         isWellDisabled={inputWellDisabled} onWellDrop={handleInputWellDrop}
                         wellStyle={(position, well) => wellFillStyle(well)}
                         wellTitle={wellTooltip}
-                        renderWell={(well) => well && _.size(well.sample_tags) > 0 ?
-                            <span className="flex center-items" style={{ gap: "0.15rem" }}>
-                                <span className="font-size--smallest">{_.size(well.sample_tags)}</span>
+                        renderWell={(well, position) => well && _.size(well.sample_tags) > 0 ?
+                            <span className="flex center-items" style={{ gap: "0.15rem", color: "#ffffff", fontWeight: 600,
+                                textShadow: "0 0 2px rgba(0,0,0,0.95), 0 0 5px rgba(0,0,0,0.8)" }}>
+                                <span className="font-size--smallest">{position}</span>
+                                <span style={{ opacity: 0.9 }}>{_.size(well.sample_tags)}</span>
+                                {(well.output_positions || []).length > 0 ?
+                                    <span className="font-size--smallest" style={{ opacity: 0.8 }}>→{(well.output_positions || []).length}</span> : null}
                             </span> : ""} />
                     <div className="flex center-items flex--wrap" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
                         <button className="basic-button basic-button--small" onClick={handleAutoMap}>Auto-map 1:1</button>
                         <button className="basic-button basic-button--small"
                             title="Download the sample -> well table of the input plate like the runlist export"
                             onClick={() => setExportDialogProps({ isOpen: true, side: "input" })}>Export input plate</button>
-                        <span className="font-size--smallest" style={{ color: "#888" }}>
-                            then select a well and click output wells to map
-                        </span>
+                        {selectedInputWell !== null ?
+                            <span className="font-size--small" style={{ color: "#238551" }}>
+                                Mapping input well <strong>{selectedInputWell}</strong> — click (or drag over) the
+                                output wells to set the transfer targets
+                                <button className="basic-button basic-button--small" style={{ marginLeft: "0.35rem" }}
+                                    title="Finish the explicit mapping of this input well"
+                                    onClick={() => setSelectedInputWell(null)}>done</button>
+                            </span> :
+                            <span className="font-size--smallest" style={{ color: "#888" }}>
+                                Click an input well, then click / drag over output wells to map it — or unmap with right-click
+                            </span>}
                     </div>
                 </> : <div className="font-size--small" style={{ color: "#888", marginTop: "0.5rem" }}>Select an input plate first.</div>}
 
@@ -879,6 +909,7 @@ export function ExecutionSetupPage() {
                         onWellClick={handleOutputWellClick} onWellAltClick={handleOutputWellRightClick}
                         isWellDisabled={outputWellDisabled}
                         paintMode={selectedInputWell !== null}
+                        wellTitle={outputWellTooltip}
                         renderWell={(well) => well ? <span className="font-size--smallest">
                             CA{well.condition_application_tags.length}</span> : ""} />
                     <div className="font-size--smallest" style={{ color: "#888", marginTop: "0.25rem" }}>

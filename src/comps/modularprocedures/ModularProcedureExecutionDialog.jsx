@@ -128,7 +128,7 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                                 transform: "scale(0.62)", transformOrigin: "bottom center", whiteSpace: "nowrap",
                                 fontSize: "0.55rem", lineHeight: "0.75rem", color: "#1c2a1c",
                                 display: "flex", alignItems: "center", gap: "1px" }}>
-                                {renderWell(well)}
+                                {renderWell(well, position)}
                             </span>
                         </div> : null}
                     </div>
