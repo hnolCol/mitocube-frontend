@@ -7,10 +7,11 @@ import { api } from "@/api"
 
 MetaText.propTypes = {
     onMetaTextChange: PropTypes.func.isRequired,
-    metatextValues: PropTypes.object}
+    metatextValues: PropTypes.object,
+    excludeTags: PropTypes.arrayOf(PropTypes.string)}
 
 
-function MetaText({ onMetaTextChange, metatextValues, allowTextForState = 0, allowTextBelowState = false }) {
+function MetaText({ onMetaTextChange, metatextValues, allowTextForState = 0, allowTextBelowState = false, excludeTags = [] }) {
  
     const {data : metatext, isLoading : metatextIsLoading} = api.submissions.metatexts.useGetSubmissionMetatext()
     return (
@@ -18,6 +19,7 @@ function MetaText({ onMetaTextChange, metatextValues, allowTextForState = 0, all
             {metatextIsLoading ? <Loading /> : null}
             {_.isObject(metatext) ? metatext.titles.map((metatextTitle, index) => {
                 const metatextTag = metatext.tags[metatextTitle]
+                if (_.isArray(excludeTags) && excludeTags.includes(metatextTag)) return null
                 if (_.has(metatext,"allowed_for_state") && _.has(metatext.allowed_for_state,metatextTag) && (allowTextBelowState ? metatext.allowed_for_state[metatextTag] > allowTextForState : metatext.allowed_for_state[metatextTag] !== allowTextForState)) return null 
                     return<TextFieldInput
                         key = {`${ metatextTag}-${index}`}

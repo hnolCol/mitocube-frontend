@@ -3,6 +3,7 @@ import { apiClient } from "./client";
 export const submissionAnalysisAPI = hooks.submissions.analysis.createSubmissionAnalysisAPI(apiClient);
 export const similarSubmissionsAPI = hooks.submissions.analysis.createSimilarSubmissionsAPI(apiClient);
 export const submissionTitleAPI = hooks.submissions.title.createSubmissionTitleAPI(apiClient);
+export const submissionLinksAPI = hooks.submissions.links.createSubmissionLinksAPI(apiClient);
 export const submissionCoreAPI = hooks.submissions.core.createSubmissionCoreAPI(apiClient);
 export const submissionMetatextAPI = hooks.submissions.metatexts.createSubmissionMetatextAPI(apiClient);
 export const submissionPermissionsAPI = hooks.submissions.permissions.createSubmissionPermissionsAPI(apiClient);

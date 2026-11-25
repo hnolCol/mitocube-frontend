@@ -32,6 +32,25 @@ import { SubmissionModuleStatus } from "@/comps/submission/view/SubmissionModule
 import { SubmissionSampleLocations } from "@/comps/submission/view/SubmissionSampleLocations";
 import { SubmissionModuleFlow } from "@/comps/submission/view/SubmissionModuleFlow";
 import { overviewBoxStyle } from "./overviewBoxStyle";
+import { SubmissionLink } from "@/comps/core/links/Submission";
+
+/**
+ * @description Shows the submission this submission is linked to (e.g. a repeated experiment), if any.
+ * @param {Object} props
+ * @param {String} props.submission_tag The submission tag
+ * @returns {JSX.Element|null}
+ */
+function LinkedSubmission({ submission_tag }) {
+    const { data: linked_tag } = api.submissions.links.useGetLinkedSubmission(
+        { tag: submission_tag },
+        { enabled: _.isString(submission_tag) && submission_tag.length > 0, staleTime: 60000 }
+    )
+    if (!_.isString(linked_tag) || linked_tag.length === 0) return null
+    return <div className="margin-top--little">
+        <strong>Linked submission (e.g. repeated experiment): </strong>
+        <SubmissionLink tag={linked_tag} />
+    </div>
+}
 /**
  * @description React element to give an overview about a Dataset/Submission. 
  * @param {Object} props  
@@ -75,6 +94,7 @@ function SubmissionOverview({ user_tag }) {
                 {/* <MultipleMetrices metrices={datasetMetrices} /> */}
                
                 <ResearchAim submission_tag={submission_tag}/>
+                <LinkedSubmission submission_tag={submission_tag} />
                 </div>
 
 

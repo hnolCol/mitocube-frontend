@@ -55,7 +55,8 @@ const initSubmissionState = {
             metatext: {},
             extraMetaText : [],
             genotypes: [],
-            links : [{id : randomInitLinkID, link : "", comment : ""}],
+            links : [{id : randomInitLinkID, url : "", comment : ""}],
+            linked_submission_tag : null,
             selected_traits: [], // the dataset traits,
             rerenderTableDependency: 0,
             title : ""
@@ -254,7 +255,8 @@ function InitialSubmission({
                 dataset_attributes: submission.selected_traits,
                 samples_attributes: attributeTable.map(sampleAttributes => sampleAttributes.filter(attr => submission.samplesAttributes.includes(attr.tag))),
                 sample_names: submission.sampleNames,
-                links: submission.links.filter(linkProps => linkProps.link !== "")
+                links: submission.links.filter(linkProps => _.isString(linkProps.url) && linkProps.url.trim() !== ""),
+                linked_submission_tag: _.isString(submission.linked_submission_tag) && submission.linked_submission_tag.length > 0 ? submission.linked_submission_tag : null
             }
             
 
