@@ -17,9 +17,9 @@ const AMINO_ACID_ATTRIBUTES = new Set(["att_aa_substitution"])
 const DNA_ATTRIBUTES = new Set(["att_grna", "att_crispr_hdr", "att_sirna_sequence"])
 
 
-export function AttributeTraitInput({ has_selection, selection, childTrait, attribute, attributeHasTraits, getInput, handleSingleTraitSelection, handleTraitValueInput, referenceID, }) {
+export function AttributeTraitInput({ has_selection, selection, childTrait, attribute, attributeHasTraits, getInput, handleSingleTraitSelection, handleTraitValueInput, referenceID, highlight = false, }) {
     return (
-    <div>
+    <div style={highlight ? { color: "#fff" } : undefined}>
         <MinimalTextInput
                 value={getInput()}
                 placeholder={attributeHasTraits && !has_selection ? `Select ${attribute.text} first ->` : (`${attribute.text} e.g. (${attribute.placeholder})` || attribute.text)}
@@ -28,12 +28,15 @@ export function AttributeTraitInput({ has_selection, selection, childTrait, attr
                 allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
                 allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
                 onChange={(value) => handleTraitValueInput(value)}
-                suffix_trait_tag={childTrait} />
+                suffix_trait_tag={childTrait}
+                style={highlight ? { color: "#fff" } : {}}
+                highlight={highlight} />
                            
         {attributeHasTraits ?
             
             <TraitInput
                 attribute_tag={attribute.tag}
+                highlight={highlight}
                 onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
                 selected_trait={has_selection && _.isString(childTrait) ? childTrait : undefined}
                 onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
@@ -63,8 +66,8 @@ TraitChildren.propTypes = {
  * @param {String[]} props.children_tags The tags of the children.  
  * @returns 
  */
-export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, displayChildrenUponSelection = true, selected_proteome_tags = []}) {
-    return (<div>
+export function TraitChildren({ children_tags, onChildrenSelection, getSelectionByPath, path, selectedRows, rowIndex, index = 0, onRemove, referenceID, displayChildrenUponSelection = true, selected_proteome_tags = [], highlight = false}) {
+    return (<div style={highlight ? { color: "#fff" } : undefined}>
         {
             _.isArray(children_tags) && children_tags.length ?
                 children_tags.map(tag => <TraitChildSelection
@@ -80,7 +83,8 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
                         onRemove,
                         referenceID,
                         displayChildrenUponSelection,
-                        selected_proteome_tags
+                        selected_proteome_tags,
+                        highlight
                     }} />)
                 : null
         }
@@ -102,7 +106,7 @@ export function TraitChildren({ children_tags, onChildrenSelection, getSelection
  * @param {String} props.referenceID The reference ID for the current selection.
  * @returns 
  */
-export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, displayChildrenUponSelection, selected_proteome_tags = [] }) {
+export function TraitChildSelection({ attribute_tag, onSelection, path, selectedRows, index, getSelectionByPath, rowIndex, onRemove, referenceID, displayChildrenUponSelection, selected_proteome_tags = [], highlight = false }) {
     
 
     const [requiredTraitsValid, setRequiredTraitsValid] = useState()
@@ -228,7 +232,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     if (!requiredTraitsValid) return null
     if (requiredTraitsChecked && required_traits.length > 0 && requiredTraitsValid === false) return null
 
-    return <div> {
+    return <div style={highlight ? { color: "#fff" } : undefined}> {
         isSuccess ?
             <div style={{marginLeft : `${index * 8}px`}}>
                 {attribute.allow_input ?
@@ -250,6 +254,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                         />
                                         <TraitInput
                                             attribute_tag={"att_proteome"}
+                                            highlight={highlight}
                                             onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID, true)}
                                             selected_trait={selection && has_selection ? selection.map(s => s.tag) : undefined}
                                             onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? selected_proteome_tags.length > 0 ? handleTraitSelection(default_proteome, referenceID, true) : handleTraitSelection(d[0], referenceID, true) : null}
@@ -268,12 +273,15 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                     allowAminoAcidsOnly={AMINO_ACID_ATTRIBUTES.has(attribute.tag)}
                                     allowDNAOnly={DNA_ATTRIBUTES.has(attribute.tag)}
                                     onChange={(value) => handleTraitValueInput(value)}
-                                    suffix_trait_tag={childTrait} />}
+                                    suffix_trait_tag={childTrait}
+                                    style={highlight ? { color: "#fff" } : {}}
+                                    highlight={highlight} />}
                            
                             {attributeHasTraits ?
                                 
                                 <TraitInput
                                     attribute_tag={attribute_tag}
+                                    highlight={highlight}
                                     onItemSelect={(attribute_tag, trait_tag) => handleSingleTraitSelection(trait_tag, referenceID)} //was false true 
                                     selected_trait={has_selection ? selection[0].tag : undefined}
                                     onTraitLoadSuccess={(d) => _.isArray(d) && d.length > 0 && !has_selection ? handleSingleTraitSelection(d[0], referenceID) : null}
@@ -283,9 +291,10 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
 
             
                         
-                        <div style={{marginTop : "0.1rem", paddingTop : "0.5rem", width : "100%", backgroundColor : "#f5f5f5f2", borderRadius : "0.2rem", marginBottom : "0.5rem", paddingLeft : "0.5rem", paddingRight : "0.5rem"}}>
+                        <div style={{marginTop : "0.1rem", paddingTop : "0.5rem", width : "100%", backgroundColor : highlight ? "rgba(255,255,255,0.12)" : "#f5f5f5f2", color : highlight ? "#fff" : undefined, borderRadius : "0.2rem", marginBottom : "0.5rem", paddingLeft : "0.5rem", paddingRight : "0.5rem"}}>
                             <TraitInput
                                 attribute_tag={attribute_tag}
+                                highlight={highlight}
                                 text={attribute.text}
                                 selected_trait={has_selection ? selection.map(s => s.tag) : undefined}
                                 onItemSelect={(attribute_tag, trait_tag) => handleTraitSelection(trait_tag, referenceID, false, false)} />
@@ -294,7 +303,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                 {selection && _.isArray(selection) && selection.length > 0 ? selection.map(s => <div className="flex flex-column " key={s.tag + '-' + referenceID + s.type + s.value + attribute_tag + rowIndex}>
                                     <div className="flex justify-space-between" style={{width : "100%"}}>
                                         <Trait trait_tag={s.tag} /> 
-                                        <RemoveButton onRemove={() => handleRemove(_.concat(track_path, [{ type: "trait", tag: s.tag, id: referenceID }]))} /> 
+                                        <RemoveButton fontColor={highlight ? "#fff" : undefined} onRemove={() => handleRemove(_.concat(track_path, [{ type: "trait", tag: s.tag, id: referenceID }]))} /> 
                                     </div>
                                     <div className="margin-left--medium">
                                         <TraitChildren
@@ -308,7 +317,8 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                                                 onChildrenSelection: onSelection,
                                                 index: index + 1,
                                                 referenceID: referenceID,
-                                                onRemove
+                                                onRemove,
+                                                highlight
                                             }} /> 
                                     </div>
                                         
@@ -330,6 +340,7 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
                             onChildrenSelection: onSelection,
                             index: index + 1,
                             referenceID: referenceID,
+                            highlight
                         }} /> : null}
                 </div > : null
             }

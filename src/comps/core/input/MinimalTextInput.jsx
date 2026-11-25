@@ -20,7 +20,8 @@ MinimalTextInputComponent.propTypes = {
     prefix: PropTypes.string,
     suffix: PropTypes.string,
     suffix_trait_tag: PropTypes.string,
-    disabled: PropTypes.bool
+    disabled: PropTypes.bool,
+    highlight: PropTypes.bool
 }
 
 
@@ -54,6 +55,7 @@ function MinimalTextInputComponent({
     suffix = "",
     suffix_trait_tag,
     disabled = false,
+    highlight = false,
     allowAminoAcidsOnly = false,
     allowDNAOnly = false
 }) {
@@ -77,7 +79,7 @@ function MinimalTextInputComponent({
     return (
         <div style={{ display: "flex", alignItems: "center" }}>
             {prefix && (
-                <span style={{ marginRight: "4px", fontSize: "0.75rem", color: "#888" }}>
+                <span style={{ marginRight: "4px", fontSize: "0.75rem", color: highlight ? "#fff" : "#888" }}>
                     {prefix}
                 </span>
             )}
@@ -99,7 +101,7 @@ function MinimalTextInputComponent({
                 }}
             />
             {_.isObject(suffixTrait) && (
-                <span style={{ marginLeft: "4px", fontSize: "0.75rem", color: "#888" }}>
+                <span style={{ marginLeft: "4px", fontSize: "0.75rem", color: highlight ? "#fff" : "#888" }}>
                     {suffixTrait ? suffixTrait.text : null}
                 </span>
             )}
@@ -118,6 +120,7 @@ function areEqual(prevProps, nextProps) {
     if (prevProps.prefix !== nextProps.prefix) return false
     if (prevProps.suffix !== nextProps.suffix) return false
     if (prevProps.suffix_trait_tag !== nextProps.suffix_trait_tag) return false
+    if (prevProps.highlight !== nextProps.highlight) return false
     return true
         
 }       
