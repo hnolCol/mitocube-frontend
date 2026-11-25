@@ -86,6 +86,77 @@ export function ExecutionSetupPage() {
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
     const [fillRowsFirst, setFillRowsFirst] = useState(true)
+    // the well hovered on either plate: hovering an input well rings its mapped output wells and
+    // vice versa, so the transfer map can be read off the plates without consulting the table
+    const [hoveredWell, setHoveredWell] = useState(null) // { side: "input" | "output", position }
+    const inputPositionsOfOutput = (position) =>
+        _.keys(inputWells).filter((inputPosition) =>
+            (inputWells[inputPosition].output_positions || []).includes(position))
+    const isInputWellHighlighted = (position) =>
+        _.isObject(hoveredWell) && hoveredWell.side === "output" &&
+        inputPositionsOfOutput(hoveredWell.position).includes(position)
+    const isOutputWellHighlighted = (position) =>
+        _.isObject(hoveredWell) && hoveredWell.side === "input" &&
+        ((inputWells[hoveredWell.position] || {}).output_positions || []).includes(position)
+    // the collapsible editable transfer map, hidden by default (the click/paint mapping on the
+    // plates stays the primary interaction - typing well ids is the keyboard alternative)
+    const [isMappingTableOpen, setIsMappingTableOpen] = useState(false)
+    const [draftOutputCells, setDraftOutputCells] = useState({}) // row key -> typed output position
+
+    // commits a typed output position of the transfer map table: re-maps the input well from its
+    // old target to the typed one (validating the position, the plate bounds and the occupancy)
+    const handleTableOutputCommit = (inputPosition, oldOutput, rawText) => {
+        const rowKey = `${inputPosition}->${oldOutput || "new"}`
+        const normalize = (position) => ((position || "").trim().toUpperCase() || "")
+        const newPosition = normalize(rawText)
+        const clearDraft = () => setDraftOutputCells((prev) => _.omit(prev, rowKey))
+        if (newPosition === normalize(oldOutput)) { clearDraft(); return }
+        if (newPosition.length === 0 && normalize(oldOutput).length > 0) {
+            setInputWells((prev) => {
+                const well = prev[inputPosition]
+                return { ...prev, [inputPosition]: { ...well,
+                    output_positions: (well.output_positions || []).filter((p) => p !== oldOutput) } }
+            })
+            setOutputWells((prev) => {
+                const stillReferenced = _.some(inputWells, (well, p) =>
+                    p !== inputPosition && (well.output_positions || []).includes(oldOutput))
+                return stillReferenced ? prev : _.omit(prev, oldOutput)
+            })
+            clearDraft()
+            return
+        }
+        if (!/^[A-Z]+[1-9][0-9]*$/.test(newPosition)) {
+            setFillMessage(`'${rawText}' is not a well position (e.g. B2).`)
+            return
+        }
+        const rowIndex = newPosition.charCodeAt(0) - 65
+        const columnIndex = _.toInteger(newPosition.slice(1)) - 1
+        const outputRows = outputPlate?.rows || 0
+        const outputColumns = outputPlate?.columns || 0
+        if (!_.isObject(outputPlate) || rowIndex < 0 || rowIndex >= outputRows || columnIndex < 0 || columnIndex >= outputColumns) {
+            setFillMessage(`Well ${newPosition} is not on the ${(outputPlate && outputPlate.format) || "output"} plate.`)
+            return
+        }
+        if (outputWellDisabled(newPosition)) {
+            setFillMessage(`Output well ${newPosition} is already used — choose a free well.`)
+            return
+        }
+        setInputWells((prev) => {
+            const well = prev[inputPosition]
+            const targets = (well.output_positions || []).filter((p) => p !== oldOutput)
+            if (!targets.includes(newPosition)) targets.push(newPosition)
+            return { ...prev, [inputPosition]: { ...well, output_positions: targets } }
+        })
+        setOutputWells((prev) => {
+            const next = { ...prev }
+            next[newPosition] = next[newPosition] || { condition_application_tags: [] }
+            const stillReferenced = oldOutput && _.some(inputWells, (well, p) =>
+                p !== inputPosition && (well.output_positions || []).includes(oldOutput))
+            return stillReferenced ? next : (oldOutput ? _.omit(next, oldOutput) : next)
+        })
+        clearDraft()
+        setFillMessage(null)
+    }
     // per side and declared attribute: the trait (unit) the well values are recorded in — it
     // drives the value template (one line per well and selected trait) and the upload check
     const [metricTraitSelection, setMetricTraitSelection] = useState({ INPUT: {}, OUTPUT: {} })
@@ -655,6 +726,66 @@ export function ExecutionSetupPage() {
         flexDirection: "column", minHeight: 0
     }
 
+    // the editable transfer map as a full-width, collapsible second row below the three columns:
+    // one row per input well and output target (samples of the input well, its position and an
+    // editable output position); hovering a row highlights the wells on the plates
+    const renderTransferMapTable = () => {
+        const rows = []
+        _.forEach(inputWells, (well, inputPosition) => {
+            if ((well.sample_tags || []).length === 0) return
+            const outputs = (well.output_positions || []).length > 0 ? well.output_positions : [""]
+            outputs.forEach((outputPosition) => rows.push({ inputPosition, outputPosition, samples: well.sample_tags }))
+        })
+        if (rows.length === 0) return null
+        const nOutputs = _.size(_.uniq(_.flatten(_.map(inputWells, (well) => well.output_positions || []))))
+        return <div style={{ borderTop: "1px solid #ccc", paddingTop: "0.5rem" }}>
+            <div className="flex center-items" style={{ gap: "0.5rem" }}>
+                <button className="basic-button basic-button--small"
+                    onClick={() => setIsMappingTableOpen((prev) => !prev)}>
+                    {isMappingTableOpen ? "▾" : "▸"} Transfer map
+                </button>
+                <span className="font-size--smallest" style={{ color: "#888" }}>
+                    {rows.length} mapping row(s): {_.size(inputWells)} input well(s) → {nOutputs} output well(s)
+                    {isMappingTableOpen ? " — type another output well (e.g. B2) to re-map a row" : ""}
+                </span>
+            </div>
+            {isMappingTableOpen ? <div style={{ maxHeight: "30vh", overflowY: "auto", marginTop: "0.5rem" }}>
+                <table style={{ borderCollapse: "collapse", width: "100%" }}>
+                    <thead>
+                        <tr style={{ textAlign: "left", borderBottom: "2px solid #ccc" }}>
+                            <th className="padding--little">Sample tag(s)</th>
+                            <th className="padding--little">Input well</th>
+                            <th className="padding--little">Output well</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map(({ inputPosition, outputPosition, samples }) => {
+                            const rowKey = `${inputPosition}->${outputPosition || "new"}`
+                            const draft = _.has(draftOutputCells, rowKey) ? draftOutputCells[rowKey] : (outputPosition || "")
+                            return <tr key={rowKey}
+                                style={{ borderBottom: "1px solid #eee", background: hoveredWell &&
+                                    ((hoveredWell.side === "input" && hoveredWell.position === inputPosition) ||
+                                     (hoveredWell.side === "output" && hoveredWell.position === outputPosition)) ? "#e8f4fd" : undefined }}
+                                onMouseEnter={() => setHoveredWell({ side: "input", position: inputPosition })}
+                                onMouseLeave={() => setHoveredWell(null)}>
+                                <td className="padding--little font-size--small">{samples.join(", ")}</td>
+                                <td className="padding--little font-size--small">{inputPosition}</td>
+                                <td className="padding--little">
+                                    <input className="text-input font-size--small" type="text" style={{ width: "5rem" }}
+                                        placeholder="well?"
+                                        value={draft}
+                                        onChange={(e) => setDraftOutputCells((prev) => ({ ...prev, [rowKey]: e.target.value }))}
+                                        onBlur={() => handleTableOutputCommit(inputPosition, outputPosition, draft)}
+                                        onKeyDown={(e) => { if (e.key === "Enter") e.target.blur() }} />
+                                </td>
+                            </tr>
+                        })}
+                    </tbody>
+                </table>
+            </div> : null}
+        </div>
+    }
+
     const renderMetricsSection = (side, title) => {
         const state = metricStates[side]
         const positions = sideWellPositions(side)
@@ -805,7 +936,8 @@ export function ExecutionSetupPage() {
         {savedMessage ? <Callout intent="success" style={{ margin: "0 1rem" }}>{savedMessage}</Callout> : null}
         {startIsError ? <div className="padding--medium"><APIAxiosError error={startError} /></div> : null}
 
-        <div className="flex div--expand" style={{ gap: "1rem", alignItems: "stretch", padding: "1rem", minHeight: "60vh" }}>
+        <div className="div--expand flex flex-column" style={{ padding: "1rem", minHeight: "60vh", gap: "0.75rem" }}>
+        <div className="flex div--expand" style={{ gap: "1rem", alignItems: "stretch", minHeight: 0 }}>
             {/* ---------------- LEFT: input plate + assigned submissions ---------------- */}
             <div style={columnStyle}>
                 <h4 style={{ margin: "0 0 0.25rem 0" }}>
@@ -923,8 +1055,10 @@ export function ExecutionSetupPage() {
                     <PlateGrid plate={inputPlate} wells={inputWells} selectedWell={selectedInputWell}
                         onWellClick={handleInputWellClick} onWellAltClick={handleClearInputWell}
                         isWellDisabled={inputWellDisabled} onWellDrop={handleInputWellDrop}
+                        isWellHighlighted={isInputWellHighlighted}
+                        onWellHover={(position) => setHoveredWell(position === null ? null : { side: "input", position })}
                         isWellWarned={(position) => inputDraftPositions.includes(position)}
-                        wellStyle={(position, well) => wellFillStyle(well)}
+                        wellStyle={(position, well) => wellFillStyle(well.sample_tags || [])}
                         wellTitle={wellTooltip}
                         renderWell={(well, position) => well && _.size(well.sample_tags) > 0 ?
                             <span className="flex center-items" style={{ gap: "0.15rem", color: "#ffffff", fontWeight: 600,
@@ -1044,6 +1178,8 @@ export function ExecutionSetupPage() {
                     <PlateGrid plate={outputPlate} wells={outputWells} selectedWell={selectedOutputWell}
                         onWellClick={handleOutputWellClick} onWellAltClick={handleOutputWellRightClick}
                         isWellDisabled={outputWellDisabled}
+                        isWellHighlighted={isOutputWellHighlighted}
+                        onWellHover={(position) => setHoveredWell(position === null ? null : { side: "output", position })}
                         isWellWarned={(position) => outputDraftPositions.includes(position)}
                         paintMode={selectedInputWell !== null}
                         wellTitle={outputWellTooltip}
@@ -1065,6 +1201,8 @@ export function ExecutionSetupPage() {
                         onClick={() => setExportDialogProps({ isOpen: true, side: "output" })}>Export output plate</button>
                 </> : <div className="font-size--small" style={{ color: "#888", marginTop: "0.5rem" }}>Select an output plate.</div>}
             </div>
+        </div>
+        {renderTransferMapTable()}
         </div>
         <ExecutionPlateExportDialog
             isOpen={exportDialogProps.isOpen} side={exportDialogProps.side}
