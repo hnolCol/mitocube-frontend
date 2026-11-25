@@ -1,13 +1,15 @@
 import { Alert, Button, Callout, Dialog, DialogBody, DialogFooter, Intent, Tag } from "@blueprintjs/core";
 import { useState } from "react";
+import { useQueries } from "@tanstack/react-query";
 import _ from "lodash";
 import { useNavigate } from "react-router";
 import { api } from "@/api";
+import { apiClient } from "@/api/client";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { UserFullName } from "@/comps/core/input/api/UserInput";
 import useDebounce from "@/hooks/useDebounce";
 import {
-    ExecutionPlateExportDialog,
+    ExecutionPlateExportDialog, downloadMetricsTemplate, parseMetricsFile, parseMetricsClipboard,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog";
 import {
     ExecutionStateChip, ExecutionStateControls, ProcedureTitle, formatExecutionTime,
@@ -16,6 +18,7 @@ import {
 
 function ExecutionDetails({ execution, canChangeState, onStateChanged, onDeleted }) {
     const [exportSide, setExportSide] = useState(null)
+    const [valuesDialogOpen, setValuesDialogOpen] = useState(false)
     return <div className="flex flex-column gap--small" style={{ borderTop: "1px solid #ddd", paddingTop: "0.75rem" }}>
         <div className="flex center-items justify-between gap--tiny flex--wrap">
             <div className="flex center-items gap--tiny">
@@ -52,11 +55,19 @@ function ExecutionDetails({ execution, canChangeState, onStateChanged, onDeleted
         <div>
             <div className="flex center-items justify-between">
                 <h5 style={{ margin: "0.25rem 0" }}>Output plate details</h5>
-                <button className="basic-button basic-button--small"
-                    title="Download the sample -> well table of the output plate like the runlist export"
-                    onClick={() => setExportSide("output")}>Export output plate</button>
+                <div className="flex center-items gap--tiny">
+                    {canChangeState && (execution.status === "RUNNING" || execution.status === "SUCCEEDED") ?
+                        <button className="basic-button basic-button--small"
+                            title="Record the measured result values on the output wells - often only known after the run succeeded"
+                            onClick={() => setValuesDialogOpen(true)}>Measured values</button> : null}
+                    <button className="basic-button basic-button--small"
+                        title="Download the sample -> well table of the output plate like the runlist export"
+                        onClick={() => setExportSide("output")}>Export output plate</button>
+                </div>
             </div>
             <WellTable wells={execution.output_wells} side="output" />
+            {canChangeState ? <ExecutionWellValuesDialog execution={execution} isOpen={valuesDialogOpen}
+                onClose={() => setValuesDialogOpen(false)} onSaved={onStateChanged} /> : null}
         </div>
         <ExecutionPlateExportDialog isOpen={_.isString(exportSide)} side={exportSide}
             execution={execution} onClose={() => setExportSide(null)} />
@@ -71,6 +82,150 @@ function ExecutionDetails({ execution, canChangeState, onStateChanged, onDeleted
  * admins see the state change controls; standard users only see their own
  * submissions' data — the backend masks everything else.
  */
+/**
+ * Dialog to record the measured result values on the output wells of a running or successfully
+ * finished execution: the values of the procedure's declared result attributes often can only be
+ * read out after the run (e.g. the concentration after a digestion). Same template/upload format
+ * as the setup page (well, attribute_tag, trait_tag, value); setting a value twice updates it.
+ */
+function ExecutionWellValuesDialog({ execution, isOpen, onClose, onSaved }) {
+    const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
+        { tag: execution.procedure_tag }, { enabled: isOpen })
+    const { mutate: setMetrics, isPending, isError, error } =
+        api.modularProcedures.execute.useSetModularProcedureExecutionMetrics()
+    const attributeTags = _.isArray(procedure?.output_attribute_tags) ? procedure.output_attribute_tags : []
+    const traitQueries = useQueries({
+        queries: attributeTags.map((attribute_tag) => ({
+            queryKey: ["traitsByTag", attribute_tag, 100],
+            queryFn: () => apiClient.get(`/attributes/${attribute_tag}/traits`, { params: { tag: attribute_tag, limit: 100 } })
+                .then((response) => response.data),
+            staleTime: 300000, retry: false, enabled: isOpen,
+        }))
+    })
+    const traitsByAttribute = _.fromPairs(_.zip(attributeTags,
+        traitQueries.map((query) => (_.isArray(query.data) ? query.data : []))))
+    const allowedTraits = _.flatten(_.values(traitsByAttribute))
+    const traitToAttribute = _.fromPairs(_.flatten(attributeTags.map((attribute_tag) =>
+        (traitsByAttribute[attribute_tag] || []).map((trait_tag) => [trait_tag, attribute_tag]))))
+    const [traitSelection, setTraitSelection] = useState({})
+    const [uploadError, setUploadError] = useState(null)
+    const [clipboardText, setClipboardText] = useState("")
+    const [pastedMetrics, setPastedMetrics] = useState(null)
+    const outputPositions = (execution.output_wells || []).map((well) => well.position)
+    const selectedTraitPairs = _.compact(attributeTags.map((attribute_tag) =>
+        traitSelection[attribute_tag] ? { attribute_tag, trait_tag: traitSelection[attribute_tag] } : null))
+
+    const handleUpload = (event) => {
+        setUploadError(null)
+        const file = event.target.files?.[0]
+        if (!file) return
+        const reader = new FileReader()
+        reader.onload = () => {
+            try {
+                const parsed = parseMetricsFile(String(reader.result), allowedTraits, traitToAttribute)
+                const unknown = parsed.filter((metric) => !outputPositions.includes(metric.position))
+                if (unknown.length > 0)
+                    throw new Error(`Wells in the file are not output wells of this execution: ${unknown.map((metric) => metric.position).join(", ")}`)
+                setMetrics({ tag: execution.tag, well_metrics: parsed.map((metric) => ({ ...metric, side: "OUTPUT" })) },
+                    { onSuccess: () => { if (onSaved) onSaved(); onClose() } })
+            } catch (e) {
+                setUploadError(e.message)
+            }
+        }
+        reader.readAsText(file)
+        event.target.value = ""
+    }
+
+    return <Dialog style={{ width: "min(850px, 80vw)" }} isOpen={isOpen} onClose={onClose}
+        title={`Measured result values — ${execution.tag}`} canOutsideClickClose={false} canEscapeKeyClose={true}>
+        <DialogBody>
+            {attributeTags.length === 0 ? <Callout intent="warning" icon="warning-sign">
+                This module does not declare result attributes (output attributes) — there is nothing to record.
+            </Callout> : <div className="flex flex-column gap--small">
+                <div className="font-size--small">
+                    The result values of the declared attributes — often only readable after the run.
+                    Select the trait (unit) per attribute, download the template, fill in the value per
+                    line and upload it. Setting a value twice updates it.
+                </div>
+                {attributeTags.map((attribute_tag) =>
+                    <div key={attribute_tag} className="flex center-items gap--small">
+                        <span className="font-size--small" style={{ fontWeight: 600 }}>{attribute_tag}:</span>
+                        <select className="text-input" style={{ width: "auto" }}
+                            value={traitSelection[attribute_tag] || ""}
+                            onChange={(e) => setTraitSelection((prev) => ({ ...prev, [attribute_tag]: e.target.value || null }))}>
+                            <option value="">Select trait ...</option>
+                            {(traitsByAttribute[attribute_tag] || []).map((trait_tag) =>
+                                <option key={trait_tag} value={trait_tag}>{trait_tag}</option>)}
+                        </select>
+                    </div>)}
+                <div className="flex center-items gap--small">
+                    <button className="basic-button basic-button--small" disabled={selectedTraitPairs.length === 0 || outputPositions.length === 0}
+                        onClick={() => downloadMetricsTemplate(outputPositions, selectedTraitPairs, "execution_result_values_template.txt")}>
+                        Template
+                    </button>
+                    <label className={`basic-button basic-button--small ${selectedTraitPairs.length === 0 ? "basic-button--excluded" : ""}`}
+                        style={{ cursor: selectedTraitPairs.length === 0 ? "not-allowed" : "pointer" }}>
+                        {isPending ? "Saving..." : "Upload values"}
+                        <input type="file" accept=".txt,.tsv,.csv" disabled={selectedTraitPairs.length === 0 || isPending}
+                            style={{ display: "none" }} onChange={handleUpload} />
+                    </label>
+                </div>
+                <div className="flex flex-column gap--tiny">
+                    <div className="font-size--smallest" style={{ color: "#888" }}>
+                        ... or paste rows copied from Excel: well&nbsp;+&nbsp;value (select the trait first),
+                        well&nbsp;+&nbsp;trait&nbsp;+&nbsp;value, or the template's four columns — a "well" header row is
+                        detected automatically, and a single values column fills the output wells in order.
+                    </div>
+                    <textarea className="text-input padding--tiny font-size--small" rows={3}
+                        style={{ width: "100%" }} placeholder="A1<TAB>2.5" value={clipboardText}
+                        onChange={(event) => { setClipboardText(event.target.value); setPastedMetrics(null); setUploadError(null) }} />
+                    <div className="flex center-items gap--tiny">
+                        <button className="basic-button basic-button--small" disabled={clipboardText.trim().length === 0}
+                            onClick={() => {
+                                setUploadError(null)
+                                setPastedMetrics(null)
+                                try {
+                                    const parsed = parseMetricsClipboard(clipboardText, {
+                                        wellPositions: outputPositions,
+                                        selectedTraitPairs, allowedTraits, traitToAttribute })
+                                    if (parsed.length === 0) throw new Error("No values found in the pasted rows.")
+                                    setPastedMetrics(parsed)
+                                } catch (e) { setUploadError(e.message) }
+                            }}>Parse pasted values</button>
+                        {pastedMetrics ? <span className="font-size--small">
+                            {pastedMetrics.length} value(s): {pastedMetrics.map((metric) =>
+                                `${metric.position}=${metric.value}`).join(", ")}
+                        </span> : null}
+                        {pastedMetrics ? <button className="basic-button basic-button--small basic-button--highlighted"
+                            disabled={isPending}
+                            onClick={() => setMetrics({ tag: execution.tag,
+                                well_metrics: pastedMetrics.map((metric) => ({
+                                    position: metric.position, trait_tag: metric.trait_tag,
+                                    value: metric.value, side: "OUTPUT" })) },
+                                { onSuccess: () => { if (onSaved) onSaved(); onClose() } })}>
+                            {isPending ? "Saving..." : "Save pasted values"}
+                        </button> : null}
+                    </div>
+                </div>
+                {uploadError ? <div className="font-size--small font-color--error">{uploadError}</div> : null}
+                {isError ? <APIAxiosError error={error} /> : null}
+                <div>
+                    <div className="font-size--small" style={{ fontWeight: 600, margin: "0.25rem 0" }}>Recorded values</div>
+                    {(execution.output_wells || []).filter((well) => (well.metrics || []).length > 0).map((well) =>
+                        <div key={well.position} className="flex center-items gap--tiny font-size--small">
+                            <strong>{well.position}</strong>
+                            {well.metrics.map((metric) =>
+                                <span key={`${metric.trait_tag}`} className="margin-right--little">
+                                    {`${metric.trait_tag}: ${metric.value}`}
+                                </span>)}
+                        </div>)}
+                </div>
+            </div>}
+        </DialogBody>
+        <DialogFooter><Button text="Close" onClick={onClose} /></DialogFooter>
+    </Dialog>
+}
+
 export function ModularProceduresExecutionsOverview({ userRole }) {
     const navigate = useNavigate()
     const canChangeState = isUserAtLeast(userRole, STATE_CHANGE_ROLE)
