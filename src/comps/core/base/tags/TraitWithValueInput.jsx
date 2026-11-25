@@ -55,26 +55,30 @@ function TraitWithValueInputComponent({
     const backgroundColor = highlight ? "#466688" : "#e5e5e5"
     const fontColor = isHexColorLight(backgroundColor) ? "#000000" : "#fff"
     const traitPath = [{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }, { "tag": trait_tag, "type": "trait", "id": referenceID }]
-    const allows_multiple_traits = true //wanted to make this an attribute property, but it is not yet implemented in the backend. For now, we will assume that all attributes allow multiple traits.
     const allow_multiple_selection = true
+    const attributeSelection = _.isFunction(getSelectionByPath) ? getSelectionByPath([{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }], rowIndex) : undefined
     const selection = _.isFunction(getSelectionByPath) ? getSelectionByPath(traitPath, rowIndex) : undefined 
-    const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
+    // a trait counts as selected when its node is a child of the attribute node; for flat
+    // allow_input attributes the trait itself carries the value, so its own children stay empty
+    const traitIsSelected = _.isArray(attributeSelection) && _.some(attributeSelection, s => s.tag === trait_tag)
+    const has_selection = traitIsSelected || (_.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag))
     /**
-     * @description Get the input value for the text input. The given path is screened to match and the value is returned.
+     * @description Get the input value for the text input. The value of this trait is returned.
      * @returns {String} The input value for the text input.
      */
     const getInput = () => {
-        const input = getSelectionByPath([{ "tag": attribute_tag, "type": "attribute", "id" : referenceID }], rowIndex)
-        if (_.isArray(input) && input.length > 0) {
-
-            return allows_multiple_traits ? input.map(i => i.value) : _.head(input).value
+        if (_.isArray(attributeSelection)) {
+            const node = attributeSelection.find(i => i.tag === trait_tag)
+            if (node && node.value !== undefined && node.value !== null) {
+                return _.isString(node.value) ? node.value : String(node.value)
+            }
         }
         return ""
         }
     
     const handleTraitSelection = (trait_tag, referenceID, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
         
-        if (has_selection && allow_multiple_selection === true && selection.map(s => s.tag).includes(trait_tag)) {
+        if (has_selection && allow_multiple_selection === true && _.isArray(selection) && selection.map(s => s.tag).includes(trait_tag)) {
                 
                 const p_remove = _.concat(traitPath, [{ "type": "trait", "tag": trait_tag, "id": referenceID }])
                 if (_.isFunction(onRemove)) onRemove(p_remove, [rowIndex], referenceID)
