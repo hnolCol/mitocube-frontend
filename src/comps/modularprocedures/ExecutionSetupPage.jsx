@@ -102,6 +102,17 @@ export function ExecutionSetupPage() {
         { tag: outputPlateTag }, { enabled: _.isString(outputPlateTag), staleTime: 15000 })
     const { data: occupiedOutputExecutionWells } = api.modularProcedures.execute.useGetProcedurePlateOccupied(
         { tag: outputPlateTag }, { enabled: _.isString(outputPlateTag), staleTime: 15000 })
+    // other curators may set up their own drafts on the same plate in parallel: drafts block
+    // nothing, but their wells get a warning overlay — only the run that starts first gets them
+    const { data: inputDraftWells } = api.modularProcedures.execute.useGetProcedurePlateDraftWells(
+        { tag: inputPlateTag }, { enabled: _.isString(inputPlateTag), staleTime: 15000 })
+    const { data: outputDraftWells } = api.modularProcedures.execute.useGetProcedurePlateDraftWells(
+        { tag: outputPlateTag }, { enabled: _.isString(outputPlateTag), staleTime: 15000 })
+    const foreignDraftPositions = (draftWells) => _.isPlainObject(draftWells) ?
+        _.keys(draftWells).filter((position) =>
+            _.uniq((draftWells[position] || []).filter((tag) => tag !== execution_tag)).length > 0) : []
+    const inputDraftPositions = foreignDraftPositions(inputDraftWells)
+    const outputDraftPositions = foreignDraftPositions(outputDraftWells)
     const inputWellDisabled = (position) => (_.isArray(occupiedInputWells) ? occupiedInputWells : [])
         .some((well) => well.position === position)
     const outputWellDisabled = (position) =>
@@ -497,6 +508,17 @@ export function ExecutionSetupPage() {
         startBlockers.push(`remove duplicated output wells — the module declares at most ${maxOutputs} output well(s) per sample (${samplesAboveMax.length} sample(s) exceed it)`)
     if (inputValuesMissing) startBlockers.push(`fill in the per-well input values (${missingInputValues} well value(s) missing)`)
     const startButtonTitle = startBlockers.length > 0 ? `To start: ${startBlockers.join(" · ")}` : ""
+    // conflicts with other curators' drafts on the same plates: drafts block nothing, so both
+    // setups remain possible — the collision is warned about and the start decides (first wins)
+    const draftConflictTags = (draftWells, positions) =>
+        _.uniq(_.flatten(positions.map((position) =>
+            ((draftWells || {})[position] || []).filter((tag) => tag !== execution_tag))))
+    const inputDraftConflicts = _.intersection(_.keys(inputWells), inputDraftPositions)
+    const inputConflictTags = draftConflictTags(inputDraftWells, inputDraftConflicts)
+    const outputPositionsUsed = _.uniq([
+        ..._.flatten(_.map(inputWells, (well) => well.output_positions || [])), ..._.keys(outputWells)])
+    const outputDraftConflicts = _.intersection(outputPositionsUsed, outputDraftPositions)
+    const outputConflictTags = draftConflictTags(outputDraftWells, outputDraftConflicts)
 
     const handleSave = () => {
         setSavedMessage(null)
@@ -708,6 +730,12 @@ export function ExecutionSetupPage() {
                 {inputPlate ? <div className="font-size--smallest flex center-items" style={{ color: "#888", gap: "0.35rem", margin: "0.25rem 0" }}>
                     <PlateColorDot color={getPlateColor(inputPlate)} /> {inputPlate.name} · {inputPlate.format}
                 </div> : null}
+                {inputDraftConflicts.length > 0 ?
+                    <Callout intent="warning" icon="warning-sign" style={{ margin: "0.25rem 0" }}>
+                        Wells {inputDraftConflicts.join(", ")} on this plate are also set up in another
+                        draft execution{inputConflictTags.length > 0 ? ` (${inputConflictTags.join(", ")})` : ""} —
+                        coordinate before starting: only the run that starts first gets these wells.
+                    </Callout> : null}
 
                 <h4 style={{ margin: "0.75rem 0 0.25rem 0" }}>Assigned submissions</h4>
                 {submissionOrder.map((submission_tag, index) => {
@@ -799,6 +827,7 @@ export function ExecutionSetupPage() {
                     <PlateGrid plate={inputPlate} wells={inputWells} selectedWell={selectedInputWell}
                         onWellClick={handleInputWellClick} onWellAltClick={handleClearInputWell}
                         isWellDisabled={inputWellDisabled} onWellDrop={handleInputWellDrop}
+                        isWellWarned={(position) => inputDraftPositions.includes(position)}
                         wellStyle={(position, well) => wellFillStyle(well)}
                         wellTitle={wellTooltip}
                         renderWell={(well, position) => well && _.size(well.sample_tags) > 0 ?
@@ -898,6 +927,12 @@ export function ExecutionSetupPage() {
                         different plate. This is only correct if the module re-arranges or pools samples into
                         (free) wells of the very same plate; double-check the transfer map before starting.
                     </Callout> : null}
+                {outputDraftConflicts.length > 0 ?
+                    <Callout intent="warning" icon="warning-sign" style={{ margin: "0.5rem 0" }}>
+                        The output wells {outputDraftConflicts.join(", ")} are also set up in another
+                        draft execution{outputConflictTags.length > 0 ? ` (${outputConflictTags.join(", ")})` : ""} —
+                        coordinate before starting: only the run that starts first gets these wells.
+                    </Callout> : null}
                 {samplesDuplicated.length > 0 ?
                     <Callout intent="warning" icon="duplicate" style={{ margin: "0.5rem 0" }}>
                         {samplesDuplicated.length} sample(s) are mapped to more than one output well although
@@ -908,6 +943,7 @@ export function ExecutionSetupPage() {
                     <PlateGrid plate={outputPlate} wells={outputWells} selectedWell={selectedOutputWell}
                         onWellClick={handleOutputWellClick} onWellAltClick={handleOutputWellRightClick}
                         isWellDisabled={outputWellDisabled}
+                        isWellWarned={(position) => outputDraftPositions.includes(position)}
                         paintMode={selectedInputWell !== null}
                         wellTitle={outputWellTooltip}
                         renderWell={(well) => well ? <span className="font-size--smallest">
