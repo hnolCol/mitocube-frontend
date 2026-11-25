@@ -280,6 +280,7 @@ export function VolcanoProteinWrapper({ submission_tag, selectedTestParams, setI
                         ({ proteinTagMap }) => <VolcanoCompareButton
                             data={volcanoData.data}
                             suffixes={visibleSuffixes}
+                            testParamsBySuffix={_.fromPairs(_.zip(volcanoData.suffixes, volcanoData.testParams))}
                             submission_tag={submission_tag}
                             proteinTagMap={proteinTagMap}
                             setRequiredProteinTags={setRequiredProteinTags}

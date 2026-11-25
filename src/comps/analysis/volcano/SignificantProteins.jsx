@@ -391,7 +391,7 @@ function VolcanoListSVG({ size = VOLCANO_LIST_ICON_SIZE, color = "#000", signifi
     )
 }
 
-export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
+export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProteinTags, submission_tag, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels, testParams = undefined }) {
     const [isOpen, setIsOpen] = useState(false)
     const [activeTab, setActiveTab] = useState("proteins")
     const [direction, setDirection] = useState("up")
@@ -455,7 +455,8 @@ export function VolcanoListButton({ data, suffix, proteinTagMap, setRequiredProt
                         <AnnotationEnrichmentSection
                             data={data} suffixes={[suffix]}
                             listOptions={listOptions} selectedListKeys={selectedListKeys}
-                            submission_tags={_.isString(submission_tag) ? [submission_tag] : []} /> } />
+                            submission_tags={_.isString(submission_tag) ? [submission_tag] : []}
+                            testParams={testParams} /> } />
                 </Tabs>
             </div>
         </Drawer>
@@ -673,7 +674,7 @@ function UpSetSection({ direction, sets, suffixes, data, proteinTagMap, setRequi
 }
 
 
-export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag, submission_tags = undefined, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels }) {
+export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequiredProteinTags, submission_tag, submission_tags = undefined, favoriteProteinSelection, onToggleProteinLabel, onLabelProteinList, markedProteinTags, onMarkProteinList, onRemoveAllLabels, testParamsBySuffix = undefined }) {
     const [isOpen, setIsOpen] = useState(false)
     const [activeTab, setActiveTab] = useState("pairwise")
     const [direction, setDirection] = useState("up")
@@ -780,7 +781,8 @@ export function VolcanoCompareButton({ data, suffixes, proteinTagMap, setRequire
                         <AnnotationEnrichmentSection
                             data={data} suffixes={suffixes}
                             listOptions={listOptions} selectedListKeys={validListKeys}
-                            submission_tags={universeSubmissionTags} />
+                            submission_tags={universeSubmissionTags}
+                            testParamsBySuffix={_.isObject(testParamsBySuffix) && universeSubmissionTags.length === 1 ? testParamsBySuffix : undefined} />
                     } />
                 </Tabs>
             </div>

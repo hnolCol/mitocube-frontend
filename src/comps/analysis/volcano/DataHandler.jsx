@@ -423,6 +423,7 @@ export function VolcanoDataHandler({
                                         <VolcanoListButton
                                             data={volcanoData.data}
                                             suffix={volcanoData.suffixes[chartIdx]}
+                                            testParams={_.get(volcanoData, ["testParams", chartIdx])}
                                             submission_tag={submission_tag}
                                             proteinTagMap={proteinTagMap}
                                             setRequiredProteinTags={setRequiredProteinTags}

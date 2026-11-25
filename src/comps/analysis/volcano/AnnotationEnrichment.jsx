@@ -7,6 +7,8 @@ import { Annotation } from "@/comps/core/base/annotations/Annotation"
 import { OptionButton } from "@/comps/core/base/buttons/OptionButton"
 import APIError from "@/comps/core/error/APIerror"
 import useDebounce from "@/hooks/useDebounce"
+import { GSEARunningSumChart } from "@mitocube/viz/src/charts/gsea/RunningSum"
+import { AnnotationGroupSelectionMenu } from "../mitomap/AnnotationGroupSelection"
 import { log2FCFieldName, rowProteinTags } from "./compareUtils"
 
 const FDR_THRESHOLD = 0.05
@@ -243,6 +245,167 @@ function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], pro
 
 
 /**
+ * @description "Gene set enrichment (GSEA)" tab: classic weighted Kolmogorov-Smirnov
+ * running-sum enrichment per annotation on the log2FC-ranked list of the selected
+ * volcano comparison. Only the condition application comparison (ca tags) and the
+ * annotation group are sent to the backend (GET /annotations/analysis/gsea), which
+ * computes the ranked list server side. Clicking a row fetches the running-sum
+ * series (GET /annotations/analysis/gsea/series) and shows the classic GSEA plot.
+ * @param {Object} props
+ * @param {String} props.submission_tag Submission of the comparison.
+ * @param {Object} [props.testParams] Test params of the comparison (with ca_tag_left / ca_tag_right).
+ * @param {Object} [props.testParamsBySuffix] Alternative: map of suffix -> test params (suffix picker is shown).
+ * @param {String[]} [props.suffixes] Available suffixes (for the suffix picker when testParamsBySuffix is used).
+ */
+function AnnotationGSEASection({ submission_tag, testParams = undefined, testParamsBySuffix = undefined, suffixes = [] }) {
+    const [groupTag, setGroupTag] = useState(undefined)
+    const [onlySignificant, setOnlySignificant] = useState(false)
+    const [plotTag, setPlotTag] = useState(undefined)
+    const [activeSuffix, setActiveSuffix] = useState(_.isArray(suffixes) ? suffixes[0] : undefined)
+
+    useEffect(() => {
+        if (_.isArray(suffixes) && suffixes.length > 0 && !suffixes.includes(activeSuffix)) setActiveSuffix(suffixes[0])
+    }, [_.join(suffixes, ";")])
+
+    const comparison = useMemo(() => {
+        if (_.isObject(testParams)) return testParams
+        if (_.isObject(testParamsBySuffix) && _.isString(activeSuffix)) {
+            const candidates = _.flatten([testParamsBySuffix[activeSuffix]])
+            const match = candidates.find(_.isObject)
+            if (match) return match
+        }
+        return undefined
+    }, [testParams, testParamsBySuffix, activeSuffix])
+
+    const ready = _.isString(submission_tag) && _.isObject(comparison)
+        && _.isString(comparison.ca_tag_left) && _.isString(comparison.ca_tag_right)
+        && _.isString(groupTag)
+
+    const gseaParams = useMemo(() => ready ? {
+        submission_tag,
+        ca_tag_left: comparison.ca_tag_left,
+        ca_tag_right: comparison.ca_tag_right,
+        within_attribute_tags: comparison.within_attribute_tags,
+        within_ca_tags: comparison.within_ca_tags,
+        annotation_tag: comparison.annotation_tag,
+        equal_variance: comparison.equal_variance !== false,
+        group_tag: groupTag
+    } : {}, [ready, submission_tag, comparison, groupTag])
+
+    const { data: gseaResult, isLoading, isFetching, isError, error } = api.annotations.queryAnnotations.useGetAnnotationGSEA(
+        gseaParams,
+        { enabled: ready, staleTime: 60000 }
+    )
+
+    const { data: series, isFetching: seriesIsFetching, isError: seriesIsError, error: seriesError } = api.annotations.queryAnnotations.useGetAnnotationGSEASeries(
+        { ...gseaParams, plot_annotation_tag: plotTag },
+        { enabled: ready && _.isString(plotTag), staleTime: 60000 }
+    )
+
+    useEffect(() => {
+        if (_.isArray(gseaResult) && _.isString(plotTag) && !gseaResult.some(r => r.annotation_tag === plotTag)) setPlotTag(undefined)
+    }, [gseaResult, plotTag])
+
+    const rows = useMemo(() => {
+        if (!_.isArray(gseaResult)) return []
+        return onlySignificant ? gseaResult.filter(r => _.isNumber(r.fdr) && r.fdr <= FDR_THRESHOLD) : gseaResult
+    }, [gseaResult, onlySignificant])
+
+    if (!_.isString(submission_tag) || !_.isObject(comparison) || !_.isString(comparison.ca_tag_left) || !_.isString(comparison.ca_tag_right)) {
+        return <div>
+            <div className="margin-bottom--little">
+                <span className="font-size--small">Annotation group (required): </span>
+                <AnnotationGroupSelectionMenu
+                    placeholder="Select annotation group"
+                    selected_tags={_.isString(groupTag) ? [groupTag] : []}
+                    onSelection={(e, tag) => setGroupTag(_.isString(tag) ? tag : undefined)}
+                    showTags={true} />
+            </div>
+            <NonIdealState icon="chart" title="Comparison parameters not available"
+                description="The GSEA analysis needs the condition application comparison (ca tags) of this volcano. It is not available here." />
+        </div>
+    }
+
+    return (
+        <div>
+            <div className="flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
+                <AnnotationGroupSelectionMenu
+                    placeholder="Select annotation group"
+                    selected_tags={_.isString(groupTag) ? [groupTag] : []}
+                    onSelection={(e, tag) => setGroupTag(_.isString(tag) ? tag : undefined)}
+                    showTags={true} />
+                {_.isArray(suffixes) && suffixes.length > 1 && _.isObject(testParamsBySuffix) ?
+                    suffixes.map(suffix => <OptionButton key={suffix} isSelected={suffix === activeSuffix} onClick={() => setActiveSuffix(suffix)}>{suffix}</OptionButton>) : null}
+                <Checkbox label={`Only significant (FDR ≤ ${FDR_THRESHOLD})`} checked={onlySignificant} onChange={() => setOnlySignificant(prev => !prev)} />
+            </div>
+            <div className="font-size--small margin-top--little margin-bottom--little">
+                Gene set enrichment of the annotations of the selected group on the log2FC-ranked list of the comparison
+                <strong> {comparison.ca_tag_left} vs {comparison.ca_tag_right} </strong>
+                (top of the list = most upregulated, left condition application group). Weighted running-sum enrichment score
+                with Monte Carlo permutation p-values, NES normalization and Benjamini-Hochberg FDR. Click a row to show
+                the classic GSEA running-sum plot.
+                {isFetching ? <Spinner size={14} className="margin-left--little" /> : null}
+            </div>
+            {isError ? <div className="margin-bottom--little"><APIError error={error} /></div> : null}
+            {isLoading ? <Spinner /> : null}
+            {_.isArray(gseaResult) && gseaResult.length === 0 && !isLoading && ready ?
+                <NonIdealState icon="search" title="No annotations tested"
+                    description="No annotation of the selected group has enough members with a log2FC value in the comparison." /> : null}
+            {rows.length > 0 ?
+                <HTMLTable compact={true} striped={true} className="div--expand" style={{ maxHeight: "40vh", overflowY: "auto", display: "block" }}>
+                    <thead>
+                        <tr>
+                            <th>Annotation</th>
+                            <th>Size</th>
+                            <th>ES</th>
+                            <th>NES</th>
+                            <th>p-value</th>
+                            <th>FDR</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map(row => {
+                            const significant = _.isNumber(row.fdr) && row.fdr <= FDR_THRESHOLD
+                            const isPlotted = row.annotation_tag === plotTag
+                            return (
+                                <tr key={row.annotation_tag}
+                                    style={{ backgroundColor: isPlotted ? "#d8e1ff" : significant ? "#edf8b1" : undefined, cursor: "pointer" }}
+                                    onClick={() => setPlotTag(isPlotted ? undefined : row.annotation_tag)}>
+                                    <td><Annotation tag={row.annotation_tag} indicateNumberProteins={false} /> <span className="font-size--smallest" style={{ color: "grey" }}>({row.annotation_tag})</span></td>
+                                    <td>{row.size}</td>
+                                    <td>{formatNumber(row.es, 2)}</td>
+                                    <td>{formatNumber(row.nes, 2)}</td>
+                                    <td>{formatPValue(row.p_value)}</td>
+                                    <td><strong>{formatPValue(row.fdr)}</strong></td>
+                                </tr>
+                            )
+                        })}
+                    </tbody>
+                </HTMLTable> : null}
+            {_.isString(plotTag) ?
+                <div className="margin-top--medium">
+                    <div className="font-size--small margin-bottom--little">
+                        Running-sum plot of <strong>{plotTag}</strong>
+                        {_.isObject(series) ? <> — {series.leading_edge_size} leading edge protein(s), ES {formatNumber(series.es, 2)}, NES {formatNumber(series.nes, 2)}, p {formatPValue(series.p_value)}</> : null}
+                        {seriesIsFetching ? <Spinner size={14} className="margin-left--little" /> : null}
+                    </div>
+                    {seriesIsError ? <APIError error={seriesError} /> : null}
+                    {_.isObject(series) && _.isArray(series.running_sum) ?
+                        <GSEARunningSumChart
+                            svgID={`gsea-running-sum-${plotTag}`}
+                            runningSum={series.running_sum}
+                            hitRanks={series.hit_ranks}
+                            leadingEdgeRanks={series.leading_edge_ranks}
+                            esRank={series.es_rank}
+                            es={series.es}
+                            width={640} height={280} /> : null}
+                </div> : null}
+        </div>
+    )
+}
+
+
+/**
  * @description "Enriched annotations" tab of the volcano drawers with two analyses on the
  * volcano plot data:
  * - "Overrepresentation (Fisher)": enrichment of the defined list (the protein lists selected
@@ -260,9 +423,13 @@ function AnnotationShiftSection({ data, suffixes = [], submission_tags = [], pro
  * @param {String[]} props.selectedListKeys Keys of the selected list options - their union is the defined list.
  * @param {String[]} [props.submission_tags] Submissions defining the universe (submission-wide / compare).
  * @param {String} [props.proteome_tag] Proteome defining the universe (alternative to submission_tags).
+ * @param {Object} [props.testParams] Test params of the single comparison (with ca_tag_left / ca_tag_right) - enables the GSEA tab.
+ * @param {Object} [props.testParamsBySuffix] Alternative: map of suffix -> test params (with a per-suffix GSEA comparison picker).
  */
-export function AnnotationEnrichmentSection({ data, suffixes = [], listOptions = [], selectedListKeys = [], submission_tags = [], proteome_tag = undefined }) {
+export function AnnotationEnrichmentSection({ data, suffixes = [], listOptions = [], selectedListKeys = [], submission_tags = [], proteome_tag = undefined, testParams = undefined, testParamsBySuffix = undefined }) {
     const [subTab, setSubTab] = useState("fisher")
+    const submissionTag = _.isArray(submission_tags) ? submission_tags[0] : undefined
+    const gseaAvailable = _.isString(submissionTag) && (_.isObject(testParams) || _.isObject(testParamsBySuffix))
 
     return (
         <div>
@@ -275,6 +442,13 @@ export function AnnotationEnrichmentSection({ data, suffixes = [], listOptions =
                     <AnnotationShiftSection
                         data={data} suffixes={suffixes}
                         submission_tags={submission_tags} proteome_tag={proteome_tag} /> } />
+                {gseaAvailable ?
+                    <Tab id="gsea" title="Gene set enrichment (GSEA)" panel={
+                        <AnnotationGSEASection
+                            submission_tag={submissionTag}
+                            testParams={testParams}
+                            testParamsBySuffix={testParamsBySuffix}
+                            suffixes={suffixes} /> } /> : null}
             </Tabs>
         </div>
     )
