@@ -380,16 +380,30 @@ export function ExecutionSetupPage() {
     const handleAutoMap = () => {
         const outputRows = outputPlate?.rows || 0
         const outputColumns = outputPlate?.columns || 0
-        setInputWells((prev) => {
-            const next = { ...prev }
-            _.forEach(prev, (well, position) => {
-                const [rowIndex, columnIndex] = [position.charCodeAt(0) - 65, _.toInteger(position.slice(1)) - 1]
-                if (rowIndex < outputRows && columnIndex < outputColumns && (well.output_positions || []).length === 0) {
-                    next[position] = { ...well, output_positions: [position] }
-                }
-            })
-            return next
+        // mirror the input wells onto the same positions of the output plate - unmapped wells
+        // get their 1:1 target; the mapped output positions become defined output wells
+        // (without a defined output well the transfer map alone does nothing)
+        const mapped = []
+        const next = { ...inputWells }
+        _.forEach(inputWells, (well, position) => {
+            const rowIndex = position.charCodeAt(0) - 65
+            const columnIndex = _.toInteger(position.slice(1)) - 1
+            if (rowIndex < outputRows && columnIndex < outputColumns && (well.output_positions || []).length === 0
+                && !outputWellDisabled(position)) {
+                next[position] = { ...well, output_positions: [position] }
+                mapped.push(position)
+            }
         })
+        if (mapped.length === 0) return
+        setInputWells(next)
+        setOutputWells((prev) => {
+            const nextOutput = { ...prev }
+            mapped.forEach((position) => {
+                nextOutput[position] = nextOutput[position] || { condition_application_tags: [] }
+            })
+            return nextOutput
+        })
+        setFillMessage(null)
     }
 
     const handleAddExtraSubmission = (tag) => {
@@ -441,10 +455,31 @@ export function ExecutionSetupPage() {
         })
     })
     const inputValuesMissing = inputPositions.length > 0 && missingInputValues > 0
+    // the procedure declares how many output wells each sample may/should be transferred to:
+    // duplicated (or missing) outputs are checked against that before the run can start — a
+    // sample that ends up in several output wells without a declared duplication is flagged
+    const minOutputs = procedure?.min_output_wells_per_sample || 1
+    const maxOutputs = procedure?.max_output_wells_per_sample || null
+    const outputsPerSample = {}
+    _.forEach(inputWells, (well) =>
+        (well.output_positions || []).forEach((position) =>
+            (well.sample_tags || []).forEach((sample_tag) => {
+                outputsPerSample[sample_tag] = outputsPerSample[sample_tag] || new Set()
+                outputsPerSample[sample_tag].add(position)
+            })))
+    const samplesBelowMin = []
+    const samplesAboveMax = []
+    const samplesDuplicated = []
+    new Set(_.flatten(_.map(inputWells, (well) => well.sample_tags))).forEach((sample_tag) => {
+        const count = _.isSet(outputsPerSample[sample_tag]) ? outputsPerSample[sample_tag].size : 0
+        if (count < minOutputs) samplesBelowMin.push(sample_tag)
+        if (maxOutputs !== null && count > maxOutputs) samplesAboveMax.push(sample_tag)
+        if (count > 1 && maxOutputs === null && minOutputs <= 1) samplesDuplicated.push(sample_tag)
+    })
     const canExecute = inputPlateTag !== null && outputPlateTag !== null &&
         _.size(inputWells) > 0 && _.size(outputWells) > 0 &&
         _.every(inputWells, (well) => (well.output_positions || []).length > 0) &&
-        !inputValuesMissing
+        !inputValuesMissing && samplesBelowMin.length === 0 && samplesAboveMax.length === 0
     // what is missing to start — shown next to the buttons so being stuck is self-explanatory
     const startBlockers = []
     if (!inputPlateTag) startBlockers.push("select the input plate")
@@ -456,6 +491,10 @@ export function ExecutionSetupPage() {
     } else if (_.size(outputWells) === 0) {
         startBlockers.push("map input wells to output wells")
     }
+    if (samplesBelowMin.length > 0)
+        startBlockers.push(`transfer every sample to at least ${minOutputs} output well(s) (${samplesBelowMin.length} sample(s) below)`)
+    if (samplesAboveMax.length > 0)
+        startBlockers.push(`remove duplicated output wells — the module declares at most ${maxOutputs} output well(s) per sample (${samplesAboveMax.length} sample(s) exceed it)`)
     if (inputValuesMissing) startBlockers.push(`fill in the per-well input values (${missingInputValues} well value(s) missing)`)
     const startButtonTitle = startBlockers.length > 0 ? `To start: ${startBlockers.join(" · ")}` : ""
 
@@ -483,15 +522,28 @@ export function ExecutionSetupPage() {
     const samplesOfSubmission = _.groupBy(availableSamples, "submission_tag")
     const unplacedBySubmission = _.fromPairs(submissionOrder.map((submission_tag) =>
         [submission_tag, (samplesOfSubmission[submission_tag] || []).filter((sample) => !placedSampleTagSet.has(sample.tag))]))
-    const wellColorDots = (well) => {
+    // whole-well fill in the color(s) of the submission(s) whose samples sit in the well: a
+    // well holding samples of several submissions is split proportionally (hard gradient stops)
+    const wellFillStyle = (well) => {
         const tags = well.sample_tags || []
+        if (tags.length === 0) return null
         const counts = _.countBy(tags.map((tag) => submissionIndexOf(sampleSubmissions[tag])))
-        return tags.length === 0 ? null : <div className="flex center-items" style={{ gap: "0.15rem" }}>
-            {Object.keys(counts).map((index) =>
-                <span key={index} title={`${counts[index]} sample(s)`}
-                    style={{ width: "0.45rem", height: "0.45rem", borderRadius: "50%", display: "inline-block",
-                        background: submissionColor(_.toInteger(index)) }} />)}
-        </div>
+        const groups = _.keys(counts).map((index) => ({ index: _.toInteger(index), n: counts[index] })).sort((a, b) => a.index - b.index)
+        if (groups.length === 1) return { background: submissionColor(groups[0].index) }
+        let acc = 0
+        const stops = []
+        groups.forEach((group) => {
+            const start = (acc / tags.length) * 100
+            acc += group.n
+            const end = (acc / tags.length) * 100
+            stops.push(`${submissionColor(group.index)} ${start.toFixed(1)}%`, `${submissionColor(group.index)} ${end.toFixed(1)}%`)
+        })
+        return { background: `linear-gradient(to right, ${stops.join(", ")})` }
+    }
+    // the hover tooltip of a placed well (like the plate specific view in admin/plates)
+    const wellTooltip = (position, well) => {
+        const entries = (well.sample_tags || []).map((sample_tag) => `${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
+        return entries.length > 0 ? `${position} — ${entries.join(", ")}` : null
     }
 
     // the three columns share the full width of the parent equally and stretch to its full
@@ -679,10 +731,10 @@ export function ExecutionSetupPage() {
                         </div>
                         <div className="flex center-items flex--wrap" style={{ gap: "0.35rem", margin: "0.3rem 0" }}>
                             <div className="flex center-items" style={{ gap: "0.2rem" }}>
-                                <button className={`basic-button basic-button--small ${fillRowsFirst ? "basic-button--highlighted" : ""}`}
+                                <button className={`basic-button basic-button--small ${fillRowsFirst ? "basic-button--selected" : ""}`}
                                     title="Fill A1, A2, A3 ... then B1, B2, B3"
                                     onClick={() => setFillRowsFirst(true)}>rows first</button>
-                                <button className={`basic-button basic-button--small ${!fillRowsFirst ? "basic-button--highlighted" : ""}`}
+                                <button className={`basic-button basic-button--small ${!fillRowsFirst ? "basic-button--selected" : ""}`}
                                     title="Fill A1, B1, C1 ... then A2, B2, C2"
                                     onClick={() => setFillRowsFirst(false)}>columns first</button>
                             </div>
@@ -729,10 +781,11 @@ export function ExecutionSetupPage() {
                     <PlateGrid plate={inputPlate} wells={inputWells} selectedWell={selectedInputWell}
                         onWellClick={handleInputWellClick} onWellAltClick={handleClearInputWell}
                         isWellDisabled={inputWellDisabled} onWellDrop={handleInputWellDrop}
+                        wellStyle={(position, well) => wellFillStyle(well)}
+                        wellTitle={wellTooltip}
                         renderWell={(well) => well && _.size(well.sample_tags) > 0 ?
                             <span className="flex center-items" style={{ gap: "0.15rem" }}>
                                 <span className="font-size--smallest">{_.size(well.sample_tags)}</span>
-                                {wellColorDots(well)}
                             </span> : ""} />
                     <div className="flex center-items flex--wrap" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
                         <button className="basic-button basic-button--small" onClick={handleAutoMap}>Auto-map 1:1</button>
@@ -809,6 +862,18 @@ export function ExecutionSetupPage() {
                     </select>
                     <button className="basic-button basic-button--small" onClick={() => setCreatePlateTarget("output")}>New</button>
                 </div>
+                {_.isString(inputPlateTag) && inputPlateTag === outputPlateTag ?
+                    <Callout intent="warning" icon="warning-sign" style={{ margin: "0.5rem 0" }}>
+                        The input and output plate are the same — usually the samples are transferred to a
+                        different plate. This is only correct if the module re-arranges or pools samples into
+                        (free) wells of the very same plate; double-check the transfer map before starting.
+                    </Callout> : null}
+                {samplesDuplicated.length > 0 ?
+                    <Callout intent="warning" icon="duplicate" style={{ margin: "0.5rem 0" }}>
+                        {samplesDuplicated.length} sample(s) are mapped to more than one output well although
+                        this module does not declare a duplication of the sample numbers — check the transfer map
+                        unless pooling several samples into the same outputs was intended.
+                    </Callout> : null}
                 {outputPlate ? <>
                     <PlateGrid plate={outputPlate} wells={outputWells} selectedWell={selectedOutputWell}
                         onWellClick={handleOutputWellClick} onWellAltClick={handleOutputWellRightClick}
