@@ -74,7 +74,8 @@ export function parseMetricsFile(content, traitTags, traitToAttribute = {}) {
 }
 
 export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltClick, renderWell, paintMode = false,
-                            isWellDisabled = null, onWellDrop = null, wellTitle = null, wellStyle = null }) {
+                            isWellDisabled = null, onWellDrop = null, wellTitle = null, wellStyle = null,
+                            isWellHighlighted = null, onWellHover = null }) {
     const [isPainting, setIsPainting] = useState(false)
     const handleMouseDown = (position) => { if (paintMode) { setIsPainting(true); onWellClick(position) } }
     const handleMouseEnter = (position) => { if (paintMode && isPainting) onWellClick(position) }
@@ -102,6 +103,8 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                         style={{ position: "relative", opacity: disabled ? 0.75 : 1,
                             cursor: disabled ? "not-allowed" : (paintMode ? "crosshair" : "pointer") }}
                         onClick={() => { if (!disabled) onWellClick(position) }}
+                        onMouseEnter={() => { if (onWellHover !== null) onWellHover(position) }}
+                        onMouseLeave={() => { if (onWellHover !== null) onWellHover(null) }}
                         onDragOver={(e) => { if (onWellDrop !== null && !disabled) e.preventDefault() }}
                         onDrop={(e) => {
                             if (onWellDrop === null || disabled) return
@@ -118,6 +121,9 @@ export function PlateGrid({ plate, wells, selectedWell, onWellClick, onWellAltCl
                         {disabled ? <div style={{
                             position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
                             border: "2px dashed #cd4246", background: "rgba(205, 66, 70, 0.15)" }} /> : null}
+                        {isWellHighlighted !== null && isWellHighlighted(position) ? <div style={{
+                            position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
+                            border: "2px solid #48aff0", background: "rgba(72, 175, 240, 0.2)", zIndex: 2 }} /> : null}
                         {well && wellStyle !== null && wellStyle(position, well) !== null ? <div style={{
                             position: "absolute", inset: 0, borderRadius: "50%", pointerEvents: "none",
                             ...wellStyle(position, well) }} /> : null}
