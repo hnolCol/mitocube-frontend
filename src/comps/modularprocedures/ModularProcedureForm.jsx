@@ -10,10 +10,12 @@ import { findAndInsertTree, findChildrenByPath, findPath, deleteByPath, checkPat
 import { getRandomID } from "@/services/random";
 import { ProtocolMinimalItem } from "@/comps/admin/protocols/ProtocolMinimalItem";
 import { AttributeInput } from "@/comps/core/input/api/AttributeInput";
+import { SUBMISSION_STATES } from "@/comps/modularprocedures/Shared";
 
 const INIT_PROCEDURE = { title: "", description: "", condition_application_tags: [], condition_application_trees: [], protocol_tags: [],
     input_plate_format: "", input_plate_type: "", output_plate_format: "", output_plate_type: "",
     input_attribute_tags: [], output_attribute_tags: [], success_submission_state: "",
+    required_submission_state: "",
     pubmed_ids: "", min_output_wells_per_sample: "", max_output_wells_per_sample: "" }
 
 const SUBMISSION_STATE_OPTIONS = ["PROCESSED", "MEASURING", "ANALYSIS", "DONE"]
@@ -56,6 +58,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                 input_attribute_tags: existingProcedure.input_attribute_tags || [],
                 output_attribute_tags: existingProcedure.output_attribute_tags || [],
                 success_submission_state: existingProcedure.success_submission_state || "",
+                required_submission_state: existingProcedure.required_submission_state || "",
                 pubmed_ids: (existingProcedure.pubmed_ids || []).join(", "),
                 min_output_wells_per_sample: _.toString(existingProcedure.min_output_wells_per_sample || ""),
                 max_output_wells_per_sample: _.toString(existingProcedure.max_output_wells_per_sample || "")
@@ -296,6 +299,15 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
             onChange={(e) => setProcedure({ ...procedure, success_submission_state: e.target.value })}>
             <option value="">Do not change the submission state</option>
             {SUBMISSION_STATE_OPTIONS.map((state) => <option key={state} value={state}>{state}</option>)}
+        </select>
+        <Callout intent="primary" title="Required State (optional)">
+            If set, executions of this procedure only consider submissions in this state: the submission search on the
+            execution setup page only offers submissions in the selected state (e.g. SUBMITTED for submissions in state 0).
+        </Callout>
+        <select className="text-input" value={procedure.required_submission_state}
+            onChange={(e) => setProcedure({ ...procedure, required_submission_state: e.target.value })}>
+            <option value="">Any submission state</option>
+            {Object.keys(SUBMISSION_STATES).map((state) => <option key={state} value={state}>{state} ({SUBMISSION_STATES[state]})</option>)}
         </select>
         {isError ? <div><APIAxiosError error={error} /></div> : null}
         <div className="flex center-items justify-end" style={{ gap: "1rem", marginTop: "1rem" }}>

@@ -1,4 +1,3 @@
-
 import { api } from "@/api"
 import { SubmissionTitle } from "@/comps/submission/view/SubmissionTitle"
 import PropTypes from "prop-types" 
@@ -7,9 +6,10 @@ import { BaseInput } from "./BaseInput"
 
 SubmissionInput.propTypes = {
     selected_submission_tags: PropTypes.arrayOf(PropTypes.string).isRequired,
-    onSelect: PropTypes.func.isRequired
+    onSelect: PropTypes.func.isRequired,
+    state: PropTypes.number
 }
-export function SubmissionInput({ selected_submission_tags = [], onSelect, minimal = false }) {
+export function SubmissionInput({ selected_submission_tags = [], onSelect, minimal = false, state = undefined }) {
 
 
     return <BaseInput
@@ -18,7 +18,7 @@ export function SubmissionInput({ selected_submission_tags = [], onSelect, minim
         api_hook={api.submissions.query.useGetSubmissionByQuery}
         onSelect={onSelect}
         minimal={minimal}
-        api_hook_params={{group_by_state : false}}
+        api_hook_params={{ group_by_state : false, state : state }}
         placeholder={selected_submission_tags.length > 0 ? `${selected_submission_tags.length} submission(s) selected` : "Select submission..."}
     />
 
