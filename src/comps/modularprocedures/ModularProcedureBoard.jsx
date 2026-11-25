@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import moment from "moment";
 import _ from "lodash";
 import { api } from "@/api";
+import { TinyXButton } from "@/comps/modularprocedures/Shared"
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import {
     CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls, ExecutionDraftControls,

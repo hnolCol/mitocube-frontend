@@ -207,7 +207,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                             </> : null}
 
                             {tabKey.current === "condition_applications" ? <>
-                                <Callout intent="primary" title="Condition Applications">
+                                {/* <Callout intent="primary" title="Condition Applications">
                                     Assign the attributes/traits (e.g. instrument, protocol) that describe when this modular procedure applies.
                                 </Callout>
                                 <ConditionApplicationInput
@@ -222,7 +222,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                                                 onClick={() => handleSelectConditionApplication(ca_tag)}>
                                                 {ca_tag} ✕
                                             </span>)}
-                                    </div> : null}
+                                    </div> : null} */}
                                 <Callout intent="primary" title="Define new condition applications">
                                     Alternatively define condition applications newly as hierarchical attribute/trait trees (like when
                                     inserting a submission) — e.g. attribute <em>Liquid Handler</em> → trait <em>Hamilton</em>, even if
@@ -230,7 +230,8 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                                 </Callout>
                                 <AttributesInput
                                     handleTraitSelection={handleTraitSelectionHierarchy}
-                                    min_state={2}
+                                    min_state={6}
+                                    checkMandatoryAttributes={false}
                                     selected_traits={procedure.condition_application_trees}
                                     placeHolderText="Search attribute (liquid handler, instrument, ...)" />
                                 <DatasetAttributeView
