@@ -167,9 +167,9 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
         _.indexOf(componentKeys, tabKey.current) - _.indexOf(componentKeys, tabKey.prev) : 0
 
     const tabVariants = {
-        enter: (direction) => ({ x: direction > 0 ? 50 : -50, opacity: 0 }),
-        center: { x: 0, opacity: 1, scale: 1, transition: { duration: 0.25 } },
-        exit: (direction) => ({ x: direction < 0 ? -50 : 50, opacity: 0, transition: { duration: 0.15 } }),
+        enter: (direction) => ({ x: direction > 0 ? 50 : -50 }),
+        center: { x: 0, opacity: 1, scale: 1, zIndex: 1, transition: { duration: 0.25 } },
+        exit: (direction) => ({ x: direction < 0 ? -50 : 50, opacity: 0, zIndex: 0, transition: { duration: 0.15 } }),
     }
 
     return <div className="flex flex-column" style={{ gap: "0.5rem" }}>

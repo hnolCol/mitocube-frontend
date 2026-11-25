@@ -1,4 +1,5 @@
 import { Callout } from "@blueprintjs/core";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import moment from "moment";
 import _ from "lodash";
@@ -9,6 +10,8 @@ import {
     CURATOR_ROLE, STATE_CHANGE_ROLE, ExecutionStateChip, ExecutionStateControls, ExecutionDraftControls,
     ProtocolChip, isUserAtLeast,
 } from "./Shared";
+
+const MAX_SHOWN_EXECUTIONS = 20;
 
 /**
  * Horizontal overview of the published modular procedures and the
@@ -102,15 +105,19 @@ function ExecutionRow({ execution_tag, canChangeState, onDone }) {
         { tag: execution_tag }, { enabled: _.isString(execution_tag) })
     const status = execution?.status || "RUNNING"
     // the name and the state chip stay in the first row; the outcome controls move to a second
-    // row so the narrow columns never cut the buttons off
-    return <div className="margin-top--tiny">
+    // row so the narrow columns never cut the buttons off. Each execution is its own card,
+    // styled like the submission items below.
+    return <div style={{
+        border: "1px solid #ddd", borderRadius: "4px", background: "#fff",
+        padding: "0.5rem", margin: "0.5rem 0"
+    }}>
         <div className="flex center-items justify-between gap--tiny">
             <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
             <ExecutionStateChip status={status} />
         </div>
         {canChangeState ? (status === "DRAFT" ?
-            <div style={{ marginLeft: "-0.5rem" }}><ExecutionDraftControls execution_tag={execution_tag} onDeleted={onDone} /></div> :
-            <div style={{ marginLeft: "-0.5rem" }}><ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} /></div>) : null}
+            <ExecutionDraftControls execution_tag={execution_tag} onDeleted={onDone} /> :
+            <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} />) : null}
     </div>
 }
 
@@ -118,12 +125,24 @@ export function ExecutionsPanel({ procedure_tag, canChangeState }) {
     const { data: execution_tags, refetch: refetchExecutions } =
         api.modularProcedures.execute.useGetModularProcedureExecutions(
             { tag: procedure_tag }, { enabled: _.isString(procedure_tag) })
+    const [expanded, setExpanded] = useState(false)
     if (!_.isArray(execution_tags) || execution_tags.length === 0) return null
+    const visibleTags = expanded ? execution_tags : execution_tags.slice(0, MAX_SHOWN_EXECUTIONS)
     return <div className="margin-top--little" style={{ borderTop: "1px dashed #ddd", paddingTop: "0.25rem" }}>
         <div className="font-size--smallest" style={{ color: "#888" }}>Executions</div>
-        {execution_tags.map((execution_tag) =>
-            <ExecutionRow key={execution_tag} execution_tag={execution_tag} canChangeState={canChangeState}
-                onDone={refetchExecutions} />)}
+        {(expanded ? <div style={{ maxHeight: "30vh", overflowY: "auto" }}>
+            {visibleTags.map((execution_tag) =>
+                <ExecutionRow key={execution_tag} execution_tag={execution_tag} canChangeState={canChangeState}
+                    onDone={refetchExecutions} />)}
+        </div> :
+            visibleTags.map((execution_tag) =>
+                <ExecutionRow key={execution_tag} execution_tag={execution_tag} canChangeState={canChangeState}
+                    onDone={refetchExecutions} />))}
+        {execution_tags.length > MAX_SHOWN_EXECUTIONS ?
+            <button className="basic-button basic-button--small margin-top--tiny"
+                onClick={() => setExpanded(!expanded)}>
+                {expanded ? "Show less" : `Show all (${execution_tags.length - MAX_SHOWN_EXECUTIONS} more)`}
+            </button> : null}
     </div>
 }
 

@@ -12,7 +12,7 @@ import {
     ExecutionPlateExportDialog, downloadMetricsTemplate, parseMetricsFile, parseMetricsClipboard,
 } from "@/comps/modularprocedures/ModularProcedureExecutionDialog";
 import {
-    ExecutionStateChip, ExecutionStateControls, ProcedureTitle, formatExecutionTime,
+    ExecutionStateChip, ExecutionStateControls, ProcedureTitle, ProcedureOptionTitle, formatExecutionTime,
     isUserAtLeast, STATE_CHANGE_ROLE, EXECUTION_STATE_TAGS, StateHistory, WellTable, ExecutionDraftControls,
 } from "./Shared";
 
@@ -377,7 +377,7 @@ export function ModularProceduresExecutionsOverview({ userRole }) {
                     onChange={(event) => setNewDraftProcedureTag(event.target.value)}>
                     <option value="">Select a published module ...</option>
                     {(_.isArray(procedure_tags) ? procedure_tags : []).map((tag) =>
-                        <option key={tag} value={tag}>{tag}</option>)}
+                        <option key={tag} value={tag}><ProcedureOptionTitle procedure_tag={tag} /></option>)}
                 </select>
                 {createDraftIsError ? <APIAxiosError error={createDraftError} /> : null}
             </DialogBody>

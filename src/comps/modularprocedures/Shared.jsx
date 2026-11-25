@@ -41,7 +41,11 @@ export function formatExecutionTime(value) {
 export function ExecutionStateChip({ status, padding = "tiny" }) {
     const style = EXECUTION_STATUS_STYLE[status] || EXECUTION_STATUS_STYLE.RUNNING
     return <span title={status} className={`font-size--smallest div--round padding--${padding}`}
-        style={{ color: "white", backgroundColor: style.color, whiteSpace: "nowrap" }}>
+        style={{
+            color: "white", backgroundColor: style.color, whiteSpace: "nowrap",
+            display: "inline-flex", alignItems: "center", borderRadius: "4px",
+            padding: "3px 8px", minWidth: "fit-content"
+        }}>
         {status}
     </span>
 }
@@ -72,6 +76,13 @@ export function ProcedureTitle({ procedure_tag }) {
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000 })
     return <span>{_.isObject(procedure) && _.isString(procedure.title) ? procedure.title : procedure_tag}</span>
+}
+
+export function ProcedureOptionTitle({ procedure_tag }) {
+    const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
+        { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000 })
+    if (_.isObject(procedure) && _.isString(procedure.title)) return `${procedure.title} (${procedure_tag})`
+    return procedure_tag
 }
 
 /**
