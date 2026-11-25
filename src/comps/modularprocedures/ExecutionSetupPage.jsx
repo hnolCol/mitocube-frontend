@@ -872,7 +872,7 @@ export function ExecutionSetupPage() {
                         <Tag key={ca_tag} minimal style={{ margin: "0.15rem 0.15rem 0 0" }}>{ca_tag}</Tag>)}
                 </div>
 
-                {renderMetricsSection("OUTPUT", "Measured output values")}
+                {renderMetricsSection("OUTPUT", "Measured result values (often only known after the run — they can also be added later from the executions overview)")}
             </div>
 
             {/* ---------------- RIGHT: the output plate ---------------- */}
