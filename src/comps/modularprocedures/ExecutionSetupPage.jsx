@@ -86,6 +86,9 @@ export function ExecutionSetupPage() {
     })
     const [metricErrors, setMetricErrors] = useState({ OUTPUT: null, INPUT: null })
     const [fillRowsFirst, setFillRowsFirst] = useState(true)
+    // per side and declared attribute: the trait (unit) the well values are recorded in — it
+    // drives the value template (one line per well and selected trait) and the upload check
+    const [metricTraitSelection, setMetricTraitSelection] = useState({ INPUT: {}, OUTPUT: {} })
     const [exportDialogProps, setExportDialogProps] = useState({ isOpen: false, side: null })
     const [fillMessage, setFillMessage] = useState(null)
     const [savedMessage, setSavedMessage] = useState(null)
@@ -125,6 +128,8 @@ export function ExecutionSetupPage() {
     const traitsByAttribute = _.fromPairs(_.zip(_.uniq([...declaredAttributes("INPUT"), ...declaredAttributes("OUTPUT")]),
         traitQueries.map((query) => (_.isArray(query.data) ? query.data : []))))
     const sideTraitTags = (side) => _.flatten(declaredAttributes(side).map((attribute_tag) => traitsByAttribute[attribute_tag] || []))
+    const traitAttributeMap = (side) => _.fromPairs(_.flatten(declaredAttributes(side).map((attribute_tag) =>
+        (traitsByAttribute[attribute_tag] || []).map((trait_tag) => [trait_tag, attribute_tag]))))
 
     const plateMatches = (plate, format, type) =>
         (!format || plate?.format === format) &&
@@ -261,7 +266,7 @@ export function ExecutionSetupPage() {
         const reader = new FileReader()
         reader.onload = () => {
             try {
-                const parsed = parseMetricsFile(String(reader.result), sideTraitTags(side))
+                const parsed = parseMetricsFile(String(reader.result), sideTraitTags(side), traitAttributeMap(side))
                 const wells = sideWellPositions(side)
                 const unknown = parsed.map((m) => m.position).filter((position) => !wells.includes(position))
                 if (unknown.length > 0)
@@ -421,9 +426,38 @@ export function ExecutionSetupPage() {
         input_well_metrics: metricStates.INPUT.metrics.map((metric) => ({ ...metric, side: "INPUT" })),
     })
 
+    // executions may only start when the declared per-well input values are complete: every
+    // placed input well needs a value for every declared input attribute (in one of its traits)
+    const inputPositions = _.keys(inputWells)
+    let missingInputValues = 0
+    declaredAttributes("INPUT").forEach((attribute_tag) => {
+        const attributeTraits = traitsByAttribute[attribute_tag] || []
+        if (attributeTraits.length === 0) return
+        inputPositions.forEach((position) => {
+            if (!_.some(metricStates.INPUT.metrics,
+                (metric) => metric.position === position && attributeTraits.includes(metric.trait_tag))) {
+                missingInputValues += 1
+            }
+        })
+    })
+    const inputValuesMissing = inputPositions.length > 0 && missingInputValues > 0
     const canExecute = inputPlateTag !== null && outputPlateTag !== null &&
         _.size(inputWells) > 0 && _.size(outputWells) > 0 &&
-        _.every(inputWells, (well) => (well.output_positions || []).length > 0)
+        _.every(inputWells, (well) => (well.output_positions || []).length > 0) &&
+        !inputValuesMissing
+    // what is missing to start — shown next to the buttons so being stuck is self-explanatory
+    const startBlockers = []
+    if (!inputPlateTag) startBlockers.push("select the input plate")
+    if (!outputPlateTag) startBlockers.push("select the output plate")
+    if (_.size(inputWells) === 0) {
+        if (inputPlateTag) startBlockers.push("place samples on the input plate")
+    } else if (!_.every(inputWells, (well) => (well.output_positions || []).length > 0)) {
+        startBlockers.push("map every input well to its output well(s)")
+    } else if (_.size(outputWells) === 0) {
+        startBlockers.push("map input wells to output wells")
+    }
+    if (inputValuesMissing) startBlockers.push(`fill in the per-well input values (${missingInputValues} well value(s) missing)`)
+    const startButtonTitle = startBlockers.length > 0 ? `To start: ${startBlockers.join(" · ")}` : ""
 
     const handleSave = () => {
         setSavedMessage(null)
@@ -474,28 +508,42 @@ export function ExecutionSetupPage() {
         const attributes = declaredAttributes(side)
         if (attributes.length === 0) return null
         const attributeTags = attributes
+        // per attribute the trait (the unit, e.g. a duration unit) is selected once for all wells:
+        // the template then comes pre-filled with this trait and only the values are entered
+        const selectedTraitPairs = _.compact(attributeTags.map((attribute_tag) => {
+            const trait_tag = metricTraitSelection[side][attribute_tag]
+            return trait_tag ? { attribute_tag, trait_tag } : null
+        }))
+        const selectedTraits = selectedTraitPairs.map((pair) => pair.trait_tag)
         return <div style={{ borderTop: "1px dashed #ddd", marginTop: "0.5rem", paddingTop: "0.5rem" }}>
             <div className="font-size--small" style={{ fontWeight: 600 }}>{title}</div>
             <div className="font-size--smallest" style={{ color: "#888", margin: "0.25rem 0" }}>
-                Declared by the module definition{positions.length > 0 ? " — download the template, fill in one line per well and upload it" : " — place the wells first to enter values"}.
+                Declared by the module definition — select the trait (unit) to record the values in,
+                {positions.length > 0 ? " download the template, fill in the value per line and upload it" : " and place the wells to enter values"}.
             </div>
             {attributeTags.map((attribute_tag) =>
-                <div key={attribute_tag} className="margin-top--little">
+                <div key={attribute_tag} className="margin-top--little flex center-items" style={{ gap: "0.5rem", flexWrap: "wrap" }}>
                     <span className="font-size--smallest" style={{ fontWeight: 600 }}><AttributeTitle attribute_tag={attribute_tag} />:</span>
-                    <span className="flex flex--wrap" style={{ gap: "0.25rem" }}>
+                    <select className="text-input font-size--smallest" style={{ width: "auto", padding: "0.15rem" }}
+                        value={metricTraitSelection[side][attribute_tag] || ""}
+                        onChange={(e) => setMetricTraitSelection((prev) => ({
+                            ...prev, [side]: { ...prev[side], [attribute_tag]: e.target.value || null } }))}>
+                        <option value="">Select trait ...</option>
                         {(traitsByAttribute[attribute_tag] || []).map((trait_tag) =>
-                            <Tag key={trait_tag} minimal>{trait_tag}</Tag>)}
-                    </span>
+                            <option key={trait_tag} value={trait_tag}>{trait_tag}</option>)}
+                    </select>
                 </div>)}
             {positions.length > 0 ? <div className="flex center-items flex--wrap" style={{ gap: "0.35rem", marginTop: "0.35rem" }}>
-                <button className="basic-button basic-button--small"
-                    onClick={() => downloadMetricsTemplate(positions, sideTraitTags(side))}>
+                <button className="basic-button basic-button--small" disabled={selectedTraits.length === 0}
+                    title={selectedTraits.length === 0 ? "Select the trait (unit) for every declared attribute first" : "One template line per well and selected trait — fill in the value column"}
+                    onClick={() => downloadMetricsTemplate(positions, selectedTraitPairs)}>
                     Template
                 </button>
-                <label className="basic-button basic-button--small" style={{ cursor: "pointer" }}>
+                <label className={`basic-button basic-button--small ${selectedTraits.length === 0 ? "basic-button--excluded" : ""}`}
+                    style={{ cursor: selectedTraits.length === 0 ? "not-allowed" : "pointer" }}>
                     Upload data
-                    <input type="file" accept=".txt,.tsv,.csv" style={{ display: "none" }}
-                        onChange={handleMetricsUpload(side)} />
+                    <input type="file" accept=".txt,.tsv,.csv" disabled={selectedTraits.length === 0}
+                        style={{ display: "none" }} onChange={handleMetricsUpload(side)} />
                 </label>
             </div> : null}
             {metricErrors[side] ? <div className="font-size--small" style={{ color: "#cd4246" }}>{metricErrors[side]}</div> : null}
@@ -559,10 +607,13 @@ export function ExecutionSetupPage() {
                 <button disabled={saveIsPending || startIsPending}
                     className="basic-button" onClick={handleSave}>{saveIsPending ? "Saving..." : "Save setup"}</button>
                 <button disabled={saveIsPending || startIsPending || !canExecute}
-                    className="basic-button basic-button--highlighted" onClick={handleStart}>
+                    className="basic-button basic-button--highlighted" title={startButtonTitle} onClick={handleStart}>
                     {startIsPending ? "Starting..." : "Start execution"}</button>
             </div>
         </div>
+        {startBlockers.length > 0 ? <div className="font-size--smallest" style={{ color: "#c87619", margin: "0 1rem 0.25rem 1rem" }}>
+            Cannot start yet — {startBlockers.join(" · ")}
+        </div> : null}
         {savedMessage ? <Callout intent="success" style={{ margin: "0 1rem" }}>{savedMessage}</Callout> : null}
         {startIsError ? <div className="padding--medium"><APIAxiosError error={startError} /></div> : null}
 
@@ -701,10 +752,12 @@ export function ExecutionSetupPage() {
 
         {/* ---------------- MIDDLE: the module console ---------------- */}
             <div style={columnStyle}>
-                <h4 style={{ margin: "0 0 0.5rem 0" }}>{procedure?.title || procedure_tag}
+                <h4 style={{ margin: "0 0 0.5rem 0" }}>
+                    <span style={{ color: _.isObject(procedure) ? "#238551" : "#c87619" }}>② Modular Process</span>
                     {_.isNumber(procedure?.version) && procedure.version > 1 ?
                         <span className="font-size--small" style={{ color: "#888" }}> v{procedure.version}</span> : null}
                 </h4>
+                <div className="font-size--small" style={{ fontWeight: 600 }}>{procedure?.title || procedure_tag}</div>
                 <div className="font-size--small" style={{ color: "#555" }}>{procedure?.description}</div>
                 <div className="font-size--smallest" style={{ color: "#888", marginTop: "0.35rem" }}>
                     {[procedure?.input_plate_format ? `input format: ${procedure.input_plate_format}` : null,

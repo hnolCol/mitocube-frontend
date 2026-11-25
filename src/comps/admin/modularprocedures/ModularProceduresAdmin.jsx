@@ -2,6 +2,7 @@ import { Alert, Callout, Dialog, DialogBody } from "@blueprintjs/core";
 import { useState } from "react";
 import _ from "lodash";
 import { api } from "@/api";
+import { queryClient } from "@/api/queryClient";
 import { APIAxiosError } from "@/comps/core/base/states/APIError";
 import { AddButton } from "@/comps/core/base/buttons/AddButton";
 import { ModularProcedureForm } from "@/comps/modularprocedures/ModularProcedureForm";
@@ -41,6 +42,7 @@ export function ModularProceduresAdmin({ userRole }) {
     const handleInsert = (procedure) => {
         postProcedure(procedure, {
             onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ["getModularProcedure"] })
                 setDialogProps({ isOpen: false })
                 setAlertProps({ isOpen: true, message: "Modular procedure created as draft." })
                 refetch()
@@ -51,6 +53,7 @@ export function ModularProceduresAdmin({ userRole }) {
     const handleUpdate = (procedure) => {
         updateProcedure({ tag: dialogProps.procedure_tag, ...procedure }, {
             onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ["getModularProcedure"] })
                 setDialogProps({ isOpen: false, editMode: false, procedure_tag: null })
                 setAlertProps({ isOpen: true, message: "Modular procedure updated." })
                 refetch()
@@ -59,8 +62,12 @@ export function ModularProceduresAdmin({ userRole }) {
     }
 
     const handlePublish = (procedure_tag) => {
+        if (!window.confirm("Publish this modular procedure?\n\n" +
+            "Publishing freezes the procedure with a SHA-256 content hash — it cannot be edited afterwards. " +
+            "To change it later, a new draft version must be created from the published one.")) return
         publishProcedure({ tag: procedure_tag }, {
             onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ["getModularProcedure", procedure_tag] })
                 setAlertProps({ isOpen: true, message: "Modular procedure published. It is now immutable and has a content hash." })
                 refetch()
             }
@@ -72,6 +79,7 @@ export function ModularProceduresAdmin({ userRole }) {
             "but can no longer be assigned or executed.")) return
         retireProcedure({ tag: procedure_tag }, {
             onSuccess: () => {
+                queryClient.invalidateQueries({ queryKey: ["getModularProcedure", procedure_tag] })
                 setAlertProps({ isOpen: true, message: "Modular procedure retired. It stays visible with its content and hash, but can no longer be assigned or executed." })
                 refetch()
             }
@@ -81,6 +89,7 @@ export function ModularProceduresAdmin({ userRole }) {
     const handleCreateVersion = (procedure_tag) => {
         createVersion({ tag: procedure_tag }, {
             onSuccess: (newVersion) => {
+                queryClient.invalidateQueries({ queryKey: ["getModularProcedure"] })
                 refetch()
                 setAlertProps({ isOpen: true, message: `Draft version ${newVersion.version} created. It is a copy of the published version and can be edited and published independently.` })
                 setDialogProps({ isOpen: true, editMode: true, procedure_tag: newVersion.tag })
