@@ -69,17 +69,15 @@ function ProcedureColumn({ procedure_tag, isCurator, canChangeState, onMarkDone,
         background: "#fafafa", padding: "0.5rem", maxHeight: "70vh", overflowY: "auto"
     }}>
         <div className="padding--little" style={{ borderBottom: "1px solid #ddd" }}>
-            <div className="flex justify-between center-items">
-                <h4 style={{ margin: 0 }}>{procedure?.title || procedure_tag}</h4>
-                {isCurator ? <div className="flex" style={{ gap: "0.25rem" }}>
-                    <button className="basic-button basic-button--small"
-                        title="Create a new execution draft of this module and design it on the setup page"
-                        onClick={onSetupNew}>Setup New</button>
-                    <button className="basic-button basic-button--small"
-                        title="The admin overview: the definition, status and full information of this module"
-                        onClick={() => navigate("/admin/modular-procedures")}>Admin</button>
-                </div> : null}
-            </div>
+            <h4 style={{ margin: 0 }}>{procedure?.title || procedure_tag}</h4>
+            {isCurator ? <div className="flex flex--wrap" style={{ gap: "0.25rem", marginTop: "0.25rem" }}>
+                <button className="basic-button basic-button--small"
+                    title="Create a new execution draft of this module and design it on the setup page"
+                    onClick={onSetupNew}>Setup New</button>
+                <button className="basic-button basic-button--small"
+                    title="The admin overview: the definition, status and full information of this module"
+                    onClick={() => navigate("/admin/modular-procedures")}>Admin</button>
+            </div> : null}
             {procedure?.description ? <p className="font-size--small" style={{ color: "#666", margin: 0 }}>
                 {procedure.description.substring(0, 120)}{procedure.description.length > 120 ? "..." : ""}
             </p> : null}
@@ -102,12 +100,16 @@ function ExecutionRow({ execution_tag, canChangeState, onDone }) {
     const { data: execution } = api.modularProcedures.execute.useGetModularProcedureExecution(
         { tag: execution_tag }, { enabled: _.isString(execution_tag) })
     const status = execution?.status || "RUNNING"
-    return <div className="flex center-items justify-between gap--tiny margin-top--tiny">
-        <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
-        <ExecutionStateChip status={status} />
+    // the name and the state chip stay in the first row; the outcome controls move to a second
+    // row so the narrow columns never cut the buttons off
+    return <div className="margin-top--tiny">
+        <div className="flex center-items justify-between gap--tiny">
+            <span className="font-size--smallest" title={execution_tag}>{execution_tag}</span>
+            <ExecutionStateChip status={status} />
+        </div>
         {canChangeState ? (status === "DRAFT" ?
-            <ExecutionDraftControls execution_tag={execution_tag} onDeleted={onDone} /> :
-            <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} />) : null}
+            <div style={{ marginLeft: "-0.5rem" }}><ExecutionDraftControls execution_tag={execution_tag} onDeleted={onDone} /></div> :
+            <div style={{ marginLeft: "-0.5rem" }}><ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} /></div>) : null}
     </div>
 }
 
