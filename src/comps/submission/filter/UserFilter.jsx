@@ -20,7 +20,7 @@ export function UserDatasetFilter({ setSubmissionFilter, submissionFilter, disab
 
     const renderUser = (item, { handleClick, handleFocus, index, modifiers, query }) => { 
         const selected = _.has(submissionFilter, "user") && _.isArray(submissionFilter.user) && submissionFilter.user.some(u => u.tag === item)
-        return <UserMenuItem tag={item} selected={selected} {...{handleClick, handleFocus, modifiers, selected}} />
+        return <UserMenuItem key={item} tag={item} selected={selected} {...{handleClick, handleFocus, modifiers, selected}} />
 
 
     }

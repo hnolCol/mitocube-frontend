@@ -37,7 +37,7 @@ export function MultipleAttributeSelection({debounce = 100, onAttributeSelect, s
      * @returns 
      */
     const itemRenderer = (attribute_tag, { handleClick, handleFocus, modifiers, query }) => {
-        return <AttributeMenuItem tag={attribute_tag} selected={selectedItems.includes(attribute_tag)} menuItemProps={{handleClick,handleFocus,modifiers,query}}/>
+        return <AttributeMenuItem key={attribute_tag} tag={attribute_tag} selected={selectedItems.includes(attribute_tag)} menuItemProps={{handleClick,handleFocus,modifiers,query}}/>
     }
 
     const handleItemSelection = (attribute, e) => {
