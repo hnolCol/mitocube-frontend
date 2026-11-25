@@ -526,8 +526,8 @@ export function ExecutionSetupPage() {
         [submission_tag, (samplesOfSubmission[submission_tag] || []).filter((sample) => !placedSampleTagSet.has(sample.tag))]))
     // whole-well fill in the color(s) of the submission(s) whose samples sit in the well: a
     // well holding samples of several submissions is split proportionally (hard gradient stops)
-    const wellFillStyle = (well) => {
-        const tags = well.sample_tags || []
+    const wellFillStyle = (sample_tags) => {
+        const tags = sample_tags || []
         if (tags.length === 0) return null
         const counts = _.countBy(tags.map((tag) => submissionIndexOf(sampleSubmissions[tag])))
         const groups = _.keys(counts).map((index) => ({ index: _.toInteger(index), n: counts[index] })).sort((a, b) => a.index - b.index)
@@ -551,15 +551,18 @@ export function ExecutionSetupPage() {
             outputs.length > 0 ? `→ ${outputs}` : null]
         return parts.filter((part) => part).join(" ") || null
     }
-    // the samples collected in an output well (derived from the transfer map) for its tooltip
+    // the samples collected in an output well (derived from the transfer map) — the base of
+    // its tooltip and of the whole-well fill, which uses the same submission colors as the
+    // input plate so a sample is recognizable on both plates
     const outputSampleEntries = {}
     _.forEach(inputWells, (well) => (well.output_positions || []).forEach((position) =>
         (well.sample_tags || []).forEach((sample_tag) => {
             outputSampleEntries[position] = outputSampleEntries[position] || []
-            outputSampleEntries[position].push(`${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
+            outputSampleEntries[position].push(sample_tag)
         })))
     const outputWellTooltip = (position, well) => {
-        const entries = _.uniq(outputSampleEntries[position] || [])
+        const entries = _.uniq(outputSampleEntries[position] || []).map((sample_tag) =>
+            `${sampleSubmissions[sample_tag] || "unknown submission"} : ${sample_tag}`)
         const cas = (well.condition_application_tags || []).join(", ")
         const parts = [entries.length > 0 ? `${position} — ${entries.join(", ")}` : null,
             cas.length > 0 ? `parameters: ${cas}` : null]
@@ -836,7 +839,7 @@ export function ExecutionSetupPage() {
                     <PlateGrid plate={inputPlate} wells={inputWells} selectedWell={selectedInputWell}
                         onWellClick={handleInputWellClick} onWellAltClick={handleClearInputWell}
                         isWellDisabled={inputWellDisabled} onWellDrop={handleInputWellDrop}
-                        wellStyle={(position, well) => wellFillStyle(well)}
+                        wellStyle={(position, well) => wellFillStyle(well.sample_tags || [])}
                         wellTitle={wellTooltip}
                         renderWell={(well, position) => well && _.size(well.sample_tags) > 0 ?
                             <span className="flex center-items" style={{ gap: "0.15rem", color: "#ffffff", fontWeight: 600,
@@ -947,8 +950,15 @@ export function ExecutionSetupPage() {
                         isWellDisabled={outputWellDisabled}
                         paintMode={selectedInputWell !== null}
                         wellTitle={outputWellTooltip}
-                        renderWell={(well) => well ? <span className="font-size--smallest">
-                            CA{well.condition_application_tags.length}</span> : ""} />
+                        wellStyle={(position, well) => wellFillStyle(outputSampleEntries[position] || [])}
+                        renderWell={(well, position) => well ?
+                            <span className="flex center-items" style={{ gap: "0.15rem", color: "#ffffff", fontWeight: 600,
+                                textShadow: "0 0 2px rgba(0,0,0,0.95), 0 0 5px rgba(0,0,0,0.8)" }}>
+                                <span className="font-size--smallest">{position}</span>
+                                {(outputSampleEntries[position] || []).length > 0 ?
+                                    <span style={{ opacity: 0.9 }}>{_.size(outputSampleEntries[position])}</span> : null}
+                                <span className="font-size--smallest" style={{ opacity: 0.75 }}>CA{well.condition_application_tags.length}</span>
+                            </span> : ""} />
                     <div className="font-size--smallest" style={{ color: "#888", marginTop: "0.25rem" }}>
                         Select an input well (left) and click/drag over output wells to map it — mapping
                         several input wells onto the same output well pools them; right-click removes a well.
