@@ -131,16 +131,20 @@ export function ExecutionDraftControls({ execution_tag, onDeleted }) {
     </div>
 }
 
-export function ExecutionStateControls({ execution_tag, status, compact = false, onDone }) {
+export function ExecutionStateControls({ execution_tag, status, compact = false, done_submission_tags = [], onDone }) {
     // drafts have no outcome controls: their setup is edited / deleted instead, the outcome
     // buttons only exist once the execution actually started running
     if (status === "DRAFT") return null
     const [blockWells, setBlockWells] = useState(status === "SUCCEEDED")
-    const { mutate: finishExecution } = api.modularProcedures.execute.useFinishModularProcedureExecution({
+    const { mutate: finishExecution, isPending: finishIsPending,
+        isError: finishIsError, error: finishError } = api.modularProcedures.execute.useFinishModularProcedureExecution({
         onSuccess: (updatedExecution) => { if (onDone) onDone(updatedExecution) }
     })
     const labels = compact ? { SUCCEEDED: "Successful", FAILED: "Failed", ABORTED: "Aborted" } : null
     const transitions = ["SUCCEEDED", "FAILED", "ABORTED"].filter((state) => state !== status)
+    // once the run succeeded the outcome buttons are replaced by the summary of the processed
+    // submissions. The success is confirmed, corrections stay possible via the executions overview
+    if (status === "SUCCEEDED") return <ExecutionSuccessSummary done_submission_tags={done_submission_tags} />
     return <div className="flex center-items gap--tiny flex--wrap">
         <label title="Whether the output wells stay blocked after the change: keep them blocked if the
 runs left them unusable (e.g. an aborted liquid handler run with dirty wells), unblock them if
@@ -151,6 +155,7 @@ the wells can be used again."
         </label>
         {transitions.map((state) =>
             <button key={state} className="basic-button basic-button--small"
+                disabled={finishIsPending}
                 style={{ color: EXECUTION_STATUS_STYLE[state].color }}
                 title={status === "RUNNING" ?
                     `Confirms the run as ${state}: frees the assigned submissions for the next procedure` :
@@ -158,7 +163,32 @@ the wells can be used again."
                 onClick={() => finishExecution({ tag: execution_tag, outcome: state, block_output_wells: blockWells })}>
                 {labels ? labels[state] : state}
             </button>)}
+        {finishIsError ? <span className="font-size--smallest" style={{ color: "#cd4246" }}>
+            <APIAxiosError error={finishError} />
+        </span> : null}
     </div>
+}
+
+export function ExecutionSuccessSummary({ done_submission_tags }) {
+    // shown instead of the outcome buttons on a successful execution: what came out of the run
+    const tags = _.isArray(done_submission_tags) ? done_submission_tags : []
+    if (tags.length === 0) return <div className="font-size--smallest" style={{ color: "#888" }}>
+        No submissions were processed.
+    </div>
+    return <div className="font-size--smallest" style={{ color: "#666" }}>
+        <strong style={{ color: "#43a047" }}>{tags.length} submission{tags.length > 1 ? "s" : ""}</strong>
+        {tags.map((submission_tag) =>
+            <div key={submission_tag} className="flex center-items gap--tiny flex--wrap">
+                <span title={submission_tag}>{submission_tag}</span>
+                <span>- <SubmissionOwnerName submission_tag={submission_tag} /></span>
+            </div>)}
+    </div>
+}
+
+function SubmissionOwnerName({ submission_tag }) {
+    const { data: owner_tag } = api.submissions.users.useGetSubmissionOwner(
+        { tag: submission_tag }, { enabled: _.isString(submission_tag) })
+    return <StateUser user_tag={owner_tag} />
 }
 
 export function WellTable({ wells, side }) {

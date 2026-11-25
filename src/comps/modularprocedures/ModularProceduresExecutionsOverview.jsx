@@ -28,7 +28,7 @@ function ExecutionDetails({ execution, canChangeState, onStateChanged, onDeleted
             {canChangeState && execution.status !== "DRAFT" ?
                 <div className="flex" style={{ alignItems: "center", whiteSpace: "nowrap" }}>
                     <ExecutionStateControls execution_tag={execution.tag} status={execution.status} compact
-                        onDone={onStateChanged} />
+                        done_submission_tags={execution.done_submission_tags} onDone={onStateChanged} />
                 </div> : null}
             {canChangeState && execution.status === "DRAFT" ?
                 <ExecutionDraftControls execution_tag={execution.tag} onDeleted={onDeleted} /> : null}
