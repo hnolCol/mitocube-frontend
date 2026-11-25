@@ -406,6 +406,62 @@ export function ExecutionSetupPage() {
         setFillMessage(null)
     }
 
+    // compact auto-mapping: the unmapped input wells are transferred to the free output wells
+    // in fill order (rows or columns first) — unlike the 1:1 mirror this respects already
+    // occupied output wells, e.g. on a half-full plate the outputs land after the used wells
+    const handleAutoFillMap = () => {
+        if (!_.isObject(outputPlate)) return
+        const rows = outputPlate.rows || 0
+        const columns = outputPlate.columns || 0
+        const rowLabelOf = (rowIndex) => String.fromCharCode(rowIndex + 65)
+        const positionsInOrder = fillRowsFirst ?
+            _.flatten(_.range(rows).map((rowIndex) =>
+                _.range(columns).map((columnIndex) => `${rowLabelOf(rowIndex)}${columnIndex + 1}`))) :
+            _.flatten(_.range(columns).map((columnIndex) =>
+                _.range(rows).map((rowIndex) => `${rowLabelOf(rowIndex)}${columnIndex + 1}`)))
+        const neededPerWell = Math.max(procedure?.min_output_wells_per_sample || 1, 1)
+        const usedOutputs = new Set(_.flatten(_.map(inputWells, (well) => well.output_positions || [])))
+        const freeOutputs = positionsInOrder.filter((position) =>
+            !usedOutputs.has(position) && !outputWellDisabled(position))
+        const unmappedInputs = _.keys(inputWells)
+            .filter((position) => (inputWells[position].output_positions || []).length === 0)
+            .sort((a, b) => positionsInOrder.indexOf(a) - positionsInOrder.indexOf(b))
+        let cursor = 0
+        const assignments = []
+        let shortage = false
+        unmappedInputs.forEach((inputPosition) => {
+            const targets = []
+            while (targets.length < neededPerWell && cursor < freeOutputs.length) {
+                targets.push(freeOutputs[cursor])
+                cursor += 1
+            }
+            if (targets.length < neededPerWell) { shortage = true; return }
+            assignments.push([inputPosition, targets])
+        })
+        if (assignments.length === 0) {
+            setFillMessage(shortage ?
+                "Not enough free output wells for a compact mapping — map the remaining input wells manually." :
+                "Nothing to map — every input well already has its output target(s).")
+            return
+        }
+        setInputWells((prev) => {
+            const next = { ...prev }
+            assignments.forEach(([inputPosition, targets]) =>
+                next[inputPosition] = { ...next[inputPosition], output_positions: targets })
+            return next
+        })
+        setOutputWells((prev) => {
+            const nextOutput = { ...prev }
+            assignments.forEach(([, targets]) => targets.forEach((position) => {
+                nextOutput[position] = nextOutput[position] || { condition_application_tags: [] }
+            }))
+            return nextOutput
+        })
+        setFillMessage(shortage ?
+            `Compact-mapped ${assignments.length} input well(s) — not enough free output wells for the rest, map them manually.` :
+            `Compact-mapped ${assignments.length} input well(s) with ${neededPerWell} output well(s) each, filling ${fillRowsFirst ? "rows" : "columns"} first.`)
+    }
+
     const handleAddExtraSubmission = (tag) => {
         if (!_.isString(tag) || tag.length === 0) return
         if (extraSubmissionTags.includes(tag) || (submissions || []).some((link) => link.submission_tag === tag)) return
@@ -810,7 +866,12 @@ export function ExecutionSetupPage() {
                                     <span className="font-size--smallest" style={{ opacity: 0.8 }}>→{(well.output_positions || []).length}</span> : null}
                             </span> : ""} />
                     <div className="flex center-items flex--wrap" style={{ gap: "0.5rem", marginTop: "0.5rem" }}>
-                        <button className="basic-button basic-button--small" onClick={handleAutoMap}>Auto-map 1:1</button>
+                        <button className="basic-button basic-button--small"
+                            title="Mirror every unmapped input well onto its output position (skipping occupied wells)"
+                            onClick={handleAutoMap}>Auto-map 1:1</button>
+                        <button className="basic-button basic-button--small"
+                            title="Fill the unmapped input wells into the free output wells (rows/columns first) — e.g. on a half-full plate the outputs land after the used wells"
+                            onClick={handleAutoFillMap}>Auto-map free wells</button>
                         <button className="basic-button basic-button--small"
                             title="Download the sample -> well table of the input plate like the runlist export"
                             onClick={() => setExportDialogProps({ isOpen: true, side: "input" })}>Export input plate</button>
