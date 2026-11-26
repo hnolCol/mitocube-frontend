@@ -47,6 +47,7 @@ export function EditAttribute({attribute_tag}) {
     const { data: parent_tags, isSuccess: isParentsSuccess } = api.attributes.queryAttributes.useGetAttributeParents({tag : attribute_tag},{ enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     const {data : group_tags, isSuccess : isGroupTagsSuccess} = api.attributes.queryAttributes.useGetAttributeGroupsByAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     const {data : min_state, isSuccess : isMinStateSuccess} = api.attributes.queryAttributes.useGetAttributeMinState({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
+    const { data : ancestor_tags } = api.attributes.queryAttributes.useGetAttributeAncestors({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
 
     
     useEffect(() => {
@@ -176,9 +177,9 @@ export function EditAttribute({attribute_tag}) {
                 <div>
                     <h4>Required traits</h4>
                 <div>
-                    Required traits are used to define the conditions under which this attribute is applicable. For example, if a trait is required, the attribute will only be applicable if the trait is present in the condition.
+                    Required traits are used to define the conditions under which this attribute is applicable. For example, if a trait is required, the attribute will only be applicable if the trait is present in the condition. Required traits can belong to the attribute's parents or to any attribute further up the hierarchy, so that a higher-level selection can gate the display of nested attributes.
                 </div>
-                    <AttributesInput placeHolderText="Select required traits for the attribute" handleTraitSelection={handleTraitSelection} selected_traits={attribute.required_trait_tags} matchTargetWidth={true} attribute_tags={attribute.parents} disabled={attribute.parents.length === 0} />
+                    <AttributesInput placeHolderText="Select required traits for the attribute" handleTraitSelection={handleTraitSelection} selected_traits={attribute.required_trait_tags} matchTargetWidth={true} attribute_tags={_.union(attribute.parents, ancestor_tags)} disabled={attribute.parents.length === 0 && !_.isArray(ancestor_tags)} />
                 
                 <div className="flex">{attribute.required_trait_tags.map(trait_tag => <Trait key={trait_tag} trait_tag={trait_tag} />)}</div>
                 </div>
