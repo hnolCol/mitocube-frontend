@@ -2,6 +2,7 @@ import { useState, useEffect } from "react"
 import { api } from "@/api"
 import Loading from "../../core/base/loading"
 import APIError from "../../core/error/APIerror"
+import { ResearchGroupSelect } from "@/comps/core/input/api/ResearchGroupSelect"
 import PropTypes from "prop-types"
 import _ from "lodash"
 
@@ -15,7 +16,9 @@ export function EditNews({ news_tag, onClose = () => {}, onSuccess = () => {} })
     const [formData, setFormData] = useState({ 
         title: "", 
         content: "", 
-        submission_tags: []
+        submission_tags: [],
+        research_group_tag: "",
+        general: false
     })
     
     const { data: news, isLoading: newsLoading, isError: loadError, error: loadErrorMsg } = api.news.useGetNewsByTag(
@@ -30,7 +33,9 @@ export function EditNews({ news_tag, onClose = () => {}, onSuccess = () => {} })
             setFormData({
                 title: news.title || "",
                 content: news.content || "",
-                submission_tags: news.submission_tags || []
+                submission_tags: news.submission_tags || [],
+                research_group_tag: news.research_group_tag || "",
+                general: !news.research_group_tag
             })
         }
     }, [news])
@@ -40,7 +45,8 @@ export function EditNews({ news_tag, onClose = () => {}, onSuccess = () => {} })
         updateNews({
             tag: news_tag,
             user_tag: news.user_tag,
-            ...formData
+            ...formData,
+            research_group_tag: formData.general ? null : formData.research_group_tag
         }, {
             onSuccess: () => {
                 if (_.isFunction(onSuccess)) {
@@ -62,30 +68,50 @@ export function EditNews({ news_tag, onClose = () => {}, onSuccess = () => {} })
             style={{
                 display: "grid",
                 gap: "1rem",
-                gridTemplateRows: "40px 1fr 60px",
+                gridTemplateRows: "40px 40px 1fr 60px",
                 padding: "1.5rem",
                 gridTemplateColumns: "1fr",
                 height: "100%",
             }}
         >
             <div style={{ gridRow: "1" }}>
-                <input
-                    value={formData.title}
-                    onChange={(e) =>
-                        setFormData((prevValues) => ({
-                            ...prevValues,
-                            title: e.target.value,
-                        }))
-                    }
-                    className="text-input"
-                    type="text"
-                    placeholder="Title"
-                />
+                <div className="flex" style={{ gap: "1rem" }}>
+                    <input
+                        value={formData.title}
+                        onChange={(e) =>
+                            setFormData((prevValues) => ({
+                                ...prevValues,
+                                title: e.target.value,
+                            }))
+                        }
+                        className="text-input"
+                        type="text"
+                        placeholder="Title"
+                        style={{ flex: 1 }}
+                    />
+                    <ResearchGroupSelect
+                        value={formData.research_group_tag}
+                        onChange={(research_group_tag) => setFormData(prevValues => ({ ...prevValues, research_group_tag }))}
+                        placeholder="Target research group ..."
+                        disabled={formData.general}
+                    />
+                </div>
+            </div>
+            
+            <div style={{ gridRow: "2" }} className="flex center-items">
+                <label className="flex center-items" style={{ gap: "0.5rem", cursor: "pointer" }}>
+                    <input
+                        type="checkbox"
+                        checked={formData.general}
+                        onChange={(e) => setFormData(prevValues => ({ ...prevValues, general: e.target.checked }))}
+                    />
+                    <span className="font-size--small">Show to everyone (general news)</span>
+                </label>
             </div>
             
             <div
                 style={{
-                    gridRow: "2",
+                    gridRow: "3",
                     overflowY: "auto",
                     minHeight: 0,
                     maxHeight: "100%",
@@ -108,11 +134,11 @@ export function EditNews({ news_tag, onClose = () => {}, onSuccess = () => {} })
                 />
             </div>
             
-            <div style={{ gridRow: "3", flexDirection: "row" }} className="flex justify-end">
+            <div style={{ gridRow: "4", flexDirection: "row" }} className="flex justify-end">
                 <button
                     type="button"
                     onClick={handleSubmit}
-                    disabled={isLoading}
+                    disabled={isLoading || (!formData.general && (!_.isString(formData.research_group_tag) || formData.research_group_tag.length === 0))}
                     style={{
                         alignSelf: "flex-end",
                         padding: "0.6rem 1.5rem",

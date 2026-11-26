@@ -11,7 +11,7 @@ import _ from "lodash"
 /**
  * News management page
  */
-export function NewsManagement() {
+export function NewsManagement({ authenticationStatus = null }) {
     const [dialogProps, setDialogProps] = useState({ isOpen: false })
 
     const { data: news, isLoading, isFetching, isError, error, refetch } = api.news.useFindNews(
@@ -29,6 +29,14 @@ export function NewsManagement() {
     
     const permissionLoaded = _.isObject(newsPermissions) && permissionIsSuccess
 
+    // own research groups, used to hide group-targeted news of other groups client-side
+    // (the backend already restricts the list for non-curators)
+    const { data: ownUser } = api.users.core.useGetPublicUserByTag(
+        { tag: authenticationStatus?.tag },
+        { enabled: _.isObject(authenticationStatus) && _.isString(authenticationStatus?.tag), staleTime: 1000 * 60 * 5 }
+    )
+    const ownResearchGroupTags = _.isArray(ownUser?.research_group_tags) ? ownUser.research_group_tags : []
+
     return (
         <div
             className="div--expand padding--medium"
@@ -39,7 +47,7 @@ export function NewsManagement() {
                 minHeight: 0,
             }}
         >
-            <div className="flex flex-column margin--medium padding--medium gap--medium-small">
+            <div className="flex flex-column padding--medium gap--medium-small" style={{ flex: 1, minHeight: 0 }}>
                 <h3>News</h3>
                 <div className="flex">
                     <Dialog
@@ -52,7 +60,7 @@ export function NewsManagement() {
                         title="Create News"
                         style={{ width: "50vw", height: "70vh", minHeight: "600px", fontSize: "1rem" }}
                     >
-                        <InsertNews onSuccess={() => {
+                        <InsertNews authenticationStatus={authenticationStatus} onSuccess={() => {
                             refetch()
                             setDialogProps(prevValues => ({ ...prevValues, isOpen: false }))
                         }}/>
@@ -72,8 +80,10 @@ export function NewsManagement() {
                         <div className="flex flex-column" style={{ 
                             gap: "1rem",
                             overflowY: "auto",      
-                            maxHeight: "100%",      
-                            height: "100%"         
+                            minHeight: 0,
+                            maxHeight: "100%",     
+                            height: "100%",
+                            paddingBottom: "1.5rem"
                         }}
                         >
                             {_.isArray(news) && news.length > 0 ? (
@@ -81,6 +91,8 @@ export function NewsManagement() {
                                     <NewsItem 
                                         key={news_tag} 
                                         news_tag={news_tag} 
+                                        authenticationStatus={authenticationStatus}
+                                        own_research_group_tags={ownResearchGroupTags}
                                         showEdit={permissionLoaded && newsPermissions.edit} 
                                         showDelete={permissionLoaded && newsPermissions.delete}
                                         onEditSuccess={refetch}       

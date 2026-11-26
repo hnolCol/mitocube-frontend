@@ -1,4 +1,3 @@
-
 import { KeyFigure } from "./Keyfigures"
 import _ from "lodash"
 import { NewsView } from "./News"
@@ -8,7 +7,7 @@ import { api } from "@/api"
 import { TrendingSubmissions } from "./TrendingSubmissions"
 import { WelcomeNavigationButtons } from "./WelcomeNavigation"
 
-function Welcome() {
+function Welcome({ authenticationStatus }) {
 
     const { isLoading: backendInfoLoading, data: backendInfo } = api.info.backend.useGetBackendInfo({staleTime : Infinity})
     return (
@@ -27,7 +26,7 @@ function Welcome() {
                 <WelcomeNavigationButtons />
                 </div>
             <div className="flex flex-wrap justify-flex-start" style={{width : "93vw", gap : "2rem",marginTop: "3rem", height: "max(50vh,300px)",}}>
-                    <NewsView />
+                    <NewsView authenticationStatus={authenticationStatus} />
                     
                     <LastViewed user_tag={null} type="submissions" />
                     <TrendingSubmissions />
