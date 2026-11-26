@@ -117,7 +117,8 @@ function ExecutionRow({ execution_tag, canChangeState, onDone }) {
         </div>
         {canChangeState ? (status === "DRAFT" ?
             <ExecutionDraftControls execution_tag={execution_tag} onDeleted={onDone} /> :
-            <ExecutionStateControls execution_tag={execution_tag} status={status} compact onDone={onDone} />) : null}
+            <ExecutionStateControls execution_tag={execution_tag} status={status} compact
+                done_submission_tags={execution.done_submission_tags} onDone={onDone} />) : null}
     </div>
 }
 
