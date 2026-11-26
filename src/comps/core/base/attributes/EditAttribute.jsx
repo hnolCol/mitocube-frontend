@@ -24,7 +24,7 @@ const REQUIRED_COLUMNS = [
 ];
 const INITIAL_ATTRIBUTE_STATE = {
     text : "",
-    abbreviation: "",
+    abbr: "",
     min_state : 0,
     priority : 500,
     allow_input : false,
@@ -49,7 +49,6 @@ export function EditAttribute({attribute_tag}) {
     const {data : min_state, isSuccess : isMinStateSuccess} = api.attributes.queryAttributes.useGetAttributeMinState({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     const { data : ancestor_tags } = api.attributes.queryAttributes.useGetAttributeAncestors({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
 
-    
     useEffect(() => {
         //loading children and parents. 
         if (isChildrenSuccess && isParentsSuccess && isGroupTagsSuccess && isAttributePropsSuccess) {
@@ -88,7 +87,7 @@ export function EditAttribute({attribute_tag}) {
             valid = false
             missingFields.push("Select at least one attribute group.")
         }
-        if (attribute.allow_input && (!_.isString(attribute.abbreviation) || attribute.abbreviation.length === 0)) {
+        if (attribute.allow_input && (!_.isString(attribute.abbr) || attribute.abbr.length === 0)) {
             valid = false
             missingFields.push("Provide an abbreviation for the attribute if allow input is selected")
         }
@@ -155,7 +154,7 @@ export function EditAttribute({attribute_tag}) {
                 {
                     attribute.allow_input && <div>
                     <h4>Abbreviation</h4>
-                    <input className="text-input" type="text" placeholder="Abbreviation" value={attribute.abbreviation} disabled={!attribute.allow_input} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, abbreviation: e.target.value } })} />
+                    <input className="text-input" type="text" placeholder="Abbreviation" value={attribute.abbr} disabled={!attribute.allow_input} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, abbr: e.target.value } })} />
                     <div className="font-size--smallest">Abbreviation is used in condition application view to display a value. Only relevant if allow_input is <code>true</code></div>
                     <h4>Placeholder</h4>
                     <input className="text-input" type="text" placeholder="Placeholder example (e.g. 2)" value={attribute.placeholder} onChange={(e) => setAttribute(prevValues => { return { ...prevValues, placeholder: e.target.value } })} />

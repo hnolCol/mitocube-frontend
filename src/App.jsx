@@ -445,14 +445,14 @@ function App() {
             <Route path="/submissions/:tag/comments" element={<SubmissionComments submission_tag={location.pathname.split("/")[2]} />} />
           </Route>
 
-          <Route
+          {/* <Route
             path="/ai/chat"
             element={
               <ProtectedRoute isAuthenticated={authenticationStatus.isAuth} isLoadingToken={tokenValidIsFetching || tokenValidIsLoading}>
                 <AIPage />
               </ProtectedRoute>
             }
-          />
+          /> */}
 
           <Route
             path="/admin"
@@ -464,7 +464,7 @@ function App() {
             }
           >
             {/* <Route index element={<div>Admin Settings</div>} />  */}
-            <Route index path="/admin/attributes" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
+            <Route index path="/admin/" element={<AttributesAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />
             <Route path="/admin/users" element={<UsersAdminView {...{ authenticationStatus }} />} />
             {/* <Route path="/admin/sharetoken" element={<ShareToken {...{ authenticationStatus }} />} /> */}
             <Route path="/admin/pats" element={<PATsAdminView {...{ authenticationStatus, userRole: authenticationStatus.role }} />} />

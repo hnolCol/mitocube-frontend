@@ -37,7 +37,7 @@ export function AttributeQueryContainer({ search_string, limit = 50, attribute_g
                     <span style={{ fontSize: 13, color: "#aaa" }}>(shown/total)</span>
                     </span>
             </div>
-            <div className="container--scroll-y-hide-x" style={{height : "60vh"}}>
+            <div className="container--scroll-y-hide-x" style={{height : "70vh"}}>
             {_.isArray(attribute_tags) ? <AttributeContainer attribute_tags={attribute_tags} isOpen={true} onEditClick={onEditAttributeClick} /> :
                 _.keys(attribute_tags).map((key) => (
                     <div key={key}>
@@ -126,7 +126,7 @@ export function AttributesAdminView({ userRole }) {
                             ))}
                         </div>
                     </div>
-                    <div className="padding--medium" style={{ height: "100%" }}>
+                    <div className="padding--medium" style={{ height: "100%"}}>
                         <AttributeQueryContainer
                             search_string={debouncedSearchString}
                             limit={limit}

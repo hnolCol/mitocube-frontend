@@ -6,11 +6,12 @@ import { useState } from "react"
 import { api } from "@/api";
 import { SubmissionLink } from "../../../core/links/Submission"
 import { SubmissionInput } from "@/comps/core/input/api/SubmissionInput"
-import { Button } from "@blueprintjs/core"
+import { addStringToArrayOrRemove } from "@/services/arrays/transforms"
+import { TinyXButton } from "@/comps/modularprocedures/Shared"
 
 const RESEARCH_AIM_TAG = "metatext:research_aim"
 
-export function ScopePanel({submission, setSubmission, setComponentKey}) {
+export function ScopePanel({ submission, setSubmission, setComponentKey }) {
     const [submissionTitle, setSubmissionTitle] = useState()
     const debouncedTitle = useDebounce(submissionTitle,20)
 
@@ -34,24 +35,14 @@ export function ScopePanel({submission, setSubmission, setComponentKey}) {
 
         <p>Select or create a study that describes the overall aim of the submission assay.</p>
 
-        <h3>Submission Title</h3>
+        <h3>Submission Title & Research Aim</h3>
             <TextInput
                 placeholder="Set the title of your submission.."
                 hint=""
                 value={_.isString(submission["title"]) ? submission["title"] : ""}
                 callbackKey="title"
                 onChange={handleTitleChange} />
-        <div className="font-size--small" style={{ minHeight: "3rem" }}>
-            {/* display other submissions that match the search string (e.g. the title.) Maybe create a full text search for this. */}
-            {_.isArray(submission_tags) && debouncedTitle.length > 0 && submission_tags.length > 0 ? <div>
-                <div>Submissions matching your search..</div>
-                {submission_tags.length > 0 ?
-                    submission_tags.map(submission_tag => <SubmissionLink key={submission_tag} tag={submission_tag} search_string={debouncedTitle} />) : null}
-            </div> : null}
-            </div>
 
-            <h3>Research Aim</h3>
-            <p>Describe the aim of this study. This is a required field.</p>
             <TextFieldInput
                 callbackKey={RESEARCH_AIM_TAG}
                 value={_.isObject(submission.metatext) && _.isString(submission.metatext[RESEARCH_AIM_TAG]) ? submission.metatext[RESEARCH_AIM_TAG] : ""}
@@ -60,20 +51,29 @@ export function ScopePanel({submission, setSubmission, setComponentKey}) {
                 isRequired={true}
                 hint="Research aim"
                 onChange={handleResearchAimChange} />
-
+            
             <h3>Linked Submission</h3>
             <p>Optionally link another submission from your scope, e.g. if this submission repeats an experiment.</p>
-            {_.isString(submission.linked_submission_tag) && submission.linked_submission_tag.length > 0 ?
+            {_.isArray(submission.linked_submission_tags) && submission.linked_submission_tags.length > 0 ?
                 <div className="flex center-items" style={{ gap: "0.5rem", marginBottom: "0.5rem" }}>
-                    <span>Linked submission:</span>
-                    <SubmissionLink tag={submission.linked_submission_tag} />
-                    <Button icon="cross" small={true} minimal={true} title="Remove linked submission"
-                        onClick={() => setSubmission(prevValues => { return { ...prevValues, linked_submission_tag: null } })} />
+                <span>Linked submission:</span>
+                <div className="flex font-size--small">
+                    {submission.linked_submission_tags && submission.linked_submission_tags.length > 0 ?
+                        submission.linked_submission_tags.map(tag => <div key={tag} className="flex bg--lightgrey margin-left--little"><SubmissionLink tag={tag} /> <TinyXButton onClick={() => setSubmission(prevValues => { return { ...prevValues, linked_submission_tags: prevValues.linked_submission_tags.filter(t => t !== tag) } })} /></div>) : null}
+                </div>
                 </div> : null}
             {/* SubmissionInput queries /submissions/q, which is scoped to the current user */}
-            <SubmissionInput
-                selected_submission_tags={_.isString(submission.linked_submission_tag) && submission.linked_submission_tag.length > 0 ? [submission.linked_submission_tag] : []}
-                onSelect={(tag) => setSubmission(prevValues => { return { ...prevValues, linked_submission_tag: prevValues.linked_submission_tag === tag ? null : tag } })}
-            />
+        <SubmissionInput
+                selected_submission_tags={_.isString(submission.linked_submission_tags) && submission.linked_submission_tags.length > 0 ? [submission.linked_submission_tags] : []}
+                onSelect={(tag) => setSubmission(prevValues => { return { ...prevValues, linked_submission_tags: addStringToArrayOrRemove({array : prevValues.linked_submission_tags, string: tag }) } })}
+        />
+         <div className="font-size--small flex flex-column" style={{ minHeight: "3rem", marginTop : "1rem", gap : "0.2rem" }}>
+            {/* display other submissions that match the search string (e.g. the title.) Maybe create a full text search for this. */}
+            {_.isArray(submission_tags) && debouncedTitle.length > 0 && submission_tags.length > 0 ? <div>
+                <div>Submissions matching your search..</div>
+                {submission_tags.length > 0 ?
+                    submission_tags.map(submission_tag => <SubmissionLink key={submission_tag} tag={submission_tag} search_string={debouncedTitle} />) : null}
+            </div> : null}
+            </div>
             </div>
 }

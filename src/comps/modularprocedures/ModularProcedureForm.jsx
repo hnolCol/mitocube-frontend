@@ -185,7 +185,7 @@ export function ModularProcedureForm({ procedure_tag, isPending, isError, error,
                         variants={tabVariants}
                         initial="enter" animate="center" exit="exit"
                         key={tabKey.current}
-                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+                        style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", minHeight : "50vh",
                             overflowY: "auto", paddingRight: "0.25rem" }}>
                         <div className="flex flex-column" style={{ gap: "0.5rem" }}>
 

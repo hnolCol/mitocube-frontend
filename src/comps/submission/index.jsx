@@ -6,12 +6,13 @@ function SubmissionHeader({ }) {
 
     const tabs = [
         { text: "Submissions", to: "/submissions" },
+        { text: "New Submission", to: "/submissions/new" },
+        { text: "Explore", to: "/submissions/explore" },
         { text: "Organize", to: "/submissions/organize" },
         { text: "Modular Processes", to: "/submissions/modular-processes" },
-        { text: "Explore", to: "/submissions/explore" },
-        { text: "New Submission", to: "/submissions/new" },
         { text: "Statistics", to: "/submissions/statistics" },
-        { text : "Help", to : "/submissions/help"}]
+        // { text : "Help", to : "/submissions/help"}]
+    ]
 
     return (
         <div className="no-scroll div--expand">

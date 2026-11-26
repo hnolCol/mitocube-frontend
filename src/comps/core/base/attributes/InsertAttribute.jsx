@@ -13,7 +13,7 @@ import { StateSelectionMenu } from "../states/StateSelectionMenu";
 
 import { APIAxiosError } from "../states/APIError";
 import { HIGHLIGHT_COLOR } from "@mitocube/viz/src/colors/palette";
-import { Alert, Callout, DialogBody } from "@blueprintjs/core";
+import { Alert, Callout, DialogBody, Button } from "@blueprintjs/core";
 import { getAttributeGroupWarnings } from "@/services/attributes";
 
 const TRAIT_COLUMNS = [
