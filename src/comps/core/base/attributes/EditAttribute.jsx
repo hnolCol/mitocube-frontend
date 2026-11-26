@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { MultipleAttributeSelection } from "./MultipleAttributeSelection";
 import { addStringToArrayOrRemove } from "@/services/arrays/transforms";
 import { AttributesInput } from "../../input/api/DatasetAttributeInput";
@@ -39,6 +40,7 @@ const INITIAL_ATTRIBUTE_STATE = {
 export function EditAttribute({attribute_tag}) {
 
     const [attribute, setAttribute] = useState(INITIAL_ATTRIBUTE_STATE);
+    const queryClient = useQueryClient();
     const [isErrorSuccessAlert, setIsErrorSuccessAlert] = useState(false)
     const {data : attributeProps, isSuccess : isAttributePropsSuccess} = api.attributes.queryAttributes.useGetAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     const { data: children_tags, isSuccess: isChildrenSuccess } = api.attributes.queryAttributes.useGetAttributeChildren({tag : attribute_tag},{ enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
@@ -65,7 +67,7 @@ export function EditAttribute({attribute_tag}) {
     const handleAttributeSubmit = () => {
         patchAttribute({tag : attribute_tag, ...attribute}, {
             onSuccess: () => {
-                // setAttribute(INITIAL_ATTRIBUTE_STATE)
+                queryClient.invalidateQueries({ queryKey: ["getAttribute", attribute_tag] })
                 setIsErrorSuccessAlert(true)
             },
             onError: () => {
