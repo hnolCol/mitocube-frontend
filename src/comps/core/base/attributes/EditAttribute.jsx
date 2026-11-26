@@ -48,13 +48,15 @@ export function EditAttribute({attribute_tag}) {
     const {data : group_tags, isSuccess : isGroupTagsSuccess} = api.attributes.queryAttributes.useGetAttributeGroupsByAttribute({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     const {data : min_state, isSuccess : isMinStateSuccess} = api.attributes.queryAttributes.useGetAttributeMinState({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
     const { data : ancestor_tags } = api.attributes.queryAttributes.useGetAttributeAncestors({tag : attribute_tag}, {enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
+    const {data : required_trait_tags, isSuccess : isRequiredTraitTagsSuccess } = api.traits.queryTraits.useGetRequiredTraits({tag : attribute_tag}, { enabled : _.isString(attribute_tag) && attribute_tag.length > 0, staleTime : Infinity})
 
+    
     useEffect(() => {
         //loading children and parents. 
-        if (isChildrenSuccess && isParentsSuccess && isGroupTagsSuccess && isAttributePropsSuccess) {
-            setAttribute(prevValues => { return { ...prevValues, children: children_tags, parents: parent_tags, group_tags, min_state, ...attributeProps } })
+        if (isChildrenSuccess && isParentsSuccess && isGroupTagsSuccess && isAttributePropsSuccess && isRequiredTraitTagsSuccess) {
+            setAttribute(prevValues => { return { ...prevValues, children: children_tags, parents: parent_tags, group_tags, min_state, required_trait_tags, ...attributeProps } })
         }
-    }, [isChildrenSuccess, isParentsSuccess, isGroupTagsSuccess, isAttributePropsSuccess, isMinStateSuccess, children_tags, parent_tags, group_tags, min_state, attributeProps])
+    }, [isChildrenSuccess, isParentsSuccess, isGroupTagsSuccess, isAttributePropsSuccess, isMinStateSuccess, isRequiredTraitTagsSuccess, children_tags, parent_tags, group_tags, min_state, attributeProps, required_trait_tags])
 
     const { mutate : patchAttribute, isSuccess, isPending, isError, error } = api.attributes.modifyAttributes.useUpdateAttribute()
 
@@ -178,7 +180,13 @@ export function EditAttribute({attribute_tag}) {
                 <div>
                     Required traits are used to define the conditions under which this attribute is applicable. For example, if a trait is required, the attribute will only be applicable if the trait is present in the condition. Required traits can belong to the attribute's parents or to any attribute further up the hierarchy, so that a higher-level selection can gate the display of nested attributes.
                 </div>
-                    <AttributesInput placeHolderText="Select required traits for the attribute" handleTraitSelection={handleTraitSelection} selected_traits={attribute.required_trait_tags} matchTargetWidth={true} attribute_tags={_.union(attribute.parents, ancestor_tags)} disabled={attribute.parents.length === 0 && !_.isArray(ancestor_tags)} />
+                    <AttributesInput placeHolderText="Select required traits for the attribute"
+                        handleTraitSelection={handleTraitSelection}
+                        ignoreParents={true}
+                        selected_traits={attribute.required_trait_tags}
+                        matchTargetWidth={true}
+                        attribute_tags={_.union(attribute.parents, ancestor_tags)}
+                        disabled={attribute.parents.length === 0 && (!_.isArray(ancestor_tags) || ancestor_tags.length === 0)} />
                 
                 <div className="flex">{attribute.required_trait_tags.map(trait_tag => <Trait key={trait_tag} trait_tag={trait_tag} />)}</div>
                 </div>

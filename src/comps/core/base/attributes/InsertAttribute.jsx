@@ -296,6 +296,7 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
         _.isObject(initialAttribute) ? { ...INITIAL_ATTRIBUTE_STATE, ...initialAttribute } : INITIAL_ATTRIBUTE_STATE
     );
     const [isErrorSuccessAlert, setIsErrorSuccessAlert] = useState(false)
+
     const { mutate : postAttribute, isSuccess, isPending, isError, error } = api.attributes.modifyAttributes.usePostAttribute()
     const isBusy = _.isFunction(onSubmit) ? isSubmitting : isPending
 
@@ -437,7 +438,8 @@ export function InsertAttribute({ initialAttribute, onSubmit, title = "Insert At
                 <div>
                     <h4>Required traits</h4>
                 <div>
-                    Required traits are used to define the conditions under which this attribute is applicable. For example, if a trait is required, the attribute will only be applicable if the trait is present in the condition.
+                        Required traits are used to define the conditions under which this attribute is applicable. For example, if a trait is required, the attribute will only be applicable if the trait is present in the condition.
+                        <p><strong>Note:</strong> Required traits must be of the same attribute as its parent. After insertion you will be able to add traits of the ancestor attributes as well.</p>
                 </div>
                     <AttributesInput placeHolderText="Select required traits for the attribute" handleTraitSelection={handleTraitSelection} selected_traits={attribute.required_trait_tags} matchTargetWidth={true} attribute_tags={attribute.parents} disabled={attribute.parents.length === 0} />
                 

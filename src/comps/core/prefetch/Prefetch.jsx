@@ -34,6 +34,8 @@ export function WithTagMaps({
     showProteinSearch = false,
     proteinSearchProps = {},
     searchExtra = null,
+    exportProteinTags = [],
+    exportProteinTagsTrigger,
     ...rest
 }) {
     // Persist across renders
@@ -95,6 +97,11 @@ export function WithTagMaps({
         }
         return proteinTagGeneNameMapRef.current
     }, [proteinTagQueries, validProteinTags])
+
+    const exportProteinTagsReady = exportProteinTags.every(tag => proteinTagMap.has(tag));
+    const exportProteinTagsFailed = proteinTagQueries.some(
+        (query, index) => query.isError && exportProteinTags.includes(validProteinTags[index])
+    );
 
     const handleProteinSearchSuccess = (proteinTags) => {
         setProteinSearchTags(prev => ({ key: "tag", values: proteinTags, trigger: Math.random() }))
@@ -170,6 +177,9 @@ export function WithTagMaps({
                 proteinIsLoading={proteinIsLoading}
                 proteinSearchResults={proteinSearchTags}
                 setProteinSearchTrigger={setProteinSearchTrigger}
+                exportProteinTagsTrigger={exportProteinTagsTrigger}
+                exportProteinTagsReady={exportProteinTagsReady}
+                exportProteinTagsFailed={exportProteinTagsFailed}
             />
         </div>
     )

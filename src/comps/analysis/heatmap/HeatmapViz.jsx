@@ -112,7 +112,8 @@ function HeatmapViz({
     proteinSearchResults,
     proteinIsLoading,
     submission_tag,
-    setProteinSearchTrigger
+    setProteinSearchTrigger,
+    setTriggerLoadAllProteinTags
 }) {
     const scrollContainerRef = useRef(null);
     const profilesRef = useRef(null);
@@ -120,6 +121,25 @@ function HeatmapViz({
     const [clusterInputValue, setClusterInputValue] = useState(String(testProps.n_clusters));
     const [fdrvInputValue, setFDRVInputValue] = useState(String(testProps.fdr));
     const [isSampleDialogOpen, setIsSampleDialogOpen] = useState(false);
+    const [pendingHeatmapExport, setPendingHeatmapExport] = useState(null);
+    const exportSawLoading = useRef(false);
+
+    useEffect(() => {
+        if (!pendingHeatmapExport) return;
+        if (proteinIsLoading) {
+            exportSawLoading.current = true;
+            return;
+        }
+        if (!exportSawLoading.current && refetchedTrigger === pendingHeatmapExport.refetchedTrigger) return;
+
+        setPendingHeatmapExport(null);
+        downloadSvgFromString(buildHeatmapSvg({
+            data: pendingHeatmapExport.data,
+            valueNames: pendingHeatmapExport.valueNames,
+            colorNames: pendingHeatmapExport.colorNames,
+            proteinTagMap
+        }), `heatmap-${pendingHeatmapExport.submissionTag}.svg`);
+    }, [pendingHeatmapExport, proteinIsLoading, proteinTagMap, refetchedTrigger]);
 
     useEffect(() => {
         setClusterInputValue(String(testProps.n_clusters));
@@ -319,7 +339,7 @@ function HeatmapViz({
                 <div className="font-size--small">
                     <p>
                         The FDR cutoff was to {_.round(heatmapData.fdr * 100, 2)}% and 
-                        <strong>{heatmapData.data.length}</strong> features were found significantly different.
+                        <strong> {heatmapData.data.length}</strong> features were found significantly different.
                     </p>
                     <p>
                         The data are divided into a total number of <strong>{heatmapData.n_clusters}</strong> clusters.
@@ -329,18 +349,19 @@ function HeatmapViz({
                 <h4>Export</h4>
                 <div className="flex flex-column gap--tiny">
                     <button className="basic-button width--full"
-                        disabled={proteinIsLoading}
-                        title={proteinIsLoading ? "Resolving gene names..." : undefined}
-                        onClick={() => downloadSvgFromString(
-                            buildHeatmapSvg({
+                        disabled={proteinIsLoading || !!pendingHeatmapExport}
+                        onClick={() => {
+                            exportSawLoading.current = false;
+                            setPendingHeatmapExport({
                                 data: heatmapData.data,
                                 valueNames: heatmapData.value_names,
                                 colorNames: (_.isArray(heatmapData.color_names) ? heatmapData.color_names : []),
-                                proteinTagMap
-                            }),
-                            `heatmap-${submission_tag}.svg`
-                        )}>
-                        Heatmap (SVG)
+                                submissionTag: submission_tag,
+                                refetchedTrigger
+                            });
+                            setTriggerLoadAllProteinTags(Math.random());
+                        }}>
+                        {proteinIsLoading || pendingHeatmapExport ? "Resolving gene names..." : "Heatmap (SVG)"}
                     </button>
                     <button className="basic-button width--full"
                         onClick={() => downloadSvgFromString(

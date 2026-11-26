@@ -13,6 +13,9 @@ import HeatmapViz from "./HeatmapViz";
  * Handles data fetching and state management for heatmap analysis.
  */
 function HeatmapLoad({ submission_tag }) {
+
+
+    const [triggerLoadAllProteinTags, setTriggerLoadAllProteinTags] = useState(false);
     const [testProps, setTestProps] = useState({
         fdr: 0.01,
         n_clusters: 8,
@@ -54,11 +57,12 @@ function HeatmapLoad({ submission_tag }) {
     }, [_.join(sample_ca_attribute_tags, ";"), _.isArray(submissionSampleConditionApplications)]);
 
     const heatmapProteinTags = useMemo(() => {
+        if (!_.isNumber(triggerLoadAllProteinTags)) return [];
         if (!_.isObject(heatmapData) || !_.isArray(heatmapData.data)) return [];
         return heatmapData.data.flatMap(row => (_.isString(row.tag)
             ? row.tag.split(";").map(subTag => subTag.trim()).filter(Boolean)
             : []));
-    }, [heatmapData]);
+    }, [heatmapData, triggerLoadAllProteinTags]);
 
     if (isError) return <APIError error={error} />;
     if (isLoading || isFetching) return <div><Loading /> Clustering data containing NaN may take some time...</div>;
@@ -80,9 +84,12 @@ function HeatmapLoad({ submission_tag }) {
             setViewProps={setViewProps}
             unique_ca_tags={unique_ca_tags}
             setRequiredProteinTags={setRequiredProteinTags}
+            setTriggerLoadAllProteinTags={setTriggerLoadAllProteinTags}
             showProteinSearch={true}
             proteinSearchProps={{ submission_tag }}
             submission_tag={submission_tag}
+            exportProteinTags={heatmapProteinTags}
+            exportProteinTagsTrigger={triggerLoadAllProteinTags}
         />
     );
 }

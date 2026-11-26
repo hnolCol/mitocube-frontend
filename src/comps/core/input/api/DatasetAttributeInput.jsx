@@ -228,7 +228,8 @@ export function AttributesInput({
     checkMandatoryAttributes = true,
     disabled = false,
     attribute_tags = undefined,
-    handleTraitDeselect = undefined
+    handleTraitDeselect = undefined,
+    ignoreParents = false
 }) {
  
     const { data: mandatoryCheck } = api.submissions.core.useCheckSubmission(
@@ -257,6 +258,8 @@ export function AttributesInput({
             staleTime: 300000,
             placeholderData: (prev) => prev
     })
+
+    console.log(queried_attributes)
     /**
      * 
      * @param {MouseEvent} e 
@@ -298,7 +301,7 @@ export function AttributesInput({
                     tag={attributeWithTraits.attribute_tag}
                     trait_tags={attributeWithTraits.trait_tags}
                     trait_paths={attributeWithTraits.trait_paths}
-                    parent_tags={attributeWithTraits.parent_tags}
+                    parent_tags={ignoreParents ? [] : attributeWithTraits.parent_tags}
                     selected_traits={selectedTraitTags}
                     selected_trait_pairs={selectedTraitPairs}
                     handleTraitSelection={handleTraitSelectionClosed}

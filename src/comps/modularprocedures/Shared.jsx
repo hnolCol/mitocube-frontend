@@ -82,7 +82,7 @@ export function ProcedureTitle({ procedure_tag }) {
 export function ProcedureOptionTitle({ procedure_tag }) {
     const { data: procedure } = api.modularProcedures.query.useGetModularProcedureByTag(
         { tag: procedure_tag }, { enabled: _.isString(procedure_tag), staleTime: 300000 })
-    if (_.isObject(procedure) && _.isString(procedure.title)) return `${procedure.title} (${procedure_tag})`
+    if (_.isObject(procedure) && _.isString(procedure.title)) return `${procedure.title}`
     return procedure_tag
 }
 

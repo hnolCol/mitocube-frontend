@@ -1,4 +1,4 @@
-import { Menu, MenuDivider, MenuItem } from "@blueprintjs/core"
+import { Button, Dialog, Menu, MenuDivider, MenuItem, TextArea } from "@blueprintjs/core"
 import { Loading } from "../../../../../core/base/states/Loading"
 import { TraitMenuItem } from "../../../../../core/input/items/AttributeValueMenu"
 import TextInput from "../../../../../core/input/Text"
@@ -9,8 +9,7 @@ import _ from "lodash"
 import { api } from "@/api"
 import useDebounce from "../../../../../../hooks/useDebounce"
 
-const readClipboardValues = async () => {
-    const text = await navigator.clipboard.readText()
+const parseClipboardValues = (text) => {
     return text
         .split(/\r?\n/)
         .map(line => line.split(/\t|\s*,\s*/)[0].trim())
@@ -29,7 +28,8 @@ export function AttributeContextMenuSearch({ attribute_tag,
                 inputFields = [] }) {
     
     const [searchString, setQuery] = useState("")
-    const [clipboardValues, setClipboardValues] = useState(null)
+    const [pasteField, setPasteField] = useState(null)
+    const [pasteText, setPasteText] = useState("")
 
     const debouncedString = useDebounce(searchString,30)
     
@@ -41,26 +41,26 @@ export function AttributeContextMenuSearch({ attribute_tag,
         
     }, [])
 
-    // read the clipboard as soon as the context menu opens so pasting
-    // requires no extra "copy" step
-    useEffect(() => {
-        readClipboardValues()
-            .then(values => setClipboardValues(values))
-            .catch(e => {
-                console.error("Clipboard read failed", e)
-                setClipboardValues([])
-            })
-    }, [])
+    const handlePasteFromClipboard = async (field) => {
+        try {
+            if (!navigator.clipboard?.readText) {
+                throw new Error("Clipboard access is unavailable in this browser or context.")
+            }
 
-    const handlePasteFromClipboard = (field) => {
-        if (!_.isArray(clipboardValues) || clipboardValues.length === 0) return
-        onPasteValues(attribute_tag, field, clipboardValues, rowIdces)
+            const text = await navigator.clipboard.readText()
+            const values = parseClipboardValues(text)
+
+            if (values.length > 0) {
+                onPasteValues(attribute_tag, field, values, rowIdces)
+            }
+        } catch (error) {
+            console.error("Could not read the clipboard:", error)
+            window.alert("Clipboard access was denied. Allow clipboard access and try again.")
+        }
     }
 
-    const clipboardCount = _.isArray(clipboardValues) ? clipboardValues.length : 0
-
     return (
-        <div>
+        <div onContextMenu={e => e.preventDefault()}>
             <Menu style={{ zIndex: 10, maxWidth : "min(35rem, 80vw)" }} onWheelCapture={e => e.stopPropagation()}>
                 <TextInput
                     small
@@ -103,19 +103,15 @@ export function AttributeContextMenuSearch({ attribute_tag,
                     ))}
                 </MenuItem>
                 <MenuItem text={`Repeat Selection (${rowIdces.length} rows)`} icon="clean" onClick={() => repeatSelection(rowIdces, attribute_tag)} />
-                {inputFields.length > 0
+                {inputFields.length === 1
                     ? <MenuItem
                         icon="clipboard"
-                        disabled={clipboardCount === 0}
-                        label={`${clipboardCount} value(s)`}
+                        text={<span>Paste values from clipboard (<Trait trait_tag={inputFields[0].trait_tag} />)</span>}
+                        onClick={() => handlePasteFromClipboard(inputFields[0])} />
+                    : inputFields.length > 1 ? <MenuItem
+                        icon="clipboard"
                         text={<span>Paste values from clipboard <span className="font-size--smallest">(<Trait trait_tag={inputFields[0].trait_tag} />{inputFields.length > 1 ? ` and ${inputFields.length - 1} more` : ""})</span></span>}>
-                        {inputFields.length === 1
-                            ? <MenuItem
-                                key={`${inputFields[0].attribute_tag}-${inputFields[0].trait_tag}`}
-                                icon="clipboard"
-                                text={<span><Trait trait_tag={inputFields[0].trait_tag} /></span>}
-                                onClick={() => handlePasteFromClipboard(inputFields[0])} />
-                            : inputFields.map(field =>
+                        {inputFields.map(field =>
                                 <MenuItem
                                     key={`${field.attribute_tag}-${field.trait_tag}`}
                                     icon="clipboard"
@@ -123,11 +119,26 @@ export function AttributeContextMenuSearch({ attribute_tag,
                                     onClick={() => handlePasteFromClipboard(field)} />)}
                     </MenuItem>
                     : null}
-                <MenuItem text={`Clear Selection (${rowIdces.length} row(s))`} icon="clean" onClick={() => clearAttributeTableByRowIndex(rowIdces, attribute_tag)} />
+                <MenuItem
+                    text={`Clear Selection (${rowIdces.length} row(s))`}
+                    icon="clean"
+                    onClick={() => clearAttributeTableByRowIndex?.(rowIdces, attribute_tag)}
+                />
                 <MenuItem text={`Copy selected rows (${rowIdces.length} row(s))`} icon="clipboard" onClick={() => onCopy(attribute_tag, rowIdces)} />
 
                 {copiedRows.length > 0 && <MenuItem text={`Paste copied values to selection (${rowIdces.length} row(s))`} icon="th-derived" onClick={() => onPaste(attribute_tag, copiedRows, rowIdces)} />}
             </Menu>
+            <Dialog isOpen={pasteField !== null} onClose={() => setPasteField(null)} title="Paste values">
+                <div style={{ padding: 20 }}>
+                    <p>Paste values here:</p>
+                    <TextArea autoFocus fill rows={10} value={pasteText} onChange={e => setPasteText(e.target.value)} onContextMenu={e => e.stopPropagation()} />
+                    <Button intent="primary" text="Paste" onClick={() => {
+                        const values = parseClipboardValues(pasteText)
+                        if (values.length > 0) onPasteValues(attribute_tag, pasteField, values, rowIdces)
+                        setPasteField(null)
+                    }} />
+                </div>
+            </Dialog>
             </div>
     )
 }
