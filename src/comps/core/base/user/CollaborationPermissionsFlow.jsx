@@ -134,7 +134,8 @@ function Note({ x, y, children, anchor = "start", section }) {
  * @description Flowchart of the explore view permission rules as they are enforced by the
  * backend: bubbles for start / end states, boxes for steps and diamonds for yes/no
  * decisions - from the group's explore setting (disabled by default, enabled by the PI)
- * over the collaboration request to the final decision by the head (PI) of the submission
+ * over the collaboration request (required for both visibility scopes, 'ALL' and 'GROUPS')
+ * to the final decision by the head (PI) of the submission
  * owner's research group for requests from other research groups.
  * @returns {JSX.Element} The explore view permission flowchart.
  */
@@ -147,9 +148,10 @@ export function CollaborationPermissionsFlow() {
                 submissions are hidden from others. The PI can also restrict which research
                 groups may discover the group's submissions: either all research groups (also
                 research groups joining later) or an explicit selection that never includes
-                research groups automatically. A collaboration request from another research
-                group is solely decided by the head (PI) of the submission owner's research group,
-                backend enforced.
+                research groups automatically. Either way, visibility only controls discovery:
+                opening a submission always requires an approved collaboration request, and a
+                request from another research group is solely decided by the head (PI) of the
+                submission owner's research group, backend enforced.
             </div>
         </Callout>
 
@@ -199,7 +201,9 @@ export function CollaborationPermissionsFlow() {
             <BranchTag x={392} y={392} yes={false} />
             <FlowNode cx={RX} cy={392} w={204} h={84} color={C.member}
                 title={["All research groups"]}
-                body={["every research group can", "discover the submissions -", "also groups joining later"]} />
+                body={["every research group can discover", "the submissions - access still", "needs an approved request"]} />
+            <Arrow d={`M${RX},434 V605 H${SX + 132}`} />
+            <Note x={RX + 8} y={525}>request still required</Note>
 
             <Arrow d={`M${SX},444 V485`} />
             <BranchTag x={SX} y={464} yes />
