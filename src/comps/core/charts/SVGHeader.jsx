@@ -9,7 +9,7 @@ SVG.propTypes = {
     width: PropTypes.number,
     height: PropTypes.number,
     svgRef: PropTypes.any,
-    svgID: PropTypes.string.isRequired,
+    svgID: PropTypes.string,
     contextMenuEnabled : PropTypes.bool
 }
 

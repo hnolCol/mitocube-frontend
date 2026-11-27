@@ -126,8 +126,8 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
     const has_selection = _.isArray(selection) && selection.length > 0 && _.isString(selection[0].tag)
     const childTrait = has_selection && _.isString(selection[0].tag) ? selection[0].tag : undefined
 
-
-
+    // console.log(required_traits)
+    // console.log(requiredTraitOwners)
 
     const handleTraitSelection = (trait_tag, referenceID, enforceSingleVariantPerGroup = false, replaceChildrenAtLeaf = false) => {
     
@@ -211,10 +211,12 @@ export function TraitChildSelection({ attribute_tag, onSelection, path, selected
             if (!_.isArray(ownerTags)) return true // no owner info (legacy endpoint or plain tag): keep entry applicable, legacy check below
             return ownerTags.some(ownerTag => (pathAttributeTags.length > 0 ? pathAttributeTags : pathTags).includes(ownerTag))
         })
+        // console.log("Applicable Required Traits:", applicableRequiredTraits, pathTags)
+        // console.log(_.intersection(applicableRequiredTraits, pathTags).length, "LENGHT LONGER?")
         if (applicableRequiredTraits.length === 0) {
             setRequiredTraitsValid(true) // no required trait applies to this parent branch
         } else {
-            setRequiredTraitsValid(_.intersection(applicableRequiredTraits, pathTags).length > 0)
+            setRequiredTraitsValid(_.intersection(applicableRequiredTraits, pathTags).length == required_traits.length)
         }
     }, [path.map(p => p.tag).join("-"), _.isArray(required_traits) ? required_traits.join("-") : "", requiredTraitsChecked, requiredTraitOwnersChecked, requiredTraitOwnersError, JSON.stringify(requiredTraitOwners ?? null)])
 

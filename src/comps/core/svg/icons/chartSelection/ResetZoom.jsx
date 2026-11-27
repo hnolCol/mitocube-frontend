@@ -2,7 +2,7 @@ import { SVG } from "@/comps/core/charts/SVGHeader";
 import { Group } from "@visx/group";
 
 
-export function ResetZoomSVG({ size = 25, color = "#000", active = false }) {
+export function ResetZoomSVG({ size = 25, color = "#000", active = false, onClick = undefined }) {
 
     // the magnifier (circle + handle) is centered as a composite: circle top-left, handle to bottom-right
     const circleX = size * 0.36
@@ -13,7 +13,7 @@ export function ResetZoomSVG({ size = 25, color = "#000", active = false }) {
     const height = size
     const strokeColor = active ? "#466688" : color
     return (
-         <button title={active ? "Zoom is active - click to reset" : "Reset zoom"} className="flex margin--very-little icon__container center-items" style={{outline : "none", border : "none", width: size, height: size, padding : "0px", backgroundColor: active ? "#4666883a" : undefined}} onMouseDown={e => e.stopPropagation()}>
+         <button onClick={onClick} title={active ? "Zoom is active - click to reset" : "Reset zoom"} className="flex margin--very-little icon__container center-items" style={{outline : "none", border : "none", width: size, height: size, padding : "0px", backgroundColor: active ? "#4666883a" : undefined}} onMouseDown={e => e.stopPropagation()}>
         
             <SVG {...{ width, height  }}>
                 <Group  left={0} top={0} >

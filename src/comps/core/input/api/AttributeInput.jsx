@@ -25,10 +25,6 @@ export function AttributeMenuItem({ tag, menuItemProps, selected = false}) {
     return <MenuItem
         text={attribute.text}
         icon={selected?"tick":"blank"}
-        // labelElement={<div className="font-size--smallest"
-        //     style={{ maxWidth: "8rem" }}>
-        //     {trait.description}
-        // </div>}
         active={menuItemProps.modifiers.active} 
         onClick={() => menuItemProps.handleClick(tag)} />
 }
@@ -145,7 +141,7 @@ export function AttributeInput({ text, min_state, attribute_groups, onItemSelect
                 disabled={disabled || isError}
                 items={items}
                 itemRenderer={renderItem}
-                inputValueRenderer={(i) => _.isObject(i) ? i.attribute_tag : i.text}
+                inputValueRenderer={(i) => _.isObject(i) ? i.attribute_tag : i}
                 onQueryChange={handleQueryChange}
                 onItemSelect={(item) => onItemSelect(_.isString(item) ? item : item.attribute_tag)}
                 popoverProps={{

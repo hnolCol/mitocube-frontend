@@ -259,7 +259,6 @@ export function AttributesInput({
             placeholderData: (prev) => prev
     })
 
-    console.log(queried_attributes)
     /**
      * 
      * @param {MouseEvent} e 

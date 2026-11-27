@@ -100,25 +100,27 @@ function TraitWithValueInputComponent({
                 <motion.div
                     style={{ backgroundColor: backgroundColor, color: fontColor, fontSize: "0.75rem", position : "relative", width : "100%" }}
                     className="flex center-items padding--tiny cursor--default div--round margin-right--tiny"
-                    whileHover={{ backgroundColor: "#efefef" }}>
+                    whileHover={{ backgroundColor: backgroundColor ? "#313030" : "#efefef" }}>
                 
                     <div className="flex center-items" >
-                        {attributeIsSuccess  ? !attribute.allow_input ? <div className="flex flex-column" style={{ width: "100%",marginRight : "1rem" }}>
-                            <div><strong>{trait.text}</strong></div>
-                            {hasChildren ?
-                                <TraitChildren
-                                    children_tags={children} {...{
-                                    onChildrenSelection,
-                                    rowIndex,
-                                    getSelectionByPath,
-                                    path:  traitPath,
-                                    selectedRows: sel,
-                                    onRemove,
-                                    referenceID,
-                                    checkAttributeRequiredTraits,
-                                    selected_proteome_tags,
-                                    highlight
-                                }} /> : null}
+                        {attributeIsSuccess ?
+                            !attribute.allow_input ?
+                                <div className="flex flex-column" style={{ width: "100%", marginRight: "1rem" }}>
+                                    <div><strong>{trait.text}</strong></div>
+                                    {hasChildren ?
+                                        <TraitChildren
+                                            children_tags={children} {...{
+                                            onChildrenSelection,
+                                            rowIndex,
+                                            getSelectionByPath,
+                                            path:  traitPath,
+                                            selectedRows: sel,
+                                            onRemove,
+                                            referenceID,
+                                            checkAttributeRequiredTraits,
+                                            selected_proteome_tags,
+                                            highlight
+                                        }} /> : null}
                         </div> : 
                             <div className="flex flex-column" style={{ width: "100%", marginRight: "1rem" }}>
                                 <AttributeTraitInput
